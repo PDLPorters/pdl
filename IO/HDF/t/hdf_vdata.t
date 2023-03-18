@@ -35,13 +35,8 @@ PDL::IO::HDF::VS::_VSsetclass( $vdata_id, 'vdata_class' );
 my $vdata_ref = PDL::IO::HDF::VS::_VSgetid( $Hid, -1 );
 ok( $vdata_ref != PDL::IO::HDF->FAIL );
 
-my $name = "";
-PDL::IO::HDF::VS::_VSgetname( $vdata_id, $name );
-ok( $name eq "vdata_name" );
-
-my $class = "";
-PDL::IO::HDF::VS::_VSgetclass( $vdata_id, $class );
-ok( $class eq "vdata_class" );
+is( PDL::IO::HDF::VS::_VSgetname( $vdata_id ), "vdata_name" );
+is( PDL::IO::HDF::VS::_VSgetclass( $vdata_id ), "vdata_class" );
 
 my $data = PDL::float sequence(10);
 my $HDFtype = $PDL::IO::HDF::SDtypeTMAP->{$data->get_datatype()};

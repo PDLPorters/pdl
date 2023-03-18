@@ -26,13 +26,8 @@ PDL::IO::HDF::VS::_Vsetclass( $vgroup_id, 'vgroup_class' );
 my $vgroup_ref = PDL::IO::HDF::VS::_Vgetid( $Hid, -1 );
 ok( $vgroup_ref != PDL::IO::HDF->FAIL );
 
-my $name = "";
-PDL::IO::HDF::VS::_Vgetname( $vgroup_id, $name);
-ok( $name eq "vgroup_name" );
-
-my $class = "";
-PDL::IO::HDF::VS::_Vgetclass( $vgroup_id, $class);
-ok( $class eq "vgroup_class" );
+is( PDL::IO::HDF::VS::_Vgetname($vgroup_id), "vgroup_name" );
+is( PDL::IO::HDF::VS::_Vgetclass( $vgroup_id ), "vgroup_class" );
 
 PDL::IO::HDF::VS::_Vdetach( $vgroup_id );
 

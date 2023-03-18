@@ -126,43 +126,34 @@ EODEF
 pp_addxs('',<<'ENDOFXS');
 
 int
-_WriteMultPDL(VID, nb_records, nb_fields, interlace_mode, ...);
+_WriteMultPDL(VID, nb_records, nb_fields, interlace_mode, sizeofPDL, sdimofPDL, listofPDL);
                 int VID
                 int nb_records
                 int nb_fields
                 int interlace_mode
+                AV *sizeofPDL
+                AV *sdimofPDL
+                AV *listofPDL
         PROTOTYPE: @
         CODE:
-            unsigned char *databuff, *ptrbuff;
-            unsigned long int total_size;
-            int i, j, k, curvalue, cursdim;
-            SV * sizeofPDL;
-            SV * listofPDL;
-            SV * sdimofPDL;
-            SV * * SvTmp1, * * SvTmp2, * * SvTmp3;
-            pdl *curPDL;
-
-            sizeofPDL = SvRV( ST(4) );
-            sdimofPDL = SvRV( ST(5) );
-            listofPDL = SvRV( ST(6) );
-
-            total_size = 0;
+            unsigned long int total_size = 0;
+            int i, j, k;
             for(i=0; i<nb_fields; i++)
             {
-                SvTmp1 = av_fetch((AV*)sizeofPDL, i, 0);
-                curvalue = SvIV( *SvTmp1 );
+                SV **SvTmp1 = av_fetch(sizeofPDL, i, 0);
+                int curvalue = SvIV( *SvTmp1 );
 
-                SvTmp3 = av_fetch((AV*)sdimofPDL, i, 0);
-                cursdim = SvIV( *SvTmp3 );
+                SV **SvTmp3 = av_fetch(sdimofPDL, i, 0);
+                int cursdim = SvIV( *SvTmp3 );
 
                 total_size += curvalue * cursdim;
             }
 
             total_size *= nb_records;
-            databuff = (unsigned char *)malloc( total_size );
+            unsigned char *databuff = (unsigned char *)malloc( total_size );
             if(databuff==NULL)
                 croak("memory allocation error");
-            ptrbuff = databuff;
+            unsigned char *ptrbuff = databuff;
 
             if(interlace_mode == 0)
             {
@@ -170,14 +161,14 @@ _WriteMultPDL(VID, nb_records, nb_fields, interlace_mode, ...);
                 {
                     for(j=0; j<nb_fields; j++)
                     {
-                        SvTmp2 = av_fetch((AV*)listofPDL, j, 0);
-                        curPDL = PDL->SvPDLV( *SvTmp2 );
+                        SV **SvTmp2 = av_fetch(listofPDL, j, 0);
+                        pdl *curPDL = PDL->SvPDLV( *SvTmp2 );
 
-                        SvTmp3 = av_fetch((AV*)sdimofPDL, j, 0);
-                        cursdim = SvIV( *SvTmp3 );
+                        SV **SvTmp3 = av_fetch(sdimofPDL, j, 0);
+                        int cursdim = SvIV( *SvTmp3 );
 
-                        SvTmp1 = av_fetch((AV*)sizeofPDL, j, 0);
-                        curvalue = SvIV( *SvTmp1 );
+                        SV **SvTmp1 = av_fetch(sizeofPDL, j, 0);
+                        int curvalue = SvIV( *SvTmp1 );
 
                         for(k=0; k<cursdim; k++)
                         {
@@ -197,14 +188,14 @@ _WriteMultPDL(VID, nb_records, nb_fields, interlace_mode, ...);
             { 
                 for(j=0; j<nb_fields; j++)
                 {
-                    SvTmp2 = av_fetch((AV*)listofPDL, j, 0);
-                    curPDL = PDL->SvPDLV( *SvTmp2 );
-                
-                    SvTmp1 = av_fetch((AV*)sizeofPDL, j, 0);
-                    curvalue = SvIV( *SvTmp1 );
+                    SV **SvTmp2 = av_fetch(listofPDL, j, 0);
+                    pdl *curPDL = PDL->SvPDLV( *SvTmp2 );
 
-                    SvTmp3 = av_fetch((AV*)sdimofPDL, j, 0);
-                    cursdim = SvIV( *SvTmp3 );
+                    SV **SvTmp3 = av_fetch(sdimofPDL, j, 0);
+                    int cursdim = SvIV( *SvTmp3 );
+
+                    SV **SvTmp1 = av_fetch(sizeofPDL, j, 0);
+                    int curvalue = SvIV( *SvTmp1 );
 
                     memcpy( ptrbuff, (unsigned char *)(curPDL->data), curvalue*nb_records*cursdim );
                     ptrbuff += curvalue*nb_records*cursdim;
@@ -215,61 +206,62 @@ _WriteMultPDL(VID, nb_records, nb_fields, interlace_mode, ...);
             fprintf(stderr, "Calling VSwrite(VID=%d, databuff=%p, nb_records=%d, interlace_mode=%d)...\n", 
                     VID, databuff, nb_records, interlace_mode);
             RETVAL = VSwrite(VID, databuff, nb_records, interlace_mode);
+            free(databuff);
         OUTPUT:
             RETVAL
 
-void
-_Vgetname(vgroup_id, vgroup_name);
+SV *
+_Vgetname(vgroup_id);
                 int vgroup_id
-                char *vgroup_name
         CODE:
-                vgroup_name=(char *)malloc(VGNAMELENMAX);
+                uint16 len;
+                if (Vgetnamelen(vgroup_id, &len)) croak("Failed to get Vgetnamelen for ID=%d", vgroup_id);
+                char vgroup_name[len+1];
                 Vgetname(vgroup_id,vgroup_name);
+                RETVAL = newSVpvn(vgroup_name,len);
         OUTPUT:
-                vgroup_name
+                RETVAL
 
-void
-_VSgetname(vdata_id, vdata_name);
+SV *
+_VSgetname(vdata_id);
                 int vdata_id
-                char *vdata_name
         CODE:
-                vdata_name=(char *)malloc(VGNAMELENMAX*sizeof(char));
+                char vdata_name[VGNAMELENMAX];
                 VSgetname(vdata_id,vdata_name);
+                RETVAL = newSVpv(vdata_name,0);
         OUTPUT:
-                vdata_name
+                RETVAL
 
-void
-_Vgetclass(vgroup_id, vgroup_class);
+SV *
+_Vgetclass(vgroup_id);
                 int vgroup_id
-                char *vgroup_class
         CODE:
-                vgroup_class=(char *)malloc(VGNAMELENMAX*sizeof(char));        
+                uint16 len;
+                if (Vgetclassnamelen(vgroup_id, &len)) croak("Failed to get Vgetclassnamelen for ID=%d", vgroup_id);
+                char vgroup_class[len+1];
                 Vgetclass(vgroup_id,vgroup_class);
+                RETVAL = newSVpvn(vgroup_class,len);
         OUTPUT:
-                vgroup_class
+                RETVAL
 
-void
-_VSgetclass(vdata_id, vdata_class);
+SV *
+_VSgetclass(vdata_id);
                 int vdata_id
-                char *vdata_class
         CODE:
-                vdata_class=(char *)malloc(VGNAMELENMAX*sizeof(char));        
+                char vdata_class[VGNAMELENMAX];
                 VSgetclass(vdata_id,vdata_class);
+                RETVAL = newSVpv(vdata_class,0);
         OUTPUT:
-                vdata_class
+                RETVAL
 
 int
 _VSgetfields(vdata_id, fields);
                 int vdata_id
                 char *fields
         CODE:
-                char *tmpfields;
-                int len;                
-                tmpfields=(char *)malloc(10000*sizeof(char));
+                char tmpfields[10000];
                 RETVAL=VSgetfields(vdata_id, tmpfields);
-                len=strlen(tmpfields);
-                fields=(char *)malloc(len*sizeof(char)+1);
-                strcpy(fields,tmpfields);
+                fields = tmpfields;
         OUTPUT:
                 RETVAL
                 fields
@@ -278,23 +270,17 @@ AV *
 _VSlone(file_id);
 		int file_id;
 	CODE:
-		AV  *ref_vdata_list;
-		int *ref_array;
-		SV  *ref_vdata;
-		int32 nlone;
-		ref_vdata_list=newAV();
-		ref_array=(int *)malloc(MAX_FIELD_SIZE*sizeof(int));
-		nlone = VSlone(file_id, ref_array, MAX_FIELD_SIZE);
+		AV  *ref_vdata_list=newAV();
+		int ref_array[MAX_FIELD_SIZE];
+		int32 nlone = VSlone(file_id, ref_array, MAX_FIELD_SIZE);
 		int32 i;
 		for(i=0;i<nlone;i++){
-			ref_vdata=newSViv((IV)ref_array[i]);
-			av_push(ref_vdata_list, ref_vdata);
+			av_push(ref_vdata_list, newSViv((IV)ref_array[i]));
 		}
 		RETVAL=ref_vdata_list;
 	OUTPUT:
 		RETVAL
 
-        
 int
 _VSinquire(vdata_id, n_records, interlace, fields, vdata_size, vdata_name);
         int vdata_id
@@ -304,14 +290,11 @@ _VSinquire(vdata_id, n_records, interlace, fields, vdata_size, vdata_name);
         int *vdata_size
         char *vdata_name
 CODE:
-        char *tmpfields;
-        int len;        
-        vdata_name=(char *)malloc(VGNAMELENMAX*sizeof(char));
-        tmpfields=(char *)malloc(10000*sizeof(char));
-        RETVAL=VSinquire(vdata_id, n_records, interlace, tmpfields, vdata_size, vdata_name)+1;
-        len=strlen(tmpfields);
-        fields=(char *)malloc(len*sizeof(char)+1);
-        strcpy(fields,tmpfields);
+        char tmpfields[10000];
+        char tmpname[VGNAMELENMAX];
+        RETVAL=VSinquire(vdata_id, n_records, interlace, tmpfields, vdata_size, tmpname)+1;
+        vdata_name=tmpname;
+        fields = tmpfields;
 OUTPUT:
         RETVAL
         n_records
@@ -409,11 +392,8 @@ sub new
             my $vg_name = " "x(PDL::IO::HDF->VNAMELENMAX+1);
             my $res = PDL::IO::HDF::VS::_Vinquire( $vg_id, $n_entries, $vg_name );
 
-            my $vg_class = "";
-            PDL::IO::HDF::VS::_Vgetclass( $vg_id, $vg_class );
-
             $vgroup->{$vg_name}->{ref} = $vg_ref;
-            $vgroup->{$vg_name}->{class} = $vg_class;
+            $vgroup->{$vg_name}->{class} = PDL::IO::HDF::VS::_Vgetclass( $vg_id );
 
             my $n_pairs = PDL::IO::HDF::VS::_Vntagrefs( $vg_id );
 
@@ -433,10 +413,8 @@ sub new
                 elsif($tag == 1962)
                 {   # Vdata
                     my $id = PDL::IO::HDF::VS::_VSattach( $self->{HID}, $ref, 'r' );
-                    my $name = " "x(PDL::IO::HDF->VNAMELENMAX+1);
-                    my $res = PDL::IO::HDF::VS::_VSgetname( $id, $name );
-                    my $class = "";
-                    PDL::IO::HDF::VS::_VSgetclass( $id, $class );
+                    my $name = PDL::IO::HDF::VS::_VSgetname( $id );
+                    my $class = PDL::IO::HDF::VS::_VSgetclass( $id );
                     PDL::IO::HDF::VS::_VSdetach( $id );
                     $vgroup->{$vg_name}->{attach}->{$name}->{type} = 'VData';
                     $vgroup->{$vg_name}->{attach}->{$name}->{ref} = $ref;
@@ -484,10 +462,10 @@ sub new
                 $mode="w";
             }
             $vdata_id = PDL::IO::HDF::VS::_VSattach( $self->{HID}, $vdata_ref, $mode );
-            my $vdata_size = 0;
             my $n_records = 0;
             my $interlace = 0;
             my $fields = "";
+            my $vdata_size = 0;
             my $vdata_name = "";
             
             my $status = PDL::IO::HDF::VS::_VSinquire(
