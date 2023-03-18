@@ -10,18 +10,11 @@ sub new {
 }
 
 sub get_indobj_make {
-	my($this,$expr) = @_;
-	$expr =~ /^([a-zA-Z0-9]+)(?:=([0-9]+))?$/ or confess "Invalid index expr '$expr'\n";
-	my $name = $1; my $val = $2;
-	my $indobj;
-	if(defined $this->{$name}) {
-		$indobj = $this->{$name};
-	} else {
-		$indobj = PDL::PP::Ind->new($name);
-		$this->{$name}=$indobj;
-	}
-	if(defined $val) { $indobj->add_value($val); }
-	return $indobj;
+  my($this,$expr) = @_;
+  my ($name, $val) = $expr =~ /^([a-zA-Z0-9]+)(?:=([0-9]+))?$/ or confess "Invalid index expr '$expr'\n";
+  my $indobj = $this->{$name} //= PDL::PP::Ind->new($name);
+  $indobj->add_value($val) if defined $val;
+  return $indobj;
 }
 
 #####################################################################

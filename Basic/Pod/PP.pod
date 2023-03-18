@@ -1317,6 +1317,8 @@ in the signature. Let's have an example how that is done:
 This says that the named dimension C<n> will be initialised from the
 value of the I<other parameter> C<ns> which is of integer type (I guess
 you have realised that we use the C<CType From =E<gt> named_dim> syntax).
+As of 2.082, this can be used to set the size of a dimension not used
+in any C<Pars>.
 Now you can call this function in the usual way:
 
   setdim(($x=null),5);

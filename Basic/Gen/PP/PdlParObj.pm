@@ -88,19 +88,10 @@ sub name {return (shift)->{Name}}
 
 sub add_inds {
 	my($this,$dimsobj) = @_;
-	$this->{IndObjs} = [map {$dimsobj->get_indobj_make($_)}
-		@{$this->{RawInds}}];
+	$this->{IndObjs} = [my @objs = map $dimsobj->get_indobj_make($_), @{$this->{RawInds}}];
 	my %indcount;
-	$this->{IndCounts} = [
-		map {
-			0+($indcount{$_->name}++);
-		} @{$this->{IndObjs}}
-	];
-	$this->{IndTotCounts} = [
-		map {
-			($indcount{$_->name});
-		} @{$this->{IndObjs}}
-	];
+	$this->{IndCounts} = [ map 0+($indcount{$_->name}++), @objs ];
+	$this->{IndTotCounts} = [ map $indcount{$_->name}, @objs ];
 }
 
 

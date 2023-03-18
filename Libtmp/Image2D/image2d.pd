@@ -413,7 +413,7 @@ Note: this routine does the median over all points in a rectangular
 
 EOD
         Pars => 'a(m,n); [o]b(m,n);',
-        OtherPars => 'int p_size; int q_size; int opt;',
+        OtherPars => 'int p_size=>p; int q_size=>q; int opt;',
         PMCode => <<'EOF',
 sub PDL::med2df {
    my $opt; $opt = pop @_ if ref($_[$#_]) eq 'HASH';
@@ -430,7 +430,7 @@ sub PDL::med2df {
 }
 EOF
         Code =>
-           init_vars( [qw(m n)], [qw(p q)] ) .
+           init_vars() .
            init_map("i") .
            init_map("j") .
 '
