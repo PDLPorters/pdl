@@ -281,7 +281,7 @@ _VSlone(file_id);
 	OUTPUT:
 		RETVAL
 
-int
+void
 _VSinquire(vdata_id, n_records, interlace, fields, vdata_size, vdata_name);
         int vdata_id
         int *n_records
@@ -292,11 +292,11 @@ _VSinquire(vdata_id, n_records, interlace, fields, vdata_size, vdata_name);
 CODE:
         char tmpfields[10000];
         char tmpname[VGNAMELENMAX];
-        RETVAL=VSinquire(vdata_id, n_records, interlace, tmpfields, vdata_size, tmpname)+1;
+        if (VSinquire(vdata_id, n_records, interlace, tmpfields, vdata_size, tmpname))
+            croak("PDL::IO::HDF::VS::_VSinquire (vdata_id=%d)",vdata_id);
         vdata_name=tmpname;
         fields = tmpfields;
 OUTPUT:
-        RETVAL
         n_records
         interlace
         fields
@@ -468,10 +468,8 @@ sub new
             my $vdata_size = 0;
             my $vdata_name = "";
             
-            my $status = PDL::IO::HDF::VS::_VSinquire(
+            PDL::IO::HDF::VS::_VSinquire(
                             $vdata_id, $n_records, $interlace, $fields, $vdata_size, $vdata_name );
-            die "PDL::IO::HDF::VS::_VSinquire (vdata_id=$vdata_id)"
-                unless $status;
             $vdata->{$vdata_name}->{REF} = $vdata_ref;
             $vdata->{$vdata_name}->{NREC} = $n_records;
             $vdata->{$vdata_name}->{INTERLACE} = $interlace;
@@ -654,7 +652,7 @@ sub VSread
     my $interlace = 0;
     my $fields = "";
     my $vdata_name = "";
-    my $status = PDL::IO::HDF::VS::_VSinquire(
+    PDL::IO::HDF::VS::_VSinquire(
                     $vdata_id, $n_records, $interlace, $fields, $vdata_size, $vdata_name );
     my $data_type = PDL::IO::HDF::VS::_VFfieldtype(
                     $vdata_id, $self->{VDATA}->{$name}->{FIELDS}->{$field}->{INDEX} );
@@ -673,7 +671,7 @@ sub VSread
     {
         $data = ones( $PDL::IO::HDF::SDinvtypeTMAP2->{$data_type}, $n_records, $order );
     }
-    $status = PDL::IO::HDF::VS::_VSsetfields( $vdata_id, $field );
+    my $status = PDL::IO::HDF::VS::_VSsetfields( $vdata_id, $field );
     
     die "$sub: _VSsetfields\n"
         unless $status;

@@ -67,7 +67,7 @@ my $n_records = 0;
 my $interlace = 0;
 my $fields = "";
 my $vdata_name = "";
-ok( PDL::IO::HDF::VS::_VSinquire( $vdata_id, $n_records, $interlace, $fields, $vdata_size, $vdata_name) );
+PDL::IO::HDF::VS::_VSinquire( $vdata_id, $n_records, $interlace, $fields, $vdata_size, $vdata_name);
 
 my @tfields = split(",",$fields);
 my $data_type = PDL::IO::HDF::VS::_VFfieldtype( $vdata_id, 0 );
