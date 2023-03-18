@@ -25,6 +25,7 @@ use PDL;  # ensure qsort routine available
 use PDL::Math;
 use Carp;
 
+my %boundary2value = (Reflect=>1, Truncate=>2, Replicate=>3);
 EOD
 
 pp_addpm({At=>'Bot'},<<'EOD');
@@ -257,10 +258,8 @@ sub PDL::conv2d {
    my($x,$kern) = @_;
    my $c = $#_ == 2 ? $_[2] : $x->nullcreate;
    PDL::_conv2d_int($x,$kern,$c,
-	(!(defined $opt && exists $$opt{Boundary}))?0:
-	(($$opt{Boundary} eq "Reflect") +
-	2*($$opt{Boundary} eq "Truncate") +
-	3*($$opt{Boundary} eq "Replicate")));
+	(!($opt && exists $$opt{Boundary}))?0:$boundary2value{$$opt{Boundary}}
+	);
    return $c;
 }
 ',
@@ -344,10 +343,8 @@ sub PDL::med2d {
        if all( $kern <= 0 );
    my $c = $#_ == 2 ? $_[2] : $x->nullcreate;
    PDL::_med2d_int($x,$kern,$c,
-	(!(defined $opt && exists $$opt{Boundary}))?0:
-	(($$opt{Boundary} eq "Reflect") +
-	2*($$opt{Boundary} eq "Truncate") +
-	3*($$opt{Boundary} eq "Replicate")));
+	(!($opt && exists $$opt{Boundary}))?0:$boundary2value{$$opt{Boundary}}
+   );
    return $c;
 }
 EOF
@@ -437,10 +434,8 @@ sub PDL::med2df {
        if $p == 0 && $q == 0;
    my $c = $#_ == 3 ? $_[3] : $x->nullcreate;
    &PDL::_med2df_int($x,$c,$p,$q,
-	(!(defined $opt && exists $$opt{Boundary}))?0:
-	(($$opt{Boundary} eq "Reflect") +
-	2*($$opt{Boundary} eq "Truncate") +
-	3*($$opt{Boundary} eq "Replicate")));
+	(!($opt && exists $$opt{Boundary}))?0:$boundary2value{$$opt{Boundary}}
+   );
    return $c;
 }
 EOF
