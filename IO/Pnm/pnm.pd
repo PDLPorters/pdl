@@ -1,8 +1,5 @@
-# REPLACE FOLLOWING BY
-#
-# use PDL::PP qw/PDL::Experiment PDL::Experiment Experiment/;
-#
-# when using not in this package.
+use strict;
+use warnings;
 
 pp_add_exported('',"rpnm wpnm");
 
@@ -280,7 +277,7 @@ pp_def('pnminraw',
 	Pars => 'type(); byte+ [o] im(m,n)',
 	OtherPars => 'int ms => m; int ns => n;
 			int isbin; PerlIO *fp',
-	GenericTypes => [B,U,L],
+	GenericTypes => [qw(B U L)],
 	Code => 'int ms, ns, i,j,k,bit,llen;
 		 PDL_Byte *buf, *bp;
 		 $GENERIC() *gbp;
@@ -319,7 +316,6 @@ determine the type of the operation when creating C<im> or trigger
 the appropriate type conversion (maybe we want a byte+ here so that
 C<im> follows I<strictly> the type of C<type>).
 '
-
 );
 
 pp_addhdr(<<'EOH');
@@ -330,7 +326,7 @@ pp_def( 'pnminascii',
 	Pars => 'type(); byte+ [o] im(m,n)',
 	OtherPars => 'int ms => m; int ns => n;
 			int format; PerlIO *fp',
-	GenericTypes => [B,U,S,L],
+	GenericTypes => [qw(B U S L)],
 	Code => q?
 		 int ms, ns, s, i;
 		 ms = $SIZE(m); ns = $SIZE(n);
@@ -398,7 +394,7 @@ pp_def(	'pnmout',
 	Pars => 'a(m);',
 	'NoPthread' => 1, # Pthreading doesn't make sense for an IO function
 	OtherPars => "int israw; int isbin; PerlIO *fp",
-	GenericTypes => [B,U,S,L],
+	GenericTypes => [qw(B U S L)],
 	Code => '
 		 if ($COMP(israw)) {
 		    if ($COMP(isbin)) {
