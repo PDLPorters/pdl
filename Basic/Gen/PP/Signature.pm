@@ -67,10 +67,8 @@ sub _otherPars_nft {
 	    # support 'int ndim => n;' syntax
 	    my ($ctype,$dim) = ($1,$2);
 	    print "OtherPars: setting dim '$dim' from '$ctype'\n" if $::PP_VERBOSE;
-	    croak "can't set unknown dimension '$dim' from '$otherpars'"
-		unless defined($dimobjs->{$dim});
 	    $type = PDL::PP::CType->new($ctype);
-	    $dimobjs->{$dim}->set_from($type);
+	    ($sig->{Ind2Obj}{$dim} ||= $dimobjs->get_indobj_make($dim))->set_from($type);
 	} else {
 	    $type = PDL::PP::CType->new($_);
 	}

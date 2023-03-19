@@ -53,14 +53,14 @@ sub set_from { my($this,$otherpar) = @_;
 	$this->{From} = $otherpar;
 }
 
-sub name {$_[0]->{Name}}
+sub name {$_[0]{Name}}
 
 # where it occurs in the C arrays that track it (at least name and size)
 sub set_index {
   my ($this, $i) = @_;
   $this->{Index} = $i;
 }
-sub get_index {$_[0]->{Index}}
+sub get_index {$_[0]{Index} // confess "unknown index for $_[0]{Name}"}
 
 sub get_initdim { my($this) = @_;
 	my $init = $this->{Value} //
