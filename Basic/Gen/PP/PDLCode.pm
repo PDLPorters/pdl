@@ -129,8 +129,9 @@ sub new {
 
     # Enclose it all in a genericloop.
     my $nc = $coderef;
+    my $if_gentype = ($code.($badcode//'')) =~ /PDL_IF_GENTYPE_/;
     $coderef = PDL::PP::GenericSwitch->new($generictypes, undef,
-	  [grep {!$extrageneric->{$_}} @$parnames],'$PRIV(__datatype)');
+	  [grep {!$extrageneric->{$_}} @$parnames],'$PRIV(__datatype)',$if_gentype);
     push @{$coderef},$nc;
 
     # Do we have extra generic loops?
@@ -143,7 +144,7 @@ sub new {
     for(sort keys %glh) {
 	my $nc = $coderef;
 	$coderef = PDL::PP::GenericSwitch->new($generictypes,$no++,
-					    $glh{$_},$_);
+					    $glh{$_},$_,$if_gentype);
 	push @$coderef,$nc;
     }
 
@@ -477,12 +478,12 @@ sub get_generictyperecs { my($types) = @_;
 
 # Types: BSULFD
 sub new {
-    my ($type,$types,$name,$varnames,$whattype) = @_;
+    my ($type,$types,$name,$varnames,$whattype,$if_gentype) = @_;
     my %vars; @vars{@$varnames} = ();
-    bless [get_generictyperecs($types), $name, \%vars, $whattype], $type;
+    bless [get_generictyperecs($types), $name, \%vars, $whattype, $if_gentype], $type;
 }
 
-sub myoffs {4}
+sub myoffs {5}
 
 sub myprelude {
     my ($this,$parent,$context) = @_;
@@ -504,7 +505,7 @@ sub myitemstart {
       ? PDL::PP::pp_line_numbers(__LINE__-1, "\t\tPDL_DECLARE_PARAMS_$parent->{Name}_$parent->{NullDataCheck}(@{[join ',', @param_ctypes]})\n")
       : join '', map $_->get_xsdatapdecl($_->adjusted_type($item)->ctype, $parent->{NullDataCheck}),
           map $parent->{ParObjs}{$_}, sort keys %{$this->[2]};
-    my @gentype_decls = map "#define PDL_IF_GENTYPE_".uc($_)."(t,f) ".
+    my @gentype_decls = !$this->[4] ? () : map "#define PDL_IF_GENTYPE_".uc($_)."(t,f) ".
 	($item->$_ ? 't' : 'f')."\n",
 	@GENTYPE_ATTRS;
     join '',
@@ -518,7 +519,7 @@ sub myitemend {
     my $item = $this->[0][$nth] || return "";
     join '',
 	"\n",
-	(map "#undef PDL_IF_GENTYPE_".uc($_)."\n", @GENTYPE_ATTRS),
+	(!$this->[4] ? () : map "#undef PDL_IF_GENTYPE_".uc($_)."\n", @GENTYPE_ATTRS),
 	PDL::PP::pp_line_numbers(__LINE__-1, "} break;\n");
 }
 

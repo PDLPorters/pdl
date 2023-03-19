@@ -461,22 +461,22 @@ pp_def('norm',
        'long double sum=0;
         int flag = 0;
 	loop(n) %{
-           PDL_IF_BAD(if ( $ISGOOD(vec()) ) {,)
+           PDL_IF_BAD(if ( $ISGOOD(vec()) ),) {
               sum +=
                 PDL_IF_GENTYPE_REAL(
                   $vec()*$vec(),
                   creall($vec())*creall($vec()) + cimagl($vec())*cimagl($vec())
                 );
-           PDL_IF_BAD(flag = 1; },)
+           PDL_IF_BAD(flag = 1;,) }
         %}
-        PDL_IF_BAD(if ( flag ) {,)
+        PDL_IF_BAD(if ( flag ),) {
 	   if (sum > 0) {
 	      sum = sqrt(sum);
 	      loop(n) %{
                  PDL_IF_BAD(if ( $ISBAD(vec()) ) { $SETBAD(norm()); }
-                            else                 {,)
+                            else              ,) {
                     $norm() = $vec()/sum;
-                 PDL_IF_BAD(},)
+                 }
               %}
 	   } else {
 	      loop(n) %{
@@ -484,7 +484,7 @@ pp_def('norm',
                  else                 { $norm() = $vec(); }
               %}
            }
-        PDL_IF_BAD(} else {
+        } PDL_IF_BAD(else {
 	   loop(n) %{
               $SETBAD(norm());
            %}
