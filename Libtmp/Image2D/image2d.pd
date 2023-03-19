@@ -1995,8 +1995,8 @@ C<NOVAL> gives the value used to indicate that a pixel in the
 output image does not map onto one in the input image.
 EOD
     HandleBad => 0,
-    Pars => 'img(m,n); ldouble px(np,np); ldouble py(np,np); [o] warp(m,n); ldouble [t] poly(np)',
-    OtherPars => 'char *kernel_type; double noval;',
+    Pars => 'img(m,n); ldouble px(np,np); ldouble py(np,np); [o] warp(m,n); ldouble [t] poly(np); ldouble [t] kernel(ns)',
+    OtherPars => 'char *kernel_type; double noval; int nsamples => ns',
     GenericTypes => [ qw(F D E) ],
         PMCode => <<'EOF',
 # support routine
@@ -2016,32 +2016,27 @@ EOD
 sub PDL::warp2d {
     my $opts = PDL::Options->new( { KERNEL => "tanh", NOVAL => 0 } );
     $opts->options( pop(@_) ) if ref($_[$#_]) eq "HASH";
-
     die "Usage: warp2d( in(m,n), px(np,np); py(np,np); [o] out(m,n), {Options} )"
 	if $#_<2 || $#_>3;
     my $img = shift;
     my $px  = shift;
     my $py  = shift;
     my $out = $#_ == -1 ? PDL->null() : shift;
-
     # safety checks
     my $copt   = $opts->current();
     my $kernel = _check_kernel( $$copt{KERNEL}, "warp2d" );
-
-    &PDL::_warp2d_int( $img, $px, $py, $out, $kernel, $$copt{NOVAL} );
+    &PDL::_warp2d_int( $img, $px, $py, $out, $kernel, $$copt{NOVAL}, _get_kernel_size() );
     return $out;
 }
 EOF
     Code => <<'EOF',
     PDL_Indx ncoeff, lx_out, ly_out, i, j, k, lx_3, ly_3, px, py, tabx, taby;
     PDL_Indx da[16], db[16] ;
-    PDL_LDouble cur, neighbors[16], rsc[8], sumrs, x, y, *kernel, *poly = $P(poly);
+    PDL_LDouble cur, neighbors[16], rsc[8], sumrs, x, y, *kernel = $P(kernel), *poly = $P(poly);
 
     /* Generate interpolation kernel */
-    kernel = generate_interpolation_kernel( $COMP(kernel_type) ) ;
-    if (kernel == NULL) {
-      $CROAK( "Ran out of memory building kernel\n" );
-    }
+    if (!generate_interpolation_kernel($COMP(kernel_type), $SIZE(ns), kernel))
+      $CROAK("Invalid kernel type '%s'", $COMP(kernel_type));
 
     /* Compute sizes  */
     ncoeff = $SIZE(np);
@@ -2147,7 +2142,6 @@ EOF
 	    %}   /* loop(m) */
 	 %}   /* loop(n) */
     %}        /* broadcastloop */
-    kernel_free(kernel) ;
 EOF
     ); # pp_def: warp2d
 
@@ -2190,18 +2184,16 @@ sub PDL::warp2d_kernel ($) {
     return ( $x, $k );
 }
 ',
-     Pars => '[o] x(n); [o] k(n);',
+     Pars => '[o] x(n); [o] k(n); ldouble [t] kernel(n)',
      OtherPars => 'char *name; PDL_Indx nsize => n',
      GenericTypes => [ qw(F D E) ],
      Code => <<'EOF',
-    PDL_LDouble     *kernel, xx;
+    PDL_LDouble     *kernel = $P(kernel), xx;
     if ( $SIZE(n) != KERNEL_SAMPLES ) {
 	$CROAK( "Internal error in warp2d_kernel - mismatch in kernel size\n" );
     }
-    kernel = generate_interpolation_kernel($COMP(name));
-    if ( kernel == NULL ) {
-	$CROAK( "unable to allocate memory for kernel" );
-    }
+    if (!generate_interpolation_kernel($COMP(name), $SIZE(n), kernel))
+      $CROAK("Invalid kernel type '%s'", $COMP(name));
     /* fill in ndarrays */
     xx = 0.0;
     broadcastloop %{
@@ -2211,8 +2203,6 @@ sub PDL::warp2d_kernel ($) {
 	    xx += 1.0 / (double) TABSPERPIX;
 	%}
     %}
-    /* free the kernel */
-    kernel_free( kernel );
 EOF
 );
 

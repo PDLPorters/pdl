@@ -182,7 +182,8 @@ static void reverse_tanh_kernel(long double * data, int nn)
   @name		generate_tanh_kernel
   @memo		Generate a hyperbolic tangent kernel.
   @param	steep	Steepness of the hyperbolic tangent parts.
-  @return	1 pointer to a newly allocated array of doubles.
+  @param	samples	Number of samples
+  @param	kernel	Block of (samples) * long double
   @doc
 
   The following function builds up a good approximation of a box filter. It
@@ -195,26 +196,21 @@ static void reverse_tanh_kernel(long double * data, int nn)
   \item It is infinitely differentiable everywhere (i.e. smooth).
   \item The transition sharpness is scalable.
   \end{itemize}
-
-  The returned array must be deallocated using free().
  */
 /*--------------------------------------------------------------------------*/
 
 #define hk_gen(x,s) (((tanh(s*(x+0.5))+1)/2)*((tanh(s*(-x+0.5))+1)/2))
 
-long double * generate_tanh_kernel(long double steep)
+void generate_tanh_kernel(long double steep, int samples, long double *kernel)
 {
-    long double  *   kernel ;
     long double  *   x ;
     long double      width ;
     long double      inv_np ;
     long double      ind ;
     int         i ;
     int         np ;
-    int         samples ;
 
     width   = (long double)TABSPERPIX / 2.0 ;
-    samples = KERNEL_SAMPLES ;
     np      = 32768 ; /* Hardcoded: should never be changed */
     inv_np  = 1.00 / (long double)np ;
 
@@ -240,15 +236,12 @@ long double * generate_tanh_kernel(long double steep)
     reverse_tanh_kernel(x, np) ;
 
     /*
-     * Allocate and fill in returned array
+     * fill in passed-in array
      */
-    kernel = (long double *) malloc(samples * sizeof(long double)) ;
     for (i=0 ; i<samples ; i++) {
         kernel[i] = 2.0 * width * x[2*i] * inv_np ;
     }
     free(x) ;
-    return kernel ;
-
 } /* generate_tanh_kernel() */
 
 
@@ -257,7 +250,9 @@ long double * generate_tanh_kernel(long double steep)
   @name		generate_interpolation_kernel
   @memo		Generate an interpolation kernel to use in this module.
   @param	kernel_type		Type of interpolation kernel.
-  @return	1 newly allocated array of doubles.
+  @param	samples	Number of samples
+  @param	kernel	Block of (samples) * long double
+  @return	true on success
   @doc
 
   Provide the name of the kernel you want to generate. Supported kernel
@@ -273,27 +268,21 @@ long double * generate_tanh_kernel(long double steep)
   "hann"		&	Hann kernel
   \end{tabular}
 
-  The returned array of doubles is ready of use in the various re-sampling
-  functions in this module. It must be deallocated using free().
+  The filled-in array of long doubles is ready to use in the various re-sampling
+  functions in this module.
  */
 /*--------------------------------------------------------------------------*/
 
-long double   *
-generate_interpolation_kernel(char * kernel_type)
+char
+generate_interpolation_kernel(char *kernel_type, int samples, long double *tab)
 {
-    long double  *	tab ;
     int     	i ;
     long double  	x ;
 	long double		alpha ;
 	long double		inv_norm ;
-    int     	samples = KERNEL_SAMPLES ;
-
-	if (kernel_type==NULL) {
-		tab = generate_interpolation_kernel("tanh") ;
-	} else if (!strcmp(kernel_type, "default")) {
-		tab = generate_interpolation_kernel("tanh") ;
+	if (kernel_type==NULL || !strcmp(kernel_type, "default") || !strcmp(kernel_type, "tanh")) {
+		generate_tanh_kernel(TANH_STEEPNESS, samples, tab) ;
 	} else if (!strcmp(kernel_type, "sinc")) {
-		tab = (long double *) malloc(samples * sizeof(long double)) ;
 		tab[0] = 1.0 ;
 		tab[samples-1] = 0.0 ;
 		for (i=1 ; i<samples ; i++) {
@@ -301,7 +290,6 @@ generate_interpolation_kernel(char * kernel_type)
 			tab[i] = sinc(x) ;
 		}
 	} else if (!strcmp(kernel_type, "sinc2")) {
-		tab = (long double *) malloc(samples * sizeof(long double)) ;
 		tab[0] = 1.0 ;
 		tab[samples-1] = 0.0 ;
 		for (i=1 ; i<samples ; i++) {
@@ -310,7 +298,6 @@ generate_interpolation_kernel(char * kernel_type)
 			tab[i] *= tab[i] ;
 		}
 	} else if (!strcmp(kernel_type, "lanczos")) {
-		tab = (long double *) malloc(samples * sizeof(long double)) ;
 		for (i=0 ; i<samples ; i++) {
 			x = (long double)KERNEL_WIDTH * (long double)i/(long double)(samples-1) ;
 			if (fabs(x)<2) {
@@ -320,7 +307,6 @@ generate_interpolation_kernel(char * kernel_type)
 			}
 		}
 	} else if (!strcmp(kernel_type, "hamming")) {
-		tab = (long double *) malloc(samples * sizeof(long double)) ;
 		alpha = 0.54 ;
 		inv_norm  = 1.00 / (long double)(samples - 1) ;
 		for (i=0 ; i<samples ; i++) {
@@ -332,7 +318,6 @@ generate_interpolation_kernel(char * kernel_type)
 			}
 		}
 	} else if (!strcmp(kernel_type, "hann")) {
-		tab = (long double *) malloc(samples * sizeof(long double)) ;
 		alpha = 0.50 ;
 		inv_norm  = 1.00 / (long double)(samples - 1) ;
 		for (i=0 ; i<samples ; i++) {
@@ -343,26 +328,13 @@ generate_interpolation_kernel(char * kernel_type)
 				tab[i] = 0.0 ;
 			}
 		}
-	} else if (!strcmp(kernel_type, "tanh")) {
-		tab = generate_tanh_kernel(TANH_STEEPNESS) ;
 	} else {
 	  /**
 	   ** trapped at perl level, so should never reach here
 		e_error("unrecognized kernel type [%s]: aborting generation",
 				kernel_type) ;
 	  **/
-		return NULL ;
+		return 0;
 	}
-
-    return tab ;
-
+    return 1;
 } /* generate_interpolation_kernel() */
-
-void kernel_free( void *p ) {
-#undef free
-free( p );
-}
-
-/***********
- *** END ***
- ***********/

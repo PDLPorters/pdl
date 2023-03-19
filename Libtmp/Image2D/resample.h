@@ -36,10 +36,7 @@
 long double
 poly2d_compute( int ncoeff, long double *c, long double u, long double *vpow );
 
-long double   *
-generate_interpolation_kernel(char * kernel_type);
-
-void
-kernel_free(void *p);
+char
+generate_interpolation_kernel(char *kernel_type, int samples, long double *tab);
 
 #endif
