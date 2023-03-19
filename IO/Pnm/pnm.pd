@@ -274,19 +274,16 @@ EOD
 
 
 pp_def('pnminraw',
-	Pars => 'type(); byte+ [o] im(m,n)',
+	Pars => 'type(); byte+ [o] im(m,n); byte [t] buf(llen)',
 	OtherPars => 'int ms => m; int ns => n;
 			int isbin; PerlIO *fp',
 	GenericTypes => [qw(B U L)],
-	Code => 'int ms, ns, i,j,k,bit,llen;
-		 PDL_Byte *buf, *bp;
-		 $GENERIC() *gbp;
+	RedoDimsCode => '
+	  $SIZE(llen) = $COMP(isbin) ? ($SIZE(m)+7) / 8 : $SIZE(m) * sizeof($GENERIC());
+	',
+	Code => 'int ms, ns, i,j,k,bit,llen = $SIZE(llen);
+		 PDL_Byte *buf = $P(buf), *bp;
 		 ms = $SIZE(m); ns = $SIZE(n);
-		 llen = ($COMP(isbin) ? ((ms+7) / 8) : (ms * sizeof($GENERIC())));
-		 /* allocate a buffer of length llen */
-		 if ((buf = (PDL_Byte*) malloc(llen*sizeof(PDL_Byte)))
-		      == NULL)
-			$CROAK("Error getting mem for line buffer");
 		 broadcastloop %{  /* with top to bottom inversion */
 			for (i=ns-1; i>= 0; i--) {
 			   if (PerlIO_read($COMP(fp),buf,llen) != llen)
@@ -300,7 +297,7 @@ pp_def('pnminraw',
 					k = k << 1;
       				}
 			   else {
-				gbp = ($GENERIC()*)buf;
+				$GENERIC() *gbp = ($GENERIC()*)buf;
 				loop(m) %{
 					$im(n=>i,m=>m) = *(gbp++);
 				%}
