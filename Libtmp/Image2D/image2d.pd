@@ -194,8 +194,7 @@ sub init_vars {
 	'int opt = $COMP(opt);
 	' . join("\n", map "int ${_}_size = \$SIZE(${_});", @$sizevars) . '
 	' . join("\n", map "int ${_}_size = \$COMP(${_}_size);", @$compvars) . '
-         int *mapi = (int *) malloc((p_size+m_size)*sizeof(int));
-         int *mapj = (int *) malloc((q_size+n_size)*sizeof(int));
+         PDL_Indx *mapi = $P(mapi), *mapj = $P(mapj);
          if ((mapi==NULL) || (mapj==NULL)) $CROAK("Out of Memory");
 
          poff = p_size/2; mapi += p_size-1;
@@ -237,7 +236,11 @@ EOD
        BadDoc =>
 'Unlike the FFT routines, conv2d is able to process bad values.',
        HandleBad => 1,
-        Pars => 'a(m,n); kern(p,q); [o]b(m,n);',
+        Pars => 'a(m,n); kern(p,q); [o]b(m,n); indx [t]mapi(isize); indx [t]mapj(jsize)',
+        RedoDimsCode => '
+          $SIZE(isize) = $SIZE(p) + $SIZE(m);
+          $SIZE(jsize) = $SIZE(q) + $SIZE(n);
+        ',
         OtherPars => 'int opt;',
         PMCode => '
 sub PDL::conv2d {
@@ -282,7 +285,7 @@ sub PDL::conv2d {
 	      %}
            %}
            %}
-	   free(mapj+1-q_size); free(mapi+1-p_size);',
+	   ',
 ); # pp_def: conv2d
 
 pp_addhdr(<<'EOF');
@@ -321,7 +324,7 @@ EOD
 'Bad values are ignored in the calculation. If all elements within the
 kernel are bad, the output is set bad.',
        HandleBad => 1,
-        Pars => 'a(m,n); kern(p,q); [o]b(m,n); double+ [t]tmp(pq);',
+        Pars => 'a(m,n); kern(p,q); [o]b(m,n); double+ [t]tmp(pq); indx [t]mapi(isize); indx [t]mapj(jsize)',
         OtherPars => 'int opt;',
         PMCode => <<'EOF',
 sub PDL::med2d {
@@ -338,7 +341,11 @@ sub PDL::med2d {
    return $c;
 }
 EOF
-        RedoDimsCode => '$SIZE(pq) = $SIZE(p)*$SIZE(q);',
+        RedoDimsCode => '
+          $SIZE(pq) = $SIZE(p)*$SIZE(q);
+          $SIZE(isize) = $SIZE(p) + $SIZE(m);
+          $SIZE(jsize) = $SIZE(q) + $SIZE(n);
+        ',
         Code =>
            init_vars() .
            init_map("i") .
@@ -377,7 +384,6 @@ EOF
               } /* for: i */
            } /* for: j */
            %}
-           free(mapj+1-q_size); free(mapi+1-p_size);
 '
 
 ); # pp_def: med2d
@@ -412,8 +418,12 @@ Note: this routine does the median over all points in a rectangular
 =cut
 
 EOD
-        Pars => 'a(m,n); [o]b(m,n);',
+        Pars => 'a(m,n); [o]b(m,n); indx [t]mapi(isize); indx [t]mapj(jsize)',
         OtherPars => 'int p_size=>p; int q_size=>q; int opt;',
+        RedoDimsCode => '
+          $SIZE(isize) = $SIZE(p) + $SIZE(m);
+          $SIZE(jsize) = $SIZE(q) + $SIZE(n);
+        ',
         PMCode => <<'EOF',
 sub PDL::med2df {
    my $opt; $opt = pop @_ if ref($_[$#_]) eq 'HASH';
@@ -458,7 +468,6 @@ EOF
               } /* for: i */
            } /* for: j */
            %}
-           free(mapj+1-q_size); free(mapi+1-p_size);
 ',
 
 ); # pp_def: med2df
@@ -1986,7 +1995,7 @@ C<NOVAL> gives the value used to indicate that a pixel in the
 output image does not map onto one in the input image.
 EOD
     HandleBad => 0,
-    Pars => 'img(m,n); ldouble px(np,np); ldouble py(np,np); [o] warp(m,n);',
+    Pars => 'img(m,n); ldouble px(np,np); ldouble py(np,np); [o] warp(m,n); ldouble [t] poly(np)',
     OtherPars => 'char *kernel_type; double noval;',
     GenericTypes => [ qw(F D E) ],
         PMCode => <<'EOF',
@@ -2027,7 +2036,7 @@ EOF
 
     PDL_Indx ncoeff, lx_out, ly_out, i, j, k, lx_3, ly_3, px, py, tabx, taby;
     PDL_Indx da[16], db[16] ;
-    PDL_LDouble cur, neighbors[16], rsc[8], sumrs, x, y, *kernel, *poly ;
+    PDL_LDouble cur, neighbors[16], rsc[8], sumrs, x, y, *kernel, *poly = $P(poly);
 
     /* Generate default interpolation kernel */
     kernel = generate_interpolation_kernel( $COMP(kernel_type) ) ;
@@ -2063,11 +2072,6 @@ EOF
     da[14] =  1;  db[14] =  2;
     da[15] =  2;  db[15] =  2;
 
-    /* allocate memory for polynomial */
-    poly = malloc( ncoeff * sizeof(PDL_LDouble) );
-    if ( poly == NULL ) {
-      $CROAK( "Ran out of memory\n" );
-    }
     poly[0] = 1.0;
 
     /* Loop over the output image */
@@ -2144,10 +2148,7 @@ EOF
 	    %}   /* loop(m) */
 	 %}   /* loop(n) */
     %}        /* broadcastloop */
-
-    free(poly);
     kernel_free(kernel) ;
-
 ',
     ); # pp_def: warp2d
 
