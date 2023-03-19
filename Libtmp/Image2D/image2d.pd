@@ -211,7 +211,7 @@ pp_def('conv2d', Doc=><<'EOD',
 2D convolution of an array with a kernel (smoothing)
 
 For large kernels, using a FFT routine,
-such as L<fftconvolve()|PDL::FFT/fftconvolve()> in C<PDL::FFT>,
+such as L<PDL::FFT/fftconvolve>,
 will be quicker.
 
 =for usage
@@ -1471,7 +1471,7 @@ from the I<output> C<(u,v)> image to the I<input> C<(x,y)> image:
 
 The transformation is returned for the reverse direction (ie
 output to input image) since that is what is required by the
-L<warp2d()|/warp2d> routine.  The L<applywarp2d()|/applywarp2d>
+L</warp2d> routine.  The L</applywarp2d>
 routine can be used to convert a set of C<$u,$v> points given
 C<$px> and C<$py>.
 
@@ -1598,7 +1598,7 @@ Transform a set of points using a 2-D polynomial mapping
 
 Convert a set of points (stored in 1D ndarrays C<$u,$v>)
 to C<$x,$y> using the 2-D polynomial with coefficients stored in C<$px>
-and C<$py>.  See L<fitwarp2d()|/fitwarp2d>
+and C<$py>.  See L</fitwarp2d>
 for more information on the format of C<$px> and C<$py>.
 
 =cut
@@ -1898,7 +1898,7 @@ C<$py> ndarrays to warp the input image C<$img> into the output
 image C<$out>.
 
 The format for the polynomial transformation is described in
-the documentation for the L<fitwarp2d()|/fitwarp2d> routine.
+the documentation for the L</fitwarp2d> routine.
 
 At each point C<x,y>, the closest 16 pixel values are combined
 with an interpolation kernel to calculate the value at C<u,v>.
@@ -1943,7 +1943,7 @@ The options are:
 
 C<KERNEL> is used to specify which interpolation kernel to use
 (to see what these kernels look like, use the
-L<warp2d_kernel()|/warp2d_kernel> routine).
+L</warp2d_kernel> routine).
 The options are:
 
 =over 4
@@ -2195,7 +2195,7 @@ Return the specified kernel, as used by L</warp2d>
   ( $x, $k ) = warp2d_kernel( $name )
 
 The valid values for C<$name> are the same as the C<KERNEL> option
-of L<warp2d()|/warp2d>.
+of L</warp2d>.
 
 =for example
 
