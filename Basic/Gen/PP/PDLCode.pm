@@ -168,9 +168,9 @@ sub new {
          "#define ".$this->broadcastloop_macroname($backcode, 'END') . " " .
            $this->broadcastloop_end
         )."\n",
+        join('',map $_->get_incregisters, @$pobjs{sort keys %$pobjs}),
        ).
        $this->params_declare.
-       join('',map $_->get_incregisters, @$pobjs{sort keys %$pobjs}).
        $coderef->get_str($this,[])
        ;
     $this->{Code};
