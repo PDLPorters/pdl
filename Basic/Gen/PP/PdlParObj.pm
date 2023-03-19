@@ -154,14 +154,15 @@ sub get_nnflag { my($this) = @_;
 	"(\$PRIV(vtable)->per_pdl_flags[$this->{Number}])";
 }
 
+sub get_substname {
+  my($this,$ind) = @_;
+  $this->{IndObjs}[$ind]->name.($this->{IndTotCounts}[$ind] > 1 ? $this->{IndCounts}[$ind] : '');
+}
+
 sub get_incname {
 	my($this,$ind,$for_local) = @_;
 	return "inc_sizes[PDL_INC_ID(__privtrans->vtable,$this->{Number},$ind)]" if !$for_local;
-	if($this->{IndTotCounts}[$ind] > 1) {
-	    "__inc_".$this->{Name}."_".($this->{IndObjs}[$ind]->name).$this->{IndCounts}[$ind];
-	} else {
-	    "__inc_".$this->{Name}."_".($this->{IndObjs}[$ind]->name);
-	}
+	"__inc_$this->{Name}_".$this->get_substname($ind);
 }
 
 sub get_incregisters {
@@ -210,25 +211,16 @@ sub do_physpointeraccess {
 }
 
 sub do_indterm { my($this,$pdl,$ind,$subst,$context) = @_;
-# Get informed
-	my $indname = $this->{IndObjs}[$ind]->name;
-	my $indno = $this->{IndCounts}[$ind];
-	my $indtot = $this->{IndTotCounts}[$ind];
+  my $substname = $this->get_substname($ind);
 # See if substitutions
-	my $substname = ($indtot>1 ? $indname.$indno : $indname);
-	my $incname = $indname.($indtot>1 ? $indno : "");
-	my $index;
-	if(defined $subst->{$substname}) {$index = delete $subst->{$substname};}
-	else {
+  my $index = delete($subst->{$substname}) //
 # No => get the one from the nearest context.
-		for(reverse @$context) {
-			if($_->[0] eq $indname) {$index = $_->[1]; last;}
-		}
-	}
-	if(!defined $index) {confess "Access Index not found: $pdl, $ind, $indname
-		On stack:".(join ' ',map {"($_->[0],$_->[1])"} @$context)."\n" ;}
-       return "(".($this->get_incname($ind,1))."*".
-               "PP_INDTERM(".$this->{IndObjs}[$ind]->get_size().", $index))";
+    (grep $_ eq $substname, map $_->[1], reverse @$context)[0];
+  confess "Access Index not found: $pdl, $ind, @{[$this->{IndObjs}[$ind]->name]}
+	  On stack:".(join ' ',map {"($_->[0],$_->[1])"} @$context)."\n"
+	  if !defined $index;
+  return "(".($this->get_incname($ind,1))."*".
+	 "PP_INDTERM(".$this->{IndObjs}[$ind]->get_size().", $index))";
 }
 
 sub get_xsdatapdecl { 

@@ -707,10 +707,6 @@ numbers.  It might be useful to be able to return complex eigenvalues.
 
     ($ev, $e) = eigens($x); # e\'vects & e\'vals
     $e = eigens($x);        # just eigenvalues
-
-=cut
-
-
 ',);
 
 ######################################################################
@@ -745,7 +741,7 @@ pp_def(
               %}
               loop (n1) %{
                 loop (n0) %{
-                  $v(n0=>n0, n1=>n1) = *t++;
+                  $v() = *t++;
                 %}
               %}
 ',
@@ -797,10 +793,6 @@ orientation of the ellipsoid of transformation:
       $r2 *= $s;        # implicit broadcasting for cheap mult.
       $x .= $r2 x $r1;  # a gets r2 x ess x r1
     }
-
-=cut
-
-
 },);
 
 

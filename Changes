@@ -1,4 +1,5 @@
 - allow OtherPars to set index-size of not-otherwise-used index
+- fix nested loop() bug for Pars with e.g. (n,n)
 
 2.081_02 2023-03-14
 - add pp_add_typemaps
