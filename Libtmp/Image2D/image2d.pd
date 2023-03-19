@@ -2164,11 +2164,10 @@ _get_kernel_size()
 
 ');
 
-pp_add_exported('', 'warp2d_kernel');
-pp_addpm( '
-
-=head2 warp2d_kernel
-
+# this is not very clever, but it's a pain to create a valid
+# ndarray in XS code
+pp_def( 'warp2d_kernel',
+    Doc => <<'EOF',
 =for ref
 
 Return the specified kernel, as used by L</warp2d>
@@ -2183,36 +2182,17 @@ of L</warp2d>.
 =for example
 
   line warp2d_kernel( "hamming" );
-
-=cut
-
-'); # pp_addpm
-
-# this is not very clever, but it's a pain to create a valid
-# ndarray in XS code
-#
-pp_def( 'warp2d_kernel',
-    Doc => undef,
+EOF
     HandleBad => 0,
     PMCode => '
-
 sub PDL::warp2d_kernel ($) {
     my $kernel = _check_kernel( shift, "warp2d_kernel" );
-
-    my $nelem = _get_kernel_size();
-    my $x     = zeroes( $nelem );
-    my $k     = zeroes( $nelem );
-
-    &PDL::_warp2d_kernel_int( $x, $k, $kernel );
+    &PDL::_warp2d_kernel_int( my $x=PDL->null, my $k=PDL->null, $kernel, _get_kernel_size() );
     return ( $x, $k );
-
-#    return _get_kernel( $kernel );
 }
-*warp2d_kernel = \&PDL::warp2d_kernel;
-
 ',
      Pars => '[o] x(n); [o] k(n);',
-     OtherPars => 'char *name;',
+     OtherPars => 'char *name; PDL_Indx nsize => n',
      GenericTypes => [ qw(F D E) ],
      Code => '
 
