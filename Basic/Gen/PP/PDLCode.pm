@@ -160,6 +160,14 @@ sub new {
         'PDL_COMMENT("dims here are how many steps along those dims")',
         (map "register PDL_Indx __tinc0_$parnames->[$_] = PDL_BRC_INC(\$PRIV(broadcast).incs,__tnpdls,$_,0);", 0..$#$parnames),
         (map "register PDL_Indx __tinc1_$parnames->[$_] = PDL_BRC_INC(\$PRIV(broadcast).incs,__tnpdls,$_,1);", 0..$#$parnames),
+        eol_protect(
+         "#define ".$this->broadcastloop_macroname($backcode, 'START') . " " .
+           $this->broadcastloop_start($this->func_name($backcode))
+        )."\n",
+        eol_protect(
+         "#define ".$this->broadcastloop_macroname($backcode, 'END') . " " .
+           $this->broadcastloop_end
+        )."\n",
        ).
        $this->params_declare.
        join('',map $_->get_incregisters, @$pobjs{sort keys %$pobjs}).
@@ -168,6 +176,11 @@ sub new {
     $this->{Code};
 
 } # new()
+
+sub eol_protect {
+  my ($text) = @_;
+  join " \\\n", split /\n/, $text;
+}
 
 sub params_declare {
     my ($this) = @_;
@@ -184,6 +197,11 @@ EOF
 }
 
 sub func_name { $_[1] ? "writebackdata" : "readdata" }
+
+sub broadcastloop_macroname {
+    my ($this, $backcode, $which) = @_;
+    "PDL_BROADCASTLOOP_${which}_$this->{Name}_".$this->func_name($backcode);
+}
 
 sub broadcastloop_start {
     my ($this, $funcname) = @_;
@@ -547,11 +565,11 @@ sub new {
 sub myoffs { return 0; }
 sub myprelude {
     my($this,$parent,$context,$backcode) = @_;
-    $parent->broadcastloop_start($parent->func_name($backcode));
+    $parent->broadcastloop_macroname($backcode, 'START') . "\n";
 }
 
 sub mypostlude {my($this,$parent,$context,$backcode) = @_;
-    $parent->broadcastloop_end;
+    $parent->broadcastloop_macroname($backcode, 'END') . "\n";
 }
 
 # Simple subclass of BroadcastLoop to implement writeback code
