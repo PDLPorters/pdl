@@ -546,11 +546,11 @@ sub new {
 }
 sub myoffs { return 0; }
 sub myprelude {
-    my($this,$parent,$context, $backcode) = @_;
+    my($this,$parent,$context,$backcode) = @_;
     $parent->broadcastloop_start($parent->func_name($backcode));
 }
 
-sub mypostlude {my($this,$parent,$context) = @_;
+sub mypostlude {my($this,$parent,$context,$backcode) = @_;
     $parent->broadcastloop_end;
 }
 
@@ -562,15 +562,18 @@ use Carp;
 our @ISA = "PDL::PP::BroadcastLoop";
 
 sub myprelude {
-    my($this,$parent,$context, $backcode) = @_;
-
+    my($this,$parent,$context,$backcode) = @_;
     # Set backcode flag if not defined. This will make the parent
     #   myprelude emit proper writeback code
-    $backcode = 1 unless defined($backcode);
-
-    $this->SUPER::myprelude($parent, $context, $backcode);
+    $this->SUPER::myprelude($parent, $context, $backcode // 1);
 }
 
+sub mypostlude {
+    my($this,$parent,$context,$backcode) = @_;
+    # Set backcode flag if not defined. This will make the parent
+    #   mypostlude emit proper writeback code
+    $this->SUPER::mypostlude($parent, $context, $backcode // 1);
+}
 
 ###########################
 #
