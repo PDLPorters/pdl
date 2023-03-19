@@ -322,7 +322,7 @@ my $shift = $img->range([1,1],[$img->dims],'p');
       foreach my $restrict_fit(1,0){
 	  my ($pxn,$pyn) = fitwarp2d($x,$y,$u,$v,$deg,$restrict_fit?{FIT=>$fit}:{});
 	  my $out = warp2d($shift,$pxn,$pyn);
-	  ok(all(approx($out,$img,1e-3)),'warp2d ' . ($restrict_fit?'':'un') . "restricted deg $deg values approx");
+	  ok(all(approx($out,$img,1e-3)),'warp2d ' . ($restrict_fit?'':'un') . "restricted deg $deg values approx") or diag "got=$out\nexpected=$img";
 	  ok(all($out->rint==$img),'warp2d ' . ($restrict_fit?'':'un') . "restricted deg $deg rint exact");
       }
   }

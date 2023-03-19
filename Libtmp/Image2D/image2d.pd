@@ -2032,13 +2032,12 @@ sub PDL::warp2d {
     return $out;
 }
 EOF
-    Code => '
-
+    Code => <<'EOF',
     PDL_Indx ncoeff, lx_out, ly_out, i, j, k, lx_3, ly_3, px, py, tabx, taby;
     PDL_Indx da[16], db[16] ;
     PDL_LDouble cur, neighbors[16], rsc[8], sumrs, x, y, *kernel, *poly = $P(poly);
 
-    /* Generate default interpolation kernel */
+    /* Generate interpolation kernel */
     kernel = generate_interpolation_kernel( $COMP(kernel_type) ) ;
     if (kernel == NULL) {
       $CROAK( "Ran out of memory building kernel\n" );
@@ -2149,7 +2148,7 @@ EOF
 	 %}   /* loop(n) */
     %}        /* broadcastloop */
     kernel_free(kernel) ;
-',
+EOF
     ); # pp_def: warp2d
 
 pp_addxs( '
@@ -2194,19 +2193,15 @@ sub PDL::warp2d_kernel ($) {
      Pars => '[o] x(n); [o] k(n);',
      OtherPars => 'char *name; PDL_Indx nsize => n',
      GenericTypes => [ qw(F D E) ],
-     Code => '
-
+     Code => <<'EOF',
     PDL_LDouble     *kernel, xx;
-
     if ( $SIZE(n) != KERNEL_SAMPLES ) {
 	$CROAK( "Internal error in warp2d_kernel - mismatch in kernel size\n" );
     }
-
     kernel = generate_interpolation_kernel($COMP(name));
     if ( kernel == NULL ) {
 	$CROAK( "unable to allocate memory for kernel" );
     }
-
     /* fill in ndarrays */
     xx = 0.0;
     broadcastloop %{
@@ -2216,10 +2211,9 @@ sub PDL::warp2d_kernel ($) {
 	    xx += 1.0 / (double) TABSPERPIX;
 	%}
     %}
-
     /* free the kernel */
     kernel_free( kernel );
-
-');
+EOF
+);
 
 pp_done();
