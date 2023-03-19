@@ -1874,17 +1874,9 @@ sub PDL::applywarp2d {
 
 pp_addhdr( '#include "resample.h"' . "\n" );
 
-# pod for warp2d
-# and support routine
-#
-pp_addpm( <<'EOD');
-
-=head2 warp2d
-
-=for sig
-
-  Signature: (img(m,n); double px(np,np); double py(np,np); [o] warp(m,n); { options })
-
+pp_def(
+    'warp2d',
+    Doc=> <<'EOD',
 =for ref
 
 Warp a 2D image given a polynomial describing the I<reverse> mapping.
@@ -1992,13 +1984,15 @@ C<a = 0.54>.
 
 C<NOVAL> gives the value used to indicate that a pixel in the
 output image does not map onto one in the input image.
-
-=cut
-
+EOD
+    HandleBad => 0,
+    Pars => 'img(m,n); ldouble px(np,np); ldouble py(np,np); [o] warp(m,n);',
+    OtherPars => 'char *kernel_type; double noval;',
+    GenericTypes => [ qw(F D E) ],
+        PMCode => <<'EOF',
 # support routine
 {
     my %warp2d = map { ($_,1) } qw( tanh sinc sinc2 lanczos hamming hann );
-
     # note: convert to lower case
     sub _check_kernel ($$) {
 	my $kernel = lc shift;
@@ -2009,17 +2003,6 @@ output image does not map onto one in the input image.
 	return $kernel;
     }
 }
-
-EOD
-
-pp_def(
-    'warp2d',
-    Doc=> undef,
-    HandleBad => 0,
-    Pars => 'img(m,n); ldouble px(np,np); ldouble py(np,np); [o] warp(m,n);',
-    OtherPars => 'char *kernel_type; double noval;',
-    GenericTypes => [ qw(F D E) ],
-        PMCode => '
 
 sub PDL::warp2d {
     my $opts = PDL::Options->new( { KERNEL => "tanh", NOVAL => 0 } );
@@ -2039,8 +2022,7 @@ sub PDL::warp2d {
     &PDL::_warp2d_int( $img, $px, $py, $out, $kernel, $$copt{NOVAL} );
     return $out;
 }
-
-',
+EOF
     Code => '
 
     PDL_Indx ncoeff, lx_out, ly_out, i, j, k, lx_3, ly_3, px, py, tabx, taby;
