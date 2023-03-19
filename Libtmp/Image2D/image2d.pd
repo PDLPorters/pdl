@@ -2157,8 +2157,6 @@ _get_kernel_size()
 
 ');
 
-# this is not very clever, but it's a pain to create a valid
-# ndarray in XS code
 pp_def( 'warp2d_kernel',
     Doc => <<'EOF',
 =for ref
@@ -2188,14 +2186,11 @@ sub PDL::warp2d_kernel ($) {
      OtherPars => 'char *name; PDL_Indx nsize => n',
      GenericTypes => [ qw(F D E) ],
      Code => <<'EOF',
-    PDL_LDouble     *kernel = $P(kernel), xx;
-    if ( $SIZE(n) != KERNEL_SAMPLES ) {
-	$CROAK( "Internal error in warp2d_kernel - mismatch in kernel size\n" );
-    }
+    PDL_LDouble     *kernel = $P(kernel);
     if (!generate_interpolation_kernel($COMP(name), $SIZE(n), kernel))
       $CROAK("Invalid kernel type '%s'", $COMP(name));
     /* fill in ndarrays */
-    xx = 0.0;
+    PDL_LDouble xx = 0.0;
     broadcastloop %{
 	loop (n) %{
 	    $x() = xx;
