@@ -797,19 +797,26 @@ sub _pp_line_number_file {
 	push @to_return, "PDL_LINENO_END\n";
 	return join('', @to_return);
 }
+my $LINE_RE = qr/^(\s*)PDL_LINENO_(?:START (\S+) "(.*)"|(END))$/;
 sub _pp_linenumber_fill {
+  local $_; # else get "Modification of a read-only value attempted"
   my ($file, $text) = @_;
   my (@stack, @to_return) = [$file, 1];
-  foreach (split (/\n/, $text)) {
+  my @lines = split /\n/, $text;
+  while (defined($_ = shift @lines)) {
     $_->[1]++ for @stack;
-    push(@to_return, $_), next if !/^(\s*)PDL_LINENO_(?:START (\S+) "(.*)"|(END))$/;
+    push(@to_return, $_), next if !/$LINE_RE/;
     my ($ci, $new_line, $new_file, $is_end) = ($1, $2, $3, $4);
     if ($is_end) {
       @stack = [$file, $stack[0][1]]; # as soon as another block is entered, line numbers for outer blocks become meaningless
-      push @to_return, qq{$ci#line $stack[-1][1] "$stack[-1][0]"};
+      if (@lines > 1 and !length($lines[0]) and $lines[1] =~ /$LINE_RE/) {
+        $stack[-1][1]--;
+      } else {
+        push @to_return, qq{$ci#line $stack[-1][1] "$stack[-1][0]"} if @lines;
+      }
     } else {
       push @stack, [$new_file, $new_line-1];
-      push @to_return, qq{$ci#line @{[$stack[-1][1]+1]} "$stack[-1][0]"};
+      push @to_return, qq{$ci#line @{[$stack[-1][1]+1]} "$stack[-1][0]"} if @lines;
     }
   }
   join '', map "$_\n", @to_return;
