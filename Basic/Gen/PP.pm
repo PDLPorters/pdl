@@ -805,7 +805,7 @@ sub _pp_linenumber_fill {
     push(@to_return, $_), next if !/^(\s*)PDL_LINENO_(?:START (\S+) "(.*)"|(END))$/;
     my ($ci, $new_line, $new_file, $is_end) = ($1, $2, $3, $4);
     if ($is_end) {
-      pop @stack;
+      @stack = [$file, $stack[0][1]]; # as soon as another block is entered, line numbers for outer blocks become meaningless
       push @to_return, qq{$ci#line $stack[-1][1] "$stack[-1][0]"};
     } else {
       push @stack, [$new_file, $new_line-1];
