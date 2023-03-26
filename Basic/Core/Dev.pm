@@ -258,6 +258,7 @@ sub pdlpp_stdargs {
 #   so all the magic *.pm generation happens during "make dist"
 # - it is intended to be called as a one-liner:
 #     perl -MPDL::Core::Dev -e pdlpp_mkgen DirName
+# - it relies on finding "=head1 NAME" and the module name in *.pd, though can be in comment
 #
 sub pdlpp_mkgen {
   require File::Spec::Functions;
