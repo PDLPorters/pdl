@@ -1420,7 +1420,7 @@ coordinate.
 This option controls the interpolation method to be used.
 Interpolation greatly affects both speed and quality of output.  For
 most cases the option is directly passed to
-L<interpND|PDL::Primitive/interpnd> for interpolation.  Possible
+L<interpND|PDL::Primitive/interpND> for interpolation.  Possible
 options, in order from fastest to slowest, are:
 
 =over 3
@@ -2300,7 +2300,7 @@ then valid data exist between the locations (-0.5) and (N-0.5) in
 lookup pixel space, because the pixels (which are numbered from 0 to
 N-1) are centered on their locations.
 
-Lookup is done using L<interpND|PDL::Primitive/interpnd>, so the boundary conditions
+Lookup is done using L<interpND|PDL::Primitive/interpND>, so the boundary conditions
 and broadcasting behaviour follow from that.
 
 The indexed-over dimensions come first in the table, followed by a
