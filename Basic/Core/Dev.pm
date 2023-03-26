@@ -286,11 +286,12 @@ sub pdlpp_mkgen {
     my $old_cwd = Cwd::cwd();
     chdir dirname($pd);
     #there is no way to use PDL::PP from perl code, thus calling via system()
-    my $pp_call_arg = _pp_call_arg($mod, $mod, $basename, '', 1);
+    my $pp_call_arg = _pp_call_arg($mod, $mod, $basename, '', 0); # 0 so guarantee not create pp-*.c
     my $rv = system($^X, @in, $pp_call_arg, File::Spec::Functions::abs2rel(basename($pd)));
     die "pdlpp_mkgen: cannot convert '$pd'\n" unless $rv == 0 && -f $basefile;
     File::Copy::copy($basefile, $outfile) or die "$outfile: $!";
     unlink $basefile; # Transform::Proj4.pm is wrong without GIS::Proj built
+    unlink "$basename.xs"; # since may have been recreated wrong
     chdir $old_cwd or die "chdir $old_cwd: $!";
     $added{"GENERATED/$prefix.pm"} = "mod=$mod pd=$pd (added by pdlpp_mkgen)";
   }
