@@ -26,7 +26,7 @@ unless (defined $outdb) {
 $currdir = getcwd;
 
 unlink $outdb if -e $outdb;
-$onldc = new PDL::Doc();
+$onldc = PDL::Doc->new;
 $onldc->outfile($outdb);
 
 foreach $dir (@dirs) {

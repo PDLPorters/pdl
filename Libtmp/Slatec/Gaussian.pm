@@ -4,7 +4,7 @@ PDL::Gaussian -- Gaussian distributions.
 
 =head1 SYNOPSIS
 
- $x = new PDL::Gaussian([3],[5]);
+ $x = PDL::Gaussian->new([3],[5]);
  $x->set_covariance(...)
 
 =head1 DESCRIPTION
@@ -14,15 +14,15 @@ sets gaussian distributions.
 
 A new set of gaussians is initialized by
 
- $x = new PDL::Gaussian(xdims,gdims);
+ $x = PDL::Gaussian->new(xdims,gdims);
 
 Where I<xdims> is a reference to an array containing the
 dimensions in the space the gaussian
 is in and I<gdimslist> is a reference to an array containing
 the dimensionality of the gaussian space. For example, after
 
- $x = new PDL::Gaussian([2],[3,4]);
- $y = new PDL::Gaussian([],[]);
+ $x = PDL::Gaussian->new([2],[3,4]);
+ $y = PDL::Gaussian->new([],[]);
 
 The variable C<$x> contains set of 12 (=C<3*4>) 2-Dimensional gaussians
 and C<$y> is the simplest form: one 1D gaussian.

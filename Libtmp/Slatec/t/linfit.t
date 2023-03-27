@@ -73,7 +73,7 @@ $pave = $psum/$noPoints;
 # printf("DC Value = %g\n",$pave);
 
 # Make PDL from waveform:
-my $data = new PDL( \@Pulse);
+my $data = PDL->new(\@Pulse);
 my @functions;
 
 # setup matrix contains functions to fit
@@ -86,9 +86,9 @@ $functions[3][$i] = sin(2*$pi*$i/($noPoints-1));
 
 }
 
-my $fitFuncs = new PDL( \@functions);
+my $fitFuncs = PDL->new(\@functions);
 
-my ($yfit, $coeffs) = linfit1d( $data, $fitFuncs);
+my ($yfit, $coeffs) = linfit1d($data, $fitFuncs);
 
 my @coefs = $coeffs->list;
 

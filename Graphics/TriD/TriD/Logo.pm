@@ -481,4 +481,4 @@ sub new {
 # ***add these lines to, e.g. tvrml2.pl
 #
 # use PDL::Graphics::TriD::Logo;
-# $win->add_object(new PDL::Graphics::TriD::Logo);
+# $win->add_object(PDL::Graphics::TriD::Logo->new);

@@ -635,7 +635,7 @@ sub PDL::convolveND {
   ## Handle options -- $def is a static variable so it only gets set up once.
   our $def;
   unless(defined($def)) {
-    $def = new PDL::Options( {
+    $def = PDL::Options->new( {
                               Method=>'a',
                               Boundary=>'t'
                              }

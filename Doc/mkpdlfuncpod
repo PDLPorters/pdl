@@ -72,7 +72,7 @@ while (my ($key,$val) = each %$db) {
 for (@match) {
 	next if $_->[1]->{Ref} =~ /(Module|Manual):/ ||
 	nofunc $_->[1]->{Stripped}, $_->[1];
-	$sh = new StrHandle;
+	$sh = StrHandle->new;
 	print STDERR "function $_->[0] ($_->[1]->{Stripped})\n";
 	$onldc->funcdocs($_->[0],$sh);
 	$mod = "\n\nModule: $_->[1]->{Module}\n\n";

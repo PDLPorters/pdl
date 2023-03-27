@@ -428,7 +428,7 @@ sub trylink {
   if ($mmprocess) {
       require ExtUtils::MakeMaker;
       require ExtUtils::Liblist;
-      my $self = new ExtUtils::MakeMaker {DIR =>  [],'NAME' => 'NONE'};
+      my $self = ExtUtils::MakeMaker->new({DIR =>  [],'NAME' => 'NONE'});
 
       my @libs = $self->ext($libs, 0);
 

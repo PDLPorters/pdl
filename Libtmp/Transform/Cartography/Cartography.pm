@@ -1636,7 +1636,7 @@ sub t_sinusoidal {
 @PDL::Transform::Cartography::Conic::ISA = ('PDL::Transform::Cartography');
 sub _c_new {
     my($def_std) = pop;
-    my($me) = new('PDL::Transform::Cartography::Conic',@_); 
+    my $me = PDL::Transform::Cartography::Conic->new(@_);
 
     my($p) = $me->{params};
     $p->{std} = _opt($me->{options},['s','std','standard','Standard'],

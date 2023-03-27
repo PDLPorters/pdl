@@ -527,7 +527,7 @@ sub gdriver {
 			 PointerMotionMask) unless defined $options->{mask};
   print "STARTING OPENGL $options->{width} $options->{height}\n" if($PDL::Graphics::TriD::verbose);
   print "gdriver: Calling OpengGL::OO($options)...\n" if ($PDL::Graphics::TriD::verbose);
-  $this->{_GLObject}= new PDL::Graphics::OpenGL::OO($options);
+  $this->{_GLObject}= PDL::Graphics::OpenGL::OO->new($options);
   if (exists $this->{_GLObject}->{glutwindow}) {
      if ($PDL::Graphics::TriD::verbose) {
         print "gdriver: Got OpenGL::OO object(GLUT window ID# " . $this->{_GLObject}->{glutwindow} . ")\n";
@@ -791,11 +791,11 @@ use PDL::Graphics::OpenGLQ;
 
 sub highlight {
   my ($vp) = @_;
-  my $pts =  new PDL [[0,0,0],
+  my $pts = PDL->new([[0,0,0],
 		      [$vp->{W},0,0],
 		      [$vp->{W},$vp->{H},0],
 		      [0,$vp->{H},0],
-		      [0,0,0]];
+		      [0,0,0]]);
   glDisable(GL_LIGHTING);
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();

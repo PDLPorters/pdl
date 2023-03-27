@@ -540,7 +540,7 @@ guaranteed result in the original PDL -- the result is an arbitrary
 choice among the valid values.  For some things that's OK; but for
 others it's not. In particular, this doesn't work:
 
-    pdl> $photon_list = new PDL::RandVar->sample(500)->reshape(2,250)*10
+    pdl> $photon_list = PDL::RandVar->new->sample(500)->reshape(2,250)*10
     pdl> $histogram = zeroes(10,10)
     pdl> $histogram->range($photon_list,1)++;  #not what you wanted
 

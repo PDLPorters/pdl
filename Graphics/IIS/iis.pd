@@ -148,7 +148,7 @@ sub iis {
     elsif ( $#_ == 0 ) {
       barf $usage unless ref($_[0]) eq "HASH";
 
-      my $opt = new PDL::Options( { MIN => undef, MAX => undef, TITLE => $title, FRAME => $frame } );
+      my $opt = PDL::Options->new( { MIN => undef, MAX => undef, TITLE => $title, FRAME => $frame } );
       $opt->options( shift );
       my $options = $opt->current;
 

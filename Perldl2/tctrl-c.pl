@@ -10,7 +10,7 @@ sub handler {
 }
 $SIG{INT}  = \&handler;
 
-my $term = new Term::ReadLine 'ProgramName';
+my $term = Term::ReadLine->new('ProgramName');
 while (1) {
 	my $input = $term->readline('prompt> ');
 	if (not defined $input) {

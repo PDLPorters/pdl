@@ -305,13 +305,13 @@ ok(all($nonzero==pdl(0,1,2,4,6)), 'Which_both nonzero indices');
 ok(all($zero==pdl(3,5)), 'Which_both zero indices');
 
 ###### Testing Begins #########
-my $im = new PDL [
+my $im = PDL->new([
   [ 1, 2,  3,  3 , 5],
   [ 2,  3,  4,  5,  6],
   [13, 13, 13, 13, 13],
   [ 1,  3,  1,  3,  1],
   [10, 10,  2,  2,  2,]
- ];
+ ]);
 my @minMax = $im->minmax;
 ok($minMax[0] == 1, "minmax min" );
 ok($minMax[1] == 13, "minmax max" );
@@ -442,16 +442,16 @@ ok(all( $y==pdl(0,0,1,2,3,3,3) ), "one2nd y");
 ok(all( $z==pdl(0,0,0,0,1,4,4) ), "one2nd z");
 
 {
-my $yvalues =  (new PDL( 0..5))   - 20;
-my $xvalues = -(new PDL (0..5))*.5;
-my $x = new PDL(-2);
+my $yvalues =  PDL->new(0..5) - 20;
+my $xvalues = -PDL->new(0..5)*.5;
+my $x = PDL->new(-2);
 is( $x->interpol($xvalues,$yvalues), -16, "interpolate: real-valued" );
 }
 
 {
-my $yvalues =  ((new PDL( 0..5))   - 20) * (1+i()) ;
-my $xvalues = -(new PDL (0..5))*.5;
-my $x = new PDL(-2);
+my $yvalues =  (PDL->new(0..5) - 20) * (1+i()) ;
+my $xvalues = -PDL->new(0..5)*.5;
+my $x = PDL->new(-2);
 is( $x->interpol($xvalues,$yvalues), -16 - 16*i, "interpolate: complex-valued" );
 ok( !eval { $x->interpol($xvalues*i(),$yvalues) } , "interpolate: x must be real" );
 }

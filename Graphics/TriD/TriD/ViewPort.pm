@@ -18,7 +18,7 @@ sub new {
 	  $this->{Y0} = $y0;
 	  $this->{W} = $w;
 	  $this->{H} = $h;
-	  $this->{DefMaterial} = new PDL::Graphics::TriD::Material;
+	  $this->{DefMaterial} = PDL::Graphics::TriD::Material->new;
 
      return $this;
 }

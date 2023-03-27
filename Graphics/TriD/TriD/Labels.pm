@@ -4,7 +4,7 @@ PDL::Graphics::TriD::Labels - Text tools
 
 =head1 SYNOPSIS
 
-  my $l = new PDL::Graphics::TriD::Labels($lablepoints,
+  my $l = PDL::Graphics::TriD::Labels->new($lablepoints,
 					  {Strings=>$strlist
 					   ,Font=>$font});
 

@@ -12,8 +12,8 @@ PDL::Options - simplifies option passing by hash in PerlDL
 
   use PDL::Options ();
 
-  $opt = new PDL::Options;
-  $opt = new PDL::Options ( \%defaults );
+  $opt = PDL::Options->new;
+  $opt = PDL::Options->new( \%defaults );
 
   $opt->defaults ( \%defaults );
   $opt->synonyms ( { 'COLOR' => 'COLOUR' } );
@@ -126,7 +126,7 @@ sub _parse {
       unless ref($user) eq "HASH";
 
    # Create new object
-   my $opt = new PDL::Options ( $defaults );
+   my $opt = PDL::Options->new( $defaults );
 
    # Set up default behaviour
    $opt->minmatch(1);
@@ -938,7 +938,7 @@ The following example will try to show the main points:
    use PDL::Options ();
 
    # Create new object and supply defaults
-   $opt = new PDL::Options(   { Colour => 'red',
+   $opt = PDL::Options->new(   { Colour => 'red',
 	   		        LineStyle => 'dashed',
 			        LineWidth => 1
 			      }

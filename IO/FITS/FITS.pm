@@ -304,7 +304,7 @@ reading in a data structure as well.
 
 =cut
 
-our $rfits_options = new PDL::Options( { bscale=>1, data=>1, hdrcpy=>0, expand=>1, afh=>1 } );
+our $rfits_options = PDL::Options->new( { bscale=>1, data=>1, hdrcpy=>0, expand=>1, afh=>1 } );
 
 sub PDL::rfitshdr {
   my $class = shift;
@@ -1810,7 +1810,7 @@ sub PDL::wfits {
 	  if($all_valid_fits) {
 	      # All the keys look like valid FITS header keywords -- so 
 	      # create a tied FITS header object and use that instead.
-	      my $afh = new Astro::FITS::Header( );
+	      my $afh = Astro::FITS::Header->new;
 	      my %hh;
 	      tie %hh, "Astro::FITS::Header", $afh;
 	      for (keys %$h) {

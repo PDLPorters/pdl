@@ -14,7 +14,7 @@ PDL::Graphics::TriD::Contours - 3D Surface contours for TriD
     $x = (xvals zeroes $size,$size) / $size;
     $y = (yvals zeroes $size,$size) / $size;
     $z = (sin($x*6.3) * sin($y*6.3)) ** 3;
-    $data=new PDL::Graphics::TriD::Contours($z,
+    $data=PDL::Graphics::TriD::Contours->new($z,
                [$z->xvals/$size,$z->yvals/$size,0]);
     PDL::Graphics::TriD::graph_object($data)
 
@@ -42,7 +42,7 @@ Define a new contour plot for TriD.
 
 =for example
 
-  $data=new PDL::Graphics::TriD::Contours($d,[$x,$y,$z],[$r,$g,$b],$options);
+  $data=PDL::Graphics::TriD::Contours->new($d,[$x,$y,$z],[$r,$g,$b],$options);
 
 where $d is a 2D pdl of data to be contoured. [$x,$y,$z] define a 3D
 map of $d into the visualization space [$r,$g,$b] is an optional [3,1]

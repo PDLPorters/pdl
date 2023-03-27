@@ -156,7 +156,7 @@ PDL::Doc - support for PDL online documentation
 =head1 SYNOPSIS
 
   use PDL::Doc;
-  $onlinedc = new PDL::Doc ($docfile);
+  $onlinedc = PDL::Doc->new($docfile);
   @match = $onlinedc->search('m/slice|clump/');
 
 =head1 DESCRIPTION
@@ -420,7 +420,7 @@ use PDL::Doc::Config;
 
 =head2 new
 
-  $onlinedc = new PDL::Doc ('file.pdl',[more files]);
+  $onlinedc = PDL::Doc->new('file.pdl',[more files]);
 
 =cut
 
@@ -712,7 +712,7 @@ sub scan {
 
   open $infile, '<', $file;
   $outfile_text = '';
-  $parser = new PDL::PodParser;
+  $parser = PDL::PodParser->new;
   $parser->select('NAME');
   eval { $parser->parse_from_filehandle($infile,$outfile) };
   warn "cannot parse '$file'" if $@;
@@ -895,7 +895,7 @@ own code.
      $file = $dir."/PDL/pdldoc.db";
      if (-f $file) {
          print "Found docs database $file\n";
-         $pdldoc = new PDL::Doc ($file);
+         $pdldoc = PDL::Doc->new($file);
          last DIRECTORY;
      }
  }

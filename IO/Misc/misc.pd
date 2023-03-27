@@ -389,7 +389,7 @@ sub PDL::rcols {
    shift;
 
    # set up default options
-   my $opt = new PDL::Options( {
+   my $opt = PDL::Options->new( {
        CHUNKSIZE => undef,
        COLIDS => undef,
        COLSEP => undef,
@@ -1102,7 +1102,7 @@ of C<$1>, C<$2> etc.
 
 	
      # set up default options
-     my $opt = new PDL::Options( {
+     my $opt = PDL::Options->new( {
          DEFTYPE => $deftype,
          TYPES => [],
          UNDEFINED => $PDL::undefval,

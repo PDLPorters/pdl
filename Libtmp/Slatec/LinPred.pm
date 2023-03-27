@@ -4,7 +4,7 @@ PDL::Filter::LinPred - Linear predictive filtering
 
 =head1 SYNOPSIS
 
-	$x = new PDL::Filter::LinPred(
+	$x = PDL::Filter::LinPred->new(
 		{NLags => 10,
 		 LagInterval => 2,
 		 LagsBehind => 2,

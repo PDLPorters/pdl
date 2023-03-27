@@ -121,7 +121,7 @@ sub format_ref {
 
 
   my $width = screen_width()-17-1-$max_mod_length;
-  my $parser = new Pod::PlainText( width => $width, indent => 0, sentence => 0 );
+  my $parser = Pod::PlainText->new( width => $width, indent => 0, sentence => 0 );
 
   for my $m (@match) {
     my $ref = $m->[2]{Ref} ||

@@ -701,8 +701,8 @@ READ:
 				unless defined $flextypes{$type};
 			$type = $flextypes{$type};
 		}
-		my $pdl = PDL->zeroes ((new PDL::Type($type)),
-					ref $hdr->{Dims} ? @{$hdr->{Dims}} : $hdr->{Dims});
+		my $pdl = PDL->zeroes(PDL::Type->new($type),
+				      ref $hdr->{Dims} ? @{$hdr->{Dims}} : $hdr->{Dims});
 		$len = length $ {$pdl->get_dataref};
 
 		&mapchunk($d,$pdl,$len,$name,$offset) or last READ;

@@ -28,11 +28,11 @@ $cols = PDL->zeroes(3,20);
 $cols->inplace->random;
 
 $g = PDL::Graphics::TriD::get_new_graph;
-$name = $g->add_dataseries(new PDL::Graphics::TriD::Points($pdl,$cols));
+$name = $g->add_dataseries(PDL::Graphics::TriD::Points->new($pdl,$cols));
 $g->bind_default($name);
-$name = $g->add_dataseries(new PDL::Graphics::TriD::Lattice([SURF2D,$x]));
+$name = $g->add_dataseries(PDL::Graphics::TriD::Lattice->new([SURF2D,$x]));
 $g->bind_default($name);
-$name = $g->add_dataseries(new PDL::Graphics::TriD::SLattice_S([SURF2D,$x+1],$cx,
+$name = $g->add_dataseries(PDL::Graphics::TriD::SLattice_S->new([SURF2D,$x+1],$cx,
 						     {Smooth=>1,Lines=>0}));
 $g->bind_default($name);
 $g->scalethings();
@@ -44,7 +44,7 @@ $win = PDL::Graphics::TriD::get_current_window();
 
 use PDL::Graphics::TriD::Logo;
 
-$win->add_object(new PDL::Graphics::TriD::Logo);
+$win->add_object(PDL::Graphics::TriD::Logo->new);
 
 #use Data::Dumper;
 #my $out = Dumper($win);

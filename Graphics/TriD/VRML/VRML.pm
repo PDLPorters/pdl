@@ -276,10 +276,10 @@ sub new {
   my ($type,$title,$info) = @_;
   my $this = bless {},$type;
   $this->{Header} = '#VRML V2.0 utf8';
-  $this->{Info} = new PDL::Graphics::VRMLNode('WorldInfo',
+  $this->{Info} = PDL::Graphics::VRMLNode->new('WorldInfo',
 				    'title' => $title,
 				    'info' => $info);
-  $this->{NaviInfo} = new PDL::Graphics::VRMLNode('NavigationInfo',
+  $this->{NaviInfo} = PDL::Graphics::VRMLNode->new('NavigationInfo',
 			'type' => '["EXAMINE", "ANY"]');
   $this->{Protos} = {};
   $this->{Uses} = {};

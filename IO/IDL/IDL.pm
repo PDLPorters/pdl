@@ -806,7 +806,7 @@ sub r_byte_pdl {
 
   my $x = r_string();
 
-  my $pdl = new PDL;
+  my $pdl = PDL->new;
   $pdl->set_datatype(byte->enum);
   $pdl->setdims($dims);
   ${ $pdl->get_dataref() } = $x;

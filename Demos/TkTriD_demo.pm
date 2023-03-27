@@ -137,7 +137,7 @@ sub linedemos{
 
   unless(defined $graph){
     # define the graph object
-    $graph = new PDL::Graphics::TriD::Graph();
+    $graph = PDL::Graphics::TriD::Graph->new;
     $graph->default_axes();
   }
   $graph->delete_data("LinesB&W");
@@ -151,7 +151,7 @@ sub linedemos{
     my $cy = 0.5+cos($cz*12.6)/2;
     if($demo eq "B&W"){
       $graph->delete_data("LinesColor");
-      $data=new PDL::Graphics::TriD::LineStrip([$cx,$cy,$cz]);
+      $data=PDL::Graphics::TriD::LineStrip->new([$cx,$cy,$cz]);
     }elsif($demo eq "Color"){
       $graph->delete_data("LinesB&W");
 
@@ -159,7 +159,7 @@ sub linedemos{
       my $g = cos($cz*6.3)/2 + 0.5;
       my $b = $cz;
       
-      $data=new PDL::Graphics::TriD::LineStrip([$cx,$cy,$cz],[$r,$g,$b]);
+      $data=PDL::Graphics::TriD::LineStrip->new([$cx,$cy,$cz],[$r,$g,$b]);
     }
     $graph->add_dataseries($data,"Lines$demo");
   }
@@ -184,7 +184,7 @@ sub Linesdemos{
 
   unless(defined $graph){
     # define the graph object
-    $graph = new PDL::Graphics::TriD::Graph();
+    $graph = PDL::Graphics::TriD::Graph->new;
     $graph->default_axes();
   }
   $graph->delete_data("LinesPoints");
@@ -199,11 +199,11 @@ sub Linesdemos{
     $y = (yvals zeroes $size+1,$size+1) / $size;
     $z = 0.5 + 0.5 * (sin($x*6.3) * sin($y*6.3)) ** 3; 
     if($demo eq "Lines"){
-      $data=new PDL::Graphics::TriD::LineStrip([$x,$y,$z],[$x,$y,$z]);
+      $data=PDL::Graphics::TriD::LineStrip->new([$x,$y,$z],[$x,$y,$z]);
     }elsif($demo eq "Lattice"){
-      $data=new PDL::Graphics::TriD::Lattice([$x,$y,$z],[$x,$y,$z]);
+      $data=PDL::Graphics::TriD::Lattice->new([$x,$y,$z],[$x,$y,$z]);
     }elsif($demo eq "Points"){
-      $data=new PDL::Graphics::TriD::Points([$x,$y,$z],[$x,$y,$z]);
+      $data=PDL::Graphics::TriD::Points->new([$x,$y,$z],[$x,$y,$z]);
     }
 
     $graph->add_dataseries($data,"Lines$demo");
@@ -229,7 +229,7 @@ sub Contourdemos{
 
   unless(defined $graph){
     # define the graph object
-    $graph = new PDL::Graphics::TriD::Graph();
+    $graph = PDL::Graphics::TriD::Graph->new;
     $graph->default_axes();
   }
   $graph->delete_data("Contours2DB&W");
@@ -245,12 +245,12 @@ sub Contourdemos{
     $z = (sin($x*6.3) * sin($y*6.3)) ** 3;
   
     if($demo eq "2DB&W"){
-      $data=new PDL::Graphics::TriD::Contours($z,[$z->xvals/$size,$z->yvals/$size,0]);
+      $data=PDL::Graphics::TriD::Contours->new($z,[$z->xvals/$size,$z->yvals/$size,0]);
     }elsif($demo eq "2DColor"){
-      $data=new PDL::Graphics::TriD::Contours($z,[$z->xvals/$size,$z->yvals/$size,0]);
+      $data=PDL::Graphics::TriD::Contours->new($z,[$z->xvals/$size,$z->yvals/$size,0]);
       $data->set_colortable(\&PDL::Graphics::TriD::Contours::coldhot_colortable);
     }elsif($demo eq "3DColor"){
-      $data=new PDL::Graphics::TriD::Contours($z,[$z->xvals/$size,$z->yvals/$size,$z]);
+      $data=PDL::Graphics::TriD::Contours->new($z,[$z->xvals/$size,$z->yvals/$size,$z]);
       $data->set_colortable(\&PDL::Graphics::TriD::Contours::coldhot_colortable);
     }
 	 $data->addlabels(2,5);
@@ -278,7 +278,7 @@ sub Torusdemos{
   
   unless(defined $graph){
     # define the graph object
-    $graph = new PDL::Graphics::TriD::Graph();
+    $graph = PDL::Graphics::TriD::Graph->new;
     $graph->default_axes();
   }
 
@@ -300,10 +300,10 @@ sub Torusdemos{
     my $z = $i*cos($u)+$o*sin(3*$t);
 
     if($demo eq "Colors"){
-      $data=new PDL::Graphics::TriD::SLattice([$x,$y,$z],
+      $data=PDL::Graphics::TriD::SLattice->new([$x,$y,$z],
 					      [0.5*(1+sin $t),0.5*(1+cos $t),0.25*(2+cos($u)+sin(3*$t))]);
     }else{
-      $data=new PDL::Graphics::TriD::SLattice_S([$x,$y,$z]);
+      $data=PDL::Graphics::TriD::SLattice_S->new([$x,$y,$z]);
     }
     $graph->add_dataseries($data,"Torus$demo");
   }

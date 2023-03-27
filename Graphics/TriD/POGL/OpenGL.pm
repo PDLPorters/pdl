@@ -157,7 +157,7 @@ sub new {
    if($isref and defined $class_or_hash->{Options}){
       $p = $class_or_hash->{Options};
    }else{
-      my $opt = new PDL::Options(default_options());
+      my $opt = PDL::Options->new(default_options());
       $opt->incremental(1);
       $opt->options($options) if(defined $options);
       $p = $opt->options;

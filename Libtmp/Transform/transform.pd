@@ -9,7 +9,7 @@ PDL::Transform - Coordinate transforms, image warping, and N-D functions
 
 use PDL::Transform;
 
- my $t = new PDL::Transform::<type>(<opt>)
+ my $t = PDL::Transform::<type>->new(<opt>)
 
  $out = $t->apply($in)  # Apply transform to some N-vectors (Transform method)
  $out = $in->apply($t)  # Apply transform to some N-vectors (PDL method)
@@ -55,7 +55,7 @@ For terseness and convenience, most of the constructors are exported
 into the current package with the name C<< t_<transform> >>, so the following
 (for example) are synonyms:
 
-  $t = new PDL::Transform::Radial();  # Long way
+  $t = PDL::Transform::Radial->new;  # Long way
 
   $t = t_radial();                    # Short way
 
@@ -2241,7 +2241,7 @@ pp_addpm(<<'+======EOD_t_identity======');
 =for usage
 
   my $xform = t_identity
-  my $xform = new PDL::Transform;
+  my $xform = PDL::Transform->new;
 
 =for ref
 

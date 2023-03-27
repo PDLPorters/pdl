@@ -409,7 +409,7 @@ The BAD values are automatically kept BAD and propagated correctly.
 C<pdl()> is a functional synonym for the 'new' constructor,
 e.g.:
 
- $x = new PDL [1..10];
+ $x = PDL->new([1..10]);
 
 In order to control how undefs are handled in converting from perl lists to
 PDLs, one can set the variable C<$PDL::undefval>.
@@ -871,9 +871,7 @@ new ndarray constructor method
 =for example
 
  $x = PDL->new(42);             # new from a Perl scalar
- $x = new PDL 42;               # ditto
  $y = PDL->new(@list_of_vals);  # new from Perl list
- $y = new PDL @list_of_vals;    # ditto
  $z = PDL->new(\@list_of_vals); # new from Perl list reference
  $w = PDL->new("[1 2 3]");      # new from Perl string, using
                                 # Matlab constructor syntax
@@ -983,7 +981,7 @@ sub PDL::Core::new_pdl_from_string {
    }
 
    # Wrap the string in brackets [], so that the following works:
-   # $x = new PDL q[1 2 3];
+   # $x = PDL->new(q[1 2 3]);
    # We'll have to check for dimensions of size one after we've parsed
    # the string and built a PDL from the resulting array.
    $value = '[' . $value . ']';
@@ -3942,7 +3940,7 @@ sub PDL::fhdr {
 
     # Avoid bug in 1.15 and earlier Astro::FITS::Header
     my @hdr = ("SIMPLE  =                    T");
-    my $hdr = new Astro::FITS::Header(Cards=>\@hdr);
+    my $hdr = Astro::FITS::Header->new(Cards=>\@hdr);
     tie my %hdr, "Astro::FITS::Header", $hdr;
     $pdl->sethdr(\%hdr);
     return \%hdr;

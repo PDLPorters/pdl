@@ -19,7 +19,7 @@ OO:
 or
 
    use PDL::DiskCache;
-   $x = new PDL::DiskCache(\@files,\%options);
+   $x = PDL::DiskCache->new(\@files,\%options);
    imag $x->[4];
 
 =over 3

@@ -762,7 +762,7 @@ can even omit the '/' in the device specifier, so these two lines
 deliver the same result:
 
     $win = pgwin(gif);
-    $win = new PDL::Graphics::PGPLOT::Window({Dev=>'/gif'});
+    $win = PDL::Graphics::PGPLOT::Window->new({Dev=>'/gif'});
 
 =head2 new
 

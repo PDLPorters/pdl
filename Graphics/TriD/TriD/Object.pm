@@ -80,7 +80,7 @@ sub vrml_update {
   my ($this) = @_;
   use PDL::Graphics::VRML;
 
-  $this->{VRML} = new PDL::Graphics::VRMLNode('Transform',
+  $this->{VRML} = PDL::Graphics::VRMLNode->new('Transform',
 				   'translation' => "-1 -1 -1",
 				   'scale' => "2 2 2");
   $this->{ValidList} = 1;
