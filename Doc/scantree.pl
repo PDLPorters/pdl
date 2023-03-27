@@ -1,3 +1,5 @@
+use strict;
+use warnings;
 use PDL::Doc;
 use Getopt::Std;
 use Config;
@@ -5,12 +7,12 @@ use Cwd;
 
 require PDL; # always needed to pick up PDL::VERSION
 
-$opt_v = 0;
+our $opt_v = 0;
 
 getopts('v');
-$dirarg = shift @ARGV;
-$outdb  = shift @ARGV;
-$outindex  = shift @ARGV;
+my $dirarg = shift @ARGV;
+my $outdb  = shift @ARGV;
+my $outindex  = shift @ARGV;
 
 unless (defined $dirarg) {
 	($dirarg = $INC{'PDL.pm'}) =~ s/PDL\.pm$//i;
@@ -23,13 +25,13 @@ unless (defined $outdb) {
 	print "DB  = $outdb\n";
 }
 
-$currdir = getcwd;
+my $currdir = getcwd;
 
 unlink $outdb if -e $outdb;
-$onldc = PDL::Doc->new;
+my $onldc = PDL::Doc->new;
 $onldc->outfile($outdb);
 
-foreach $dir (@dirs) {
+foreach my $dir (@dirs) {
     chdir $dir or die "can't change to $dir";
     $dir = getcwd;
 
@@ -40,10 +42,10 @@ foreach $dir (@dirs) {
 
 print STDERR "saving...\n";
 $onldc->savedb();
-@mods = $onldc->search('module:',['Ref'],1);
-@mans = $onldc->search('manual:',['Ref'],1);
-@scripts = $onldc->search('script:',['Ref'],1);
-$outdir = "$dirs[0]/PDL";
+my @mods = $onldc->search('module:',['Ref'],1);
+my @mans = $onldc->search('manual:',['Ref'],1);
+my @scripts = $onldc->search('script:',['Ref'],1);
+my $outdir = "$dirs[0]/PDL";
 # ($outdir = $INC{'PDL.pm'}) =~ s/\.pm$//i;
 $outindex="$outdir/Index.pod" unless (defined $outindex);
 unlink $outindex if -e $outindex;  # Handle read only file
@@ -70,7 +72,7 @@ for (@mans) {
   print $podfh "=item *\n\n$ref\n\n";
 }
 
-print $podfh << 'EOPOD';
+print $podfh <<'EOPOD';
 
 =back
 
@@ -85,7 +87,7 @@ for (@scripts) {
   print $podfh "=item *\n\n$ref\n\n";
 }
 
-print $podfh << 'EOPOD';
+print $podfh <<'EOPOD';
 
 =back
 
@@ -106,7 +108,7 @@ for (@mods) {
   print $podfh "=item *\n\n$ref\n\n";
 }
 
-print $podfh << "EOPOD";
+print $podfh <<"EOPOD";
 
 =back
 
