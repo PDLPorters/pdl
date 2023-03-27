@@ -105,7 +105,7 @@ sub checkmode {
   }
   unless ($this->{Parmode} =~ /Body/ || $this->{INBLOCK}) {
     my $func = $this->{CURFUNC};
-    barf "no function defined" unless defined $func;
+    die "no function defined\n" unless defined $func;
     local $this->{INBLOCK} = 1; # can interpolate call textblock?
     my $itxt = $verbatim ? $txt : $this->interpolate($txt);
     $this->{SYMHASH}->{$func}->{$this->{Parmode}} .=
@@ -687,7 +687,7 @@ sub scan {
   my $parser = PDL::PodParser->new;
   $parser->{verbose} = $verbose;
   eval { $parser->parse_from_filehandle($infile,$outfile) };
-  warn "cannot parse '$file' ($@)" if $@;
+  warn "cannot parse '$file' ($@)" if $@ and $@ ne "no function defined\n";
 
   $this->{SYMS} = {} unless defined $this->{SYMS};
   my $hash = $this->{SYMS};
