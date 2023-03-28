@@ -213,6 +213,7 @@ sub new {
 
 sub apply {
     my ($self, $pars) = @_;
+    $self->report("Applying: $self\n");
     croak($self->{doc}) if $self->should_apply($pars);
 }
 
