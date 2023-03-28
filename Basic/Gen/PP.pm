@@ -1611,7 +1611,7 @@ EOD
         my $ninout = $nin + $nout;
         my $nallout = $nout + $noutca;
         my $ndefault = keys %$defaults;
-        my $usageargs = join ",", map exists $defaults->{$_} ? "$_=$defaults->{$_}" : $_, grep !$tmp{$_}, @args;
+        my $usageargs = join ",", map exists $defaults->{$_} ? "$_=$defaults->{$_}" : $_, grep !$tmp{$_} && !$outca{$_}, @args;
         # Generate declarations for SV * variables corresponding to pdl * output variables.
         # These are used in creating output variables.  One variable (ex: SV * outvar1_SV;)
         # is needed for each output and output create always argument
