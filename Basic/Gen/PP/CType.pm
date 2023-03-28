@@ -91,9 +91,10 @@ sub get_copy {
 
 sub get_free {
 	my($this,$from) = @_;
+	my $single_ptr = @{$this->{Chain}} == 1 && $this->{Chain}[0][0] eq 'PTR';
+	return PDL::PP::pp_line_numbers(__LINE__-1, "SvREFCNT_dec($from);") if $this->{Base} =~ /^\s*SV\s*$/ and $single_ptr;
+	return PDL::PP::pp_line_numbers(__LINE__-1, "free($from);") if $this->{Base} =~ /^\s*char\s*$/ and $single_ptr;
 	return "" if !@{$this->{Chain}} or $this->{Chain}[0][0] eq 'PTR';
-	return PDL::PP::pp_line_numbers(__LINE__-1, "free($from);") if $this->{Base} =~ /^\s*char\s*$/;
-	return PDL::PP::pp_line_numbers(__LINE__-1, "SvREFCNT_dec($from);") if $this->{Base} =~ /^\s*SV\s*$/;
 	croak("Can only free one layer!\n") if @{$this->{Chain}} > 1;
 	PDL::PP::pp_line_numbers(__LINE__-1, "free($from);");
 }

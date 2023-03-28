@@ -1516,12 +1516,9 @@ EOD
 # by parsing the string in that function.
 # If the user wishes to specify their own MakeComp code and Comp content,
 # The next definitions allow this.
-   PDL::PP::Rule->new("CompObj", ["BadFlag","Comp"],
-      sub { PDL::PP::Signature->new('', @_) }),
-   PDL::PP::Rule->new("CompObj", "SignatureObj", sub { @_ }), # provide default
-   PDL::PP::Rule->new("CompStructOther", "SignatureObj", sub {$_[0]->getcomp}),
-   PDL::PP::Rule->new("CompStructComp", [qw(CompObj Comp)], sub {$_[0]->getcomp}),
-   PDL::PP::Rule->new("CompStruct", ["CompStructOther", \"CompStructComp"], sub { join "\n", grep $_, @_ }),
+   PDL::PP::Rule->new("CompObj", ["BadFlag","OtherPars",\"Comp"],
+      sub { PDL::PP::Signature->new('', $_[0], join(';', grep defined() && /[^\s;]/, @_[1..$#_])) }),
+   PDL::PP::Rule->new("CompStruct", ["CompObj"], sub {$_[0]->getcomp}),
 
  # Set CallCopy flag for simple functions (2-arg with 0-dim signatures)
  #   This will copy the $object->copy method, instead of initialize
@@ -1889,9 +1886,10 @@ sub make_vfn_args {
    PDL::PP::Rule::Substitute->new("RedoDimsCodeSubd", "RedoDims"),
    PDL::PP::Rule->new(make_vfn_args("RedoDims")),
 
-   PDL::PP::Rule->new("CompFreeCodeOther", "SignatureObj", sub {$_[0]->getfree("COMP")}),
-   PDL::PP::Rule->new("CompFreeCodeComp", [qw(CompObj Comp)], sub {$_[0]->getfree("COMP")}),
-   PDL::PP::Rule->new("CompFreeCode", ["CompFreeCodeOther", \"CompFreeCodeComp"], sub { join "\n", grep $_, @_ }),
+   PDL::PP::Rule->new("CompFreeCode", ["CompObj",\"CompFreeCodeComp"],
+    "Free any OtherPars/Comp stuff, including user-supplied code (which is probably paired with own MakeComp)",
+    sub {join '', grep defined() && length, $_[0]->getfree("COMP"), @_[1..$#_]},
+   ),
    PDL::PP::Rule->new("NTPrivFreeCode", "PrivObj", sub {$_[0]->getfree("PRIV")}),
    PDL::PP::Rule->new("FreeCodeNS",
       ["StructName","CompFreeCode","NTPrivFreeCode"],

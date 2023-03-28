@@ -1362,6 +1362,9 @@ The C<MakeComp> code is placed in the C<pdl_(funcname)_run>, so access
 to C<Pars> (which will just be C<pdl *>s)/C<OtherPars> values is just
 via their names, not a macro.
 
+You can also provide a C<CompFreeCodeComp> key, in case your C<MakeComp>
+needs tidying up after it.
+
 As of 2.058, you can instead give a C99 "incomplete
 array" type parameter as an C<OtherPars> entry:
 
