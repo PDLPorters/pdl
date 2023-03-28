@@ -331,7 +331,7 @@ EOD-range
 
 pp_def(
         'rangeb',
-        OtherPars => 'pdl *ind_pdl; SV *size; SV *boundary_sv',
+        OtherPars => 'pdl *ind_pdl; SV *size_sv; SV *boundary_sv',
         Doc => <<'EOD',
 =for ref
 
@@ -598,20 +598,17 @@ EOD
         P2Child => 1,
 
 # rdim: dimensionality of each range (0 dim of index PDL)
-#
-# ntsize: number of nonzero size dimensions
-# sizes:  array of range sizes, indexed (0..rdim-1).  A zero element means
-#         that the dimension is omitted from the child dim list.
-# corners: parent coordinates of each corner, running fastest over coord index.
-#       (indexed 0 .. (nitems-1)*(rdim)+rdim-1)
 # nitems: total number of list elements   (product of itdims)
 # itdim:  number of index broadcast dimensions
-# itdims: Size of each index broadcast dimension, indexed (0..itdim-1)
-#
+# ntsize: number of nonzero size dimensions
 # bsize: Number of independently specified boundary conditions
 # nsizes: Number of independently specified range dim sizes
+# sizes:  array of range sizes, indexed (0..rdim-1).  A zero element means
+#         that the dimension is omitted from the child dim list.
+# itdims: Size of each index broadcast dimension, indexed (0..itdim-1)
+# corners: parent coordinates of each corner, running fastest over coord index.
+#       (indexed 0 .. (nitems-1)*(rdim)+rdim-1)
 # boundary: Array containing all the boundary condition specs
-# indord: Order/size of the indexing dim (0th dim of $index)
 
         Comp => 'PDL_Indx rdim;
                  PDL_Indx nitems;
@@ -726,7 +723,7 @@ switch(ind_pdl->datatype) {
 {
   PDL_Indx i,ntsize;
 
-  if( (size == NULL) || (size == &PL_sv_undef) ) {
+  if( (size_sv == NULL) || !SvOK(size_sv) ) {
     // NO size was passed in, not normally executed even if you passed in no size to range(),
     // as range() generates a size array...
     for(i=0;i<$COMP(rdim);i++)
@@ -735,7 +732,7 @@ switch(ind_pdl->datatype) {
   } else {
     /* Normal case with sizes present in a PDL */
 
-    if(!(size_pdl = PDL->SvPDLV(size))) /* assignment */
+    if(!(size_pdl = PDL->SvPDLV(size_sv))) /* assignment */
       $CROAK("Unable to convert size to a PDL");
 
     if(size_pdl->nvals == 0) {

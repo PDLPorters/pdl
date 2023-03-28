@@ -3109,7 +3109,6 @@ the C<sample> method will return C<< $a->(0) >> for coordinate values on
 the set [-0.5,0.5), and all methods will return C<< $a->(1) >> for
 a coordinate value of exactly 1.
 
-
 Recognized options:
 
 =over 3
