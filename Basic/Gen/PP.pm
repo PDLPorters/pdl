@@ -66,8 +66,9 @@ sub stringify {
 	$str =~ s/PDL::PP::Rule:://;
     }
     $str = "($str) ";
-    $str .= exists $self->{doc} ?
-       $self->{doc} : join(",", @{$self->{targets}});
+    $str .= "[".join(",", @{$self->{targets}||[]})."]";
+    $str .= "<-[".join(",", map ref() ? "$$_?": $_, @{$self->{conditions}||[]})."] ";
+    $str .= $self->{doc} if exists $self->{doc};
     return $str;
 }
 
