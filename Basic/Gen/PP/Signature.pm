@@ -23,10 +23,10 @@ Internal module to handle signatures
 sub nospacesplit {grep /\S/, split $_[0],$_[1]}
 
 sub new {
-  my ($type,$str,$bvalflag,$otherpars) = @_;
+  my ($type,$pars,$bvalflag,$otherpars) = @_;
   $bvalflag ||= 0;
   my $this = bless {}, $type;
-  my @objects = map PDL::PP::PdlParObj->new($_,$bvalflag, $this), nospacesplit ';',$str;
+  my @objects = map PDL::PP::PdlParObj->new($_,$bvalflag, $this), nospacesplit ';',$pars;
   $this->{Names} = [ map $_->name, @objects ];
   $this->{Objects} = { map +($_->name => $_), @objects };
   my @objects_sorted = ((grep !$_->{FlagW}, @objects), (grep $_->{FlagW}, @objects));

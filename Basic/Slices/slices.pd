@@ -650,7 +650,7 @@ switch(ind_pdl->datatype) {
 }
 
 /***
- * Figure sizes of the COMP arrrays and allocate them.
+ * Figure sizes of the COMP arrays and allocate them.
  */
 {
   PDL_Indx i,nitems;
