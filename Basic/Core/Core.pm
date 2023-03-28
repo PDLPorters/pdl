@@ -3098,15 +3098,6 @@ C<sclr> is generally used when a Perl scalar is required instead
 of a one-element ndarray. As of 2.064, if the input is a multielement ndarray
 it will throw an exception.
 
-=cut
-
-sub PDL::sclr {
-  my $this = shift;
-  confess "multielement ndarray in 'sclr' call"
-    if $this->nelem > 1;
-  return sclr_c($this);
-}
-
 =head2 cat
 
 =for ref

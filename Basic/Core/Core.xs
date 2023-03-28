@@ -272,19 +272,6 @@ set_debugging(i)
 	RETVAL
 
 
-PDL_Anyval
-sclr_c(it)
-   pdl* it
-   CODE:
-        /* get the first element of an ndarray and return as
-         * Perl scalar (autodetect suitable type IV or NV)
-         */
-        RETVAL = pdl_at0(it);
-        if (RETVAL.type < 0) croak("Position out of range");
-    OUTPUT:
-        RETVAL
-
-
 SV *
 at_bad_c(x,pos)
    pdl*	x
@@ -598,10 +585,23 @@ pdl_remove_threading_magic(it)
 
 MODULE = PDL::Core	PACKAGE = PDL
 
+PDL_Anyval
+sclr(it)
+   pdl* it
+   CODE:
+        /* get the first element of an ndarray and return as
+         * Perl scalar (autodetect suitable type IV or NV)
+         */
+        pdl_barf_if_error(pdl_make_physdims(it));
+        if (it->nvals > 1) barf("multielement ndarray in 'sclr' call");
+        RETVAL = pdl_at0(it);
+        if (RETVAL.type < 0) croak("Position out of range");
+    OUTPUT:
+        RETVAL
+
 SV *
 initialize(class)
-	SV *class
-        PREINIT:
+        SV *class
         CODE:
         HV *bless_stash = SvROK(class)
           ? SvSTASH(SvRV(class)) /* a reference to a class */
