@@ -1816,7 +1816,7 @@ EOF
         my($comp,$name) = @_;
         return ('', '') if !$comp;
         my $ptype = "pdl_params_$name";
-        (PDL::PP::pp_line_numbers(__LINE__-1, qq{typedef struct $ptype {\n$comp} $ptype;}),
+        (PDL::PP::pp_line_numbers(__LINE__-1, qq[typedef struct $ptype {\n]).qq[$comp\n} $ptype;],
         $ptype);
       }),
 

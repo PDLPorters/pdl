@@ -152,7 +152,7 @@ sub getcomp {
   my $objs = $self->otherobjs;
   my @names = @{$self->othernames(0)};
   my $indirect = { map +($_=>$self->other_is_out($_)), @names };
-  join '', map "$_;", grep $_, map $objs->{$_}->get_decl($_, {VarArrays2Ptrs=>1,AddIndirect=>$indirect->{$_}}), @names;
+  join "\n", map "$_;", grep $_, map $objs->{$_}->get_decl($_, {VarArrays2Ptrs=>1,AddIndirect=>$indirect->{$_}}), @names;
 }
 sub getfree {
   my ($self,$symbol) = @_;
