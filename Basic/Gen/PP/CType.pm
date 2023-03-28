@@ -63,7 +63,7 @@ sub get_copy {
 	# strdup loses portability :(
 	return PDL::PP::pp_line_numbers(__LINE__-1, "($to) = malloc(strlen($from)+1); strcpy($to,$from);")
 	 if $this->{Base} =~ /^\s*char\s*$/;
-	return PDL::PP::pp_line_numbers(__LINE__-1, "($to) = newSVsv($from);") if $this->{Base} =~ /^\s*SV\s*$/;
+	return PDL::PP::pp_line_numbers(__LINE__-1, "($to) = sv_mortalcopy($from);") if $this->{Base} =~ /^\s*SV\s*$/;
 	my $code = $this->get_malloc($to,$from);
 	return PDL::PP::pp_line_numbers(__LINE__-1, "($to) = ($from);") if !defined $code; # pointer
 	my ($deref0,$deref1,$prev,$close) = ($from,$to);
@@ -92,7 +92,6 @@ sub get_copy {
 sub get_free {
 	my($this,$from) = @_;
 	my $single_ptr = @{$this->{Chain}} == 1 && $this->{Chain}[0][0] eq 'PTR';
-	return PDL::PP::pp_line_numbers(__LINE__-1, "SvREFCNT_dec($from);") if $this->{Base} =~ /^\s*SV\s*$/ and $single_ptr;
 	return PDL::PP::pp_line_numbers(__LINE__-1, "free($from);") if $this->{Base} =~ /^\s*char\s*$/ and $single_ptr;
 	return "" if !@{$this->{Chain}} or $this->{Chain}[0][0] eq 'PTR';
 	croak("Can only free one layer!\n") if @{$this->{Chain}} > 1;

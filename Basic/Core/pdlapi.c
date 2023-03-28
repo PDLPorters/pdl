@@ -333,9 +333,10 @@ pdl_error pdl_destroytransform(pdl_trans *trans,int ensure,int *wd, int recurse_
 	if (!trans->vtable)
 		return pdl_make_error(PDL_EFATAL, "ZERO VTABLE DESTTRAN 0x%p %d\n",trans,ensure);
 	if (!ismutual) for(j=0; j<trans->vtable->nparents; j++)
+	  if (!trans->pdls[j]) return pdl_make_error(PDL_EFATAL, "NULL pdls[%td] in %s", j, trans->vtable->name); else
 	  if (trans->pdls[j]->state & PDL_DATAFLOW_ANY) { ismutual=1; break; }
 	PDLDEBUG_f(printf("pdl_destroytransform %s=%p (ensure=%d ismutual=%d)\n",
-			  trans->vtable ? trans->vtable->name : "NULL",
+			  trans->vtable->name,
 			  (void*)trans,ensure,ismutual));
 	if(ensure)
 		PDL_ACCUMERROR(PDL_err, pdl__ensure_trans(trans,ismutual ? 0 : PDL_PARENTDIMSCHANGED,wd, recurse_count+1));
