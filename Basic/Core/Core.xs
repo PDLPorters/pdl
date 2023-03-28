@@ -282,10 +282,8 @@ at_bad_c(x,pos)
     volatile PDL_Anyval result = { PDL_INVALID, {0} };
    CODE:
     pdl_barf_if_error(pdl_make_physvaffine( x ));
-
     if (pos == NULL || pos_count < x->ndims)
        barf("Invalid position with pos=%p, count=%"IND_FLAG" for ndarray with %"IND_FLAG" dims", pos, pos_count, x->ndims);
-
     /*  allow additional trailing indices
      *  which must be all zero, i.e. a
      *  [3,1,5] ndarray is treated as an [3,1,5,1,1,1,....]
@@ -294,7 +292,6 @@ at_bad_c(x,pos)
     for (ipos=x->ndims; ipos<pos_count; ipos++)
       if (pos[ipos] != 0)
          barf("Invalid position %"IND_FLAG" at dimension %"IND_FLAG, pos[ipos], ipos);
-
     result=pdl_at(PDL_REPRP(x), x->datatype, pos, x->dims,
         PDL_REPRINCS(x), PDL_REPROFFS(x),
 	x->ndims);
@@ -307,11 +304,14 @@ at_bad_c(x,pos)
      if (isbad == -1) barf("ANYVAL_ISBAD error on types %d, %d", result.type, badval.type);
      if (isbad)
        RETVAL = newSVpvn( "BAD", 3 );
-     else
+     else {
+       RETVAL = newSV(0);
        ANYVAL_TO_SV(RETVAL, result);
-   } else
+     }
+   } else {
+     RETVAL = newSV(0);
      ANYVAL_TO_SV(RETVAL, result);
-
+   }
     OUTPUT:
      RETVAL
 
@@ -364,9 +364,12 @@ listref_c(x)
 	 if (isbad == -1) croak("ANYVAL_ISBAD error on types %d, %d", pdl_val.type, pdl_badval.type);
 	 if (isbad)
 	    sv = newSVpvn( "BAD", 3 );
-	 else
+	 else {
+	    sv = newSV(0);
 	    ANYVAL_TO_SV(sv, pdl_val);
+	 }
       } else {
+	 sv = newSV(0);
 	 ANYVAL_TO_SV(sv, pdl_val);
       }
       av_store( av, lind, sv );
@@ -856,8 +859,9 @@ broadcastover_n(...)
 	for(i=0; i<npdls; i++) {
 		PDL_Anyval pdl_val = { PDL_INVALID, {0} };
 		pdl_val = pdl_get_offs(pdls[i],pdl_brc.offs[i]);
+		sv = sv_newmortal();
 		ANYVAL_TO_SV(sv, pdl_val);
-		PUSHs(sv_2mortal(sv));
+		PUSHs(sv);
 	}
 	PUTBACK;
 	perl_call_sv(code,G_DISCARD);

@@ -30,7 +30,7 @@ print OUT <<'EOF';
   XSRETURN(1);
 
 #define PDL_MAKE_PERL_COMPLEX(output,r,i) { \
-        dSP; int count; double rval = r, ival = i; SV *ret; \
+        dSP; int count; double rval = r, ival = i; \
         ENTER; SAVETMPS; PUSHMARK(sp); \
         perl_require_pv("PDL/Complex/Overloads.pm"); \
         mXPUSHn(rval); \
@@ -39,9 +39,7 @@ print OUT <<'EOF';
         count = perl_call_pv("PDL::Complex::Overloads::cplx", G_SCALAR); \
         SPAGAIN; \
         if (count != 1) croak("Failed to create PDL::Complex::Overloads object (%.9g, %.9g)", rval, ival); \
-        ret = POPs; \
-        SvREFCNT_inc(ret); \
-        output = ret; \
+        sv_setsv(output, POPs); \
         PUTBACK; FREETMPS; LEAVE; \
 }
 
@@ -88,7 +86,7 @@ for (PDL::Types::types()) {
   print OUT "case @{[$_->sym]}: ";
   if ($_->real) {
     my $upper = uc(my $letter = $_->integer ? 'i' : 'n');
-    print OUT "outsv = newSV${letter}v( (${upper}V)(inany.value.".$_->ppsym.") )";
+    print OUT "sv_set${letter}v(outsv, (${upper}V)(inany.value.".$_->ppsym."))";
   } else {
     my ($fs, $ppsym) = ($_->floatsuffix, $_->ppsym);
     print OUT "PDL_MAKE_PERL_COMPLEX(outsv, creal$fs(inany.value.$ppsym), cimag$fs(inany.value.$ppsym))"

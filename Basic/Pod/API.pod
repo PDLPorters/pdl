@@ -534,9 +534,13 @@ As of PDL 2.048, in F<pdlperl.h> there are:
  ANYVAL_FROM_SV(out_anyval, in_SV, use_undefval, forced_type)
  ANYVAL_TO_SV(out_SV, in_anyval)
 
-Because these are used in the PDL F<typemap.pdl>, you will need to
+Because these are used in the PDL F<typemap>, you will need to
 include F<pdlperl.h> in any XS file with functions that take or
 return a C<PDL_Anyval>.
+
+As of 2.083, C<ANYVAL_TO_SV> assigns a value into the passed C<SV*>
+using the Perl API, rather than assigning the given C value to having a
+newly-created C<SV*>, so the caller is responsible for memory-management.
 
 =head2 Access to PDL operations as C functions
 

@@ -457,14 +457,14 @@ pdl_error pdl_destroy(pdl *it) {
 
 /* Straight copy, no dataflow */
 pdl *pdl_hard_copy(pdl *src) {
+	PDLDEBUG_f(printf("pdl_hard_copy (src=%p): ", src));
 	pdl_error PDL_err = pdl_make_physical(src); /* Wasteful XXX... should be lazier */
 	if (PDL_err.error) return NULL;
 	int i;
-	PDLDEBUG_f(printf("pdl_hard_copy\n"));
 	pdl *it = pdl_pdlnew();
 	if (!it) return it;
 	it->state = 0;
-	PDLDEBUG_f(printf("pdl_hard_copy (%p): ", src);pdl_dump(it));
+	PDLDEBUG_f(printf("pdl_hard_copy (src=%p): ", src);pdl_dump(it));
 	it->datatype = src->datatype;
 	PDL_err = pdl_setdims(it,src->dims,src->ndims);
 	if (PDL_err.error) { pdl_destroy(it); return NULL; }

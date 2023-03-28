@@ -1,3 +1,5 @@
+- fix some memory leaking
+
 2.082 2023-03-22
 - no changes from 2.081_03
 
