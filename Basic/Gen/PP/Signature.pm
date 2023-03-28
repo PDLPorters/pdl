@@ -163,9 +163,7 @@ sub getfree {
 sub getcopy {
   my ($self, $to_pat) = @_;
   my $objs = $self->otherobjs;
-  PDL::PP::pp_line_numbers(__LINE__,
-    join '', map $objs->{$_}->get_copy($_,sprintf $to_pat,$_), @{$self->othernames(0)}
-  );
+  join '', map $objs->{$_}->get_copy($_,sprintf $to_pat,$_), @{$self->othernames(0)};
 }
 
 sub realdims {

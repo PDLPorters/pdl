@@ -59,13 +59,13 @@ sub protoname { return shift->{ProtoName} }
 
 sub get_copy {
 	my($this,$from,$to) = @_;
-	return "($to) = ($from);" if !@{$this->{Chain}};
+	return PDL::PP::pp_line_numbers(__LINE__-1, "($to) = ($from);") if !@{$this->{Chain}};
 	# strdup loses portability :(
-	return "($to) = malloc(strlen($from)+1); strcpy($to,$from);"
+	return PDL::PP::pp_line_numbers(__LINE__-1, "($to) = malloc(strlen($from)+1); strcpy($to,$from);")
 	 if $this->{Base} =~ /^\s*char\s*$/;
-	return "($to) = newSVsv($from);" if $this->{Base} =~ /^\s*SV\s*$/;
+	return PDL::PP::pp_line_numbers(__LINE__-1, "($to) = newSVsv($from);") if $this->{Base} =~ /^\s*SV\s*$/;
 	my $code = $this->get_malloc($to,$from);
-	return "($to) = ($from);" if !defined $code; # pointer
+	return PDL::PP::pp_line_numbers(__LINE__-1, "($to) = ($from);") if !defined $code; # pointer
 	my ($deref0,$deref1,$prev,$close) = ($from,$to);
         my $no = 0;
 	for(@{$this->{Chain}}) {
@@ -92,10 +92,10 @@ sub get_copy {
 sub get_free {
 	my($this,$from) = @_;
 	return "" if !@{$this->{Chain}} or $this->{Chain}[0][0] eq 'PTR';
-	return "free($from);" if $this->{Base} =~ /^\s*char\s*$/;
-	return "SvREFCNT_dec($from);" if $this->{Base} =~ /^\s*SV\s*$/;
+	return PDL::PP::pp_line_numbers(__LINE__-1, "free($from);") if $this->{Base} =~ /^\s*char\s*$/;
+	return PDL::PP::pp_line_numbers(__LINE__-1, "SvREFCNT_dec($from);") if $this->{Base} =~ /^\s*SV\s*$/;
 	croak("Can only free one layer!\n") if @{$this->{Chain}} > 1;
-	"free($from);";
+	PDL::PP::pp_line_numbers(__LINE__-1, "free($from);");
 }
 
 sub need_malloc {
