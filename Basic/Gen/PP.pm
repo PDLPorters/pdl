@@ -701,7 +701,7 @@ sub pp_addhdr {
 	$::PDLXSC_header .= $hdr if $::PDLMULTI_C;
 }
 
-sub pp_addpm {
+sub _pp_addpm_nolineno {
 	my $pm = shift;
 	my $pos;
 	if (ref $pm) {
@@ -713,8 +713,17 @@ sub pp_addpm {
 	} else {
 	  $pos = 'Middle';
 	}
-	my @c = caller;
-	$::PDLPM{$pos} .= _pp_line_number_file($c[1], $c[2]-1, "\n$pm")."\n\n";
+	$pm =~ s#\n{3,}#\n\n#g;
+	$::PDLPM{$pos} .= "\n$pm\n\n";
+}
+
+sub pp_addpm {
+  my @args = @_;
+  my $pmind = ref $_[0] ? 1 : 0;
+  my @c = caller;
+  $args[$pmind] = _pp_line_number_file($c[1], $c[2]-1, "\n$args[$pmind]");
+  $args[$pmind] =~ s#\n{3,}#\n\n#g;
+  _pp_addpm_nolineno(@args);
 }
 
 sub pp_add_exported {
@@ -955,9 +964,9 @@ EOF
 	PDL::PP->printxs($obj{NewXSCode});
 	pp_add_boot($obj{BootSetNewXS}) if $obj{BootSetNewXS};
 	PDL::PP->pp_add_exported($name);
-	PDL::PP::pp_addpm("\n".$obj{PdlDoc}."\n") if $obj{PdlDoc};
-	PDL::PP::pp_addpm($obj{PMCode}) if defined $obj{PMCode};
-	PDL::PP::pp_addpm($obj{PMFunc}."\n") if defined $obj{PMFunc};
+	PDL::PP::_pp_addpm_nolineno("\n".$obj{PdlDoc}."\n") if $obj{PdlDoc};
+	PDL::PP::_pp_addpm_nolineno($obj{PMCode}) if defined $obj{PMCode};
+	PDL::PP::_pp_addpm_nolineno($obj{PMFunc}."\n") if defined $obj{PMFunc};
 
 	print "*** Leaving pp_def for $name\n" if $::PP_VERBOSE;
 }
@@ -1006,9 +1015,9 @@ XXX=cut
 
 EOF
   $deprecation_notice =~ s/^XXX=/=/gms;
-  pp_addpm( {At => 'Top'}, $deprecation_notice );
+  _pp_addpm_nolineno( {At => 'Top'}, $deprecation_notice );
 
-  pp_addpm {At => 'Top'}, <<EOF;
+  _pp_addpm_nolineno {At => 'Top'}, <<EOF;
 warn \"$warning_main\n$warning_suppression_runtime\" unless \$ENV{$envvar};
 EOF
 }
