@@ -116,15 +116,6 @@ Graphics/IIS/IIS.c
 Graphics/IIS/IIS.pm
 Graphics/IIS/IIS.xs
 Graphics/PGPLOT/Window/Window.c
-Graphics/TriD/OpenGL/OpenGL.c
-Graphics/TriD/OpenGL/OpenGL.pm
-Graphics/TriD/OpenGL/OpenGL.xs
-Graphics/TriD/OpenGL/X.h.cpp
-Graphics/TriD/OpenGL/gl.h.cpp
-Graphics/TriD/OpenGL/glu.h.cpp
-Graphics/TriD/OpenGL/glx.h.cpp
-Graphics/TriD/OpenGL/glxtokens.h.cpp
-Graphics/TriD/OpenGL/typemap
 Graphics/TriD/OpenGLQ/OpenGLQ.c
 Graphics/TriD/OpenGLQ/OpenGLQ.pm
 Graphics/TriD/OpenGLQ/OpenGLQ.xs
