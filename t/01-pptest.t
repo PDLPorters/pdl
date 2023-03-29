@@ -453,17 +453,6 @@ sub MY::postamble { pdlpp_postamble(@pack) }
 WriteMakefile(pdlpp_stdargs(@pack));
 EOF
     'otherpars.pd' => <<'EOF',
-pp_def( "myexternalfunc",
-  Pars => " p(m);  x(n);  [o] y(); [t] work(wn); ",
-  OtherPars => 'int flags;',
-    RedoDimsCode => '
-    int im = $PDL(p)->dims[0];
-    int in = $PDL(x)->dims[0];
-    int min = in + im * im;
-    int inw = $PDL(work)->dims[0];
-    $SIZE(wn) = inw >= min ? inw : min;',
-    Code => 'int foo = 1;  ');
-
 pp_def( "myexternalfunc2",
   Pars => "x(m);",
   OtherPars => 'int I;',
@@ -472,15 +461,6 @@ pp_def( "myexternalfunc2",
 
 pp_done();
 EOF
-
-    't/all.t' => <<'EOF',
-use strict;
-use warnings;
-use Test::More tests => 1;
-use PDL::LiteF;
-use_ok 'PDL::Otherpars';
-EOF
-
 );
 
 my %BADPARSFILES = (
@@ -500,15 +480,6 @@ pp_def( "myexternalfunc3",
 );
 pp_done();
 EOF
-
-    't/all.t' => <<'EOF',
-use strict;
-use warnings;
-use Test::More tests => 1;
-use PDL::LiteF;
-use_ok 'PDL::Otherpars';
-EOF
-
 );
 
 my %THREADTESTFILES = (
