@@ -8,9 +8,9 @@ use PDL::Types;
 sub tapprox {
     my($x,$y) = @_;
     $_ = pdl($_) for $x, $y;
-    if(join(',',$x->dims) ne join(',',$y->dims)) {
+    if((my $dims_x = join(',',$x->dims)) ne (my $dims_y = join(',',$y->dims))) {
        diag "APPROX: $x $y\n";
-       diag "UNEQDIM\n";
+       diag "UNEQDIM: |$dims_x| |$dims_y|\n";
        return 0;
     }
     return 1 if $x->isempty and $y->isempty;
@@ -143,7 +143,7 @@ is $r->whichND.'', <<EOF, 'whichND works right (was failing on 32-bit)';
 EOF
 
 $x = pdl('[[i 2+3i] [4+5i 6+7i]]');
-ok all(approx $x->norm, pdl(<<'EOF')), 'native complex norm works' or diag $x->norm;
+ok tapprox $x->norm, pdl(<<'EOF'), 'native complex norm works' or diag $x->norm;
 [
  [0.267261i 0.534522+0.801783i]
  [0.356348+0.445435i 0.534522+0.623609i]
@@ -233,7 +233,7 @@ $c = setops($x,'XOR',$y);
 ok(tapprox($c, pdl([2,3,4,8,9])), "setops XOR");
 #Test intersect again
 my $intersect_test=intersect(pdl(1,-5,4,0), pdl(0,3,-5,2));
-ok (all($intersect_test==pdl(-5,0)), 'Intersect test values');
+ok tapprox($intersect_test, pdl(-5,0)), 'Intersect test values';
 {
 # based on cases supplied by @jo-37
 my @cases = (
@@ -270,18 +270,15 @@ is $y->ndims, 1, "uniqind, SF bug 3076570";
 $x = sequence(4,3,2);
 $y = pdl(0,1,1,0);
 $c = whereND($x,$y);
-ok(all(pdl($c->dims)==pdl(2,3,2))) and
-ok(all($c==pdl q[ [ [ 1  2] [ 5  6] [ 9 10] ]
-                 [ [13 14] [17 18] [21 22] ] ]),
-                                 "whereND [4]");
+is_deeply [$c->dims], [2,3,2];
+ok tapprox($c, pdl q[[[1 2] [5 6] [9 10]] [[13 14] [17 18] [21 22]]]), "whereND [4]";
 $y = pdl q[ 0 0 1 1 ; 0 1 0 0 ; 1 0 0 0 ];
 $c = whereND($x,$y);
-ok(all(pdl($c->dims)==pdl(4,2))) and
-ok(all($c==pdl q[ 2  3  5  8 ; 14 15 17 20 ]),
-                            "whereND [4,3]");
+is_deeply [$c->dims], [4,2];
+ok tapprox($c, pdl q[ 2  3  5  8 ; 14 15 17 20 ]), "whereND [4,3]";
 $y = (random($x)<0.3);
 $c = whereND($x,$y);
-ok(all($c==where($x,$y)), "whereND vs where");
+ok tapprox($c->squeeze, where($x,$y)), "whereND vs where";
 # sf.net bug #3415115, whereND fails to handle all zero mask case
 $y = zeros(4);
 $c = whereND($x,$y);
@@ -296,13 +293,13 @@ ok(all($x->slice("1:-1") < 0), 'whereND in lvalue context works');
 #Test fibonacci.
 my $fib=fibonacci(15);
 my $fib_ans = pdl(1,1,2,3,5,8,13,21,34,55,89,144,233,377,610);
-ok(all($fib == $fib_ans), 'Fibonacci sequence');
+ok tapprox($fib, $fib_ans), 'Fibonacci sequence';
 
 #Test which_both.
 my $which_both_test=pdl(1,4,-2,0,5,0,1);
 my ($nonzero,$zero)=which_both($which_both_test);
-ok(all($nonzero==pdl(0,1,2,4,6)), 'Which_both nonzero indices');
-ok(all($zero==pdl(3,5)), 'Which_both zero indices');
+ok tapprox($nonzero, pdl(0,1,2,4,6)), 'Which_both nonzero indices';
+ok tapprox($zero, pdl(3,5)), 'Which_both zero indices';
 
 ###### Testing Begins #########
 my $im = PDL->new([
@@ -345,7 +342,7 @@ ok(tapprox($statsRes[6],4.462), "stats: trivial weights rms");
 my $cm1 = pdl('1 1+i 1');
 my $cm2 = pdl('2 3 i')->transpose;
 my $got = $cm1 x $cm2;
-ok all(approx $got, pdl('5+4i')), 'complex matmult' or diag $got;
+ok tapprox($got, pdl('[[5+4i]]')), 'complex matmult';
 throws_ok { scalar $cm1->transpose x $cm2 } qr/mismatch/, 'good error on mismatch matmult';
 
 {
@@ -360,22 +357,21 @@ my $pc = pdl [[ 1, 11],
       [ 8, 10],
       [ 2,  2]];
 my $res = $pa x $pb;
-ok(all approx($pc,$res)) or diag "got: $res";
-$res = null;
-matmult($pa, $pb, $res);
-ok(all(approx $pc,$res), 'res=null') or diag "got: $res";
+ok tapprox($pc,$res);
+matmult($pa, $pb, $res = null);
+ok tapprox($pc,$res), 'res=null';
 my $pa_sliced = $pa->dummy(0, 3)->dummy(-1, 3)->make_physical->slice('(1),,,(1)');
 $res = $pa_sliced x $pb;
-ok(all approx($pc,$res)) or diag "got: $res";
+ok tapprox($pc,$res);
 $res = zeroes(2, 3);
 matmult($pa, $pb, $res);
-ok(all(approx $pc,$res), 'res=zeroes') or diag "got: $res";
+ok tapprox($pc,$res), 'res=zeroes';
 $res = ones(2, 3);
 matmult($pa, $pb, $res);
-ok(all(approx $pc,$res), 'res=ones') or diag "got: $res";
+ok tapprox($pc,$res), 'res=ones';
 my $eq = float [[1,1,1,1]];  # a 4,1-matrix ( 1 1 1 1 )
 # Check collapse: output should be a 1x2...
-ok(all approx($eq x $pb  , pdl([[2,6]]) )); # ([4x1] x [2x4] -> [1x2])
+ok tapprox($eq x $pb  , pdl([[2,6]])); # ([4x1] x [2x4] -> [1x2])
 # Check dimensional exception: mismatched dims should throw an error
 dies_ok {
 	my $pz = $pb x $eq; # [2x4] x [4x1] --> error (2 != 1)
@@ -384,12 +380,12 @@ dies_ok {
 # Check automatic scalar multiplication
 my $pz;
 lives_ok { $pz = $pb x 2; };
-ok( all approx($pz,$pb * 2));
+ok tapprox($pz,$pb * 2);
 }
 {
 my $pz;
 lives_ok { $pz = pdl(3) x $pb; };
-ok( all approx($pz,$pb * 3));
+ok tapprox($pz,$pb * 3);
 }
 }
 
@@ -435,11 +431,11 @@ ok(tapprox($sum->sum,6), "indadd" );
 
 #one2nd test
 $a1 = zeroes(3,4,5);
-my $indicies = pdl(0,1,4,6,23,58,59);
-($x,$y,$z)=$a1->one2nd($indicies);
-ok(all( $x==pdl(0,1,1,0,2,1,2) ), "one2nd x");
-ok(all( $y==pdl(0,0,1,2,3,3,3) ), "one2nd y");
-ok(all( $z==pdl(0,0,0,0,1,4,4) ), "one2nd z");
+my $indices = pdl(0,1,4,6,23,58,59);
+($x,$y,$z)=$a1->one2nd($indices);
+ok tapprox($x, pdl(0,1,1,0,2,1,2)), "one2nd x";
+ok tapprox($y, pdl(0,0,1,2,3,3,3)), "one2nd y";
+ok tapprox($z, pdl(0,0,0,0,1,4,4)), "one2nd z";
 
 {
 my $yvalues =  PDL->new(0..5) - 20;
@@ -835,108 +831,73 @@ for my $mode (
 		my $so = $data->{$sort_direction}
 		  or plan( skip_all => "not testing $sort_direction!\n" );
 
-                ok(
-                    all(
-                        ( $got = vsearch( $so->{x}, $so->{x}, { mode => $mode } ) )
-			==
-			( $exp = $so->{equal} )
-                    ),
-                    'equal elements'
-                ) or diag "got     : $got\nexpected: $exp\n";
+                ok tapprox(
+                    vsearch( $so->{x}, $so->{x}, { mode => $mode } ),
+                    $so->{equal}
+                ),
+                'equal elements';
 
-                ok(
-                    all(
-                        ( $got = vsearch( $so->{x} - 5, $so->{x}, { mode => $mode } ) )
-                        ==
-			( $exp = $so->{nequal_m} )
-                    ),
-                    'non-equal elements x[i] < xs[i] (check lower bound)'
-                ) or diag "got     : $got\nexpected: $exp\n";
+                ok tapprox(
+                    vsearch( $so->{x} - 5, $so->{x}, { mode => $mode } ),
+                    $so->{nequal_m}
+                ),
+                'non-equal elements x[i] < xs[i] (check lower bound)';
 
-                ok(
-                    all(
-                        ( $got = vsearch( $so->{x} + 5, $so->{x}, { mode => $mode } ) )
-                        ==
-			( $exp = $so->{nequal_p} )
-                    ),
-                    'non-equal elements x[i] > xs[i] (check upper bound)'
-                ) or diag "got     : $got\nexpected: $exp\n";
-
+                ok tapprox(
+                    vsearch( $so->{x} + 5, $so->{x}, { mode => $mode } ),
+                    $so->{nequal_p}
+                ),
+                'non-equal elements x[i] > xs[i] (check upper bound)';
 
 		# duplicate testing.
 
 		# check for values. note that the rightmost routine returns
 		# the index of the element *after* the last duplicate
 		# value, so we need an offset
-		ok(
-		    all(
-			( $got = $so->{xdup}{set}->index( vsearch( $so->{xdup}{values}, $so->{xdup}{set}, { mode => $mode } )
-							                 + ($so->{xdup}{idx_offset} || 0) ) )
-			==
-			( $exp = $so->{xdup}{values} )
-		    ),
-		    'duplicates values'
-		) or diag "got     : $got\nexpected: $exp\n";
+                ok tapprox(
+                    $so->{xdup}{set}->index( vsearch( $so->{xdup}{values}, $so->{xdup}{set}, { mode => $mode } )
+                                                                     + ($so->{xdup}{idx_offset} || 0) ),
+                    $so->{xdup}{values}
+                ),
+                'duplicates values';
 
 		# if there are guarantees about which duplicates are returned, test it
 		if ( exists $so->{xdup}{idx} ) {
-
-		    ok(
-			all(
-			    ( $got = vsearch( $so->{xdup}{values}, $so->{xdup}{set}, { mode => $mode } ) )
-			    ==
-			    ( $exp = $so->{xdup}{idx} )
-			),
-			'duplicate indices'
-		    ) or diag "got     : $got\nexpected: $exp\n";
-
+		    ok tapprox(
+                        vsearch( $so->{xdup}{values}, $so->{xdup}{set}, { mode => $mode } ),
+                        $so->{xdup}{idx}
+                    ),
+                    'duplicate indices';
 		}
-
 		if ( exists $so->{docs} ) {
-
 		    while( my ($label, $inputs ) = splice( @{$so->{docs}}, 0, 2 )  ) {
-
 			while( @$inputs ) {
-
 			    my ( $idx, $offset, $exp ) = splice( @$inputs, 0, 3 );
 			    my $value = $so->{x}->at($idx) + $offset;
-
-			    is ( $got = ( vsearch( $value, $so->{x}, { mode => $mode } )->sclr), $exp, "$label: ($idx, $offset)" );
-
+			    is vsearch( $value, $so->{x}, { mode => $mode } )->sclr, $exp, "$label: ($idx, $offset)";
 			}
 		    }
 		}
-
-
             };
         }
 
-        ok(
-            all(
-                ( $got = vsearch( $ones, $ones, { mode => $mode } ) )
-                ==
-                ( $exp = $data->{all_the_same_element} )
-            ),
-            'all the same element'
-        ) or diag "got     : $got\nexpected: $exp\n";
+        ok tapprox(
+            vsearch( $ones, $ones, { mode => $mode } )->uniq->squeeze,
+            $data->{all_the_same_element}
+        ),
+        'all the same element';
     };
-
 }
 
 # test vsearch API to ensure backwards compatibility
 {
     my $vals = random( 100 );
     my $xs = sequence(100) / 99;
-
     # implicit output ndarray
     my $indx0 = vsearch( $vals, $xs );
-
     my $ret = vsearch( $vals, $xs, my $indx1 = PDL->null() );
-
     is( $ret, undef, "no return from explicit output ndarray" );
-
-    ok ( all ( $indx0 == $indx1 ),
-	 'explicit ndarray == implicit ndarray' );
+    ok tapprox($indx0, $indx1), 'explicit ndarray == implicit ndarray';
 }
 }
 
@@ -952,15 +913,15 @@ is $v1->cmpvec($v1)->sclr, 0, "cmpvec:1d:==";
 ##-- 4..5: qsortvec, qsortveci
 my $p2d  = pdl([[1,2],[3,4],[1,3],[1,2],[3,3]]);
 
-ok all(approx($p2d->qsortvec, pdl(long,[[1,2],[1,2],[1,3],[3,3],[3,4]]))), "qsortvec";
-ok all(approx($p2d->dice_axis(1,$p2d->qsortveci), $p2d->qsortvec)), "qsortveci";
+ok tapprox($p2d->qsortvec, pdl(long,[[1,2],[1,2],[1,3],[3,3],[3,4]])), "qsortvec";
+ok tapprox($p2d->dice_axis(1,$p2d->qsortveci), $p2d->qsortvec), "qsortveci";
 
 my $which = pdl(long,[[0,0],[0,0],[0,1],[0,1],[1,0],[1,0],[1,1],[1,1]]);
 my $find  = $which->slice(",0:-1:2");
 
-ok all(approx($find->vsearchvec($which), pdl(long,[0,2,4,6]))), "vsearchvec():match";
-ok all(pdl([-1,-1])->vsearchvec($which)==0), "vsearchvec():<<";
-ok all(pdl([2,2])->vsearchvec($which)==$which->dim(1)-1), "vsearchvec():>>";
+ok tapprox($find->vsearchvec($which), pdl(long,[0,2,4,6])), "vsearchvec():match";
+ok tapprox(pdl([-1,-1])->vsearchvec($which), 0), "vsearchvec():<<";
+ok tapprox(pdl([2,2])->vsearchvec($which), $which->dim(1)-1), "vsearchvec():>>";
 
 my $vtype = long;
 my $universe = pdl($vtype,[ [0,0],[0,1],[1,0],[1,1] ]);
@@ -968,22 +929,22 @@ $v1 = $universe->dice_axis(1,pdl([0,1,2]));
 $v2 = $universe->dice_axis(1,pdl([1,2,3]));
 
 ($c,my $nc) = $v1->unionvec($v2);
-ok all(approx($c, pdl($vtype, [ [0,0],[0,1],[1,0],[1,1],[0,0],[0,0] ]))), "unionvec:list:c";
+ok tapprox($c, pdl($vtype, [ [0,0],[0,1],[1,0],[1,1],[0,0],[0,0] ])), "unionvec:list:c";
 is $nc, $universe->dim(1), "unionvec:list:nc";
 my $cc = $v1->unionvec($v2);
-ok all(approx($cc, $universe)), "unionvec:scalar";
+ok tapprox($cc, $universe), "unionvec:scalar";
 
 ($c,$nc) = $v1->intersectvec($v2);
-ok all(approx($c, pdl($vtype, [ [0,1],[1,0],[0,0] ]))), "intersectvec:list:c";
+ok tapprox($c, pdl($vtype, [ [0,1],[1,0],[0,0] ])), "intersectvec:list:c";
 is $nc->sclr, 2, "intersectvec:list:nc";
 $cc = $v1->intersectvec($v2);
-ok all(approx($cc, $universe->slice(",1:2"))), "intersectvec:scalar";
+ok tapprox($cc, $universe->slice(",1:2")), "intersectvec:scalar";
 
 ($c,$nc) = $v1->setdiffvec($v2);
-ok all(approx($c, pdl($vtype, [ [0,0], [0,0],[0,0] ]))), "setdiffvec:list:c";
+ok tapprox($c, pdl($vtype, [ [0,0], [0,0],[0,0] ])), "setdiffvec:list:c";
 is $nc, 1, "setdiffvec:list:nc";
 $cc = $v1->setdiffvec($v2);
-ok all(approx($cc, pdl($vtype, [[0,0]]))), "setdiffvec:scalar";
+ok tapprox($cc, pdl($vtype, [[0,0]])), "setdiffvec:scalar";
 
 my $all = sequence(20);
 my $amask = ($all % 2)==0;
@@ -991,9 +952,9 @@ my $bmask = ($all % 3)==0;
 my $a   = $all->where($amask);
 my $b   = $all->where($bmask);
 
-ok all(approx(scalar($a->union_sorted($b)), $all->where($amask | $bmask))), "union_sorted";
-ok all(approx(scalar($a->intersect_sorted($b)),  $all->where($amask & $bmask))), "intersect_sorted";
-ok all(approx(scalar($a->setdiff_sorted($b)), $all->where($amask & $bmask->not))), "setdiff_sorted";
+ok tapprox(scalar($a->union_sorted($b)), $all->where($amask | $bmask)), "union_sorted";
+ok tapprox(scalar($a->intersect_sorted($b)),  $all->where($amask & $bmask)), "intersect_sorted";
+ok tapprox(scalar($a->setdiff_sorted($b)), $all->where($amask & $bmask->not)), "setdiff_sorted";
 
 ##--------------------------------------------------------------
 ## dim-checks and implicit broadcast dimensions
@@ -1007,11 +968,11 @@ sub test_broadcast_dimensions {
   my $xy = pdl([[4,5,6],[7,8,9]]);
 
   # unionvec: basic
-  ok all(approx(scalar($uw->unionvec($wx)), pdl([[-3,-2,-1],[1,2,3],[4,5,6]]))), "unionvec - broadcast dims - uw+wx";
-  ok all(approx(scalar($uw->unionvec($xy)), pdl([[-3,-2,-1],[1,2,3],[4,5,6],[7,8,9]]))), "unionvec - broadcast dims - uw+xy";
-  ok all(approx(scalar($empty->unionvec($wx)), $wx)), "unionvec - broadcast dims - 0+wx";
-  ok all(approx(scalar($wx->unionvec($empty)), $wx)), "unionvec - broadcast dims - wx+0";
-  ok all(approx(scalar($empty->unionvec($empty)), $empty)), "unionvec - broadcast dims - 0+0";
+  ok tapprox(scalar($uw->unionvec($wx)), pdl([[-3,-2,-1],[1,2,3],[4,5,6]])), "unionvec - broadcast dims - uw+wx";
+  ok tapprox(scalar($uw->unionvec($xy)), pdl([[-3,-2,-1],[1,2,3],[4,5,6],[7,8,9]])), "unionvec - broadcast dims - uw+xy";
+  ok tapprox(scalar($empty->unionvec($wx)), $wx), "unionvec - broadcast dims - 0+wx";
+  ok tapprox(scalar($wx->unionvec($empty)), $wx), "unionvec - broadcast dims - wx+0";
+  ok tapprox(scalar($empty->unionvec($empty)), $empty), "unionvec - broadcast dims - 0+0";
 
   # unionvec: broadcasting
   my $k = 2;
@@ -1019,11 +980,11 @@ sub test_broadcast_dimensions {
   my $kuw = $uw->slice(",,*$k");
   my $kwx = $wx->slice(",,*$k");
   my $kxy = $xy->slice(",,*$k");
-  ok all(approx(scalar($kuw->unionvec($wx)), pdl([[-3,-2,-1],[1,2,3],[4,5,6]])->slice(",,*$k"))), "unionvec - broadcast dims - uw(*k)+wx";
-  ok all(approx(scalar($kuw->unionvec($xy)), pdl([[-3,-2,-1],[1,2,3],[4,5,6],[7,8,9]])->slice(",,*$k"))), "unionvec - broadcast dims - uw(*k)+xy";
-  ok all(approx(scalar($kempty->unionvec($wx)), $kwx)), "unionvec - broadcast dims - 0(*k)+wx";
-  ok all(approx(scalar($kwx->unionvec($empty)), $kwx)), "unionvec - broadcast dims - wx(*k)+0";
-  ok all(approx(scalar($kempty->unionvec($empty)), $kempty)), "unionvec - broadcast dims - 0(*k)+0";
+  ok tapprox(scalar($kuw->unionvec($wx)), pdl([[-3,-2,-1],[1,2,3],[4,5,6]])->slice(",,*$k")), "unionvec - broadcast dims - uw(*k)+wx";
+  ok tapprox(scalar($kuw->unionvec($xy)), pdl([[-3,-2,-1],[1,2,3],[4,5,6],[7,8,9]])->slice(",,*$k")), "unionvec - broadcast dims - uw(*k)+xy";
+  ok tapprox(scalar($kempty->unionvec($wx)), $kwx), "unionvec - broadcast dims - 0(*k)+wx";
+  ok tapprox(scalar($kwx->unionvec($empty)), $kwx), "unionvec - broadcast dims - wx(*k)+0";
+  ok tapprox(scalar($kempty->unionvec($empty)), $kempty), "unionvec - broadcast dims - 0(*k)+0";
 
   ##-- intersectvec
 
@@ -1033,44 +994,44 @@ sub test_broadcast_dimensions {
   my $haystack = pdl([[1,2,3],[4,5,6],[7,8,9],[10,11,12]]);
 
   # intersectvec: basic
-  ok all(approx(scalar($needle0->intersectvec($haystack)), $empty)), "intersectvec - broadcast dims - needle0&haystack";
-  ok all(approx(scalar($needle1->intersectvec($haystack)), $needle1)), "intersectvec - broadcast dims - needle1&haystack";
-  ok all(approx(scalar($needles->intersectvec($haystack)), $needle1)), "intersectvec - broadcast dims - needles&haystack";
-  ok all(approx(scalar($haystack->intersectvec($haystack)), $haystack)), "intersectvec - broadcast dims - haystack&haystack";
-  ok all(approx(scalar($haystack->intersectvec($empty)), $empty)), "intersectvec - broadcast dims - haystack&empty";
-  ok all(approx(scalar($empty->intersectvec($haystack)), $empty)), "intersectvec - broadcast dims - empty&haystack";
+  ok tapprox(scalar($needle0->intersectvec($haystack)), $empty), "intersectvec - broadcast dims - needle0&haystack";
+  ok tapprox(scalar($needle1->intersectvec($haystack)), $needle1), "intersectvec - broadcast dims - needle1&haystack";
+  ok tapprox(scalar($needles->intersectvec($haystack)), $needle1), "intersectvec - broadcast dims - needles&haystack";
+  ok tapprox(scalar($haystack->intersectvec($haystack)), $haystack), "intersectvec - broadcast dims - haystack&haystack";
+  ok tapprox(scalar($haystack->intersectvec($empty)), $empty), "intersectvec - broadcast dims - haystack&empty";
+  ok tapprox(scalar($empty->intersectvec($haystack)), $empty), "intersectvec - broadcast dims - empty&haystack";
 
   # intersectvec: broadcasting
   my $kneedle0 = $needle0->slice(",,*$k");
   my $kneedle1 = $needle1->slice(",,*$k");
   my $kneedles = pdl([[[-3,-2,-1]],[[1,2,3]]]);
   my $khaystack = $haystack->slice(",,*$k");
-  ok all(approx(scalar($kneedle0->intersectvec($haystack)), $kempty)), "intersectvec - broadcast dims - needle0(*k)&haystack";
-  ok all(approx(scalar($kneedle1->intersectvec($haystack)), $kneedle1)), "intersectvec - broadcast dims - needle1(*k)&haystack";
-  ok all(approx(
+  ok tapprox(scalar($kneedle0->intersectvec($haystack)), $kempty), "intersectvec - broadcast dims - needle0(*k)&haystack";
+  ok tapprox(scalar($kneedle1->intersectvec($haystack)), $kneedle1), "intersectvec - broadcast dims - needle1(*k)&haystack";
+  ok tapprox(
 	scalar($kneedles->intersectvec($haystack)),
-	pdl([[[0,0,0]],[[1,2,3]]]))), "intersectvec - broadcast dims - needles(*k)&haystack";
-  ok all(approx(scalar($khaystack->intersectvec($haystack)), $khaystack)), "intersectvec - broadcast dims - haystack(*k)&haystack";
-  ok all(approx(scalar($khaystack->intersectvec($empty)), $kempty)), "intersectvec - broadcast dims - haystack(*k)&empty";
-  ok all(approx(scalar($kempty->intersectvec($haystack)), $kempty)), "intersectvec - broadcast dims - empty(*k)&haystack";
+	pdl([[[0,0,0]],[[1,2,3]]])), "intersectvec - broadcast dims - needles(*k)&haystack";
+  ok tapprox(scalar($khaystack->intersectvec($haystack)), $khaystack), "intersectvec - broadcast dims - haystack(*k)&haystack";
+  ok tapprox(scalar($khaystack->intersectvec($empty)), $kempty), "intersectvec - broadcast dims - haystack(*k)&empty";
+  ok tapprox(scalar($kempty->intersectvec($haystack)), $kempty), "intersectvec - broadcast dims - empty(*k)&haystack";
 
   ##-- setdiffvec
 
   # setdiffvec: basic
-  ok all(approx(scalar($haystack->setdiffvec($needle0)), $haystack)), "setdiffvec - broadcast dims - haystack-needle0";
-  ok all(approx(scalar($haystack->setdiffvec($needle1)), $haystack->slice(",1:-1"))), "setdiffvec - broadcast dims - haystack-needle1";
-  ok all(approx(scalar($haystack->setdiffvec($needles)), $haystack->slice(",1:-1"))), "setdiffvec - broadcast dims - haystack-needles";
-  ok all(approx(scalar($haystack->setdiffvec($haystack)), $empty)), "setdiffvec - broadcast dims - haystack-haystack";
-  ok all(approx(scalar($haystack->setdiffvec($empty)), $haystack)), "setdiffvec - broadcast dims - haystack-empty";
-  ok all(approx(scalar($empty->setdiffvec($haystack)), $empty)), "setdiffvec - broadcast dims - empty-haystack";
+  ok tapprox(scalar($haystack->setdiffvec($needle0)), $haystack), "setdiffvec - broadcast dims - haystack-needle0";
+  ok tapprox(scalar($haystack->setdiffvec($needle1)), $haystack->slice(",1:-1")), "setdiffvec - broadcast dims - haystack-needle1";
+  ok tapprox(scalar($haystack->setdiffvec($needles)), $haystack->slice(",1:-1")), "setdiffvec - broadcast dims - haystack-needles";
+  ok tapprox(scalar($haystack->setdiffvec($haystack)), $empty), "setdiffvec - broadcast dims - haystack-haystack";
+  ok tapprox(scalar($haystack->setdiffvec($empty)), $haystack), "setdiffvec - broadcast dims - haystack-empty";
+  ok tapprox(scalar($empty->setdiffvec($haystack)), $empty), "setdiffvec - broadcast dims - empty-haystack";
 
   # setdiffvec: broadcasting
-  ok all(approx(scalar($khaystack->setdiffvec($needle0)), $khaystack)), "setdiffvec - broadcast dims - haystack(*k)-needle0";
-  ok all(approx(scalar($khaystack->setdiffvec($needle1)), $khaystack->slice(",1:-1,"))), "setdiffvec - broadcast dims - haystack(*k)-needle1";
-  ok all(approx(scalar($khaystack->setdiffvec($needles)), $khaystack->slice(",1:-1,"))), "setdiffvec - broadcast dims - haystack(*k)-needles";
-  ok all(approx(scalar($khaystack->setdiffvec($haystack)), $kempty)), "setdiffvec - broadcast dims - haystack(*k)-haystack";
-  ok all(approx(scalar($khaystack->setdiffvec($empty)), $khaystack)), "setdiffvec - broadcast dims - haystack(*k)-empty";
-  ok all(approx(scalar($kempty->setdiffvec($haystack)), $kempty)), "setdiffvec - broadcast dims - empty(*k)-haystack";
+  ok tapprox(scalar($khaystack->setdiffvec($needle0)), $khaystack), "setdiffvec - broadcast dims - haystack(*k)-needle0";
+  ok tapprox(scalar($khaystack->setdiffvec($needle1)), $khaystack->slice(",1:-1,")), "setdiffvec - broadcast dims - haystack(*k)-needle1";
+  ok tapprox(scalar($khaystack->setdiffvec($needles)), $khaystack->slice(",1:-1,")), "setdiffvec - broadcast dims - haystack(*k)-needles";
+  ok tapprox(scalar($khaystack->setdiffvec($haystack)), $kempty), "setdiffvec - broadcast dims - haystack(*k)-haystack";
+  ok tapprox(scalar($khaystack->setdiffvec($empty)), $khaystack), "setdiffvec - broadcast dims - haystack(*k)-empty";
+  ok tapprox(scalar($kempty->setdiffvec($haystack)), $kempty), "setdiffvec - broadcast dims - empty(*k)-haystack";
 }
 test_broadcast_dimensions();
 
@@ -1083,10 +1044,10 @@ sub test_intersect_implicit_dims {
   my $notin = pdl(7,8,9);
   my ($c);
 
-  ok all(approx($c=intersectvec($titi,$toto), [[1,2,3]])), 'intersectvec - implicit dims - titi&toto';
-  ok all(approx($c=intersectvec($notin,$toto), zeroes(3,0))), 'intersectvec - implicit dims - notin&toto';
-  ok all(approx($c=intersectvec($titi->dummy(1), $toto), [[1,2,3]])), 'intersectvec - implicit dims - titi(*1)&toto';
-  ok all(approx($c=intersectvec($notin->dummy(1), $toto), zeroes(3,0))), 'intersectvec - implicit dims - notin(*1)&toto';
+  ok tapprox($c=intersectvec($titi,$toto), [[1,2,3]]), 'intersectvec - implicit dims - titi&toto';
+  ok tapprox($c=intersectvec($notin,$toto), zeroes(3,0)), 'intersectvec - implicit dims - notin&toto';
+  ok tapprox($c=intersectvec($titi->dummy(1), $toto), [[1,2,3]]), 'intersectvec - implicit dims - titi(*1)&toto';
+  ok tapprox($c=intersectvec($notin->dummy(1), $toto), zeroes(3,0)), 'intersectvec - implicit dims - notin(*1)&toto';
 
   my $needle0_in = pdl([1,2,3]); # 3
   my $needle0_notin = pdl([9,9,9]); # 3
@@ -1099,9 +1060,9 @@ sub test_intersect_implicit_dims {
     my ($label, $a,$b, $c_want,$nc_want,$c_sclr_want) = @_;
     my ($c, $nc) = intersectvec($a,$b);
     my $c_sclr = intersectvec($a,$b);
-    ok all(approx($c, $c_want)), "$label - result";
-    ok all(approx($nc, $nc_want)), "$label - counts";
-    ok all(approx($c_sclr, $c_sclr_want)), "$label - scalar";
+    ok tapprox($c, $c_want), "$label - result";
+    ok tapprox($nc, $nc_want), "$label - counts";
+    ok tapprox($c_sclr, $c_sclr_want), "$label - scalar";
   }
 
   intersect_ok('intersectvec - implicit dims - needle0_in&haystack',
@@ -1170,43 +1131,43 @@ sub test_v_broadcast_dimensions {
   my $kv1_4 = $v1_4->slice(",*$k");
 
   #-- union_sorted
-  ok all(approx(scalar($v1_2->union_sorted($v3_4)), $v1_4)), "union_sorted - broadcast dims - 12+34";
-  ok all(approx(scalar($v3_4->union_sorted($v1_4)), $v1_4)), "union_sorted - broadcast dims - 34+1234";
-  ok all(approx(scalar($empty->union_sorted($v1_4)), $v1_4)), "union_sorted - broadcast dims - 0+1234";
-  ok all(approx(scalar($v1_4->union_sorted($empty)), $v1_4)), "union_sorted - broadcast dims - 1234+0";
-  ok all(approx(scalar($empty->union_sorted($empty)), $empty)), "union_sorted - broadcast dims - 0+0";
+  ok tapprox(scalar($v1_2->union_sorted($v3_4)), $v1_4), "union_sorted - broadcast dims - 12+34";
+  ok tapprox(scalar($v3_4->union_sorted($v1_4)), $v1_4), "union_sorted - broadcast dims - 34+1234";
+  ok tapprox(scalar($empty->union_sorted($v1_4)), $v1_4), "union_sorted - broadcast dims - 0+1234";
+  ok tapprox(scalar($v1_4->union_sorted($empty)), $v1_4), "union_sorted - broadcast dims - 1234+0";
+  ok tapprox(scalar($empty->union_sorted($empty)), $empty), "union_sorted - broadcast dims - 0+0";
   #
-  ok all(approx(scalar($kv1_2->union_sorted($v3_4)), $kv1_4)), "union_sorted - broadcast dims - 12(*k)+34";
-  ok all(approx(scalar($kv3_4->union_sorted($v1_4)), $kv1_4)), "union_sorted - broadcast dims - 34(*k)+1234";
-  ok all(approx(scalar($kempty->union_sorted($v1_4)), $kv1_4)), "union_sorted - broadcast dims - 0(*k)+1234";
-  ok all(approx(scalar($kv1_4->union_sorted($empty)), $kv1_4)), "union_sorted - broadcast dims - 1234(*k)+0";
-  ok all(approx(scalar($kempty->union_sorted($empty)), $kempty)), "union_sorted - broadcast dims - 0(*k)+0";
+  ok tapprox(scalar($kv1_2->union_sorted($v3_4)), $kv1_4), "union_sorted - broadcast dims - 12(*k)+34";
+  ok tapprox(scalar($kv3_4->union_sorted($v1_4)), $kv1_4), "union_sorted - broadcast dims - 34(*k)+1234";
+  ok tapprox(scalar($kempty->union_sorted($v1_4)), $kv1_4), "union_sorted - broadcast dims - 0(*k)+1234";
+  ok tapprox(scalar($kv1_4->union_sorted($empty)), $kv1_4), "union_sorted - broadcast dims - 1234(*k)+0";
+  ok tapprox(scalar($kempty->union_sorted($empty)), $kempty), "union_sorted - broadcast dims - 0(*k)+0";
 
   #-- intersect_sorted
-  ok all(approx(scalar($v1_2->intersect_sorted($v3_4)), $empty)), "intersect_sorted - broadcast dims - 12&34";
-  ok all(approx(scalar($v3_4->intersect_sorted($v1_4)), $v3_4)), "intersect_sorted - broadcast dims - 34&1234";
-  ok all(approx(scalar($empty->intersect_sorted($v1_4)), $empty)), "intersect_sorted - broadcast dims - 0&1234";
-  ok all(approx(scalar($v1_4->intersect_sorted($empty)), $empty)), "intersect_sorted - broadcast dims - 1234&0";
-  ok all(approx(scalar($empty->intersect_sorted($empty)), $empty)), "intersect_sorted - broadcast dims - 0&0";
+  ok tapprox(scalar($v1_2->intersect_sorted($v3_4)), $empty), "intersect_sorted - broadcast dims - 12&34";
+  ok tapprox(scalar($v3_4->intersect_sorted($v1_4)), $v3_4), "intersect_sorted - broadcast dims - 34&1234";
+  ok tapprox(scalar($empty->intersect_sorted($v1_4)), $empty), "intersect_sorted - broadcast dims - 0&1234";
+  ok tapprox(scalar($v1_4->intersect_sorted($empty)), $empty), "intersect_sorted - broadcast dims - 1234&0";
+  ok tapprox(scalar($empty->intersect_sorted($empty)), $empty), "intersect_sorted - broadcast dims - 0&0";
   #
-  ok all(approx(scalar($kv1_2->intersect_sorted($v3_4)), $kempty)), "intersect_sorted - broadcast dims - 12(*k)&34";
-  ok all(approx(scalar($kv3_4->intersect_sorted($v1_4)), $kv3_4)), "intersect_sorted - broadcast dims - 34(*k)&1234";
-  ok all(approx(scalar($kempty->intersect_sorted($v1_4)), $kempty)), "intersect_sorted - broadcast dims - 0(*k)&1234";
-  ok all(approx(scalar($kv1_4->intersect_sorted($empty)), $kempty)), "intersect_sorted - broadcast dims - 1234(*k)&0";
-  ok all(approx(scalar($kempty->intersect_sorted($empty)), $kempty)), "intersect_sorted - broadcast dims - 0(*k)&0";
+  ok tapprox(scalar($kv1_2->intersect_sorted($v3_4)), $kempty), "intersect_sorted - broadcast dims - 12(*k)&34";
+  ok tapprox(scalar($kv3_4->intersect_sorted($v1_4)), $kv3_4), "intersect_sorted - broadcast dims - 34(*k)&1234";
+  ok tapprox(scalar($kempty->intersect_sorted($v1_4)), $kempty), "intersect_sorted - broadcast dims - 0(*k)&1234";
+  ok tapprox(scalar($kv1_4->intersect_sorted($empty)), $kempty), "intersect_sorted - broadcast dims - 1234(*k)&0";
+  ok tapprox(scalar($kempty->intersect_sorted($empty)), $kempty), "intersect_sorted - broadcast dims - 0(*k)&0";
 
   #-- setdiff_sorted
-  ok all(approx(scalar($v1_2->setdiff_sorted($v3_4)), $v1_2)), "setdiff_sorted - broadcast dims - 12-34";
-  ok all(approx(scalar($v3_4->setdiff_sorted($v1_4)), $empty)), "setdiff_sorted - broadcast dims - 34-1234";
-  ok all(approx(scalar($v1_4->setdiff_sorted($empty)), $v1_4)), "setdiff_sorted - broadcast dims - 1234-0";
-  ok all(approx(scalar($empty->setdiff_sorted($v1_4)), $empty)), "setdiff_sorted - broadcast dims - 0-1234";
-  ok all(approx(scalar($empty->setdiff_sorted($empty)), $empty)), "setdiff_sorted - broadcast dims - 0-0";
+  ok tapprox(scalar($v1_2->setdiff_sorted($v3_4)), $v1_2), "setdiff_sorted - broadcast dims - 12-34";
+  ok tapprox(scalar($v3_4->setdiff_sorted($v1_4)), $empty), "setdiff_sorted - broadcast dims - 34-1234";
+  ok tapprox(scalar($v1_4->setdiff_sorted($empty)), $v1_4), "setdiff_sorted - broadcast dims - 1234-0";
+  ok tapprox(scalar($empty->setdiff_sorted($v1_4)), $empty), "setdiff_sorted - broadcast dims - 0-1234";
+  ok tapprox(scalar($empty->setdiff_sorted($empty)), $empty), "setdiff_sorted - broadcast dims - 0-0";
   #
-  ok all(approx(scalar($kv1_2->setdiff_sorted($v3_4)), $kv1_2)), "setdiff_sorted - broadcast dims - 12(*k)-34";
-  ok all(approx(scalar($kv3_4->setdiff_sorted($v1_4)), $kempty)), "setdiff_sorted - broadcast dims - 34(*k)-1234";
-  ok all(approx(scalar($kv1_4->setdiff_sorted($empty)), $kv1_4)), "setdiff_sorted - broadcast dims - 1234(*k)-0";
-  ok all(approx(scalar($kempty->setdiff_sorted($v1_4)), $kempty)), "setdiff_sorted - broadcast dims - 0(*k)-1234";
-  ok all(approx(scalar($kempty->setdiff_sorted($empty)), $kempty)), "setdiff_sorted - broadcast dims - 0(*k)-0";
+  ok tapprox(scalar($kv1_2->setdiff_sorted($v3_4)), $kv1_2), "setdiff_sorted - broadcast dims - 12(*k)-34";
+  ok tapprox(scalar($kv3_4->setdiff_sorted($v1_4)), $kempty), "setdiff_sorted - broadcast dims - 34(*k)-1234";
+  ok tapprox(scalar($kv1_4->setdiff_sorted($empty)), $kv1_4), "setdiff_sorted - broadcast dims - 1234(*k)-0";
+  ok tapprox(scalar($kempty->setdiff_sorted($v1_4)), $kempty), "setdiff_sorted - broadcast dims - 0(*k)-1234";
+  ok tapprox(scalar($kempty->setdiff_sorted($empty)), $kempty), "setdiff_sorted - broadcast dims - 0(*k)-0";
 }
 test_v_broadcast_dimensions();
 
