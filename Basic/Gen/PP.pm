@@ -1558,8 +1558,7 @@ EOD
         my @in = $sig->names_in;
         my $in = @in == 1 ? $in[0] : undef;
         my $out = @out == 1 ? $out[0] : undef;
-        my %outca = map +($_=>1), $sig->names_oca;
-        my $noutca = grep $_, values %outca;
+        my $noutca = $sig->names_oca;
         if ( ref($arg) eq "ARRAY" and @$arg) {
           $in = $$arg[0];
           $out = $$arg[1] if @$arg > 1;
@@ -1600,10 +1599,10 @@ EOD
         my %other_out = map +($_=>1), $sig->other_out;
         my %tmp = map +($_=>1), $sig->names_tmp;
         # remember, otherpars *are* input vars
-        my $nout   = grep $_, values %out;
-        my $noutca = grep $_, values %outca;
+        my $nout   = keys %out;
+        my $noutca = keys %outca;
         my $nother = grep $_, values %other;
-        my $ntmp   = grep $_, values %tmp;
+        my $ntmp   = keys %tmp;
         my $ntot   = @args;
         my $nmaxonstack = $ntot - $noutca;
         my $nin    = $ntot - ($nout + $noutca);
