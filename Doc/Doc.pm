@@ -386,7 +386,7 @@ are documented in this way (for examples of this usage see, for example,
 the PDL::Slices module, especially F<slices.pd> and the resulting
 F<Slices.pm>). Similarly, the 'BadDoc' field provides a means of
 specifying information on how the routine handles the presence of
-bad values: this will be autpmatically created if 
+bad values: this will be automatically created if 
 C<BadDoc> is not supplied, or set to C<undef>.
 
 Furthermore, the documentation for each function should contain
