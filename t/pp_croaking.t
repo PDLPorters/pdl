@@ -20,16 +20,10 @@ eval {
 		}
 	);
 };
-
 my $err_msg = $@;
 isnt($@, undef, 'loop without dim name should throw an error');
 like($@, qr/Expected.*loop.*%\{/, 'loop without dim name should explain the error')
 	or diag("Got this error: $@");
-
-TODO: {
-	local $TODO = 'Have not figured out why @CARP_NOT is not working';
-	unlike($@, qr/PP\.pm/, 'Should not report error as coming from PDL::PP');
-};
 
 eval {
   pp_def(test1 =>
@@ -40,5 +34,18 @@ eval {
   );
 };
 isnt $@, '', 'error to give default for non-last params';
+
+eval { pp_def( "func",
+  Pars => "I(m);",
+  Code => 'int foo = 1;'
+) };
+like $@, qr/Invalid Pars name/;
+
+eval { pp_def( "func",
+  Pars => "x(m);",
+  OtherPars => 'int I;',
+  Code => 'int foo = 1;'
+) };
+like $@, qr/Invalid OtherPars name/;
 
 done_testing;

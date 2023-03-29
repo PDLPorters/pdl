@@ -442,46 +442,6 @@ EOF
 
 );
 
-my %BADOTHERPARSFILES = (
-    'Makefile.PL' => <<'EOF',
-use strict;
-use warnings;
-use ExtUtils::MakeMaker;
-use PDL::Core::Dev;
-my @pack = (["otherpars.pd", qw(Otherpars PDL::Otherpars)]);
-sub MY::postamble { pdlpp_postamble(@pack) }
-WriteMakefile(pdlpp_stdargs(@pack));
-EOF
-    'otherpars.pd' => <<'EOF',
-pp_def( "myexternalfunc2",
-  Pars => "x(m);",
-  OtherPars => 'int I;',
-  Code => 'int foo = 1;  '
-);
-
-pp_done();
-EOF
-);
-
-my %BADPARSFILES = (
-    'Makefile.PL' => <<'EOF',
-use strict;
-use warnings;
-use ExtUtils::MakeMaker;
-use PDL::Core::Dev;
-my @pack = (["otherpars.pd", qw(Otherpars PDL::Otherpars)]);
-sub MY::postamble { pdlpp_postamble(@pack) }
-WriteMakefile(pdlpp_stdargs(@pack));
-EOF
-    'otherpars.pd' => <<'EOF',
-pp_def( "myexternalfunc3",
-  Pars => "I(m);",
-  Code => 'int foo = 1;  '
-);
-pp_done();
-EOF
-);
-
 my %THREADTESTFILES = (
     'Makefile.PL' => <<'EOF',
 use strict;
@@ -573,8 +533,6 @@ EOF
 
 do_tests(\%THREADTESTFILES);
 do_tests(\%PPTESTFILES);
-do_tests(\%BADOTHERPARSFILES, qr/Invalid OtherPars name/);
-do_tests(\%BADPARSFILES, qr/Invalid Pars name/);
 
 sub do_tests {
     my ($hash, $error_re, $dir) = @_;
