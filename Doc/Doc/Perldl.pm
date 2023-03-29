@@ -51,7 +51,6 @@ use Pod::Select;
 use Pod::PlainText;
 use Term::ReadKey; #for GetTerminalSize
 
-$PDL::onlinedoc = undef;
 $PDL::onlinedoc = PDL::Doc->new(FindStdFile());
 
 # Find std file

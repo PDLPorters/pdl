@@ -465,22 +465,16 @@ Make sure that the database is slurped in
 sub ensuredb {
   my ($this) = @_;
   while (my $fi = pop @{$this->{File}}) {
-    open IN, $fi or
-      barf "can't open database $fi, scan docs first";
-    binmode IN;
+    open my $fh, $fi or barf "can't open database $fi, scan docs first";
+    binmode $fh;
     my ($plen,$txt);
-    while (read IN, $plen,2) {
+    while (read $fh, $plen,2) {
       my ($len) = unpack "S", $plen;
-      read IN, $txt, $len;
-      my (@a) =  split chr(0), $txt;
-      my $module = splice @a,1,1;
-      push(@a, "") unless(@a % 2);  # Add null string at end if necessary -- solves bug with missing REF section.
-      my ($sym, %hash) = @a;
-     
-      $hash{Dbfile} = $fi; # keep the origin pdldoc.db path
-      $this->{SYMS}->{$sym}->{$module} = {%hash};
+      read $fh, $txt, $len;
+      my ($sym, $module, @a) = split chr(0), $txt;
+      push @a, "" if @a % 2; # Add null string at end if necessary -- solves bug with missing REF section.
+      $this->{SYMS}{$sym}{$module} = { @a, Dbfile => $fi }; # keep the origin pdldoc.db path
     }
-    close IN;
     push @{$this->{Scanned}}, $fi;
   }
   return $this->{SYMS};
@@ -495,7 +489,7 @@ with this object.
  
 sub savedb {
   my ($this) = @_;
-  my $hash = $this->ensuredb();
+  my $hash = $this->ensuredb;
   open my $fh, '>', $this->{Outfile} or barf "can't write to symdb $this->{Outfile}: $!";
   binmode $fh;
   while (my ($name,$mods_hash) = each %$hash) {
@@ -558,9 +552,7 @@ The possible keys for each function/module entry include:
 
 =cut
 
-sub gethash {
-  return $_[0]->ensuredb();
-}
+sub gethash { $_[0]->ensuredb }
 
 =head2 search
 
@@ -869,9 +861,9 @@ sub add_module {
 	for $postfix(".pm",".pod") {
 	    my $f = "$_/$mfile$postfix";
 	    if( -e $f ){
-		$pdldoc->ensuredb();
+		$pdldoc->ensuredb;
 		$pdldoc->scan($f);
-		eval { $pdldoc->savedb(); };
+		eval { $pdldoc->savedb; };
 		warn $@ if $@;
 		print "PDL docs database updated - added $f.\n";
 		$hit = 1;
