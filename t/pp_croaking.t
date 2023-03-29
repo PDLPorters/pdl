@@ -48,4 +48,25 @@ eval { pp_def( "func",
 ) };
 like $@, qr/Invalid OtherPars name/;
 
+eval { pp_def( "func",
+  Pars => "a(m);",
+  Inplace => 1,
+  Code => 'int foo = 1;'
+) };
+like $@, qr/Inplace does not know name of output/;
+
+eval { pp_def( "func",
+  Pars => "[o] a(m);",
+  Inplace => 1,
+  Code => 'int foo = 1;'
+) };
+like $@, qr/Inplace does not know name of input/;
+
+eval { pp_def( "func",
+  Pars => "[o] a(m);",
+  Inplace => ['a', 'b', 'c'],
+  Code => 'int foo = 1;'
+) };
+like $@, qr/Inplace array-ref/;
+
 done_testing;
