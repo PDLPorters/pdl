@@ -35,38 +35,69 @@ eval {
 };
 isnt $@, '', 'error to give default for non-last params';
 
-eval { pp_def( "func",
+eval { pp_def( "func", Code => ';',
   Pars => "I(m);",
-  Code => 'int foo = 1;'
 ) };
 like $@, qr/Invalid Pars name/;
 
-eval { pp_def( "func",
+eval { pp_def( "func", Code => ';',
   Pars => "x(m);",
   OtherPars => 'int I;',
-  Code => 'int foo = 1;'
 ) };
 like $@, qr/Invalid OtherPars name/;
 
-eval { pp_def( "func",
+eval { pp_def( "func", Code => ';',
   Pars => "a(m);",
   Inplace => 1,
-  Code => 'int foo = 1;'
 ) };
 like $@, qr/Inplace does not know name of output/;
 
-eval { pp_def( "func",
+eval { pp_def( "func", Code => ';',
   Pars => "[o] a(m);",
   Inplace => 1,
-  Code => 'int foo = 1;'
 ) };
 like $@, qr/Inplace does not know name of input/;
 
-eval { pp_def( "func",
+eval { pp_def( "func", Code => ';',
   Pars => "[o] a(m);",
   Inplace => ['a', 'b', 'c'],
-  Code => 'int foo = 1;'
 ) };
 like $@, qr/Inplace array-ref/;
+
+eval { pp_def( "func", Code => ';',
+  Pars => "a(); [o] b();",
+  Inplace => ['a', 'b'],
+) };
+is $@, '';
+
+eval { pp_def( "func", Code => ';',
+  Pars => "a(); b();",
+  Inplace => ['a', 'b'],
+) };
+like $@, qr/Inplace output arg b not \[o]/;
+
+eval { pp_def( "func", Code => ';',
+  Pars => "a(); [o] b(m);",
+  Inplace => ['a', 'b'],
+) };
+like $@, qr/Inplace args a and b different number of dims/;
+
+eval { pp_def( "func", Code => ';',
+  Pars => "a(n); [o] b(m);",
+  Inplace => ['a', 'b'],
+) };
+is $@, '', 'different but non-fixed dims OK';
+
+eval { pp_def( "func", Code => ';',
+  Pars => "a(n=2); [o] b(m);",
+  Inplace => ['a', 'b'],
+) };
+is $@, '', 'one fixed dim OK';
+
+eval { pp_def( "func", Code => ';',
+  Pars => "a(n=2); [o] b(m=3);",
+  Inplace => ['a', 'b'],
+) };
+like $@, qr/Inplace Pars a and b inds n=2 and m=3 not compatible/;
 
 done_testing;

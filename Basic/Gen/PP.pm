@@ -1559,14 +1559,25 @@ EOD
         my $in = @in == 1 ? $in[0] : undef;
         my $out = @out == 1 ? $out[0] : undef;
         my $noutca = $sig->names_oca;
-        if ( ref($arg) eq "ARRAY" and @$arg) {
+        if (ref($arg) eq "ARRAY" and @$arg) {
           $in = $$arg[0];
           $out = $$arg[1] if @$arg > 1;
         }
-        confess "ERROR: Inplace does not know name of input ndarray\n"
+        confess "ERROR: Inplace does not know name of input ndarray"
             unless defined $in;
-        confess "ERROR: Inplace does not know name of output ndarray\n"
+        confess "ERROR: Inplace does not know name of output ndarray"
             unless defined $out;
+        my ($in_obj, $out_obj) = map $sig->objs->{$_}, $in, $out;
+        confess "ERROR: Inplace output arg $out not [o]\n" if !$$out_obj{FlagW};
+        my ($in_inds, $out_inds) = map $_->{IndObjs}, $in_obj, $out_obj;
+        confess "ERROR: Inplace args $in and $out different number of dims"
+          if @$in_inds != @$out_inds;
+        for my $i (0..$#$in_inds) {
+          my ($in_ind, $out_ind) = map $_->[$i], $in_inds, $out_inds;
+          next if grep !defined $_->{Value}, $in_ind, $out_ind;
+          confess "ERROR: Inplace Pars $in and $out inds ".join('=',@$in_ind{qw(Name Value)})." and ".join('=',@$out_ind{qw(Name Value)})." not compatible"
+            if $in_ind->{Value} != $out_ind->{Value};
+        }
         PDL::PP::pp_line_numbers(__LINE__-1, "PDL_XS_INPLACE($in, $out, $noutca)\n");
       }),
    PDL::PP::Rule::Returns::EmptyString->new("InplaceCode", []),
