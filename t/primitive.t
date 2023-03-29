@@ -85,6 +85,11 @@ $q = zeroes 5;
 minimum_n_ind $p, $q;
 is $q.'', '[0 7 2 6 3]', "minimum_n_ind some bad, sufficient good";
 
+eval {is random()->type, 'double'};
+is $@, '', 'random() works, defaults to double';
+eval {is randsym()->type, 'double'};
+is $@, '', 'randsym() works, defaults to double';
+
 ##############################
 # check that our random functions work with Perl's srand
 TODO: {

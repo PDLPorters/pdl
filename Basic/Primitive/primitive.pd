@@ -2225,7 +2225,7 @@ EOD
 
 pp_def(
 	'random',
-	Pars=>'a();',
+	Pars=>'[o] a();',
         GenericTypes => [ppdefs_all],
 	PMFunc => '',
 	Code => <<'EOF',
@@ -2260,6 +2260,7 @@ EOF
 sub random { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? $_[0]->random : PDL->random(@_) }
 sub PDL::random {
    my $class = shift;
+   unshift @_, double() if !ref($class) and !@_;
    my $x = scalar(@_)? $class->new_from_specification(@_) : $class->new_or_inplace;
    PDL::_random_int($x);
    return $x;
@@ -2269,7 +2270,7 @@ EOD
 
 pp_def(
 	'randsym',
-	Pars=>'a();',
+	Pars=>'[o] a();',
         GenericTypes => [ppdefs_all],
 	PMFunc => '',
 	Code => <<'EOF',
@@ -2305,6 +2306,7 @@ EOF
 sub randsym { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? $_[0]->randsym : PDL->randsym(@_) }
 sub PDL::randsym {
    my $class = shift;
+   unshift @_, double() if !ref($class) and !@_;
    my $x = scalar(@_)? $class->new_from_specification(@_) : $class->new_or_inplace;
    PDL::_randsym_int($x);
    return $x;

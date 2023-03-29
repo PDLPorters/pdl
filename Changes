@@ -1,4 +1,5 @@
 - fix some memory leaking - thanks Yury Pakhomov for report
+- fix random() failing (#422) - thanks @falsifian for report
 
 2.082 2023-03-22
 - no changes from 2.081_03
