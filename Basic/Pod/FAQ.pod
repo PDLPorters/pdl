@@ -1427,7 +1427,7 @@ Makefile.
     
     WriteMakefile( %hash );
     
-    sub MY::postamble {pdlpp_postamble($package)};
+    sub MY::postamble {pdlpp_postamble($package)}
 
 The code above should go in a file called Makefile.PL,
 which should subsequently be called in  the standard
@@ -1558,10 +1558,9 @@ an earlier question.
     
     WriteMakefile( %hash );
     
-    sub MY::postamble {pdlpp_postamble($package)};
+    sub MY::postamble {pdlpp_postamble($package)}
 
-
-An example Makefile.PL
+An example F<Makefile.PL>
 
 Our new statistic function should now compile using the
 tried and tested Perl way: 

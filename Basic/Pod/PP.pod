@@ -75,7 +75,7 @@ notes on how to "opt-in" for your own modules):
   my @pack = (["pnm.pd", qw(Pnm PDL::IO::Pnm)]);
   my %hash = pdlpp_stdargs_int(@pack);
   $hash{OBJECT} .= ' get$(OBJ_EXT)';
-  sub MY::postamble { pdlpp_postamble_int(@pack); };
+  sub MY::postamble { pdlpp_postamble_int(@pack); }
   WriteMakefile(%hash);
 
 =head2 pp_addpm

@@ -90,7 +90,6 @@ sub printmatch {
     }
 } # sub: print_match()
 
-
 # given a long module name, return the (perhaps shortened) module name.
 
 sub shortmod {
@@ -103,8 +102,6 @@ sub shortmod {
   }
   return $module;
 }
-
-
 
 # return a string containing a formated version of the Ref string
 # for the given matches
