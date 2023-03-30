@@ -16,7 +16,7 @@ our %Title = ('Example' => 'Example',
 	  'Sig'     => 'Signature',
 	  'Opt'     => 'Options',
 	  'Usage'   => 'Usage',
-          'Bad'     => 'Bad value support',  
+          'Bad'     => 'Bad value support',
 	 );
 
 sub new {
@@ -168,7 +168,7 @@ An implementation of online docs for PDL.
 PDL::Doc's main use is in the "help" (synonym "?") and "apropos"
 (synonym "??") commands in the perldl shell.  PDL::Doc provides the
 infrastrucure to index and access PDL's documentation through these
-commands.  There is also an API for direct access to the documentation 
+commands.  There is also an API for direct access to the documentation
 database (see below).
 
 The PDL doc system is built on Perl's pod (Plain Old Documentation),
@@ -177,7 +177,7 @@ automatically indexed when PDL is built and installed, and there is
 provision for indexing external modules as well.
 
 To include your module's pod into the Perl::Doc index, you should
-follow the documentation conventions below.  
+follow the documentation conventions below.
 
 =head1 PDL documentation conventions
 
@@ -285,7 +285,7 @@ might return ndarrays with bad values.
 The PDL podparser is implemented as a simple state machine. Any of
 the above C<=for> statements switches the podparser into a state
 where the following paragraph is accepted as information for the
-respective field (C<Ref>, C<Usage>, C<Opt>, C<Example> or C<Bad>). 
+respective field (C<Ref>, C<Usage>, C<Opt>, C<Example> or C<Bad>).
 Only the text up to
 the end of the current paragraph is accepted, for example:
 
@@ -386,7 +386,7 @@ are documented in this way (for examples of this usage see, for example,
 the PDL::Slices module, especially F<slices.pd> and the resulting
 F<Slices.pm>). Similarly, the 'BadDoc' field provides a means of
 specifying information on how the routine handles the presence of
-bad values: this will be automatically created if 
+bad values: this will be automatically created if
 C<BadDoc> is not supplied, or set to C<undef>.
 
 Furthermore, the documentation for each function should contain
@@ -486,7 +486,7 @@ save the database (i.e., the hash of PDL symbols) to the file associated
 with this object.
 
 =cut
- 
+
 sub savedb {
   my ($this) = @_;
   my $hash = $this->ensuredb;
@@ -721,8 +721,8 @@ sub scan {
      }
    }
    $does = 'Hmmm ????' if $does and $does =~ /^\s*$/;
-   my $type = ($file =~ /\.pod$/ ? 
-	       ($does =~ /shell|script/i && $name =~ /^[a-z][a-z0-9]*$/) ? 'Script:' 
+   my $type = ($file =~ /\.pod$/ ?
+	       ($does =~ /shell|script/i && $name =~ /^[a-z][a-z0-9]*$/) ? 'Script:'
 	       : 'Manual:'
 	       : 'Module:');
    $hash->{$name}{$name} = {Ref=>"$type $does",File=>$file2} if $name and $name !~ /^\s*$/;
@@ -743,17 +743,16 @@ sub scantree {
   require File::Find;
   print "Scanning $dir ... \n\n";
   my $ntot = 0;
-  my $sub = sub { if (($File::Find::name =~ /[.]pm$/ &&
-		      $File::Find::name !~ /PP.pm/ &&
-		      $File::Find::name !~ m|Pod/Parser.pm| &&
-		      $File::Find::dir !~ m#/PP|/Gen#) or (
-		       $File::Find::name =~ /[.]pod$/ && 
-                       $File::Find::name !~ /Index[.]pod$/)){
-       printf "%-20s", $_.'...';
-       my $n = $this->scan($File::Find::name,$verbose); # bind $this lexically
-       print "\t$n functions\n";
-       $ntot += $n;
-		    }
+  my $sub = sub {
+    return if !(($File::Find::name =~ /[.]pm$/ &&
+      $File::Find::name !~ /PP.pm/ &&
+      $File::Find::name !~ m|Pod/Parser.pm| &&
+      $File::Find::dir !~ m#/PP|/Gen#) or (
+	$File::Find::name =~ /[.]pod$/ &&
+	$File::Find::name !~ /Index[.]pod$/));
+    printf "%-20s", $_.'...';
+    $ntot += my $n = $this->scan($File::Find::name,$verbose);
+    print "\t$n functions\n";
   };
   File::Find::find($sub,$dir);
   print "\n\nfound $ntot functions\n";
@@ -775,7 +774,7 @@ sub funcdocs {
   my $file = $hash->{$func}->{$module}->{File};
   my $dbf = $hash->{$func}->{$module}->{Dbfile};
   if (!File::Spec->file_name_is_absolute($file) && $dbf) {
-    $file = File::Spec->rel2abs($file, dirname($dbf)); 
+    $file = File::Spec->rel2abs($file, dirname($dbf));
   }
   funcdocs_fromfile($func,$file,$fout);
 }
