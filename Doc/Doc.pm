@@ -510,7 +510,12 @@ sub savedb {
 
 =head2 gethash
 
-Return the PDL symhash (e.g. for custom search operations)
+Return the PDL symhash (e.g. for custom search operations). To see what
+it has stored in it in JSON format:
+
+  perl -MPDL::Doc -MJSON::PP -e \
+    'print encode_json +PDL::Doc->new((grep -f, map "$_/PDL/pdldoc.db", @INC)[0])->gethash' |
+    json_pp -json_opt pretty,canonical
 
 The symhash is a multiply nested hash ref with the following structure:
 
@@ -828,7 +833,16 @@ active PDL document database and the module's .pod and .pm files, and
 scans and indexes the module into the database.
 
 C<add_module> is meant to be added to your module's Makefile as part of the
-installation script.
+installation script. This is done automatically by
+L<PDL::Core::Dev/pdlpp_postamble>, but if the top level of your
+distribution is Perl modules (like L<PDL::LinearAlgebra>), then add a
+C<postamble> manually in the F<Makefile.PL>:
+
+  use PDL::Core::Dev;
+  sub MY::postamble {
+    my $oneliner = PDL::Core::Dev::_oneliner(qq{exit if \$ENV{DESTDIR}; use PDL::Doc; eval { PDL::Doc::add_module(shift); }});
+    qq|\ninstall ::\n\t$oneliner \$(NAME)\n|;
+  }
 
 =cut
 
