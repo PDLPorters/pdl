@@ -6,8 +6,6 @@ use strict;
 use warnings;
 use PDL::Core '';
 use Pod::Select;
-use File::Spec;
-use File::Basename;
 
 our @ISA = qw(Pod::Select);
 
@@ -415,6 +413,7 @@ use warnings;
 use PDL::Core '';
 use File::Basename;
 use PDL::Doc::Config;
+use File::Spec::Functions qw(file_name_is_absolute abs2rel rel2abs);
 
 =head1 INSTANCE METHODS
 
@@ -496,10 +495,9 @@ sub savedb {
     next if 0 == scalar(%$mods_hash);
     while (my ($module,$val) = each %$mods_hash){
       my $fi = $val->{File};
-      if (File::Spec->file_name_is_absolute($fi) && -f $fi) {
+      $val->{File} = abs2rel($fi, dirname($this->{Outfile}))
         #store paths to *.pm files relative to pdldoc.db
-        $val->{File} = File::Spec->abs2rel($fi, dirname($this->{Outfile})) ;
-      }
+        if file_name_is_absolute($fi) && -f $fi;
       delete $val->{Dbfile}; # no need to store Dbfile
       my $txt = join(chr(0),$name,$module,%$val);
       print $fh pack("S",length($txt)).$txt;
@@ -776,11 +774,10 @@ sub funcdocs {
   my $hash = $this->ensuredb;
   barf "unknown function '$func'" unless defined($hash->{$func});
   barf "funcdocs now requires 3 arguments" if defined fileno $module;
-  my $file = $hash->{$func}->{$module}->{File};
-  my $dbf = $hash->{$func}->{$module}->{Dbfile};
-  if (!File::Spec->file_name_is_absolute($file) && $dbf) {
-    $file = File::Spec->rel2abs($file, dirname($dbf));
-  }
+  my $file = $hash->{$func}{$module}{File};
+  my $dbf = $hash->{$func}{$module}{Dbfile};
+  $file = rel2abs($file, dirname($dbf))
+    if !file_name_is_absolute($file) && $dbf;
   funcdocs_fromfile($func,$file,$fout);
 }
 
