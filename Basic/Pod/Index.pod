@@ -14,6 +14,10 @@ the PDL manual documents
 
 =item *
 
+L<Inline::Pdlpp> - Write PDL Subroutines inline with PDL::PP
+
+=item *
+
 L<PDL::API> - making ndarrays from Perl and C/XS code
 
 =item *
@@ -26,19 +30,23 @@ L<PDL::Broadcasting> - Tutorial for PDL's Broadcasting feature
 
 =item *
 
+L<PDL::Bugs> - How to diagnose and report PDL problems
+
+=item *
+
 L<PDL::Course> - A journey through PDL's documentation, from beginner to advanced.
 
 =item *
 
-L<PDL::Dataflow> - description of the dataflow philosophy
-
-=item *
-
-L<PDL::Delta> - PDL changes between V1.0 and V2.0
+L<PDL::Dataflow> - description of the dataflow implementation and philosophy
 
 =item *
 
 L<PDL::FAQ> - Frequently asked questions about PDL
+
+=item *
+
+L<PDL::Graphics> - Introduction to the PDL::Graphics modules
 
 =item *
 
@@ -70,7 +78,7 @@ L<PDL::PP> - Generate PDL routines from concise descriptions
 
 =item *
 
-L<PDL::ParallelCPU> - Parallel Processor MultiThreading Support in PDL
+L<PDL::ParallelCPU> - Parallel processor multi-threading support in PDL
 
 =item *
 
@@ -101,19 +109,11 @@ L<PDL::Tutorials> - A guide to PDL's tutorial documentation.
 
 =item *
 
-L<pdl2> - Simple shell (version 2) for PDL
+L<pdl2|PDL::pdl2> - Simple shell (version 2) for PDL
 
 =item *
 
-L<pdldoc> - shell interface to PDL documentation
-
-=item *
-
-L<perldl> - Simple shell for PDL (see also L</pdl2>)
-
-=item *
-
-L<pptemplate> - script to generate Makefile.PL and PP file skeleton
+L<pptemplate|PDL::pptemplate> - script to generate Makefile.PL and PP file skeleton
 
 
 =back
@@ -132,7 +132,7 @@ L<PDL::AutoLoader> - MatLab style AutoLoader for PDL
 
 =item *
 
-L<PDL::Bad> - PDL does process bad values
+L<PDL::Bad> - PDL always processes bad values
 
 =item *
 
@@ -145,6 +145,14 @@ L<PDL::CallExt> - call functions in external shared libraries
 =item *
 
 L<PDL::Char> - PDL subclass which allows reading and writing of fixed-length character strings as byte PDLs
+
+=item *
+
+L<PDL::Complex> - handle complex numbers (DEPRECATED - use native complex)
+
+=item *
+
+L<PDL::Complex::Overloads> - subclass of Math::Complex with overload fallbacks
 
 =item *
 
@@ -168,6 +176,18 @@ L<PDL::Dbg> - functions to support debugging of PDL scripts
 
 =item *
 
+L<PDL::Demos> - PDL demo infrastructure
+
+=item *
+
+L<PDL::Demos::PGPLOT> - demonstrate PDL::Graphics::PGPLOT capabilities
+
+=item *
+
+L<PDL::Demos::PGPLOT_OO> - demonstrate PDL::Graphics::PGPLOT OO capabilities
+
+=item *
+
 L<PDL::DiskCache> - Non-memory-resident array object
 
 =item *
@@ -185,10 +205,6 @@ L<PDL::Exporter> - PDL export control
 =item *
 
 L<PDL::FFT> - FFTs for PDL
-
-=item *
-
-L<PDL::FFTW> - PDL interface to the Fastest Fourier Transform in the West v2.x
 
 =item *
 
@@ -220,7 +236,11 @@ L<PDL::Func> - interpolation, integration, & gradient estimation (differentiatio
 
 =item *
 
-L<PDL::GIS::Proj> - PDL interface to the Proj4 projection library.
+L<PDL::GIS::Proj> - PDL interface to the PROJ projection library.
+
+=item *
+
+L<PDL::GSL::CDF> - PDL interface to GSL Cumulative Distribution Functions
 
 =item *
 
@@ -233,6 +253,10 @@ L<PDL::GSL::INTEG> - PDL interface to numerical integration routines in GSL
 =item *
 
 L<PDL::GSL::INTERP> - PDL interface to Interpolation routines in GSL
+
+=item *
+
+L<PDL::GSL::LINALG> - PDL interface to linear algebra routines in GSL
 
 =item *
 
@@ -396,10 +420,6 @@ L<PDL::Graphics::PGPLOTOptions> - Setting PGPLOT options
 
 =item *
 
-L<PDL::Graphics::PLplot> - Object-oriented interface from perl/PDL to the PLPLOT plotting library
-
-=item *
-
 L<PDL::Graphics::TriD> - PDL 3D interface
 
 =item *
@@ -409,6 +429,10 @@ L<PDL::Graphics::TriD::ButtonControl> - default event handler subroutines
 =item *
 
 L<PDL::Graphics::TriD::Contours> - 3D Surface contours for TriD
+
+=item *
+
+L<PDL::Graphics::TriD::Graph> - PDL 3D graph object with axes
 
 =item *
 
@@ -436,6 +460,10 @@ L<PDL::Graphics::TriD::VRML> - TriD VRML backend
 
 =item *
 
+L<PDL::IO::Browser> - 2D data browser for PDL
+
+=item *
+
 L<PDL::IO::Dicom> - a module for reading DICOM images.
 
 =item *
@@ -460,11 +488,15 @@ L<PDL::IO::GD> - Interface to the GD image library.
 
 =item *
 
-L<PDL::IO::HDF> - An interface library for HDF4 files.
+L<PDL::IO::HDF> - A PDL interface to the HDF4 library.
 
 =item *
 
 L<PDL::IO::HDF::SD> - PDL interface to the HDF4 SD library.
+
+=item *
+
+L<PDL::IO::HDF::VS> - An interface library for HDF4 files.
 
 =item *
 
@@ -484,6 +516,10 @@ L<PDL::IO::Pnm> - pnm format I/O for PDL
 
 =item *
 
+L<PDL::IO::STL> - read/write 3D stereolithography files
+
+=item *
+
 L<PDL::IO::Storable> - helper functions to make PDL usable with Storable
 
 =item *
@@ -497,6 +533,10 @@ L<PDL::ImageND> - useful image processing in N dimensions
 =item *
 
 L<PDL::ImageRGB> - some utility functions for RGB image data handling
+
+=item *
+
+L<PDL::Install::Files> - Module for use by L<ExtUtils::Depends> and L<Inline>
 
 =item *
 
@@ -580,10 +620,6 @@ L<PDL::Slices> - Indexing, slicing, and dicing
 
 =item *
 
-L<PDL::Tests> - tests for some PP features
-
-=item *
-
 L<PDL::Transform> - Coordinate transforms, image warping, and N-D functions
 
 =item *
@@ -607,5 +643,5 @@ L<PDL::Ufunc> - primitive ufunc operations for pdl
 
 =head1 HISTORY
 
-Automatically generated by scantree.pl for PDL version 2.004_995.
+Automatically generated by scantree.pl for PDL version 2.082.
 
