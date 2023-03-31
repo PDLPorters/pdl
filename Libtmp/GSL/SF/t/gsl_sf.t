@@ -45,8 +45,8 @@ my ($y,$err) = gsl_sf_bessel_Jn($arg, 0);
 
 ok(abs($y-$expected) < 1e-6,"GSL SF Bessel function");
 
-my $version = `gsl-config --version`;
-if ($version >= 2.0) {
+chomp(my $version = `gsl-config --version`);
+if ((split /\./, $version)[0] >= 2) {
   my $Ylm = gsl_sf_legendre_array(xvals(21)/10-1,'Y',4,-1);
   ok($Ylm->slice("(0)")->uniq->nelem == 1, "Legendre Y00 is constant");
   ok(approx($Ylm->slice("(0),(0)"),0.5/sqrt(3.141592654),1E-6), "Y00 value is corect");
