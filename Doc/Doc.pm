@@ -413,7 +413,7 @@ use warnings;
 use PDL::Core '';
 use File::Basename;
 use PDL::Doc::Config;
-use File::Spec::Functions qw(file_name_is_absolute abs2rel rel2abs);
+use File::Spec::Functions qw(file_name_is_absolute abs2rel rel2abs catdir catfile);
 
 =head1 INSTANCE METHODS
 
@@ -493,7 +493,7 @@ sub savedb {
   binmode $fh;
   while (my ($name,$mods_hash) = each %$hash) {
     next if 0 == scalar(%$mods_hash);
-    while (my ($module,$val) = each %$mods_hash){
+    while (my ($module,$val) = each %$mods_hash) {
       my $fi = $val->{File};
       $val->{File} = abs2rel($fi, dirname($this->{Outfile}))
         #store paths to *.pm files relative to pdldoc.db
@@ -512,7 +512,7 @@ Return the PDL symhash (e.g. for custom search operations). To see what
 it has stored in it in JSON format:
 
   perl -MPDL::Doc -MJSON::PP -e \
-    'print encode_json +PDL::Doc->new((grep -f, map "$_/PDL/pdldoc.db", @INC)[0])->gethash' |
+    'print encode_json +PDL::Doc->new(PDL::Doc::_find_inc([qw(PDL pdldoc.db)]))->gethash' |
     json_pp -json_opt pretty,canonical
 
 The symhash is a multiply nested hash ref with the following structure:
@@ -608,7 +608,7 @@ sub search {
   $pattern = $this->checkregex($pattern);
 
   while (my ($name,$mods_hash) = each %$hash) {
-      while (my ($module,$val) = each %$mods_hash){
+      while (my ($module,$val) = each %$mods_hash) {
 	FIELD: for (@$fields) {
 	    if ($_ eq 'Name' and $name =~ /$pattern/i
 		or defined $val->{$_} and $val->{$_} =~ /$pattern/i) {
@@ -694,7 +694,7 @@ sub scan {
     $n++;
     $val->{File} = $file2;
     #set up the 3-layer hash/database structure: $hash->{funcname}->{PDL::SomeModule} = $val
-    if (defined($val->{Module})){
+    if (defined($val->{Module})) {
 	$hash->{$key}->{$val->{Module}} = $val;
     } else {
 	warn "no Module for $key in $file2\n";
@@ -843,46 +843,30 @@ C<postamble> manually in the F<Makefile.PL>:
 
 =cut
 
+sub _find_inc {
+  my ($what, $want_dir) = @_;
+  for my $dir (@INC) {
+    my $ent = $want_dir ? catdir($dir, @$what) : catfile($dir, @$what);
+    return $ent if $want_dir ? -d $ent : -f $ent;
+  }
+  undef;
+}
+
 sub add_module {
-    my($module) = shift;
-    use File::Copy qw{copy};
-    my($pdldoc);
-    local($_);
-  DIRECTORY:
-    for my $dir (@INC){
-	my $file = $dir."/PDL/pdldoc.db";
-	if( -f $file) {
-	    if(! -w "$dir/PDL") {
-		die "No write permission at $dir/PDL - not updating docs database.\n";
-	    }
-	    print "Found docs database $file\n";
-	    $pdldoc = PDL::Doc->new($file);
-	    last DIRECTORY;
-	}
-    }
-
-    die "Unable to find docs database - therefore not updating it.\n" unless($pdldoc);
-
-    my $mfile = $module;
-    $mfile =~ s/\:\:/\//g;
-    for(@INC){
-	my $postfix;
-	my $hit = 0;
-	for $postfix(".pm",".pod") {
-	    my $f = "$_/$mfile$postfix";
-	    if( -e $f ){
-		$pdldoc->ensuredb;
-		$pdldoc->scan($f);
-		eval { $pdldoc->savedb; };
-		warn $@ if $@;
-		print "PDL docs database updated - added $f.\n";
-		$hit = 1;
-	    }
-	}
-	return if($hit);
-    }
-
-    die "Unable to find a .pm or .pod file in \@INC for module $module\n";
+  my ($module) = @_;
+  my $file = _find_inc([qw(PDL pdldoc.db)], 0);
+  die "Unable to find docs database - therefore not updating it.\n" if !defined $file;
+  die "No write permission for $file - not updating docs database.\n"
+    if !-w $file;
+  print "Found docs database $file\n";
+  my $pdldoc = PDL::Doc->new($file);
+  my @mfile = split /::/, $module;
+  my $mlast = pop @mfile;
+  my @found = grep defined, map _find_inc([@mfile, $mlast.$_]), qw(.pm .pod);
+  die "Unable to find a .pm or .pod file in \@INC for module $module\n" if !@found;
+  $pdldoc->ensuredb;
+  $pdldoc->scan($_), eval { $pdldoc->savedb; }, ($@ ? warn $@ : ()) for @found;
+  print "PDL docs database updated - added @found.\n";
 }
 
 =head1 PDL::DOC EXAMPLE
@@ -892,18 +876,10 @@ own code.
 
  use PDL::Doc;
  # Find the pdl documentation
- my ($dir,$file,$pdldoc);
- DIRECTORY: for $dir (@INC) {
-     $file = $dir."/PDL/pdldoc.db";
-     if (-f $file) {
-         print "Found docs database $file\n";
-         $pdldoc = PDL::Doc->new($file);
-         last DIRECTORY;
-     }
- }
-
- die ("Unable to find docs database!\n") unless $pdldoc;
-
+ my $file = _find_inc([qw(PDL pdldoc.db)], 0);
+ die "Unable to find docs database!\n" unless defined $file;
+ print "Found docs database $file\n";
+ my $pdldoc = PDL::Doc->new($file);
  # Print the reference line for zeroes:
  print map{$_->{Ref}} values %{$pdldoc->gethash->{zeroes}};
  # Or, if you remember that zeroes is in PDL::Core:
@@ -922,7 +898,7 @@ own code.
  print "\n";
 
  #Or, more concisely:
- print join("\n",map{$_->[0]}@entries);
+ print map "$_->[0]\n", @entries;
 
  # Let's look at the function 'mpdl'
  @entries = $pdldoc->search('mpdl', 'Name');

@@ -56,16 +56,11 @@ $PDL::onlinedoc = PDL::Doc->new(FindStdFile());
 # Find std file
 
 sub FindStdFile {
-  my ($d,$f);
-  for $d (@INC) {
-      $f = $d."/PDL/pdldoc.db";
-      if (-f $f) {
-         print "Found docs database $f\n" if $PDL::verbose;
-	 print "Type 'help' for online help\n" if $PDL::verbose;
-         return $f;
-      }
-  }
-  warn "Unable to find PDL/pdldoc.db in ".join(":",@INC)."\n";
+  my $f = PDL::Doc::_find_inc([qw(PDL pdldoc.db)], 0);
+  warn("Unable to find PDL/pdldoc.db in ".join(":",@INC)."\n"), return if !defined $f;
+  print "Found docs database $f\n" if $PDL::verbose;
+  print "Type 'help' for online help\n" if $PDL::verbose;
+  return $f;
 }
 
 # used to find out how wide the screen should be
