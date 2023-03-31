@@ -653,21 +653,8 @@ for online documentation
 
 sub scan {
   my ($this,$file,$verbose) = @_;
-  $verbose = 0 unless defined $verbose;
   barf "can't find file '$file'" unless -f $file;
-
-  # First HTMLify file in the tree
-
-  # Does not work yet
-
-  #if  (system ("pod2html $file")!=0) {
-  #   warn "Failed to execute command: pod2html $file2\n";
-  #}
-  #else{ # Rename result (crummy pod2html)
-  #   rename ("$file.html","$1.html") if  $file =~ /^(.*)\.pm$/;
-  #}
-
-  # Now parse orig pm/pod
+  $verbose = 0 unless defined $verbose;
 
   open my $infile, '<', $file;
   # XXXX convert to absolute path
@@ -684,18 +671,13 @@ sub scan {
   eval { $parser->parse_from_filehandle($infile,$outfile) };
   warn "cannot parse '$file' ($@)" if $@ and $@ ne "no function defined\n";
 
-  $this->{SYMS} = {} unless defined $this->{SYMS};
-  my $hash = $this->{SYMS};
-  my @stats = stat $file;
-  $this->{FTIME}->{$file2} = $stats[9]; # store last mod time
-  # print "mtime of $file: $stats[9]\n";
+  my $hash = $this->{SYMS} ||= {};
   my $n = 0;
+  $_->{File} = $file2, $n++ for values %{ $parser->{SYMHASH} };
   while (my ($key,$val) = each %{ $parser->{SYMHASH} }) {
-    $n++;
-    $val->{File} = $file2;
     #set up the 3-layer hash/database structure: $hash->{funcname}->{PDL::SomeModule} = $val
     if (defined($val->{Module})) {
-	$hash->{$key}->{$val->{Module}} = $val;
+	$hash->{$key}{$val->{Module}} = $val;
     } else {
 	warn "no Module for $key in $file2\n";
     }
