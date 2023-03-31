@@ -259,35 +259,21 @@ doctest ::
 	cd Doc && make test
 	$(NOECHO) $(ECHO) "doctest: Building PDL documentation database in blib ..."
 	$(NOECHO) $(PERLRUNINST) Doc$(DFSEP)scantree.pl
-%HTML%	$(NOECHO) $(ECHO) "doctest: Building PDL documentation web pages in blib ..."
-%HTML%	$(NOECHO) $(PERLRUNINST) Doc$(DFSEP)mkhtmldoc.pl
 
 doc_site_install :: doc_pdldoc_install
 
 doc_pdldoc_install :: pure_install # needs installed .../PDL dir to exist
 	$(NOECHO) $(ECHO) "doc_site_install: Building PDL documentation database ..."
 	$(NOECHO) $(PERLRUNINST) Doc$(DFSEP)scantree.pl "$(DESTDIR)$(INSTALLSITEARCH)"
-%HTML%	$(NOECHO) $(ECHO) "doc_site_install: Building PDL documentation web pages ..."
-%HTML%	$(NOECHO) $(PERL) Doc$(DFSEP)mkhtmldoc.pl "$(DESTDIR)$(INSTALLSITEARCH)$(DFSEP)PDL"
 
 doc_vendor_install ::
 	$(NOECHO) $(ECHO) "doc_vendor_install: Building PDL documentation database ..."
 	$(NOECHO) $(PERLRUNINST) Doc$(DFSEP)scantree.pl "$(DESTDIR)$(INSTALLVENDORARCH)"
-%HTML%	$(NOECHO) $(ECHO) "doc_vendor_install: Building PDL documentation web pages ..."
-%HTML%	$(NOECHO) $(PERL) Doc$(DFSEP)mkhtmldoc.pl "$(DESTDIR)$(INSTALLVENDORARCH)$(DFSEP)PDL"
 
 doc_perl_install ::
 	$(NOECHO) $(ECHO) "doc_perl_install: Building PDL documentation database ..."
 	$(NOECHO) $(PERLRUNINST) Doc$(DFSEP)scantree.pl "$(DESTDIR)$(INSTALLARCHLIB)"
-%HTML%	$(NOECHO) $(ECHO) "doc_perl_install: Building PDL documentation web pages ..."
-%HTML%	$(NOECHO) $(PERL) Doc$(DFSEP)mkhtmldoc.pl "$(DESTDIR)$(INSTALLARCHLIB)$(DFSEP)PDL"
 ';
-
-  if(defined $PDL::Config{HTML_DOCS} && !$PDL::Config{HTML_DOCS}){
-    $text=~ s/\%HTML\%[^\n]*\n//og; # Remove %HTML% lines
-  } else {
-    $text=~ s/\%HTML\%//og; # Remove just %HTML% markers
-  }
 
 # Here, `pdl.c` is used directly because some makes (e.g., on Solaris) do not
 # support the `$<` variable in explicit rules

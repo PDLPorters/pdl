@@ -155,7 +155,6 @@ Doc/Doc.pm
 Doc/Doc/Config.pm.PL
 Doc/Doc/Perldl.pm
 Doc/Makefile.PL
-Doc/mkhtmldoc.pl
 Doc/mkpdlfuncpod
 Doc/README
 Doc/scantree.pl
