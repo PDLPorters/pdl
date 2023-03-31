@@ -50,6 +50,7 @@ use PDL::Doc;
 use Pod::Select;
 use Pod::PlainText;
 use Term::ReadKey; #for GetTerminalSize
+use Cwd; # to help Debian packaging
 
 $PDL::onlinedoc = PDL::Doc->new(FindStdFile());
 
@@ -286,7 +287,8 @@ sub finddoc  {
 	   my $relfile = $m->[2]{File};
 	   my $absfile = undef;
 	   my @scnd = @{$PDL::onlinedoc->{Scanned}};
-	   for my $dbf(@scnd){
+	   for my $dbf (@scnd) {
+	       $dbf = Cwd::abs_path($dbf); # help Debian packaging
 	       $dbf =~ s:\/[^\/]*$::; # Trim file name off the end of the database file to get just the directory
 	       $dbf .= "/$relfile";
 	       $absfile = $dbf if( -e $dbf );

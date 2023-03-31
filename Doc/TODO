@@ -1,9 +1,0 @@
-- rearrange hash structure to
-
-    root->{Module}->{Funcname}
-
-  to avoid name clashes
-
-- warn about duplicate documentation
-
-- policy to integrate with build process

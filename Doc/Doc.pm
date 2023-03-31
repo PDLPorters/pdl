@@ -414,6 +414,7 @@ use PDL::Core '';
 use File::Basename;
 use PDL::Doc::Config;
 use File::Spec::Functions qw(file_name_is_absolute abs2rel rel2abs catdir catfile);
+use Cwd (); # to help Debian packaging
 
 =head1 INSTANCE METHODS
 
@@ -654,6 +655,7 @@ for online documentation
 sub scan {
   my ($this,$file,$verbose) = @_;
   barf "can't find file '$file'" unless -f $file;
+  $file = Cwd::abs_path($file); # help Debian packaging
   $verbose = 0 unless defined $verbose;
 
   open my $infile, '<', $file;
@@ -755,6 +757,8 @@ sub funcdocs {
   barf "funcdocs now requires 3 arguments" if defined fileno $module;
   my $file = $hash->{$func}{$module}{File};
   my $dbf = $hash->{$func}{$module}{Dbfile};
+  $file = Cwd::abs_path($file) if file_name_is_absolute($file);
+  $dbf = Cwd::abs_path($dbf); # help Debian packaging
   $file = rel2abs($file, dirname($dbf))
     if !file_name_is_absolute($file) && $dbf;
   funcdocs_fromfile($func,$file,$fout);
