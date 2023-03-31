@@ -747,12 +747,9 @@ sub scantree {
   print "Scanning $dir ... \n\n";
   my $ntot = 0;
   my $sub = sub {
-    return if !(($File::Find::name =~ /[.]pm$/ &&
-      $File::Find::name !~ /PP.pm/ &&
-      $File::Find::name !~ m|Pod/Parser.pm| &&
-      $File::Find::dir !~ m#/PP|/Gen#) or (
-	$File::Find::name =~ /[.]pod$/ &&
-	$File::Find::name !~ /Index[.]pod$/));
+    return if $File::Find::name !~ /\.(?:pm|pod)$/;
+    return if $File::Find::name =~ /(?:Index\.pod|PP\.pm)$/ or
+      $File::Find::dir =~ m#/PP#;
     printf "%-20s", $_.'...';
     $ntot += my $n = $this->scan($File::Find::name,$verbose);
     print "\t$n functions\n";
