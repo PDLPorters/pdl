@@ -25,19 +25,13 @@ unless (defined $outdb) {
 	print "DB  = $outdb\n";
 }
 
-my $currdir = getcwd;
-
 unlink $outdb if -e $outdb;
 my $onldc = PDL::Doc->new;
 $onldc->outfile($outdb);
 
 foreach my $dir (@dirs) {
-    chdir $dir or die "can't change to $dir";
-    $dir = getcwd;
-
     $onldc->scantree($dir."/PDL",$opt_v);
     $onldc->scan($dir."/PDL.pm",$opt_v) if (-s $dir."/PDL.pm");
-    chdir $currdir;
 }
 
 print STDERR "saving...\n";
