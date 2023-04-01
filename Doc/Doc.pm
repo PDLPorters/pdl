@@ -739,7 +739,8 @@ sub scantree {
     print "\t$n functions\n";
   };
   File::Find::find($sub,$dir);
-  print "\n\nfound $ntot functions\n";
+  print "\nfound $ntot functions\n";
+  $ntot;
 }
 
 
@@ -803,14 +804,16 @@ sub getfuncdocs {
 
 =for usage
 
- use PDL::Doc; PDL::Doc::add_module("my::module");
+ use PDL::Doc;
+ PDL::Doc::add_module("PDL::Stats"); # add PDL::Stats, PDL::Stats::GLM, ...
 
 =for ref
 
 The C<add_module> function allows you to add POD from a particular Perl
-module that you've installed somewhere in @INC.  It searches for the
+module (and as of PDL 2.083, in fact all modules starting with that as
+a prefix) that you've installed somewhere in C<@INC>. It searches for the
 active PDL document database and the module's .pod and .pm files, and
-scans and indexes the module into the database.
+scans and indexes the module(s) into the database.
 
 C<add_module> is meant to be added to your module's Makefile as part of the
 installation script. This is done automatically by
@@ -821,7 +824,7 @@ C<postamble> manually in the F<Makefile.PL>:
   use PDL::Core::Dev;
   sub MY::postamble {
     my $oneliner = PDL::Core::Dev::_oneliner(qq{exit if \$ENV{DESTDIR}; use PDL::Doc; eval { PDL::Doc::add_module(shift); }});
-    qq|\ninstall ::\n\t$oneliner \$(NAME)\n|;
+    qq|\ninstall :: pure_install\n\t$oneliner \$(NAME)\n|;
   }
 
 =cut
@@ -844,13 +847,18 @@ sub add_module {
     if !-w $file;
   print "Found docs database $file\n";
   my $pdldoc = PDL::Doc->new($file);
-  my @mfile = split /::/, $module;
+  my @pkg = my @mfile = split /::/, $module;
   my $mlast = pop @mfile;
-  my @found = grep defined, map _find_inc([@mfile, $mlast.$_]), qw(.pm .pod);
+  my @found = map _find_inc([@mfile, $mlast.$_]), qw(.pm .pod);
   die "Unable to find a .pm or .pod file in \@INC for module $module\n" if !@found;
   $pdldoc->ensuredb;
-  $pdldoc->scan($_), eval { $pdldoc->savedb; }, ($@ ? warn $@ : ()) for @found;
-  print "PDL docs database updated - added @found.\n";
+  my $n = 0;
+  $n += $pdldoc->scan($_) for @found;
+  print "Added @found, $n functions.\n";
+  $n += $pdldoc->scantree($_) for _find_inc(\@pkg, 1);
+  eval { $pdldoc->savedb; };
+  warn $@ if $@;
+  print "PDL docs database updated - total $n functions.\n";
 }
 
 =head1 PDL::DOC EXAMPLE
