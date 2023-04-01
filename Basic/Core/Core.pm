@@ -3150,7 +3150,7 @@ sub PDL::cat {
 	$@ = '';
 	eval {
 		$res = $_[0]->initialize;
-		$res->set_datatype((sort {$b<=>$a} map{$_->get_datatype} @_)[0] );
+		$res->set_datatype(max(map $_->get_datatype, @_));
 
 		my @resdims = $_[0]->dims;
 		for my $i(0..$#_){
@@ -3167,11 +3167,7 @@ sub PDL::cat {
 		# propagate any bad flags
 		for (@_) { if ( $_->badflag() ) { $res->badflag(1); last; } }
 	};
-	if ($@ eq '') {
-		# Restore the old error and return
-		$@ = $old_err;
-		return $res;
-	}
+	$@ = $old_err, return $res if !$@; # Restore the old error and return
 
 	# If we've gotten here, then there's been an error, so check things
 	# and barf out a meaningful message.
