@@ -828,16 +828,17 @@ C<postamble> manually in the F<Makefile.PL>:
 
 sub _find_inc {
   my ($what, $want_dir) = @_;
+  my @ret;
   for my $dir (@INC) {
     my $ent = $want_dir ? catdir($dir, @$what) : catfile($dir, @$what);
-    return $ent if $want_dir ? -d $ent : -f $ent;
+    push @ret, $ent if $want_dir ? -d $ent : -f $ent;
   }
-  undef;
+  @ret;
 }
 
 sub add_module {
   my ($module) = @_;
-  my $file = _find_inc([qw(PDL pdldoc.db)], 0);
+  my ($file) = _find_inc([qw(PDL pdldoc.db)], 0);
   die "Unable to find docs database - therefore not updating it.\n" if !defined $file;
   die "No write permission for $file - not updating docs database.\n"
     if !-w $file;
@@ -859,7 +860,7 @@ own code.
 
  use PDL::Doc;
  # Find the pdl documentation
- my $file = _find_inc([qw(PDL pdldoc.db)], 0);
+ my ($file) = _find_inc([qw(PDL pdldoc.db)], 0);
  die "Unable to find docs database!\n" unless defined $file;
  print "Found docs database $file\n";
  my $pdldoc = PDL::Doc->new($file);
