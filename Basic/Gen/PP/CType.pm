@@ -121,9 +121,9 @@ sub get_malloc {
 sub is_array {
   my ($self) = @_;
   @{$self->{Chain}} &&
-    @{$self->{Chain}[0]} &&
-    $self->{Chain}[0][0] eq 'ARR' &&
-    !$self->{Chain}[0][1];
+    @{$self->{Chain}[-1]} &&
+    $self->{Chain}[-1][0] eq 'ARR' &&
+    !$self->{Chain}[-1][1];
 }
 
 1;
