@@ -2366,9 +2366,10 @@ Intended for affine transformations with dataflow.
 
 =head3 DefaultFlow
 
-If true, sets in the C<pdl_transvtable> (see L<PDL::Internals>) the
+If I<set>, sets in the C<pdl_transvtable> (see L<PDL::Internals>) the
 C<iflags> such that the trans will start with dataflow both forwards
-and backwards.
+and backwards. Note that setting this to any value (including 0) will
+trigger the behaviour.
 
 =head3 HaveBroadcasting
 
