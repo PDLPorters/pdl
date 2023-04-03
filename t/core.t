@@ -220,43 +220,37 @@ ok( all($y==pdl([[[5,0]]],[[[0,0]]])), "concatenating an empty and a scalar on t
 
 # cat problems
 eval {cat(1, pdl(1,2,3), {}, 6)};
-ok ($@ ne '', 'cat barfs on non-ndarray arguments');
+isnt($@, '', 'cat barfs on non-ndarray arguments');
 like ($@, qr/Arguments 0, 2 and 3 are not ndarrays/, 'cat correctly identifies non-ndarray arguments');
-$@ = '';
 eval {cat(1, pdl(1,2,3))};
 like($@, qr/Argument 0 is not an ndarray/, 'cat uses good grammar when discussing non-ndarrays');
-$@ = '';
 
 my $two_dim_array = cat(pdl(1,2), pdl(1,2));
 eval {cat(pdl(1,2,3,4,5), $two_dim_array, pdl(1,2,3,4,5), pdl(1,2,3))};
-ok ($@ ne '', 'cat barfs on mismatched ndarrays');
+isnt($@, '', 'cat barfs on mismatched ndarrays');
 like($@, qr/The dimensions of arguments 1 and 3 do not match/
 	, 'cat identifies all ndarrays with differing dimensions');
 like ($@, qr/\(argument 0\)/, 'cat identifies the first actual ndarray in the arg list');
-$@ = '';
 eval {cat(pdl(1,2,3), pdl(1,2))};
 like($@, qr/The dimensions of argument 1 do not match/
 	, 'cat uses good grammar when discussing ndarray dimension mismatches');
-$@ = '';
 eval {cat(1, pdl(1,2,3), $two_dim_array, 4, {}, pdl(4,5,6), pdl(7))};
-ok ($@ ne '', 'cat barfs combined screw-ups');
+isnt($@, '', 'cat barfs combined screw-ups');
 like($@, qr/Arguments 0, 3 and 4 are not ndarrays/
 	, 'cat properly identifies non-ndarrays in combined screw-ups');
 like($@, qr/arguments 2 and 6 do not match/
 	, 'cat properly identifies ndarrays with mismatched dimensions in combined screw-ups');
 like($@, qr/\(argument 1\)/,
 	'cat properly identifies the first actual ndarray in combined screw-ups');
-$@ = '';
 
 eval {$x = cat(pdl(1),pdl(2,3));};
 is($@, '', 'cat(pdl(1),pdl(2,3)) succeeds');
-ok( ($x->ndims==2 and $x->dim(0)==2 and $x->dim(1)==2), 'weird cat case has the right shape');
+is_deeply [$x->dims], [2,2], 'weird cat case has the right shape';
 ok( all( $x == pdl([1,1],[2,3]) ), "cat does the right thing with catting a 0-pdl and 2-pdl together");
-$@='';
 
 my $lo=sequence(long,5)+32766;
 my $so=sequence(short,5)+32766;
-my $fl=float(sequence(5)+0.2); # different as 0.2 is an NV so now a double
+my $fl=sequence(float,5)+float(0.2); # 0.2 is an NV so now a double
 my $by=sequence(byte,5)+253;
 my @list = ($lo,$so,$fl,$by);
 my $c2 = cat(@list);
