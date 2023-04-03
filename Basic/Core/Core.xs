@@ -720,7 +720,7 @@ getnbroadcastids(x)
 		RETVAL
 
 void
-broadcastids_c(x)
+broadcastids(x)
 	pdl *x
 	PREINIT:
 		PDL_Indx i;

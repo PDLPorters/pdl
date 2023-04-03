@@ -792,10 +792,6 @@ below for usage).
 
 =cut
 
-sub PDL::broadcastids {
-   PDL->topdl(shift)->broadcastids_c;
-}
-
 ################# Creation/copying functions #######################
 
 sub piddle {PDL->pdl(@_)}
