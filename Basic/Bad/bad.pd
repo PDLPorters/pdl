@@ -25,7 +25,7 @@ PDL::Bad - PDL always processes bad values
 =head1 DESCRIPTION
 
 This module is loaded when you do C<use PDL>,
-C<Use PDL::Lite> or C<PDL::LiteF>.
+C<use PDL::Lite> or C<use PDL::LiteF>.
 
 Implementation details are given in
 L<PDL::BadValues>.

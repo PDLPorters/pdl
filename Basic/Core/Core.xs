@@ -680,7 +680,7 @@ getndims(x)
 		RETVAL
 
 void
-dims_c(x)
+dims(x)
 	pdl *x
 	PREINIT:
 		PDL_Indx i;

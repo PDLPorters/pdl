@@ -764,10 +764,6 @@ sub topdl {PDL->topdl(@_)}
 
 ##################### Data type/conversion stuff ########################
 
-sub PDL::dims {  # Return dimensions as @list
-   PDL->topdl(shift)->dims_c;
-}
-
 sub PDL::shape {  # Return dimensions as a pdl
    indx([PDL->topdl(shift)->dims]);
 }
