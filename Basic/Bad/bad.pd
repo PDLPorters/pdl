@@ -76,25 +76,6 @@ use PDL::Primitive;
 
 !NO!SUBS!
 
-# we want the following to be in PDL, not PDL::Bad, hence
-my $xshdr = "MODULE = PDL::Bad PACKAGE = PDL";
-
-pp_addxs( <<"!WITH!SUBS!");
-$xshdr
-
-int
-badflag(x,newval=0)
-    pdl *x
-    int newval
-  CODE:
-    if (items>1)
-	PDL->propagate_badflag( x, newval );
-    RETVAL = ((x->state & PDL_BADVAL) > 0);
-  OUTPUT:
-    RETVAL
-
-!WITH!SUBS!
-
 pp_addpm(<<'!NO!SUBS!');
 ############################################################
 ############################################################
@@ -232,7 +213,7 @@ sub PDL::check_badflag {
 
 !NO!SUBS!
 
-my $str = <<'EOF';
+pp_addxs(<<'EOF');
 pdl *
 _badvalue_int(val, type)
     PDL_Anyval val
@@ -304,8 +285,6 @@ _default_badvalue_int(type)
     RETVAL
 EOF
 
-pp_addxs( "\n$xshdr\n\n$str\n" );
-
 pp_addpm(<<'!NO!SUBS!');
 
 # note:
@@ -327,14 +306,14 @@ sub PDL::badvalue {
 	    $self->inplace->setbadtoval( $val );
 	    $self->badflag(1);
 	}
-	return PDL::_badvalue_per_pdl_int($self, $val, $num);
+	return PDL::Bad::_badvalue_per_pdl_int($self, $val, $num);
     } elsif ( UNIVERSAL::isa($self,"PDL::Type") ) {
 	$num = $self->enum;
     } else {
         # assume it's a number
         $num = $self;
     }
-    PDL::_badvalue_int( $val, $num );
+    PDL::Bad::_badvalue_int( $val, $num );
 }
 
 sub PDL::orig_badvalue {
@@ -349,7 +328,7 @@ sub PDL::orig_badvalue {
         # assume it's a number
         $num = $self;
     }
-    PDL::_default_badvalue_int($num);
+    PDL::Bad::_default_badvalue_int($num);
 }
 
 ############################################################

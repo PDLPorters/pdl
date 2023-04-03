@@ -806,10 +806,10 @@ EOS
 print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  'Basic/Core/Types.pm.PL';
 print OUT <<'!NO!SUBS!';
 sub badvalue {
-  PDL::_badvalue_int( $_[1], $_[0][0] );
+  PDL::Bad::_badvalue_int( $_[1], $_[0][0] );
 }
 sub orig_badvalue {
-  PDL::_default_badvalue_int($_[0][0]);
+  PDL::Bad::_default_badvalue_int($_[0][0]);
 }
 
 # make life a bit easier

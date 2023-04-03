@@ -29,6 +29,7 @@ my @exports_normal   = (@EXPORT,
   @convertfuncs,
   qw(nelem dims shape null
       empty dup dupN inflateN
+      badflag
       convert inplace zeroes zeros ones nan inf i list listindices unpdl
       set at flows broadcast_define over reshape dog cat barf type
       thread_define dummy mslice approx flat sclr squeeze

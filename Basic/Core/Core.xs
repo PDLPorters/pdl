@@ -668,6 +668,17 @@ set_dataflow_f(self,value)
 		self->state &= ~PDL_DATAFLOW_F;
 
 int
+badflag(x,newval=0)
+    pdl *x
+    int newval
+  CODE:
+    if (items>1)
+	pdl_propagate_badflag( x, newval );
+    RETVAL = ((x->state & PDL_BADVAL) > 0);
+  OUTPUT:
+    RETVAL
+
+int
 getndims(x)
 	pdl *x
 	ALIAS:
