@@ -110,7 +110,8 @@ whitespace removed.
 
 =for ref
 
-Available from 2.082. Add an XS typemap for use as C<OtherPars>. Takes
+Available from 2.082. Add an XS typemap for use as C<OtherPars> or from
+manually-added XS. Takes
 one named argument, either C<typemap> (an L<ExtUtils::Typemaps> object),
 C<string>, or C<file>.
 
@@ -1546,11 +1547,11 @@ in the signature. Instead you write
 As of 2.075, you can use the dimensions of passed-in ndarrays as they
 are available when the C<RedoDimsCode> is run.
 Before the code in the Code section is executed PP
-will create the proper storage for C<work> if it does not
-exist. Note that you only took the first dimension of C<p>
+will create the proper storage for C<work> (one area per POSIX thread,
+in case of broadcasting that multi-threads - the user cannot supply this).
+Note that you only took the first dimension of C<p>
 and C<x> because the user may have sent ndarrays with extra
-broadcasting dimensions. Of course, the temporary ndarray C<work> (note the
-[t] flag) should not be given any broadcast dimensions anyway.
+broadcasting dimensions.
 
 You can also use C<RedoDimsCode> to set the dimension of a
 ndarray flagged with [o]. In this case you set the dimensions
