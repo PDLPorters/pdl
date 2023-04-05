@@ -1203,5 +1203,5 @@ uint64_t pdl_pdl_seed() {
 	(void)time(&seconds);
 	/* End of Perl-specific symbols */
 	s = (uint64_t)seconds;
-	return abs(((s*181)*((pid-83)*359))%104729);
+	return ((s*181)*((pid-83)*359))%104729;
 }
