@@ -206,6 +206,20 @@ pdl ** pdl_packpdls( SV* sv, PDL_Indx *npdls ) {
   return pdls;
 }
 
+/* Unpack array of pdl* into SV* */
+SV* pdl_unpackpdls( pdl **pdls, PDL_Indx npdls ) {
+   AV *array = newAV();
+   if (!array) return NULL;
+   av_extend(array, npdls + 1);
+   PDL_Indx i;
+   for(i=0; i<npdls; i++) {
+      SV *sv = newSV(0);
+      pdl_SetSV_PDL(sv, pdls[i]);
+      av_push(array, sv);
+   }
+   return sv_2mortal(newRV_noinc((SV *)array));
+}
+
 PDL_Indx pdl_safe_indterm( PDL_Indx dsz, PDL_Indx at, char *file, int lineno)
 {
   if (!(at >= 0 && at < dsz))

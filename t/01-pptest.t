@@ -326,6 +326,31 @@ for (i = 0; i < $COMP(ins_count); i++) {
 EOC
 );
 
+pp_def('incomp_out',
+  Pars => 'in(n)',
+  OtherPars => 'PDL_Indx howmany; [o] pdl *outs[]',
+  HandleBad => 1,
+  CallCopy => 0,
+  GenericTypes => [PDL::Types::ppdefs_all()],
+  Code => <<'EOC',
+pdl **outs = malloc(($COMP(outs_count) = $COMP(howmany)) * sizeof(pdl*));
+$COMP(outs) = outs;
+PDL_Indx i, ndims = $PDL(in)->ndims, dims[ndims];
+for (i = 0; i < ndims; i++) dims[i] = $PDL(in)->dims[i];
+for (i = 0; i < $COMP(outs_count); i++) {
+  pdl *o = outs[i] = PDL->pdlnew();
+  if (!o) { for (i--; i >= 0; i--) PDL->destroy(outs[i]); free(outs); $CROAK("Failed to create ndarray"); }
+  o->datatype = $PDL(in)->datatype;
+  PDL_err = PDL->setdims(o, dims, ndims);
+  if (PDL_err.error) { for (; i >= 0; i--) PDL->destroy(outs[i]); free(outs); return PDL_err; }
+  PDL_err = PDL->allocdata(o);
+  if (PDL_err.error) { for (; i >= 0; i--) PDL->destroy(outs[i]); free(outs); return PDL_err; }
+  PDL_DECLARE_PARAMETER_BADVAL($GENERIC(in), 0, o, (o), 1)
+  loop(n) %{ o_datap[n] = $in(); %}
+}
+EOC
+);
+
 pp_done;
 
 # this tests the bug with a trailing comment and *no* newline
@@ -494,6 +519,10 @@ incomp_in($o = PDL->null, undef);
 is "$o", 0;
 eval { incomp_in($o = PDL->null, 'hello') };
 isnt $@, '';
+
+incomp_out(sequence(3), 2, my $nds);
+is 0+@$nds, 2;
+is +($nds->[0]//'undef').'', "[0 1 2]";
 
 done_testing;
 EOF

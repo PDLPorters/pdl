@@ -43,3 +43,9 @@ T_PDL_ANYVAL
 
 T_PDLTRANS
 	sv_setref_pv($arg, \"PDL::Trans\", (void*)$var);
+
+T_PDL_LIST
+	if ($var) {
+	  $arg = PDL_CORE_(unpackpdls)($var, ${var}_count);
+	  free($var);
+	}

@@ -1680,9 +1680,15 @@ scope, then discarded. If this causes a problem for your application,
 please ask one of the PDL mailing lists or on IRC.
 
 You can also have C<OtherPars> entries that are "incomplete arrays"
-of C<pdl*>, for input:
+of C<pdl*>, both for input and output:
 
   OtherPars => 'pdl *ins[]', # $COMP(ins_count) will be available
+  # OR
+  OtherPars => '[o] pdl *outs[]', # update $COMP(outs_count) in your code
+
+Note that the output F<typemap> entry does a C<free> on the array of
+C<pdl*> pointers, so ensure that you C<malloc> it in your code, without
+leaking.
 
 =head3 OtherPars as outputs
 
