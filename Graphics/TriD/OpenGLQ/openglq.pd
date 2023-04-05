@@ -120,7 +120,7 @@ pp_def(
                         char *str = SvPV_nolen(elem);
 			'.RPOS().'
 			if ( $COMP(in_glut) )
-				glutBitmapString((void *)$COMP(base), str);
+				glutBitmapString((void *)$COMP(base), (unsigned char *)str);
 			else
 				glCallLists(strlen(str),GL_UNSIGNED_BYTE,
 					(GLubyte*)str);
