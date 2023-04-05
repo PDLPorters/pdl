@@ -477,8 +477,7 @@ Returns an array of keys of typehash sorted in order of type complexity
 
  pdl> @typelist = PDL::Types::typesrtkeys;
  pdl> print @typelist;
- PDL_B PDL_S PDL_US PDL_L PDL_IND PDL_LL PDL_F PDL_D
-
+ PDL_SB PDL_B PDL_S PDL_US PDL_L PDL_UL PDL_IND PDL_ULL PDL_LL PDL_F PDL_D PDL_LD PDL_CF PDL_CD PDL_CLD
 =cut
 
 sub typesrtkeys { @RTKEYS }
@@ -494,7 +493,7 @@ complex types require an "opt-in".
 =for example
 
  pdl> print PDL::Types::ppdefs
- B S U L N Q F D
+ A B S U L K N P Q F D E
 
 =cut
 
@@ -510,7 +509,7 @@ Returns an array of pp symbols for all complex types.
 =for example
 
  pdl> print PDL::Types::ppdefs_complex
- G C
+ G C H
 
 =cut
 
@@ -526,7 +525,7 @@ Returns an array of pp symbols for all types including complex.
 =for example
 
  pdl> print PDL::Types::ppdefs_all
- B S U L N Q F D G C
+ A B S U L K N P Q F D E G C H
 
 =cut
 
@@ -599,13 +598,13 @@ Unsigned 32-bit value.
 
 Signed value, same size as a pointer on the system in use.
 
-=item LongLong
-
-Signed 64-bit value.
-
 =item ULongLong
 
 Unsigned 64-bit value.
+
+=item LongLong
+
+Signed 64-bit value.
 
 =item Float
 
@@ -659,8 +658,9 @@ Returns the number representing this datatype (see L<get_datatype|PDL::Core/PDL:
 
 =item symbol
 
-Returns one of 'PDL_B', 'PDL_S', 'PDL_US', 'PDL_L', 'PDL_IND', 'PDL_LL',
-'PDL_F' or 'PDL_D'.
+Returns one of 'PDL_SB', 'PDL_B', 'PDL_S', 'PDL_US', 'PDL_L',
+'PDL_UL', 'PDL_IND', 'PDL_ULL', 'PDL_LL', 'PDL_F', 'PDL_D', 'PDL_LD',
+'PDL_CF', 'PDL_CD', or 'PDL_CLD'.
 
 =item ctype
 
@@ -873,7 +873,7 @@ A list of all the entries:
 
 identifier
 
-I<Required>. A short sequence of upercase letters that identifies this
+I<Required>. A short sequence of uppercase letters that identifies this
 type uniquely. More than three characters is probably overkill.
 
 
