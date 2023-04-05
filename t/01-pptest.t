@@ -70,28 +70,20 @@ our $VERSION = '0.01'; # so the Makefile.PL's VERSION_FROM picks it up
 pp_setversion(qq{'0.01'}); # this doesn't use $VERSION only to check a bug is fixed
 pp_add_macros(SUCC => sub { "($_[0] + 1)" });
 
-sub pp_deft {
-    my ($name,%hash) = @_;
-##    $hash{Doc} = "=for ref\n\ninternal\n\nonly for internal testing purposes\n";
-    $hash{Doc} = undef;
-    $name = "test_$name";  # prepend test_ to name
-    pp_def($name,%hash);
-}
-
 pp_addhdr('
 void ppcp(PDL_Byte *dst, PDL_Byte *src, int len);
 ');
 
 # test the $P vaffine behaviour
 # when 'phys' flag is in.
-pp_deft('foop',
+pp_def('foop',
 	Pars => 'byte [phys]a1(n); byte [o,phys]b(n)',
 	GenericTypes => [B],
 	Code => 'ppcp($P(b),$P(a1),$SIZE(n));',
 );
 
 # test single-used phys dim of 1 ok
-pp_deft('foop1',
+pp_def('foop1',
 	Pars => 'byte a1(z); byte [o,phys]b(n)',
 	GenericTypes => [B],
 	Code => 'ppcp($P(b),$P(a1),$SIZE(n));',
@@ -99,7 +91,7 @@ pp_deft('foop1',
 
 # float qualifier
 # and also test if numerals in variable name work
-pp_deft(
+pp_def(
 	'fsumover',
 	Pars => 'a1(n); float [o]b();',
 	Code => 'PDL_Float tmp = 0;
@@ -108,7 +100,7 @@ pp_deft(
 );
 
 # test GENERIC with type+ qualifier
-pp_deft(
+pp_def(
 	'nsumover',
 	Pars => 'a(n); int+ [o]b();',
 	Code => '$GENERIC(b) tmp = 0;
@@ -117,27 +109,27 @@ pp_deft(
 );
 
 # test to set named dim with 'OtherPar'
-pp_deft('setdim',
+pp_def('setdim',
 	Pars => '[o] a(n)',
 	OtherPars => 'int ns => n',
 	Code => 'loop(n) %{ $a() = n; %}',
 );
 
-pp_deft("gelsd",
+pp_def("gelsd",
         Pars => '[io,phys]A(m,n); [io,phys]B(p,q); [phys]rcond(); [o,phys]s(r); int [o,phys]rank();int [o,phys]info()',
         RedoDimsCode => '$SIZE(r) = PDLMIN($SIZE(m),$SIZE(n));',
         GenericTypes => ['F'],
         Code => '$CROAK("croaking");'
 );
 
-pp_deft('fooseg',
+pp_def('fooseg',
         Pars => 'a(n);  [o]b(n);',
         Code => '
 	   loop(n) %{ $b() = $a(); %}
 ');
 
 # adapted from PDL::NDBin: if in=null and b is a scalar, was SEGV-ing
-pp_deft( '_flatten_into',
+pp_def( '_flatten_into',
         Pars => "in(m); indx b(m); [o] idx(m)",
         Code => '
                 loop(m) %{ $idx() = $in(); %}
@@ -150,25 +142,25 @@ void tinplace_c2(int n, PDL_Float* data1, PDL_Float* data2);
 void tinplace_c3(int n, PDL_Float* data1, PDL_Float* data2, PDL_Float* data3);
 EOH
 
-pp_deft('fooflow1',
+pp_def('fooflow1',
 	Pars => '[o,nc]a(n)',
         GenericTypes => ['F'],
 	Code => 'tinplace_c1($SIZE(n),$P(a));',
 	);
 
-pp_deft('fooflow2',
+pp_def('fooflow2',
 	Pars => '[o,nc]a(n);[o,nc]b(n)',
         GenericTypes => ['F'],
 	Code => 'tinplace_c2($SIZE(n),$P(a),$P(b));',
 	);
 
-pp_deft('fooflow3',
+pp_def('fooflow3',
 	Pars => '[o,nc]a(n);[o,nc]b(n);[o,nc]c(n)',
         GenericTypes => ['F'],
 	Code => 'tinplace_c3($SIZE(n),$P(a),$P(b),$P(c));',
 	);
 
-pp_deft( 'broadcastloop_continue',
+pp_def( 'broadcastloop_continue',
 	 Pars => 'in(); [o] out()',
 	 Code => q[
 	    int cnt = 0;
@@ -182,7 +174,7 @@ pp_deft( 'broadcastloop_continue',
         ],
        );
 
-pp_deft('succ',
+pp_def('succ',
   Pars => 'a(); [o] b()',
   GenericTypes => ['F'],
   Code => '$b() = $SUCC($a());',
@@ -216,32 +208,32 @@ pp_add_boot pp_line_numbers(__LINE__, q{
 });
 
 # test fixed value for named dim, wrong Code for simplicity
-pp_deft('Cpow',
+pp_def('Cpow',
 	Pars => 'a(m=2); b(m=2); [o]c(m=2)',
 	Code => '$c(m => 0) = $a(m => 0) + $b(m => 0);',
 );
 
 # test XS args with OtherPars
-pp_deft('gl_arrows',
+pp_def('gl_arrows',
 	Pars => 'coords(tri=3,n); int indsa(); int indsb();',
 	OtherPars => 'float headlen; float width;',
 	Code => ';', # do nothing
 );
 
 # test XS args with funky Pars ordering
-pp_deft('polyfill_pp',
+pp_def('polyfill_pp',
 	Pars => 'int [o,nc] im(m,n); float ps(two=2,np); int col()',
 	Code => ';', # do nothing
 );
 
 # test valid non-single-letter GenericTypes arg
-pp_deft("rice_compress",
+pp_def("rice_compress",
         Pars => 'in(n); [o]out(m); int[o]len(); lbuf(n)',
         GenericTypes =>['B','S','US','L'],
         Code => ';', # do nothing
 );
 
-pp_deft('output_op',
+pp_def('output_op',
   Pars => 'in(n=2)',
   OtherPars => '[o] PDL_Anyval v0; [o] PDL_Anyval v1',
   Code => '
@@ -250,7 +242,7 @@ pp_deft('output_op',
     ANYVAL_FROM_CTYPE($COMP(v1), dt, $in(n=>1));
   ',
 );
-pp_deft('output_op2',
+pp_def('output_op2',
   Pars => 'in(n=2); [o] out()',
   OtherPars => '[o] PDL_Anyval v0; [o] PDL_Anyval v1',
   Code => '
@@ -259,7 +251,7 @@ pp_deft('output_op2',
     ANYVAL_FROM_CTYPE($COMP(v1), dt, $in(n=>1));
   ',
 );
-pp_deft('output_op3',
+pp_def('output_op3',
   Pars => 'in(n=2); [o] out()',
   OtherPars => '[o] PDL_Anyval v0; [o] PDL_Anyval v1',
   Code => '
@@ -267,7 +259,7 @@ pp_deft('output_op3',
     ANYVAL_FROM_CTYPE($COMP(v0), dt, $in(n=>0));
     ANYVAL_FROM_CTYPE($COMP(v1), dt, $in(n=>1));
   ',
-  PMCode => 'sub PDL::test_output_op3 { goto &PDL::_test_output_op3_int }',
+  PMCode => 'sub PDL::output_op3 { goto &PDL::_output_op3_int }',
 );
 
 pp_addhdr('
@@ -287,7 +279,7 @@ T_NV_ADD1
   sv_setnv($arg, $var - 1);
 END_OF_TYPEMAP
 EOT
-pp_deft('typem',
+pp_def('typem',
   Pars => 'int [o] out()',
   OtherPars => '[o] NV_ADD1 v1',
   Code => '$out() = $COMP(v1); $COMP(v1) = 8;',
@@ -326,50 +318,50 @@ my $x = xvals(zeroes(byte, 2, 4));
 my $y;
 
 # $P() affine tests
-test_foop($x,($y=null));
+foop($x,($y=null));
 ok( tapprox($x,$y) )
   or diag $y;
 
-test_foop($x->transpose,($y=null));
+foop($x->transpose,($y=null));
 ok( tapprox($x->transpose,$y) )
   or diag $y;
 
 my $vaff = $x->dummy(2,3)->xchg(1,2);
-test_foop($vaff,($y=null));
+foop($vaff,($y=null));
 ok( tapprox($vaff,$y) )
   or diag ($vaff, $vaff->dump);
 
-eval { test_foop($x,($y=pdl([1]))) };
+eval { foop($x,($y=pdl([1]))) };
 isnt $@, '', '[phys] with multi-used mismatched dim of 1 throws exception';
 
-eval { test_foop(pdl([1]),($y=pdl([1]))) };
+eval { foop(pdl([1]),($y=pdl([1]))) };
 is $@, '', '[phys] with multi-used matched dim of 1 no exception';
 
-eval { test_foop1($x,($y=pdl([1]))) };
+eval { foop1($x,($y=pdl([1]))) };
 is $@, '', '[phys] with single-used dim of 1 no exception';
 
 # float qualifier
 $x = ones(byte,3000);
-test_fsumover($x,($y=null));
+fsumover($x,($y=null));
 is( $y->get_datatype, $PDL_F );
 is( $y->at, 3000 );
 
 # int+ qualifier
 for (byte,short,ushort,long,float,double) {
   $x = ones($_,3000);
-  test_nsumover($x,($y=null));
+  nsumover($x,($y=null));
   is( $y->get_datatype, (($PDL_L > $_->[0]) ? $PDL_L : $_->[0]) );
   is( $y->at, 3000 );
 }
 
-test_setdim(($x=null),10);
+setdim(($x=null),10);
 is( join(',',$x->dims), "10" );
 ok( tapprox($x,sequence(10)) );
 
 {
 my @msg;
 local $SIG{__WARN__} = sub { push @msg, @_ };
-eval { nan(2,2)->test_gelsd(nan(2,2), -3) };
+eval { nan(2,2)->gelsd(nan(2,2), -3) };
 like $@, qr/croaking/, 'right error message';
 is_deeply \@msg, [], 'no warnings' or diag explain \@msg;
 }
@@ -378,13 +370,13 @@ is_deeply \@msg, [], 'no warnings' or diag explain \@msg;
 {
   my $ny=7;
   $x = double xvals zeroes (20,$ny);
-  test_fooseg $x, $y=null;
+  fooseg $x, $y=null;
   ok( 1 );  # if we get here at all that is alright
   ok( tapprox($x,$y) )
     or diag($x, "\n", $y);
 }
 
-eval { test__flatten_into(null, 2) };
+eval { _flatten_into(null, 2) };
 ok 1; #was also segfaulting
 
 # test the bug alluded to in the comments in pdl_changed (pdlapi.c)
@@ -395,7 +387,7 @@ my $sl11 = $sl1->slice('');
 my $sl2 = $xx->slice('(1)');
 my $sl22 = $sl2->slice('');
 
-test_fooflow2($sl11, $sl22);
+fooflow2($sl11, $sl22);
 
 ok(all $xx->slice('(0)') == 599);
 ok(all $xx->slice('(1)') == 699);
@@ -408,32 +400,32 @@ ok(all $xx->slice('(1)') == 699);
     my $tmp = $exp->where( ! ($in % 2) );
     $tmp .= 0;
 
-    test_broadcastloop_continue( $in, $got );
+    broadcastloop_continue( $in, $got );
 
     ok( tapprox( $got, $exp ), "continue works in broadcastloop" )
       or do { diag "got     : $got"; diag "expected: $exp" };
 }
 
-test_Cpow(sequence(2), 1);
+Cpow(sequence(2), 1);
 
-test_polyfill_pp(zeroes(5,5), ones(2,3), 1);
+polyfill_pp(zeroes(5,5), ones(2,3), 1);
 
-is test_succ(2)."", 3, 'test pp_add_macros works';
+is succ(2)."", 3, 'test pp_add_macros works';
 
-test_output_op([5,7], my $v0, my $v1);
+output_op([5,7], my $v0, my $v1);
 is_deeply [$v0,$v1], [5,7], 'output OtherPars work';
-eval { test_output_op(sequence(2,3), my $v0, my $v1) };
+eval { output_op(sequence(2,3), my $v0, my $v1) };
 isnt $@, '', 'broadcast with output OtherPars throws';
 
-test_output_op2([5,7], my $v0_2, my $v1_2);
+output_op2([5,7], my $v0_2, my $v1_2);
 is_deeply [$v0_2,$v1_2], [5,7], 'output OtherPars work 2';
-eval { test_output_op2(sequence(2,3), my $v0_2, my $v1_2) };
+eval { output_op2(sequence(2,3), my $v0_2, my $v1_2) };
 isnt $@, '', 'broadcast with output OtherPars throws 2';
 
-test_output_op3([5,7], my $out3 = PDL->null, my $v0_3, my $v1_3);
+output_op3([5,7], my $out3 = PDL->null, my $v0_3, my $v1_3);
 is_deeply [$v0_3,$v1_3], [5,7], 'output OtherPars work 3' or diag "got: ",$v0_3," ",$v1_3;
 
-my $o = test_typem(my $oth = 3);
+my $o = typem(my $oth = 3);
 is "$o", 4;
 is "$oth", 7;
 
