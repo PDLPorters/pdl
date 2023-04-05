@@ -471,6 +471,7 @@ pdl_avref(array_ref, class, type)
 	at this stage start making an ndarray and populate it with
 	values from the array (which has already been checked in av_check)
      */
+     ENTER; SAVETMPS;
      if (strcmp(class,"PDL") == 0) {
         p = pdl_from_array(av,dims,type,NULL); /* populate with data */
         RETVAL = newSV(0);
@@ -489,6 +490,7 @@ pdl_avref(array_ref, class, type)
        SvREFCNT_inc(psv);
        pdl_from_array(av,dims,type,p); /* populate ;) */
      }
+     FREETMPS; LEAVE;
      OUTPUT:
      RETVAL
 
@@ -862,6 +864,7 @@ broadcastover_n(...)
     if (pdl_startbroadcastloop(&pdl_brc,NULL,NULL,&error_ret) < 0) croak("Error starting broadcastloop");
     pdl_barf_if_error(error_ret);
     sd = pdl_brc.ndims;
+    ENTER; SAVETMPS;
     do {
 	dSP;
 	PUSHMARK(sp);
@@ -879,6 +882,7 @@ broadcastover_n(...)
 	sd = pdl_iterbroadcastloop(&pdl_brc,0);
 	if ( sd < 0 ) die("Error in iterbroadcastloop");
     } while( sd );
+    FREETMPS; LEAVE;
     pdl_freebroadcaststruct(&pdl_brc);
 
 void
@@ -956,6 +960,7 @@ broadcastover(...)
 	pdl_SetSV_PDL(csv[i], child[i]); /* pdl* into SV* */
     }
     int brcloopval;
+    ENTER; SAVETMPS;
     do {  /* the actual broadcastloop */
 	pdl_trans *traff;
 	dSP;
@@ -977,4 +982,5 @@ broadcastover(...)
 	brcloopval = pdl_iterbroadcastloop(&pdl_brc,0);
 	if ( brcloopval < 0 ) die("Error in iterbroadcastloop");
     } while( brcloopval );
+    FREETMPS; LEAVE;
     pdl_freebroadcaststruct(&pdl_brc);
