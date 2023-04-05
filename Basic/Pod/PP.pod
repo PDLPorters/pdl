@@ -1679,6 +1679,11 @@ removal were not done, since its value would be set within the local
 scope, then discarded. If this causes a problem for your application,
 please ask one of the PDL mailing lists or on IRC.
 
+You can also have C<OtherPars> entries that are "incomplete arrays"
+of C<pdl*>, for input:
+
+  OtherPars => 'pdl *ins[]', # $COMP(ins_count) will be available
+
 =head3 OtherPars as outputs
 
 As of 2.081, you can specify an C<OtherPar> as an output. This looks like:

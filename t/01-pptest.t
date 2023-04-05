@@ -291,6 +291,41 @@ pp_def('typem',
   Code => '$out() = $COMP(v1); $COMP(v1) = 8;',
 );
 
+pp_def('incomp_in',
+  Pars => '[o] out()',
+  OtherPars => 'pdl *ins[]',
+  RedoDimsCode => <<'EOC',
+pdl **ins = $COMP(ins);
+PDL_Indx i;
+for (i = 0; i < $COMP(ins_count); i++) {
+  pdl *in = ins[i];
+  PDL_RETERROR(PDL_err, PDL->make_physdims(in));
+  if (in->ndims != 1)
+    $CROAK("input ndarray %"IND_FLAG" has %"IND_FLAG" dims, not 1", i, in->ndims);
+  if (!$PRIV(bvalflag) && (in->state & PDL_BADVAL)) $PRIV(bvalflag) = 1;
+}
+EOC
+  Code => <<'EOC',
+pdl **ins = $COMP(ins);
+PDL_Indx i;
+for (i = 0; i < $COMP(ins_count); i++)
+  PDL_RETERROR(PDL_err, PDL->make_physical(ins[i]));
+$out() = 0;
+for (i = 0; i < $COMP(ins_count); i++) {
+  pdl *in = ins[i];
+  PDL_Indx j;
+#define X_CAT_INNER(datatype_in, ctype_in, ppsym_in, ...) \
+  PDL_DECLARE_PARAMETER_BADVAL(ctype_in, 0, in, (in), 1) \
+  for(j=0; j<in->nvals; j++) { \
+    if ($PRIV(bvalflag) && PDL_ISBAD(in_physdatap[j], in_badval, ppsym_in)) continue; \
+    $out() += in_physdatap[j]; \
+  }
+  PDL_GENERICSWITCH(PDL_TYPELIST2_ALL, in->datatype, X_CAT_INNER, $CROAK("Not a known data type code=%d", in->datatype))
+#undef X_CAT_INNER
+}
+EOC
+);
+
 pp_done;
 
 # this tests the bug with a trailing comment and *no* newline
@@ -443,6 +478,22 @@ is "$oth", 7;
 typem($o = PDL->null, $oth = 3);
 is "$o", 4;
 is "$oth", 7;
+
+incomp_in($o = PDL->null, [sequence(3), sequence(byte, 4)]);
+is "$o", 9;
+$o = incomp_in([sequence(3), sequence(byte, 4)]);
+is "$o", 9;
+my $one_bad = sequence(byte, 4);
+$one_bad->badflag(1);
+$one_bad->badvalue(2);
+$o = incomp_in([sequence(3), $one_bad]);
+is "$o", 7;
+incomp_in($o = PDL->null, []);
+is "$o", 0;
+incomp_in($o = PDL->null, undef);
+is "$o", 0;
+eval { incomp_in($o = PDL->null, 'hello') };
+isnt $@, '';
 
 done_testing;
 EOF
