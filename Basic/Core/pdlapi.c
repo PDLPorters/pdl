@@ -607,6 +607,7 @@ pdl_error pdl__addchildtrans(pdl *it,pdl_trans *trans)
 
 pdl_error pdl_make_physdims(pdl *it) {
 	pdl_error PDL_err = {0, NULL, 0};
+	if (!it) return pdl_make_error_simple(PDL_EFATAL, "make_physdims called with NULL");
 	PDL_Indx i;
 	int c = (it->state & PDL_PARENTDIMSCHANGED);
 	PDLDEBUG_f(printf("make_physdims %p (%X)\n",(void*)it, c));
