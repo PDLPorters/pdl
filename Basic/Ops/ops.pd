@@ -173,11 +173,11 @@ sub make_overload {
     my $ret;
     my $bitwise_passon = $bitwise ? '$_[2]?@_[1,0]:@_[0,1]' : '@_';
     if ($one_arg) {
-      $ret = <<EOF;
+      $ret = pp_line_numbers(__LINE__, <<EOF);
 BEGIN { \$OVERLOADS{'$op'} = sub { PDL::$name(\$_[0]) } }
 EOF
     } else {
-      $ret = <<EOF;
+      $ret = pp_line_numbers(__LINE__, <<EOF);
 {
   my (\$foo, \$overload_sub);
   BEGIN { \$OVERLOADS{'$op'} = \$overload_sub = sub(;\@) {
@@ -190,7 +190,7 @@ EOF
 }
 EOF
     }
-    $ret .= <<EOF if $mutator;
+    $ret .= pp_line_numbers(__LINE__, <<EOF) if $mutator;
 BEGIN {
 # in1, in2, out, swap if true
 \$OVERLOADS{'$op='} = sub { PDL::$name(\$_[0], \$_[1], \$_[0], 0); \$_[0] };
