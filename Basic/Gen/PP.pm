@@ -1990,7 +1990,7 @@ EOF
         my ($xs_c_header, @bits) = @_;
         my $opening = 'pdl_error PDL_err = {0, NULL, 0};';
         my $closing = 'return PDL_err;';
-        PDL::PP::pp_line_numbers __LINE__-1, join '', "$xs_c_header {\n$opening\n", @bits, "$closing\n}\n";
+        join '', "$xs_c_header {\n$opening\n", @bits, "$closing\n}\n";
       }),
 
    # internal usage, not XS - NewXSCHdrs only set if GlobalNew
