@@ -408,7 +408,7 @@ cfunc('re', 'creal', 1, 'Returns the real part of a complex number.',
 cfunc('im', 'cimag', 1, 'Returns the imaginary part of a complex number.',
   '$complexv() = creal($complexv()) + I * $b();'
 );
-cfunc('_cabs', 'cabs', 1, 'Returns the absolute (length) of a complex number.', undef,
+cfunc('_cabs', 'fabs', 1, 'Returns the absolute (length) of a complex number.', undef,
     PMFunc=>'',
 );
 my $rabs_code = '
