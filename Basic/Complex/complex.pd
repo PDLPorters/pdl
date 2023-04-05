@@ -564,7 +564,7 @@ pp_def 'Cdiv',
            $GENERIC() ar = $a(m=>0), ai = $a(m=>1);
            $GENERIC() br = $b(m=>0), bi = $b(m=>1);
 
-           if (fabs (br) > fabs (bi))
+           if (fabsl (br) > fabsl (bi))
              {
                $GENERIC() tt = bi / br;
                $GENERIC() dn = br + tt * bi;
