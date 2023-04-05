@@ -1665,6 +1665,7 @@ EOD
             } else {
                 my ($setter, $type) = typemap($ptypes{$x}, 'get_inputmap');
                 $setter = typemap_eval($setter, {var=>$x, type=>$type, arg=>($other_out{$x} ? "${x}_SV = " : '')."ST($cnt)"});
+                $setter =~ s/.*?(?=$x\s*=\s*)//s; # zap any declarations like whichdims_count
                 $setter =~ s/^(.*?)=\s*//s, $setter = "$x = ($defaults_rawcond) ? ($defaults->{$x}) : ($setter)" if exists $defaults->{$x};
                 $clause3 .= indent("$setter;\n",$ci) if !$already_read{$x};
                 $cnt++;

@@ -262,6 +262,12 @@ pp_def('output_op3',
   PMCode => 'sub PDL::output_op3 { goto &PDL::_output_op3_int }',
 );
 
+pp_def('incomp_dim',
+  Pars => '[o] a();',
+  OtherPars => 'PDL_Indx d[];',
+  Code => '$a() = $COMP(d_count);',
+);
+
 pp_addhdr('
 typedef NV NV_ADD1;
 ');
@@ -425,7 +431,16 @@ isnt $@, '', 'broadcast with output OtherPars throws 2';
 output_op3([5,7], my $out3 = PDL->null, my $v0_3, my $v1_3);
 is_deeply [$v0_3,$v1_3], [5,7], 'output OtherPars work 3' or diag "got: ",$v0_3," ",$v1_3;
 
-my $o = typem(my $oth = 3);
+incomp_dim(my $o = PDL->null, [0..3]);
+is "$o", 4;
+$o = incomp_dim([0..3]);
+is "$o", 4;
+
+$o = typem(my $oth = 3);
+is "$o", 4;
+is "$oth", 7;
+
+typem($o = PDL->null, $oth = 3);
 is "$o", 4;
 is "$oth", 7;
 
