@@ -1085,7 +1085,7 @@ pp_def('statsover',
               if ($ISGOOD(a())) {
                  diff = $a()-$avg();
                  tmp += diff * diff * $w();
-                 tmp1 += fabs(diff) * $w();
+                 tmp1 += fabsl(diff) * $w();
               }
            %}
            $rms() = sqrt( tmp/norm );
