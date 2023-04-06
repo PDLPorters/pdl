@@ -1718,6 +1718,8 @@ END
           my ($setter, $type) = typemap($ptypes{$x}, 'get_outputmap');
           $setter = typemap_eval($setter, {var=>$x, type=>$type, arg=>"tsv"});
           $clause1 = <<EOF . $clause1;
+if (!${x}_SV)
+  PDL->pdl_barf("Internal error: tried to output to NULL SV for $x");
 { SV *tsv = sv_2mortal(newSV(0));
 $setter
 sv_setsv(${x}_SV, tsv); }
