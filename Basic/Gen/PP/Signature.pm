@@ -135,6 +135,7 @@ sub other_is_flag {
   return $_[0]{OtherFlags}{$_[1]} && $_[0]{OtherFlags}{$_[1]}{$flag} if !$has_count;
   $_[0]{OtherFlags}{$without_count} && $_[0]{OtherFlags}{$without_count}{$flag};
 }
+sub other_is_output { &other_is_out }
 sub other_is_out { $_[0]->other_is_flag($_[1], 'o') }
 sub other_out { grep $_[0]->other_is_out($_), @{$_[0]{OtherNames}} }
 

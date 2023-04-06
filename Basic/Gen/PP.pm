@@ -383,7 +383,7 @@ sub dosubst_private {
       @pairs,
       ((ref $src) ? %{$src->[1]} : ()),
       PRIV => sub {return "$sname->$_[0]"},
-      COMP => sub {my $r="$pname->$_[0]";$sig->other_is_out($_[0])?"(*($r))":$r},
+      COMP => sub {my $r="$pname->$_[0]";$sig->other_is_output($_[0])?"(*($r))":$r},
       CROAK => sub {"return PDL->make_error(PDL_EUSERERROR, \"Error in $name:\" @{[join ',', @_]})"},
       NAME => sub {return $name},
       MODULE => sub {return $::PDLMOD},
@@ -1762,7 +1762,7 @@ END
       }),
    PDL::PP::Rule->new(["RunFuncCall","RunFuncHdr"],["RunFuncName","SignatureObj"], sub {
         my ($func_name,$sig) = @_;
-        my $shortpars = join ',', map $sig->other_is_out($_)?"&$_":$_, @{ $sig->allnames(0) };
+        my $shortpars = join ',', map $sig->other_is_output($_)?"&$_":$_, @{ $sig->allnames(0) };
         my $longpars = join ",", $sig->alldecls(0, 1);
         (PDL::PP::pp_line_numbers(__LINE__-1, "PDL->barf_if_error($func_name($shortpars));"),
           "pdl_error $func_name($longpars)");
