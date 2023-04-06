@@ -1104,6 +1104,20 @@ sub callPerlInit {
     join '', map PDL::PP::pp_line_numbers(__LINE__-1, "PDL_XS_PERLINIT($_, $args)\n"), @$names;
 }
 
+sub callTypemaps {
+  my ($args, $ptypes, $is_out, $already_read, $defaults, $defaults_rawcond) = @_;
+  my ($cnt, $clause) = (0, '');
+  foreach my $x (@$args) {
+    my ($setter, $type) = typemap($ptypes->{$x}, 'get_inputmap');
+    $setter = typemap_eval($setter, {var=>$x, type=>$type, arg=>($is_out->{$x} ? "${x}_SV = " : '')."ST($cnt)"});
+    $setter =~ s/.*?(?=$x\s*=\s*)//s; # zap any declarations like whichdims_count
+    $setter =~ s/^(.*?)=\s*//s, $setter = "$x = ($defaults_rawcond) ? ($defaults->{$x}) : ($setter)" if exists $defaults->{$x};
+    $clause .= "$setter;\n" if !$already_read->{$x};
+    $cnt++;
+  }
+  $clause;
+}
+
 ###########################################################
 # Name       : extract_signature_from_fulldoc
 # Usage      : $sig = extract_signature_from_fulldoc($fulldoc)
@@ -1609,10 +1623,8 @@ EOD
         my %outca = map +($_=>1), $sig->names_oca;
         my %other_out = map +($_=>1), $sig->other_out;
         my %tmp = map +($_=>1), $sig->names_tmp;
-        # remember, otherpars *are* input vars
         my $nout   = keys %out;
         my $noutca = keys %outca;
-        my $nother = grep $_, values %other;
         my $ntmp   = keys %tmp;
         my $ntot   = @args;
         my $nmaxonstack = $ntot - $noutca;
@@ -1626,8 +1638,7 @@ EOD
         # is needed for each output and output create always argument
         my $svdecls = join "\n", map indent("SV *${_}_SV = NULL;",$ci), $sig->names_out;
         my ($xsargs, $xsdecls) = ('', ''); my %already_read; my $cnt = 0; my %outother2cnt;
-        foreach my $x (@args) {
-            next if $outca{$x};
+        foreach my $x (grep !$outca{$_}, @args) {
             last if $out{$x} || ($other{$x} && exists $defaults->{$x});
             $already_read{$x} = 1;
             $xsargs .= "$x, "; $xsdecls .= "\n\t$ptypes{$x}$x";
@@ -1636,43 +1647,16 @@ EOD
         }
         my $pars = join "\n",map indent("$_;",$ci), $sig->alldecls(0, 0, \%already_read);
         $svdecls = join "\n", grep length, $svdecls, map indent(qq{SV *${_}_SV = @{[defined($outother2cnt{$_})?"ST($outother2cnt{$_})":'NULL']};},$ci), $sig->other_out;
-        my @create = ();  # The names of variables which need to be created by calling
-                          # the 'initialize' perl routine from the correct package.
         $ci = '    ';  # Current indenting
         # clause for reading in all variables
-        my $clause1 = ''; $cnt = 0;
-        foreach my $x (@args) {
-            if ($outca{$x}) {
-                push @create, $x;
-            } else {
-                my ($setter, $type) = typemap($ptypes{$x}, 'get_inputmap');
-                $setter = typemap_eval($setter, {var=>$x, type=>$type, arg=>($out{$x}||$other_out{$x} ? "${x}_SV = " : '')."ST($cnt)"});
-                $setter =~ s/.*?(?=$x\s*=\s*)//s; # zap any declarations like whichdims_count
-                $clause1 .= indent("$setter;\n",$ci) if !$already_read{$x};
-                $cnt++;
-            }
-        }
-        # Add code for creating output variables via call to 'initialize' perl routine
-        $clause1 .= indent(callPerlInit(\@create, $callcopy),$ci);
-        @create = ();
+        my $clause1 = callTypemaps([grep !$outca{$_}, @args], \%ptypes, {%out,%other_out}, \%already_read, {}, '');
+        $clause1 .= callPerlInit([grep $outca{$_}, @args], $callcopy);
+        $clause1 = indent($clause1,$ci);
         # clause for reading in input and creating output vars
-        my $clause3 = '';
         my $defaults_rawcond = $ndefault ? "items == ($nin-$ndefault)" : '';
-        $cnt = 0;
-        foreach my $x (@args) {
-            if ($out{$x} || $outca{$x}) {
-                push @create, $x;
-            } else {
-                my ($setter, $type) = typemap($ptypes{$x}, 'get_inputmap');
-                $setter = typemap_eval($setter, {var=>$x, type=>$type, arg=>($other_out{$x} ? "${x}_SV = " : '')."ST($cnt)"});
-                $setter =~ s/.*?(?=$x\s*=\s*)//s; # zap any declarations like whichdims_count
-                $setter =~ s/^(.*?)=\s*//s, $setter = "$x = ($defaults_rawcond) ? ($defaults->{$x}) : ($setter)" if exists $defaults->{$x};
-                $clause3 .= indent("$setter;\n",$ci) if !$already_read{$x};
-                $cnt++;
-            }
-        }
-        # Add code for creating output variables via call to 'initialize' perl routine
-        $clause3 .= indent(callPerlInit(\@create, $callcopy),$ci); @create = ();
+        my $clause3 = callTypemaps([grep !($out{$_} || $outca{$_}), @args], \%ptypes, \%other_out, \%already_read, $defaults, $defaults_rawcond);
+        $clause3 .= callPerlInit([grep $out{$_} || $outca{$_}, @args], $callcopy);
+        $clause3 = indent($clause3,$ci);
         my $defaults_cond = $ndefault ? " || $defaults_rawcond" : '';
         $clause3 = <<EOF . $clause3;
   else if (items == $nin$defaults_cond) { PDL_COMMENT("only input variables on stack, create outputs")
