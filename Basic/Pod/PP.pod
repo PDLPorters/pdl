@@ -1708,6 +1708,8 @@ The passed-in stack SV will be mutated in place, so this code will then work:
 
     output_op([5,7], my $v0, my $v1);
     is_deeply [$v0,$v1], [5,7], 'output OtherPars work';
+    ($v0, $v1) = output_op([5,7]); # you can omit them, then they get returned
+    is_deeply [$v0,$v1], [5,7], 'output OtherPars work 1a';
 
 An operation with output C<OtherPars> cannot broadcast, since that would
 cause undefined results. A runtime check is generated that throws an

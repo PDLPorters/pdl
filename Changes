@@ -3,6 +3,7 @@
 - PP Inplace now checks inputs and outputs are dimensionally compatible (#416)
 - no more HTML doc generation
 - PDL::Doc::add_module now adds all submodules of given namespace (#420)
+- [o] OtherPars can now be omitted from args like [o] ndarrays
 
 2.082 2023-03-22
 - no changes from 2.081_03

@@ -480,13 +480,17 @@ is succ(2)."", 3, 'test pp_add_macros works';
 
 output_op([5,7], my $v0, my $v1);
 is_deeply [$v0,$v1], [5,7], 'output OtherPars work';
+($v0, $v1) = output_op([5,7]);
+is_deeply [$v0,$v1], [5,7], 'output OtherPars work 1a';
 eval { output_op(sequence(2,3), my $v0, my $v1) };
 isnt $@, '', 'broadcast with output OtherPars throws';
 
-output_op2([5,7], my $v0_2, my $v1_2);
+output_op2([5,7], my $n=PDL->null, my $v0_2, my $v1_2);
 is_deeply [$v0_2,$v1_2], [5,7], 'output OtherPars work 2';
-eval { output_op2(sequence(2,3), my $v0_2, my $v1_2) };
-isnt $@, '', 'broadcast with output OtherPars throws 2';
+(undef, $v0_2, $v1_2) = output_op2([5,7]);
+is_deeply [$v0_2,$v1_2], [5,7], 'output OtherPars work 2a';
+eval { output_op2(sequence(2,3), my $n=PDL->null, my $v0_2, my $v1_2) };
+like $@, qr/Can't broadcast/, 'broadcast with output OtherPars throws 2';
 
 output_op3([5,7], my $out3 = PDL->null, my $v0_3, my $v1_3);
 is_deeply [$v0_3,$v1_3], [5,7], 'output OtherPars work 3' or diag "got: ",$v0_3," ",$v1_3;
@@ -496,11 +500,7 @@ is "$o", 4;
 $o = incomp_dim([0..3]);
 is "$o", 4;
 
-$o = typem(my $oth = 3);
-is "$o", 4;
-is "$oth", 7;
-
-typem($o = PDL->null, $oth = 3);
+typem($o = PDL->null, my $oth = 3);
 is "$o", 4;
 is "$oth", 7;
 
@@ -521,6 +521,9 @@ eval { incomp_in($o = PDL->null, 'hello') };
 isnt $@, '';
 
 incomp_out(sequence(3), 2, my $nds);
+is 0+@$nds, 2;
+is +($nds->[0]//'undef').'', "[0 1 2]";
+$nds = incomp_out(sequence(3), 2);
 is 0+@$nds, 2;
 is +($nds->[0]//'undef').'', "[0 1 2]";
 

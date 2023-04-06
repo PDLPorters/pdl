@@ -1092,6 +1092,7 @@ sub make_xs_code {
 
 sub indent($$) {
     my ($text,$ind) = @_;
+    return $text if !length $text;
     $text =~ s/^(.*)$/$ind$1/mg;
     return $text;
 }
@@ -1623,7 +1624,7 @@ EOD
         my %outca = map +($_=>1), $sig->names_oca;
         my %other_out = map +($_=>1), $sig->other_out;
         my %tmp = map +($_=>1), $sig->names_tmp;
-        my $nout   = keys %out;
+        my $nout   = keys(%out) + keys(%other_out);
         my $noutca = keys %outca;
         my $ntmp   = keys %tmp;
         my $ntot   = @args;
@@ -1636,17 +1637,15 @@ EOD
         # Generate declarations for SV * variables corresponding to pdl * output variables.
         # These are used in creating output variables.  One variable (ex: SV * outvar1_SV;)
         # is needed for each output and output create always argument
-        my $svdecls = join "\n", map indent("SV *${_}_SV = NULL;",$ci), $sig->names_out;
-        my ($xsargs, $xsdecls) = ('', ''); my %already_read; my $cnt = 0; my %outother2cnt;
+        my $svdecls = join "\n", map indent("SV *${_}_SV = NULL;",$ci), $sig->names_out, $sig->other_out;
+        my ($xsargs, $xsdecls) = ('', ''); my %already_read; my $cnt = 0;
         foreach my $x (grep !$outca{$_}, @args) {
-            last if $out{$x} || ($other{$x} && exists $defaults->{$x});
+            last if $out{$x} || $other_out{$x} || ($other{$x} && exists $defaults->{$x});
             $already_read{$x} = 1;
             $xsargs .= "$x, "; $xsdecls .= "\n\t$ptypes{$x}$x";
-            $outother2cnt{$x} = $cnt if $other{$x} && $other_out{$x};
             $cnt++;
         }
         my $pars = join "\n",map indent("$_;",$ci), $sig->alldecls(0, 0, \%already_read);
-        $svdecls = join "\n", grep length, $svdecls, map indent(qq{SV *${_}_SV = @{[defined($outother2cnt{$_})?"ST($outother2cnt{$_})":'NULL']};},$ci), $sig->other_out;
         $ci = '    ';  # Current indenting
         # clause for reading in all variables
         my $clause1 = callTypemaps([grep !$outca{$_}, @args], \%ptypes, {%out,%other_out}, \%already_read, {}, '');
@@ -1654,7 +1653,8 @@ EOD
         $clause1 = indent($clause1,$ci);
         # clause for reading in input and creating output vars
         my $defaults_rawcond = $ndefault ? "items == ($nin-$ndefault)" : '';
-        my $clause3 = callTypemaps([grep !($out{$_} || $outca{$_}), @args], \%ptypes, \%other_out, \%already_read, $defaults, $defaults_rawcond);
+        my $clause3 = callTypemaps([grep !($out{$_} || $outca{$_} || $other_out{$_}), @args], \%ptypes, {}, \%already_read, $defaults, $defaults_rawcond);
+        $clause3 .= "${_}_SV = sv_newmortal();\n" for sort keys %other_out;
         $clause3 .= callPerlInit([grep $out{$_} || $outca{$_}, @args], $callcopy);
         $clause3 = indent($clause3,$ci);
         my $defaults_cond = $ndefault ? " || $defaults_rawcond" : '';
@@ -1730,8 +1730,10 @@ EOF
       "Generate XS trailer to return output variables or leave them as modified input variables",
       sub {
         my ($sig,$other_out_set) = @_;
-        my @outs = $sig->names_out; # names of output ndarrays in calling order
-        my $clause1 = join ';', map "ST($_) = $outs[$_]_SV", 0 .. $#outs;
+        my $oc = my @outs = $sig->names_out; # output ndarrays in calling order
+        my @other_outs = $sig->other_out; # output OtherPars in calling order
+        my $clause1 = join ';', (map "ST($_) = $outs[$_]_SV", 0 .. $#outs),
+          (map "ST(@{[$_+$oc]}) = $other_outs[$_]_SV", 0 .. $#other_outs);
         $other_out_set.PDL::PP::pp_line_numbers(__LINE__-1, "PDL_XS_RETURN($clause1)");
       }),
 
