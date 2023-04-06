@@ -129,11 +129,13 @@ sub othernames {
 }
 sub otherobjs { $_[0]{OtherObjs} }
 sub other_any_out { $_[0]{OtherAnyOut} }
-sub other_is_out {
+sub other_is_flag {
+  my $flag = $_[2];
   my $has_count = (my $without_count = $_[1]) =~ s/_count$//;
-  return $_[0]{OtherFlags}{$_[1]} && $_[0]{OtherFlags}{$_[1]}{o} if !$has_count;
-  $_[0]{OtherFlags}{$without_count} && $_[0]{OtherFlags}{$without_count}{o};
+  return $_[0]{OtherFlags}{$_[1]} && $_[0]{OtherFlags}{$_[1]}{$flag} if !$has_count;
+  $_[0]{OtherFlags}{$without_count} && $_[0]{OtherFlags}{$without_count}{$flag};
 }
+sub other_is_out { $_[0]->other_is_flag($_[1], 'o') }
 sub other_out { grep $_[0]->other_is_out($_), @{$_[0]{OtherNames}} }
 
 sub allnames { [
