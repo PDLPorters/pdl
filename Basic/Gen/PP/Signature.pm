@@ -60,7 +60,7 @@ sub _otherPars_nft {
 	if (s/^\s*$PDL::PP::PdlParObj::sqbr_re\s*//) {
 	  %flags = my %lflags = map +($_=>1), split /\s*,\s*/, my $opts = $1;
 	  my $this_out = delete $lflags{o};
-	  die "Invalid options '$opts' in '$_'" if keys %lflags;
+	  confess "Invalid options '$opts' in '$_'" if keys %lflags;
 	  $any_out ||= $this_out;
 	}
 	if (/^\s*([^=]+?)\s*=>\s*(\S+)\s*$/) {
@@ -73,7 +73,7 @@ sub _otherPars_nft {
 	    $type = PDL::PP::CType->new($_);
 	}
 	my $name = $type->protoname;
-	croak "Invalid OtherPars name: $name"
+	confess "Invalid OtherPars name: $name"
 	  if $PDL::PP::PdlParObj::INVALID_PAR{$name};
 	push @names,$name;
 	$types{$name} = $type;
@@ -177,7 +177,7 @@ sub realdims {
 
 sub creating {
   my $this = shift;
-  croak "you must perform a checkdims before calling creating"
+  confess "you must perform a checkdims before calling creating"
     unless defined $this->{Create};
   return $this->{Create};
 }
@@ -188,7 +188,7 @@ sub checkdims {
   $this->{Dims} = PDL::PP::PdlDimsObj->new;
   $this->{Objects}{$_}->add_inds($this->{Dims}) for @{$this->{Names}};
   my $n = @{$this->{Names}};
-  croak "not enough pdls to match signature" unless $#_ >= $n-1;
+  confess "not enough pdls to match signature" unless $#_ >= $n-1;
   my @pdls = @_[0..$n-1];
   if ($PDL::debug) { print "args: ".
 		     join(' ,',map { "[".join(',',$_->dims)."]," } @pdls)
