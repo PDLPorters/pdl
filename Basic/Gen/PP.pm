@@ -467,7 +467,7 @@ use strict;
 our $VERSION = "2.3";
 $VERSION = eval $VERSION;
 
-our $macros_xs = <<'EOF';
+our $macros_xs = pp_line_numbers(__LINE__, <<'EOF');
 #include "pdlperl.h"
 
 #define PDL_XS_PREAMBLE \
@@ -584,24 +584,21 @@ int
 set_boundscheck(i)
        int i;
        CODE:
-       if (! %6$s)
+       if (! %3$s)
          warn("Bounds checking is disabled for %1$s");
        RETVAL = __pdl_boundscheck;
        __pdl_boundscheck = i;
        OUTPUT:
        RETVAL
 
-
 MODULE = %1$s PACKAGE = %2$s
 
-%3$s
+EOF
+our $header_xsboot = pp_line_numbers(__LINE__, <<'EOF');
 
 BOOT:
-
    PDL_COMMENT("Get pointer to structure of core shared C routines")
    PDL_COMMENT("make sure PDL::Core is loaded")
-   %4$s
-   %5$s
 EOF
 
 use Config;
@@ -888,10 +885,10 @@ sub pp_done {
         my $text = join '',
           sprintf($PDL::PP::header_c, $mod_underscores, $PP::boundscheck),
           $::PDLXSC//'',
-          $PDL::PP::macros_xs, sprintf($PDL::PP::header_xs,
-            $::PDLMOD, $::PDLOBJ, $::PDLXS,
-            $pdl_boot, $::PDLXSBOOT//'', $PP::boundscheck,
-          );
+          $PDL::PP::macros_xs,
+          sprintf($PDL::PP::header_xs, $::PDLMOD, $::PDLOBJ, $PP::boundscheck),
+          $::PDLXS, "\n",
+          $PDL::PP::header_xsboot, "  $pdl_boot\n", "  ".($::PDLXSBOOT//'')."\n";
         _write_file("$::PDLPREF.xs", $text);
         return if nopm;
 	$::PDLPMISA = "'".join("','",@::PDLPMISA)."'";
