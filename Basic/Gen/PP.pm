@@ -823,11 +823,27 @@ sub _pp_linenumber_fill {
       push @to_return, qq{$ci#line @{[$stack[-1][0]+1]} "$stack[-1][1]"} if @lines;
       next REALLINE;
     }
-    @stack = [$stack[0][0], $file]; # as soon as another block is entered, line numbers for outer blocks become meaningless
-    if (@lines > 1 and !length($lines[0]) and $lines[1] =~ /$LINE_RE/) {
-      $stack[-1][0]--;
-    } else {
-      push @to_return, qq{$ci#line $stack[-1][0] "$stack[-1][1]"} if @lines;
+    @stack = [$stack[0][0], $file]; # as soon as any block is left, line numbers for outer blocks become meaningless
+    my ($seen_empty, $empty_first, $last_ci, @last_dir) = (0, undef, $ci); # list=(line, file)
+    LINE: while (1) {
+      last REALLINE if !@lines;
+      if (!length $lines[0]) {
+        $seen_empty = 1;
+        shift @lines;
+        next LINE;
+      }
+      if ($lines[0] =~ /$LINE_RE/) { # directive
+        ($last_ci, @last_dir) = ($1, !$4 ? ($2, $3) : ());
+        $empty_first //= $seen_empty;
+        shift @lines;
+        next LINE;
+      } else { # substantive
+        push @stack, \@last_dir if @last_dir;
+        push(@to_return, ''), $stack[0][0]++ if $seen_empty and $empty_first;
+        push @to_return, qq{$last_ci#line $stack[-1][0] "$stack[-1][1]"};
+        push(@to_return, ''), $stack[0][0]++ if $seen_empty and !$empty_first;
+        last LINE;
+      }
     }
   }
   join '', map "$_\n", @to_return;
