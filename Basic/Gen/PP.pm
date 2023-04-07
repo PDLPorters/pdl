@@ -812,22 +812,22 @@ my $LINE_RE = qr/^(\s*)PDL_LINENO_(?:START (\S+) "(.*)"|(END))$/;
 sub _pp_linenumber_fill {
   local $_; # else get "Modification of a read-only value attempted"
   my ($file, $text) = @_;
-  my (@stack, @to_return) = [$file, 1];
+  my (@stack, @to_return) = [1, $file];
   my @lines = split /\n/, $text;
-  while (defined($_ = shift @lines)) {
-    $_->[1]++ for @stack;
+  REALLINE: while (defined($_ = shift @lines)) {
+    $_->[0]++ for @stack;
     push(@to_return, $_), next if !/$LINE_RE/;
     my ($ci, $new_line, $new_file, $is_end) = ($1, $2, $3, $4);
     if ($is_end) {
-      @stack = [$file, $stack[0][1]]; # as soon as another block is entered, line numbers for outer blocks become meaningless
+      @stack = [$stack[0][0], $file]; # as soon as another block is entered, line numbers for outer blocks become meaningless
       if (@lines > 1 and !length($lines[0]) and $lines[1] =~ /$LINE_RE/) {
-        $stack[-1][1]--;
+        $stack[-1][0]--;
       } else {
-        push @to_return, qq{$ci#line $stack[-1][1] "$stack[-1][0]"} if @lines;
+        push @to_return, qq{$ci#line $stack[-1][0] "$stack[-1][1]"} if @lines;
       }
     } else {
-      push @stack, [$new_file, $new_line-1];
-      push @to_return, qq{$ci#line @{[$stack[-1][1]+1]} "$stack[-1][0]"} if @lines;
+      push @stack, [$new_line-1, $new_file];
+      push @to_return, qq{$ci#line @{[$stack[-1][0]+1]} "$stack[-1][1]"} if @lines;
     }
   }
   join '', map "$_\n", @to_return;
@@ -1667,7 +1667,7 @@ EOD
 EOF
         $clause3 = '' if $nmaxonstack == $nin;
         my $clause3_coda = $clause3 ? '  }' : '';
-        PDL::PP::pp_line_numbers(__LINE__, <<END);
+        <<END;
 \nvoid
 $name($xsargs...)$xsdecls
  PREINIT:
