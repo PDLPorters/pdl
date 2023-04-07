@@ -1914,6 +1914,25 @@ your I<pp_def>ed methods will be added. For example,
 C<pp_bless('PDL::MyClass')>. The default is C<PDL> if this is
 omitted.
 
+The value given here (or the default, C<PDL>), anywhere in the F<.pd>
+file, will be the package into which all PP operations get added, even
+for operations whose C<pp_def> was called I<before> the C<pp_bless>.
+This is because that package is inserted at the start of the generated
+XS code by C<pp_done>. The only way this changes is if C<pp_addxs> is
+called, which will add the given code (or none if an empty string is
+given) to the C<$::PDLPACK> package,
+I<and then changes the package to the pp_bless value>. For historical
+reasons, this cannot be changed. So, to have several different packages
+in one F<.pd> file, do something like this:
+
+  # any pp_def up till now will get put in PDL::Pack2
+  pp_bless('PDL::Pack1');
+  pp_addxs('');
+  pp_def('func1', ...);
+  pp_bless('PDL::Pack2');
+  pp_addxs('');
+  pp_def('otherfunc', ...);
+
 =head3 pp_addxs
 
 Sometimes you want to add extra XS code of your own
