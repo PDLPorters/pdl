@@ -653,7 +653,7 @@ subtest "Comparison between a vector and scalar" => sub {
 };
 
 subtest "Throw a warning when badvalue is set to 0 or 1 and a comparison operator is used" => sub {
-	my $warn_msg_re = qr/Badvalue is set to 0 or 1/;
+	my $warn_msg_re = qr/badvalue is set to 0 or 1/;
 
 	# We do not need to change the contents of this PDL.
 	# Only the value of badvalue changes.

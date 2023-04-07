@@ -192,6 +192,6 @@ my $mask = zeroes(5,5);
 local $SIG{__WARN__} = sub { die $_[0] };
 $mask->badvalue(1);
 eval{ PDL::gt($mask, 2, 0) };
-like( $@, qr/Badvalue is set to/, "safe barf" );
+like( $@, qr/badvalue is set to/, "safe barf" );
 
 done_testing;
