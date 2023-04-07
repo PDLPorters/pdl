@@ -91,9 +91,8 @@ sub biop {
     my $optxt = protect_chars ref $op eq 'ARRAY' ? $op->[1] : $op;
     $op = $op->[0] if ref $op eq 'ARRAY';
     $extra{HdrCode} = << 'EOH';
-  pdl *tmp;
   if (swap) {
-    tmp = a;
+    pdl *tmp = a;
     a = b;
     b = tmp;
   }
