@@ -470,12 +470,12 @@ $VERSION = eval $VERSION;
 our $macros_xs = pp_line_numbers(__LINE__, <<'EOF');
 #include "pdlperl.h"
 
-#define PDL_XS_PREAMBLE \
+#define PDL_XS_PREAMBLE(nret) \
   char *objname = "PDL"; /* XXX maybe that class should actually depend on the value set \
                             by pp_bless ? (CS) */ \
   HV *bless_stash = 0; \
   SV *parent = 0; \
-  int   nreturn = 0; \
+  int   nreturn = (nret); \
   (void)nreturn;
 
 #define PDL_XS_PACKAGEGET \
@@ -1369,8 +1369,8 @@ EOD
       sub {
         my (undef,$name,$sname) = @_;
         ("PARENT(); [oca]CHILD();",0,0,[PDL::Types::ppdefs_all()],1,
-          pp_line_numbers(__LINE__-1,"\tpdl *__it = $sname->pdls[1];\n\tpdl *__parent = $sname->pdls[0];\n"),
-          pp_line_numbers(__LINE__-1,"PDL->hdr_childcopy($sname);\n$sname->dims_redone = 1;\n"),
+          pp_line_numbers(__LINE__-1,"  pdl *__it = $sname->pdls[1]; pdl *__parent = $sname->pdls[0];\n"),
+          pp_line_numbers(__LINE__-1,"PDL->hdr_childcopy($sname); $sname->dims_redone = 1;\n"),
         );
       }),
 
@@ -1625,7 +1625,7 @@ EOD
             last if $out{$x} || $other_out{$x} || ($other{$x} && exists $defaults->{$x});
             $already_read{$x} = 1;
             push @xsargs, $x;
-            $xsdecls .= "\n\t$ptypes{$x}$x";
+            $xsdecls .= "\n  $ptypes{$x}$x";
         }
         my $pars = join "\n",map indent("$_;",$ci), $sig->alldecls(0, 0, \%already_read);
         $ci = keys(%valid_itemcounts) == 1 ? 2 : 4; # Current indenting
@@ -1635,20 +1635,20 @@ EOD
         $clause1 = indent($clause1,$ci);
         # clause for reading in input and creating output vars
         my $defaults_rawcond = $ndefault ? "items == $nin_minus_default" : '';
-        my $clause3 = $nmaxonstack == $nin ? '' : <<EOF .
- else { PDL_COMMENT("only input variables on stack, create outputs")
-    nreturn = $nallout;
-EOF
+        my $clause3 = $nmaxonstack == $nin ? '' :
+          qq[  } else { PDL_COMMENT("only input variables on stack, create outputs")\n] .
           indent(
             callTypemaps([grep !($out{$_} || $outca{$_} || $other_out{$_}), @args], \%ptypes, {}, \%already_read, $defaults, $defaults_rawcond) .
             join('', map "${_}_SV = sv_newmortal();\n", sort keys %other_out) .
             callPerlInit([grep $out{$_} || $outca{$_}, @args], $callcopy), 4
           ) . '  }';
+        my $nretval = keys(%valid_itemcounts) == 1 ? $noutca :
+          "(items == $nmaxonstack) ? $noutca : $nallout";
         <<END;
 \nvoid
 $name(@{[join ', ', @xsargs, keys(%valid_itemcounts) == 1 ? () : '...']})$xsdecls
  PREINIT:
-  PDL_XS_PREAMBLE
+  PDL_XS_PREAMBLE($nretval)
 $svdecls
 $pars
  PPCODE:
@@ -1658,10 +1658,8 @@ qq{  if (!(@{[join ' || ', map "(items == $_)", sort keys %valid_itemcounts]}))
 }]}  PDL_XS_PACKAGEGET
 @{[keys(%valid_itemcounts) == 1 ? '' :
 qq[  if (items == $nmaxonstack) { PDL_COMMENT("all variables on stack, read in output vars")
-  ]]}  nreturn = $noutca;
-$clause1
-@{[keys(%valid_itemcounts) == 1 ? '' :
-qq[  }]]}$clause3
+]]}$clause1
+$clause3
 $hdrcode
 $inplacecode
 END
@@ -1725,7 +1723,7 @@ EOF
       sub {
         my($name,$sig) = @_;
         my $shortpars = join ',', @{ $sig->allnames(1) };
-        my $longpars = join "\n", map "\t$_", $sig->alldecls(1, 0);
+        my $longpars = join "\n", map "  $_", $sig->alldecls(1, 0);
         return<<END;
 \nvoid
 $name($shortpars)

@@ -108,22 +108,22 @@ EOH
     if ($extra{Comparison}) {
         my $first_complex = $Ctypes[0]->sym;
 	$extra{HdrCode} .= <<EOF if $extra{Comparison} > 1;
-           if ((a->datatype >= $first_complex) || (b->datatype >= $first_complex))
-             barf("Can't compare complex numbers");
+  if ((a->datatype >= $first_complex) || (b->datatype >= $first_complex))
+    barf("Can't compare complex numbers");
 EOF
 	$extra{HdrCode} .= <<'EOH';
-           {
-             complex double bad_a, bad_b;
-             PDL_Anyval a_badval = PDL->get_pdl_badvalue(a);
-             if (a_badval.type < 0) barf("Error getting badvalue, type=%d", a_badval.type);
-             ANYVAL_TO_CTYPE(bad_a, complex double, a_badval);
-             PDL_Anyval b_badval = PDL->get_pdl_badvalue(b);
-             if (b_badval.type < 0) barf("Error getting badvalue, type=%d", b_badval.type);
-             ANYVAL_TO_CTYPE(bad_b, complex double, b_badval);
-             if( bad_a == 0 || bad_a == 1 || bad_b == 0 || bad_b == 1 ) {
-               warn("Badvalue is set to 0 or 1. This will cause data loss when using badvalues for comparison operators.");
-             }
-           }
+  {
+    complex double bad_a, bad_b;
+    PDL_Anyval a_badval = PDL->get_pdl_badvalue(a);
+    if (a_badval.type < 0) barf("Error getting badvalue, type=%d", a_badval.type);
+    ANYVAL_TO_CTYPE(bad_a, complex double, a_badval);
+    PDL_Anyval b_badval = PDL->get_pdl_badvalue(b);
+    if (b_badval.type < 0) barf("Error getting badvalue, type=%d", b_badval.type);
+    ANYVAL_TO_CTYPE(bad_b, complex double, b_badval);
+    if( bad_a == 0 || bad_a == 1 || bad_b == 0 || bad_b == 1 ) {
+      warn("Badvalue is set to 0 or 1. This will cause data loss when using badvalues for comparison operators.");
+    }
+  }
 EOH
         delete $extra{Comparison};
     }
@@ -209,9 +209,8 @@ sub bifunc {
     $extra{GenericTypes} = [ grep exists $is_real{$_}, @{$extra{GenericTypes}} ]
 	if !$got_complex and $extra{GenericTypes};
     $extra{HdrCode} .= << 'EOH';
-  pdl *tmp;
   if (swap) {
-    tmp = a;
+    pdl *tmp = a;
     a = b;
     b = tmp;
   }
