@@ -1604,7 +1604,6 @@ EOD
         my %outca = map +($_=>1), $sig->names_oca;
         my %other_io = map +($_=>1), $sig->other_io;
         my %other_out = map +($_=>1), $sig->other_out;
-        my %tmp = map +($_=>1), $sig->names_tmp;
         my $nout   = keys(%out) + keys(%other_out);
         my $noutca = keys %outca;
         my $ntot   = @args;
@@ -1617,7 +1616,7 @@ EOD
         my $usageargs = join ",",
           map exists $defaults->{$_} ? "$_=$defaults->{$_}" :
              $out{$_} || $other_out{$_} ? "[$_]" : $_,
-          grep !$tmp{$_} && !$outca{$_}, @args;
+          grep !$outca{$_}, @args;
         # Generate declarations for SV * variables corresponding to pdl * output variables.
         # These are used in creating output variables.  One variable (ex: SV * outvar1_SV;)
         # is needed for each output and output create always argument
