@@ -1602,6 +1602,7 @@ EOD
         my %ptypes = map +($_=>$$optypes{$_} ? $$optypes{$_}->get_decl('', {VarArrays2Ptrs=>1}) : 'pdl *'), @args;
         my %out = map +($_=>1), $sig->names_out_nca;
         my %outca = map +($_=>1), $sig->names_oca;
+        my %other_io = map +($_=>1), $sig->other_io;
         my %other_out = map +($_=>1), $sig->other_out;
         my %tmp = map +($_=>1), $sig->names_tmp;
         my $nout   = keys(%out) + keys(%other_out);
@@ -1620,7 +1621,7 @@ EOD
         # Generate declarations for SV * variables corresponding to pdl * output variables.
         # These are used in creating output variables.  One variable (ex: SV * outvar1_SV;)
         # is needed for each output and output create always argument
-        my $svdecls = join "\n", map indent("SV *${_}_SV = NULL;",$ci), $sig->names_out, $sig->other_out;
+        my $svdecls = join "\n", map indent("SV *${_}_SV = NULL;",$ci), $sig->names_out, $sig->other_io, $sig->other_out;
         my ($xsdecls, @xsargs) = ''; my %already_read;
         foreach my $x (grep !$outca{$_}, @args) {
             last if $out{$x} || $other_out{$x} || ($other{$x} && exists $defaults->{$x});
@@ -1633,14 +1634,14 @@ EOD
             qq[  if (items == $nmaxonstack) { PDL_COMMENT("all variables on stack, read in output vars")\n]
           ) .
           indent(
-            callTypemaps([grep !$outca{$_}, @args], \%ptypes, {%out,%other_out}, \%already_read, {}, '') .
+            callTypemaps([grep !$outca{$_}, @args], \%ptypes, {%out,%other_io,%other_out}, \%already_read, {}, '') .
             callPerlInit([grep $outca{$_}, @args], $callcopy), $only_one ? 2 : 4
           );
         my $defaults_rawcond = $ndefault ? "items == $nin_minus_default" : '';
         my $clause3 = $nmaxonstack == $nin ? '' :
           qq[  } else { PDL_COMMENT("only input variables on stack, create outputs")\n] .
           indent(
-            callTypemaps([grep !($out{$_} || $outca{$_} || $other_out{$_}), @args], \%ptypes, {}, \%already_read, $defaults, $defaults_rawcond) .
+            callTypemaps([grep !($out{$_} || $outca{$_} || $other_out{$_}), @args], \%ptypes, {%out,%other_io,%other_out}, \%already_read, $defaults, $defaults_rawcond) .
             join('', map "${_}_SV = sv_newmortal();\n", sort keys %other_out) .
             callPerlInit([grep $out{$_} || $outca{$_}, @args], $callcopy), 4
           ) . '  }';
@@ -1670,16 +1671,15 @@ END
         my ($sig) = @_;
         my $optypes = $sig->otherobjs;
         my @args = @{ $sig->allnames(1) };
-        my %other = map +($_ => exists($$optypes{$_})), @args;
         my %outca = map +($_=>1), $sig->names_oca;
-        my %other_out = map +($_=>1), $sig->other_out;
+        my %other_output = map +($_=>1), my @other_output = ($sig->other_io, $sig->other_out);
         my $ci = 2;
         my $cnt = 0; my %outother2cnt;
         foreach my $x (grep !$outca{$_}, @args) {
-            $outother2cnt{$x} = $cnt if $other{$x} && $other_out{$x};
+            $outother2cnt{$x} = $cnt if $other_output{$x};
             $cnt++;
         }
-        join "\n", map indent(qq{SV *${_}_SV = ST($outother2cnt{$_});},$ci), $sig->other_out;
+        join "\n", map indent(qq{SV *${_}_SV = ST($outother2cnt{$_});},$ci), @other_output;
       }),
    PDL::PP::Rule->new("XSOtherOutSet",
       ["SignatureObj"],
@@ -1687,10 +1687,10 @@ END
       sub {
         my ($sig) = @_;
         my $clause1 = '';
-        my @other_out = $sig->other_out;
+        my @other_output = ($sig->other_io, $sig->other_out);
         my $optypes = $sig->otherobjs;
-        my %ptypes = map +($_=>$$optypes{$_}->get_decl('', {VarArrays2Ptrs=>1})), @other_out;
-        for my $x (@other_out) {
+        my %ptypes = map +($_=>$$optypes{$_}->get_decl('', {VarArrays2Ptrs=>1})), @other_output;
+        for my $x (@other_output) {
           my ($setter, $type) = typemap($ptypes{$x}, 'get_outputmap');
           $setter = typemap_eval($setter, {var=>$x, type=>$type, arg=>"tsv"});
           $clause1 = <<EOF . $clause1;
@@ -1709,9 +1709,9 @@ EOF
       sub {
         my ($sig,$other_out_set) = @_;
         my $oc = my @outs = $sig->names_out; # output ndarrays in calling order
-        my @other_outs = $sig->other_out; # output OtherPars in calling order
+        my @other_outputs = ($sig->other_io, $sig->other_out); # output OtherPars
         my $clause1 = join ';', (map "ST($_) = $outs[$_]_SV", 0 .. $#outs),
-          (map "ST(@{[$_+$oc]}) = $other_outs[$_]_SV", 0 .. $#other_outs);
+          (map "ST(@{[$_+$oc]}) = $other_outputs[$_]_SV", 0 .. $#other_outputs);
         $other_out_set.indent("PDL_XS_RETURN($clause1)\n", 2);
       }),
 

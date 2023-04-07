@@ -59,7 +59,8 @@ sub _otherPars_nft {
 	my (%flags);
 	if (s/^\s*$PDL::PP::PdlParObj::sqbr_re\s*//) {
 	  %flags = my %lflags = map +($_=>1), split /\s*,\s*/, my $opts = $1;
-	  my $this_out = delete $lflags{o};
+	  confess "Can't have both [io] and [o]" if $lflags{o} && $lflags{io};
+	  my $this_out = delete($lflags{o}) || delete($lflags{io});
 	  confess "Invalid options '$opts' in '$_'" if keys %lflags;
 	  $any_out ||= $this_out;
 	}
@@ -135,9 +136,11 @@ sub other_is_flag {
   return $_[0]{OtherFlags}{$_[1]} && $_[0]{OtherFlags}{$_[1]}{$flag} if !$has_count;
   $_[0]{OtherFlags}{$without_count} && $_[0]{OtherFlags}{$without_count}{$flag};
 }
-sub other_is_output { &other_is_out }
+sub other_is_output { &other_is_out || &other_is_io }
 sub other_is_out { $_[0]->other_is_flag($_[1], 'o') }
 sub other_out { grep $_[0]->other_is_out($_), @{$_[0]{OtherNames}} }
+sub other_is_io { $_[0]->other_is_flag($_[1], 'io') }
+sub other_io { grep $_[0]->other_is_io($_), @{$_[0]{OtherNames}} }
 
 sub allnames { [
   (grep +(!$_[2] || !$_[2]{$_}) && !$_[0]{Objects}{$_}{FlagTemp}, @{$_[0]{Names}}),
@@ -151,14 +154,14 @@ sub alldecls {
   my ($self, $omit_count, $indirect, $except) = @_;
   my $objs = $self->allobjs;
   my @names = @{$self->allnames($omit_count, $except)};
-  $indirect = $indirect ? { map +($_=>$self->other_is_out($_)), @names } : {};
+  $indirect = $indirect ? { map +($_=>$self->other_is_output($_)), @names } : {};
   map $objs->{$_}->get_decl($_, {VarArrays2Ptrs=>1,AddIndirect=>$indirect->{$_}}), @names;
 }
 sub getcomp {
   my ($self) = @_;
   my $objs = $self->otherobjs;
   my @names = @{$self->othernames(0)};
-  my $indirect = { map +($_=>$self->other_is_out($_)), @names };
+  my $indirect = { map +($_=>$self->other_is_output($_)), @names };
   join "\n", map "$_;", grep $_, map $objs->{$_}->get_decl($_, {VarArrays2Ptrs=>1,AddIndirect=>$indirect->{$_}}), @names;
 }
 sub getfree {

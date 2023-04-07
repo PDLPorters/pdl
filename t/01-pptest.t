@@ -287,7 +287,7 @@ END_OF_TYPEMAP
 EOT
 pp_def('typem',
   Pars => 'int [o] out()',
-  OtherPars => '[o] NV_ADD1 v1',
+  OtherPars => '[io] NV_ADD1 v1',
   Code => '$out() = $COMP(v1); $COMP(v1) = 8;',
 );
 
@@ -505,7 +505,11 @@ is "$o", 4;
 $o = incomp_dim([0..3]);
 is "$o", 4;
 
-typem($o = PDL->null, my $oth = 3);
+$o = typem(my $oth = 3);
+is "$o", 4;
+is "$oth", 7;
+
+typem($o = PDL->null, $oth = 3);
 is "$o", 4;
 is "$oth", 7;
 

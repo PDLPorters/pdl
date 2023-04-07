@@ -1715,6 +1715,11 @@ to avoid ambiguity given C types can have C<[]> in them.
 This relies on the relevant C<OtherPar> having an C<OUTPUT> entry in an
 XS typemap.
 
+As of 2.083, it is also possible to specify C<OtherPars> as C<[io]>,
+which means they I<must> be supplied (rather than being optional, like
+an C<[o]> one), but will still be updated after the operation has
+finished.
+
 =head2 Other useful PP keys in data operation definitions
 
 You have already heard about the C<OtherPars> key. Currently, there are not

@@ -5,6 +5,7 @@
 - PDL::Doc::add_module now adds all submodules of given namespace (#420)
 - [o] OtherPars can now be omitted from args like [o] ndarrays
 - OtherPars can now be incomplete arrays of pdl* (#421)
+- add [io] OtherPars
 
 2.082 2023-03-22
 - no changes from 2.081_03
