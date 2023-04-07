@@ -1612,6 +1612,7 @@ EOD
         my %valid_itemcounts = ((my $nmaxonstack = $ntot - $noutca)=>1);
         $valid_itemcounts{my $nin = $ntot - ($nout + $noutca)} = 1;
         $valid_itemcounts{my $nin_minus_default = "($nin-$ndefault)"} = 1 if $ndefault;
+        my $only_one = keys(%valid_itemcounts) == 1;
         my $usageargs = join ",",
           map exists $defaults->{$_} ? "$_=$defaults->{$_}" :
              $out{$_} || $other_out{$_} ? "[$_]" : $_,
@@ -1628,12 +1629,13 @@ EOD
             $xsdecls .= "\n  $ptypes{$x}$x";
         }
         my $pars = join "\n",map indent("$_;",$ci), $sig->alldecls(0, 0, \%already_read);
-        $ci = keys(%valid_itemcounts) == 1 ? 2 : 4; # Current indenting
-        # clause for reading in all variables
-        my $clause1 = callTypemaps([grep !$outca{$_}, @args], \%ptypes, {%out,%other_out}, \%already_read, {}, '');
-        $clause1 .= callPerlInit([grep $outca{$_}, @args], $callcopy);
-        $clause1 = indent($clause1,$ci);
-        # clause for reading in input and creating output vars
+        my $clause1 = ($only_one ? '' :
+            qq[  if (items == $nmaxonstack) { PDL_COMMENT("all variables on stack, read in output vars")\n]
+          ) .
+          indent(
+            callTypemaps([grep !$outca{$_}, @args], \%ptypes, {%out,%other_out}, \%already_read, {}, '') .
+            callPerlInit([grep $outca{$_}, @args], $callcopy), $only_one ? 2 : 4
+          );
         my $defaults_rawcond = $ndefault ? "items == $nin_minus_default" : '';
         my $clause3 = $nmaxonstack == $nin ? '' :
           qq[  } else { PDL_COMMENT("only input variables on stack, create outputs")\n] .
@@ -1642,26 +1644,20 @@ EOD
             join('', map "${_}_SV = sv_newmortal();\n", sort keys %other_out) .
             callPerlInit([grep $out{$_} || $outca{$_}, @args], $callcopy), 4
           ) . '  }';
-        my $nretval = keys(%valid_itemcounts) == 1 ? $noutca :
+        my $nretval = $only_one ? $noutca :
           "(items == $nmaxonstack) ? $noutca : $nallout";
-        <<END;
+        <<END.join '', map "$_\n", $clause1, $clause3, $hdrcode, $inplacecode;
 \nvoid
-$name(@{[join ', ', @xsargs, keys(%valid_itemcounts) == 1 ? () : '...']})$xsdecls
+$name(@{[join ', ', @xsargs, $only_one ? () : '...']})$xsdecls
  PREINIT:
   PDL_XS_PREAMBLE($nretval)
 $svdecls
 $pars
  PPCODE:
-@{[keys(%valid_itemcounts) == 1 ? '' :
+@{[$only_one ? '' :
 qq{  if (!(@{[join ' || ', map "(items == $_)", sort keys %valid_itemcounts]}))
     croak (\"Usage: ${main::PDLOBJ}::$name($usageargs) (you may leave [output variables] and values with =defaults out of list)\");
 }]}  PDL_XS_PACKAGEGET
-@{[keys(%valid_itemcounts) == 1 ? '' :
-qq[  if (items == $nmaxonstack) { PDL_COMMENT("all variables on stack, read in output vars")
-]]}$clause1
-$clause3
-$hdrcode
-$inplacecode
 END
       }),
 
