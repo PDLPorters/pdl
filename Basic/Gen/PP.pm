@@ -1633,7 +1633,10 @@ EOD
         my $ninout = $nin + $nout;
         my $nallout = $nout + $noutca;
         my $ndefault = keys %$defaults;
-        my $usageargs = join ",", map exists $defaults->{$_} ? "$_=$defaults->{$_}" : $_, grep !$tmp{$_} && !$outca{$_}, @args;
+        my $usageargs = join ",",
+          map exists $defaults->{$_} ? "$_=$defaults->{$_}" :
+             $out{$_} || $other_out{$_} ? "[$_]" : $_,
+          grep !$tmp{$_} && !$outca{$_}, @args;
         # Generate declarations for SV * variables corresponding to pdl * output variables.
         # These are used in creating output variables.  One variable (ex: SV * outvar1_SV;)
         # is needed for each output and output create always argument
@@ -1673,7 +1676,7 @@ $svdecls
 $pars
  PPCODE:
   if (items != $nmaxonstack && !(items == $nin$defaults_cond) && items != $ninout)
-    croak (\"Usage:  PDL::$name($usageargs) (you may leave output variables out of list)\");
+    croak (\"Usage: ${main::PDLOBJ}::$name($usageargs) (you may leave [output variables] and values with =defaults out of list)\");
   PDL_XS_PACKAGEGET
   if (items == $nmaxonstack) { PDL_COMMENT("all variables on stack, read in output vars")
     nreturn = $noutca;
