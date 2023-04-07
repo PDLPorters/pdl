@@ -1081,7 +1081,7 @@ sub indent($$) {
 sub callPerlInit {
     my ($names, $callcopy) = @_;
     my $args = $callcopy ? 'parent, copy' : 'sv_2mortal(newSVpv(objname, 0)), initialize';
-    join '', map PDL::PP::pp_line_numbers(__LINE__-1, "PDL_XS_PERLINIT($_, $args)\n"), @$names;
+    join '', map "PDL_XS_PERLINIT($_, $args)\n", @$names;
 }
 
 sub callTypemaps {
@@ -1721,7 +1721,7 @@ EOF
         my @other_outs = $sig->other_out; # output OtherPars in calling order
         my $clause1 = join ';', (map "ST($_) = $outs[$_]_SV", 0 .. $#outs),
           (map "ST(@{[$_+$oc]}) = $other_outs[$_]_SV", 0 .. $#other_outs);
-        $other_out_set.PDL::PP::pp_line_numbers(__LINE__-1, "PDL_XS_RETURN($clause1)");
+        $other_out_set.indent("PDL_XS_RETURN($clause1)\n", '  ');
       }),
 
    PDL::PP::Rule->new("NewXSHdr", ["NewXSName","SignatureObj"],
@@ -1749,7 +1749,7 @@ END
         my ($func_name,$sig) = @_;
         my $shortpars = join ',', map $sig->other_is_output($_)?"&$_":$_, @{ $sig->allnames(0) };
         my $longpars = join ",", $sig->alldecls(0, 1);
-        (PDL::PP::pp_line_numbers(__LINE__-1, "PDL->barf_if_error($func_name($shortpars));"),
+        (indent("PDL->barf_if_error($func_name($shortpars));\n", ' '),
           "pdl_error $func_name($longpars)");
       }),
 
@@ -1976,7 +1976,7 @@ EOF
    PDL::PP::Rule->new(["NewXSCode","BootSetNewXS","NewXSInPrelude"],
       ["PMCode","NewXSHdr", \"NewXSCHdrs", qw(FixArgsXSOtherOutDeclSV RunFuncCall XSOtherOutSet)],
       "Non-varargs XS code when PMCode given",
-      sub {make_xs_code('CODE:',' XSRETURN(0);',@_[1..$#_])}),
+      sub {make_xs_code('CODE:','  XSRETURN(0);',@_[1..$#_])}),
    PDL::PP::Rule->new(["NewXSCode","BootSetNewXS","NewXSInPrelude"],
       [qw(VarArgsXSHdr), \"NewXSCHdrs", qw(RunFuncCall VarArgsXSReturn)],
       "Rule to print out XS code when variable argument list XS processing is enabled",
