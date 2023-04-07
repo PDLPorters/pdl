@@ -1630,35 +1630,32 @@ EOD
             $xsdecls .= "\n  $ptypes{$x}$x";
         }
         my $pars = join "\n",map indent("$_;",$ci), $sig->alldecls(0, 0, \%already_read);
-        my $clause1 = ($only_one ? '' :
+        my $defaults_rawcond = $ndefault ? "items == $nin_minus_default" : '';
+        my $argcode = ($only_one ? '' :
             qq[  if (items == $nmaxonstack) { PDL_COMMENT("all variables on stack, read in output vars")\n]
           ) .
           indent(
             callTypemaps([grep !$outca{$_}, @args], \%ptypes, {%out,%other_io,%other_out}, \%already_read, {}, '') .
             callPerlInit([grep $outca{$_}, @args], $callcopy), $only_one ? 2 : 4
-          );
-        my $defaults_rawcond = $ndefault ? "items == $nin_minus_default" : '';
-        my $clause3 = $nmaxonstack == $nin ? '' :
+          ) .
+          ($only_one ? '' :
           qq[  } else { PDL_COMMENT("only input variables on stack, create outputs")\n] .
           indent(
             callTypemaps([grep !($out{$_} || $outca{$_} || $other_out{$_}), @args], \%ptypes, {%out,%other_io,%other_out}, \%already_read, $defaults, $defaults_rawcond) .
             join('', map "${_}_SV = sv_newmortal();\n", sort keys %other_out) .
             callPerlInit([grep $out{$_} || $outca{$_}, @args], $callcopy), 4
-          ) . '  }';
+          ) . '  }');
         my $nretval = $only_one ? $noutca :
           "(items == $nmaxonstack) ? $noutca : $nallout";
-        <<END.join '', map "$_\n", $clause1, $clause3, $hdrcode, $inplacecode;
+        <<END.join '', map "$_\n", $svdecls, $pars, $argcode, $hdrcode, $inplacecode;
 \nvoid
 $name(@{[join ', ', @xsargs, $only_one ? () : '...']})$xsdecls
- PREINIT:
-  PDL_XS_PREAMBLE($nretval)
-$svdecls
-$pars
  PPCODE:
 @{[$only_one ? '' :
 qq{  if (!(@{[join ' || ', map "(items == $_)", sort keys %valid_itemcounts]}))
     croak (\"Usage: ${main::PDLOBJ}::$name($usageargs) (you may leave [output variables] and values with =defaults out of list)\");
-}]}  PDL_XS_PACKAGEGET
+}]}  PDL_XS_PREAMBLE($nretval)
+  PDL_XS_PACKAGEGET
 END
       }),
 

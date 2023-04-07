@@ -1664,7 +1664,7 @@ the PDL one currently has (for input):
 
 PP removes from input typemap entries everything up to the assignment,
 which here removes the C<${var}_count> declaration, which is instead
-added in a C<PREINIT> section thanks to PP's knowledge of this type. This
+declared thanks to PP's knowledge of this type. This
 is necessary because the inputs are handled within their own scope,
 since there are several branches where the inputs can be set thanks to
 variable-argument handling. The count variable would be lost if such
