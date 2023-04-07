@@ -1640,10 +1640,11 @@ EOD
         my $nout   = keys(%out) + keys(%other_out);
         my $noutca = keys %outca;
         my $ntot   = @args;
-        my %valid_itemcounts = ((my $nmaxonstack = $ntot - $noutca)=>1);
-        $valid_itemcounts{my $nin = $ntot - ($nout + $noutca)} = 1;
         my $nallout = $nout + $noutca;
         my $ndefault = keys %$defaults;
+        my %valid_itemcounts = ((my $nmaxonstack = $ntot - $noutca)=>1);
+        $valid_itemcounts{my $nin = $ntot - ($nout + $noutca)} = 1;
+        $valid_itemcounts{my $nin_minus_default = "($nin-$ndefault)"} = 1 if $ndefault;
         my $usageargs = join ",",
           map exists $defaults->{$_} ? "$_=$defaults->{$_}" :
              $out{$_} || $other_out{$_} ? "[$_]" : $_,
@@ -1652,22 +1653,22 @@ EOD
         # These are used in creating output variables.  One variable (ex: SV * outvar1_SV;)
         # is needed for each output and output create always argument
         my $svdecls = join "\n", map indent("SV *${_}_SV = NULL;",$ci), $sig->names_out, $sig->other_out;
-        my ($xsargs, $xsdecls) = ('', ''); my %already_read; my $cnt = 0;
+        my ($xsdecls, @xsargs) = ''; my %already_read;
         foreach my $x (grep !$outca{$_}, @args) {
             last if $out{$x} || $other_out{$x} || ($other{$x} && exists $defaults->{$x});
             $already_read{$x} = 1;
-            $xsargs .= "$x, "; $xsdecls .= "\n\t$ptypes{$x}$x";
-            $cnt++;
+            push @xsargs, $x;
+            $xsdecls .= "\n\t$ptypes{$x}$x";
         }
         my $pars = join "\n",map indent("$_;",$ci), $sig->alldecls(0, 0, \%already_read);
-        $ci = '    ';  # Current indenting
+        $ci = keys(%valid_itemcounts) == 1 ? '  ' : '    '; # Current indenting
         # clause for reading in all variables
         my $clause1 = callTypemaps([grep !$outca{$_}, @args], \%ptypes, {%out,%other_out}, \%already_read, {}, '');
         $clause1 .= callPerlInit([grep $outca{$_}, @args], $callcopy);
         $clause1 = indent($clause1,$ci);
         # clause for reading in input and creating output vars
-        $valid_itemcounts{my $nin_minus_default = "($nin-$ndefault)"} = 1 if $ndefault;
         my $defaults_rawcond = $ndefault ? "items == $nin_minus_default" : '';
+        $ci = '    ';  # Current indenting
         my $clause3 = callTypemaps([grep !($out{$_} || $outca{$_} || $other_out{$_}), @args], \%ptypes, {}, \%already_read, $defaults, $defaults_rawcond);
         $clause3 .= "${_}_SV = sv_newmortal();\n" for sort keys %other_out;
         $clause3 .= callPerlInit([grep $out{$_} || $outca{$_}, @args], $callcopy);
@@ -1681,20 +1682,23 @@ EOF
         my $clause3_coda = $clause3 ? '  }' : '';
         <<END;
 \nvoid
-$name($xsargs...)$xsdecls
+$name(@{[join ', ', @xsargs, keys(%valid_itemcounts) == 1 ? () : '...']})$xsdecls
  PREINIT:
   PDL_XS_PREAMBLE
 $svdecls
 $pars
  PPCODE:
-  if (!(@{[join ' || ', map "(items == $_)", sort keys %valid_itemcounts]}))
+@{[keys(%valid_itemcounts) == 1 ? '' :
+qq{  if (!(@{[join ' || ', map "(items == $_)", sort keys %valid_itemcounts]}))
     croak (\"Usage: ${main::PDLOBJ}::$name($usageargs) (you may leave [output variables] and values with =defaults out of list)\");
-  PDL_XS_PACKAGEGET
-  if (items == $nmaxonstack) { PDL_COMMENT("all variables on stack, read in output vars")
-    nreturn = $noutca;
+}]}  PDL_XS_PACKAGEGET
+@{[keys(%valid_itemcounts) == 1 ? '' :
+qq[  if (items == $nmaxonstack) { PDL_COMMENT("all variables on stack, read in output vars")
+  ]]}  nreturn = $noutca;
 $clause1
-  }
-$clause3$clause3_coda
+@{[keys(%valid_itemcounts) == 1 ? '' :
+qq[  }
+]]}$clause3$clause3_coda
 $hdrcode
 $inplacecode
 END
