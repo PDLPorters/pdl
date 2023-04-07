@@ -818,16 +818,16 @@ sub _pp_linenumber_fill {
     $_->[0]++ for @stack;
     push(@to_return, $_), next if !/$LINE_RE/;
     my ($ci, $new_line, $new_file, $is_end) = ($1, $2, $3, $4);
-    if ($is_end) {
-      @stack = [$stack[0][0], $file]; # as soon as another block is entered, line numbers for outer blocks become meaningless
-      if (@lines > 1 and !length($lines[0]) and $lines[1] =~ /$LINE_RE/) {
-        $stack[-1][0]--;
-      } else {
-        push @to_return, qq{$ci#line $stack[-1][0] "$stack[-1][1]"} if @lines;
-      }
-    } else {
+    if (!$is_end) {
       push @stack, [$new_line-1, $new_file];
       push @to_return, qq{$ci#line @{[$stack[-1][0]+1]} "$stack[-1][1]"} if @lines;
+      next REALLINE;
+    }
+    @stack = [$stack[0][0], $file]; # as soon as another block is entered, line numbers for outer blocks become meaningless
+    if (@lines > 1 and !length($lines[0]) and $lines[1] =~ /$LINE_RE/) {
+      $stack[-1][0]--;
+    } else {
+      push @to_return, qq{$ci#line $stack[-1][0] "$stack[-1][1]"} if @lines;
     }
   }
   join '', map "$_\n", @to_return;
