@@ -351,6 +351,11 @@ for (i = 0; i < $COMP(outs_count); i++) {
 EOC
 );
 
+pp_def('index_prec', # check $a(n=>x+1) works
+  Pars => 'in(n); [o]out()',
+  Code => 'loop (n) %{ if (n > 1) $out() += $in(n=>n-1); %}',
+);
+
 pp_done;
 
 # this tests the bug with a trailing comment and *no* newline
@@ -526,6 +531,8 @@ is +($nds->[0]//'undef').'', "[0 1 2]";
 $nds = incomp_out(sequence(3), 2);
 is 0+@$nds, 2;
 is +($nds->[0]//'undef').'', "[0 1 2]";
+
+is index_prec(sequence(2,6)->slice('(1)')).'', 24, 'index precedence OK';
 
 done_testing;
 EOF

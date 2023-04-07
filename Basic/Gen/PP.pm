@@ -564,34 +564,14 @@ PDL_COMMENT("   /* Memory access */                                         ")
 #include "pdlcore.h"
 #define PDL %s
 extern Core* PDL; PDL_COMMENT("Structure hold core C functions")
-static int __pdl_boundscheck = 0;
-
-#if ! %s
-# define PP_INDTERM(max, at) at
-#else
-# define PP_INDTERM(max, at) (__pdl_boundscheck? PDL->safe_indterm(max,at, __FILE__, __LINE__) : at)
-#endif
 EOF
-our $header_xs = pp_line_numbers(__LINE__, <<'EOF');
+our $header_xs = <<'EOF';
 
 Core* PDL = NULL; PDL_COMMENT("Structure hold core C functions")
 
-MODULE = %1$s PACKAGE = %1$s
+MODULE = %1$s PACKAGE = %2$s
 
 PROTOTYPES: DISABLE
-
-int
-set_boundscheck(i)
-       int i;
-       CODE:
-       if (! %3$s)
-         warn("Bounds checking is disabled for %1$s");
-       RETVAL = __pdl_boundscheck;
-       __pdl_boundscheck = i;
-       OUTPUT:
-       RETVAL
-
-MODULE = %1$s PACKAGE = %2$s
 
 EOF
 our $header_xsboot = pp_line_numbers(__LINE__, <<'EOF');
@@ -611,10 +591,9 @@ our @EXPORT = qw/pp_addhdr pp_addpm pp_bless pp_def pp_done pp_add_boot
                       pp_add_exported pp_addxs pp_add_isa pp_export_nothing
                       pp_add_typemaps
                       pp_core_importList pp_beginwrap pp_setversion
-                      pp_addbegin pp_boundscheck pp_line_numbers
+                      pp_addbegin pp_line_numbers
                       pp_deprecate_module pp_add_macros/;
 
-$PP::boundscheck = 1;
 $::PP_VERBOSE    = 0;
 
 our $done = 0;  # pp_done has not been called yet
@@ -668,19 +647,6 @@ our %macros;
 sub pp_add_macros {
   confess "Usage: pp_add_macros(name=>sub {},...)" if @_%2;
   %macros = (%macros, @_);
-}
-
-# query/set boundschecking
-# if on the generated XS code will have optional boundschecking
-# that can be turned on/off at runtime(!) using
-#   __PACKAGE__::set_boundscheck(arg); # arg should be 0/1
-# if off code is speed optimized and no runtime boundschecking
-# can be performed
-# ON by default
-sub pp_boundscheck {
-  my $ret = $PP::boundscheck;
-  $PP::boundscheck = $_[0] if $#_ > -1;
-  return $ret;
 }
 
 sub pp_beginwrap {
@@ -867,7 +833,7 @@ sub printxsc {
   my $text = join '',@_;
   if (defined $file) {
     (my $mod_underscores = $::PDLMOD) =~ s#::#_#g;
-    $text = join '', sprintf($PDL::PP::header_c, $mod_underscores, $PP::boundscheck), $::PDLXSC_header//'', $text;
+    $text = join '', sprintf($PDL::PP::header_c, $mod_underscores), $::PDLXSC_header//'', $text;
     _write_file($file, $text);
   } else {
     $::PDLXSC .= $text;
@@ -883,10 +849,10 @@ sub pp_done {
         my $pdl_boot = PDL::Core::Dev::PDL_BOOT('PDL', $::PDLMOD);
         (my $mod_underscores = $::PDLMOD) =~ s#::#_#g;
         my $text = join '',
-          sprintf($PDL::PP::header_c, $mod_underscores, $PP::boundscheck),
+          sprintf($PDL::PP::header_c, $mod_underscores),
           $::PDLXSC//'',
           $PDL::PP::macros_xs,
-          sprintf($PDL::PP::header_xs, $::PDLMOD, $::PDLOBJ, $PP::boundscheck),
+          sprintf($PDL::PP::header_xs, $::PDLMOD, $::PDLOBJ),
           $::PDLXS, "\n",
           $PDL::PP::header_xsboot, "  $pdl_boot\n", "  ".($::PDLXSBOOT//'')."\n";
         _write_file("$::PDLPREF.xs", $text);

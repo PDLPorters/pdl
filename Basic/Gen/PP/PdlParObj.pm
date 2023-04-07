@@ -219,8 +219,7 @@ sub do_indterm { my($this,$pdl,$ind,$subst,$context) = @_;
   confess "Access Index not found: $pdl, $ind, @{[$this->{IndObjs}[$ind]->name]}
 	  On stack:".(join ' ',map {"($_->[0],$_->[1])"} @$context)."\n"
 	  if !defined $index;
-  return "(".($this->get_incname($ind,1))."*".
-	 "PP_INDTERM(".$this->{IndObjs}[$ind]->get_size().", $index))";
+  return "(".($this->get_incname($ind,1))."*($index))";
 }
 
 sub get_xsdatapdecl { 

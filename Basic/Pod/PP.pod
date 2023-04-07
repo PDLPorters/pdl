@@ -148,13 +148,6 @@ Add BEGIN-block wrapping to code for the generated .pm file
 Sets the package to which the XS code is added (default is PDL)
 
 
-=head2 pp_boundscheck
-
-=for ref
-
-Control state of PDL bounds checking activity
-
-
 =head2 pp_core_importList
 
 =for ref
@@ -2643,17 +2636,6 @@ section at L<perlxs>.
 Adds pure-C code to your XS file. XS files are structured such that pure C
 code must come before XS specifications. This allows you to specify such
 C code.
-
-=head3 pp_boundscheck
-
-PDL normally checks the bounds of your accesses before making them. You can
-turn that on or off at runtime by setting MyPackage::set_boundscheck. This
-function allows you to remove that runtime flexibility and B<never> do bounds
-checking. It also returns the current boundschecking status if called
-without any argumens.
-
-NOTE: I have not found anything about bounds checking in other documentation.
-That needs to be addressed.
 
 =head2 Generating Perl Code
 
