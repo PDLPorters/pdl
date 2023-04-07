@@ -1572,7 +1572,7 @@ EOD
           confess "ERROR: Inplace Pars $in and $out inds ".join('=',@$in_ind{qw(Name Value)})." and ".join('=',@$out_ind{qw(Name Value)})." not compatible"
             if $in_ind->{Value} != $out_ind->{Value};
         }
-        PDL::PP::pp_line_numbers(__LINE__-1, "PDL_XS_INPLACE($in, $out, $noutca)\n");
+        "  PDL_XS_INPLACE($in, $out, $noutca)\n";
       }),
    PDL::PP::Rule::Returns::EmptyString->new("InplaceCode", []),
 
@@ -1639,13 +1639,11 @@ EOD
         $clause3 .= "${_}_SV = sv_newmortal();\n" for sort keys %other_out;
         $clause3 .= callPerlInit([grep $out{$_} || $outca{$_}, @args], $callcopy);
         $clause3 = indent($clause3,$ci);
-        my $defaults_cond = $ndefault ? " || $defaults_rawcond" : '';
-        $clause3 = <<EOF . $clause3;
-  else if (items == $nin$defaults_cond) { PDL_COMMENT("only input variables on stack, create outputs")
+        $clause3 = <<EOF . $clause3 . '  }';
+ else { PDL_COMMENT("only input variables on stack, create outputs")
     nreturn = $nallout;
 EOF
         $clause3 = '' if $nmaxonstack == $nin;
-        my $clause3_coda = $clause3 ? '  }' : '';
         <<END;
 \nvoid
 $name(@{[join ', ', @xsargs, keys(%valid_itemcounts) == 1 ? () : '...']})$xsdecls
@@ -1663,8 +1661,7 @@ qq[  if (items == $nmaxonstack) { PDL_COMMENT("all variables on stack, read in o
   ]]}  nreturn = $noutca;
 $clause1
 @{[keys(%valid_itemcounts) == 1 ? '' :
-qq[  }
-]]}$clause3$clause3_coda
+qq[  }]]}$clause3
 $hdrcode
 $inplacecode
 END
