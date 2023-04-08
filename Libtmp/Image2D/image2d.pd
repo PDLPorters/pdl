@@ -61,7 +61,7 @@ pp_def('polyfill_pp',
 	Code => 'int ierr = 0, nerr;
 	         broadcastloop %{
 		   polyfill($P(im), $SIZE(m), $SIZE(n), $P(ps), $SIZE(np), $col(), &nerr);
-		   ierr = ierr < nerr ? nerr : ierr;
+		   ierr = PDLMAX(ierr, nerr);
 		 %}
 		 if (ierr) warn("errors during polygonfilling");
 		 ',
@@ -760,10 +760,10 @@ EOD
 	Code => '
    PDL_Indx i,j,i1,i2,j1,j2,m_size = $SIZE(m),n_size = $SIZE(n);
    PDL_LDouble sum,data,sumx,sumy;
-   i1 = $x() - $box()/2; i1 = i1<0 ? 0 : i1;
-   i2 = $x() + $box()/2; i2 = i2>=m_size ? m_size-1 : i2;
-   j1 = $y() - $box()/2; j1 = j1<0 ? 0 : j1;
-   j2 = $y() + $box()/2; j2 = j2>=n_size ? n_size-1 : j2;
+   i1 = $x() - $box()/2; i1 = PDLMAX(i1, 0);
+   i2 = $x() + $box()/2; i2 = PDLMIN(i2, m_size-1);
+   j1 = $y() - $box()/2; j1 = PDLMAX(j1, 0);
+   j2 = $y() + $box()/2; j2 = PDLMIN(j2, n_size-1);
    sum = sumx = sumy = 0;
    for(j=j1; j<=j2; j++) {
       for(i=i1; i<=i2; i++) {

@@ -35,10 +35,10 @@ void polyfill(PDL_Long *image, int wx, int wy, float *ps, int n,
    *ierr = 0;
 
    for (i=1; i<n; i++) {
-     ymin = ymin > PY(i) ? PY(i) : ymin;
-     ymax = ymax < PY(i) ? PY(i) : ymax;
-     xmin = xmin > PX(i) ? PX(i) : xmin;
-     xmax = xmax < PX(i) ? PX(i) : xmax;
+     ymin = PDLMIN(ymin, PY(i));
+     ymax = PDLMAX(ymax, PY(i));
+     xmin = PDLMIN(xmin, PX(i));
+     xmax = PDLMAX(xmax, PX(i));
    }
    if (xmin < 0 || xmax >= wx || ymin < 0 || ymax >= wy) {
    	*ierr = 1; /* clipping */
