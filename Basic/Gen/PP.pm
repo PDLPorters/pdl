@@ -1611,6 +1611,7 @@ EOD
         my %ptypes = map +($_=>$$optypes{$_} ? $$optypes{$_}->get_decl('', {VarArrays2Ptrs=>1}) : 'pdl *'), @args;
         my %out = map +($_=>1), $sig->names_out_nca;
         my %outca = map +($_=>1), $sig->names_oca;
+        my @inargs = grep !$outca{$_}, @args;
         my %other_io = map +($_=>1), $sig->other_io;
         my %other_out = map +($_=>1), $sig->other_out;
         my $nout   = keys(%out) + keys(%other_out);
@@ -1625,13 +1626,13 @@ EOD
         my $usageargs = join ",",
           map exists $defaults->{$_} ? "$_=$defaults->{$_}" :
              $out{$_} || $other_out{$_} ? "[$_]" : $_,
-          grep !$outca{$_}, @args;
+          @inargs;
         # Generate declarations for SV * variables corresponding to pdl * output variables.
         # These are used in creating output variables.  One variable (ex: SV * outvar1_SV;)
         # is needed for each output and output create always argument
         my $svdecls = join "\n", map indent("SV *${_}_SV = NULL;",$ci), $sig->names_out, $sig->other_io, $sig->other_out;
         my ($xsdecls, @xsargs) = ''; my %already_read;
-        foreach my $x (grep !$outca{$_}, @args) {
+        foreach my $x (@inargs) {
             last if $out{$x} || $other_out{$x} || ($other{$x} && exists $defaults->{$x});
             $already_read{$x} = 1;
             push @xsargs, $x;
@@ -1643,13 +1644,13 @@ EOD
             qq[  if (items == $nmaxonstack) { PDL_COMMENT("all variables on stack, read in output vars")\n]
           ) .
           indent(
-            callTypemaps([grep !$outca{$_}, @args], \%ptypes, {%out,%other_io,%other_out}, \%already_read, {}, '') .
+            callTypemaps(\@inargs, \%ptypes, {%out,%other_io,%other_out}, \%already_read, {}, '') .
             callPerlInit([grep $outca{$_}, @args], $callcopy), $only_one ? 2 : 4
           ) .
           ($only_one ? '' :
           qq[  } else { PDL_COMMENT("only input variables on stack, create outputs")\n] .
           indent(
-            callTypemaps([grep !($out{$_} || $outca{$_} || $other_out{$_}), @args], \%ptypes, {%out,%other_io,%other_out}, \%already_read, $defaults, $defaults_rawcond) .
+            callTypemaps([grep !($out{$_} || $other_out{$_}), @inargs], \%ptypes, {%out,%other_io,%other_out}, \%already_read, $defaults, $defaults_rawcond) .
             join('', map "${_}_SV = sv_newmortal();\n", sort keys %other_out) .
             callPerlInit([grep $out{$_} || $outca{$_}, @args], $callcopy), 4
           ) . '  }');
