@@ -491,22 +491,24 @@ our $macros_xs = pp_line_numbers(__LINE__, <<'EOF');
   }
 
 #define PDL_XS_PERLINIT(name, to_push, method) \
-  if (strcmp(objname,"PDL") == 0) { PDL_COMMENT("shortcut if just PDL") \
-     name ## _SV = sv_newmortal(); \
-     name = PDL->pdlnew(); \
-     if (!name) PDL->pdl_barf("Error making null pdl"); \
-     PDL->SetSV_PDL(name ## _SV, name); \
-     if (bless_stash) name ## _SV = sv_bless(name ## _SV, bless_stash); \
-  } else { \
-     PUSHMARK(SP); \
-     XPUSHs(to_push); \
-     PUTBACK; \
-     perl_call_method(#method, G_SCALAR); \
-     SPAGAIN; \
-     name ## _SV = POPs; \
-     PUTBACK; \
-     name = PDL->SvPDLV(name ## _SV); \
-  }
+  do { \
+    if (strcmp(objname,"PDL") == 0) { PDL_COMMENT("shortcut if just PDL") \
+       name ## _SV = sv_newmortal(); \
+       name = PDL->pdlnew(); \
+       if (!name) PDL->pdl_barf("Error making null pdl"); \
+       PDL->SetSV_PDL(name ## _SV, name); \
+       if (bless_stash) name ## _SV = sv_bless(name ## _SV, bless_stash); \
+    } else { \
+       PUSHMARK(SP); \
+       XPUSHs(to_push); \
+       PUTBACK; \
+       perl_call_method(#method, G_SCALAR); \
+       SPAGAIN; \
+       name ## _SV = POPs; \
+       PUTBACK; \
+       name = PDL->SvPDLV(name ## _SV); \
+    } \
+  } while (0)
 
 #define PDL_XS_RETURN(clause1) \
     if (nreturn) { \
@@ -1082,7 +1084,7 @@ sub indent($$) {
 sub callPerlInit {
     my ($names, $callcopy) = @_;
     my $args = $callcopy ? 'parent, copy' : 'sv_2mortal(newSVpv(objname, 0)), initialize';
-    join '', map "PDL_XS_PERLINIT($_, $args)\n", @$names;
+    join '', map "PDL_XS_PERLINIT($_, $args);\n", @$names;
 }
 
 sub callTypemaps {
