@@ -476,9 +476,7 @@ our $macros_xs = pp_line_numbers(__LINE__, <<'EOF');
   HV *bless_stash = 0; \
   SV *parent = 0; \
   int   nreturn = (nret); \
-  (void)nreturn;
-
-#define PDL_XS_PACKAGEGET \
+  (void)nreturn; \
   PDL_COMMENT("Check if you can get a package name for this input value.  ") \
   PDL_COMMENT("It can be either a PDL (SVt_PVMG) or a hash which is a     ") \
   PDL_COMMENT("derived PDL subclass (SVt_PVHV)                            ") \
@@ -1668,7 +1666,6 @@ qq{  if (!(@{[join ' || ', map "(items == $_)", sort keys %valid_itemcounts]}))
              $out{$_} || $other_out{$_} ? "[$_]" : $_, @inargs
     ]}) (you may leave [output variables] and values with =defaults out of list)");
 }]}  PDL_XS_PREAMBLE($nretval)
-  PDL_XS_PACKAGEGET
 END
       }),
 
