@@ -1625,10 +1625,6 @@ EOD
         my $only_one = keys(%valid_itemcounts) == 1;
         my $nretval = $only_one ? $noutca :
           "(items == $nmaxonstack) ? $noutca : $nallout";
-        my $usageargs = join ",",
-          map exists $defaults->{$_} ? "$_=$defaults->{$_}" :
-             $out{$_} || $other_out{$_} ? "[$_]" : $_,
-          @inargs;
         # Generate declarations for SV * variables corresponding to pdl * output variables.
         # These are used in creating output variables.  One variable (ex: SV * outvar1_SV;)
         # is needed for each output and output create always argument
@@ -1667,7 +1663,10 @@ $name(@{[join ', ', @xsargs]})$xsdecls
  PPCODE:
 @{[$only_one ? '' :
 qq{  if (!(@{[join ' || ', map "(items == $_)", sort keys %valid_itemcounts]}))
-    croak (\"Usage: ${main::PDLOBJ}::$name($usageargs) (you may leave [output variables] and values with =defaults out of list)\");
+    croak("Usage: ${main::PDLOBJ}::$name(@{[
+        join ",", map exists $defaults->{$_} ? "$_=$defaults->{$_}" :
+             $out{$_} || $other_out{$_} ? "[$_]" : $_, @inargs
+    ]}) (you may leave [output variables] and values with =defaults out of list)");
 }]}  PDL_XS_PREAMBLE($nretval)
   PDL_XS_PACKAGEGET
 END
