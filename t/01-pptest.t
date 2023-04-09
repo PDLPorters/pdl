@@ -356,6 +356,12 @@ pp_def('index_prec', # check $a(n=>x+1) works
   Code => 'loop (n) %{ if (n > 1) $out() += $in(n=>n-1); %}',
 );
 
+pp_def("diff_central",
+  Pars => 'double x(); double [o] res();',
+  OtherPars => 'SV* function;',
+  Code => ';',
+);
+
 pp_done;
 
 # this tests the bug with a trailing comment and *no* newline
@@ -537,6 +543,9 @@ is 0+@$nds, 2;
 is +($nds->[0]//'undef').'', "[0 1 2]";
 
 is index_prec(sequence(2,6)->slice('(1)')).'', 24, 'index precedence OK';
+
+eval { diff_central(pdl(1), sub {}) };
+is $@, '';
 
 done_testing;
 EOF
