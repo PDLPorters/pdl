@@ -122,8 +122,9 @@ sub ind_index { $_[0]{Ind2Index}{$_[1]} }
 sub othernames {
   my ($self, $omit_count, $except) = @_;
   $except ||= {};
-  return $self->{OtherNames} if $omit_count && !keys %$except;
+  return $self->{OtherNames} if $omit_count && $omit_count > 0 && !keys %$except;
   my $objs = $self->otherobjs;
+  return [map "${_}_count", grep !$except->{$_} && $objs->{$_}->is_array, @{$self->{OtherNames}}] if $omit_count && $omit_count < 0;
   my @raw_names = grep !$except->{$_}, @{$self->{OtherNames}};
   @raw_names = map $objs->{$_}->is_array ? ($_, "${_}_count") : $_, @raw_names if !$omit_count;
   \@raw_names;
@@ -143,6 +144,7 @@ sub other_is_io { $_[0]->other_is_flag($_[1], 'io') }
 sub other_io { grep $_[0]->other_is_io($_), @{$_[0]{OtherNames}} }
 
 sub allnames { [
+  ($_[1] && $_[1] < 0) ? (grep $_[0]{Objects}{$_}{FlagCreateAlways}, @{$_[0]{Names}}) :
   (grep +(!$_[2] || !$_[2]{$_}) && !$_[0]{Objects}{$_}{FlagTemp}, @{$_[0]{Names}}),
   @{$_[0]->othernames(@_[1,2])},
 ] }

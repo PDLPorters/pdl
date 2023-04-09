@@ -1631,14 +1631,19 @@ EOD
         # These are used in creating output variables.  One variable (ex: SV * outvar1_SV;)
         # is needed for each output and output create always argument
         my $svdecls = join "\n", map indent("SV *${_}_SV = NULL;",$ci), $sig->names_out, $sig->other_io, $sig->other_out;
-        my ($xsdecls, @xsargs) = ''; my %already_read;
+        my ($xsdecls, $cnt, @xsargs, %already_read) = ('', -1);
         foreach my $x (@inargs) {
             last if $out{$x} || $other_out{$x} || ($other{$x} && exists $defaults->{$x});
+            $cnt++;
             $already_read{$x} = 1;
             push @xsargs, $x;
             $xsdecls .= "\n  $ptypes{$x}$x";
         }
-        my $pars = join "\n",map indent("$_;",$ci), $sig->alldecls(0, 0, \%already_read);
+        foreach my $x ((grep !$outca{$_}, @args)[$cnt+1..$nmaxonstack-1]) {
+          push @xsargs, "$x=$x";
+          $xsdecls .= "\n  $ptypes{$x}$x=NO_INIT";
+        }
+        my $pars = join "\n",map indent("$_;",$ci), $sig->alldecls(-1, 0, \%already_read);
         my $defaults_rawcond = $ndefault ? "items == $nin_minus_default" : '';
         my $argcode = ($only_one ? '' :
             qq[  if (items == $nmaxonstack) { PDL_COMMENT("all variables on stack, read in output vars")\n]
@@ -1658,7 +1663,7 @@ EOD
           "(items == $nmaxonstack) ? $noutca : $nallout";
         <<END.join '', map "$_\n", $svdecls, $pars, $argcode, $hdrcode, $inplacecode;
 \nvoid
-$name(@{[join ', ', @xsargs, $only_one ? () : '...']})$xsdecls
+$name(@{[join ', ', @xsargs]})$xsdecls
  PPCODE:
 @{[$only_one ? '' :
 qq{  if (!(@{[join ' || ', map "(items == $_)", sort keys %valid_itemcounts]}))
