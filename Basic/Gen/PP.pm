@@ -1623,6 +1623,8 @@ EOD
         $valid_itemcounts{my $nin = $ntot - ($nout + $noutca)} = 1;
         $valid_itemcounts{my $nin_minus_default = "($nin-$ndefault)"} = 1 if $ndefault;
         my $only_one = keys(%valid_itemcounts) == 1;
+        my $nretval = $only_one ? $noutca :
+          "(items == $nmaxonstack) ? $noutca : $nallout";
         my $usageargs = join ",",
           map exists $defaults->{$_} ? "$_=$defaults->{$_}" :
              $out{$_} || $other_out{$_} ? "[$_]" : $_,
@@ -1633,13 +1635,13 @@ EOD
         my $svdecls = join "\n", map indent("SV *${_}_SV = NULL;",$ci), $sig->names_out, $sig->other_io, $sig->other_out;
         my ($xsdecls, $cnt, @xsargs, %already_read) = ('', -1);
         foreach my $x (@inargs) {
-            last if $out{$x} || $other_out{$x} || ($other{$x} && exists $defaults->{$x});
-            $cnt++;
-            $already_read{$x} = 1;
-            push @xsargs, $x;
-            $xsdecls .= "\n  $ptypes{$x}$x";
+          last if $out{$x} || $other_out{$x} || ($other{$x} && exists $defaults->{$x});
+          $cnt++;
+          $already_read{$x} = 1;
+          push @xsargs, $x;
+          $xsdecls .= "\n  $ptypes{$x}$x";
         }
-        foreach my $x ((grep !$outca{$_}, @args)[$cnt+1..$nmaxonstack-1]) {
+        foreach my $x (@inargs[$cnt+1..$nmaxonstack-1]) {
           push @xsargs, "$x=$x";
           $xsdecls .= "\n  $ptypes{$x}$x=NO_INIT";
         }
@@ -1659,8 +1661,6 @@ EOD
             join('', map "${_}_SV = sv_newmortal();\n", sort keys %other_out) .
             callPerlInit([grep $out{$_} || $outca{$_}, @args], $callcopy), 4
           ) . '  }');
-        my $nretval = $only_one ? $noutca :
-          "(items == $nmaxonstack) ? $noutca : $nallout";
         <<END.join '', map "$_\n", $svdecls, $pars, $argcode, $hdrcode, $inplacecode;
 \nvoid
 $name(@{[join ', ', @xsargs]})$xsdecls
