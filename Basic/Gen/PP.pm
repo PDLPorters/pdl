@@ -1060,12 +1060,12 @@ sub make_xs_code {
     @bits) = @_;
   my($boot,$prelude);
   if($xs_c_headers) {
-    $prelude = join '' => ($xs_c_headers->[0], @bits, $xs_c_headers->[1]);
+    $prelude = join '', $xs_c_headers->[0], @bits, $xs_c_headers->[1];
     $boot = $xs_c_headers->[2];
     $str .= "\n";
   } else {
-    my $xscode = join '' => @bits;
-    $str .= " $xscode_before\n $xscode$xscode_after\n\n";
+    my $xscode = join '', @bits;
+    $str .= "$xscode_before\n$xscode$xscode_after\n";
   }
   $str =~ s/(\s*\n)+/\n/g;
   ($str,$boot,$prelude)
@@ -1598,11 +1598,11 @@ EOD
       }),
    PDL::PP::Rule->new("VarArgsXSHdr",
       ["Name","SignatureObj",
-       "HdrCode","InplaceCode",\"CallCopy",\"OtherParsDefaults"],
+       \"CallCopy",\"OtherParsDefaults"],
       'XS code to process input arguments based on supplied Pars argument to pp_def; not done if GlobalNew or PMCode supplied',
       sub {
         my($name,$sig,
-           $hdrcode,$inplacecode,$callcopy,$defaults) = @_;
+           $callcopy,$defaults) = @_;
         my $optypes = $sig->otherobjs;
         my @args = @{ $sig->allnames(1) };
         my %other = map +($_ => exists($$optypes{$_})), @args;
@@ -1657,7 +1657,7 @@ EOD
             join('', map "${_}_SV = sv_newmortal();\n", sort keys %other_out) .
             callPerlInit([grep $out{$_} || $outca{$_}, @args], $callcopy)
           ) . '  }');
-        <<END.join '', map "$_\n", $svdecls, $pars, $argcode, $hdrcode, $inplacecode;
+        <<END.join '', map "$_\n", $svdecls, $pars, $argcode;
 \nvoid
 $name(@{[join ', ', @xsargs]})$xsdecls
  PPCODE:
@@ -1750,7 +1750,7 @@ END
         my ($func_name,$sig) = @_;
         my $shortpars = join ',', map $sig->other_is_output($_)?"&$_":$_, @{ $sig->allnames(0) };
         my $longpars = join ",", $sig->alldecls(0, 1);
-        (indent(1,"PDL->barf_if_error($func_name($shortpars));\n"),
+        (indent(2,"PDL->barf_if_error($func_name($shortpars));\n"),
           "pdl_error $func_name($longpars)");
       }),
 
@@ -1972,14 +1972,14 @@ EOF
    PDL::PP::Rule->new(["NewXSCode","BootSetNewXS","NewXSInPrelude"],
       ["NewXSHdr", "NewXSCHdrs", "RunFuncCall"],
       "Non-varargs XS code when GlobalNew given",
-      sub {(undef,(make_xs_code('CODE:',' XSRETURN(0);',@_))[1..2])}),
+      sub {(undef,(make_xs_code(' CODE:',' XSRETURN(0);',@_))[1..2])}),
    # if PMCode supplied, no var-args stuff
    PDL::PP::Rule->new(["NewXSCode","BootSetNewXS","NewXSInPrelude"],
       ["PMCode","NewXSHdr", \"NewXSCHdrs", qw(FixArgsXSOtherOutDeclSV RunFuncCall XSOtherOutSet)],
       "Non-varargs XS code when PMCode given",
-      sub {make_xs_code('CODE:','  XSRETURN(0);',@_[1..$#_])}),
+      sub {make_xs_code(' CODE:','  XSRETURN(0);',@_[1..$#_])}),
    PDL::PP::Rule->new(["NewXSCode","BootSetNewXS","NewXSInPrelude"],
-      [qw(VarArgsXSHdr), \"NewXSCHdrs", qw(RunFuncCall VarArgsXSReturn)],
+      [qw(VarArgsXSHdr), \"NewXSCHdrs", qw(HdrCode InplaceCode RunFuncCall VarArgsXSReturn)],
       "Rule to print out XS code when variable argument list XS processing is enabled",
       sub {make_xs_code('','',@_)}),
 
