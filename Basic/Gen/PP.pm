@@ -1072,7 +1072,7 @@ sub make_xs_code {
 }
 
 sub indent($$) {
-    my ($text,$ind) = @_;
+    my ($ind, $text) = @_;
     return $text if !length $text;
     $ind = ' ' x $ind;
     $text =~ s/^(.*)$/$ind$1/mg;
@@ -1632,7 +1632,7 @@ EOD
         # Generate declarations for SV * variables corresponding to pdl * output variables.
         # These are used in creating output variables.  One variable (ex: SV * outvar1_SV;)
         # is needed for each output and output create always argument
-        my $svdecls = join "\n", map indent("SV *${_}_SV = NULL;",$ci), $sig->names_out, $sig->other_io, $sig->other_out;
+        my $svdecls = join "\n", map indent($ci,"SV *${_}_SV = NULL;"), $sig->names_out, $sig->other_io, $sig->other_out;
         my ($xsdecls, $cnt, @xsargs, %already_read) = ('', -1);
         foreach my $x (@inargs) {
           last if $out{$x} || $other_out{$x} || ($other{$x} && exists $defaults->{$x});
@@ -1645,21 +1645,21 @@ EOD
           push @xsargs, "$x=$x";
           $xsdecls .= "\n  $ptypes{$x}$x=NO_INIT";
         }
-        my $pars = join "\n",map indent("$_;",$ci), $sig->alldecls(-1, 0, \%already_read);
+        my $pars = join "\n",map indent($ci,"$_;"), $sig->alldecls(-1, 0, \%already_read);
         my $defaults_rawcond = $ndefault ? "items == $nin_minus_default" : '';
         my $argcode = ($only_one ? '' :
             qq[  if (items == $nmaxonstack) { PDL_COMMENT("all variables on stack, read in output vars")\n]
           ) .
-          indent(
+          indent($only_one ? 2 : 4,
             callTypemaps(\@inargs, \%ptypes, {%out,%other_io,%other_out}, \%already_read, {}, '') .
-            callPerlInit([grep $outca{$_}, @args], $callcopy), $only_one ? 2 : 4
+            callPerlInit([grep $outca{$_}, @args], $callcopy)
           ) .
           ($only_one ? '' :
           qq[  } else { PDL_COMMENT("only input variables on stack, create outputs")\n] .
-          indent(
+          indent(4,
             callTypemaps([grep !($out{$_} || $other_out{$_}), @inargs], \%ptypes, {%out,%other_io,%other_out}, \%already_read, $defaults, $defaults_rawcond) .
             join('', map "${_}_SV = sv_newmortal();\n", sort keys %other_out) .
-            callPerlInit([grep $out{$_} || $outca{$_}, @args], $callcopy), 4
+            callPerlInit([grep $out{$_} || $outca{$_}, @args], $callcopy)
           ) . '  }');
         <<END.join '', map "$_\n", $svdecls, $pars, $argcode, $hdrcode, $inplacecode;
 \nvoid
@@ -1690,7 +1690,7 @@ END
             $outother2cnt{$x} = $cnt if $other_output{$x};
             $cnt++;
         }
-        join "\n", map indent(qq{SV *${_}_SV = ST($outother2cnt{$_});},$ci), @other_output;
+        join "\n", map indent($ci,qq{SV *${_}_SV = ST($outother2cnt{$_});}), @other_output;
       }),
    PDL::PP::Rule->new("XSOtherOutSet",
       ["SignatureObj"],
@@ -1723,7 +1723,7 @@ EOF
         my @other_outputs = ($sig->other_io, $sig->other_out); # output OtherPars
         my $clause1 = join ';', (map "ST($_) = $outs[$_]_SV", 0 .. $#outs),
           (map "ST(@{[$_+$oc]}) = $other_outputs[$_]_SV", 0 .. $#other_outputs);
-        $other_out_set.indent("PDL_XS_RETURN($clause1)\n", 2);
+        $other_out_set.indent(2,"PDL_XS_RETURN($clause1)\n");
       }),
 
    PDL::PP::Rule->new("NewXSHdr", ["NewXSName","SignatureObj"],
@@ -1751,7 +1751,7 @@ END
         my ($func_name,$sig) = @_;
         my $shortpars = join ',', map $sig->other_is_output($_)?"&$_":$_, @{ $sig->allnames(0) };
         my $longpars = join ",", $sig->alldecls(0, 1);
-        (indent("PDL->barf_if_error($func_name($shortpars));\n", 1),
+        (indent(1,"PDL->barf_if_error($func_name($shortpars));\n"),
           "pdl_error $func_name($longpars)");
       }),
 
