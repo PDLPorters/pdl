@@ -480,13 +480,15 @@ our $macros_xs = pp_line_numbers(__LINE__, <<'EOF');
   PDL_COMMENT("Check if you can get a package name for this input value.  ") \
   PDL_COMMENT("It can be either a PDL (SVt_PVMG) or a hash which is a     ") \
   PDL_COMMENT("derived PDL subclass (SVt_PVHV)                            ") \
-  if (SvROK(ST(0)) && ((SvTYPE(SvRV(ST(0))) == SVt_PVMG) || (SvTYPE(SvRV(ST(0))) == SVt_PVHV))) { \
-    parent = ST(0); \
-    if (sv_isobject(parent)){ \
-	bless_stash = SvSTASH(SvRV(ST(0))); \
-	objname = HvNAME((bless_stash));  PDL_COMMENT("The package to bless output vars into is taken from the first input var") \
+  do { \
+    if (SvROK(ST(0)) && ((SvTYPE(SvRV(ST(0))) == SVt_PVMG) || (SvTYPE(SvRV(ST(0))) == SVt_PVHV))) { \
+      parent = ST(0); \
+      if (sv_isobject(parent)){ \
+          bless_stash = SvSTASH(SvRV(ST(0))); \
+          objname = HvNAME((bless_stash));  PDL_COMMENT("The package to bless output vars into is taken from the first input var") \
+      } \
     } \
-  }
+  } while (0)
 
 #define PDL_XS_PERLINIT(name, to_push, method) \
   do { \
@@ -1673,7 +1675,7 @@ qq{  if (!(@{[join ' || ', map "(items == $_)", sort keys %valid_itemcounts]}))
         join ",", map exists $defaults->{$_} ? "$_=$defaults->{$_}" :
              $out{$_} || $other_out{$_} ? "[$_]" : $_, @inargs
     ]}) (you may leave [output variables] and values with =defaults out of list)");
-}]}  PDL_XS_PREAMBLE($nretval)
+}]}  PDL_XS_PREAMBLE($nretval);
 END
       }),
 
