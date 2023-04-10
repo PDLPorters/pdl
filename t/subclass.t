@@ -135,15 +135,20 @@ ok(ref($y) eq "PDL::Derived3", "check type after sumover");
 
 #### Check the type after adding two PDL::Derived3 objects:
 my $x = PDL::Derived3->new( ones(5,5) ) ;
-my $w = $x + $z;
-ok(ref($w) eq "PDL::Derived3", "check type after adding");
+{
+  my @w;
+  local $SIG{__WARN__} = sub { push @w, @_ };
+  my $w = $x + $z;
+  ok(ref($w) eq "PDL::Derived3", "check type after adding");
+  is "@w", '', 'no warnings';
+}
 
 #### Check the type after calling null:
 my $a1 = PDL::Derived3->null();
 ok(ref($a1) eq "PDL::Derived3", "check type after calling null");
 
 ##### Check the type for a biops2 operation:
-$w = ($x == $z);
+my $w = ($x == $z);
 ok(ref($w) eq "PDL::Derived3", "check type for biops2 operation");
 
 ##### Check the type for a biops3 operation:
@@ -292,9 +297,14 @@ my $im = PDL::Derived4->new([
   [10, 10,  2,  2,  2,]
 ]);
 
-# Check for PDL::sumover being called by sum
-ok($im->sum == 176, "PDL::sumover is called by sum" ); # result will be = 134 if derived sumover
-                                                       # is not called,   176 if it is called.
+{
+  my @w;
+  local $SIG{__WARN__} = sub { push @w, @_ };
+  # Check for PDL::sumover being called by sum
+  ok($im->sum == 176, "PDL::sumover is called by sum" ); # result will be = 134 if derived sumover
+                                                         # is not called,   176 if it is called.
+  is "@w", '', 'no warnings';
+}
 
 ### Test over-ride of minmaximum:
 $main::OVERRIDEWORKED = 0;
