@@ -362,6 +362,48 @@ pp_def("diff_central",
   Code => ';',
 );
 
+# previously in t/inline-comment-test.t
+pp_addpm(pp_line_numbers(__LINE__-1, q{ sub myfunc { } }));
+
+pp_def('testinc',
+        Pars => 'a(); [o] b()',
+        Code => q{
+           /* emulate user debugging */
+
+           /* Why doesn't this work???!!!! */
+       threadloop %{
+    /*         printf("  %f, %f\r", $a(), $b());
+             printf("  Here\n");
+        */
+
+                 /* Sanity check */
+                 $b() = $a() + 1;
+
+         %}
+
+        },
+);
+
+# make sure that if the word "broadcastloop" appears, later automatic broadcastloops
+# will not be generated, even if the original broadcastloop was commented-out
+
+pp_def('testinc2',
+        Pars => 'a(); [o] b()',
+        Code => q{
+           /* emulate user debugging */
+
+           /* Why doesn't this work???!!!! */
+   /*    threadloop %{
+             printf("  %f, %f\r", $a(), $b());
+             printf("  Here\n");
+         %}
+        */
+          /* Sanity check */
+          $b() = $a() + 1;
+
+        },
+);
+
 pp_done;
 
 # this tests the bug with a trailing comment and *no* newline
@@ -547,78 +589,7 @@ is index_prec(sequence(2,6)->slice('(1)')).'', 24, 'index precedence OK';
 eval { diff_central(pdl(1), sub {}) };
 is $@, '';
 
-done_testing;
-EOF
-
-);
-
-my %THREADTESTFILES = (
-    'Makefile.PL' => <<'EOF',
-use strict;
-use warnings;
-use ExtUtils::MakeMaker;
-use PDL::Core::Dev;
-my @pack = (["threadtest.pd", qw(ThreadTest PDL::ThreadTest)]);
-sub MY::postamble {
-	pdlpp_postamble(@pack);
-};  # Add genpp rule
-WriteMakefile(pdlpp_stdargs(@pack));
-EOF
-
-    'threadtest.pd' => <<'EOF',
-# previously in t/inline-comment-test.t
-
-pp_addpm(pp_line_numbers(__LINE__-1, q{ sub myfunc { } }));
-
-pp_def('testinc',
-        Pars => 'a(); [o] b()',
-        Code => q{
-           /* emulate user debugging */
-
-           /* Why doesn't this work???!!!! */
-       threadloop %{
-    /*         printf("  %f, %f\r", $a(), $b());
-             printf("  Here\n");
-        */
-
-                 /* Sanity check */
-                 $b() = $a() + 1;
-
-         %}
-
-        },
-);
-
-# make sure that if the word "broadcastloop" appears, later automatic broadcastloops
-# will not be generated, even if the original broadcastloop was commented-out
-
-pp_def('testinc2',
-        Pars => 'a(); [o] b()',
-        Code => q{
-           /* emulate user debugging */
-
-           /* Why doesn't this work???!!!! */
-   /*    threadloop %{
-             printf("  %f, %f\r", $a(), $b());
-             printf("  Here\n");
-         %}
-        */
-          /* Sanity check */
-          $b() = $a() + 1;
-
-        },
-);
-
-pp_done();
-EOF
-
-    't/all.t' => <<'EOF',
-use strict;
-use warnings;
-use Test::More;
-use PDL::LiteF;
-use_ok 'PDL::ThreadTest';
-
+{
 my $x = sequence(3,3);
 
 my $y = $x->testinc;
@@ -635,13 +606,13 @@ TODO: {
         ok(not (all $y == $x + 1), 'WART: commenting out a broadcastloop does not work')
                 or diag("\$x is $x and \$y is $y");
 }
+}
 
 done_testing;
 EOF
 
 );
 
-do_tests(\%THREADTESTFILES);
 do_tests(\%PPTESTFILES);
 
 sub do_tests {
