@@ -278,7 +278,7 @@ NV_ADD1 T_NV_ADD1
 
 INPUT
 T_NV_ADD1
-  $var = SvNV($arg) + 1;
+  $var = SvNV($arg) + 1
 
 OUTPUT
 T_NV_ADD1

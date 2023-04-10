@@ -1609,7 +1609,7 @@ EOD
            $callcopy,$defaults) = @_;
         my $optypes = $sig->otherobjs;
         my @args = @{ $sig->allnames(1) };
-        my %other = map +($_ => exists($$optypes{$_})), @args;
+        my %other = map +($_=>1), @{$sig->othernames(1)};
         $defaults ||= {};
         my $ci = 2;  # current indenting
         my %ptypes = map +($_=>$$optypes{$_} ? $$optypes{$_}->get_decl('', {VarArrays2Ptrs=>1}) : 'pdl *'), @args;
