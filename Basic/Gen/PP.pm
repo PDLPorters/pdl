@@ -1093,7 +1093,7 @@ sub callTypemap {
   $setter = typemap_eval($setter, {var=>$x, type=>$type, arg=>($is_out ? "${x}_SV = " : '')."ST($cnt)"});
   $setter =~ s/.*?(?=$x\s*=\s*)//s; # zap any declarations
   $setter =~ s/^(.*?)=\s*//s, $setter = "$x = ($defaults_rawcond) ? ($default) : ($setter)" if defined $default;
-  "$setter;\n";
+  "$setter;";
 }
 
 sub callTypemaps {
@@ -1104,7 +1104,7 @@ sub callTypemaps {
     next if $already_read->{$x};
     push @r, callTypemap($x, $ptypes->{$x}, $is_out->{$x}, $cnt, $defaults->{$x}, $defaults_rawcond);
   }
-  join '', @r;
+  join '', map "$_\n", @r;
 }
 
 ###########################################################
