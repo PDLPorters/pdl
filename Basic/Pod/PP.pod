@@ -1376,8 +1376,9 @@ array" type parameter as an C<OtherPars> entry:
     # ...
   );
 
-There is an XS F<typemap> entry (only for C<PDL_Indx> array types for
-now) that adds a C<(varname)_count> variable having extracted the index
+There is an XS F<typemap> entry (for C<PDL_Indx> and C<pdl*> array types for
+now) that relies on a C<(varname)_count> variable being declared in the
+XS C<INPUT> section (PP does this for you), to extract the index
 numbers from an array-ref parameter, and sets the count variable to the
 right value. PP then makes a copy of the data available. The C function
 (here, C<pdl_diagonal_run>)'s caller (here, the generated XS function)
@@ -1654,23 +1655,6 @@ and use it in the code:
 
 where I have removed a macro wrapper call, but that would obscure the
 discussion.
-
-Care should be exercised in writing F<typemap> entries. For instance,
-the PDL one currently has (for input):
-
-  T_PDL_DIMLIST
-          PDL_Indx ${var}_count;
-          $var = PDL_CORE_(packdims)($arg, &${var}_count);
-
-PP removes from input typemap entries everything up to the assignment,
-which here removes the C<${var}_count> declaration, which is instead
-declared thanks to PP's knowledge of this type. This
-is necessary because the inputs are handled within their own scope,
-since there are several branches where the inputs can be set thanks to
-variable-argument handling. The count variable would be lost if such
-removal were not done, since its value would be set within the local
-scope, then discarded. If this causes a problem for your application,
-please ask one of the PDL mailing lists or on IRC.
 
 You can also have C<OtherPars> entries that are "incomplete arrays"
 of C<pdl*>, both for input and output:

@@ -1091,7 +1091,7 @@ sub callTypemaps {
   foreach my $x (@$args) {
     my ($setter, $type) = typemap($ptypes->{$x}, 'get_inputmap');
     $setter = typemap_eval($setter, {var=>$x, type=>$type, arg=>($is_out->{$x} ? "${x}_SV = " : '')."ST($cnt)"});
-    $setter =~ s/.*?(?=$x\s*=\s*)//s; # zap any declarations like whichdims_count
+    $setter =~ s/.*?(?=$x\s*=\s*)//s; # zap any declarations
     $setter =~ s/^(.*?)=\s*//s, $setter = "$x = ($defaults_rawcond) ? ($defaults->{$x}) : ($setter)" if exists $defaults->{$x};
     $clause .= "$setter;\n" if !$already_read->{$x};
     $cnt++;
@@ -1633,10 +1633,12 @@ EOD
           $cnt++;
           $already_read{$x} = 1;
           push @xsargs, $x;
+          $xsdecls .= "\n  PDL_Indx ${x}_count=0;" if $other{$x} && $optypes->{$x}->is_array;
           $xsdecls .= "\n  $ptypes{$x}$x";
         }
         foreach my $x (@inargs[$cnt+1..$nmaxonstack-1]) {
           push @xsargs, "$x=$x";
+          $xsdecls .= "\n  PDL_Indx ${x}_count=0;" if $other{$x} && $optypes->{$x}->is_array;
           $xsdecls .= "\n  $ptypes{$x}$x=NO_INIT";
         }
         my $pars = join "\n",map indent($ci,"$_;"), $sig->alldecls(-1, 0, \%already_read);
@@ -1726,7 +1728,9 @@ EOF
       sub {
         my($name,$sig) = @_;
         my $shortpars = join ',', @{ $sig->allnames(1) };
-        my $longpars = join "\n", map "  $_", $sig->alldecls(1, 0);
+        my $optypes = $sig->otherobjs;
+        my @counts = map "PDL_Indx ${_}_count=0;", grep $optypes->{$_}->is_array, @{ $sig->othernames(1) };
+        my $longpars = join "\n", map "  $_", @counts, $sig->alldecls(1, 0);
         return<<END;
 \nvoid
 $name($shortpars)

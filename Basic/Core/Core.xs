@@ -275,6 +275,7 @@ set_debugging(i)
 SV *
 at_bad_c(x,pos)
    pdl*	x
+   PDL_Indx pos_count=0;
    PDL_Indx *pos
    PREINIT:
     PDL_Indx ipos;
@@ -391,6 +392,7 @@ listref_c(x)
 void
 set_c(x,pos,value)
     pdl*	x
+    PDL_Indx pos_count=0;
     PDL_Indx *pos
     PDL_Anyval	value
    PREINIT:
@@ -760,6 +762,7 @@ getbroadcastid(x,y)
 void
 setdims(x,dims)
 	pdl *x
+	PDL_Indx dims_count=0;
 	PDL_Indx *dims
 	CODE:
 		pdl_barf_if_error(pdl_setdims(x,dims,dims_count));

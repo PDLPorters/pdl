@@ -11,41 +11,39 @@ pdl ** T_PDL_LIST
 INPUT
 
 T_PDL
-	$var = PDL_CORE_(SvPDLV)($arg)
+  $var = PDL_CORE_(SvPDLV)($arg)
 
 T_PDL_ANYVAL
-	ANYVAL_FROM_SV($var, $arg, FALSE, -1)
+  ANYVAL_FROM_SV($var, $arg, FALSE, -1)
 
 T_PDLTRANS
-	if(sv_isa($arg,\"PDL::Trans\"))
-		$var = INT2PTR(pdl_trans *,SvIV(SvRV($arg)));
-	else
-	        croak(\"$var is not of type PDL::Trans\");
+  if(sv_isa($arg,\"PDL::Trans\"))
+    $var = INT2PTR(pdl_trans *,SvIV(SvRV($arg)));
+  else
+    croak(\"$var is not of type PDL::Trans\");
 
 T_PDL_SLICEARGS
-	$var = PDL_CORE_(slice_args_parse_sv)($arg)
+  $var = PDL_CORE_(slice_args_parse_sv)($arg)
 
 T_PDL_DIMLIST
-	PDL_Indx ${var}_count;
-	$var = PDL_CORE_(packdims)($arg, &${var}_count);
+  $var = PDL_CORE_(packdims)($arg, &${var}_count)
 
 T_PDL_LIST
-	PDL_Indx ${var}_count;
-	$var = PDL_CORE_(packpdls)($arg, &${var}_count);
+  $var = PDL_CORE_(packpdls)($arg, &${var}_count)
 
 OUTPUT
 
 T_PDL
-	PDL_CORE_(SetSV_PDL)($arg,$var);
+  PDL_CORE_(SetSV_PDL)($arg,$var);
 
 T_PDL_ANYVAL
-	ANYVAL_TO_SV($arg, $var);
+  ANYVAL_TO_SV($arg, $var);
 
 T_PDLTRANS
-	sv_setref_pv($arg, \"PDL::Trans\", (void*)$var);
+  sv_setref_pv($arg, \"PDL::Trans\", (void*)$var);
 
 T_PDL_LIST
-	if ($var) {
-	  $arg = PDL_CORE_(unpackpdls)($var, ${var}_count);
-	  free($var);
-	}
+  if ($var) {
+    $arg = PDL_CORE_(unpackpdls)($var, ${var}_count);
+    free($var);
+  }
