@@ -1691,10 +1691,10 @@ END
         join "\n", map indent($ci,qq{SV *${_}_SV = ST($outother2cnt{$_});}), @other_output;
       }),
    PDL::PP::Rule->new("XSOtherOutSet",
-      ["SignatureObj"],
+      [qw(Name SignatureObj)],
       "Generate XS to set SVs to output values for OtherPars",
       sub {
-        my ($sig) = @_;
+        my ($name, $sig) = @_;
         my $clause1 = '';
         my @other_output = ($sig->other_io, $sig->other_out);
         my $optypes = $sig->otherobjs;
@@ -1702,15 +1702,15 @@ END
         for my $x (@other_output) {
           my ($setter, $type) = typemap($ptypes{$x}, 'get_outputmap');
           $setter = typemap_eval($setter, {var=>$x, type=>$type, arg=>"tsv"});
-          $clause1 = <<EOF . $clause1;
+          $clause1 .= <<EOF;
 if (!${x}_SV)
-  PDL->pdl_barf("Internal error: tried to output to NULL SV for $x");
-{ SV *tsv = sv_2mortal(newSV(0));
+  PDL->pdl_barf("Internal error in $name: tried to output to NULL ${x}_SV");
+{\n  SV *tsv = sv_newmortal();
 $setter
-sv_setsv(${x}_SV, tsv); }
+  sv_setsv(${x}_SV, tsv);\n}
 EOF
         }
-        $clause1;
+        indent(2, $clause1);
       }),
    PDL::PP::Rule->new("VarArgsXSReturn",
       ["SignatureObj","XSOtherOutSet"],
