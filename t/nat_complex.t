@@ -70,7 +70,7 @@ for (float, double, ldouble, cfloat, cdouble, cldouble) {
 # dataflow from complex to real
 my $ar = $x->re;
 $ar++;
-ok(tapprox($x->re, -$ref->slice("0,")->squeeze + 1), 'complex to real dataflow') or diag "got=".$x->re;
+ok(tapprox($x->re, -$ref->slice("0,")->squeeze + 1), 'complex to real dataflow') or diag "got=".$x->re, "expected=".(-$ref->slice("0,")->squeeze + 1);
 my $ai = $x->im;
 $x+=i;
 my $expected = pdl(-2, -2);
