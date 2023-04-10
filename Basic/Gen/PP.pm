@@ -1082,29 +1082,15 @@ sub indent($$) {
 # This subroutine generates the XS code needed to call the perl 'initialize'
 # routine in order to create new output PDLs
 sub callPerlInit {
-    my ($names, $callcopy) = @_;
+    my ($name, $callcopy) = @_;
     my $args = $callcopy ? 'parent, copy' : 'sv_2mortal(newSVpv(objname, 0)), initialize';
-    join '', map "PDL_XS_PERLINIT($_, $args);\n", @$names;
+    "PDL_XS_PERLINIT($name, $args);\n";
 }
 
 sub callTypemap {
-  my ($x, $ptype, $is_out, $cnt, $default, $defaults_rawcond) = @_;
+  my ($x, $ptype) = @_;
   my ($setter, $type) = typemap($ptype, 'get_inputmap');
-  $setter = typemap_eval($setter, {var=>$x, type=>$type, arg=>($is_out ? "${x}_SV = " : '')."ST($cnt)"});
-  $setter =~ s/.*?(?=$x\s*=\s*)//s; # zap any declarations
-  $setter =~ s/^(.*?)=\s*//s, $setter = "$x = ($defaults_rawcond) ? ($default) : ($setter)" if defined $default;
-  "$setter;";
-}
-
-sub callTypemaps {
-  my ($args, $ptypes, $is_out, $already_read, $defaults, $defaults_rawcond) = @_;
-  my ($cnt, $clause, @r) = (-1, '');
-  foreach my $x (@$args) {
-    $cnt++;
-    next if $already_read->{$x};
-    push @r, callTypemap($x, $ptypes->{$x}, $is_out->{$x}, $cnt, $defaults->{$x}, $defaults_rawcond);
-  }
-  join '', map "$_\n", @r;
+  typemap_eval($setter, {var=>$x, type=>$type, arg=>("${x}_SV")});
 }
 
 ###########################################################
@@ -1631,40 +1617,48 @@ EOD
         my $only_one = keys(%valid_itemcounts) == 1;
         my $nretval = $only_one ? $noutca :
           "(items == $nmaxonstack) ? $noutca : $nallout";
-        # Generate declarations for SV * variables corresponding to pdl * output variables.
-        # These are used in creating output variables.  One variable (ex: SV * outvar1_SV;)
-        # is needed for each output and output create always argument
-        my $svdecls = join "\n", map indent($ci,"SV *${_}_SV = NULL;"), $sig->names_out, $sig->other_io, $sig->other_out;
-        my ($xsdecls, $cnt, @xsargs, %already_read) = ('', -1);
+        my ($xsdecls, $cnt, @xsargs, %already_read, %name2cnts) = ('', -1);
         foreach my $x (@inargs) {
           last if $out{$x} || $other_out{$x} || ($other{$x} && exists $defaults->{$x});
           $cnt++;
+          $name2cnts{$x} = [$cnt, $cnt];
           $already_read{$x} = 1;
           push @xsargs, $x;
           $xsdecls .= "\n  PDL_Indx ${x}_count=0;" if $other{$x} && $optypes->{$x}->is_array;
           $xsdecls .= "\n  $ptypes{$x}$x";
         }
+        my $shortcnt = my $xs_arg_cnt = $cnt;
         foreach my $x (@inargs[$cnt+1..$nmaxonstack-1]) {
+          $cnt++;
+          $name2cnts{$x} = [$cnt, undef];
+          $name2cnts{$x}[1] = ++$shortcnt if !($out{$x} || $other_out{$x});
           push @xsargs, "$x=$x";
           $xsdecls .= "\n  PDL_Indx ${x}_count=0;" if $other{$x} && $optypes->{$x}->is_array;
           $xsdecls .= "\n  $ptypes{$x}$x=NO_INIT";
         }
         my $pars = join "\n",map indent($ci,"$_;"), $sig->alldecls(-1, 0, \%already_read);
         my $defaults_rawcond = $ndefault ? "items == $nin_minus_default" : '';
-        my $argcode = indent(2, callPerlInit([grep $outca{$_}, @args], $callcopy)) .
-          ($only_one ? '' :
-            qq[  if (items == $nmaxonstack) { PDL_COMMENT("all variables on stack, read in output vars")\n]
-          ) .
-          indent($only_one ? 2 : 4,
-            callTypemaps(\@inargs, \%ptypes, {%out,%other_io,%other_out}, \%already_read, {}, '')
-          ) .
-          ($only_one ? '' :
-          qq[  } else { PDL_COMMENT("only input variables on stack, create outputs")\n] .
-          indent(4,
-            callTypemaps([grep !($out{$_} || $other_out{$_}), @inargs], \%ptypes, {%out,%other_io,%other_out}, \%already_read, $defaults, $defaults_rawcond) .
-            join('', map "${_}_SV = sv_newmortal();\n", sort keys %other_out) .
-            callPerlInit([grep $out{$_}, @args], $callcopy)
-          ) . '  }');
+        my $svdecls = indent($ci, join "\n",
+          (map "SV *${_}_SV = ".(
+            !$name2cnts{$_} ? 'NULL' :
+            $name2cnts{$_}[0] == ($name2cnts{$_}[1]//-1) ? "ST($name2cnts{$_}[0])" :
+            "(items == $nmaxonstack) ? ST($name2cnts{$_}[0]) : ".
+            (!defined $name2cnts{$_}[1] ? ($other_out{$_} ? "sv_newmortal()" : "NULL") :
+              defined $defaults->{$_} ? "!($defaults_rawcond) ? ST($name2cnts{$_}[1]) : ".($other_out{$_} ? "sv_newmortal()" : "NULL") :
+              "ST($name2cnts{$_}[1])"
+            )
+          ).";", (grep !$already_read{$_}, $sig->names_in), $sig->names_out, @{$sig->othernames(1, \%already_read)}),
+        );
+        my $argcode =
+          indent(2, join '',
+            (map
+              +(exists $defaults->{$_} ? "if (!${_}_SV) { $_ = ($defaults->{$_}); } else " : "").
+              "{ ".callTypemap($_, $ptypes{$_})."; }\n",
+            @{$sig->othernames(1, \%already_read)}),
+            (map callTypemap($_, $ptypes{$_}).";\n", grep !$already_read{$_}, $sig->names_in),
+            # do these last as calls to Perl methods mutate stack
+            (map +($out{$_} ? "if (${_}_SV) { ".callTypemap($_, $ptypes{$_})."; } else " : "").callPerlInit($_, $callcopy), grep $out{$_} || $outca{$_}, @args)
+          );
         <<END.join '', map "$_\n", $svdecls, $pars, $argcode;
 \nvoid
 $name(@{[join ', ', @xsargs]})$xsdecls
