@@ -380,13 +380,6 @@ exception in Perl code, but can be handled suitably by non-Perl callers.
 
 =item *
 
-  safe_indterm
-
-Checks given offset is within given ndarray's bounds, else throws an
-exception.
-
-=item *
-
   converttype
 
 Used by C<set_datatype> to change an ndarray's type, converting and
