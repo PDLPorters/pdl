@@ -1085,19 +1085,24 @@ sub callPerlInit {
     join '', map "PDL_XS_PERLINIT($_, $args);\n", @$names;
 }
 
+sub callTypemap {
+  my ($x, $ptype, $is_out, $cnt, $default, $defaults_rawcond) = @_;
+  my ($setter, $type) = typemap($ptype, 'get_inputmap');
+  $setter = typemap_eval($setter, {var=>$x, type=>$type, arg=>($is_out ? "${x}_SV = " : '')."ST($cnt)"});
+  $setter =~ s/.*?(?=$x\s*=\s*)//s; # zap any declarations
+  $setter =~ s/^(.*?)=\s*//s, $setter = "$x = ($defaults_rawcond) ? ($default) : ($setter)" if defined $default;
+  "$setter;\n";
+}
+
 sub callTypemaps {
   my ($args, $ptypes, $is_out, $already_read, $defaults, $defaults_rawcond) = @_;
-  my ($cnt, $clause) = (-1, '');
+  my ($cnt, $clause, @r) = (-1, '');
   foreach my $x (@$args) {
     $cnt++;
     next if $already_read->{$x};
-    my ($setter, $type) = typemap($ptypes->{$x}, 'get_inputmap');
-    $setter = typemap_eval($setter, {var=>$x, type=>$type, arg=>($is_out->{$x} ? "${x}_SV = " : '')."ST($cnt)"});
-    $setter =~ s/.*?(?=$x\s*=\s*)//s; # zap any declarations
-    $setter =~ s/^(.*?)=\s*//s, $setter = "$x = ($defaults_rawcond) ? ($defaults->{$x}) : ($setter)" if exists $defaults->{$x};
-    $clause .= "$setter;\n";
+    push @r, callTypemap($x, $ptypes->{$x}, $is_out->{$x}, $cnt, $defaults->{$x}, $defaults_rawcond);
   }
-  $clause;
+  join '', @r;
 }
 
 ###########################################################
