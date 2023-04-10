@@ -1643,19 +1643,19 @@ EOD
         }
         my $pars = join "\n",map indent($ci,"$_;"), $sig->alldecls(-1, 0, \%already_read);
         my $defaults_rawcond = $ndefault ? "items == $nin_minus_default" : '';
-        my $argcode = ($only_one ? '' :
+        my $argcode = indent(2, callPerlInit([grep $outca{$_}, @args], $callcopy)) .
+          ($only_one ? '' :
             qq[  if (items == $nmaxonstack) { PDL_COMMENT("all variables on stack, read in output vars")\n]
           ) .
           indent($only_one ? 2 : 4,
-            callTypemaps(\@inargs, \%ptypes, {%out,%other_io,%other_out}, \%already_read, {}, '') .
-            callPerlInit([grep $outca{$_}, @args], $callcopy)
+            callTypemaps(\@inargs, \%ptypes, {%out,%other_io,%other_out}, \%already_read, {}, '')
           ) .
           ($only_one ? '' :
           qq[  } else { PDL_COMMENT("only input variables on stack, create outputs")\n] .
           indent(4,
             callTypemaps([grep !($out{$_} || $other_out{$_}), @inargs], \%ptypes, {%out,%other_io,%other_out}, \%already_read, $defaults, $defaults_rawcond) .
             join('', map "${_}_SV = sv_newmortal();\n", sort keys %other_out) .
-            callPerlInit([grep $out{$_} || $outca{$_}, @args], $callcopy)
+            callPerlInit([grep $out{$_}, @args], $callcopy)
           ) . '  }');
         <<END.join '', map "$_\n", $svdecls, $pars, $argcode;
 \nvoid
