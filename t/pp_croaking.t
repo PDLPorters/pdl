@@ -100,4 +100,65 @@ eval { pp_def( "func", Code => ';',
 ) };
 like $@, qr/Inplace Pars a and b inds n=2 and m=3 not compatible/;
 
+eval { pp_def( "func", Code => ';',
+  Pars => "a(n=2); [o] b(m=3);",
+  OtherPars => "int x; char *y",
+  ArgOrder => [qw(a x y)],
+) };
+like $@, qr/missed params/;
+
+eval { pp_def( "func", Code => ';',
+  Pars => "a(n=2); [o] b(m=3);",
+  OtherPars => "int x; char *y",
+  ArgOrder => [qw(a x y b c)],
+) };
+like $@, qr/too many params/;
+
+eval { pp_def( "func", Code => ';',
+  Pars => "a(n=2); [o] b(m=3);",
+  OtherPars => "int x; char *y",
+  ArgOrder => [qw(a x b y)],
+) };
+like $@, qr/optional argument/;
+
+eval { pp_def( "func", Code => ';',
+  Pars => "a(n=2); [o] b(m=3);",
+  OtherPars => "int x; char *y",
+  ArgOrder => 1,
+) };
+is $@, '', 'non-ref true value OK';
+
+eval { pp_def( "func", Code => ';',
+  Pars => "a(n=2); [o] b(m=3);",
+  OtherPars => "int x; char *y",
+  ArgOrder => [qw(a x y b)],
+) };
+is $@, '', 'valid order OK';
+
+eval { pp_def( "func", Code => ';',
+  Pars => "a(n=2); [o] b(m=3);",
+  OtherPars => "int x; char *y",
+  ArgOrder => [qw(a x y b)],
+) };
+
+my $got = [PDL::PP::reorder_args(my $sig = PDL::PP::Signature->new(
+   "a(n=2); [o] b(m=3);", 1, "int x; char *y"
+), {})];
+is_deeply $got, [qw(a x y b)], 'right reorder no defaults' or diag explain $got;
+is_deeply $got = [PDL::PP::reorder_args($sig, {x=>1})], [qw(a y x b)],
+  'right reorder with default'
+  or diag explain $got;
+is_deeply $got = [PDL::PP::reorder_args($sig = PDL::PP::Signature->new(
+   "a(n=2); [o] b(m=3);", 1, "[o] int x; char *y; double z"
+), {})], [qw(a y z b x)], 'right reorder, output other, no defaults'
+  or diag explain $got;
+is_deeply $got = [PDL::PP::reorder_args($sig, {y=>'""'})], [qw(a z y b x)],
+  'right reorder, output other, with default'
+  or diag explain $got;
+is_deeply $got = ($sig = PDL::PP::Signature->new(
+   "a(n=2); [o] b(m=3);", 1, "[o] int x; pdl *y[]; double z"
+))->allnames(0, {}, [qw(y a z b x)]), [qw(y y_count a z b x)], 'check incomplete-array'
+  or diag explain $got;
+is join(",", $sig->alldecls(0, 1, {}, [qw(y a z b x)])), 'pdl  **y,PDL_Indx  y_count,pdl  *a,double  z,pdl  *b,int  *x', 'alldecls';
+
 done_testing;

@@ -404,6 +404,15 @@ pp_def('testinc2',
         },
 );
 
+pp_def('or2',
+  Pars => 'a(); b(); [o]c();',
+  OtherPars => 'int swap; char *ign; int ign2',
+  OtherParsDefaults => { swap => 0, ign=>'""', ign2=>0 },
+  ArgOrder => 1,
+  Code => '$c() = $a() | $b();',
+  GenericTypes => [qw(A B S U L K N P Q)],
+);
+
 pp_done;
 
 # this tests the bug with a trailing comment and *no* newline
@@ -607,6 +616,9 @@ TODO: {
                 or diag("\$x is $x and \$y is $y");
 }
 }
+
+eval { is ''.or2(pdl(1), pdl(1), 0), '1' };
+is $@, '';
 
 done_testing;
 EOF

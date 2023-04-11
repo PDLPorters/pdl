@@ -6,6 +6,7 @@
 - [o] OtherPars can now be omitted from args like [o] ndarrays
 - OtherPars can now be incomplete arrays of pdl* (#421)
 - add [io] OtherPars
+- add ArgOrder PP key
 
 2.082 2023-03-22
 - no changes from 2.081_03

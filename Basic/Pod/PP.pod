@@ -1782,6 +1782,54 @@ Allows specifying default values for C<OtherPars>. It is an error to
 specify a default for one that is before another that does not have
 a default.
 
+=head3 ArgOrder
+
+  Pars => 'x(); y(); [o]z()'
+  OtherPars => 'int a; int b',
+  ArgOrder => [qw(x y a b z)],
+
+  # or, a non-reference true value to enable flexible arg-handling and
+  # move defaultable to the end, followed by output ndarrays then OtherPars
+  Pars => 'x(); y(); [o]z()'
+  OtherPars => 'int a; int b',
+  ArgOrder => 1,
+
+Allows specifying a different order for providing the operation's
+arguments. This affects only the generated XS and C C<pdl_(name)_run>
+parameter list; the internal ordering of C<pdl*> in various C arrays
+is unaffected.
+
+Providing a non-reference true value enables flexible argument-handling
+and moves defaultable to the end, followed by output ndarrays then
+output C<OtherPars>. Also, all outputs (ndarray and C<OtherPars>) will
+be returned on the stack, even if supplied as arguments.
+
+It is an error to specify arguments that are not provided, or to give
+a false value, or to have "optional" arguments after mandatory ones.
+
+=head4 Argument-handling change
+
+Providing this also changes PP's argument handling: normally you can specify:
+
+=over
+
+=item *
+
+just the input/io arguments
+
+=item *
+
+(if the operation has default values provided) those plus values for all arguments with defaults
+
+=item *
+
+all of those plus output arguments, in other words all non-C<[t]> arguments
+
+=back
+
+With C<ArgOrder> given, "optional" arguments (outputs and ones with
+defaults) will be filled in from the leftmost missing one.
+
 =head2 Other PDL::PP functions to support concise package definition
 
 So far, we have described the C<pp_def> and C<pp_done> functions. PDL::PP
