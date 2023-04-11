@@ -1628,7 +1628,7 @@ EOD
            $callcopy,$otherdefaults,$argorder) = @_;
         $argorder = [reorder_args($sig, $otherdefaults)] if $argorder and !ref $argorder;
         my $optypes = $sig->otherobjs;
-        my @args = @{ $sig->allnames(1, {}, $argorder) };
+        my @args = @{ $argorder || $sig->allnames(1) };
         my %other = map +($_=>1), @{$sig->othernames(1)};
         $otherdefaults ||= {};
         my $ci = 2;  # current indenting
@@ -1786,11 +1786,10 @@ END
         return ["pdl_error $name($longpars) {$opening","$closing}",
                 "PDL->$gname = $name;"];
       }),
-   PDL::PP::Rule->new(["RunFuncCall","RunFuncHdr"],["RunFuncName","SignatureObj",\"OtherParsDefaults",\"ArgOrder"], sub {
-        my ($func_name,$sig,$otherdefaults,$argorder) = @_;
-        $argorder = [reorder_args($sig, $otherdefaults)] if $argorder and !ref $argorder;
-        my $shortpars = join ',', map $sig->other_is_output($_)?"&$_":$_, @{ $sig->allnames(0, {}, $argorder) };
-        my $longpars = join ",", $sig->alldecls(0, 1, {}, $argorder);
+   PDL::PP::Rule->new(["RunFuncCall","RunFuncHdr"],["RunFuncName","SignatureObj"], sub {
+        my ($func_name,$sig) = @_;
+        my $shortpars = join ',', map $sig->other_is_output($_)?"&$_":$_, @{ $sig->allnames(0) };
+        my $longpars = join ",", $sig->alldecls(0, 1);
         (indent(2,"PDL->barf_if_error($func_name($shortpars));\n"),
           "pdl_error $func_name($longpars)");
       }),

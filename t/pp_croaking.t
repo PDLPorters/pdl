@@ -155,10 +155,5 @@ is_deeply $got = [PDL::PP::reorder_args($sig = PDL::PP::Signature->new(
 is_deeply $got = [PDL::PP::reorder_args($sig, {y=>'""'})], [qw(a z y b x)],
   'right reorder, output other, with default'
   or diag explain $got;
-is_deeply $got = ($sig = PDL::PP::Signature->new(
-   "a(n=2); [o] b(m=3);", 1, "[o] int x; pdl *y[]; double z"
-))->allnames(0, {}, [qw(y a z b x)]), [qw(y y_count a z b x)], 'check incomplete-array'
-  or diag explain $got;
-is join(",", $sig->alldecls(0, 1, {}, [qw(y a z b x)])), 'pdl  **y,PDL_Indx  y_count,pdl  *a,double  z,pdl  *b,int  *x', 'alldecls';
 
 done_testing;

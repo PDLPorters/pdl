@@ -1795,7 +1795,7 @@ a default.
   ArgOrder => 1,
 
 Allows specifying a different order for providing the operation's
-arguments. This affects only the generated XS and C C<pdl_(name)_run>
+arguments. This affects only the generated XS (not C C<pdl_(name)_run>)
 parameter list; the internal ordering of C<pdl*> in various C arrays
 is unaffected.
 
@@ -1807,9 +1807,9 @@ be returned on the stack, even if supplied as arguments.
 It is an error to specify arguments that are not provided, or to give
 a false value, or to have "optional" arguments after mandatory ones.
 
-=head4 Argument-handling change
+=head4 XS argument-handling change
 
-Providing this also changes PP's argument handling: normally you can specify:
+This also changes PP's XS argument handling; normally you can specify:
 
 =over
 
