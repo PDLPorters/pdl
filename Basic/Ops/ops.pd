@@ -191,7 +191,7 @@ EOF
     $ret .= pp_line_numbers(__LINE__, <<EOF) if $mutator;
 BEGIN {
 # in1, in2, out, swap if true
-\$OVERLOADS{'$op='} = sub { PDL::$name(\$_[0], \$_[1], \$_[0], 0); \$_[0] };
+\$OVERLOADS{'$op='} = sub { PDL::$name(\$_[0]->inplace, \$_[1]); \$_[0] };
 }
 EOF
     $ret;
@@ -242,7 +242,7 @@ ENDCODE
 	   Pars => 'a(); b(); [o]c();',
 	   OtherPars => 'int swap',
 	   OtherParsDefaults => { swap => 0 },
-	   Inplace => [ 'a' ], # quick and dirty solution to get ->inplace do its job
+	   Inplace => [ 'a' ],
 	   Code => pp_line_numbers(__LINE__, qq{
 char anybad = 0;
 broadcastloop %{
