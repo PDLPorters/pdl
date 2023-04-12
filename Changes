@@ -10,6 +10,7 @@
 - [nc] removed as Pars type-specifier, use [io]
 - fix pdl2 bug with demos (#424) - thanks @HaraldJoerg for report
 - fix PP bug revealed by https://github.com/moocow-the-bovine/PDL-HMM/pull/4
+- operations with only output ndarrays can now not be Inplace
 
 2.082 2023-03-22
 - no changes from 2.081_03

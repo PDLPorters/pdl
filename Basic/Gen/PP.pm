@@ -1554,7 +1554,7 @@ EOD
         return '' if !$arg;
         confess "Inplace array-ref (@$arg) > 2 elements" if ref($arg) eq "ARRAY" and @$arg > 2;
         # find input and output ndarrays
-        my @out = $sig->names_out;
+        my %is_out = map +($_=>1), my @out = $sig->names_out;
         my @in = $sig->names_in;
         my $in = @in == 1 ? $in[0] : undef;
         my $out = @out == 1 ? $out[0] : undef;
@@ -1565,6 +1565,8 @@ EOD
         }
         confess "ERROR: Inplace does not know name of input ndarray"
             unless defined $in;
+        confess "ERROR: Inplace input ndarray '$in' is actually output"
+            if $is_out{$in};
         confess "ERROR: Inplace does not know name of output ndarray"
             unless defined $out;
         my ($in_obj, $out_obj) = map $sig->objs->{$_}, $in, $out;

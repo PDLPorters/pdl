@@ -47,6 +47,12 @@ eval { pp_def( "func", Code => ';',
 like $@, qr/Invalid OtherPars name/;
 
 eval { pp_def( "func", Code => ';',
+  Pars => "[o] a();",
+  Inplace => ['a'],
+) };
+like $@, qr/is actually output/;
+
+eval { pp_def( "func", Code => ';',
   Pars => "a(m);",
   Inplace => 1,
 ) };
