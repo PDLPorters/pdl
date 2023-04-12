@@ -7,6 +7,9 @@ PDL::IO - An overview of the modules in the PDL::IO namespace.
  # At your system shell, type:
  perldoc PDL::IO
 
+ # from perldl:
+ pdl> ?? PDL::IO
+
 =head1 DESCRIPTION
 
 PDL contains many modules for displaying, loading, and saving data.
@@ -26,6 +29,9 @@ PDL has two modules that store their data in a raw binary format; they
 are PDL::IO::FastRaw and PDL::IO::FlexRaw.  They are fast but the files
 they produce will not be readable across different architectures.
 These two modules are so similar that they could probably be combined.
+
+You can also directly access the data from Perl using
+L<PDL::Core/get_dataref>.
 
 =item * Data Browsing
 
@@ -49,9 +55,9 @@ use PDL::DiskCache, which can use any desired IO read/write functionality
 =item * General Data Storage Formats
 
 PDL has a number of modules that interface general data storage libraries.
-They include PDL::IO::HDF and PDL::IO::NDF (the latter is now a separate
-CPAN module).  There is a PDL::IO::IDL,
-though at the moment it is not distributed with PDL.  PDL::IO::FITS is
+They include L<PDL::IO::HDF> and L<PDL::IO::NDF> (the latter is now a separate
+CPAN module).  There is L<PDL::IO::IDL>.
+L<PDL::IO::FITS> is
 something of a general data format, since ndarray data can be stored to a
 FITS file without loss.  PDL::IO::FlexRaw and PDL::IO::FastRaw read and
 write data identical C's low-level C<write> function and PDL::IO::FlexRaw
@@ -86,7 +92,7 @@ check the L<PDL::DiskCache documentation|PDL::DiskCache>.
 The Browser module provides a text-based data browser for 2D data sets.
 
 It uses the CURSES library to do the scrolling, so if your operating
-system does not have the cureses library, you won't be able to install
+system does not have the curses library, you won't be able to install
 this on your machine.  (Note that the package containing the header
 files for the CURSES library may be called C<libcurses> or possibly
 C<libncurses>.)
@@ -207,7 +213,7 @@ documentation|PDL::IO::Grib>.
 =head2 PDL::IO::HDF, PDL::IO::HDF5
 
 Provides an interface to HDF4 and HDF5 file formats, which are kinda like
-cross-platform binary XML files.  HDF stands for B<H>eierarchicl B<D>ata
+cross-platform binary XML files.  HDF stands for B<H>ierarchical B<D>ata
 B<F>ormat.  HDF was originally developed at the NCSA.  To read more about
 HDF, see L<http://www.hdfgroup.org/>.  Note that HDF5 is not presently
 distributed with PDL, and neither HDF4 nor HDF5 will be installed unless
@@ -222,11 +228,7 @@ you have installed.
 
 =head2 PDL::IO::IDL
 
-Once upon a time, PDL had a module for reading IDL data files.  Unfortunately, it
-cannot be distributed because the original author, Craig DeForest,
-signed the IDL license agreement and was unable to negotiate the administrative
-hurdles to get it published.  However, it can be found in Sourceforge's CVS attic, and
-any PDL user who has not signed IDL's license agreement can fix it up and resubmit it.
+PDL has a module for reading IDL data files: L<PDL::IO::IDL>.
 
 =head2 PDL::IO::Misc
 
@@ -259,6 +261,12 @@ Provides methods for reading and writing pnm files (of which pbm is
 but one).  Check the L<PDL::IO::Pnm documentation|PDL::IO::Pnm> for
 more details.  Also check out the previous module and PDL::IO::GD.
 
+=head2 PDL::IO::STL
+
+Read and write STL (STereo Lithography) files, containing 3D
+objects. There are many files available from the "Thingiverse". You can
+then view the data in L<PDL::Graphics::TriD>.
+
 =head2 PDL::IO::Storable
 
 Implements the relevant methods to be able to store and retrieve ndarrays
@@ -277,6 +285,14 @@ details.  See also PDL::IO::Dumper for an alternative stringifier.
 Load/save PDL from/to CSV file (optimized for speed and large data).
 
 See the L<PDL::IO::CSV documentation|PDL::IO::CSV>.
+
+=head2 PDL::IO::DBI
+
+Load PDL from a L<DBI> handle. See L<PDL::IO::CSV>.
+
+=head2 PDL::IO::Dcm
+
+Load PDL from a Dicom file. See L<PDL::IO::Dcm>.
 
 =head2 PDL::IO::Touchstone
 
@@ -302,10 +318,39 @@ Touchstone RF data for each available value in a line of capacitors (ie, from
 
 See the L<PDL::IO::MDIF documentation|PDL::IO::MDIF>
 
+=head2 PDL::IO::Image
+
+Load/save PDL from/to image files. See L<PDL::IO::Image>.
+
+=head2 PDL::IO::XLSX
+
+Load/save PDL from/to an Excel spreadsheet. See L<PDL::IO::XLSX>.
+
+=head2 PDL::NetCDF
+
+Load/save PDL from/to NetCDF files. See L<PDL::NetCDF>.
+
+=head2 PDL::IO::Nifti
+
+Load/save PDL from/to Nifti-1 files. See L<PDL::IO::Nifti>.
+
+=head2 PDL::IO::Matlab
+
+Load/save PDL from/to MATLAB files. See L<PDL::IO::Matlab>.
+
+=head2 PDL::IO::Sereal
+
+Load/save PDL from/to L<Sereal> files. See L<PDL::IO::Sereal>.
+
+=head2 PDL::CCS
+
+Has IO modules to load/save PDL from/to sparse data file formats, including
+FITS, LDA-C, MatrixMarket, PETSc. See L<PDL::CCS>.
+
 =head1 COPYRIGHT
 
 Copyright 2010 David Mertens (dcmertens.perl@gmail.com). You can
 distribute and/or modify this document under the same terms as the
 current Perl license.
 
-See: http://dev.perl.org/licenses/
+See: L<http://dev.perl.org/licenses/>
