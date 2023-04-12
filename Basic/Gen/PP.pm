@@ -1652,7 +1652,10 @@ EOD
           "(items == $nmaxonstack) ? $noutca : $nallout";
         my ($xsdecls, $cnt, @xsargs, %already_read, %name2cnts) = ('', -1);
         foreach my $x (@inargs) {
-          last if !$argorder && ($out{$x} || $other_out{$x} || exists $otherdefaults->{$x});
+          if (!$argorder && ($out{$x} || $other_out{$x} || exists $otherdefaults->{$x})) {
+            last if @xsargs + keys(%out) + $noutca != $ntot;
+            $argorder = 1; # remaining all output ndarrays, engage
+          }
           $cnt++;
           $name2cnts{$x} = [$cnt, $cnt];
           $already_read{$x} = 1 if !$argorder or !$out{$x};
