@@ -1784,10 +1784,10 @@ END
       sub {
         my($name,$sig,$gname) = @_;
         my $longpars = join ",", $sig->alldecls(0, 1);
-        my $opening = 'pdl_error PDL_err = {0, NULL, 0};';
-        my $closing = 'return PDL_err;';
+        my $opening = '  pdl_error PDL_err = {0, NULL, 0};';
+        my $closing = '  return PDL_err;';
         return ["pdl_error $name($longpars) {$opening","$closing}",
-                "PDL->$gname = $name;"];
+                "  PDL->$gname = $name;"];
       }),
    PDL::PP::Rule->new(["RunFuncCall","RunFuncHdr"],["RunFuncName","SignatureObj"], sub {
         my ($func_name,$sig) = @_;
@@ -1851,15 +1851,12 @@ sub wrap_vfn {
     $code,$rout,$func_header,
     $all_func_header,$sname,$pname,$ptype,$extra_args,
   ) = @_;
-  PDL::PP::pp_line_numbers(__LINE__, <<EOF);
-pdl_error $rout(pdl_trans *$sname$extra_args) {
-  @{[join "\n  ",
-  'pdl_error PDL_err = {0, NULL, 0};',
-  $ptype ? "$ptype *$pname = $sname->params;" : (),
-  (grep $_, $all_func_header, $func_header, $code), 'return PDL_err;'
-]}
-}
-EOF
+  join("\n  ", PDL::PP::pp_line_numbers(__LINE__,
+qq[pdl_error $rout(pdl_trans *$sname$extra_args) {
+  pdl_error PDL_err = {0, NULL, 0};],
+    ). ($ptype ? "  $ptype *$pname = $sname->params;" : ''),
+    (grep $_, $all_func_header, $func_header, $code),
+    'return PDL_err;'). "\n}";
 }
 sub make_vfn_args {
   my ($which, $extra_args) = @_;
@@ -2006,8 +2003,8 @@ EOF
       "Generate C function with idiomatic arg list to maybe call from XS",
       sub {
         my ($xs_c_header, @bits) = @_;
-        my $opening = 'pdl_error PDL_err = {0, NULL, 0};';
-        my $closing = 'return PDL_err;';
+        my $opening = '  pdl_error PDL_err = {0, NULL, 0};';
+        my $closing = '  return PDL_err;';
         join '', "$xs_c_header {\n$opening\n", @bits, "$closing\n}\n";
       }),
 
