@@ -937,7 +937,6 @@ sub pp_def {
 		);
 	if ($::PDLMULTI_C) {
 	  PDL::PP->printxsc(undef, <<EOF);
-extern pdl_transvtable $obj{VTableName};
 $obj{RunFuncHdr};
 EOF
 	  PDL::PP->printxsc("pp-$obj{Name}.c", $ctext);
