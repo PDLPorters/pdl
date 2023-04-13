@@ -35,30 +35,12 @@ void ppcp(PDL_Byte *dst, PDL_Byte *src, int len)
      *dst++=*src++;
 }
 
-void tinplace_c1(int n, PDL_Float* data)
-{
-  int i;
-  for (i=0;i<n;i++) {
-    data[i] = 599.0;
-  }
-}
-
 void tinplace_c2(int n, PDL_Float* data1, PDL_Float* data2)
 {
   int i;
   for (i=0;i<n;i++) {
     data1[i] = 599.0;
     data2[i] = 699.0;
-  }
-}
-
-void tinplace_c3(int n, PDL_Float* data1, PDL_Float* data2, PDL_Float* data3)
-{
-  int i;
-  for (i=0;i<n;i++) {
-    data1[i] = 599.0;
-    data2[i] = 699.0;
-    data3[i] = 799.0;
   }
 }
 EOF
@@ -137,27 +119,13 @@ pp_def( '_flatten_into',
 );
 
 pp_addhdr << 'EOH';
-void tinplace_c1(int n, PDL_Float* data);
 void tinplace_c2(int n, PDL_Float* data1, PDL_Float* data2);
-void tinplace_c3(int n, PDL_Float* data1, PDL_Float* data2, PDL_Float* data3);
 EOH
-
-pp_def('fooflow1',
-	Pars => '[o,nc]a(n)',
-        GenericTypes => ['F'],
-	Code => 'tinplace_c1($SIZE(n),$P(a));',
-	);
 
 pp_def('fooflow2',
 	Pars => '[o,nc]a(n);[o,nc]b(n)',
         GenericTypes => ['F'],
 	Code => 'tinplace_c2($SIZE(n),$P(a),$P(b));',
-	);
-
-pp_def('fooflow3',
-	Pars => '[o,nc]a(n);[o,nc]b(n);[o,nc]c(n)',
-        GenericTypes => ['F'],
-	Code => 'tinplace_c3($SIZE(n),$P(a),$P(b),$P(c));',
 	);
 
 pp_def( 'broadcastloop_continue',
