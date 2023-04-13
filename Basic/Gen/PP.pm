@@ -511,8 +511,10 @@ static inline pdl *PDL_XS_pdlinit(pTHX_ char *objname, HV *bless_stash, SV *to_p
   }
   return ret;
 }
-#define PDL_XS_PERLINIT(name, to_push, method) \
-  PDL_XS_pdlinit(aTHX_ objname, bless_stash, to_push, #method, &name ## _SV)
+#define PDL_XS_PERLINIT_init(sv) \
+  PDL_XS_pdlinit(aTHX_ objname, bless_stash, sv_2mortal(newSVpv(objname, 0)), "initialize", &sv)
+#define PDL_XS_PERLINIT_copy(sv) \
+  PDL_XS_pdlinit(aTHX_ objname, bless_stash, parent, "copy", &sv)
 
 #define PDL_XS_RETURN(clause1) \
     if (nreturn) { \
@@ -1085,9 +1087,8 @@ sub indent($$) {
 # This subroutine generates the XS code needed to call the perl 'initialize'
 # routine in order to create new output PDLs
 sub callPerlInit {
-    my ($name, $callcopy) = @_;
-    my $args = $callcopy ? 'parent, copy' : 'sv_2mortal(newSVpv(objname, 0)), initialize';
-    "PDL_XS_PERLINIT($name, $args)";
+    my ($sv, $callcopy) = @_;
+    "PDL_XS_PERLINIT_".($callcopy ? "copy" : "init")."($sv)";
 }
 
 sub callTypemap {
@@ -1700,7 +1701,7 @@ EOD
             @{$sig->othernames(1, \%already_read)}),
             (map callTypemap($_, $ptypes{$_}).";\n", grep !$already_read{$_}, $sig->names_in),
             # do these last as calls to Perl methods mutate stack
-            (map +($out{$_} ? "if (${_}_SV) { ".($argorder ? '' : callTypemap($_, $ptypes{$_}))."; } else " : "")."$_ = ".callPerlInit($_, $callcopy).";\n", grep $out{$_} || $outca{$_}, @args)
+            (map +($out{$_} ? "if (${_}_SV) { ".($argorder ? '' : callTypemap($_, $ptypes{$_}))."; } else " : "")."$_ = ".callPerlInit($_."_SV", $callcopy).";\n", grep $out{$_} || $outca{$_}, @args)
           );
         my $preamble = $nallout ? qq[\n PREINIT:\n  PDL_XS_PREAMBLE($nretval);\n INPUT:\n] : '';
         join '', qq[
