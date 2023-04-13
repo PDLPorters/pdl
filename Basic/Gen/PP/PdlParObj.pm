@@ -20,7 +20,6 @@ our $pars_re = qr/^
 /x;
 my %flag2info = (
   io => [[qw(FlagW)]],
-  nc => [[qw(FlagNCreat)]],
   o => [[qw(FlagOut FlagCreat FlagW)]],
   oca => [[qw(FlagOut FlagCreat FlagW FlagCreateAlways)]],
   t => [[qw(FlagTemp FlagCreat FlagW)]],
@@ -68,10 +67,6 @@ sub new {
 	  $this->{FlagTplus} = 1;
 	}
 	$this->{Type} &&= PDL::Type->new($this->{Type});
-	if($this->{FlagNCreat}) {
-		delete $this->{FlagCreat};
-		delete $this->{FlagCreateAlways};
-	}
 	$this->{RawInds} = [map{
 		s/\s//g; 		# Remove spaces
 		$_;

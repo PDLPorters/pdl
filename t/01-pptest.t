@@ -123,7 +123,7 @@ void tinplace_c2(int n, PDL_Float* data1, PDL_Float* data2);
 EOH
 
 pp_def('fooflow2',
-	Pars => '[o,nc]a(n);[o,nc]b(n)',
+	Pars => '[io]a(n);[io]b(n)',
         GenericTypes => ['F'],
 	Code => 'tinplace_c2($SIZE(n),$P(a),$P(b));',
 	);
@@ -190,7 +190,7 @@ pp_def('gl_arrows',
 
 # test XS args with funky Pars ordering
 pp_def('polyfill_pp',
-	Pars => 'int [o,nc] im(m,n); float ps(two=2,np); int col()',
+	Pars => 'int [io] im(m,n); float ps(two=2,np); int col()',
 	Code => ';', # do nothing
 );
 
@@ -505,6 +505,8 @@ ok(all $xx->slice('(1)') == 699);
 Cpow(sequence(2), 1);
 
 polyfill_pp(zeroes(5,5), ones(2,3), 1);
+eval { polyfill_pp(ones(2,3), 1) };
+like $@, qr/Usage/;
 
 is succ(2)."", 3, 'test pp_add_macros works';
 

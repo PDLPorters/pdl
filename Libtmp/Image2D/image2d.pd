@@ -57,7 +57,7 @@ void polyfill(PDL_Long *image, int wx, int wy, float *ps, int n,
 
 pp_def('polyfill_pp',
     HandleBad => 0, # a marker
-	Pars => 'int [o,nc] im(m,n); float ps(two=2,np); int col()',
+	Pars => 'int [io] im(m,n); float ps(two=2,np); int col()',
 	Code => 'int ierr = 0, nerr;
 	         broadcastloop %{
 		   polyfill($P(im), $SIZE(m), $SIZE(n), $P(ps), $SIZE(np), $col(), &nerr);
@@ -71,7 +71,7 @@ pp_def('polyfill_pp',
 
 my %pnpolyFields = (
 	'pnpoly_pp' => {'pars' => 'a(m,n); ps(k,l); int [o] msk(m,n)', 'special' => '$msk() = c;'},
-	'pnpolyfill_pp' => {'pars' => '[o,nc] a(m,n); ps(k,l); int col()', 'special' => 'if(c) { $a() = $col(); }'}
+	'pnpolyfill_pp' => {'pars' => '[io] a(m,n); ps(k,l); int col()', 'special' => 'if(c) { $a() = $col(); }'}
 );
 
 for my $name (sort keys %pnpolyFields) {
