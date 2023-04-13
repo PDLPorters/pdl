@@ -1679,7 +1679,7 @@ EOD
           $xsdecls .= "\n  PDL_Indx ${x}_count=0;" if $other{$x} && $optypes->{$x}->is_array;
           $xsdecls .= "\n  $ptypes{$x}$x=NO_INIT";
         }
-        my $pars = join '', map "\n  $_=NO_INIT", $sig->alldecls(-1, 0, \%already_read);
+        my $pars = join '', map "\n  $ptypes{$_}$_=".callPerlInit($_."_SV", $callcopy).";", grep $outca{$_}, @args;
         my $defaults_rawcond = $ndefault ? "items == $nin_minus_default" : '';
         my $svdecls = join '', map "\n  $_",
           (map "SV *${_}_SV = ".(
@@ -1701,7 +1701,7 @@ EOD
             @{$sig->othernames(1, \%already_read)}),
             (map callTypemap($_, $ptypes{$_}).";\n", grep !$already_read{$_}, $sig->names_in),
             # do these last as calls to Perl methods mutate stack
-            (map +($out{$_} ? "if (${_}_SV) { ".($argorder ? '' : callTypemap($_, $ptypes{$_}))."; } else " : "")."$_ = ".callPerlInit($_."_SV", $callcopy).";\n", grep $out{$_} || $outca{$_}, @args)
+            (map +("if (${_}_SV) { ".($argorder ? '' : callTypemap($_, $ptypes{$_}))."; } else ")."$_ = ".callPerlInit($_."_SV", $callcopy).";\n", grep $out{$_}, @args)
           );
         my $preamble = $nallout ? qq[\n PREINIT:\n  PDL_XS_PREAMBLE($nretval);\n INPUT:\n] : '';
         join '', qq[

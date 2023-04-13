@@ -123,8 +123,8 @@ sub othernames {
   my ($self, $omit_count, $except) = @_;
   $except ||= {};
   return $self->{OtherNames} if $omit_count && $omit_count > 0 && !keys %$except;
-  my $objs = $self->otherobjs;
   return [] if $omit_count && $omit_count < 0;
+  my $objs = $self->otherobjs;
   my @raw_names = grep !$except->{$_}, @{$self->{OtherNames}};
   @raw_names = map $objs->{$_}->is_array ? ($_, "${_}_count") : $_, @raw_names if !$omit_count;
   \@raw_names;
