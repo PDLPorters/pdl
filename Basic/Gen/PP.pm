@@ -1702,9 +1702,11 @@ EOD
             # do these last as calls to Perl methods mutate stack
             (map +($out{$_} ? "if (${_}_SV) { ".($argorder ? '' : callTypemap($_, $ptypes{$_}))."; } else " : "")."$_ = ".callPerlInit($_, $callcopy).";\n", grep $out{$_} || $outca{$_}, @args)
           );
+        my $preamble = $nallout ? qq[\n PREINIT:\n  PDL_XS_PREAMBLE($nretval);\n INPUT:\n] : '';
         join '', qq[
 \nvoid
-$name(@{[join ', ', @xsargs]})$svdecls$xsdecls$pars
+$name(@{[join ', ', @xsargs]})
+$preamble$svdecls$xsdecls$pars
  PPCODE:
 @{[$only_one || $argorder || ($nmaxonstack - ($xs_arg_cnt+1) == keys(%valid_itemcounts)-1) ? '' :
 qq{  if (!(@{[join ' || ', map "(items == $_)", sort keys %valid_itemcounts]}))
@@ -1713,7 +1715,7 @@ qq{  if (!(@{[join ' || ', map "(items == $_)", sort keys %valid_itemcounts]}))
              $out{$_} || $other_out{$_} ? "[$_]" : $_, @inargs
     ]}) (you may leave [output variables] and values with =defaults out of list)");
 }]}
-], $nallout ? qq[  PDL_XS_PREAMBLE($nretval);\n] : '', map "$_\n", $argcode;
+], map "$_\n", $argcode;
       }),
 
    # globalnew implies internal usage, not XS
