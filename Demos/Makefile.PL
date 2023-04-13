@@ -15,6 +15,7 @@ WriteMakefile(
     'TriD2.pm'    => '$(INST_LIBDIR)/Demos/TriD2.pm',
     'TriDGallery.pm'    => '$(INST_LIBDIR)/Demos/TriDGallery.pm',
     'BAD_demo.pm'       => '$(INST_LIBDIR)/Demos/BAD_demo.pm',
+    'Sound.pm'          => '$(INST_LIBDIR)/Demos/Sound.pm',
     'Transform_demo.pm' => '$(INST_LIBDIR)/Demos/Transform_demo.pm',
     'Cartography_demo.pm' => '$(INST_LIBDIR)/Demos/Cartography_demo.pm',
     '../m51.fits'       => '$(INST_LIBDIR)/Demos/m51.fits',
