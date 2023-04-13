@@ -1676,7 +1676,7 @@ EOD
         }
         my $pars = join "\n",map indent($ci,"$_;"), $sig->alldecls(-1, 0, \%already_read);
         my $defaults_rawcond = $ndefault ? "items == $nin_minus_default" : '';
-        my $svdecls = indent($ci, join "\n",
+        my $svdecls = join '', map "\n  $_",
           (map "SV *${_}_SV = ".(
             !$name2cnts{$_} ? 'NULL' :
             $argorder ? "items > $name2cnts{$_}[1] ? ST($name2cnts{$_}[1]) : ".($other_out{$_} ? "sv_newmortal()" : "NULL") :
@@ -1687,7 +1687,7 @@ EOD
               "ST($name2cnts{$_}[1])"
             )
           ).";", (grep !$already_read{$_}, $sig->names_in), $sig->names_out, @{$sig->othernames(1, \%already_read)}),
-        );
+          ;
         my $argcode =
           indent(2, join '',
             (map
@@ -1698,9 +1698,9 @@ EOD
             # do these last as calls to Perl methods mutate stack
             (map +($out{$_} ? "if (${_}_SV) { ".($argorder ? '' : callTypemap($_, $ptypes{$_}))."; } else " : "").callPerlInit($_, $callcopy), grep $out{$_} || $outca{$_}, @args)
           );
-        <<END.join '', map "$_\n", $svdecls, $pars, $argcode;
+        <<END.join '', map "$_\n", $pars, $argcode;
 \nvoid
-$name(@{[join ', ', @xsargs]})$xsdecls
+$name(@{[join ', ', @xsargs]})$svdecls$xsdecls
  PPCODE:
 @{[$only_one || $argorder || ($nmaxonstack - ($xs_arg_cnt+1) == keys(%valid_itemcounts)-1) ? '' :
 qq{  if (!(@{[join ' || ', map "(items == $_)", sort keys %valid_itemcounts]}))
