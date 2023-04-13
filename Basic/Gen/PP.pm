@@ -1702,7 +1702,7 @@ EOD
             # do these last as calls to Perl methods mutate stack
             (map +($out{$_} ? "if (${_}_SV) { ".($argorder ? '' : callTypemap($_, $ptypes{$_}))."; } else " : "").callPerlInit($_, $callcopy), grep $out{$_} || $outca{$_}, @args)
           );
-        <<END.join '', map "$_\n", $pars, $argcode;
+        join '', qq[
 \nvoid
 $name(@{[join ', ', @xsargs]})$svdecls$xsdecls
  PPCODE:
@@ -1712,8 +1712,8 @@ qq{  if (!(@{[join ' || ', map "(items == $_)", sort keys %valid_itemcounts]}))
         join ",", map exists $otherdefaults->{$_} ? "$_=$otherdefaults->{$_}" :
              $out{$_} || $other_out{$_} ? "[$_]" : $_, @inargs
     ]}) (you may leave [output variables] and values with =defaults out of list)");
-}]}  PDL_XS_PREAMBLE($nretval);
-END
+}]}
+], $nallout ? qq[  PDL_XS_PREAMBLE($nretval);\n] : '', map "$_\n", $pars, $argcode;
       }),
 
    # globalnew implies internal usage, not XS
@@ -1766,7 +1766,7 @@ EOF
         my @other_outputs = ($sig->other_io, $sig->other_out); # output OtherPars
         my $clause1 = join ';', (map "ST($_) = $outs[$_]_SV", 0 .. $#outs),
           (map "ST(@{[$_+$oc]}) = $other_outputs[$_]_SV", 0 .. $#other_outputs);
-        indent(2,"PDL_XS_RETURN($clause1)\n");
+        $clause1 ? indent(2,"PDL_XS_RETURN($clause1)\n") : '';
       }),
 
    PDL::PP::Rule->new("NewXSHdr", ["NewXSName","SignatureObj"],
