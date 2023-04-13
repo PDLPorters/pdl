@@ -490,25 +490,29 @@ our $macros_xs = pp_line_numbers(__LINE__, <<'EOF');
     } \
   } while (0)
 
+static inline pdl *PDL_XS_pdlinit(pTHX_ char *objname, HV *bless_stash, SV *to_push, char *method, SV **sv) {
+  dSP;
+  pdl *ret;
+  if (strcmp(objname,"PDL") == 0) { PDL_COMMENT("shortcut if just PDL")
+     *sv = sv_newmortal();
+     ret = PDL->pdlnew();
+     if (!ret) PDL->pdl_barf("Error making null pdl");
+     PDL->SetSV_PDL(*sv, ret);
+     if (bless_stash) *sv = sv_bless(*sv, bless_stash);
+  } else {
+     PUSHMARK(SP);
+     XPUSHs(to_push);
+     PUTBACK;
+     perl_call_method(method, G_SCALAR);
+     SPAGAIN;
+     *sv = POPs;
+     PUTBACK;
+     ret = PDL->SvPDLV(*sv);
+  }
+  return ret;
+}
 #define PDL_XS_PERLINIT(name, to_push, method) \
-  do { \
-    if (strcmp(objname,"PDL") == 0) { PDL_COMMENT("shortcut if just PDL") \
-       name ## _SV = sv_newmortal(); \
-       name = PDL->pdlnew(); \
-       if (!name) PDL->pdl_barf("Error making null pdl"); \
-       PDL->SetSV_PDL(name ## _SV, name); \
-       if (bless_stash) name ## _SV = sv_bless(name ## _SV, bless_stash); \
-    } else { \
-       PUSHMARK(SP); \
-       XPUSHs(to_push); \
-       PUTBACK; \
-       perl_call_method(#method, G_SCALAR); \
-       SPAGAIN; \
-       name ## _SV = POPs; \
-       PUTBACK; \
-       name = PDL->SvPDLV(name ## _SV); \
-    } \
-  } while (0)
+  name = PDL_XS_pdlinit(aTHX_ objname, bless_stash, to_push, #method, &name ## _SV)
 
 #define PDL_XS_RETURN(clause1) \
     if (nreturn) { \
