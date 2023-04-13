@@ -1758,15 +1758,15 @@ EOF
         indent(2, $clause1);
       }),
    PDL::PP::Rule->new("VarArgsXSReturn",
-      ["SignatureObj","XSOtherOutSet"],
+      ["SignatureObj"],
       "Generate XS trailer to return output variables or leave them as modified input variables",
       sub {
-        my ($sig,$other_out_set) = @_;
+        my ($sig) = @_;
         my $oc = my @outs = $sig->names_out; # output ndarrays in calling order
         my @other_outputs = ($sig->other_io, $sig->other_out); # output OtherPars
         my $clause1 = join ';', (map "ST($_) = $outs[$_]_SV", 0 .. $#outs),
           (map "ST(@{[$_+$oc]}) = $other_outputs[$_]_SV", 0 .. $#other_outputs);
-        $other_out_set.indent(2,"PDL_XS_RETURN($clause1)\n");
+        indent(2,"PDL_XS_RETURN($clause1)\n");
       }),
 
    PDL::PP::Rule->new("NewXSHdr", ["NewXSName","SignatureObj"],
@@ -2022,7 +2022,7 @@ EOF
       "Non-varargs XS code when PMCode given",
       sub {make_xs_code(' CODE:','',@_[1..$#_])}),
    PDL::PP::Rule->new(["NewXSCode","BootSetNewXS","NewXSInPrelude"],
-      [qw(VarArgsXSHdr), \"NewXSCHdrs", qw(HdrCode InplaceCode RunFuncCall VarArgsXSReturn)],
+      [qw(VarArgsXSHdr), \"NewXSCHdrs", qw(HdrCode InplaceCode RunFuncCall XSOtherOutSet VarArgsXSReturn)],
       "Rule to print out XS code when variable argument list XS processing is enabled",
       sub {make_xs_code('','',@_)}),
 
