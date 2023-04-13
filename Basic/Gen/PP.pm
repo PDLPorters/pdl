@@ -1643,7 +1643,7 @@ EOD
         my $nallout = $nout + $noutca;
         my $ndefault = keys %$otherdefaults;
         my %valid_itemcounts = ((my $nmaxonstack = $ntot - $noutca)=>1);
-        $valid_itemcounts{my $nin = $ntot - ($nout + $noutca)} = 1;
+        $valid_itemcounts{my $nin = $nmaxonstack - $nout} = 1;
         $valid_itemcounts{my $nin_minus_default = "($nin-$ndefault)"} = 1 if $ndefault;
         my $only_one = keys(%valid_itemcounts) == 1;
         my $nretval = $argorder ? $nout :
@@ -1702,7 +1702,7 @@ EOD
 \nvoid
 $name(@{[join ', ', @xsargs]})$xsdecls
  PPCODE:
-@{[$only_one || $argorder ? '' :
+@{[$only_one || $argorder || ($nmaxonstack - ($xs_arg_cnt+1) == keys(%valid_itemcounts)-1) ? '' :
 qq{  if (!(@{[join ' || ', map "(items == $_)", sort keys %valid_itemcounts]}))
     croak("Usage: ${main::PDLOBJ}::$name(@{[
         join ",", map exists $otherdefaults->{$_} ? "$_=$otherdefaults->{$_}" :
