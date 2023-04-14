@@ -1268,57 +1268,49 @@ EOD
 
 pp_def('bilin2d',
        HandleBad => 0,
-    Pars => 'Int(n,m); O(q,p)',
+    Pars => 'Int(n,m); [io] O(q,p)',
     Doc=><<'EOD',
-
 =for ref
 
 Bilinearly maps the first ndarray in the second. The
 interpolated values are actually added to the second
 ndarray which is supposed to be larger than the first one.
-
-=cut
-
 EOD
-,
     GenericTypes => $A,
     Code =>'
   PDL_Indx i,j,ii,jj,ii1,jj1,num;
   PDL_CLDouble x,y,dx,dy,y1,y2,y3,y4,t,u,sum;
 
-  if ($SIZE(q)>=$SIZE(n) && $SIZE(p)>=$SIZE(m)) {
-    broadcastloop %{
-      dx = ((double) ($SIZE(n)-1)) / ($SIZE(q)-1);
-      dy = ((double) ($SIZE(m)-1)) / ($SIZE(p)-1);
-      for(i=0,x=0;i<$SIZE(q);i++,x+=dx) {
-	for(j=0,y=0;j<$SIZE(p);j++,y+=dy) {
-	  ii = (int) floor(x);
-	  if (ii>=($SIZE(n)-1)) ii = $SIZE(n)-2;
-	  jj = (int) floor(y);
-	  if (jj>=($SIZE(m)-1)) jj = $SIZE(m)-2;
-	  ii1 = ii+1;
-	  jj1 = jj+1;
-	  y1 = $Int(n=>ii,m=>jj);
-	  y2 = $Int(n=>ii1,m=>jj);
-	  y3 = $Int(n=>ii1,m=>jj1);
-	  y4 = $Int(n=>ii,m=>jj1);
-	  t = x-ii;
-	  u = y-jj;
-	  $O(q=>i,p=>j) += (1-t)*(1-u)*y1 + t*(1-u)*y2 + t*u*y3 + (1-t)*u*y4;
-	}
-      }
-      %}
-  }
-  else {
+  if ($SIZE(q)<$SIZE(n) || $SIZE(p)<$SIZE(m))
     $CROAK("the second matrix must be greater than first! (bilin2d)");
-  }
+
+  broadcastloop %{
+    dx = ((double) ($SIZE(n)-1)) / ($SIZE(q)-1);
+    dy = ((double) ($SIZE(m)-1)) / ($SIZE(p)-1);
+    for(i=0,x=0;i<$SIZE(q);i++,x+=dx) {
+      for(j=0,y=0;j<$SIZE(p);j++,y+=dy) {
+        ii = (int) floor(x);
+        if (ii>=($SIZE(n)-1)) ii = $SIZE(n)-2;
+        jj = (int) floor(y);
+        if (jj>=($SIZE(m)-1)) jj = $SIZE(m)-2;
+        ii1 = ii+1;
+        jj1 = jj+1;
+        y1 = $Int(n=>ii,m=>jj);
+        y2 = $Int(n=>ii1,m=>jj);
+        y3 = $Int(n=>ii1,m=>jj1);
+        y4 = $Int(n=>ii,m=>jj1);
+        t = x-ii;
+        u = y-jj;
+        $O(q=>i,p=>j) += (1-t)*(1-u)*y1 + t*(1-u)*y2 + t*u*y3 + (1-t)*u*y4;
+      }
+    }
+  %}
 ');
 
 pp_def('rescale2d',
        HandleBad => 0,
-    Pars => 'Int(m,n); O(p,q)',
+    Pars => 'Int(m,n); [io] O(p,q)',
     Doc=><<'EOD',
-
 =for ref
 
 The first ndarray is rescaled to the dimensions of the second
@@ -1329,11 +1321,7 @@ If you want photometric accuracy or automatic FITS header metadata
 tracking, consider using L<PDL::Transform::map|PDL::Transform/map>
 instead: it does these things, at some speed penalty compared to
 rescale2d.
-
-=cut
-
 EOD
-,
     GenericTypes => $A,
     Code =>'
 PDL_Indx ix,iy,ox,oy,i,j,lx,ly,cx,cy,xx,yy,num;
@@ -1345,9 +1333,9 @@ ox = $SIZE(p);
 oy = $SIZE(q);
 
 if(ox >= ix && oy >= iy) {
+  kx = ((PDL_CLDouble) (ox)) / (ix);
+  ky = ((PDL_CLDouble) (oy)) / (iy);
   broadcastloop %{
-    kx = ((double) (ox)) / (ix);
-    ky = ((double) (oy)) / (iy);
     lx = 0;
     for(i=0;i<ix;i++) {
       ly = 0;
@@ -1366,9 +1354,9 @@ if(ox >= ix && oy >= iy) {
   %}
 }
 else if(ox < ix && oy < iy) {
+  kx = ((PDL_CLDouble) (ix)) / (ox);
+  ky = ((PDL_CLDouble) (iy)) / (oy);
   broadcastloop %{
-    kx = ((double) (ix)) / (ox);
-    ky = ((double) (iy)) / (oy);
     lx = 0;
     for(i=0;i<ox;i++) {
       ly = 0;
@@ -1391,9 +1379,9 @@ else if(ox < ix && oy < iy) {
   %}
 }
 else if(ox >= ix && oy < iy) {
+  kx = ((PDL_CLDouble) (ox)) / (ix);
+  ky = ((PDL_CLDouble) (iy)) / (oy);
   broadcastloop %{
-    kx = ((double) (ox)) / (ix);
-    ky = ((double) (iy)) / (oy);
     lx = 0;
     for(i=0;i<ix;i++) {
       ly = 0;
@@ -1418,9 +1406,9 @@ else if(ox >= ix && oy < iy) {
   %}
 }
 else if(ox < ix && oy >= iy) {
+  kx = ((PDL_CLDouble) (ix)) / (ox);
+  ky = ((PDL_CLDouble) (oy)) / (iy);
   broadcastloop %{
-    kx = ((double) (ix)) / (ox);
-    ky = ((double) (oy)) / (iy);
     lx = 0;
     for(i=0;i<ox;i++) {
       ly = 0;
