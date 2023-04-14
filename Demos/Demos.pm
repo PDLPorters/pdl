@@ -146,6 +146,9 @@ PDL::Demos - PDL demo infrastructure
 
 Provides utilities to make demos for PDL modules.
 
+PDL demos should be in the C<PDL::Demos::*> namespace so that they can
+be auto-discovered.
+
 =head1 METHODS
 
 =head2 list
@@ -189,19 +192,20 @@ Each demo module must provide these class methods:
 
 =item info
 
-Return a two-element list: a single keyword (probably lower-case),
-and a short description of the demo.
+Return a two-element list of strings: a single keyword (probably
+lower-case), and a short description of the demo.  Both will be displayed
+when a user enters C<demo> without giving a name.
 
 =item demo
 
-Returns a list of array-refs of two elements: a function provided by this
-module, and an argument for it.
+Returns a list of array-refs of two elements: a L<function|/FUNCTIONS>
+provided by this module, and an argument for it.
 
 =item init
 
-Return a string which will be evaluated in the package running the
-demo. Use this for C<use> statements that import functions needed in
-your demo.
+Return a string of Perl code which will be evaluated in the package
+running the demo. Use this e.g. for C<use> statements that import
+functions needed in your demo.
 
 =back
 
@@ -219,13 +223,30 @@ Prints its argument (best for use in C<actnw> etc).
 
 =head2 actnw
 
-Prints its argument with a separator, then evaluates it as Perl code
-with C<PDL> loaded. Doesn't prompt, so use this for e.g. GUI demos that
-return when the user tells them to.
+The argument must be a string containing valid Perl code.  The string
+is printed with a separator, then evaluated as Perl code in the
+package running the demo, with C<PDL> loaded. Doesn't prompt, so use
+this for e.g. GUI demos that return when the user tells them to.
+
+Multiline code string should start with a newline.
 
 =head2 act
 
 As above, but prompts before returning.
+
+=head1 ERROR HANDLING
+
+Check the prerequisites (e.g. optional Perl modules) for your demo in
+your demo module and not only in the code string you pass to the
+C<init> routine.  If the code in your demo module dies, then the demo
+will not be offered in the demo overview.  Fatal errors in the init
+routine will be printed and mess up the output layout.  Also, error
+messages might be difficult to understand if users just want to run
+the demo.
+
+If you want to show the demo in the overview though it can't run in
+the current situation, then make sure that your C<demo> method informs
+the user what is missing, and where they can obtain it.
 
 =head1 AUTHOR
 
