@@ -133,7 +133,7 @@ sub apply_profile {
       }
       no strict;
       PDL::Demos->init($_[0]);
-      $_->[0]->($_->[1]) for PDL::Demos->demo($_[0]);
+      &{$_->[0]}($_->[1]) for PDL::Demos->demo($_[0]);
       PDL::Demos->done($_[0]);
     }
    } );
