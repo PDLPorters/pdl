@@ -1662,10 +1662,10 @@ EOD
           }
           $cnt++;
           $name2cnts{$x} = [$cnt, $cnt];
-          $already_read{$x} = 1 if !$argorder or !$out{$x};
+          $already_read{$x} = 1;
           push @xsargs, $x.(!$argorder ? '' :
             exists $otherdefaults->{$x} ? "=$otherdefaults->{$x}" :
-            $out{$x} ? "=$x" : ''
+            $out{$x} ? "=".callPerlInit($x."_SV", $callcopy) : ''
             );
           $xsdecls .= "\n  PDL_Indx ${x}_count=0;" if $other{$x} && $optypes->{$x}->is_array;
           $xsdecls .= "\n  $ptypes{$x}$x";
@@ -1698,10 +1698,9 @@ EOD
             (map
               +(exists $otherdefaults->{$_} ? "if (!${_}_SV) { $_ = ($otherdefaults->{$_}); } else " : "").
               "{ ".callTypemap($_, $ptypes{$_})."; }\n",
-            @{$sig->othernames(1, \%already_read)}),
+              @{$sig->othernames(1, \%already_read)}),
             (map callTypemap($_, $ptypes{$_}).";\n", grep !$already_read{$_}, $sig->names_in),
-            # do these last as calls to Perl methods mutate stack
-            (map +("if (${_}_SV) { ".($argorder ? '' : callTypemap($_, $ptypes{$_}))."; } else ")."$_ = ".callPerlInit($_."_SV", $callcopy).";\n", grep $out{$_}, @args)
+            (map +("if (${_}_SV) { ".($argorder ? '' : callTypemap($_, $ptypes{$_}))."; } else ")."$_ = ".callPerlInit($_."_SV", $callcopy).";\n", grep $out{$_} && !$already_read{$_}, @args)
           );
         my $preamble = $nallout ? qq[\n PREINIT:\n  PDL_XS_PREAMBLE($nretval);\n INPUT:\n] : '';
         join '', qq[
