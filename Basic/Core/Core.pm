@@ -62,15 +62,6 @@ $PDL::toolongtoprint = 10000;  # maximum pdl size to stringify for printing
 *thread_define = *broadcast_define;
 *PDL::threadover_n = *PDL::broadcastover_n;
 
-*dup = \&PDL::dup; *dupN = \&PDL::dupN;
-*howbig       = \&PDL::howbig;	  *unpdl	= \&PDL::unpdl;
-*nelem        = \&PDL::nelem;	  *inplace	= \&PDL::inplace;
-*dims	      = \&PDL::dims;	  *list 	= \&PDL::list;
-*broadcastids = \&PDL::broadcastids; *listindices  = \&PDL::listindices;
-*null	      = \&PDL::null;	  *set  	= \&PDL::set;
-*at		= \&PDL::at;	  *flows	= \&PDL::flows;
-*sclr           = \&PDL::sclr;    *shape        = \&PDL::shape;
-
 for my $t (PDL::Types::types()) {
   my $conv = $t->convertfunc;
   no strict 'refs';
@@ -81,14 +72,14 @@ for my $t (PDL::Types::types()) {
 }
 
 BEGIN {
-    *broadcast_define = \&PDL::broadcast_define;
-    *convert      = \&PDL::convert;   *over 	 = \&PDL::over;
-    *dog          = \&PDL::dog;       *cat 	         = \&PDL::cat;
-    *type         = \&PDL::type;      *approx        = \&PDL::approx;
-    *dummy        = \&PDL::dummy;
-    *mslice       = \&PDL::mslice;
-    *isempty      = \&PDL::isempty;
-    *string       = \&PDL::string;
+for (qw(
+  inflateN badflag dup dupN howbig unpdl nelem inplace dims
+  list broadcastids listindices null set at flows sclr shape
+  broadcast_define convert over dog cat mslice
+  type approx dummy isempty string
+)) {
+  no strict 'refs'; *{$_} = \&{"PDL::$_"};
+}
 }
 
 =head1 NAME

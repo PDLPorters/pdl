@@ -226,6 +226,8 @@ ok(tapprox($x2d, rld($y,$c)),"rle 2d with return vals");
 
 $y = $x->mslice(0.5);
 ok(tapprox($y, 1), "mslice 1");
+$y = mslice($x, 0.5);
+ok(tapprox($y, 1), "func mslice 1");
 
 $y = $x->mslice([0.5,2.11]);
 is("$y", "[1 1 1]", "mslice 2");

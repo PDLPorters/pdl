@@ -23,6 +23,12 @@ $p->reshape(3); # small enough now
 $p->upd_data;
 }
 
+for (@PDL::Core::EXPORT_OK) {
+  next if $_ eq 'mslice'; # bizarrely, this is callable but not "defined"
+  no strict 'refs';
+  ok defined &{"PDL::Core::$_"}, "PDL::Core-exported $_ exists";
+}
+
 is sequence(3,2)->dup(0, 2).'', '
 [
  [0 1 2 0 1 2]
