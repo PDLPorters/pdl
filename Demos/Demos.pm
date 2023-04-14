@@ -192,7 +192,7 @@ Each demo module must provide these class methods:
 
 =item info
 
-Return a two-element list: of strings: a single keyword (probably
+Return a two-element list of strings: a single keyword (probably
 lower-case), and a short description of the demo.  Both will be displayed
 when a user enters C<demo> without giving a name.
 
