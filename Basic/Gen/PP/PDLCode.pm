@@ -152,7 +152,7 @@ sub new {
     # Then, in this form, put it together what we want the code to actually do.
     print "SIZEPRIVS: ",(join ',',%$sizeprivs),"\n" if $::PP_VERBOSE;
     $this->{Code} = (join '',sort values %$sizeprivs).
-       ($dont_add_brcloop?'':PDL::PP::pp_line_numbers __LINE__, join "\n",
+       ($dont_add_brcloop?'':join '', map "$_\n",
         'PDL_COMMENT("broadcastloop declarations")',
         'int __brcloopval;',
         'register PDL_Indx __tind0,__tind1; PDL_COMMENT("counters along dim")',
@@ -163,12 +163,12 @@ sub new {
         eol_protect(
          "#define ".$this->broadcastloop_macroname($backcode, 'START') . " " .
            $this->broadcastloop_start($this->func_name($backcode))
-        )."\n",
+        ),
         eol_protect(
          "#define ".$this->broadcastloop_macroname($backcode, 'END') . " " .
            $this->broadcastloop_end
-        )."\n",
-        join('',map $_->get_incregisters, @$pobjs{sort keys %$pobjs}),
+        ),
+        (grep $_, map $_->get_incregisters, @$pobjs{sort keys %$pobjs}),
        ).
        $this->params_declare.
        $coderef->get_str($this,[])
@@ -188,7 +188,7 @@ sub params_declare {
     my @decls = map $_->get_xsdatapdecl("PDL_PARAMTYPE_".$_->name, $this->{NullDataCheck}),
       map $pdls->{$_}, @$ord;
     my @param_names = map "PDL_PARAMTYPE_$_", @$ord;
-    PDL::PP::pp_line_numbers(__LINE__, <<EOF);
+    <<EOF;
 #ifndef PDL_DECLARE_PARAMS_$this->{Name}_$this->{NullDataCheck}
 #define PDL_DECLARE_PARAMS_$this->{Name}_$this->{NullDataCheck}(@{[join ',', @param_names]}) \\
   @{[join " \\\n", @decls]}
@@ -211,9 +211,9 @@ PDL_BROADCASTLOOP_START(
 $funcname,
 \$PRIV(broadcast),
 \$PRIV(vtable),
-@{[ join "", map "\t".$pdls->{$ord->[$_]}->do_pointeraccess." += __offsp[$_];\n", 0..$#$ord ]},
-(@{[ join "", map "\t,".$pdls->{$ord->[$_]}->do_pointeraccess." += __tinc1_$ord->[$_] - __tinc0_$ord->[$_] * __tdims0\n", 0..$#$ord ]}),
-(@{[ join "", map "\t,".$pdls->{$ord->[$_]}->do_pointeraccess." += __tinc0_$ord->[$_]\n", 0..$#{$ord} ]})
+@{[ join "", map "  ".$pdls->{$ord->[$_]}->do_pointeraccess." += __offsp[$_];\n", 0..$#$ord ]},
+(@{[ join "", map "  ,".$pdls->{$ord->[$_]}->do_pointeraccess." += __tinc1_$ord->[$_] - __tinc0_$ord->[$_] * __tdims0\n", 0..$#$ord ]}),
+(@{[ join "", map "  ,".$pdls->{$ord->[$_]}->do_pointeraccess." += __tinc0_$ord->[$_]\n", 0..$#{$ord} ]})
 )
 EOF
 }
@@ -508,7 +508,7 @@ sub myprelude {
     push @{$parent->{Gencurtype}}, undef; # so that $GENERIC can get at it
     die "ERROR: need to rethink NaN support in GenericSwitch\n"
 	if defined $this->[1] and $parent->{ftypes_type};
-    qq[PDL_COMMENT("Start generic loop")\n\tswitch($this->[3]) {\n];
+    qq[switch ($this->[3]) { PDL_COMMENT("Start generic loop")\n];
 }
 
 my @GENTYPE_ATTRS = qw(integer real unsigned);
@@ -520,14 +520,14 @@ sub myitemstart {
     my ($ord,$pdls) = $parent->get_pdls;
     my @param_ctypes = map $pdls->{$_}->adjusted_type($item)->ctype, @$ord;
     my $decls = keys %{$this->[2]} == @$ord
-      ? PDL::PP::pp_line_numbers(__LINE__-1, "\t\tPDL_DECLARE_PARAMS_$parent->{Name}_$parent->{NullDataCheck}(@{[join ',', @param_ctypes]})\n")
+      ? "PDL_DECLARE_PARAMS_$parent->{Name}_$parent->{NullDataCheck}(@{[join ',', @param_ctypes]})\n"
       : join '', map $_->get_xsdatapdecl($_->adjusted_type($item)->ctype, $parent->{NullDataCheck}),
           map $parent->{ParObjs}{$_}, sort keys %{$this->[2]};
     my @gentype_decls = !$this->[4] ? () : map "#define PDL_IF_GENTYPE_".uc($_)."(t,f) ".
 	($item->$_ ? 't' : 'f')."\n",
 	@GENTYPE_ATTRS;
     join '',
-	PDL::PP::pp_line_numbers(__LINE__-1, "case @{[$item->sym]}: {\n"),
+	"case @{[$item->sym]}: {\n",
 	@gentype_decls,
 	$decls;
 }
@@ -546,7 +546,7 @@ sub mypostlude {
     pop @{$parent->{Gencurtype}};  # and clean up the Gentype stack
     $parent->{ftypes_type} = undef if defined $this->[1];
     my $supported = join '', map $_->ppsym, @{$this->[0]};
-    "\n\tdefault:return PDL->make_error(PDL_EUSERERROR, \"PP INTERNAL ERROR in $parent->{Name}: unhandled datatype(%d), only handles ($supported)! PLEASE MAKE A BUG REPORT\\n\", $this->[3]);}\n";
+    "\ndefault: return PDL->make_error(PDL_EUSERERROR, \"PP INTERNAL ERROR in $parent->{Name}: unhandled datatype(%d), only handles ($supported)! PLEASE MAKE A BUG REPORT\\n\", $this->[3]);\n}\n";
 }
 
 ####

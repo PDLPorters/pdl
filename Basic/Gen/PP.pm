@@ -362,9 +362,7 @@ use strict;
 use Carp;
 our @ISA = qw (PDL::PP::Rule);
 
-sub badflag_isset {
-  PDL::PP::pp_line_numbers(__LINE__-1, "($_[0]->state & PDL_BADVAL)")
-}
+sub badflag_isset { "($_[0]->state & PDL_BADVAL)" }
 
 # Probably want this directly in the apply routine but leave as is for now
 sub dosubst_private {
@@ -1080,7 +1078,7 @@ sub indent($$) {
     my ($ind, $text) = @_;
     return $text if !length $text;
     $ind = ' ' x $ind;
-    $text =~ s/^(.*)$/$ind$1/mg;
+    $text =~ s/^(.+)$/$ind$1/mg;
     return $text;
 }
 
@@ -1813,31 +1811,26 @@ END
    PDL::PP::Rule::Returns->new("IgnoreTypesOf", {}),
 
    PDL::PP::Rule->new("NewXSTypeCoerceNS", ["StructName"],
-      sub {
-        PDL::PP::pp_line_numbers(__LINE__, <<EOF);
-PDL_RETERROR(PDL_err, PDL->type_coerce($_[0]));
-EOF
-      }),
+      sub { "  PDL_RETERROR(PDL_err, PDL->type_coerce($_[0]));\n" }),
    PDL::PP::Rule::Substitute->new("NewXSTypeCoerceSubd", "NewXSTypeCoerceNS"),
 
    PDL::PP::Rule->new("NewXSSetTransPDLs", ["SignatureObj","StructName"], sub {
       my($sig,$trans) = @_;
       join '',
-        map PDL::PP::pp_line_numbers(__LINE__-1, "$trans->pdls[$_->[0]] = $_->[2];\n"),
+        map "  $trans->pdls[$_->[0]] = $_->[2];\n",
         grep !$_->[1], $sig->names_sorted_tuples;
    }),
 
    PDL::PP::Rule->new("NewXSExtractTransPDLs", ["SignatureObj","StructName"], sub {
       my($sig,$trans) = @_;
       join '',
-        map PDL::PP::pp_line_numbers(__LINE__, "$_->[2] = $trans->pdls[$_->[0]];\n"),
+        map "  $_->[2] = $trans->pdls[$_->[0]];\n",
         grep !$_->[1], $sig->names_sorted_tuples;
    }),
 
    PDL::PP::Rule->new("NewXSRunTrans", ["StructName"], sub {
       my($trans) = @_;
-      PDL::PP::pp_line_numbers(__LINE__,
-      "PDL_RETERROR(PDL_err, PDL->make_trans_mutual($trans));\n");
+      "  PDL_RETERROR(PDL_err, PDL->make_trans_mutual($trans));\n";
    }),
 
    PDL::PP::Rule->new(["StructDecl","ParamStructType"],
@@ -1856,12 +1849,12 @@ sub wrap_vfn {
     $code,$rout,$func_header,
     $all_func_header,$sname,$pname,$ptype,$extra_args,
   ) = @_;
-  join("\n  ", PDL::PP::pp_line_numbers(__LINE__,
+  join "", PDL::PP::pp_line_numbers(__LINE__,
 qq[pdl_error $rout(pdl_trans *$sname$extra_args) {
-  pdl_error PDL_err = {0, NULL, 0};],
-    ). ($ptype ? "  $ptype *$pname = $sname->params;" : ''),
-    (grep $_, $all_func_header, $func_header, $code),
-    'return PDL_err;'). "\n}";
+  pdl_error PDL_err = {0, NULL, 0};]),
+    ($ptype ? "  $ptype *$pname = $sname->params;\n" : ''),
+    indent(2, join '', grep $_, $all_func_header, $func_header, $code),
+    "  return PDL_err;\n}";
 }
 sub make_vfn_args {
   my ($which, $extra_args) = @_;
@@ -1944,7 +1937,7 @@ sub make_vfn_args {
    PDL::PP::Rule->new("NewXSFindBadStatusNS", ["StructName"],
       "Rule to find the bad value status of the input ndarrays",
       sub {
-        PDL::PP::pp_line_numbers(__LINE__, <<EOF);
+        indent(2, <<EOF);
 PDL_RETERROR(PDL_err, PDL->trans_check_pdls($_[0]));
 char \$BADFLAGCACHE() = PDL->trans_badflag_from_inputs($_[0]);
 EOF
@@ -1968,7 +1961,7 @@ EOF
       sub {
         my ( $sig ) = @_;
         return '' if @{$sig->names} == (my @outs = $sig->names_out); # no input pdls, no badflag copying needed
-        PDL::PP::pp_line_numbers(__LINE__, join '',
+        PDL::PP::indent(2, join '',
           "if (\$BADFLAGCACHE()) {\n",
           (map "  \$SETPDLSTATEBAD($_);\n", @outs),
           "}\n");
@@ -1984,11 +1977,10 @@ EOF
 		      "Rule to create and initialise the private trans structure",
       sub {
         my( $sname, $vtable, $pname, $ptype ) = @_;
-        PDL::PP::pp_line_numbers(__LINE__, <<EOF);
+        indent(2, <<EOF . ($ptype ? "$ptype *$pname = $sname->params;\n" : ""));
 if (!PDL) return (pdl_error){PDL_EFATAL, "PDL core struct is NULL, can't continue",0};
 pdl_trans *$sname = PDL->create_trans(&$vtable);
 if (!$sname) return PDL->make_error_simple(PDL_EFATAL, "Couldn't create trans");
-@{[$ptype ? "$ptype *$pname = $sname->params;" : ""]}
 EOF
       }),
 
@@ -2066,7 +2058,7 @@ EOF
         my @indnames = $sig->ind_names_sorted;
         my $indnames = join(",", map qq|"$_"|, @indnames) || '""';
         my $sizeof = $ptype ? "sizeof($ptype)" : '0';
-        PDL::PP::pp_line_numbers(__LINE__, <<EOF);
+        <<EOF;
 static pdl_datatypes ${vname}_gentypes[] = { $gentypes_txt };
 static char ${vname}_flags[] = {
   $join_flags

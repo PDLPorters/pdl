@@ -164,7 +164,7 @@ sub getcomp {
   my $objs = $self->otherobjs;
   my @names = @{$self->othernames(0)};
   my $indirect = { map +($_=>$self->other_is_output($_)), @names };
-  join "\n", map "$_;", grep $_, map $objs->{$_}->get_decl($_, {VarArrays2Ptrs=>1,AddIndirect=>$indirect->{$_}}), @names;
+  join "\n", map "  $_;", grep $_, map $objs->{$_}->get_decl($_, {VarArrays2Ptrs=>1,AddIndirect=>$indirect->{$_}}), @names;
 }
 sub getfree {
   my ($self,$symbol) = @_;
@@ -175,7 +175,7 @@ sub getfree {
 sub getcopy {
   my ($self, $to_pat) = @_;
   my $objs = $self->otherobjs;
-  join '', map $objs->{$_}->get_copy($_,sprintf $to_pat,$_), @{$self->othernames(0)};
+  PDL::PP::indent(2, join '', map $objs->{$_}->get_copy($_,sprintf $to_pat,$_)."\n", @{$self->othernames(0)});
 }
 
 sub realdims {

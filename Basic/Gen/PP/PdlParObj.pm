@@ -162,12 +162,12 @@ sub get_incname {
 
 sub get_incregisters {
 	my($this) = @_;
-	if(scalar(@{$this->{IndObjs}}) == 0) {return "";}
-	(join '',map {
+	return '' if scalar(@{$this->{IndObjs}}) == 0;
+	join '', map {
 		my $x = $_;
 		my ($name, $for_local) = map $this->get_incname($x, $_), 0, 1;
 		"register PDL_Indx $for_local = __privtrans->$name; (void)$for_local;\n";
-	} (0..$#{$this->{IndObjs}}) )
+	} 0..$#{$this->{IndObjs}};
 }
 
 # Print an access part.
@@ -192,7 +192,7 @@ sub do_access {
 
 sub do_pdlaccess {
 	my($this) = @_;
-	PDL::PP::pp_line_numbers(__LINE__-1, '$PRIV(pdls)['.$this->{Number}.']');
+	'$PRIV(pdls)['.$this->{Number}.']';
 }
 
 sub do_pointeraccess {

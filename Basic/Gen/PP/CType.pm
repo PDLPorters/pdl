@@ -59,13 +59,13 @@ sub protoname { return shift->{ProtoName} }
 
 sub get_copy {
 	my($this,$from,$to) = @_;
-	return PDL::PP::pp_line_numbers(__LINE__-1, "($to) = ($from);") if !@{$this->{Chain}};
+	return "($to) = ($from); /* CType.get_copy */" if !@{$this->{Chain}};
 	# strdup loses portability :(
-	return PDL::PP::pp_line_numbers(__LINE__-1, "($to) = malloc(strlen($from)+1); strcpy($to,$from);")
+	return "($to) = malloc(strlen($from)+1); strcpy($to,$from); /* CType.get_copy */"
 	 if $this->{Base} =~ /^\s*char\s*$/;
-	return PDL::PP::pp_line_numbers(__LINE__-1, "($to) = sv_mortalcopy($from);") if $this->{Base} =~ /^\s*SV\s*$/;
+	return "($to) = sv_mortalcopy($from); /* CType.get_copy */" if $this->{Base} =~ /^\s*SV\s*$/;
 	my $code = $this->get_malloc($to,$from);
-	return PDL::PP::pp_line_numbers(__LINE__-1, "($to) = ($from);") if !defined $code; # pointer
+	return "($to) = ($from); /* CType.get_copy */" if !defined $code; # pointer
 	my ($deref0,$deref1,$prev,$close) = ($from,$to);
         my $no = 0;
 	for(@{$this->{Chain}}) {
