@@ -484,13 +484,17 @@ sub mypostlude { my($this,$parent,$context) = @_;
 }
 
 package PDL::PP::GenericSwitch;
+use Carp;
 our @ISA = "PDL::PP::Block";
 
 # make the typetable from info in PDL::Types
 use PDL::Types ':All';
+my %type2canonical = map +($_->ppsym=>$_,$_->identifier=>$_), types();
 my @typetable = map [$_->ppsym, $_], types();
 sub get_generictyperecs { my($types) = @_;
-    my %wanted; @wanted{@$types} = ();
+    my @bad = grep !$type2canonical{$_}, @$types;
+    confess "Invalid GenericType (@bad)!" if @bad;
+    my %wanted; @wanted{map $type2canonical{$_}->ppsym, @$types} = ();
     [ map $_->[1], grep exists $wanted{$_->[0]}, @typetable ];
 }
 

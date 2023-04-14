@@ -381,6 +381,14 @@ pp_def('or2',
   GenericTypes => [qw(A B S U L K N P Q)],
 );
 
+# from HMM
+pp_def('logadd',
+       Pars => 'a(); b(); [o]c()',
+       GenericTypes => [qw(F D LD)],
+       Inplace=>['a'], ##-- can run inplace on a()
+       Code => ';',
+      );
+
 pp_done;
 
 # this tests the bug with a trailing comment and *no* newline
@@ -588,6 +596,9 @@ TODO: {
 }
 
 eval { is ''.or2(pdl(1), pdl(1), 0), '1' };
+is $@, '';
+
+eval { ldouble(4)->logadd(3) };
 is $@, '';
 
 done_testing;

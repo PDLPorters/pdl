@@ -137,9 +137,9 @@ is $@, '', 'valid order OK';
 
 eval { pp_def( "func", Code => ';',
   Pars => "a(n=2); [o] b(m=3);",
-  OtherPars => "int x; char *y",
-  ArgOrder => [qw(a x y b)],
+  GenericTypes => [qw(B INVALID)],
 ) };
+like $@, qr/INVALID/, 'invalid GenericTypes caught';
 
 my $got = [PDL::PP::reorder_args(my $sig = PDL::PP::Signature->new(
    "a(n=2); [o] b(m=3);", 1, "int x; char *y"
