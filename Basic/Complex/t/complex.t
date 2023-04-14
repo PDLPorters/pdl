@@ -32,6 +32,7 @@ is(ref $y, 'PDL::Complex', "real doesn't change type of parent");
 $y=$x->complex;
 is(ref $y, 'PDL::Complex', 'type of complex');
 is(ref $x, 'PDL::Complex', 'complex does modify original pdl');
+ok !$x->badflag, 'PDL::Complex badflag works';
 
 eval { my $string = PDL::Complex->null.'' };
 is $@, '', 'can stringify complex null';

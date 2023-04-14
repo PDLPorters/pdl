@@ -5,6 +5,7 @@ my $R = [ppdefs()];
 my $F = [map $_->ppsym, grep $_->real && !$_->integer, types()];
 my $C = [ppdefs_complex()];
 
+pp_core_importList('()');
 pp_beginwrap; # required for overload to work
 
 # pp_def functions go into the PDL::Complex namespace
@@ -19,9 +20,6 @@ use strict;
 use warnings;
 use Carp;
 our $VERSION = '2.009';
-   use PDL::Slices;
-   use PDL::Types;
-   use PDL::Bad;
 
 =encoding iso-8859-1
 
@@ -225,7 +223,7 @@ Comparing complex numbers other than for equality is a fatal error.
 =cut
 
 my $i;
-BEGIN { $i = bless pdl 0,1 }
+BEGIN { $i = bless PDL->pdl(0,1) }
 {
 no warnings 'redefine';
 sub i { $i->copy + (@_ ? $_[0] : 0) };
@@ -845,7 +843,7 @@ Does not work inplace.
 
 sub Catan($) {
    my $z = shift;
-   Cmul Clog(Cdiv (PDL::Complex::i()+$z, PDL::Complex::i()-$z)), pdl(0, 0.5);
+   Cmul Clog(Cdiv (PDL::Complex::i()+$z, PDL::Complex::i()-$z)), PDL->pdl(0, 0.5);
 }
 
 EOD
