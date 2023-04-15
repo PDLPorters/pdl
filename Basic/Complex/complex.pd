@@ -1064,12 +1064,9 @@ pp_add_isa 'PDL';
 
 pp_addpm {At => 'Bot'}, <<'EOD';
 
-# overload must be here, so that all the functions can be seen
-
 # undocumented compatibility functions (thanks to Luis Mochan!)
-sub Catan2($$) { Clog( $_[1] + i()*$_[0])/i }
-sub atan2($$) { Clog( $_[1] + i()*$_[0])/i }
-
+sub Catan2 { Clog( $_[1] + i()*$_[0])/i }
+sub atan2 { Clog( $_[1] + i()*$_[0])/i }
 
 =begin comment
 
@@ -1087,20 +1084,14 @@ my %NO_MUTATE; BEGIN { @NO_MUTATE{qw(atan2 .= ==)} = (); }
 sub _gen_biop {
    local $_ = shift;
    my $sub;
-   if (/(\S+)\+(\w+)/) { #commutes
-      $sub = eval 'sub { '.$2.' $_[0], ref $_[1] eq __PACKAGE__ ? $_[1] : r2C $_[1] }';
-   } elsif (/(\S+)\-(\w+)/) { #does not commute
-      $sub = eval 'sub { my $y = ref $_[1] eq __PACKAGE__ ? $_[1] : r2C $_[1];
-                       $_[2] ? '.$2.' $y, $_[0] : '.$2.' $_[0], $y }'; #need to swap?
-   } else {
-      die;
-   }
-   return ($1, $sub) if exists $NO_MUTATE{$1};
-   ($1, $sub, "$1=", $sub);
+   die if !(my ($op, $commutes, $func) = /(\S+)([-+])(\w+)/);
+   $sub = eval 'sub { my $y = ref $_[1] eq __PACKAGE__ ? $_[1] : r2C $_[1];
+                    '.$func.'('.($commutes eq '+' ? '' : '$_[2] ? ($y, $_[0]) : ').'($_[0], $y)) }'; #need to swap?
+   ($op, $sub, exists $NO_MUTATE{$op} ? () : ("$op=", $sub));
 }
 
 sub _gen_unop {
-   my ($op, $func) = ($_[0] =~ /(.+)@(\w+)/);
+   my ($op, $func) = split '@', $_[0];
    no strict 'refs';
    *$op = \&$func if $op =~ /\w+/; # create an alias
    ($op, eval 'sub { '.$func.' $_[0] }');
