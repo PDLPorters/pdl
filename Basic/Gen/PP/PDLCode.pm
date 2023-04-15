@@ -78,7 +78,7 @@ sub new {
       # variable references (strings starting with $) and
       # loops (array references, 1. item = variable.
       my ( $broadcastloops, $coderef, $sizeprivs ) =
-          $this->separate_code( "{\n$c\n}" );
+          $this->separate_code( "{$c}" );
       # Now, if there is no explicit broadcastlooping in the code,
       # enclose everything into it.
       if(!$broadcastloops && !$dont_add_brcloop) {
@@ -176,12 +176,12 @@ sub broadcastloop_start {
     my ($ord,$pdls) = $this->get_pdls;
     <<EOF;
 PDL_BROADCASTLOOP_START(
-$funcname,
-\$PRIV(broadcast),
-\$PRIV(vtable),
-@{[ join "", map "  ".$pdls->{$ord->[$_]}->do_pointeraccess." += __offsp[$_];\n", 0..$#$ord ]},
-(@{[ join "", map "  ,".$pdls->{$ord->[$_]}->do_pointeraccess." += __tinc1_$ord->[$_] - __tinc0_$ord->[$_] * __tdims0\n", 0..$#$ord ]}),
-(@{[ join "", map "  ,".$pdls->{$ord->[$_]}->do_pointeraccess." += __tinc0_$ord->[$_]\n", 0..$#{$ord} ]})
+  $funcname,
+  \$PRIV(broadcast),
+  \$PRIV(vtable),
+@{[ PDL::PP::indent 2, join "", map $pdls->{$ord->[$_]}->do_pointeraccess." += __offsp[$_];\n", 0..$#$ord ]}  ,
+  (@{[ PDL::PP::indent 2, join "", map ",".$pdls->{$ord->[$_]}->do_pointeraccess." += __tinc1_$ord->[$_] - __tinc0_$ord->[$_] * __tdims0\n", 0..$#$ord ]}  ),
+  (@{[ PDL::PP::indent 2, join "", map ",".$pdls->{$ord->[$_]}->do_pointeraccess." += __tinc0_$ord->[$_]\n", 0..$#{$ord} ]}  )
 )
 EOF
 }
@@ -191,8 +191,8 @@ sub broadcastloop_end {
     my ($ord,$pdls) = $this->get_pdls();
     <<EOF;
 PDL_BROADCASTLOOP_END(
-\$PRIV(broadcast),
-@{[ join "", map $pdls->{$ord->[$_]}->do_pointeraccess." -= __tinc1_$ord->[$_] * __tdims1 + __offsp[$_];\n", 0..$#$ord ]}
+  \$PRIV(broadcast),
+@{[ PDL::PP::indent 2, join "", map $pdls->{$ord->[$_]}->do_pointeraccess." -= __tinc1_$ord->[$_] * __tdims1 + __offsp[$_];\n", 0..$#$ord ]}
 )
 EOF
 }
@@ -357,7 +357,7 @@ sub mypostlude {}
 sub get_str {
     my ($this,$parent,$context) = @_;
     my $str = $this->myprelude($parent,$context);
-    $str .= $this->get_str_int($parent,$context)//'';
+    $str .= PDL::PP::indent 2, $this->get_str_int($parent,$context)//'';
     $str .= $this->mypostlude($parent,$context)//'';
     return $str;
 }
@@ -407,17 +407,17 @@ sub get_str {
     my ($this,$parent,$context) = @_;
     my $good = $this->[0];
     my $bad  = $this->[1];
-    my $str = PDL::PP::pp_line_numbers(__LINE__, <<EOF);
+    my $str = <<EOF;
 if ( \$PRIV(bvalflag) ) { PDL_COMMENT("** do 'bad' Code **")
-#define PDL_BAD_CODE
-#define PDL_IF_BAD(t,f) t
-  @{[ $bad->get_str($parent,$context) ]}
-#undef PDL_BAD_CODE
-#undef PDL_IF_BAD
+  #define PDL_BAD_CODE
+  #define PDL_IF_BAD(t,f) t
+@{[ PDL::PP::indent 2, $bad->get_str($parent,$context)
+]}  #undef PDL_BAD_CODE
+  #undef PDL_IF_BAD
 } else { PDL_COMMENT("** else do 'good' Code **")
-#define PDL_IF_BAD(t,f) f
-  @{[ $good->get_str($parent,$context) ]}
-#undef PDL_IF_BAD
+  #define PDL_IF_BAD(t,f) f
+@{[ PDL::PP::indent 2, $good->get_str($parent,$context)
+]}  #undef PDL_IF_BAD
 }
 EOF
 }
@@ -444,17 +444,14 @@ sub myprelude { my($this,$parent,$context) = @_;
 	push @$context, map {
 		my $i = $parent->make_loopind($_);
 # Used to be $PRIV(.._size) but now we have it in a register.
-		$text .= PDL::PP::pp_line_numbers(__LINE__, <<EOF);
-{PDL_COMMENT(\"Open $_\") register PDL_Indx $_;
-for($_=0; $_<(__$i->[0]_size); $_++) {
-EOF
+		$text .= "{PDL_COMMENT(\"Open $_\") register PDL_Indx $_; for($_=0; $_<(__$i->[0]_size); $_++) {";
 		$i;
 	} @{$this->[0]};
 	$text;
 }
 sub mypostlude { my($this,$parent,$context) = @_;
 	splice @$context, - ($#{$this->[0]}+1);
-	return join '', map PDL::PP::pp_line_numbers(__LINE__-1, "}} PDL_COMMENT(\"Close $_\")"), @{$this->[0]};
+	return join '', map "}} PDL_COMMENT(\"Close $_\")", @{$this->[0]};
 }
 
 package PDL::PP::GenericSwitch;
@@ -504,8 +501,8 @@ sub myitemstart {
     my @gentype_decls = !$this->[4] ? () : map "#define PDL_IF_GENTYPE_".uc($_)."(t,f) ".
 	($item->$_ ? 't' : 'f')."\n",
 	@GENTYPE_ATTRS;
-    join '',
-	"case @{[$item->sym]}: {\n",
+    "case @{[$item->sym]}: {\n" .
+	PDL::PP::indent 2, join '',
 	@gentype_decls,
 	$decls;
 }
@@ -516,7 +513,7 @@ sub myitemend {
     join '',
 	"\n",
 	(!$this->[4] ? () : map "#undef PDL_IF_GENTYPE_".uc($_)."\n", @GENTYPE_ATTRS),
-	PDL::PP::pp_line_numbers(__LINE__-1, "} break;\n");
+	"} break;\n";
 }
 
 sub mypostlude {
@@ -524,7 +521,7 @@ sub mypostlude {
     pop @{$parent->{Gencurtype}};  # and clean up the Gentype stack
     $parent->{ftypes_type} = undef if defined $this->[1];
     my $supported = join '', map $_->ppsym, @{$this->[0]};
-    "\ndefault: return PDL->make_error(PDL_EUSERERROR, \"PP INTERNAL ERROR in $parent->{Name}: unhandled datatype(%d), only handles ($supported)! PLEASE MAKE A BUG REPORT\\n\", $this->[3]);\n}\n";
+    "  default: return PDL->make_error(PDL_EUSERERROR, \"PP INTERNAL ERROR in $parent->{Name}: unhandled datatype(%d), only handles ($supported)! PLEASE MAKE A BUG REPORT\\n\", $this->[3]);\n}\n";
 }
 
 ####
@@ -543,11 +540,11 @@ sub new {
 sub myoffs { return 0; }
 sub myprelude {
     my($this,$parent,$context,$backcode) = @_;
-    $parent->broadcastloop_macroname($backcode, 'START') . "\n";
+    $parent->broadcastloop_macroname($backcode, 'START');
 }
 
 sub mypostlude {my($this,$parent,$context,$backcode) = @_;
-    $parent->broadcastloop_macroname($backcode, 'END') . "\n";
+    $parent->broadcastloop_macroname($backcode, 'END');
 }
 
 # Simple subclass of BroadcastLoop to implement writeback code

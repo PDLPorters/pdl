@@ -166,7 +166,7 @@ sub get_incregisters {
 	join '', map {
 		my $x = $_;
 		my ($name, $for_local) = map $this->get_incname($x, $_), 0, 1;
-		"register PDL_Indx $for_local = __privtrans->$name; (void)$for_local;\n";
+		"register PDL_Indx $for_local = __privtrans->$name; (void)$for_local;";
 	} 0..$#{$this->{IndObjs}};
 }
 

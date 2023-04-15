@@ -137,14 +137,14 @@ EOF
 	   HandleBad => 1,
 	   NoBadifNaN => 1,
 	   Inplace => [ 'a' ], # quick and dirty solution to get ->inplace do its job
-	   Code => pp_line_numbers(__LINE__-1, qq{
+	   Code => pp_line_numbers(__LINE__-1, <<EOF),
 char anybad = 0;
 broadcastloop %{
-	        PDL_IF_BAD(if ( $badcode ) { \$SETBAD(c()); anybad = 1; } else,)
-	           \$c() = \$a() $op \$b();
+  PDL_IF_BAD(if ( $badcode ) { \$SETBAD(c()); anybad = 1; } else,)
+     \$c() = \$a() $op \$b();
 %}
 if (anybad) \$PDLSTATESETBAD(c);
-	   }),
+EOF
 	   %extra,
 	   Doc => << "EOD");
 =for ref
@@ -245,15 +245,15 @@ ENDCODE
 	   OtherParsDefaults => { swap => 0 },
 	   ArgOrder => 1,
 	   Inplace => [ 'a' ],
-	   Code => pp_line_numbers(__LINE__, qq{
+	   Code => pp_line_numbers(__LINE__-1, <<EOF),
 char anybad = 0;
 broadcastloop %{
-  PDL_IF_BAD(if ( \$ISBAD(a()) || \$ISBAD(b()) ) { anybad = 1; \$SETBAD(c()); } else ,){
+  PDL_IF_BAD(if ( \$ISBAD(a()) || \$ISBAD(b()) ) { anybad = 1; \$SETBAD(c()); } else ,) {
      $codestr
   }
 %}
 if (anybad) \$PDLSTATESETBAD(c);
-	   }),
+EOF
 	   %extra,
 	   Doc => << "EOD");
 =for ref
@@ -314,11 +314,11 @@ sub ufunc {
 	   HandleBad => 1,
 	   NoBadifNaN => 1,
 	   Inplace => 1,
-	   Code => pp_line_numbers(__LINE__, qq{
-	        PDL_IF_BAD(if ( $badcode ) \$SETBAD(b()); else {,)
-	           $codestr
-		PDL_IF_BAD(},)
-	   }),
+	   Code => pp_line_numbers(__LINE__-1, <<EOF),
+PDL_IF_BAD(if ( $badcode ) \$SETBAD(b()); else {,)
+  $codestr
+PDL_IF_BAD(},)
+EOF
 	   %extra,
 	   Doc => << "EOD");
 =for ref
@@ -423,8 +423,8 @@ pp_def ( '_rabs',
 	NoBadifNaN => 1,
 	    Inplace => 1,
 	Code => pp_line_numbers(__LINE__, qq{
-	  PDL_IF_BAD(if ( \$ISBAD(a()) ) \$SETBAD(b()); else,)
-	     $rabs_code
+PDL_IF_BAD(if ( \$ISBAD(a()) ) \$SETBAD(b()); else,)
+  $rabs_code
 	}),
 	Doc=>undef,
 	PMFunc=>'',
@@ -464,12 +464,12 @@ pp_def(
        GenericTypes => $A,
        Pars => 'a(); [o]b();',
        Code => pp_line_numbers(__LINE__-1, q{
-	  char anybad = 0;
-	  broadcastloop %{
-	    PDL_IF_BAD(if ( $ISBAD(a()) ) { anybad = 1; $SETBAD(b()); } else,)
-	       $b() = $a();
-	  %}
-	  PDL_IF_BAD(if (anybad) $PDLSTATESETBAD(b);,)
+char anybad = 0;
+broadcastloop %{
+  PDL_IF_BAD(if ( $ISBAD(a()) ) { anybad = 1; $SETBAD(b()); } else,)
+    $b() = $a();
+%}
+PDL_IF_BAD(if (anybad) $PDLSTATESETBAD(b);,)
        }),
        Doc =>
 'Plain numerical assignment. This is used to implement the ".=" operator',
@@ -487,8 +487,8 @@ sub cfunc {
 	   NoBadifNaN => 1,
 	   Inplace => 1,
 	   Code => pp_line_numbers(__LINE__, qq{
-	      PDL_IF_BAD(if ( \$ISBAD(complexv()) ) \$SETBAD(b()); else,)
-		 $codestr
+PDL_IF_BAD(if ( \$ISBAD(complexv()) ) \$SETBAD(b()); else,)
+  $codestr
 	   }),
 	   !$backcode ? () : (
 	     DefaultFlow => 1,
@@ -539,29 +539,29 @@ Algorithm from L<Wikipedia|http://en.wikipedia.org/wiki/Exponentiation_by_squari
    Pars => 'a(); indx b(); [o] ans()',
    GenericTypes => $AF,
    Code => pp_line_numbers(__LINE__, q{
-      PDL_Indx n = $b();
-      $GENERIC() y = 1;
-      $GENERIC() x = $a();
-      if (n < 0) {
-         x = 1 / x;
-         n = -n;
-      }
-      if (n == 0) {
-         $ans() = 1;
-      } else {
-          while (n > 1) {
-             if (n % 2 == 0) {
-                x = x * x;
-                n = n / 2;
-             } else {
-                y = x * y;
-                x = x * x;
-                n = (n - 1) / 2;
-             }
-         }
-         $ans() = x * y;
-      }
-   })
+PDL_Indx n = $b();
+$GENERIC() y = 1;
+$GENERIC() x = $a();
+if (n < 0) {
+   x = 1 / x;
+   n = -n;
+}
+if (n == 0) {
+   $ans() = 1;
+} else {
+    while (n > 1) {
+       if (n % 2 == 0) {
+          x = x * x;
+          n = n / 2;
+       } else {
+          y = x * y;
+          x = x * x;
+          n = (n - 1) / 2;
+       }
+   }
+   $ans() = x * y;
+}
+})
 );
 
 pp_addpm(<<'EOPM');
