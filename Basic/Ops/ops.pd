@@ -184,7 +184,7 @@ EOF
               && (ref \$_[1] ne 'PDL')
               && defined(\$foo = overload::Method(\$_[1], '$op'))
               && \$foo != \$overload_sub; # recursion guard
-      \$foo->(\$_[1], \$_[0], !\$_[2]);
+      goto &\$foo;
   }; }
 }
 EOF

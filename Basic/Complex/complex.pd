@@ -1085,8 +1085,12 @@ sub _gen_biop {
    local $_ = shift;
    my $sub;
    die if !(my ($op, $commutes, $func) = /(\S+)([-+])(\w+)/);
-   $sub = eval 'sub { my $y = ref $_[1] eq __PACKAGE__ ? $_[1] : r2C $_[1];
-                    '.$func.'('.($commutes eq '+' ? '' : '$_[2] ? ($y, $_[0]) : ').'($_[0], $y)) }'; #need to swap?
+   $sub = eval 'sub {
+      my ($x, $y) = '.($commutes eq '+' ? '' : '$_[2] ? @_[1,0] : ').'@_[0,1];
+      $_ = r2C $_ for grep ref $_ ne __PACKAGE__, $x, $y;
+      '.$func.'($x, $y);
+   }'; #need to swap?
+   die if $@;
    ($op, $sub, exists $NO_MUTATE{$op} ? () : ("$op=", $sub));
 }
 
