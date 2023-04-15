@@ -73,35 +73,24 @@ sub new {
     # First, separate the code into an array of C fragments (strings),
     # variable references (strings starting with $) and
     # loops (array references, 1. item = variable.
-    #
-    my ( $broadcastloops, $coderef, $sizeprivs ) =
-	$this->separate_code( "{\n$code\n}" );
-
-    # Now, if there is no explicit broadcastlooping in the code,
-    # enclose everything into it.
-    if(!$broadcastloops && !$dont_add_brcloop) {
-	print "Adding broadcastloop...\n" if $::PP_VERBOSE;
-	$coderef = $coderef->enter(('PDL::PP::'.($backcode ? 'BackCode' : '').'BroadcastLoop')->new);
+    my @codes = $code;
+    push @codes, $badcode if $handlebad && ($code ne $badcode || $badcode =~ /PDL_BAD_CODE|PDL_IF_BAD/);
+    my (@coderefs, @sizeprivs);
+    for my $c (@codes) {
+      my ( $broadcastloops, $coderef, $sizeprivs ) =
+          $this->separate_code( "{\n$c\n}" );
+      # Now, if there is no explicit broadcastlooping in the code,
+      # enclose everything into it.
+      if(!$broadcastloops && !$dont_add_brcloop) {
+          print "Adding broadcastloop...\n" if $::PP_VERBOSE;
+          $coderef = $coderef->enter(('PDL::PP::'.($backcode ? 'BackCode' : '').'BroadcastLoop')->new);
+      }
+      push @coderefs, $coderef;
+      push @sizeprivs, $sizeprivs;
     }
-
-    # repeat for the bad code, then stick good and bad into
-    # a BadSwitch object which creates the necessary
-    # 'if (bad) { badcode } else { goodcode }' code
-    #
-    # NOTE: amalgamate sizeprivs from good and bad code
-    #
-    if ( $handlebad && ($code ne $badcode || $badcode =~ /PDL_BAD_CODE|PDL_IF_BAD/) ) {
-	print "Processing 'bad' code...\n" if $::PP_VERBOSE;
-	my ( $bad_broadcastloops, $bad_coderef, $bad_sizeprivs ) =
-	    $this->separate_code( "{\n$badcode\n}" );
-	if(!$bad_broadcastloops && !$dont_add_brcloop) {
-	    print "Adding 'bad' broadcastloop...\n" if $::PP_VERBOSE;
-	    $bad_coderef = $bad_coderef->enter(('PDL::PP::'.($backcode ? 'BackCode' : '').'BroadcastLoop')->new);
-	}
-	$coderef = PDL::PP::BadSwitch->new( $coderef, $bad_coderef );
-	amalgamate_sizeprivs($sizeprivs, $bad_sizeprivs);
-    } # if: $handlebad
-
+    amalgamate_sizeprivs(@sizeprivs) if @sizeprivs > 1;
+    my $sizeprivs = $sizeprivs[0];
+    my $coderef = @coderefs > 1 ? PDL::PP::BadSwitch->new( @coderefs ) : $coderefs[0];
     print "SIZEPRIVSX: ",(join ',',%$sizeprivs),"\n" if $::PP_VERBOSE;
 
     # Enclose it all in a generic switch.
