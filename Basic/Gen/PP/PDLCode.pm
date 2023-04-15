@@ -99,15 +99,7 @@ sub new {
 	    $bad_coderef = $bad_coderef->enter(('PDL::PP::'.($backcode ? 'BackCode' : '').'BroadcastLoop')->new);
 	}
 	$coderef = PDL::PP::BadSwitch->new( $coderef, $bad_coderef );
-	# amalgamate sizeprivs from Code/BadCode segments
-	# (sizeprivs is a simple hash, with each element
-	# containing a string - see PDL::PP::Loop)
-	while ( my ( $bad_key, $bad_str ) = each %$bad_sizeprivs ) {
-	    my $str = $$sizeprivs{$bad_key};
-	    die "ERROR: sizeprivs problem in PP/PDLCode.pm (BadVal stuff)\n"
-		if defined $str and $str ne $bad_str;
-	    $$sizeprivs{$bad_key} = $bad_str;  # copy over
-	}
+	amalgamate_sizeprivs($sizeprivs, $bad_sizeprivs);
     } # if: $handlebad
 
     print "SIZEPRIVSX: ",(join ',',%$sizeprivs),"\n" if $::PP_VERBOSE;
@@ -151,6 +143,19 @@ sub new {
        ;
     $this->{Code};
 } # new
+
+# amalgamate sizeprivs from Code/BadCode segments
+# (sizeprivs is a simple hash, with each element
+# containing a string - see PDL::PP::Loop)
+sub amalgamate_sizeprivs {
+  my ($sizeprivs, $bad_sizeprivs) = @_;
+  while ( my ( $bad_key, $bad_str ) = each %$bad_sizeprivs ) {
+    my $str = $$sizeprivs{$bad_key};
+    die "ERROR: sizeprivs problem in PP/PDLCode.pm (BadVal stuff)\n"
+        if defined $str and $str ne $bad_str;
+    $$sizeprivs{$bad_key} = $bad_str;  # copy over
+  }
+}
 
 sub eol_protect {
   my ($text) = @_;
