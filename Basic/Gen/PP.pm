@@ -581,7 +581,6 @@ PROTOTYPES: DISABLE
 
 EOF
 our $header_xsboot = pp_line_numbers(__LINE__, <<'EOF');
-
 BOOT:
    PDL_COMMENT("Get pointer to structure of core shared C routines")
    PDL_COMMENT("make sure PDL::Core is loaded")
@@ -853,6 +852,8 @@ sub pp_done {
 	print "Inline running PDL::PP version $PDL::PP::VERSION...\n" if nopm();
         require PDL::Core::Dev;
         my $pdl_boot = PDL::Core::Dev::PDL_BOOT('PDL', $::PDLMOD);
+        my $user_boot = $::PDLXSBOOT//'';
+        $user_boot =~ s/^s\*(.*?)\n*$/  $1\n/ if $user_boot;
         (my $mod_underscores = $::PDLMOD) =~ s#::#_#g;
         my $text = join '',
           sprintf($PDL::PP::header_c, $mod_underscores),
@@ -860,7 +861,7 @@ sub pp_done {
           $PDL::PP::macros_xs,
           sprintf($PDL::PP::header_xs, $::PDLMOD, $::PDLOBJ),
           $::PDLXS, "\n",
-          $PDL::PP::header_xsboot, "  $pdl_boot\n", "  ".($::PDLXSBOOT//'')."\n";
+          $PDL::PP::header_xsboot, $pdl_boot, $user_boot;
         _write_file("$::PDLPREF.xs", $text);
         return if nopm;
 	$::PDLPMISA = "'".join("','",@::PDLPMISA)."'";

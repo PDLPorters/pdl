@@ -67,7 +67,6 @@ sub PDL_BOOT {
   $symname ||= 'PDL';
   $module ||= 'The code';
   return << "EOR";
-
    perl_require_pv ("PDL/Core.pm"); /* make sure PDL::Core is loaded */
 #ifndef aTHX_
 #define aTHX_
@@ -80,7 +79,6 @@ sub PDL_BOOT {
      Perl_croak(aTHX_ "Got NULL pointer for $symname");
    if ($symname->Version != PDL_CORE_VERSION)
      Perl_croak(aTHX_ "[$symname->Version: \%ld PDL_CORE_VERSION: \%ld XS_VERSION: \%s] $module needs to be recompiled against the newly installed PDL", (long int)$symname->Version, (long int)PDL_CORE_VERSION, XS_VERSION);
-
 EOR
 }
 
