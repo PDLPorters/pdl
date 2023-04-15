@@ -81,9 +81,7 @@ sub new {
     # enclose everything into it.
     if(!$broadcastloops && !$dont_add_brcloop) {
 	print "Adding broadcastloop...\n" if $::PP_VERBOSE;
-	my $nc = $coderef;
-	$coderef = ('PDL::PP::'.($backcode ? 'BackCode' : '').'BroadcastLoop')->new;
-	push @$coderef,$nc;
+	$coderef = $coderef->enter(('PDL::PP::'.($backcode ? 'BackCode' : '').'BroadcastLoop')->new);
     }
 
     # repeat for the bad code, then stick good and bad into
@@ -96,17 +94,11 @@ sub new {
 	print "Processing 'bad' code...\n" if $::PP_VERBOSE;
 	my ( $bad_broadcastloops, $bad_coderef, $bad_sizeprivs ) =
 	    $this->separate_code( "{\n$badcode\n}" );
-
 	if(!$bad_broadcastloops && !$dont_add_brcloop) {
 	    print "Adding 'bad' broadcastloop...\n" if $::PP_VERBOSE;
-	    my $nc = $bad_coderef;
-	    $bad_coderef = ('PDL::PP::'.($backcode ? 'BackCode' : '').'BroadcastLoop')->new;
-	    push @$bad_coderef,$nc;
+	    $bad_coderef = $bad_coderef->enter(('PDL::PP::'.($backcode ? 'BackCode' : '').'BroadcastLoop')->new);
 	}
-
-	my $good_coderef = $coderef;
-	$coderef = PDL::PP::BadSwitch->new( $good_coderef, $bad_coderef );
-
+	$coderef = PDL::PP::BadSwitch->new( $coderef, $bad_coderef );
 	# amalgamate sizeprivs from Code/BadCode segments
 	# (sizeprivs is a simple hash, with each element
 	# containing a string - see PDL::PP::Loop)
@@ -116,28 +108,21 @@ sub new {
 		if defined $str and $str ne $bad_str;
 	    $$sizeprivs{$bad_key} = $bad_str;  # copy over
 	}
-
     } # if: $handlebad
 
     print "SIZEPRIVSX: ",(join ',',%$sizeprivs),"\n" if $::PP_VERBOSE;
 
     # Enclose it all in a generic switch.
-    my $nc = $coderef;
     my $if_gentype = ($code.($badcode//'')) =~ /PDL_IF_GENTYPE_/;
-    $coderef = PDL::PP::GenericSwitch->new($generictypes, undef,
-	  [grep {!$extrageneric->{$_}} @$parnames],'$PRIV(__datatype)',$if_gentype);
-    push @$coderef,$nc;
+    $coderef = $coderef->enter(PDL::PP::GenericSwitch->new($generictypes, undef,
+      [grep {!$extrageneric->{$_}} @$parnames],'$PRIV(__datatype)',$if_gentype));
     # Do we have extra generic switches?
     # If we do, first reverse the hash:
     my %glh;
     push @{$glh{$extrageneric->{$_}}},$_ for sort keys %$extrageneric;
     my $no = 0;
-    for(sort keys %glh) {
-	my $nc = $coderef;
-	$coderef = PDL::PP::GenericSwitch->new($generictypes,$no++,
-					    $glh{$_},$_,$if_gentype);
-	push @$coderef,$nc;
-    }
+    $coderef = $coderef->enter(PDL::PP::GenericSwitch->new($generictypes,$no++,
+      $glh{$_},$_,$if_gentype)) for sort keys %glh;
 
     my $pobjs = $sig->objs;
     # Then, in this form, put it together what we want the code to actually do.
@@ -403,6 +388,12 @@ sub get_contained {
   my ($this, $parent, $context) = @_;
   map ref($_) ? $_->get_str($parent, $context) : $_,
     @$this[$this->myoffs..$#$this];
+}
+
+sub enter {
+  my ($this, $new) = @_;
+  push @$new, $this;
+  $new;
 }
 
 ###########################
