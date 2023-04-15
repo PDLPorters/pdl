@@ -82,9 +82,8 @@ sub new {
     if(!$broadcastloops && !$dont_add_brcloop) {
 	print "Adding broadcastloop...\n" if $::PP_VERBOSE;
 	my $nc = $coderef;
-	$coderef = $backcode
-	  ? PDL::PP::BackCodeBroadcastLoop->new() : PDL::PP::BroadcastLoop->new();
-	push @{$coderef},$nc;
+	$coderef = ('PDL::PP::'.($backcode ? 'BackCode' : '').'BroadcastLoop')->new;
+	push @$coderef,$nc;
     }
 
     # repeat for the bad code, then stick good and bad into
@@ -101,13 +100,8 @@ sub new {
 	if(!$bad_broadcastloops && !$dont_add_brcloop) {
 	    print "Adding 'bad' broadcastloop...\n" if $::PP_VERBOSE;
 	    my $nc = $bad_coderef;
-	    if( !$backcode ){ # Normal readbackdata broadcastloop
-		    $bad_coderef = PDL::PP::BroadcastLoop->new();
-	    }
-	    else{  # writebackcode broadcastloop
-		    $bad_coderef = PDL::PP::BackCodeBroadcastLoop->new();
-	    }
-	    push @{$bad_coderef},$nc;
+	    $bad_coderef = ('PDL::PP::'.($backcode ? 'BackCode' : '').'BroadcastLoop')->new;
+	    push @$bad_coderef,$nc;
 	}
 
 	my $good_coderef = $coderef;
@@ -132,14 +126,11 @@ sub new {
     my $if_gentype = ($code.($badcode//'')) =~ /PDL_IF_GENTYPE_/;
     $coderef = PDL::PP::GenericSwitch->new($generictypes, undef,
 	  [grep {!$extrageneric->{$_}} @$parnames],'$PRIV(__datatype)',$if_gentype);
-    push @{$coderef},$nc;
-
+    push @$coderef,$nc;
     # Do we have extra generic switches?
     # If we do, first reverse the hash:
     my %glh;
-    for(sort keys %$extrageneric) {
-	push @{$glh{$extrageneric->{$_}}},$_;
-    }
+    push @{$glh{$extrageneric->{$_}}},$_ for sort keys %$extrageneric;
     my $no = 0;
     for(sort keys %glh) {
 	my $nc = $coderef;
@@ -174,8 +165,7 @@ sub new {
        $coderef->get_str($this,[])
        ;
     $this->{Code};
-
-} # new()
+} # new
 
 sub eol_protect {
   my ($text) = @_;
