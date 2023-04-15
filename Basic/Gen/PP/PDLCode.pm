@@ -62,7 +62,7 @@ sub new {
 	ParNames => $parnames,
 	ParObjs => $sig->objs,
 	Sig => $sig,
-	Gencurtype => [], # stack to hold GenType in generic loops
+	Gencurtype => [], # stack to hold GenType in generic switches
 	ftypes_vars => {},
 	ftypes_type => undef,
         Generictypes => $generictypes,   # so that MacroAccess can check it
@@ -127,14 +127,14 @@ sub new {
 
     print "SIZEPRIVSX: ",(join ',',%$sizeprivs),"\n" if $::PP_VERBOSE;
 
-    # Enclose it all in a genericloop.
+    # Enclose it all in a generic switch.
     my $nc = $coderef;
     my $if_gentype = ($code.($badcode//'')) =~ /PDL_IF_GENTYPE_/;
     $coderef = PDL::PP::GenericSwitch->new($generictypes, undef,
 	  [grep {!$extrageneric->{$_}} @$parnames],'$PRIV(__datatype)',$if_gentype);
     push @{$coderef},$nc;
 
-    # Do we have extra generic loops?
+    # Do we have extra generic switches?
     # If we do, first reverse the hash:
     my %glh;
     for(sort keys %$extrageneric) {
@@ -512,7 +512,7 @@ sub myprelude {
     push @{$parent->{Gencurtype}}, undef; # so that $GENERIC can get at it
     die "ERROR: need to rethink NaN support in GenericSwitch\n"
 	if defined $this->[1] and $parent->{ftypes_type};
-    qq[switch ($this->[3]) { PDL_COMMENT("Start generic loop")\n];
+    qq[switch ($this->[3]) { PDL_COMMENT("Start generic switch")\n];
 }
 
 my @GENTYPE_ATTRS = qw(integer real unsigned);
@@ -616,7 +616,7 @@ sub myoffs { return 1; }
 
 sub get_str {
   my ($this,$parent,$context) = @_;
-  confess "types() outside a generic loop"
+  confess "types() outside a generic switch"
     unless defined(my $type = $parent->{Gencurtype}[-1]);
   return '' if !$this->[0]{$type->ppsym};
   join '', $this->get_contained($parent,$context);
@@ -664,7 +664,7 @@ my %getters = (
 sub get_str {
     my ($this,$parent,$context) = @_;
     my ($opcode, $get, $name, $inds) = @$this;
-    confess "generic type access outside a generic loop in $name"
+    confess "generic type access outside a generic switch in $name"
       unless defined $parent->{Gencurtype}[-1];
     print "PDL::PP::BadAccess sent [$opcode] [$name] [$inds]\n" if $::PP_VERBOSE;
     die "ERROR: unknown check <$opcode> sent to PDL::PP::BadAccess\n"
@@ -705,7 +705,7 @@ sub new {
 sub get_str {
     my ($this, $parent, $context) = @_;
     my ($type2value, $name) = @{$this};
-    confess "generic type access outside a generic loop in $name"
+    confess "generic type access outside a generic switch in $name"
       unless defined $parent->{Gencurtype}[-1];
     $type2value->{$parent->{Gencurtype}[-1]->ppsym};
 }
@@ -716,7 +716,7 @@ use Carp;
 sub new { my($type,$pdl,$inds) = @_; bless [$inds],$type; }
 
 sub get_str {my($this,$parent,$context) = @_;
-  confess "generic type access outside a generic loop"
+  confess "generic type access outside a generic switch"
     unless defined(my $type = $parent->{Gencurtype}[-1]);
   return $type->ctype if !$this->[0];
   my $pobj = $parent->{ParObjs}{$this->[0]} // confess "not a defined parname";
@@ -729,7 +729,7 @@ use Carp;
 sub new { my($type,$pdl,$inds) = @_; bless [$inds],$type; }
 
 sub get_str {my($this,$parent,$context) = @_;
-  confess "generic type access outside a generic loop"
+  confess "generic type access outside a generic switch"
     unless defined(my $type = $parent->{Gencurtype}[-1]);
   return $type->ppsym if !$this->[0];
   my $pobj = $parent->{ParObjs}{$this->[0]} // confess "not a defined parname";
