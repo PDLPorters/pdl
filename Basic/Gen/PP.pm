@@ -36,11 +36,11 @@
 # The InsertName class exists to allow you to return something like
 #   "foo<routine name>bar"
 # e.g.
-#  PDL::PP::Rule::InsertName->new("Foo", '_pdl_${name}_bar')
-#  PDL::PP::Rule::InsertName->new("Foo", "Arg2", '_pdl_${name}_bar')
+#  PDL::PP::Rule::InsertName->new("Foo", '_pdl_%s_bar')
+#  PDL::PP::Rule::InsertName->new("Foo", "Arg2", '_pdl_%s_bar')
 # Note that the Name argument is automatically used as a condition, so
 # it does not need to be supplied, and the return value should be
-# given as a single-quoted string and use the $name variable
+# given as a string and use a %s where the name goes
 #
 # The Substitute rule replaces dollar-signed macros ($P(), $ISBAD(), etc)
 # with the low-level C code to perform the macro.
@@ -304,51 +304,32 @@ our @ISA = qw (PDL::PP::Rule);
 
 # This class does not treat return values of "DO NOT SET!!"
 # as special.
-#
 sub new {
     my $class = shift;
-
     my $value = pop;
-
     my @args  = @_;
     my $self  = $class->SUPER::new(@args);
     $self->{"insertname.value"} = $value;
-
-    # Generate a defaul doc string
-    unless (exists $self->{doc}) {
-        $self->{doc} = 'Sets ' . $self->{targets}->[0]
-            . ' to "' . $value . '"';
-    }
-
+    # Generate a default doc string
+    $self->{doc} ||= "Sets $self->{targets}->[0] to \"$value\"";
     my $targets = $self->{targets};
     croak "There can only be 1 target for a $self, not " . (1+$#$targets) . "!"
-      unless $#$targets == 0;
-
-    # we add "Name" as the first condition
-    #
-    my $conditions = $self->{conditions};
-    unshift @$conditions, "Name";
-
+      unless @$targets == 1;
+    unshift @{$self->{conditions}}, "Name"; # add "Name" as first condition
     return $self;
 }
 
 sub apply {
     my $self = shift;
     my $pars = shift;
-
     carp "Unable to apply rule $self as there is no return value!"
       unless exists $self->{"insertname.value"};
-
     $self->report("Applying: $self\n");
-
     return unless $self->should_apply($pars);
-
     # Set the value
-    #
-    my $target = $self->{targets}->[0];
-    my $name   = $pars->{Name};
-    $self->report ("--setting: $target (name=$name)\n");
-    $pars->{$target} = eval "return \"" . $self->{"insertname.value"} . "\";";
+    my $target = $self->{targets}[0];
+    $self->report ("--setting: $target (name=$pars->{Name})\n");
+    $pars->{$target} = sprintf $self->{"insertname.value"}, $pars->{Name};
 }
 
 #   PDL::PP::Rule->new("NewXSCoerceMustSubs", ["NewXSCoerceMustSub1","Name"],
@@ -1393,7 +1374,7 @@ EOD
    PDL::PP::Rule::Returns->new("ExtraGenericSwitches", [],
        'Sets ExtraGenericSwitches to an empty hash if it does not already exist', {}),
 
-   PDL::PP::Rule::InsertName->new("VTableName", 'pdl_${name}_vtable'),
+   PDL::PP::Rule::InsertName->new("VTableName", 'pdl_%s_vtable'),
 
    PDL::PP::Rule::Returns->new("Priv", "AffinePriv", 'PDL_Indx incs[$PDL(CHILD)->ndims];PDL_Indx offs; '),
    PDL::PP::Rule::Returns->new("IsAffineFlag", "AffinePriv", "PDL_ITRANS_ISAFFINE"),
@@ -1497,7 +1478,7 @@ EOD
    PDL::PP::Rule::Returns::NULL->new("ReadDataFuncName", "AffinePriv"),
    PDL::PP::Rule::Returns::NULL->new("WriteBackDataFuncName", "AffinePriv"),
 
-   PDL::PP::Rule::InsertName->new("NewXSName", '_${name}_int'),
+   PDL::PP::Rule::InsertName->new("NewXSName", '_%s_int'),
 
    PDL::PP::Rule::Returns::One->new("HaveBroadcasting"),
 
@@ -1785,7 +1766,7 @@ $name($shortpars)
 $longpars
 END
       }),
-   PDL::PP::Rule::InsertName->new("RunFuncName", 'pdl_${name}_run'),
+   PDL::PP::Rule::InsertName->new("RunFuncName", 'pdl_%s_run'),
    PDL::PP::Rule->new("NewXSCHdrs", ["RunFuncName","SignatureObj","GlobalNew"],
       sub {
         my($name,$sig,$gname) = @_;
@@ -1878,14 +1859,14 @@ sub make_vfn_args {
    PDL::PP::Rule->new(PDL::PP::Code::make_args(qw(ReadData)),
 		      sub { PDL::PP::Code->new(@_, undef, undef, 1); }),
    PDL::PP::Rule::Substitute->new("ReadDataCodeSubd", "ReadDataCodeParsed"),
-   PDL::PP::Rule::InsertName->new("ReadDataFuncName", 'pdl_${name}_readdata'),
+   PDL::PP::Rule::InsertName->new("ReadDataFuncName", 'pdl_%s_readdata'),
    PDL::PP::Rule->new(make_vfn_args("ReadData")),
 
    (map PDL::PP::Rule::Substitute->new("${_}WriteBackDataCodeUnparsed", "${_}BackCode"), '', 'Bad'),
    PDL::PP::Rule->new(PDL::PP::Code::make_args(qw(WriteBackData)),
 		      sub { PDL::PP::Code->new(@_, undef, 1, 1); }),
    PDL::PP::Rule::Substitute->new("WriteBackDataCodeSubd", "WriteBackDataCodeParsed"),
-   PDL::PP::Rule::InsertName->new("WriteBackDataFuncName", "BackCode", 'pdl_${name}_writebackdata'),
+   PDL::PP::Rule::InsertName->new("WriteBackDataFuncName", "BackCode", 'pdl_%s_writebackdata'),
    PDL::PP::Rule::Returns::NULL->new("WriteBackDataFuncName", "Code"),
    PDL::PP::Rule->new(make_vfn_args("WriteBackData")),
 
