@@ -15,7 +15,7 @@ sub get_pdls {my($this) = @_; return ($this->{ParNames},$this->{ParObjs});}
 my @code_args_always = qw(BadFlag SignatureObj GenericTypes ExtraGenericSwitches HaveBroadcasting Name);
 sub make_args {
   my ($target) = @_;
-  ("${target}CodeParsed", ["${target}CodeUnparsed",\"Bad${target}CodeUnparsed",@code_args_always]);
+  ("${target}CodeParsed", ["${target}CodeUnparsed","Bad${target}CodeUnparsed?",@code_args_always]);
 }
 
 # Do the appropriate substitutions in the code.
