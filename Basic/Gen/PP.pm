@@ -1798,20 +1798,6 @@ END
       sub { "  PDL_RETERROR(PDL_err, PDL->type_coerce($_[0]));\n" }),
    PDL::PP::Rule::Substitute->new("NewXSTypeCoerceSubd", "NewXSTypeCoerceNS"),
 
-   PDL::PP::Rule->new("NewXSSetTransPDLs", ["SignatureObj","StructName"], sub {
-      my($sig,$trans) = @_;
-      join '',
-        map "  $trans->pdls[$_->[0]] = $_->[2];\n",
-        grep !$_->[1], $sig->names_sorted_tuples;
-   }),
-
-   PDL::PP::Rule->new("NewXSExtractTransPDLs", ["SignatureObj","StructName"], sub {
-      my($sig,$trans) = @_;
-      join '',
-        map "  $_->[2] = $trans->pdls[$_->[0]];\n",
-        grep !$_->[1], $sig->names_sorted_tuples;
-   }),
-
    PDL::PP::Rule->new("NewXSRunTrans", ["StructName"], sub {
       my($trans) = @_;
       "  PDL_RETERROR(PDL_err, PDL->make_trans_mutual($trans));\n";
@@ -1854,6 +1840,19 @@ sub make_vfn_args {
    PDL::PP::Rule->new("MakeCompOther", [qw(SignatureObj ParamStructName)], sub { $_[0]->getcopy("$_[1]->%s") }),
    PDL::PP::Rule->new("MakeCompTotal", [qw(MakeCompOther MakeComp?)], sub { join "\n", grep $_, @_ }),
    PDL::PP::Rule::Substitute->new("MakeCompiledReprSubd", "MakeCompTotal"),
+
+   PDL::PP::Rule->new("NewXSSetTransPDLs", ["SignatureObj","StructName"], sub {
+      my($sig,$trans) = @_;
+      join '',
+        map "  $trans->pdls[$_->[0]] = $_->[2];\n",
+        grep !$_->[1], $sig->names_sorted_tuples;
+   }),
+   PDL::PP::Rule->new("NewXSExtractTransPDLs", [qw(SignatureObj StructName MakeComp?)], sub {
+      my($sig,$trans,$makecomp) = @_;
+      !$makecomp ? '' : join '',
+        map "  $_->[2] = $trans->pdls[$_->[0]];\n",
+        grep !$_->[1], $sig->names_sorted_tuples;
+   }),
 
    (map PDL::PP::Rule::Substitute->new("${_}ReadDataCodeUnparsed", "${_}Code"), '', 'Bad'),
    PDL::PP::Rule->new(PDL::PP::Code::make_args(qw(ReadData)),
