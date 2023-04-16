@@ -325,4 +325,20 @@ my $got = $A x $x_expected->transpose;
 ok(tapprox($got,$B->transpose,$tol), "A x actually == B") or diag "got: $got";
 }
 
+{
+squaretotri(my $x=sequence(3,3), my $y=zeroes(6));
+is $y.'', "[0 3 4 6 7 8]", 'squaretotri with output arg given';
+eval {squaretotri($x, zeroes(7))};
+like $@, qr/dim has size 7/;
+$y = squaretotri($x);
+is $y.'', "[0 3 4 6 7 8]", 'squaretotri with no output arg given';
+$y = squaretotri(sequence(3,3,2));
+is $y.'', "
+[
+ [ 0  3  4  6  7  8]
+ [ 9 12 13 15 16 17]
+]
+", 'squaretotri broadcasts right';
+}
+
 done_testing;

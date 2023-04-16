@@ -4,6 +4,7 @@ pp_addhdr('
 
 use strict;
 use warnings;
+use PDL::Types qw(ppdefs_all);
 
 pp_addpm({At=>'Top'},<<'EOD');
 use strict;
@@ -1369,27 +1370,20 @@ less opaque interface.
 # code
 #
 pp_def("squaretotri",
-	Pars => 'a(n,n); b(m)',
+	Pars => 'a(n,n); [o]b(m)',
+	GenericTypes => [ppdefs_all],
+	RedoDimsCode => '$SIZE(m) = ($SIZE(n) * ($SIZE(n)+1))/2;',
 	Code => '
-            register int mna=0, nb=0, ns = $SIZE (n);
-	    if($SIZE (m) != (ns * (ns+1))/2) {
-	       $CROAK("Wrong sized args for squaretotri");
-	    }
-            broadcastloop %{
-		loop(m) %{
-                      $b() = $a(n0 => mna, n1 => nb);
-                      mna++; if(mna > nb) {mna = 0; nb ++;}
-		%}
+            register PDL_Indx mna=0, nb=0;
+            loop(m) %{
+                  $b() = $a(n0 => mna, n1 => nb);
+                  mna++; if(mna > nb) {mna = 0; nb ++;}
             %}
 	',
-	Doc => '
-=for ref
+	Doc => '=for ref
 
-Convert a symmetric square matrix to triangular vector storage.
-
-=cut
-
-
+Convert a lower-triangular square matrix to triangular vector storage.
+Ignores upper half of input.
 ',
 );
 
