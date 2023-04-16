@@ -853,7 +853,7 @@ sub pp_done {
         require PDL::Core::Dev;
         my $pdl_boot = PDL::Core::Dev::PDL_BOOT('PDL', $::PDLMOD);
         my $user_boot = $::PDLXSBOOT//'';
-        $user_boot =~ s/^s\*(.*?)\n*$/  $1\n/ if $user_boot;
+        $user_boot =~ s/^\s*(.*?)\n*$/  $1\n/ if $user_boot;
         (my $mod_underscores = $::PDLMOD) =~ s#::#_#g;
         my $text = join '',
           sprintf($PDL::PP::header_c, $mod_underscores),
