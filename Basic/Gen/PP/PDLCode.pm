@@ -147,7 +147,7 @@ sub amalgamate_sizeprivs {
 
 sub eol_protect {
   my ($text) = @_;
-  join " \\\n", split /\n/, $text;
+  join " \\\n", grep /\S/, split /\n/, $text;
 }
 
 sub params_declare {
