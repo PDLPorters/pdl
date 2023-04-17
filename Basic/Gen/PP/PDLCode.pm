@@ -352,6 +352,7 @@ package PDL::PP::Block;
 sub new { my($type) = @_; bless [],$type; }
 
 sub myoffs { 0 }
+sub myextraindent { 0 }
 sub myprelude {}
 sub mypostlude {}
 
@@ -371,7 +372,7 @@ sub get_str_int {
     my $it = $this->can('myitemstart') && $this->myitemstart($parent,$nth);
     last MYLOOP if $nth and !$it;
     $str .= $it//'';
-    $str .= join '', $this->get_contained($parent,$context);
+    $str .= PDL::PP::indent $this->myextraindent, join '', $this->get_contained($parent,$context);
     $str .= $it if $it = $this->can('myitemend') && $this->myitemend($parent,$nth);
     $nth++;
   }
@@ -478,6 +479,7 @@ sub new {
 }
 
 sub myoffs {5}
+sub myextraindent { 2 }
 
 sub myprelude {
     my ($this,$parent,$context) = @_;

@@ -1058,7 +1058,7 @@ sub make_xs_code {
 
 sub indent($$) {
     my ($ind, $text) = @_;
-    return $text if !length $text;
+    return $text if !length $text or !$ind;
     $ind = ' ' x $ind;
     $text =~ s/^(.+)$/$ind$1/mg;
     return $text;
