@@ -159,7 +159,7 @@ sub params_declare {
     <<EOF;
 #ifndef PDL_DECLARE_PARAMS_$this->{Name}_$this->{NullDataCheck}
 #define PDL_DECLARE_PARAMS_$this->{Name}_$this->{NullDataCheck}(@{[join ',', @param_names]}) \\
-  @{[join " \\\n", @decls]}
+  @{[join " \\\n  ", @decls]}
 #endif
 EOF
 }
