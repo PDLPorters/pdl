@@ -10,7 +10,7 @@ use strict;
 use warnings;
 use Carp;
 
-sub get_pdls {my($this) = @_; return ($this->{ParNames},$this->{ParObjs});}
+sub get_pdls { @{$_[0]}{qw(ParNames ParObjs)} }
 
 my @code_args_always = qw(BadFlag SignatureObj GenericTypes ExtraGenericSwitches HaveBroadcasting Name);
 sub make_args {
@@ -153,9 +153,10 @@ sub eol_protect {
 sub params_declare {
     my ($this) = @_;
     my ($ord,$pdls) = $this->get_pdls;
-    my @decls = map $_->get_xsdatapdecl("PDL_PARAMTYPE_".$_->name, $this->{NullDataCheck}),
+    my %istyped = map +($_=>1), grep $pdls->{$_}{FlagTypeOverride}, @$ord;
+    my @decls = map $_->get_xsdatapdecl($istyped{$_->name} ? "PDL_TYPE_PARAM_".$_->name : "PDL_TYPE_OP", $this->{NullDataCheck}),
       map $pdls->{$_}, @$ord;
-    my @param_names = map "PDL_PARAMTYPE_$_", @$ord;
+    my @param_names = ("PDL_TYPE_OP", map "PDL_TYPE_PARAM_$_", grep $istyped{$_}, @$ord);
     <<EOF;
 #ifndef PDL_DECLARE_PARAMS_$this->{Name}_$this->{NullDataCheck}
 #define PDL_DECLARE_PARAMS_$this->{Name}_$this->{NullDataCheck}(@{[join ',', @param_names]}) \\
@@ -493,7 +494,8 @@ sub myitemstart {
     $parent->{Gencurtype}[-1] = $item;
     @$parent{qw(ftypes_type ftypes_vars)} = ($item, $this->[2]) if defined $this->[1];
     my ($ord,$pdls) = $parent->get_pdls;
-    my @param_ctypes = map $pdls->{$_}->adjusted_type($item)->ctype, @$ord;
+    my %istyped = map +($_=>1), grep $pdls->{$_}{FlagTypeOverride}, @$ord;
+    my @param_ctypes = ($item->ctype, map $pdls->{$_}->adjusted_type($item)->ctype, grep $istyped{$_}, @$ord);
     my $decls = keys %{$this->[2]} == @$ord
       ? "PDL_DECLARE_PARAMS_$parent->{Name}_$parent->{NullDataCheck}(@{[join ',', @param_ctypes]})\n"
       : join '', map $_->get_xsdatapdecl($_->adjusted_type($item)->ctype, $parent->{NullDataCheck}),

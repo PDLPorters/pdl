@@ -24,9 +24,9 @@ my %flag2info = (
   oca => [[qw(FlagOut FlagCreat FlagW FlagCreateAlways)]],
   t => [[qw(FlagTemp FlagCreat FlagW)]],
   phys => [[qw(FlagPhys)]],
-  real => [[qw(FlagReal)]],
-  complex => [[qw(FlagComplex)]],
-  (map +($_->ppforcetype => [[qw(FlagTyped)], 'Type']), types),
+  real => [[qw(FlagTypeOverride FlagReal)]],
+  complex => [[qw(FlagTypeOverride FlagComplex)]],
+  (map +($_->ppforcetype => [[qw(FlagTypeOverride FlagTyped)], 'Type']), types),
 );
 my %flag2c = qw(
   FlagReal PDL_PARAM_ISREAL

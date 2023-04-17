@@ -1514,7 +1514,7 @@ EOD
 	  # Check for 2-arg function with 0-dim signatures
 	  return 0 if !($noDimmedArgs == 0 and $noArgs == 2);
 	  # Check to see if output arg is _not_ explicitly typed:
-	  !$sig->objs->{$sig->names->[1]}{FlagTyped};
+	  !$sig->objs->{$sig->names->[1]}{FlagTypeOverride};
       }),
 
    PDL::PP::Rule->new(["InplaceCode"], ["SignatureObj","Inplace"],
