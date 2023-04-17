@@ -556,7 +556,7 @@ our $header_xs = <<'EOF';
 
 Core* PDL = NULL; PDL_COMMENT("Structure hold core C functions")
 
-MODULE = %1$s PACKAGE = %2$s
+MODULE = %1$s PACKAGE = %2$s PREFIX=pdl_run_
 
 PROTOTYPES: DISABLE
 
@@ -725,7 +725,7 @@ sub printxs {
 sub pp_addxs {
 	PDL::PP->printxs("\nMODULE = $::PDLMOD PACKAGE = $::CALLPACK\n\n",
                          @_,
-                         "\nMODULE = $::PDLMOD PACKAGE = $::PDLOBJ\n\n");
+                         "\nMODULE = $::PDLMOD PACKAGE = $::PDLOBJ PREFIX=pdl_run_\n\n");
 }
 
 # inserts #line directives into source text. Use like this:
@@ -1687,7 +1687,7 @@ EOD
         my $preamble = $nallout ? qq[\n PREINIT:\n  PDL_XS_PREAMBLE($nretval);\n INPUT:\n] : '';
         join '', qq[
 \nNO_OUTPUT pdl_error
-$name(@{[join ', ', @xsargs]})
+pdl_run_$name(@{[join ', ', @xsargs]})
 $preamble$svdecls$xsdecls$pars
  PPCODE:
 @{[$only_one || $argorder || ($nmaxonstack - ($xs_arg_cnt+1) == keys(%valid_itemcounts)-1) ? '' :
@@ -1766,7 +1766,7 @@ $name($shortpars)
 $longpars
 END
       }),
-   PDL::PP::Rule::InsertName->new("RunFuncName", 'pdl_%s_run'),
+   PDL::PP::Rule::InsertName->new("RunFuncName", 'pdl_run_%s'),
    PDL::PP::Rule->new("NewXSCHdrs", ["RunFuncName","SignatureObj","GlobalNew"],
       sub {
         my($name,$sig,$gname) = @_;

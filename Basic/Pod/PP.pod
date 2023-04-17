@@ -1352,7 +1352,7 @@ defaults will happen first):
     # ...
   );
 
-The C<MakeComp> code is placed in the C<pdl_(funcname)_run>, so access
+The C<MakeComp> code is placed in the C<pdl_run_(funcname)>, so access
 to C<Pars> (which will just be C<pdl *>s)/C<OtherPars> values is just
 via their names, not a macro. The default code (which also applies
 to C<OtherPars>) makes a copy of values where it knows how to do so,
@@ -1381,7 +1381,7 @@ now) that relies on a C<(varname)_count> variable being declared in the
 XS C<INPUT> section (PP does this for you), to extract the index
 numbers from an array-ref parameter, and sets the count variable to the
 right value. PP then makes a copy of the data available. The C function
-(here, C<pdl_diagonal_run>)'s caller (here, the generated XS function)
+(here, C<pdl_run_diagonal>)'s caller (here, the generated XS function)
 is responsible for freeing the array passed in (here, PDL's C<smalloc>
 function is used, so the user need do nothing different).
 
@@ -1795,7 +1795,7 @@ a default.
   ArgOrder => 1,
 
 Allows specifying a different order for providing the operation's
-arguments. This affects only the generated XS (not C C<pdl_(name)_run>)
+arguments. This affects only the generated XS (not C C<pdl_run_(name)>)
 parameter list; the internal ordering of C<pdl*> in various C arrays
 is unaffected.
 
