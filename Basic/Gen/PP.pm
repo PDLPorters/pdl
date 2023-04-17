@@ -1686,7 +1686,7 @@ EOD
           );
         my $preamble = $nallout ? qq[\n PREINIT:\n  PDL_XS_PREAMBLE($nretval);\n INPUT:\n] : '';
         join '', qq[
-\nvoid
+\nNO_OUTPUT pdl_error
 $name(@{[join ', ', @xsargs]})
 $preamble$svdecls$xsdecls$pars
  PPCODE:
@@ -1761,7 +1761,7 @@ EOF
         my @counts = map "PDL_Indx ${_}_count=0;", grep $optypes->{$_}->is_array, @{ $sig->othernames(1) };
         my $longpars = join "\n", map "  $_", @counts, $sig->alldecls(1, 0);
         return<<END;
-\nvoid
+\nNO_OUTPUT pdl_error
 $name($shortpars)
 $longpars
 END
@@ -1780,7 +1780,7 @@ END
         my ($func_name,$sig) = @_;
         my $shortpars = join ',', map $sig->other_is_output($_)?"&$_":$_, @{ $sig->allnames(0) };
         my $longpars = join ",", $sig->alldecls(0, 1);
-        (indent(2,"PDL->barf_if_error($func_name($shortpars));\n"),
+        (indent(2,"RETVAL = $func_name($shortpars);\nPDL->barf_if_error(RETVAL);\n"),
           "pdl_error $func_name($longpars)");
       }),
 
