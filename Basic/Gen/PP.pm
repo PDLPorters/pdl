@@ -1687,8 +1687,8 @@ EOD
         my $preamble = $nallout ? qq[\n PREINIT:\n  PDL_XS_PREAMBLE($nretval);\n INPUT:\n] : '';
         join '', qq[
 \nNO_OUTPUT pdl_error
-pdl_run_$name(@{[join ', ', @xsargs]})
-$preamble$svdecls$xsdecls$pars
+pdl_run_$name(@{[join ', ', @xsargs]})$svdecls
+$preamble$xsdecls$pars
  PPCODE:
 @{[$only_one || $argorder || ($nmaxonstack - ($xs_arg_cnt+1) == keys(%valid_itemcounts)-1) ? '' :
 qq{  if (!(@{[join ' || ', map "(items == $_)", sort keys %valid_itemcounts]}))
