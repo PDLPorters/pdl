@@ -50,9 +50,9 @@ my $n         = 4000;
 my $samples   = pdl[0..$n-1];
 my $raw_sound = byte(zeroes($n));
 my $amplitude = 80;
-for (1,9/8,5/4,4/3,3/2,5/3,15/8,2) {
-    $raw_sound = byte($amplitude*(1+sin($samples*$_*440*3.14/$n)));
-    print $pipe $raw_sound->get_dataref->$*;
+for (8,9,10,32/3,12,40/3,15,16) {
+    $raw_sound = byte($amplitude*(1+sin($samples*($_/8)*440*3.14/$n)));
+    print $pipe ${$raw_sound->get_dataref};
 }
 close $pipe;
 EndOfScale
@@ -66,10 +66,10 @@ my $n         = 8000;
 my $samples   = pdl[0..$n-1];
 my $raw_sound = byte(zeroes($n));
 my $amplitude = 30;
-for (1,5/4,3/2,2) {
-    $raw_sound += byte($amplitude*(1+sin($samples*$_*440*6.28/$n)));
+for (8,10,12,16) {
+    $raw_sound += byte($amplitude*(1+sin($samples*($_/8)*440*6.28/$n)));
 }
-print $pipe $raw_sound->get_dataref->$*;
+print $pipe ${$raw_sound->get_dataref};
 close $pipe;
 EndOfChord
 
@@ -79,11 +79,8 @@ my @demo = ([comment => "Listen to Perl and PDL: The A major scale\n"],
             [actnw   => $chord],
         );
 sub demo {
-    if ($PDL::Demos::Sound::player) {
-        return @demo;
-    }
-    else {
-        return ([comment => <<EndOfComment]);
+    return @demo if $PDL::Demos::Sound::player;
+    ([comment => <<EndOfComment]);
 This demo requires an external command to play the sound,
 unfortunately no suitable candidate could be found.
 The following players are supported:
@@ -93,7 +90,6 @@ The following players are supported:
    and can be obtained from https://sourceforge.net/projects/sox/
    for Microsoft Windows and MacOS.
 EndOfComment
-    }
 }
 
 sub info {
