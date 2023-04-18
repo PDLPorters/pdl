@@ -1363,8 +1363,8 @@ EOD
       sub {
         my (undef,$name,$sname) = @_;
         ("PARENT(); [oca]CHILD();",0,0,[PDL::Types::ppdefs_all()],1,
-          pp_line_numbers(__LINE__-1,"  pdl *__it = $sname->pdls[1]; pdl *__parent = $sname->pdls[0];\n"),
-          pp_line_numbers(__LINE__-1,"PDL->hdr_childcopy($sname); $sname->dims_redone = 1;\n"),
+          "pdl *__it = $sname->pdls[1];\n",
+          "PDL->hdr_childcopy($sname); $sname->dims_redone = 1;\n",
         );
       }),
 
@@ -1395,8 +1395,7 @@ EOD
       sub {
         my($pdimexpr,$dimcheck) = @_;
         $pdimexpr =~ s/\$CDIM\b/i/g;
-        PDL::PP::pp_line_numbers(__LINE__-1, '
-          int i,cor;
+        ' int i,cor;
           '.$dimcheck.'
           $SETNDIMS($PDL(PARENT)->ndims);
           $DOPRIVALLOC();
@@ -1409,7 +1408,7 @@ EOD
           $SETDIMS();
           $SETDELTABROADCASTIDS(0);
           $PRIV(dims_redone) = 1;
-        ');
+        ';
       }),
 
    PDL::PP::Rule->new("Code", ["EquivCPOffsCode","BadFlag"],
@@ -1431,7 +1430,7 @@ EOD
         # parse 'bad' code
         $bad  =~ s/\$EQUIVCPOFFS\(([^()]+),([^()]+)\)/if( \$PPISBAD(PARENT,[$2]) ) { \$PPSETBAD(CHILD,[$1]); } else { \$PP(CHILD)[$1] = \$PP(PARENT)[$2]; }/g;
         $bad =~ s/\$EQUIVCPTRUNC\(([^()]+),([^()]+),([^()]+)\)/ if( ($3) || \$PPISBAD(PARENT,[$2]) ) { \$PPSETBAD(CHILD,[$1]); } else {\$PP(CHILD)[$1] = \$PP(PARENT)[$2]; }/g;
-        PDL::PP::pp_line_numbers(__LINE__-1, 'if ( $PRIV(bvalflag) ) { ' . $bad . ' } else { ' . $good . '}');
+        'if ( $PRIV(bvalflag) ) { ' . $bad . ' } else { ' . $good . '}';
       }),
 
    PDL::PP::Rule->new("BackCode", ["EquivCPOffsCode","BadFlag"],
@@ -1476,7 +1475,7 @@ EOD
         # parse 'bad' code
         $bad  =~ s/\$EQUIVCPOFFS\(([^()]+),([^()]+)\)/if( \$PPISBAD(CHILD,[$1]) ) { \$PPSETBAD(PARENT,[$2]); } else { \$PP(PARENT)[$2] = \$PP(CHILD)[$1]; }/g;
         $bad =~ s/\$EQUIVCPTRUNC\(([^()]+),([^()]+),([^()]+)\)/if(!($3)) { if( \$PPISBAD(CHILD,[$1]) ) { \$PPSETBAD(PARENT,[$2]); } else { \$PP(PARENT)[$2] = \$PP(CHILD)[$1]; } } /g;
-        PDL::PP::pp_line_numbers(__LINE__-1, 'if ( $PRIV(bvalflag) ) { ' . $bad . ' } else { ' . $good . '}');
+        'if ( $PRIV(bvalflag) ) { ' . $bad . ' } else { ' . $good . '}';
       }),
 
    PDL::PP::Rule::Returns::Zero->new("Affine_Ok", "EquivCPOffsCode"),
@@ -1794,7 +1793,7 @@ END
       }),
 
    PDL::PP::Rule->new("NewXSMakeNow", ["SignatureObj"],
-      sub { join '', map PDL::PP::pp_line_numbers(__LINE__-1, "$_ = PDL->make_now($_);\n"), @{ $_[0]->names } }),
+      sub { join '', map "$_ = PDL->make_now($_);\n", @{ $_[0]->names } }),
    PDL::PP::Rule->new("IgnoreTypesOf", ["FTypes","SignatureObj"], sub {
       my ($ftypes, $sig) = @_;
       my ($pnames, $pobjs) = ($sig->names_sorted, $sig->objs);
@@ -1909,7 +1908,7 @@ sub make_vfn_args {
    PDL::PP::Rule->new("FreeCodeNS",
       ["StructName","CompFreeCode","NTPrivFreeCode"],
       sub {
-	  (grep $_, @_[1..$#_]) ? PDL::PP::pp_line_numbers(__LINE__-1, "PDL_FREE_CODE($_[0], destroy, $_[1], $_[2])"): ''}),
+	  (grep $_, @_[1..$#_]) ? "PDL_FREE_CODE($_[0], destroy, $_[1], $_[2])" : ''}),
    PDL::PP::Rule::Substitute->new("FreeCodeSubd", "FreeCodeNS"),
    PDL::PP::Rule->new("FreeFuncName",
 		      ["FreeCodeSubd","Name"],
