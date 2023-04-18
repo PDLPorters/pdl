@@ -139,6 +139,7 @@ Demos/earth.txt
 Demos/General.pm
 Demos/Makefile.PL
 Demos/t/demos.t
+Demos/Sound.pm
 Demos/Transform_demo.pm
 Demos/TriD/test4.p
 Demos/TriD/test5.p
