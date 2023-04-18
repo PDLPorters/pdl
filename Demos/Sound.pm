@@ -87,7 +87,7 @@ sub demo {
 This demo requires an external command to play the sound,
 unfortunately no suitable candidate could be found.
 The following players are supported:
- - 'aplay' (from the ALSA suite) comes with the package 'alsa-utils' 
+ - 'aplay' (from the ALSA suite) comes with the package 'alsa-utils'
    on Linux
  - 'play' and 'sox' (from SoX) are available as package 'sox' on Linux,
    and can be obtained from https://sourceforge.net/projects/sox/
