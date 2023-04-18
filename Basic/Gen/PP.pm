@@ -493,9 +493,13 @@ static inline pdl *PDL_XS_pdlinit(pTHX_ char *objname, HV *bless_stash, SV *to_p
   }
   return ret;
 }
-#define PDL_XS_PERLINIT_init(sv) \
+#define PDL_XS_PERLINIT_init() \
+  PDL_XS_pdlinit(aTHX_ objname, bless_stash, sv_2mortal(newSVpv(objname, 0)), "initialize", NULL)
+#define PDL_XS_PERLINIT_initsv(sv) \
   PDL_XS_pdlinit(aTHX_ objname, bless_stash, sv_2mortal(newSVpv(objname, 0)), "initialize", &sv)
-#define PDL_XS_PERLINIT_copy(sv) \
+#define PDL_XS_PERLINIT_copy() \
+  PDL_XS_pdlinit(aTHX_ objname, bless_stash, parent, "copy", NULL)
+#define PDL_XS_PERLINIT_copysv(sv) \
   PDL_XS_pdlinit(aTHX_ objname, bless_stash, parent, "copy", &sv)
 
 #define PDL_XS_RETURN(clause1) \
@@ -1071,7 +1075,7 @@ sub indent($$) {
 # routine in order to create new output PDLs
 sub callPerlInit {
     my ($sv, $callcopy) = @_;
-    "PDL_XS_PERLINIT_".($callcopy ? "copy" : "init")."($sv)";
+    "PDL_XS_PERLINIT_".($callcopy ? "copy" : "init").($sv ? "sv($sv)" : "()");
 }
 
 sub callTypemap {
