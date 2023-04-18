@@ -389,6 +389,12 @@ pp_def('logadd',
        Code => ';',
       );
 
+pp_def('ftr',
+       Pars => 'a(); [o]b()',
+       Code => ';',
+       FtrCode => "  sv_setiv(perl_get_sv(\"main::FOOTERVAL\",TRUE), 1);\n",
+      );
+
 pp_done;
 
 # this tests the bug with a trailing comment and *no* newline
@@ -600,6 +606,10 @@ is $@, '';
 
 eval { ldouble(4)->logadd(3) };
 is $@, '';
+
+undef $main::FOOTERVAL;
+ftr(1);
+is $main::FOOTERVAL, 1;
 
 done_testing;
 EOF

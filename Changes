@@ -13,6 +13,7 @@
 - operations with only output ndarrays can now not be Inplace
 - overloaded ops require proper overload-handling; PDL::Complex now does
 - for more idiomatic XS code, PDL C function interface now pdl_run_(name)
+- add FtrCode in XS, to match HdrCode
 
 2.082 2023-03-22
 - no changes from 2.081_03

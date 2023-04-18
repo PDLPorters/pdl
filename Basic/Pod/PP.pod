@@ -1830,6 +1830,19 @@ all of those plus output arguments, in other words all non-C<[t]> arguments
 With C<ArgOrder> given, "optional" arguments (outputs and ones with
 defaults) will be filled in from the leftmost missing one.
 
+=head3 HdrCode
+
+This is C code that is inserted in the XS function before the call to
+the generated C<pdl_run_(funcname)>. It will have access to all the Pars
+and OtherPars as C values.
+
+=head3 FtrCode
+
+As of 2.083.
+This is C code that is inserted in the XS function after the call to
+the generated C<pdl_run_(funcname)>. It will have access to all the Pars
+and OtherPars as C values.
+
 =head2 Other PDL::PP functions to support concise package definition
 
 So far, we have described the C<pp_def> and C<pp_done> functions. PDL::PP
