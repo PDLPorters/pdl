@@ -149,6 +149,10 @@ Provides utilities to make demos for PDL modules.
 PDL demos should be in the C<PDL::Demos::*> namespace so that they can
 be auto-discovered.
 
+Please ensure that your demo module is included in a CPAN distribution
+and add it to the appropriate metadata (e.g. C<Makefile.PL> and
+C<MANIFEST>).
+
 =head1 METHODS
 
 =head2 list
