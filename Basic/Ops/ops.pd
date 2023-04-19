@@ -131,7 +131,7 @@ EOF
     my $bitwise = delete $extra{Bitwise};
     pp_def($name,
 	   Pars => 'a(); b(); [o]c();',
-	   OtherPars => 'int swap'.($bitwise ? '; SV *ign; int ign2' : ''),
+	   OtherPars => 'int $swap'.($bitwise ? '; SV *$ign; int $ign2' : ''),
 	   OtherParsDefaults => { swap => 0, ($bitwise ? (ign=>'&PL_sv_undef', ign2=>0) : ()) },
 	   ArgOrder => 1,
 	   HandleBad => 1,
@@ -241,7 +241,7 @@ ENDCODE
 	   HandleBad => 1,
 	   NoBadifNaN => 1,
 	   Pars => 'a(); b(); [o]c();',
-	   OtherPars => 'int swap',
+	   OtherPars => 'int $swap',
 	   OtherParsDefaults => { swap => 0 },
 	   ArgOrder => 1,
 	   Inplace => [ 'a' ],

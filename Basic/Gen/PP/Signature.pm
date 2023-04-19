@@ -120,13 +120,14 @@ sub ind_names_sorted { @{$_[0]{IndNamesSorted}} }
 sub ind_index { $_[0]{Ind2Index}{$_[1]} }
 
 sub othernames {
-  my ($self, $omit_count, $except) = @_;
+  my ($self, $omit_count, $with_xs, $except) = @_;
   $except ||= {};
-  return $self->{OtherNames} if $omit_count && $omit_count > 0 && !keys %$except;
+  return $self->{OtherNames} if $omit_count && $omit_count > 0 && !keys %$except && $with_xs;
   return [] if $omit_count && $omit_count < 0;
   my $objs = $self->otherobjs;
   my @raw_names = grep !$except->{$_}, @{$self->{OtherNames}};
   @raw_names = map $objs->{$_}->is_array ? ($_, "${_}_count") : $_, @raw_names if !$omit_count;
+  @raw_names = grep !$objs->{$_}{WasDollar}, @raw_names if !$with_xs;
   \@raw_names;
 }
 sub otherobjs { $_[0]{OtherObjs} }
@@ -143,19 +144,19 @@ sub other_out { grep $_[0]->other_is_out($_), @{$_[0]{OtherNames}} }
 sub other_is_io { $_[0]->other_is_flag($_[1], 'io') }
 sub other_io { grep $_[0]->other_is_io($_), @{$_[0]{OtherNames}} }
 
-sub allnames { my ($self, $omit_count, $except) = @_; [
+sub allnames { my ($self, $omit_count, $with_xs, $except) = @_; [
   ($omit_count && $omit_count < 0) ? (grep $self->{Objects}{$_}{FlagCreateAlways}, @{$self->{Names}}) :
   (grep +(!$except || !$except->{$_}) && !$self->{Objects}{$_}{FlagTemp}, @{$self->{Names}}),
-  @{$self->othernames(@_[1..2])},
+  @{$self->othernames(@_[1..3])},
 ] }
 sub allobjs {
   my $pdltype = PDL::PP::CType->new("pdl *__foo__");
   +{ ( map +($_,$pdltype), @{$_[0]{Names}} ), %{$_[0]->otherobjs} };
 }
 sub alldecls {
-  my ($self, $omit_count, $indirect, $except) = @_;
+  my ($self, $omit_count, $indirect, $with_xs, $except) = @_;
   my $objs = $self->allobjs;
-  my @names = @{$self->allnames($omit_count, $except)};
+  my @names = @{$self->allnames($omit_count, $with_xs, $except)};
   $indirect = $indirect ? { map +($_=>$self->other_is_output($_)), @names } : {};
   map $objs->{$_}->get_decl($_, {VarArrays2Ptrs=>1,AddIndirect=>$indirect->{$_}}), @names;
 }

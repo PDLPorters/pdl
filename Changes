@@ -15,6 +15,7 @@
 - for more idiomatic XS code, PDL C function interface now pdl_run_(name)
 - add FtrCode in XS, to match HdrCode
 - add sound demo - thanks @HaraldJoerg
+- OtherPars can now be $argname, for XS processing only and not in operation
 
 2.082 2023-03-22
 - no changes from 2.081_03

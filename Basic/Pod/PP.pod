@@ -1385,6 +1385,18 @@ right value. PP then makes a copy of the data available. The C function
 is responsible for freeing the array passed in (here, PDL's C<smalloc>
 function is used, so the user need do nothing different).
 
+=head4 XS-only OtherPars
+
+As of 2.083, you can prefix the names of C<OtherPars> with C<$>, e.g.
+
+  pp_def('minus',
+    OtherPars => 'int $swap',
+    # ...
+  );
+
+This will mean they are available in C<HdrCode> and C<FtrCode>, but not
+elsewhere in the generated code (e.g. C<MakeComp>, C<Code>).
+
 =head2 Other functions in the Code section
 
 The only PP function that we have used in the examples so far is C<loop>.

@@ -17,6 +17,7 @@ sub new {
 
 sub stripptrs {
 	my($this,$str) = @_;
+	$this->{WasDollar} = 1 if $str =~ s/^\$//;
 	if($str =~ s/^\s*(\w+)\s*$/$1/g) {
 		$this->{ProtoName} = $str;
 		return [];

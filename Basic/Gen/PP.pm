@@ -1088,7 +1088,7 @@ sub reorder_args {
   my ($sig, $otherdefaults) = @_;
   my %optionals = map +($_=>1), keys(%$otherdefaults);
   my @other_mand = grep !$optionals{$_} && !$sig->other_is_out($_),
-    my @other = @{$sig->othernames(1)};
+    my @other = @{$sig->othernames(1, 1)};
   my @other_opt = grep $optionals{$_}, @other;
   ($sig->names_in, @other_mand, @other_opt, $sig->names_out, $sig->other_out);
 }
@@ -1583,7 +1583,7 @@ EOD
         my ($name, $sig, $argorder, $otherdefaults) = @_;
         return if $argorder and !ref $argorder;
         confess "$name ArgOrder given false value" if !ref $argorder;
-        my @names = @{ $sig->allnames(1) };
+        my @names = @{ $sig->allnames(1, 1) };
         my %namehash = map +($_=>1), @names;
         delete @namehash{@$argorder};
         confess "$name ArgOrder missed params: ".join(' ', keys %namehash) if keys %namehash;
@@ -1604,7 +1604,7 @@ EOD
       "Check the OtherPars defaults aren't for ones after ones without",
       sub {
         my ($name,$sig,$otherdefaults) = @_;
-        my @other_args = @{ $sig->othernames(1) };
+        my @other_args = @{ $sig->othernames(1, 1) };
         return if keys %$otherdefaults == @other_args;
         my $default_seen = '';
         for (@other_args) {
@@ -1622,8 +1622,8 @@ EOD
            $callcopy,$otherdefaults,$argorder) = @_;
         $argorder = [reorder_args($sig, $otherdefaults)] if $argorder and !ref $argorder;
         my $optypes = $sig->otherobjs;
-        my @args = @{ $argorder || $sig->allnames(1) };
-        my %other = map +($_=>1), @{$sig->othernames(1)};
+        my @args = @{ $argorder || $sig->allnames(1, 1) };
+        my %other = map +($_=>1), @{$sig->othernames(1, 1)};
         $otherdefaults ||= {};
         my $ci = 2;  # current indenting
         my %ptypes = map +($_=>$$optypes{$_} ? $$optypes{$_}->get_decl('', {VarArrays2Ptrs=>1}) : 'pdl *'), @args;
@@ -1681,14 +1681,14 @@ EOD
               defined $otherdefaults->{$_} ? "!($defaults_rawcond) ? ST($name2cnts{$_}[1]) : ".($other_out{$_} ? "sv_newmortal()" : "NULL") :
               "ST($name2cnts{$_}[1])"
             )
-          ).";", (grep !$already_read{$_}, $sig->names_in), $sig->names_out, @{$sig->othernames(1, \%already_read)}),
+          ).";", (grep !$already_read{$_}, $sig->names_in), $sig->names_out, @{$sig->othernames(1, 1, \%already_read)}),
           ;
         my $argcode =
           indent(2, join '',
             (map
               +(exists $otherdefaults->{$_} ? "if (!${_}_SV) { $_ = ($otherdefaults->{$_}); } else " : "").
               "{ ".callTypemap($_, $ptypes{$_})."; }\n",
-              @{$sig->othernames(1, \%already_read)}),
+              @{$sig->othernames(1, 1, \%already_read)}),
             (map callTypemap($_, $ptypes{$_}).";\n", grep !$already_read{$_}, $sig->names_in),
             (map +("if (${_}_SV) { ".($argorder ? '' : callTypemap($_, $ptypes{$_}))."; } else ")."$_ = ".callPerlInit($_."_SV", $callcopy).";\n", grep $out{$_} && !$already_read{$_}, @args)
           );
@@ -1716,7 +1716,7 @@ qq{  if (!(@{[join ' || ', map "(items == $_)", sort keys %valid_itemcounts]}))
       sub {
         my ($sig) = @_;
         my $optypes = $sig->otherobjs;
-        my @args = @{ $sig->allnames(1) };
+        my @args = @{ $sig->allnames(1, 1) };
         my %outca = map +($_=>1), $sig->names_oca;
         my %other_output = map +($_=>1), my @other_output = ($sig->other_io, $sig->other_out);
         my $ci = 2;
@@ -1764,10 +1764,10 @@ EOF
    PDL::PP::Rule->new("NewXSHdr", ["NewXSName","SignatureObj"],
       sub {
         my($name,$sig) = @_;
-        my $shortpars = join ',', @{ $sig->allnames(1) };
+        my $shortpars = join ',', @{ $sig->allnames(1, 1) };
         my $optypes = $sig->otherobjs;
-        my @counts = map "PDL_Indx ${_}_count=0;", grep $optypes->{$_}->is_array, @{ $sig->othernames(1) };
-        my $longpars = join "\n", map "  $_", @counts, $sig->alldecls(1, 0);
+        my @counts = map "PDL_Indx ${_}_count=0;", grep $optypes->{$_}->is_array, @{ $sig->othernames(1, 1) };
+        my $longpars = join "\n", map "  $_", @counts, $sig->alldecls(1, 0, 1);
         return<<END;
 \nNO_OUTPUT pdl_error
 $name($shortpars)
