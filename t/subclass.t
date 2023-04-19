@@ -123,15 +123,15 @@ sub copy {
 
 # Create a PDL::Derived3 instance
 $z = PDL::Derived3->new( ones(5,5) ) ;
-ok(ref($z)eq"PDL::Derived3", "create derived instance");
+is ref($z), "PDL::Derived3", "create derived instance";
 
 #### Check the type after incrementing:
 $z++;
-ok(ref($z) eq "PDL::Derived3", "check type after incrementing");
+is ref($z), "PDL::Derived3", "check type after incrementing";
 
 #### Check the type after performing sumover:
 my $y = $z->sumover;
-ok(ref($y) eq "PDL::Derived3", "check type after sumover");
+is ref($y), "PDL::Derived3", "check type after sumover";
 
 #### Check the type after adding two PDL::Derived3 objects:
 my $x = PDL::Derived3->new( ones(5,5) ) ;
@@ -139,46 +139,46 @@ my $x = PDL::Derived3->new( ones(5,5) ) ;
   my @w;
   local $SIG{__WARN__} = sub { push @w, @_ };
   my $w = $x + $z;
-  ok(ref($w) eq "PDL::Derived3", "check type after adding");
+  is ref($w), "PDL::Derived3", "check type after adding";
   is "@w", '', 'no warnings';
 }
 
 #### Check the type after calling null:
 my $a1 = PDL::Derived3->null();
-ok(ref($a1) eq "PDL::Derived3", "check type after calling null");
+is ref($a1), "PDL::Derived3", "check type after calling null";
 
 ##### Check the type for a biops2 operation:
 my $w = ($x == $z);
-ok(ref($w) eq "PDL::Derived3", "check type for biops2 operation");
+is ref($w), "PDL::Derived3", "check type for biops2 operation";
 
 ##### Check the type for a biops3 operation:
 $w = ($x | $z);
-ok(ref($w) eq "PDL::Derived3", "check type for biops3 operation");
+is ref($w), "PDL::Derived3", "check type for biops3 operation";
 
 ##### Check the type for a ufuncs1 operation:
 $w = sqrt($z);
-ok(ref($w) eq "PDL::Derived3", "check type for ufuncs1 operation");
+is ref($w), "PDL::Derived3", "check type for ufuncs1 operation";
 
 ##### Check the type for a ufuncs1f operation:
 $w = sin($z);
-ok(ref($w) eq "PDL::Derived3", "check type for ufuncs1f operation");
+is ref($w), "PDL::Derived3", "check type for ufuncs1f operation";
 
 ##### Check the type for a ufuncs2 operation:
 $w = ! $z;
-ok(ref($w) eq "PDL::Derived3", "check type for ufuncs2 operation");
+is ref($w), "PDL::Derived3", "check type for ufuncs2 operation";
 
 ##### Check the type for a ufuncs2f operation:
 $w = log $z;
-ok(ref($w) eq "PDL::Derived3", "check type for ufuncs2f operation");
+is ref($w), "PDL::Derived3", "check type for ufuncs2f operation";
 
 ##### Check the type for a bifuncs operation:
 $w =  $z**2;
-ok(ref($w) eq "PDL::Derived3", "check type for bifuncs operation");
+is ref($w), "PDL::Derived3", "check type for bifuncs operation";
 
 ##### Check the type for a slicing operation:
 $a1 = PDL::Derived3->new(1+(xvals zeroes 4,5) + 10*(yvals zeroes 4,5));
 $w = $a1->slice('1:3:2,2:4:2');
-ok(ref($w) eq "PDL::Derived3", "check type for slicing operation");
+is ref($w), "PDL::Derived3", "check type for slicing operation";
 
 ##### Check that slicing with a subclass index works (sf.net bug #369)
 $a1 = sequence(10,3,2);
@@ -301,7 +301,7 @@ my $im = PDL::Derived4->new([
   my @w;
   local $SIG{__WARN__} = sub { push @w, @_ };
   # Check for PDL::sumover being called by sum
-  ok($im->sum == 176, "PDL::sumover is called by sum" ); # result will be = 134 if derived sumover
+  is $im->sum, 176, "PDL::sumover is called by sum"; # result will be = 134 if derived sumover
                                                          # is not called,   176 if it is called.
   is "@w", '', 'no warnings';
 }
@@ -309,25 +309,25 @@ my $im = PDL::Derived4->new([
 ### Test over-ride of minmaximum:
 $main::OVERRIDEWORKED = 0;
 my @minMax = $im->minmax;
-ok($main::OVERRIDEWORKED == 1, "over-ride of minmaximum");
+is $main::OVERRIDEWORKED, 1, "over-ride of minmaximum";
 
 ### Test over-ride of inner:
 ## Update to use inner, not matrix mult - CED 8-May-2010
 $main::OVERRIDEWORKED = 0;
 my $matMultRes = $im->inner($im);
-ok($main::OVERRIDEWORKED == 1, "over-ride of inner");
+is $main::OVERRIDEWORKED, 1, "over-ride of inner";
 
 ### Test over-ride of which, one2nd
 $main::OVERRIDEWORKED = 0;
 # which ND test
 $a1= PDL::Derived4->sequence(10,10,3,4);
 ($x, $y, $z, $w) = whichND($a1 == 203)->mv(0,-1)->dog;
-ok($main::OVERRIDEWORKED == 1, "whichND worked"); # whitebox test condition, uugh!
+is $main::OVERRIDEWORKED, 1, "whichND worked"; # whitebox test condition, uugh!
 
 # Check to see if the clip functions return a derived object:
-ok(ref( $im->clip(5,7) ) eq "PDL::Derived4", "clip returns derived object");
-ok(ref( $im->hclip(5) ) eq "PDL::Derived4", "hclip returns derived object");
-ok(ref( $im->lclip(5) ) eq "PDL::Derived4", "lclip returns derived object");
+is ref( $im->clip(5,7) ), "PDL::Derived4", "clip returns derived object";
+is ref( $im->hclip(5) ), "PDL::Derived4", "hclip returns derived object";
+is ref( $im->lclip(5) ), "PDL::Derived4", "lclip returns derived object";
 
 ########### Test of Subclassed-object copying for simple function cases ###########
 ##  First define a PDL-derived object:
@@ -395,7 +395,7 @@ my @simpleFuncs = (qw/bitnot sqrt abs sin cos not exp log10/);
 
 foreach my $op( @simpleFuncs){
 	$w = $im->$op();
-	ok($w->{someThingElse} == 24, "$op subclassed object correctly");
+	is $w->{someThingElse}, 24, "$op subclassed object correctly";
 }
 
 done_testing;
