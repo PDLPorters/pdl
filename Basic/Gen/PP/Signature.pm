@@ -143,10 +143,10 @@ sub other_out { grep $_[0]->other_is_out($_), @{$_[0]{OtherNames}} }
 sub other_is_io { $_[0]->other_is_flag($_[1], 'io') }
 sub other_io { grep $_[0]->other_is_io($_), @{$_[0]{OtherNames}} }
 
-sub allnames { [
-  ($_[1] && $_[1] < 0) ? (grep $_[0]{Objects}{$_}{FlagCreateAlways}, @{$_[0]{Names}}) :
-  (grep +(!$_[2] || !$_[2]{$_}) && !$_[0]{Objects}{$_}{FlagTemp}, @{$_[0]{Names}}),
-  @{$_[0]->othernames(@_[1,2])},
+sub allnames { my ($self, $omit_count, $except) = @_; [
+  ($omit_count && $omit_count < 0) ? (grep $self->{Objects}{$_}{FlagCreateAlways}, @{$self->{Names}}) :
+  (grep +(!$except || !$except->{$_}) && !$self->{Objects}{$_}{FlagTemp}, @{$self->{Names}}),
+  @{$self->othernames(@_[1..2])},
 ] }
 sub allobjs {
   my $pdltype = PDL::PP::CType->new("pdl *__foo__");
