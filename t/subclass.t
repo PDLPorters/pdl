@@ -250,7 +250,6 @@ sub sumover{
 ####  Sets the Global variable main::OVERRIDEWORKED if called ####
 sub minmaximum{
 	my $self = shift;
-	my ($arg) = @_;
 	$main::OVERRIDEWORKED = 1;  # set the global variable so we know over-ride worked.
 	# print "In over-ridden minmaximum\n";
 	$self->SUPER::minmaximum(@_);
@@ -260,7 +259,6 @@ sub minmaximum{
 ####  Sets the Global variable main::OVERRIDEWORKED if called ####
 sub inner{
 	my $self = shift;
-	my ($arg) = @_;
 	$main::OVERRIDEWORKED = 1;  # set the global variable so we know over-ride worked.
 	# print "In over-ridden inner\n";
 	$self->SUPER::inner(@_);
@@ -270,7 +268,6 @@ sub inner{
 ####  Sets the Global variable main::OVERRIDEWORKED if called ####
 sub which{
 	my $self = shift;
-	my ($arg) = @_;
 	$main::OVERRIDEWORKED++;  # set the global variable so we know over-ride worked.
 	# print "In over-ridden which\n";
 	$self->SUPER::which(@_);
@@ -280,7 +277,6 @@ sub which{
 ####  increments the Global variable main::OVERRIDEWORKED if called ####
 sub one2nd{
 	my $self = shift;
-	my ($arg) = @_;
 	$main::OVERRIDEWORKED++;  # set the global variable so we know over-ride worked.
 	# print "In over-ridden one2nd\n";
 	$self->SUPER::one2nd(@_);
