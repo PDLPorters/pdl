@@ -3691,8 +3691,8 @@ sub PDL::whereND :lvalue {
       # $mask = a b c d e f.....
       my @idims = dims($arr);
       splice @idims, 0, $maskndims; # pop off the number of dims in $mask
-      if (!$n) {
-        push @to_return, PDL->zeroes($arr->type, 0, @idims);
+      if (!$n or $arr->isempty) {
+        push @to_return, PDL->zeroes($arr->type, $n, @idims);
         next;
       }
       my $sub_i = $mask * ones($arr);
