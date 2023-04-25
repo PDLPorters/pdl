@@ -17,6 +17,7 @@
 - add sound demo - thanks @HaraldJoerg
 - OtherPars can now be $argname, for XS processing only and not in operation
 - fix broadcasting over empty ndarray (#429) - thanks @falsifian for tests
+- fix appending with empty ndarray (#430) - thanks @falsifian for tests
 
 2.082 2023-03-22
 - no changes from 2.081_03

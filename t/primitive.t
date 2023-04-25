@@ -90,9 +90,12 @@ is $@, '', 'random() works, defaults to double';
 eval {is randsym()->type, 'double'};
 is $@, '', 'randsym() works, defaults to double';
 
+my $got;
 ##############################
 # Test some operations with empty ndarrays
 is random(1,1,0)->type, 'double'; # used to segfault
+is_deeply $got=[append(zeroes(2,0),zeroes(3,0))->dims], [5,0] or diag "got:", explain $got;
+is_deeply append(zeroes(float,2,0),zeroes(3,0))->type, 'float';
 
 ##############################
 # check that our random functions work with Perl's srand
@@ -350,7 +353,7 @@ ok(tapprox($statsRes[6],4.462), "stats: trivial weights rms");
 # complex matmult
 my $cm1 = pdl('1 1+i 1');
 my $cm2 = pdl('2 3 i')->transpose;
-my $got = $cm1 x $cm2;
+$got = $cm1 x $cm2;
 ok tapprox($got, pdl('[[5+4i]]')), 'complex matmult';
 throws_ok { scalar $cm1->transpose x $cm2 } qr/mismatch/, 'good error on mismatch matmult';
 
