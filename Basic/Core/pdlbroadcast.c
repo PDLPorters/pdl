@@ -593,6 +593,8 @@ int pdl_startbroadcastloop(pdl_broadcast *broadcast,pdl_error (*func)(pdl_trans 
 	}
 	offsp = pdl_get_threadoffsp_int(broadcast,&thr, &inds, &dims);
 	if (!offsp) return -1;
+	for(j=0; j<broadcast->ndims; j++)
+	    if (!dims[j]) return 1; /* do nothing if empty */
 	for(j=0; j<npdls; j++) {
 	    offsp[j] = PDL_BREPROFFS(broadcast->pdls[j],broadcast->flags[j]);
 	}

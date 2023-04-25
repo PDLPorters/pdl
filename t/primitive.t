@@ -91,6 +91,10 @@ eval {is randsym()->type, 'double'};
 is $@, '', 'randsym() works, defaults to double';
 
 ##############################
+# Test some operations with empty ndarrays
+is random(1,1,0)->type, 'double'; # used to segfault
+
+##############################
 # check that our random functions work with Perl's srand
 TODO: {
    local $TODO = 'Some CPAN Testers fails for OpenBSD';

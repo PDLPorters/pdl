@@ -303,4 +303,6 @@ ok $startgood->badflag, 'startgood badflag now true';
 ok $startgood->nbad == 1, 'badflag propagation with .=';
 }
 
+is_deeply [(zeroes(1,1,0) & zeroes(1,1,0))->dims], [1,1,0]; # used to segfault
+
 done_testing;
