@@ -97,6 +97,8 @@ is random(1,1,0)->type, 'double'; # used to segfault
 is_deeply $got=[append(zeroes(2,0),zeroes(3,0))->dims], [5,0] or diag "got:", explain $got;
 is_deeply append(zeroes(float,2,0),zeroes(3,0))->type, 'float';
 is_deeply $got=[zeroes(2,3,1)->whereND(pdl '0 0')->dims], [0,3,1] or diag "got:", explain $got;
+eval {is_deeply [zeroes(2,0)->whereND(pdl '1 1')->dims], [2,0]};
+is $@, '', "zeroes(2,0)->whereND(pdl '1 1') works";
 
 ##############################
 # check that our random functions work with Perl's srand
