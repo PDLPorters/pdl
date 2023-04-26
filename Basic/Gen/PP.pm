@@ -1653,7 +1653,7 @@ EOD
         my $nretval = $argorder ? $nout :
           $only_one ? $noutca :
           "(items == $nmaxonstack) ? $noutca : $nallout";
-        my ($xsdecls, $cnt, @xsargs, %already_read, %name2cnts) = ('', -1);
+        my ($cnt, @preinit, @inputdecls, @xsargs, %already_read, %name2cnts) = -1;
         foreach my $x (@inargs) {
           if (!$argorder && ($out{$x} || $other_out{$x} || exists $otherdefaults->{$x})) {
             last if @xsargs + keys(%out) + $noutca != $ntot;
@@ -1666,8 +1666,8 @@ EOD
             exists $otherdefaults->{$x} ? "=$otherdefaults->{$x}" :
             $out{$x} ? "=".callPerlInit($x."_SV", $callcopy) : ''
             );
-          $xsdecls .= "\n  PDL_Indx ${x}_count=0;" if $other{$x} && $optypes->{$x}->is_array;
-          $xsdecls .= "\n  $ptypes{$x}$x";
+          push @inputdecls, "PDL_Indx ${x}_count=0;" if $other{$x} && $optypes->{$x}->is_array;
+          push @inputdecls, "$ptypes{$x}$x";
         }
         my $shortcnt = my $xs_arg_cnt = $cnt;
         foreach my $x (@inargs[$cnt+1..$nmaxonstack-1]) {
@@ -1675,10 +1675,10 @@ EOD
           $name2cnts{$x} = [$cnt, undef];
           $name2cnts{$x}[1] = ++$shortcnt if !($out{$x} || $other_out{$x});
           push @xsargs, "$x=$x";
-          $xsdecls .= "\n  PDL_Indx ${x}_count=0;" if $other{$x} && $optypes->{$x}->is_array;
-          $xsdecls .= "\n  $ptypes{$x}$x=NO_INIT";
+          push @inputdecls, "PDL_Indx ${x}_count=0;" if $other{$x} && $optypes->{$x}->is_array;
+          push @inputdecls, "$ptypes{$x}$x=NO_INIT";
         }
-        my $pars = join '', map "\n  $ptypes{$_}$_=".callPerlInit($_."_SV", $callcopy).";", grep $outca{$_}, @args;
+        push @inputdecls, map "$ptypes{$_}$_=".callPerlInit($_."_SV", $callcopy).";", grep $outca{$_}, @args;
         my $defaults_rawcond = $ndefault ? "items == $nin_minus_default" : '';
         my $svdecls = join '', map "\n  $_",
           (map "SV *${_}_SV = ".(
@@ -1701,19 +1701,19 @@ EOD
             (map callTypemap($_, $ptypes{$_}).";\n", grep !$already_read{$_}, $sig->names_in),
             (map +("if (${_}_SV) { ".($argorder ? '' : callTypemap($_, $ptypes{$_}))."; } else ")."$_ = ".callPerlInit($_."_SV", $callcopy).";\n", grep $out{$_} && !$already_read{$_}, @args)
           );
-        my $preamble = $nallout ? qq[\n PREINIT:\n  PDL_XS_PREAMBLE($nretval);\n INPUT:\n] : '';
-        join '', qq[
-\nNO_OUTPUT pdl_error
-pdl_run_$name(@{[join ', ', @xsargs]})$svdecls
-$preamble$xsdecls$pars
- PPCODE:
-@{[$only_one || $argorder || ($nmaxonstack - ($xs_arg_cnt+1) == keys(%valid_itemcounts)-1) ? '' :
-qq{  if (!(@{[join ' || ', map "(items == $_)", sort keys %valid_itemcounts]}))
+        push @preinit, qq[PDL_XS_PREAMBLE($nretval);] if $nallout;
+        push @preinit, qq{if (!(@{[join ' || ', map "(items == $_)", sort keys %valid_itemcounts]}))
     croak("Usage: ${main::PDLOBJ}::$name(@{[
         join ",", map exists $otherdefaults->{$_} ? "$_=$otherdefaults->{$_}" :
              $out{$_} || $other_out{$_} ? "[$_]" : $_, @inargs
-    ]}) (you may leave [output variables] and values with =defaults out of list)");
-}]}
+    ]}) (you may leave [outputs] and values with =defaults out of list)");}
+          unless $only_one || $argorder || ($nmaxonstack - ($xs_arg_cnt+1) == keys(%valid_itemcounts)-1);
+        my $preamble = @preinit ? qq[\n PREINIT:@{[join "\n  ", "", @preinit]}\n INPUT:\n] : '';
+        join '', qq[
+\nNO_OUTPUT pdl_error
+pdl_run_$name(@{[join ', ', @xsargs]})$svdecls
+$preamble@{[join "\n  ", "", @inputdecls]}
+ PPCODE:
 ], map "$_\n", $argcode;
       }),
 
