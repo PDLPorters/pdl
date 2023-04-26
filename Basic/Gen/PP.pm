@@ -511,8 +511,9 @@ static inline pdl *PDL_XS_pdlinit(pTHX_ char *objname, HV *bless_stash, SV *to_p
       XSRETURN(0); \
     }
 
+#define PDL_IS_INPLACE(in) ((in)->state & PDL_INPLACE)
 #define PDL_XS_INPLACE(in, out, noutca) \
-    if (in->state & PDL_INPLACE) { \
+    if (PDL_IS_INPLACE(in)) { \
         if (nreturn == noutca && out != in) { \
             barf("inplace input but different output given"); \
         } else { \
@@ -1539,7 +1540,7 @@ EOD
       #     input ndarray is a(), output ndarray is 'b'
       sub {
         my ( $sig, $arg ) = @_;
-        return '' if !$arg;
+        confess 'Inplace given false value' if !$arg;
         confess "Inplace array-ref (@$arg) > 2 elements" if ref($arg) eq "ARRAY" and @$arg > 2;
         # find input and output ndarrays
         my %is_out = map +($_=>1), my @out = $sig->names_out;
