@@ -63,7 +63,7 @@ sub get_copy {
 	# strdup loses portability :(
 	return "($to) = malloc(strlen($from)+1); strcpy($to,$from); /* CType.get_copy */"
 	 if $this->{Base} =~ /^\s*char\s*$/;
-	return "($to) = sv_mortalcopy($from); /* CType.get_copy */" if $this->{Base} =~ /^\s*SV\s*$/;
+	return "($to) = newSVsv($from); /* CType.get_copy */" if $this->{Base} =~ /^\s*SV\s*$/;
 	my $code = $this->get_malloc($to,$from);
 	return "($to) = ($from); /* CType.get_copy */" if !defined $code; # pointer
 	my ($deref0,$deref1,$prev,$close) = ($from,$to);
@@ -92,6 +92,7 @@ sub get_copy {
 sub get_free {
 	my($this,$from) = @_;
 	my $single_ptr = @{$this->{Chain}} == 1 && $this->{Chain}[0][0] eq 'PTR';
+	return "SvREFCNT_dec($from); /* CType.get_free */\n" if $this->{Base} =~ /^\s*SV\s*$/ and $single_ptr;
 	return "free($from); /* CType.get_free */\n" if $this->{Base} =~ /^\s*char\s*$/ and $single_ptr;
 	return "" if !@{$this->{Chain}} or $this->{Chain}[0][0] eq 'PTR';
 	croak("Can only free one layer!\n") if @{$this->{Chain}} > 1;

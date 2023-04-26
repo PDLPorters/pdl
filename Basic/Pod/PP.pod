@@ -1356,8 +1356,7 @@ The C<MakeComp> code is placed in the C<pdl_run_(funcname)>, so access
 to C<Pars> (which will just be C<pdl *>s)/C<OtherPars> values is just
 via their names, not a macro. The default code (which also applies
 to C<OtherPars>) makes a copy of values where it knows how to do so,
-including C<SV*> and C<char*>. Since C<SV*>s will be mortal copies,
-code that needs them to survive will need to memory-manage them.
+including C<SV*> and C<char*>.
 
 You can also provide a C<CompFreeCodeComp> key, in case your C<MakeComp>
 needs tidying up after it.
