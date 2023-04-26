@@ -3685,14 +3685,14 @@ sub PDL::whereND :lvalue {
    my $mask = pop @_;  # $mask has 0==false, 1==true
    my @to_return;
    my $n = PDL::sum($mask);
+   my $maskndims = $mask->ndims;
    foreach my $arr (@_) {
-      my $sub_i = $mask * ones($arr);
-      my $where_sub_i = PDL::where($arr, $sub_i);
       # count the number of dims in $mask and $arr
       # $mask = a b c d e f.....
       my @idims = dims($arr);
-      # ...and pop off the number of dims in $mask
-      foreach ( dims($mask) ) { shift(@idims) };
+      splice @idims, 0, $maskndims; # pop off the number of dims in $mask
+      my $sub_i = $mask * ones($arr);
+      my $where_sub_i = PDL::where($arr, $sub_i);
       my $ndim = 0;
       foreach my $id ($n, @idims[0..($#idims-1)]) {
          $where_sub_i = $where_sub_i->splitdim($ndim++,$id) if $n>0;
