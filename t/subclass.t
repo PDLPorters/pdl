@@ -195,14 +195,9 @@ our @ISA = qw/PDL/;
 sub new {
    my $class = shift;
    my $data = $_[0];
-   my $self;
-   if(ref($data) eq 'PDL' ){ # if $data is an object (a pdl)
-	   $self = $class->initialize;
-	   $self->{PDL} = $data;
-   }
-   else{	# if $data not an object call inherited constructor
-	   $self = $class->SUPER::new($data);
-   }
+   return $class->SUPER::new($data) if ref($data) ne 'PDL'; # if not object, inherited constructor
+   my $self = $class->initialize;
+   $self->{PDL} = $data;
    return $self;
 }
 
