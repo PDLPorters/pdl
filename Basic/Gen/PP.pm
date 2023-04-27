@@ -1082,7 +1082,10 @@ sub callPerlInit {
 sub callTypemap {
   my ($x, $ptype) = @_;
   my ($setter, $type) = typemap($ptype, 'get_inputmap');
-  typemap_eval($setter, {var=>$x, type=>$type, arg=>("${x}_SV")});
+  my $ret = typemap_eval($setter, {var=>$x, type=>$type, arg=>("${x}_SV")});
+  $ret =~ s/^\s*(.*?)\s*$/$1/g;
+  $ret =~ s/\s*\n\s*/ /g;
+  $ret;
 }
 
 sub reorder_args {
@@ -1676,7 +1679,7 @@ EOD
           $name2cnts{$x}[1] = ++$shortcnt if !($out{$x} || $other_out{$x});
           push @xsargs, "$x=$x";
           push @inputdecls, "PDL_Indx ${x}_count=0;" if $other{$x} && $optypes->{$x}->is_array;
-          push @inputdecls, "$ptypes{$x}$x=NO_INIT";
+          push @inputdecls, "$ptypes{$x}$x".($other{$x} && !exists $otherdefaults->{$x} ? "; { ".callTypemap($x, $ptypes{$x})."; }" : "=NO_INIT");
         }
         push @inputdecls, map "$ptypes{$_}$_=".callPerlInit($_."_SV", $callcopy).";", grep $outca{$_}, @args;
         my $defaults_rawcond = $ndefault ? "items == $nin_minus_default" : '';
@@ -1695,9 +1698,9 @@ EOD
         my $argcode =
           indent(2, join '',
             (map
-              +(exists $otherdefaults->{$_} ? "if (!${_}_SV) { $_ = ($otherdefaults->{$_}); } else " : "").
+              "if (!${_}_SV) { $_ = ($otherdefaults->{$_}); } else ".
               "{ ".callTypemap($_, $ptypes{$_})."; }\n",
-              @{$sig->othernames(1, 1, \%already_read)}),
+              grep !$argorder && exists $otherdefaults->{$_}, @{$sig->othernames(1, 1)}),
             (map callTypemap($_, $ptypes{$_}).";\n", grep !$already_read{$_}, $sig->names_in),
             (map +("if (${_}_SV) { ".($argorder ? '' : callTypemap($_, $ptypes{$_}))."; } else ")."$_ = ".callPerlInit($_."_SV", $callcopy).";\n", grep $out{$_} && !$already_read{$_}, @args)
           );
