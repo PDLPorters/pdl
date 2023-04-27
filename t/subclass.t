@@ -203,6 +203,7 @@ sub new {
 
 ####### Initialize function. This over-ridden function is called by the PDL constructors
 sub initialize {
+	$::INIT_CALLED = 1;
 	my $class = shift;
         my $self = {
                 PDL => PDL->null, 	# used to store PDL object
@@ -214,6 +215,7 @@ sub initialize {
 
 ###### Derived4 Object Needs to supply its own copy #####
 sub copy {
+	$::COPY_CALLED = 1;
 	my $self = shift;
 	# setup the object
 	my $new = $self->initialize;
@@ -319,6 +321,16 @@ is $main::OVERRIDEWORKED, 1, "whichND worked"; # whitebox test condition, uugh!
 is ref( $im->clip(5,7) ), "PDL::Derived4", "clip returns derived object";
 is ref( $im->hclip(5) ), "PDL::Derived4", "hclip returns derived object";
 is ref( $im->lclip(5) ), "PDL::Derived4", "lclip returns derived object";
+
+$::COPY_CALLED = $::INIT_CALLED = 0;
+my $im2 = $im + 1;
+ok !$::COPY_CALLED, 'no copy';
+ok $::INIT_CALLED, 'yes init';
+
+$::COPY_CALLED = $::INIT_CALLED = 0;
+$im++;
+ok !$::COPY_CALLED, 'no copy';
+ok !$::INIT_CALLED, 'no init';
 
 ########### Test of Subclassed-object copying for simple function cases ###########
 ##  First define a PDL-derived object:
