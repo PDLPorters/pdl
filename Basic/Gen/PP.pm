@@ -1656,7 +1656,8 @@ EOD
         my $nretval = $argorder ? $nout :
           $only_one ? $noutca :
           "(items == $nmaxonstack) ? $noutca : $nallout";
-        my ($cnt, @preinit, @inputdecls, @xsargs, %already_read, %name2cnts) = -1;
+        my ($cnt, @preinit, @xsargs, %already_read, %name2cnts) = -1;
+        my @inputdecls = map "PDL_Indx ${_}_count=0;", grep $other{$_} && $optypes->{$_}->is_array, @inargs;
         foreach my $x (@inargs) {
           if (!$argorder && ($out{$x} || $other_out{$x} || exists $otherdefaults->{$x})) {
             last if @xsargs + keys(%out) + $noutca != $ntot;
@@ -1669,7 +1670,6 @@ EOD
             exists $otherdefaults->{$x} ? "=$otherdefaults->{$x}" :
             $out{$x} ? "=".callPerlInit($x."_SV", $callcopy) : ''
             );
-          push @inputdecls, "PDL_Indx ${x}_count=0;" if $other{$x} && $optypes->{$x}->is_array;
           push @inputdecls, "$ptypes{$x}$x";
         }
         my $shortcnt = my $xs_arg_cnt = $cnt;
@@ -1678,7 +1678,6 @@ EOD
           $name2cnts{$x} = [$cnt, undef];
           $name2cnts{$x}[1] = ++$shortcnt if !($out{$x} || $other_out{$x});
           push @xsargs, "$x=$x";
-          push @inputdecls, "PDL_Indx ${x}_count=0;" if $other{$x} && $optypes->{$x}->is_array;
           push @inputdecls, "$ptypes{$x}$x".($other{$x} && !exists $otherdefaults->{$x} ? "; { ".callTypemap($x, $ptypes{$x})."; }" : "=NO_INIT");
         }
         push @inputdecls, map "$ptypes{$_}$_=".callPerlInit($_."_SV", $callcopy).";", grep $outca{$_}, @args;
