@@ -1642,7 +1642,6 @@ EOD
         my %out = map +($_=>1), $sig->names_out_nca;
         my %outca = map +($_=>1), $sig->names_oca;
         my @inargs = grep !$outca{$_}, @args;
-        my %other_io = map +($_=>1), $sig->other_io;
         my %other_out = map +($_=>1), $sig->other_out;
         my $nout   = keys(%out) + keys(%other_out);
         my $noutca = keys %outca;
