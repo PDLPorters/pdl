@@ -1,3 +1,6 @@
+2.083 2023-04-30
+- no changes from 2.082_01
+
 2.082_01 2023-04-27
 - fix some memory leaking - thanks Yury Pakhomov for report
 - fix random() failing (#422) - thanks @falsifian for report
