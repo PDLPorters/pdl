@@ -654,17 +654,17 @@ pdl_error pdl_set( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims, PDL_Ind
 
 #define PDL_KLUDGE_COPY_X(X, datatype_out, ctype_out, ppsym_out, ...) \
 PDL_Indx pdl_kludge_copy_ ## ppsym_out(PDL_Indx dest_off, /* Offset into the dest data array */ \
-                           ctype_out* dest_data,  /* Data pointer in the dest data array */ \
-                           PDL_Indx* dest_dims,/* Pointer to the dimlist for the dest pdl */ \
-                           PDL_Indx ndims,    /* Number of dimensions in the dest pdl */ \
-                           int level,         /* Recursion level */ \
-                           PDL_Indx stride,   /* Stride through memory for the current dim */ \
-                           pdl* source_pdl,   /* pointer to the source pdl */ \
-                           int plevel,        /* level within the source pdl */ \
-                           void* source_data, /* Data pointer in the source pdl */ \
-                           ctype_out undefval,   /* undefval for the dest pdl */ \
-                           pdl* dest_pdl      /* pointer to the dest pdl */ \
-                           ) { \
+  ctype_out* dest_data,  /* Data pointer in the dest data array */ \
+  PDL_Indx* dest_dims,/* Pointer to the dimlist for the dest pdl */ \
+  PDL_Indx ndims,    /* Number of dimensions in the dest pdl */ \
+  int level,         /* Recursion level */ \
+  PDL_Indx stride,   /* Stride through memory for the current dim */ \
+  pdl* source_pdl,   /* pointer to the source pdl */ \
+  int plevel,        /* level within the source pdl */ \
+  void* source_data, /* Data pointer in the source pdl */ \
+  ctype_out undefval,   /* undefval for the dest pdl */ \
+  pdl* dest_pdl      /* pointer to the dest pdl */ \
+) { \
   PDL_Indx i; \
   PDL_Indx undef_count = 0; \
   /* Can't copy into a level deeper than the number of dims in the output PDL */ \
@@ -703,40 +703,31 @@ PDL_Indx pdl_kludge_copy_ ## ppsym_out(PDL_Indx dest_off, /* Offset into the des
    *  dimensional boundscheck flag -- that avoids having to evaluate the complex  \
    *  ternary expression for every loop iteration. \
    */ \
-  { \
-      PDL_Indx limit =  (    \
-          (plevel >= 0 &&  \
-           (source_pdl->ndims - 1 - plevel >= 0) \
-          )    \
-          ?   (source_pdl->dims[ source_pdl->ndims-1-plevel ])    \
-          :   1     \
-          ); \
-      for(i=0; i < limit ; i++) { \
-          undef_count += pdl_kludge_copy_ ## ppsym_out(0, dest_data + stride * i, \
-                                               dest_dims, \
-                                               ndims, \
-                                               level+1, \
-                                               stride / ((dest_dims[ndims-2-level]) ? (dest_dims[ndims-2-level]) : 1), \
-                                               source_pdl, \
-                                               plevel+1, \
-                                               ((PDL_Byte *) source_data) + source_pdl->dimincs[source_pdl->ndims-1-plevel] * i * pdl_howbig(source_pdl->datatype), \
-                                               undefval, \
-                                               dest_pdl \
-              ); \
-      } /* end of kludge_copy recursion loop */ \
-  } /* end of recursion convenience block */ \
+  PDL_Indx limit = \
+    (plevel >= 0 &&  \
+     (source_pdl->ndims - 1 - plevel >= 0) \
+    ) \
+    ? (source_pdl->dims[ source_pdl->ndims-1-plevel ]) \
+    : 1; \
+  for(i=0; i < limit ; i++) \
+    undef_count += pdl_kludge_copy_ ## ppsym_out(0, dest_data + stride * i, \
+      dest_dims, \
+      ndims, \
+      level+1, \
+      stride / ((dest_dims[ndims-2-level]) ? (dest_dims[ndims-2-level]) : 1), \
+      source_pdl, \
+      plevel+1, \
+      ((PDL_Byte *) source_data) + source_pdl->dimincs[source_pdl->ndims-1-plevel] * i * pdl_howbig(source_pdl->datatype), \
+      undefval, \
+      dest_pdl \
+    ); \
+  if(i >= dest_dims[ndims - 1 - level]) return undef_count; \
   /* pad the rest of this dim to zero if there are not enough elements in the source PDL... */ \
-  if(i < dest_dims[ndims - 1 - level]) { \
-      int cursor, target; \
-      cursor = i * stride; \
-      target = dest_dims[ndims-1-level]*stride; \
-      undef_count += target - cursor; \
-      for(; \
-          cursor < target; \
-          cursor++) { \
-          dest_data[cursor] = undefval; \
-      } \
-  } /* end of padding IF statement */ \
+  int cursor, target; \
+  cursor = i * stride; \
+  target = dest_dims[ndims-1-level]*stride; \
+  undef_count += target - cursor; \
+  for (; cursor < target; cursor++) dest_data[cursor] = undefval; \
   return undef_count; \
 }
 PDL_TYPELIST2_ALL(PDL_KLUDGE_COPY_X, INNERLOOP_X)
