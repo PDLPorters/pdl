@@ -183,7 +183,7 @@ jobs:
         uses: egor-tensin/setup-cygwin@v3
         with:
           platform: x64
-          packages: make perl gcc-core gcc-g++ pkg-config libcrypt-devel libssl-devel git
+          packages: make perl gcc-core gcc-g++ pkg-config libcrypt-devel libssl-devel libnsl-devel git
       - name: perl -V
         run: |
           perl -V
