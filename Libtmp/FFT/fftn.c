@@ -320,6 +320,21 @@ FFTRADIX (REAL Re [],
 	  int maxFactors,
 	  int maxPerm)
 {
+#ifndef FFTRADIX_RETURN
+#define FFTRADIX_RETURN(v) \
+  do { \
+    if (Rtmp) free(Rtmp); \
+    if (Itmp) free(Itmp); \
+    if (Cos) free(Cos); \
+    if (Sin) free(Sin); \
+    if (Perm) free(Perm); \
+    return v; \
+  } while (0)
+#endif
+#ifndef FFTRADIX_MALLOC
+#define FFTRADIX_MALLOC(t, p, n) \
+  do { p = malloc(sizeof(t) * n); if (!p) FFTRADIX_RETURN(-1); } while (0)
+#endif
    if (nPass < 2)
      return 0;
 
@@ -330,11 +345,13 @@ FFTRADIX (REAL Re [],
    REALFIX c1, c2, c3, cd;
    REALFIX s1, s2, s3, sd;
 
-   REALFIX Rtmp[maxFactors];		/* temp space for real part*/
-   REALFIX Itmp[maxFactors];		/* temp space for imaginary part */
-   REALFIX Cos[maxFactors];		/* Cosine values */
-   REALFIX Sin[maxFactors];		/* Sine values */
-   int Perm[maxPerm];
+   REALFIX *Rtmp, *Itmp, *Cos, *Sin;
+   int *Perm;
+   FFTRADIX_MALLOC(REALFIX, Rtmp, maxFactors); /* temp space for real part */
+   FFTRADIX_MALLOC(REALFIX, Itmp, maxFactors); /* temp space for imag part */
+   FFTRADIX_MALLOC(REALFIX, Cos, maxFactors); /* Cosine values */
+   FFTRADIX_MALLOC(REALFIX, Sin, maxFactors); /* Sine values */
+   FFTRADIX_MALLOC(int, Perm, maxPerm);
 
 #ifndef FFT_RADIX4
    REALFIX s60 = SIN60;		/* sin(60 deg) */
@@ -558,7 +575,7 @@ FFTRADIX (REAL Re [],
 	 /* transform for odd factors */
 #ifdef FFT_RADIX4
 	 fprintf (stderr, "Error: " FFTRADIXS "(): compiled for radix 2/4 only\n");
-	 return -1;
+	 FFTRADIX_RETURN(-1);
 	 break;
 #else	/* FFT_RADIX4 */
 	 ispan = kspan;
@@ -865,7 +882,7 @@ Permute_Single:
      }
 
    if ((kt << 1) + 1 >= nFactor)
-     return 0;
+     FFTRADIX_RETURN(0);
    ispan = Perm [kt];
 
    /* permutation for square-free factors of n */
@@ -979,12 +996,14 @@ Permute_Single:
 	 } while (jj);
       } while (j != 1);
    }
-   return 0;			/* exit point here */
+   FFTRADIX_RETURN(0);			/* exit point here */
 
    /* alloc or other problem, do some clean-up */
 Memory_Error:
    fprintf (stderr, "Error: " FFTRADIXS "() - insufficient memory.\n");
-   return -1;
+   FFTRADIX_RETURN(-1);
+#undef FFTRADIX_RETURN
+#undef FFTRADIX_MALLOC
 }
 
 /*

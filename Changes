@@ -1,3 +1,5 @@
+- switch FFT code to use heap, not VLA (#436) - thanks @HaraldJoerg for report
+
 2.084 2023-05-21
 - reduce size of PDL_KLUDGE_COPY_X macro to <4096 in line with C standard, to fix for older clang on many BSD
 
