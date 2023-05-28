@@ -820,20 +820,18 @@ PDL_TYPELIST2_ALL(PDL_SETAV_X, INNERLOOP_X)
 
 SV *pdl_hdr_copy(SV *hdrp) {
   /* call the perl routine _hdr_copy */
-  int count;
-  SV *retval;
   dSP;
   ENTER;
   SAVETMPS;
   PUSHMARK(SP);
   XPUSHs( hdrp );
   PUTBACK;
-  count = call_pv("PDL::_hdr_copy",G_SCALAR);
+  int count = call_pv("PDL::_hdr_copy",G_SCALAR);
   SPAGAIN;
   if (count != 1)
       croak("PDL::_hdr_copy didn\'t return a single value - please report this bug (B).");
-  retval = (SV *) POPs ;
-  if(retval != &PL_sv_undef )
+  SV *retval = (SV *) POPs ;
+  if (SvROK(retval))
       (void)SvREFCNT_inc(retval);
   FREETMPS;
   LEAVE;
@@ -867,7 +865,6 @@ Here's the flow:
 void pdl_hdr_childcopy(pdl_trans *trans) {
   void *hdrp = NULL;
   char propagate_hdrcpy = 0;
-  SV *hdr_copy = NULL;
   pdl_transvtable *vtable = trans->vtable;
   pdl **pdls = trans->pdls;
   PDL_Indx i;
@@ -883,24 +880,23 @@ void pdl_hdr_childcopy(pdl_trans *trans) {
       break;
     }
   }
-  if (hdrp) {
-    hdr_copy = ((hdrp == &PL_sv_undef) ? &PL_sv_undef : pdl_hdr_copy(hdrp));
-    /* Found the header -- now copy it into all the right places */
-    for (i=0; i<vtable->npdls; i++) {
-      pdl *pdl = pdls[i];
-      short flags = vtable->par_flags[i];
-      if (!(flags & PDL_PARAM_ISCREAT)) continue;
-      if (pdl->hdrsv != hdrp) {
-        if (pdl->hdrsv && pdl->hdrsv != &PL_sv_undef)
-          (void)SvREFCNT_dec( pdl->hdrsv );
-        if (hdr_copy != &PL_sv_undef) (void)SvREFCNT_inc(hdr_copy);
-        pdl->hdrsv = hdr_copy;
-      }
-      if (propagate_hdrcpy) pdl->state |= PDL_HDRCPY;
+  if (!hdrp) return;
+  SV *hdr_copy = ((hdrp == &PL_sv_undef) ? &PL_sv_undef : pdl_hdr_copy(hdrp));
+  /* Found the header -- now copy it into all the right places */
+  for (i=0; i<vtable->npdls; i++) {
+    pdl *pdl = pdls[i];
+    short flags = vtable->par_flags[i];
+    if (!(flags & PDL_PARAM_ISCREAT)) continue;
+    if (pdl->hdrsv != hdrp) {
+      if (pdl->hdrsv && pdl->hdrsv != &PL_sv_undef)
+        (void)SvREFCNT_dec( pdl->hdrsv );
+      if (hdr_copy != &PL_sv_undef) (void)SvREFCNT_inc(hdr_copy);
+      pdl->hdrsv = hdr_copy;
     }
-    if(hdr_copy != &PL_sv_undef)
-      SvREFCNT_dec(hdr_copy); /* make hdr_copy mortal again */
+    if (propagate_hdrcpy) pdl->state |= PDL_HDRCPY;
   }
+  if (hdr_copy != &PL_sv_undef)
+    SvREFCNT_dec(hdr_copy); /* make hdr_copy mortal again */
 }
 
 void pdl_dump_slice_args(pdl_slice_args* args) {
