@@ -320,6 +320,9 @@ FFTRADIX (REAL Re [],
 	  int maxFactors,
 	  int maxPerm)
 {
+   if (nPass < 2)
+     return 0;
+
    int ii, nFactor, factor[NFACTOR], kspan, ispan, inc;
    int j, jc, jf, jj, k, k1, k3, kk, kt, nn, ns, nt;
 
@@ -358,9 +361,6 @@ FFTRADIX (REAL Re [],
    /* Parameter adjustments, was fortran so fix zero-offset */
    Re--;
    Im--;
-
-   if (nPass < 2)
-     return 0;
 
    /*
     * Function Body
