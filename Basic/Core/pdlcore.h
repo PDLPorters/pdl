@@ -163,7 +163,7 @@ PDL_CORE_LIST(X)
 
 #define X(symbol, ctype, ppsym, ...) \
 PDL_Indx pdl_setav_ ## ppsym(ctype * pdata, AV* av, \
-	PDL_Indx* pdims, PDL_Long ndims, int level, ctype undefval, pdl *p);
+  PDL_Indx* pdims, PDL_Indx ndims, PDL_Indx level, ctype undefval, pdl *p);
 PDL_TYPELIST_ALL(X)
 #undef X
 
