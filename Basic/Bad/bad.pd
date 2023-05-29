@@ -948,15 +948,10 @@ values are copied with no replacement.
     HandleBad => 1,
     Inplace => 1,
     Code => q{
-        $GENERIC(b) a_val;
-        $GENERIC(b) replace = ($GENERIC(b)) $COMP(newval);
+        PDL_IF_BAD($GENERIC(b) replace = ($GENERIC(b)) $COMP(newval);,)
         broadcastloop %{
-            a_val = $a();
-            PDL_IF_BAD(if ( $ISBADVAR(a_val,a) ) {
-                $b() = replace;
-            } else,) {
-                $b() = a_val;
-            }
+            $GENERIC(b) a_val = $a();
+            $b() = PDL_IF_BAD($ISBADVAR(a_val,a) ? replace : ,) a_val;
         %}
     },
     CopyBadStatusCode => q{
