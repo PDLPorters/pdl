@@ -111,6 +111,7 @@ pp_addhdr(<<'EOH');
 #include <hdf.h>
 #include <mfhdf.h>
 #include <string.h>
+#include <stdlib.h>
 
 #define PDLchar pdl
 #define PDLuchar pdl
@@ -287,7 +288,7 @@ _SDinitchunk(sds_id, type, rank, chunk_lengths);
             int i;
             size_t size;
             int status;
-            origin = HDgetspace( sizeof( int ) * rank );
+            origin = malloc( sizeof( int ) * rank );
             for( i = 0; i < rank; i++ )
                 origin[i] = 0;
             /* Just use the largest datatype here: */
@@ -297,15 +298,15 @@ _SDinitchunk(sds_id, type, rank, chunk_lengths);
                 for( i = 1; i < rank; i++ )
                     size *= chunk_lengths[i];
             }
-            data = HDgetspace( size );
+            data = malloc( size );
             status = SDwritechunk(sds_id, origin, data);
             if( status == FAIL )
             {
                 fprintf(stderr, "_SDinitchunk(): return status = %d\n", status);
                 HEprint(stderr, 0);
             }
-            HDfreespace( data );
-            HDfreespace( origin );
+            free( data );
+            free( origin );
             RETVAL = status;
         OUTPUT:
             RETVAL  
