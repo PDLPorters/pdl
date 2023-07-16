@@ -120,7 +120,7 @@ undef &MY::postamble; # suppress warning
         my $mycompiler     = $f77->compiler();
         my $mycflags       = $f77->cflags();
 	my $orig = pdlpp_postamble_int(@pack);
-	my $hack_64bit = ($Config{archname}=~m/x86_64|i686/ ?" -fPIC " : "");
+	my $hack_64bit = ($Config{archname}=~m/amd64|i686|x86_64/ ?" -fPIC " : "");
 	$orig =~ s/:\s*minuit\.pd/: minuit.pd/;
 	$orig .= "FFLAGS = $hack_64bit $mycflags \$(OPTIMIZE)\n";
 	$orig .= join "\n",map {
