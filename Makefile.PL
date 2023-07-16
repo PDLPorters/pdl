@@ -160,7 +160,7 @@ my @cleanup = ("pdl$Config{exe_ext}", qw(
 # use similar mods to affect CCFLAGS on other systems as needed...
 
 my $ccflags =  $Config{ccflags};
-if($Config{archname}=~m/x86_64/) {
+if($Config{archname}=~m/amd64|i686|x86_64/) {
     $ccflags .= " -fPIC";
 }
 
