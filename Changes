@@ -7,6 +7,8 @@
 - fix GIS::Proj to work better on Windows (#456) - thanks @shawnlaffan
 - fix conversion of ulonglong to Perl scalar and therefore stringification (#458) - thanks @vadim-160102 for report
 - fix modulo for ulonglong and on Windows
+- update Opt::Simplex docs (#452) - thanks @KJ7LNW
+- fix Graphics::OpenGLQ on MacOS Ventura (#452) - thanks @deriamis
 
 2.084 2023-05-21
 - reduce size of PDL_KLUDGE_COPY_X macro to <4096 in line with C standard, to fix for older clang on many BSD
