@@ -2913,17 +2913,39 @@ for my $func ( [
 
 
     my $code = undent q[
-                   PDL_Indx n1 = $SIZE(n)-1;
-                   PDL_Indx low = %LOW%;
-                   PDL_Indx high = %HIGH%;
-                   PDL_Indx mid;
+                 if ( $SIZE(n) == 0 ){
+                    broadcastloop %{
+                      loop(n) %{
+                        $SETBAD(idx());
+                      %}
+                    %}
+                 }
+                 else {
+                   broadcastloop %{
 
-		   $GENERIC() value = $vals();
+                     loop(n) %{
 
-                   /* determine sort order of data */
-                   int up = %UP%;
-                   %CODE%
-                   ----
+                        if ( $ISGOOD(vals()) ) {
+                          PDL_Indx n1 = $SIZE(n)-1;
+                          PDL_Indx low = %LOW%;
+                          PDL_Indx high = %HIGH%;
+                          PDL_Indx mid;
+
+                          $GENERIC() value = $vals();
+
+                          /* determine sort order of data */
+                          int up = %UP%;
+                          %CODE%
+                        }
+
+                        else {
+                          $SETBAD(idx());
+                        }
+                     %}
+
+                   %}
+                 }
+                 ----
                ];
 
     my $doc = undent q[
@@ -2936,7 +2958,8 @@ for my $func ( [
 		     $idx = %FUNC%($vals, $x);
 
 		   C<$x> must be sorted, but may be in decreasing or increasing
-		   order.
+		   order.  if C<$x> is empty, then all values in C<$idx> will be
+                   set to the bad value.
 
                    %PRE%
 		   %BODY%
@@ -2952,8 +2975,8 @@ for my $func ( [
 
     pp_def(
         $func,
-        HandleBad    => 0,
-        BadDoc       => 'needs major (?) work to handles bad values',
+        HandleBad    => 1,
+        BadDoc       => 'bad values in vals() result in bad values in idx()',
         Pars         => 'vals(); x(n); indx [o]idx()',
         GenericTypes => $F,    # too restrictive ?
         Code         => $code,

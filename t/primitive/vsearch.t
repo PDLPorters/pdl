@@ -3,6 +3,7 @@
 use strict;
 use warnings;
 use Test2::V0 '!float';
+use Test2::Util;
 
 use PDL::LiteF;
 use Test::Lib;
@@ -375,6 +376,14 @@ for my $mode ( sort keys %search ) {
                     $so->{equal} ),
                   'equal elements';
 
+                my $badmask = $so->{x}->random < 0.25;
+                my $badx = $so->{x}->setbadif( $badmask );
+                my $bad_eq = $so->{equal}->setbadif( $badmask );
+
+                ok tapprox( vsearch( $badx, $so->{x}, { mode => $mode } ),
+                    $bad_eq ),
+                  'equal elements w/ bad vals';
+
                 ok tapprox(
                     vsearch( $so->{x} - 5, $so->{x}, { mode => $mode } ),
                     $so->{nequal_m} ),
@@ -446,4 +455,22 @@ for my $mode ( sort keys %search ) {
     ok tapprox( $indx0, $indx1 ), 'explicit ndarray == implicit ndarray';
 }
 
+subtest regressions => sub {
+
+    subtest '$xs->is_empty' => sub {
+
+        skip 'check for regression requires fork' unless Test2::Util::CAN_FORK;
+        require Test2::AsyncSubtest;
+
+        my $ast = Test2::AsyncSubtest->new( name => 'vsearch' );
+        $ast->run_fork(
+            sub {
+                ok lives { pdl( [0] )->vsearch_bin_inclusive( pdl( [] ) ) }
+            }
+        );
+        $ast->finish;
+
+    };
+
+};
 done_testing;
