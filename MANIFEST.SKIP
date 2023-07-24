@@ -219,6 +219,7 @@ subdirs
 
 ^README\.md
 ^\.github/
+^\.cirrus\.yml
 ^Example/Benchmark/\.git
 
 ^cover_db/
