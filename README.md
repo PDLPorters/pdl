@@ -4,7 +4,8 @@
 
 | Service   |  Build status |
 |:---------:|--------------:|
-| GitHub CI | ![Build Status](https://github.com/PDLPorters/pdl/workflows/perl/badge.svg?branch=master) |
+| GitHub CI | [![Build Status](https://github.com/PDLPorters/pdl/workflows/perl/badge.svg?branch=master)](https://github.com/PDLPorters/pdl/actions?query=branch%3Amaster) |
+| Cirrus CI | [![Build Status](https://api.cirrus-ci.com/github/PDLPorters/pdl.svg?branch=master)](https://cirrus-ci.com/github/PDLPorters/pdl/master) |
 
 [![Coverage Status](https://coveralls.io/repos/PDLPorters/pdl/badge.png?branch=master)](https://coveralls.io/r/PDLPorters/pdl?branch=master)
 [![CPAN version](https://badge.fury.io/pl/PDL.svg)](https://metacpan.org/pod/PDL)
