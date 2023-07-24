@@ -29,19 +29,19 @@ subtest 'append(null, null, $output)' => sub {
 
 subtest 'output ndarray has different shape' => sub {
 
-    subtest 'input => [1]; required [2]' => sub {
+    todo 'output => [1]; required [2].  SHOULD FAIL, output too small' => sub {
         my $output = zeroes(1);
-        append( pdl(1), pdl(2), $output );
-        is( $output->unpdl, [2], q{partial append } );
+        like ( dies { append( pdl(1), pdl(2), $output ) },
+               qr/dim has size 1/ );
     };
 
-    subtest 'input => [1]; required [2]' => sub {
+    subtest 'output => [3,1]; required [2]' => sub {
         my $output = zeroes(3,1);
-        append( pdl(1), pdl(2), $output );
-        is( $output->unpdl, [2], q{partial append } );
+        like ( dies { append( pdl(1), pdl(2), $output ) },
+               qr/dim has size 3/ );
     };
 
-    subtest 'null' => sub {
+    subtest 'output => null; required [2]' => sub {
         my $output = null;
         append( pdl(1), pdl(2), $output );
         is( $output->unpdl, [ 1, 2 ], q{full append } );
