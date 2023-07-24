@@ -318,6 +318,13 @@ coretest : core
 	prove -b $coretest
 EOF
 
+$text .= <<EOF;
+
+update-ppport:
+	cd Basic/Core && \$(PERLRUN) -MDevel::PPPort -e'Devel::PPPort::WriteFile' && \$(PERLRUN) ppport.h --strip
+
+EOF
+
 return $text
 
 }
