@@ -83,7 +83,7 @@ sub test_globs {
     my $dir = shift;
     my @depth;
     File::Find::find ( { no_chdir => 1, wanted => sub { /\.t$/ and $depth[ 0+ ( () = m{/}g )] = 1 }  } , $dir );
-    return  map { 't/' . ('*/') x $_ . '*.t' } 0..$#depth-1
+    return  map { 't/' . ('*/' x $_ ). '*.t' } 0..$#depth-1
 }
 
 # return a list of tests associated with the PDL core. tests are searched for in 't',
