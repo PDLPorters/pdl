@@ -109,10 +109,17 @@ but only after it has visited every point in your space).
 
 =head1 SEE ALSO
 
-Ron Shaffer's chemometrics web page and references therein:
-C<http://chem1.nrl.navy.mil/~shaffer/chemoweb.html>.
+=over
 
-Numerical Recipes (bla bla bla XXX ref).
+=item L<PDL::Opt::Simplex::Simple> - Use names for Simplex-optimized values
+
+=item L<PDL::Opt::ParticleSwarm> - A PDL implementation of Particle Swarm
+
+=item L<PDL::Opt::ParticleSwarm::Simple> - Use names for Particle Swarm-optimized values
+
+=item L<https://web.archive.org/web/19981206200518/http://chem1.nrl.navy.mil/~shaffer/chemoweb.html> - Ron Shaffer's chemometrics web page and references therein (archive from 1998)
+
+=back
 
 The demonstration (Examples/Simplex/tsimp.pl and tsimp2.pl).
 
