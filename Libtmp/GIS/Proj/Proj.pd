@@ -16,6 +16,13 @@ use warnings;
 
 our $VERSION = "1.32";
 
+pp_addbegin (<<'EOAP');
+  use Alien::proj;
+  if ($^O =~ /MSWin32/ and $Alien::proj::VERSION le '1.25') {
+    $ENV{PATH} = join ';', (Alien::proj->bin_dirs, $ENV{PATH});
+  }
+EOAP
+
 pp_addpm({At=>'Top'},<<'EODOC');
 use strict;
 use warnings;
