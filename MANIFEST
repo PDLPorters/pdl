@@ -729,7 +729,6 @@ t/primitive/random.t
 t/primitive/selector.t
 t/primitive/setops.t
 t/primitive/stats.t
-t/primitive/Ufunc.t
 t/primitive/vector.t
 t/primitive/vsearch.t
 t/pthread.t

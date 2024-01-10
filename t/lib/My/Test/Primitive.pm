@@ -1,10 +1,6 @@
 use strict;
 use warnings;
-use Test2::V0 '!float';
 use PDL::LiteF;
-
-use Exporter 'import';
-our @EXPORT = qw( tapprox );
 
 sub tapprox {
     my ( $x, $y ) = @_;
