@@ -3,7 +3,7 @@ use warnings;
 use Test2::V0 '!float';
 
 use PDL::LiteF;
-use Test::Lib;
+use lib 't/lib';
 use My::Test::Primitive;
 
 todo 'Some CPAN Testers fails for OpenBSD' => sub {

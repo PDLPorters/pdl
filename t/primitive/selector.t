@@ -4,7 +4,7 @@ use Test2::V0 '!float';
 
 use PDL::LiteF;
 
-use Test::Lib;
+use lib 't/lib';
 use My::Test::Primitive;
 
 subtest 'where' => sub {

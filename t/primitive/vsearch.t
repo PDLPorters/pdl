@@ -4,7 +4,7 @@ use Test2::V0 '!float';
 use Test2::Util;
 
 use PDL::LiteF;
-use Test::Lib;
+use lib 't/lib';
 use My::Test::Primitive;
 
 # Some of these tests are based upon those in Chapter 5 of Programming

@@ -3,7 +3,6 @@ use warnings;
 use Test2::V0 '!float';
 
 use PDL::LiteF;
-use Test::Lib;
 
 is(
     append( zeroes( 2, 0 ), zeroes( 3, 0 ) )->shape->unpdl,

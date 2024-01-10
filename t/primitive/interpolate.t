@@ -3,8 +3,6 @@ use warnings;
 use Test2::V0 '!float';
 
 use PDL::LiteF;
-use Test::Lib;
-use My::Test::Primitive;
 
 subtest interpol => sub {
 

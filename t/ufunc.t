@@ -3,7 +3,7 @@ use warnings;
 use Test::More;
 use PDL::LiteF;
 use PDL::Types;
-use Test::Lib;
+use lib 't/lib';
 use My::Test::Primitive;
 
 my $p = pdl([]); $p->setdims([1,0]); $p->qsortvec; # shouldn't segfault!
