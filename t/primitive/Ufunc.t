@@ -9,7 +9,7 @@ use My::Test::Primitive;
 
 diag "These tests should be in Ufunc, not Primitive";
 
-# provide indepdent copies of test data.
+# provide independent copies of test data.
 sub X { PDL->pdl( [ [ 5, 4, 3 ], [ 2, 3, 1.5 ] ] ) }
 
 ok( tapprox( X->average(),  PDL->pdl( [ 4,  2.16666 ] ) ), "average" );
@@ -17,7 +17,7 @@ ok( tapprox( X->sumover(),  PDL->pdl( [ 12, 6.5 ] ) ),     "sumover" );
 ok( tapprox( X->prodover(), PDL->pdl( [ 60, 9 ] ) ),       "prodover" );
 
 
-# provide indepdent copies of test data.
+# provide independent copies of test data.
 sub IM {
     PDL->new(
         [

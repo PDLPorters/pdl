@@ -6,7 +6,7 @@ use PDL::LiteF;
 use Test::Lib;
 use My::Test::Primitive;
 
-# provide indepdent copies of test data.
+# provide independent copies of test data.
 sub IM {
     PDL->new(
         [
