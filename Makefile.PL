@@ -6,7 +6,6 @@ use 5.010_000;
 use ExtUtils::MakeMaker;
 use ExtUtils::MakeMaker::Config;
 use File::Spec;
-use File::Find;
 
 # file globals(!)
 my ($pdl_f77conf, $seen_f77conf);
@@ -76,47 +75,6 @@ sub check_f77conf {
   $PDL::Config{F77CONF} = $pdl_f77conf;
   return 1;
 }
-
-# returns a list of globs for nested tests in the passed directory, e.g.
-#  ( 't/*.t', 't/*/*.t' ) which reflect the actual nesting of tests 
-sub test_globs {
-    my $dir = shift;
-    my @depth;
-    File::Find::find ( { no_chdir => 1, wanted => sub { /\.t$/ and $depth[ 0+ ( () = m{/}g )] = 1 }  } , $dir );
-    return  map { 't/' . ('*/' x $_ ). '*.t' } 0..$#depth-1
-}
-
-# return a list of tests associated with the PDL core. tests are searched for in 't',
-# and may be a single "$test.t" file, or any files within the t/$test directory.
-sub coretests {
-    my @core = qw(
-                         01-pptest autoload bad basic bool clump config constructor core croak lvalue
-                         math matrix matrixops nat_complex ops-bitwise ops pdl_from_string
-                         pdlchar pp_croaking pp_line_numbers primitive pthread reduce
-                         slice subclass thread thread_def ufunc
-                  );
-
-    my @tests;
-
-    for my $test ( @core ) {
-
-        # top level "$test.t" file
-        my $tfile = File::Spec->catfile('t', $test . '.t');
-
-        push @tests, $tfile if -f $tfile;
-
-        my $tdir = File::Spec->catfile('t', $test);
-        if ( -d $tdir ) {
-            File::Find::find ( { no_chdir => 1,
-                                 wanted => sub { /\.t$/ and push @tests, $_; }
-                             },
-                               $tdir );
-        }
-    }
-
-    return @tests;
-}
-
 
 sub make_PDL_Config_pm {
   print "Writing Basic/Core/Config.pm\n";
@@ -283,9 +241,6 @@ my %makefile_hash = (
   AUTHOR => 'PerlDL Developers <pdl-general@lists.sourceforge.net>',
   ABSTRACT => 'Perl Data Language',
   BINARY_LOCATION => 'PDL.tar.gz',
-
-  # allow nested test directories
-  test => { TESTS => join( q{ }, test_globs( './t' ) ) },
 );
 
 WriteMakefile(%makefile_hash);
@@ -351,7 +306,12 @@ ppm : doctest ppd
 EOT
 
 $text .= "\n" . ::coretarget($self);
-my $coretest = join ' ', ::coretests();
+my $coretest = join ' ', map File::Spec->catfile('t', $_.'.t'), qw(
+  01-pptest autoload bad basic bool clump config constructor core croak lvalue
+  math matrix matrixops nat_complex ops-bitwise ops pdl_from_string
+  pdlchar pp_croaking pp_line_numbers primitive-* pthread reduce
+  slice subclass thread thread_def ufunc
+);
 $text .= <<EOF;
 
 coretest : core
