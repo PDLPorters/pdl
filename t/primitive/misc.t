@@ -1,5 +1,3 @@
-#! perl
-
 use Test2::V0 '!float';
 use PDL::LiteF;
 use PDL::Types;
