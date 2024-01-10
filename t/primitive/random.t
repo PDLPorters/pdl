@@ -1,12 +1,12 @@
 use strict;
 use warnings;
-use Test2::V0 '!float';
-
+use Test::More;
+use Test::Exception;
 use PDL::LiteF;
 use lib 't/lib';
 use My::Test::Primitive;
 
-todo 'Some CPAN Testers fails for OpenBSD' => sub {
+TODO: { local $TODO = 'Some CPAN Testers fails for OpenBSD'; subtest 'random' => sub {
 
     # check that our random functions work with Perl's srand
     # local $TODO = ;
@@ -26,21 +26,19 @@ todo 'Some CPAN Testers fails for OpenBSD' => sub {
         my $r2 = grandom 10;
         ok( tapprox( $r1, $r2 ), "grandom and srand" );
     };
-};
+}; }
 
 subtest 'types' => sub {
 
     subtest 'random' => sub {
         my $type;
-        ok( lives { $type = random()->type }, 'random()' )
-          or note $@;
+        lives_ok { $type = random()->type } 'random()';
         is( $type, 'double', 'defaults to double' );
     };
 
     subtest 'randsym' => sub {
         my $type;
-        ok( lives { $type = randsym()->type }, 'randsym()' )
-          or note $@;
+        lives_ok { $type = randsym()->type } 'randsym()';
         is( $type, 'double', 'defaults to double' );
 
     };
@@ -49,7 +47,7 @@ subtest 'types' => sub {
 subtest 'regressions' => sub {
 
     # Test some operations with empty ndarrays
-    ok lives { random( 1, 1, 0 )->type }, 'empty ndarray';    # used to segfault
+    lives_ok { random( 1, 1, 0 )->type } 'empty ndarray';    # used to segfault
 };
 
 done_testing;

@@ -1,7 +1,7 @@
 use strict;
 use warnings;
-use Test2::V0 '!float';
-
+use Test::More;
+use Test::Exception;
 use PDL::LiteF;
 use lib 't/lib';
 use My::Test::Primitive;
@@ -27,7 +27,7 @@ subtest 'complex' => sub {
     my $cm1 = pdl('1 1+i 1');
     my $cm2 = pdl('2 3 i')->transpose;
     ok tapprox( $cm1 x $cm2, pdl('[[5+4i]]') ), 'complex matmult';
-    like dies { scalar $cm1->transpose x $cm2 },
+    throws_ok { scalar $cm1->transpose x $cm2 }
       qr/mismatch/,
       'good error on mismatch matmult';
 };
@@ -67,13 +67,11 @@ subtest 'output = ones(2,3)' => sub {
 ok tapprox( EQ() x PB(), pdl( [ [ 2, 6 ] ] ) ), '([4x1] x [2x4] -> [1x2])';
 
 # Check dimensional exception: mismatched dims should throw an error
-like(
-    dies {
+throws_ok {
         PB() x EQ();
-    },
+    }
     qr/mismatch in matmult/,
-    '[2x4] x [4x1] --> error (2 != 1)'
-);
+    '[2x4] x [4x1] --> error (2 != 1)';
 
 ok tapprox( PB() x 2, PB() * 2, 'ndarray x Perl scalar' );
 

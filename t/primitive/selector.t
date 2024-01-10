@@ -1,7 +1,7 @@
 use strict;
 use warnings;
-use Test2::V0 '!float';
-
+use Test::More;
+use Test::Exception;
 use PDL::LiteF;
 
 use lib 't/lib';
@@ -29,15 +29,15 @@ subtest 'where' => sub {
 
     subtest 'whereND' => sub {
 
-        is( [ zeroes( 2, 3, 1 )->whereND( pdl '0 0' )->dims ], [ 0, 3, 1 ] );
+        is_deeply( [ zeroes( 2, 3, 1 )->whereND( pdl '0 0' )->dims ], [ 0, 3, 1 ] );
 
-        is( [ zeroes( 2, 0 )->whereND( pdl '1 1' )->dims ], [ 2, 0 ] );
+        is_deeply( [ zeroes( 2, 0 )->whereND( pdl '1 1' )->dims ], [ 2, 0 ] );
 
         subtest '1D' => sub {
             my $x = sequence( 4, 3, 2 );
             my $y = pdl( 0, 1, 1, 0 );
             my $c = whereND( $x, $y );
-            is( [ $c->dims ], [ 2, 3, 2 ] );
+            is_deeply( [ $c->dims ], [ 2, 3, 2 ] );
             ok tapprox(
                 $c, pdl q[[[1 2] [5 6] [9 10]] [[13 14] [17 18] [21 22]]]
               ),
@@ -49,7 +49,7 @@ subtest 'where' => sub {
             my $y = pdl q[ 0 0 1 1 ; 0 1 0 0 ; 1 0 0 0 ];
 
             my $c = whereND( $x, $y );
-            is( [ $c->dims ], [ 4, 2 ] );
+            is_deeply( [ $c->dims ], [ 4, 2 ] );
             ok tapprox( $c, pdl q[ 2  3  5  8 ; 14 15 17 20 ] ), "[4,3]";
         };
 
@@ -65,7 +65,7 @@ subtest 'where' => sub {
             # Make sure whereND functions as an lvalue:
             my $x = sequence( 4, 3 );
             my $y = pdl( 0, 1, 1, 1 );
-            ok( lives { $x->whereND($y) *= -1 }, 'lvalue multiply' );
+            lives_ok { $x->whereND($y) *= -1 } 'lvalue multiply';
             ok( all( $x->slice("1:-1") < 0 ),    'works' );
         };
 
@@ -118,7 +118,7 @@ subtest 'which' => sub {
             my $r = xvals( 10, 10 ) + 10 * yvals( 10, 10 );
             my $x = whichND( $r % 12 == 0 );
 
-            is(
+            is_deeply(
                 $x->unpdl,
                 [
                     [ 0, 0 ], [ 2, 1 ], [ 4, 2 ], [ 6, 3 ],
@@ -133,7 +133,7 @@ subtest 'which' => sub {
             my $r = xvals( 10, 10 ) + 10 * yvals( 10, 10 );
             my $x = whichND( $r * 0 );
             is $x->nelem, 0, "whichND( 0*\$r ) gives an Empty PDL";
-            is( [ $x->dims ], [ 2, 0 ], "whichND( 0*\$r ) is 2x0" );
+            is_deeply( [ $x->dims ], [ 2, 0 ], "whichND( 0*\$r ) is 2x0" );
             is $x->type, 'indx', "whichND( 0*\$r) type is indx";
         };
 
@@ -147,7 +147,7 @@ subtest 'which' => sub {
         subtest 'Scalar empty case returns a 1-D vector of size 0' => sub {
             my $x = whichND( pdl(0) );
             is $x->nelem,    0,   "whichND of 0 scalar is empty";
-            is [ $x->dims ], [0], "whichND of 0 scalar: return 0 dim size is 0";
+            is_deeply [ $x->dims ], [0], "whichND of 0 scalar: return 0 dim size is 0";
             is $x->type, 'indx',
               "returns indx-type ndarray for scalar empty case";
         };
@@ -160,13 +160,13 @@ subtest 'which' => sub {
 
         subtest 'whichND(Empty[2x0x2]) should return Empty[3x0]' => sub {
             my $y = whichND( zeroes( 2, 0, 2 ) );
-            is [ $y->dims ], [ 3, 0 ];
+            is_deeply [ $y->dims ], [ 3, 0 ];
         };
 
         subtest 'regression' => sub {
             my $r = zeroes( 7, 7 );
             $r->set( 3, 4, 1 );
-            is( $r->whichND->unpdl, [ [ 3, 4 ] ], 'was failing on 32-bit' );
+            is_deeply( $r->whichND->unpdl, [ [ 3, 4 ] ], 'was failing on 32-bit' );
         };
 
         subtest 'torture test' => sub {
@@ -191,7 +191,7 @@ subtest 'uniqind' => sub {
 
     my $x = pdl( [ 0, 1, 2, 2, 0, 1 ] );
     my $y = $x->uniqind;
-    is( $y->unpdl, [ 0, 1, 3 ] );
+    is_deeply( $y->unpdl, [ 0, 1, 3 ] );
     is $y->ndims, 1, "uniqind";
 
     subtest 'SF bug 3076570' => sub {

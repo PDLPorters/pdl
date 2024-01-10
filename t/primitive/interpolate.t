@@ -1,7 +1,7 @@
 use strict;
 use warnings;
-use Test2::V0 '!float';
-
+use Test::More;
+use Test::Exception;
 use PDL::LiteF;
 
 subtest interpol => sub {
@@ -19,17 +19,12 @@ subtest interpol => sub {
         my $x       = PDL->new(-2);
 
 
-        # this is really awkward, but can be fixed.  Test2::V0's is()
-        # is very strict when comparing objects, Test2::PDL's functionality
-        # could be brought in.
         ok( all( $x->interpol( $xvalues, $yvalues ) == ( -16 - 16 * i ) ),
             "result" );
 
-        like(
-            dies { $x->interpol( $xvalues * i(), $yvalues ) },
+        throws_ok { $x->interpol( $xvalues * i(), $yvalues ) }
             qr/must be real/,
-            "x must be real"
-        );
+            "x must be real";
     };
 
 };
@@ -41,7 +36,7 @@ subtest interpND => sub {
       ->reorder( 2, 0, 1 );
     my $z = 73 + xvals( 5, 5 ) * 0.25 + 2.5 * yvals( 5, 5 );
     my $y;
-    ok( lives { $y = $x->interpND($index) }, 'interpND' ) or diag $@;
+    lives_ok { $y = $x->interpND($index) } 'interpND';
     ok !any( $y != $z ), "result";
 };
 

@@ -1,8 +1,7 @@
 use strict;
 use warnings;
-use Test2::V0 '!float';
-use Test2::Util;
-
+use Test::More;
+use Test::Exception;
 use PDL::LiteF;
 use lib 't/lib';
 use My::Test::Primitive;
@@ -456,18 +455,7 @@ for my $mode ( sort keys %search ) {
 subtest regressions => sub {
 
     subtest '$xs->is_empty' => sub {
-
-        skip 'check for regression requires fork' unless Test2::Util::CAN_FORK;
-        require Test2::AsyncSubtest;
-
-        my $ast = Test2::AsyncSubtest->new( name => 'vsearch' );
-        $ast->run_fork(
-            sub {
-                ok lives { pdl( [0] )->vsearch_bin_inclusive( pdl( [] ) ) }
-            }
-        );
-        $ast->finish;
-
+        lives_ok { pdl( [0] )->vsearch_bin_inclusive( pdl( [] ) ) };
     };
 
 };

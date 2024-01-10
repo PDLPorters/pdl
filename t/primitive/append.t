@@ -1,16 +1,16 @@
 use strict;
 use warnings;
-use Test2::V0 '!float';
-
+use Test::More;
+use Test::Exception;
 use PDL::LiteF;
 
-is(
+is_deeply(
     append( zeroes( 2, 0 ), zeroes( 3, 0 ) )->shape->unpdl,
     [ 5, 0 ],
     'multi-dim empty shape'
 );
 
-is( append( pdl( 1, 2, 3, 4 ), 2 )->unpdl, [ 1, 2, 3, 4, 2 ], '[4], [1]' );
+is_deeply( append( pdl( 1, 2, 3, 4 ), 2 )->unpdl, [ 1, 2, 3, 4, 2 ], '[4], [1]' );
 
 subtest '$output = append (null,null) ' => sub {
     my $output = append( null, null );
@@ -21,27 +21,30 @@ subtest '$output = append (null,null) ' => sub {
 subtest 'append(null, null, $output)' => sub {
     my $output = zeroes(1);
     append( null, null, $output );
-    is( $output->unpdl, [0], q{user's ndarray is unchanged} );
+    is_deeply( $output->unpdl, [0], q{user's ndarray is unchanged} );
 };
 
 subtest 'output ndarray has different shape' => sub {
 
-    todo 'output => [1]; required [2].  SHOULD FAIL, output too small' => sub {
+    TODO: {
+      local $TODO = 'not fixed yet';
+      subtest 'output => [1]; required [2].  output too small' => sub {
         my $output = zeroes(1);
-        like ( dies { append( pdl(1), pdl(2), $output ) },
-               qr/dim has size 1/ );
-    };
+        throws_ok { append( pdl(1), pdl(2), $output ) }
+               qr/dim has size 1/;
+      };
+    }
 
     subtest 'output => [3,1]; required [2]' => sub {
         my $output = zeroes(3,1);
-        like ( dies { append( pdl(1), pdl(2), $output ) },
-               qr/dim has size 3/ );
+        throws_ok { append( pdl(1), pdl(2), $output ) }
+               qr/dim has size 3/;
     };
 
     subtest 'output => null; required [2]' => sub {
         my $output = null;
         append( pdl(1), pdl(2), $output );
-        is( $output->unpdl, [ 1, 2 ], q{full append } );
+        is_deeply( $output->unpdl, [ 1, 2 ], q{full append } );
     };
 
 };

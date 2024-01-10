@@ -1,4 +1,4 @@
-use Test2::V0 '!float';
+use Test::More;
 use PDL::LiteF;
 use PDL::Types;
 
@@ -46,7 +46,7 @@ subtest glue => sub {
     my $y = yvals( 2, 2, 2 );
     my $c = zvals( 2, 2, 2 );
 
-    is $x->glue( 1, $y, $c )->unpdl,
+    is_deeply $x->glue( 1, $y, $c )->unpdl,
       [
         [ [ 0, 1 ], [ 0, 1 ], [ 0, 0 ], [ 1, 1 ], [ 0, 0 ], [ 0, 0 ] ],
         [ [ 0, 1 ], [ 0, 1 ], [ 0, 0 ], [ 1, 1 ], [ 1, 1 ], [ 1, 1 ] ]

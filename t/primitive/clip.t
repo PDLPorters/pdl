@@ -1,4 +1,4 @@
-use Test2::V0 '!float';
+use Test::More;
 use PDL::LiteF;
 
 sub IM {
@@ -11,10 +11,9 @@ sub IM {
             [ 10, 10, 2,  2,  2, ]
         ]
     );
-
 }
 
-is(
+is_deeply(
     IM->hclip(5)->unpdl,
     [
         [ 1, 2, 3, 3, 5 ],
@@ -26,7 +25,7 @@ is(
     'hclip'
 );
 
-is(
+is_deeply(
     IM->lclip(5)->unpdl,
     [
         [ 5,  5,  5,  5,  5 ],
@@ -38,7 +37,7 @@ is(
     'lclip'
 );
 
-is(
+is_deeply(
     IM->clip( 5, 7 )->unpdl,
     [
         [ 5, 5, 5, 5, 5 ],
@@ -56,7 +55,7 @@ subtest 'with NaN badvalue' => sub {
     $im->badflag(1);
     $im->set( 1, nan() );
     my $clipped = $im->lclip(0);
-    is $clipped->unpdl, [0, 'BAD', 2], 'ISBAD() works when badvalue is NaN';
+    is_deeply $clipped->unpdl, [0, 'BAD', 2], 'ISBAD() works when badvalue is NaN';
 };
 
 done_testing;

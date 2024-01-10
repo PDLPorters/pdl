@@ -1,8 +1,6 @@
 use strict;
 use warnings;
-
-use Test2::V0 '!float';
-
+use Test::More;
 use PDL::LiteF;
 use lib 't/lib';
 use My::Test::Primitive;
@@ -12,8 +10,8 @@ subtest 'cmpvec' => sub {
     ok tapprox( pdl( 3, 2, 1 )->cmpvec( pdl( 1, 2, 3 ) ), 1 ),  'more';
     ok tapprox( pdl( 3, 2, 1 )->cmpvec( pdl( 3, 2, 1 ) ), 0 ),  'same';
 
-    is pdl('[1 BAD]')->cmpvec( pdl( 3, 2 ) )->unpdl, [-1],    'bad before';
-    is pdl('[BAD 1]')->cmpvec( pdl( 3, 2 ) )->unpdl, ['BAD'], 'bad';
+    is_deeply pdl('[1 BAD]')->cmpvec( pdl( 3, 2 ) )->unpdl, [-1],    'bad before';
+    is_deeply pdl('[BAD 1]')->cmpvec( pdl( 3, 2 ) )->unpdl, ['BAD'], 'bad';
 
     my $vdim = 4;
     my $v1   = zeroes($vdim);
@@ -28,18 +26,18 @@ subtest 'cmpvec' => sub {
 subtest 'eqvec' => sub {
     ok tapprox( pdl( 3, 2, 1 )->eqvec( pdl( 1, 2, 3 ) ), 0 ), 'diff';
     ok tapprox( pdl( 3, 2, 1 )->eqvec( pdl( 3, 2, 1 ) ), 1 ), 'same';
-    is pdl('[2 1 BAD]')->eqvec( pdl( 1, 3, 2 ) )->unpdl, ['BAD'], 'bad before';
-    is pdl('[2 BAD 1]')->eqvec( pdl( 2, 3, 2 ) )->unpdl, ['BAD'], 'bad';
+    is_deeply pdl('[2 1 BAD]')->eqvec( pdl( 1, 3, 2 ) )->unpdl, ['BAD'], 'bad before';
+    is_deeply pdl('[2 BAD 1]')->eqvec( pdl( 2, 3, 2 ) )->unpdl, ['BAD'], 'bad';
 };
 
 subtest 'uniqvec' => sub {
 
-    is pdl( [ [ 0, 1 ], [ 2, 2 ], [ 0, 1 ] ] )->uniqvec->unpdl,
+    is_deeply pdl( [ [ 0, 1 ], [ 2, 2 ], [ 0, 1 ] ] )->uniqvec->unpdl,
         [ [ 0, 1 ], [ 2, 2 ] ], '2x3';
 
-    is pdl( [ [ 0, 1 ] ] )->uniqvec->unpdl, [ [ 0, 1 ] ], '1x2';
+    is_deeply pdl( [ [ 0, 1 ] ] )->uniqvec->unpdl, [ [ 0, 1 ] ], '1x2';
 
-    is pdl( [ [ 0, 1, 2 ], [ 0, 1, 2 ], [ 0, 1, 2 ], ] )->uniqvec->unpdl,
+    is_deeply pdl( [ [ 0, 1, 2 ], [ 0, 1, 2 ], [ 0, 1, 2 ], ] )->uniqvec->unpdl,
       [ [ 0, 1, 2 ] ], '3x3';
 };
 

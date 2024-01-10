@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test2::V0 '!float';
+use Test::More;
 
 use PDL::LiteF;
 use lib 't/lib';

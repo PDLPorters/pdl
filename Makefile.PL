@@ -227,7 +227,6 @@ my %makefile_hash = (
     'IPC::Cmd' => '0.72',
     'Test::Exception' => 0,
     'Test::Warn' => 0,  # for t/pptest.t
-    'Test2::V0'  => 0.000155,
   },
   BUILD_REQUIRES => {
     'ExtUtils::MakeMaker' => 0,
