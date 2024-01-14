@@ -1224,8 +1224,7 @@ sub PDL::rldvec {
 # XXX Need to improve emulation of threading in auto-generating c
     my ($rowlen) = $b->dim(0);
     my ($size) = $a->sumover->max;
-    my (@dims) = $a->dims;
-    shift(@dims);
+    my (undef, @dims) = $a->dims;
     $c = $b->zeroes($b->type,$rowlen,$size,@dims);
   }
   &PDL::_rldvec_int($a,$b,$c);
@@ -1233,14 +1232,14 @@ sub PDL::rldvec {
 }
 EOC
        Code =>pp_line_numbers(__LINE__, <<'EOC'),
-  PDL_Indx i,nrows,bn,cn=0, sn=$SIZE(N);
-  for (bn=0; bn<sn; bn++) {
-    nrows = $a(N=>bn);
+  PDL_Indx cn=0;
+  loop (N) %{
+    PDL_Indx i, nrows = $a();
     for (i=0; i<nrows; i++) {
-      loop (M) %{ $c(N=>cn) = $b(N=>bn); %}
+      loop (M) %{ $c(N=>cn) = $b(); %}
       cn++;
     }
-   }
+   %}
 EOC
        Doc =><<'EOD'
 =for ref
@@ -1301,8 +1300,7 @@ sub PDL::rldseq {
   my ($a,$b,$c) = @_;
   if (!defined($c)) {
     my $size   = $a->sumover->max;
-    my (@dims) = $a->dims;
-    shift(@dims);
+    my (undef, @dims) = $a->dims;
     $c = $b->zeroes($b->type,$size,@dims);
   }
   &PDL::_rldseq_int($a,$b,$c);
