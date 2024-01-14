@@ -17,6 +17,7 @@ BEGIN {
    eval {
       require Inline;
       require Inline::C;
+      require Parse::RecDescent; # As of 2024, GHA is caching locallib without this but only on 5.10. Inline::C is broken without it
       Inline->import (Config => DIRECTORY => $inline_test_dir , FORCE_BUILD => 1);
 #      Inline->import ('NOCLEAN');
       1;
