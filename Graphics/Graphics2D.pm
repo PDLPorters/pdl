@@ -977,8 +977,6 @@ sub flatten {
    my $firsty = 1;
    my $spi;
    for (@dims[reverse(2..$#dims)]) {
-      $foop->make_physdims();
-      # print "FOOP: \n"; $foop->dump;
       if ($ind % 2 == 0) {
          $spi = $foop->getdim(1)/$_;
          $foop = $foop->splitdim(1,$spi)->slice(":,0:-2")->mv(2,3);
