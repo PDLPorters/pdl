@@ -1524,6 +1524,8 @@ Duplicates an ndarray along several dimensions
  #  [3 4 5 3 4 5]
  #  [0 1 2 0 1 2]
  #  [3 4 5 3 4 5]
+ #  [0 1 2 0 1 2]
+ #  [3 4 5 3 4 5]
  # ]
 
 =cut
