@@ -656,6 +656,14 @@ below for usage).
  $y = topdl $ndarray;       # fall through
  $x = topdl (1,2,3,4);      # Convert 1D array
 
+=head2 set_datatype
+
+=for ref
+
+Sets the ndarray's data type to the given value (the integer identifier
+for the type, see L<PDL::Types/enum>). See L</get_datatype>. Internal
+function.
+
 =head2 get_datatype
 
 =for ref
@@ -1385,6 +1393,15 @@ that all broadcastids have been removed.
 
  $y = $x->unwind;
 
+=cut
+
+sub PDL::unwind {
+	my $value = shift;
+	my $foo = $value->null();
+	$foo .= $value->unbroadcast();
+	return $foo;
+}
+
 =head2 make_physical
 
 =for ref
@@ -1412,14 +1429,103 @@ might want to consider using the PDL preprocessor
 which can be used to transparently access virtual ndarrays without the
 need to physicalise them (though there are exceptions).
 
-=cut
+=head2 make_physvaffine
 
-sub PDL::unwind {
-	my $value = shift;
-	my $foo = $value->null();
-	$foo .= $value->unbroadcast();
-	return $foo;
-}
+=for ref
+
+A more "careful" function than C<make_physical>. For ndarrays
+without a vaffine transformations as parent, it will just call
+C<make_physical>. Otherwise, it will update the vaffine transformation
+bookkeeping.
+
+=head2 make_physdims
+
+=for ref
+
+Ensures the ndarray's dimensions are up to date including changes in
+parent's dimensions, and calling C<redodims>.
+
+=head2 trans_parent
+
+=for ref
+
+Returns a PDL::Trans object representing the transformation (PDL
+operation) that is the "parent" of this ndarray, or C<undef> if none.
+
+Such objects have these methods:
+
+=over
+
+=item parents
+
+Returns a list of ndarrays that are inputs to this trans.
+
+=item children
+
+Returns a list of ndarrays that are outputs to this trans (specified as
+C<[o]>, C<[oca]>, C<[io]>, or C<[t]> in C<Pars>).
+
+=back
+
+=head2 trans_children
+
+=for ref
+
+Returns a list of PDL::Trans objects (see L</trans_parent>) representing
+each transformation that has this ndarray as an input.
+
+=head2 address
+
+=for ref
+
+Returns the memory address of the ndarray's C<struct>.
+
+=head2 freedata
+
+=for ref
+
+Frees the C<datasv> if possible. Useful in memory-mapping functionality.
+
+=head2 set_donttouchdata
+
+=for ref
+
+Sets the C<PDL_DONTTOUCHDATA> flag and the C<nbytes> to the given
+value. Useful in memory-mapping functionality.
+
+=head2 set_data_by_offset
+
+=for ref
+
+Sets the ndarray's C<data> and C<datasv> to those of the given ndarray,
+but the C<data> points to the other ndarray's C<data> plus the given
+offset.
+Sets the C<PDL_DONTTOUCHDATA> flag. Useful in memory-mapping functionality.
+
+=head2 nbytes
+
+=for ref
+
+Returns the ndarray's C<nbytes>.
+
+=head2 seed
+
+=for ref
+
+Returns the random seed being used by PDL's RNG.
+
+=head2 set_debugging
+
+=for ref
+
+Sets whether PDL operations print lots of debugging info to standard
+output. Returns the old value.
+
+=for example
+
+  PDL::Core::set_debugging(1);
+  # ... these operations will have debugging info printed to stdout
+  PDL::Core::set_debugging(0); # turn it off again
 
 =head2 dummy
 
@@ -2839,6 +2945,10 @@ Convert to float datatype
 
 Convert to double datatype
 
+=head2 ldouble
+
+Convert to long double datatype
+
 =head2 cfloat
 
 Convert to complex float datatype
@@ -2846,6 +2956,10 @@ Convert to complex float datatype
 =head2 cdouble
 
 Convert to complex double datatype
+
+=head2 cldouble
+
+Convert to complex long double datatype
 
 =head2 type
 
