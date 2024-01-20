@@ -482,9 +482,11 @@ prints on C<STDOUT> XS text with core flags, for F<Core.xs>.
 
 my %flags = (
     hdrcpy => { set => 1 },
+    set_dataflow_f => { FLAG => "DATAFLOW_F", noret => 1 },
     fflows => { FLAG => "DATAFLOW_F" },
     bflows => { FLAG => "DATAFLOW_B" },
     is_inplace => { FLAG => "INPLACE", postset => 1 },
+    set_inplace => { FLAG => "INPLACE", noret => 1 },
     donttouch => { FLAG => "DONTTOUCHDATA" },
     allocated => { },
     vaffine => { FLAG => "OPT_VAFFTRANSOK" },
@@ -499,19 +501,24 @@ sub generate_core_flags {
     # to ndarray's state
     foreach my $name ( sort keys %flags ) {
         my $flag = "PDL_" . ($flags{$name}{FLAG} || uc($name));
-        my $with_mode = $flags{$name}{set} || $flags{$name}{postset};
-        printf <<'EOF', $name, $with_mode ? (",mode=0", "\n        int mode") : ('', '');
-int
+        my $ref = $flags{$name};
+        my $with_mode = grep $ref->{$_}, qw(set postset noret);
+        my $mode_dflt = (grep $ref->{$_}, qw(set postset)) ? "=0" : "";
+        my @mode = $with_mode ? (",mode$mode_dflt", "\n        int mode") : ('', '');
+        printf <<'EOF', $ref->{noret} ? 'void' : 'int', $name, @mode;
+%s
 %s(x%s)
         pdl *x%s
         CODE:
 EOF
-        my $set = "        if (items>1) setflag(x->state,$flag,mode);\n";
+        my $cond = $ref->{noret} ? "" : "if (items>1) ";
+        my $set = "        ${cond}setflag(x->state,$flag,mode);\n";
         my $ret = "        RETVAL = ((x->state & $flag) > 0);\n";
-        print $set if $flags{$name}{set};
-        print $ret;
-        print $set if $flags{$name}{postset};
-        print "        OUTPUT:\n        RETVAL\n\n";
+        print $set if $ref->{set} || $ref->{noret};
+        print $ret if !$ref->{noret};
+        print $set if $ref->{postset};
+        print "        OUTPUT:\n        RETVAL\n" if !$ref->{noret};
+        print "\n";
     } # foreach: keys %flags
 }
 

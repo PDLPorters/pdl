@@ -78,13 +78,6 @@ trans_children(self)
 
 INCLUDE_COMMAND: $^X -e "require q{./Dev.pm}; PDL::Core::Dev::generate_core_flags()"
 
-void
-set_inplace(self,val)
-  pdl *self;
-  int val;
-  CODE:
-    setflag(self->state,PDL_INPLACE,val);
-
 IV
 address(self)
   pdl *self;
@@ -660,16 +653,6 @@ upd_data(self, keep_datasv=0)
 	  PDLDEBUG_f(printf("upd_data datasv gone, maybe reshaped\n"));
 	}
 	PDLDEBUG_f(printf("upd_data end: "); pdl_dump(self));
-
-void
-set_dataflow_f(self,value)
-	pdl *self;
-	int value;
-	CODE:
-	if(value)
-		self->state |= PDL_DATAFLOW_F;
-	else
-		self->state &= ~PDL_DATAFLOW_F;
 
 int
 badflag(x,newval=0)
