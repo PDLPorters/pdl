@@ -842,6 +842,18 @@ sub PDL::flows {
          return ($this->fflows || $this->bflows);
 }
 
+=head2 fflows
+
+=for ref
+
+Returns whether the ndarray's C<PDL_DATAFLOW_F> flag is set.
+
+=head2 bflows
+
+=for ref
+
+Returns whether the ndarray's C<PDL_DATAFLOW_B> flag is set.
+
 =head2 new
 
 =for ref
@@ -2102,12 +2114,49 @@ sub alltopdl {
     return $_[0]->new($_[1]);
 0;}
 
+=head2 tracedebug
+
+=for ref
+
+Sets whether an ndarray will have debugging info printed during use if a
+(Boolean) value is given. Returns the new value.
+
+=head2 donttouch
+
+=for ref
+
+Returns whether the ndarray's C<PDL_DONTTOUCHDATA> flag is set.
+
+=head2 allocated
+
+=for ref
+
+Returns whether the ndarray's C<PDL_ALLOCATED> flag is set.
+
+=head2 vaffine
+
+=for ref
+
+Returns whether the ndarray's C<PDL_OPT_VAFFTRANSOK> flag is set.
+
+=head2 anychgd
+
+=for ref
+
+Returns whether the ndarray's C<PDL_ANYCHANGED> flag is set.
+
+=head2 dimschgd
+
+=for ref
+
+Returns whether the ndarray's C<PDL_PARENTDIMSCHANGED> flag is set.
 
 =head2 inplace
 
 =for ref
 
-Flag an ndarray so that the next operation is done 'in place'
+Flag an ndarray so that the next operation is done 'in place', returning
+the ndarray.
 
 =for usage
 
@@ -2144,12 +2193,12 @@ sub PDL::inplace {
 
 # Copy if not inplace
 
-
 =head2 is_inplace
 
 =for ref
 
-Test the in-place flag on an ndarray
+Sets whether an ndarray will operate "in-place" for the next operation
+if a (Boolean) value is given. Returns the old value.
 
 =for usage
 
@@ -2964,7 +3013,7 @@ Convert ndarray indices to perl list
 
  @tmp = listindices $x;
 
-C<@tmp> now contains the values C<0..nelem($x)>.
+C<@tmp> now contains the values C<0..nelem($x)-1>.
 
 Obviously this is grossly inefficient for the large datasets PDL is designed to
 handle. This was provided as a get out while PDL matured. It  should now be mostly

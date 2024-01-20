@@ -490,7 +490,7 @@ my %flags = (
     vaffine => { FLAG => "OPT_VAFFTRANSOK" },
     anychgd => { FLAG => "ANYCHANGED" },
     dimschgd => { FLAG => "PARENTDIMSCHANGED" },
-    tracedebug => { set => 1},
+    tracedebug => { set => 1 },
 );
 
 sub generate_core_flags {
@@ -500,11 +500,11 @@ sub generate_core_flags {
     foreach my $name ( sort keys %flags ) {
         my $flag = "PDL_" . ($flags{$name}{FLAG} || uc($name));
         my $with_mode = $flags{$name}{set} || $flags{$name}{postset};
-        printf <<'EOF', $name, ($with_mode ? ",mode=0" : ''), ($with_mode ? "        int mode\n" : '');
+        printf <<'EOF', $name, $with_mode ? (",mode=0", "\n        int mode") : ('', '');
 int
 %s(x%s)
-        pdl *x
-%s        CODE:
+        pdl *x%s
+        CODE:
 EOF
         my $set = "        if (items>1) setflag(x->state,$flag,mode);\n";
         my $ret = "        RETVAL = ((x->state & $flag) > 0);\n";
