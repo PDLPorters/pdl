@@ -875,11 +875,7 @@ pdl_error pdl__make_physvaffine_recprotect(pdl *it, int recurse_count)
 	PDLDEBUG_f(printf("make_physvaffine %p\n",(void*)it));
 	PDL_RETERROR(PDL_err, pdl_make_physdims(it));
 	PDL_Indx incsleft[it->ndims];
-	if(!it->trans_parent) {
-		PDL_RETERROR(PDL_err, pdl__make_physical_recprotect(it, recurse_count+1));
-		goto mkphys_vaff_end;
-	}
-	if(!(it->trans_parent->flags & PDL_ITRANS_ISAFFINE)) {
+	if(!it->trans_parent || !(it->trans_parent->flags & PDL_ITRANS_ISAFFINE)) {
 		PDL_RETERROR(PDL_err, pdl__make_physical_recprotect(it, recurse_count+1));
 		goto mkphys_vaff_end;
 	}
