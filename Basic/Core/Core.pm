@@ -3458,67 +3458,6 @@ sub PDL::dog {
 
 ###################### Misc internal routines ####################
 
-# Recursively pack an N-D array ref in format [[1,1,2],[2,2,3],[2,2,2]] etc
-# package vars $level and @dims must be initialised first.
-
-sub rpack {
-    my ($ptype,$x) = @_;  my ($ret,$type);
-
-    $ret = "";
-    if (ref($x) eq "ARRAY") {
-
-       if (defined($dims[$level])) {
-           barf 'Array is not rectangular' unless $dims[$level] == scalar(@$x);
-       }else{
-          $dims[$level] = scalar(@$x);
-       }
-
-       $type = ref($$x[0]);
-        if ($type) {
-        $level++;
-        for(@$x) {
-            barf 'Array is not rectangular' unless $type eq ref($_); # Equal types
-            $ret .= rpack($ptype,$_);
-        }
-        $level--;
-        } else {
-        # These are leaf nodes
-        $ret = pack $ptype, map {defined($_) ? $_ : $PDL::undefval} @$x;
-      }
-    } elsif (ref($x) eq "PDL") {
-	barf 'Cannot make a new ndarray from two or more ndarrays, try "cat"';
-    } else {
-        barf "Don't know how to make a PDL object from passed argument";
-    }
-    return $ret;
-}
-
-sub rcopyitem {        # Return a deep copy of an item - recursively
-    my $x = shift;
-    my ($y, $key, $value);
-    if (ref(\$x) eq "SCALAR") {
-       return $x;
-    }elsif (ref($x) eq "SCALAR") {
-       $y = $$x; return \$y;
-    }elsif (ref($x) eq "ARRAY") {
-       $y = [];
-       for (@$x) {
-           push @$y, rcopyitem($_);
-       }
-       return $y;
-    }elsif (ref($x) eq "HASH") {
-       $y={};
-       while (($key,$value) = each %$x) {
-          $$y{$key} = rcopyitem($value);
-       }
-       return $y;
-    }elsif (blessed($x)) {
-       return $x->copy;
-    }else{
-       barf ('Deep copy of object failed - unknown component with type '.ref($x));
-    }
-0;}
-
 # N-D array stringifier
 
 sub strND {
@@ -3672,14 +3611,6 @@ sub str2D{
     }
     $ret .= " "x$level."]\n";
     return $ret;
-}
-
-#
-# Sleazy hcpy saves me time typing
-#
-sub PDL::hcpy {
-  $_[0]->hdrcpy($_[1]);
-  $_[0];
 }
 
 ########## Docs for functions in Core.xs ##################
@@ -3899,6 +3830,16 @@ Switch on/off automatic header copying, with PDL pass-through
 
 C<hcpy> sets or clears the hdrcpy flag of a PDL, and returns the PDL
 itself.  That makes it convenient for inline use in expressions.
+
+=cut
+
+#
+# Sleazy hcpy saves me time typing
+#
+sub PDL::hcpy {
+  $_[0]->hdrcpy($_[1]);
+  $_[0];
+}
 
 =head2 online_cpus
 
