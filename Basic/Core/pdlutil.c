@@ -482,6 +482,7 @@ void pdl_dump_fixspace(pdl *it,int nspac)
 
 void pdl_dump (pdl *it) {
 	pdl_dump_fixspace(it,0);
+	fflush(stdout);
 }
 
 void pdl_dump_anyval(PDL_Anyval v) {
