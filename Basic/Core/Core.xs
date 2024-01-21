@@ -102,6 +102,69 @@ address(self)
   OUTPUT:
     RETVAL
 
+IV
+address_data(self)
+  pdl *self;
+  CODE:
+    RETVAL = PTR2IV(self->data);
+  OUTPUT:
+    RETVAL
+
+PDL_Indx
+nelem_nophys(x)
+  pdl *x
+  CODE:
+    RETVAL = x->nvals;
+  OUTPUT:
+    RETVAL
+
+# only returns list, not context-aware
+void
+dims_nophys(x)
+  pdl *x
+  PPCODE:
+    EXTEND(sp, x->ndims);
+    PDL_Indx i;
+    for(i=0; i<x->ndims; i++) mPUSHi(x->dims[i]);
+
+# only returns list, not context-aware
+void
+broadcastids_nophys(x)
+  pdl *x
+  PPCODE:
+    EXTEND(sp, x->nbroadcastids);
+    PDL_Indx i;
+    for(i=0; i<x->nbroadcastids; i++) mPUSHi(x->broadcastids[i]);
+
+void
+firstvals_nophys(x)
+  pdl *x
+  PPCODE:
+    PDL_Indx i, maxvals = PDLMIN(10, x->nvals);
+    EXTEND(sp, maxvals);
+    for(i=0; i<maxvals; i++) {
+      PDL_Anyval anyval = pdl_get_offs(x, i);
+      if (anyval.type < 0) barf("Error getting value, type=%d", anyval.type);
+      SV *sv = sv_newmortal();
+      ANYVAL_TO_SV(sv, anyval);
+      PUSHs(sv);
+    }
+
+IV
+vaffine_from(self)
+  pdl *self;
+  CODE:
+    if (!self->vafftrans) barf("vaffine_from called on %p with NULL vafftrans", self);
+    RETVAL = PTR2IV(self->vafftrans->from);
+  OUTPUT:
+    RETVAL
+
+void
+flags(x)
+  pdl *x
+  PPCODE:
+    PDL_FLAG_DUMP(PDL_LIST_FLAGS_PDLSTATE, x->state)
+
 int
 set_donttouchdata(it,size)
       pdl *it

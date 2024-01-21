@@ -1516,6 +1516,12 @@ each transformation that has this ndarray as an input.
 
 Returns the memory address of the ndarray's C<struct>.
 
+=head2 address_data
+
+=for ref
+
+Returns the value of the ndarray C<struct>'s C<data> member.
+
 =head2 freedata
 
 =for ref
@@ -2151,6 +2157,81 @@ sub PDL::info {
 	$nstr .= $form;
     }
     return sprintf $nstr, @args;
+}
+
+=head2 pdump
+
+=for ref
+
+Returns a close analogue of the output of C<< $pdl->dump >> as a
+string. Like that C function, it will not cause any physicalisation of
+the ndarray.
+
+Not exported, and not inserted into the C<PDL> namespace.
+
+=for example
+
+  print PDL::Core::pdump($pdl);
+
+=cut
+
+sub pdump {
+  my ($pdl) = @_;
+  my @dims = $pdl->dims_nophys;
+  my @lines = (
+    "State: ${\join '|', $pdl->flags}",
+    "Dims: (@dims)",
+    "BroadcastIds: (@{[$pdl->broadcastids_nophys]})",
+  );
+  push @lines, sprintf "Vaffine: 0x%x (parent)", $pdl->vaffine_from if $pdl->vaffine;
+  push @lines, !$pdl->allocated ? '(not allocated)' : join "\n  ",
+    sprintf("data: 0x%x, nbytes: %d, nvals: %d", $pdl->address_data, $pdl->nbytes, $pdl->nelem_nophys),
+    "First values: (@{[$pdl->firstvals_nophys]})",
+    ;
+  if (my $trans = $pdl->trans_parent) {
+    push @lines, grep length, split "\n", pdump_trans($trans);
+  }
+  if (my @trans_children = $pdl->trans_children) {
+    push @lines, "CHILDREN:";
+    push @lines, map "  $_", grep length, split "\n", pdump_trans($_) for @trans_children;
+  }
+  join '', "PDUMPING 0x${\sprintf '%x', $pdl->address}, datatype: ${\$pdl->get_datatype}\n", map "  $_\n", @lines;
+}
+
+=head2 pdump_trans
+
+=for ref
+
+Returns a string representation of a C<PDL::Trans> object, a close
+analogue of part of the output of C<< $pdl->dump >>.
+
+Not exported, and not inserted into the C<PDL> namespace.
+
+=for example
+
+  print PDL::Core::pdump_trans($pdl_trans);
+
+=cut
+
+sub pdump_trans {
+  my ($trans) = @_;
+  my @lines = (
+    "State: ${\join '|', $trans->flags}",
+    "vtable flags: ${\join '|', $trans->flags_vtable}",
+  );
+  my @ins = $trans->parents;
+  my @outs = $trans->children;
+  push @lines,
+    "AFFINE, " . ($outs[0]->dimschgd
+      ? "BUT DIMSCHANGED"
+      : "o:".$trans->offs."  i:(@{[$trans->incs]}) d:(@{[$outs[0]->dims_nophys]})")
+    if $trans->vaffine;
+  push @lines,
+    "ind_sizes: (@{[$trans->ind_sizes]})",
+    "inc_sizes: (@{[$trans->inc_sizes]})",
+    "INPUTS: (@{[map sprintf('0x%x', $_->address), @ins]})  OUTPUTS: (@{[map sprintf('0x%x', $_->address), @outs]})",
+    ;
+  join '', "PDUMPTRANS 0x${\sprintf '%x', $trans->address} (${\$trans->name})\n", map "  $_\n", @lines;
 }
 
 =head2 approx
