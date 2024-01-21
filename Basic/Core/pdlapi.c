@@ -277,6 +277,8 @@ pdl_error pdl__free(pdl *it) {
     return PDL_err;
 }
 
+/* NULL out the pdl from the trans's inputs, and the trans from the
+   pdl's trans_children */
 void pdl__removetrans_children(pdl *it,pdl_trans *trans)
 {
 	PDLDEBUG_f(printf("pdl__removetrans_children(%s=%p): %p\n",
@@ -298,12 +300,15 @@ void pdl__removetrans_children(pdl *it,pdl_trans *trans)
 		pdl_pdl_warn("Child not found for pdl %p, trans %p\n",it, trans);
 }
 
+/* NULL out the trans's nth pdl in/output, and this trans as pdl's
+   trans_parent */
 void pdl__removetrans_parent(pdl *it, pdl_trans *trans, PDL_Indx nth)
 {
 	PDLDEBUG_f(printf("pdl__removetrans_parent from %p (%s=%p): %"IND_FLAG"\n",
 	  it, trans->vtable->name, trans, nth));
 	trans->pdls[nth] = 0;
-	if (it->trans_parent == trans) it->trans_parent = 0;
+	if (it->trans_parent != trans) return; /* only do rest if trans is parent */
+	it->trans_parent = 0;
 	it->state &= ~PDL_MYDIMS_TRANS;
 }
 
