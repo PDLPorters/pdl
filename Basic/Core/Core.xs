@@ -27,6 +27,22 @@
       PUSHs(sv); \
     }
 
+#define PDL_FLAG_COMMA(f) f,
+#define PDL_FLAG_STRCOMMA(f) #f,
+#define PDL_FLAG_DUMP(macro, flagvar) \
+    int flagval[] = { \
+      macro(PDL_FLAG_COMMA) \
+      0 \
+    }; \
+    char *flagchar[] = { \
+      macro(PDL_FLAG_STRCOMMA) \
+      NULL \
+    }; \
+    int i, f = flagvar; \
+    for (i=0; flagval[i]!=0; i++) \
+      if (f & flagval[i]) \
+        XPUSHs(sv_2mortal(newSVpv(flagchar[i], 0)));
+
 #define setflag(reg,flagval,val) (val?(reg |= flagval):(reg &= ~flagval))
 
 Core PDL; /* Struct holding pointers to shared C routines */
@@ -229,6 +245,77 @@ children(trans)
   pdl_trans *trans
   PPCODE:
     TRANS_PDLS(vtable->nparents, vtable->npdls)
+
+IV
+address(self)
+  pdl_trans *self;
+  CODE:
+    RETVAL = PTR2IV(self);
+  OUTPUT:
+    RETVAL
+
+char *
+name(self)
+  pdl_trans *self;
+  CODE:
+    if (!self->vtable) barf("%p has NULL vtable", self);
+    RETVAL = self->vtable->name;
+  OUTPUT:
+    RETVAL
+
+void
+flags(x)
+  pdl_trans *x
+  PPCODE:
+    PDL_FLAG_DUMP(PDL_LIST_FLAGS_PDLTRANS, x->flags)
+
+void
+flags_vtable(x)
+  pdl_trans *x
+  PPCODE:
+    if (!x->vtable) barf("%p has NULL vtable", x);
+    PDL_FLAG_DUMP(PDL_LIST_FLAGS_PDLVTABLE, x->vtable->flags)
+
+int
+vaffine(x)
+  pdl_trans *x
+  CODE:
+    RETVAL= !!(x->flags & PDL_ITRANS_ISAFFINE);
+  OUTPUT:
+    RETVAL
+
+IV
+offs(self)
+  pdl_trans *self;
+  CODE:
+    RETVAL = PTR2IV(self->offs);
+  OUTPUT:
+    RETVAL
+
+void
+incs(x)
+  pdl_trans *x;
+  PPCODE:
+    if (!(x->flags & PDL_ITRANS_ISAFFINE)) barf("incs called on non-vaffine trans %p", x);
+    PDL_Indx i, max = x->incs ? x->pdls[1]->ndims : 0;
+    EXTEND(sp, max);
+    for(i=0; i<max; i++) mPUSHi(x->incs[i]);
+
+void
+ind_sizes(x)
+  pdl_trans *x;
+  PPCODE:
+    PDL_Indx i, max = x->vtable->ninds;
+    EXTEND(sp, max);
+    for(i=0; i<max; i++) mPUSHi(x->ind_sizes[i]);
+
+void
+inc_sizes(x)
+  pdl_trans *x;
+  PPCODE:
+    PDL_Indx i, max = x->vtable->nind_ids;
+    EXTEND(sp, max);
+    for(i=0; i<max; i++) mPUSHi(x->inc_sizes[i]);
 
 MODULE = PDL::Core     PACKAGE = PDL::Core
 

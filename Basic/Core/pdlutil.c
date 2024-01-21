@@ -404,7 +404,7 @@ void pdl_dump_trans_fixspace (pdl_trans *it, int nspac) {
 	PDL_Indx i;
 	SET_SPACE(spaces, nspac);
 	printf("%sDUMPTRANS %p (%s)\n",spaces,(void*)it,it->vtable->name);
-	pdl_dump_flags_fixspace(it->flags,nspac+3,PDL_FLAGS_TRANS);
+	pdl_dump_flags_fixspace(it->flags,nspac+3, PDL_FLAGS_TRANS);
 	printf("%s   vtable flags ",spaces);
 	pdl_dump_flags_fixspace(it->vtable->flags,nspac+3,PDL_FLAGS_VTABLE);
 	if(it->flags & PDL_ITRANS_ISAFFINE) {
@@ -429,7 +429,7 @@ void pdl_dump_trans_fixspace (pdl_trans *it, int nspac) {
 		printf("%s%p",(i?" ":""),(void*)(it->pdls[i]));
 	printf(")     OUTPUTS: (");
 	for(;i<it->vtable->npdls; i++)
-		printf("%s%p",(i?" ":""),(void*)(it->pdls[i]));
+		printf("%s%p",(i>it->vtable->nparents?" ":""),(void*)(it->pdls[i]));
 	printf(")\n");
 }
 

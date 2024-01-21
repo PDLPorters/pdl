@@ -1465,6 +1465,42 @@ Returns a list of ndarrays that are inputs to this trans.
 Returns a list of ndarrays that are outputs to this trans (specified as
 C<[o]>, C<[oca]>, C<[io]>, or C<[t]> in C<Pars>).
 
+=item address
+
+The memory address of the struct.
+
+=item name
+
+The function name from the vtable.
+
+=item flags
+
+List of strings of flags set for this trans.
+
+=item flags_vtable
+
+List of strings of flags set for this trans's vtable.
+
+=item vaffine
+
+Whether the trans is affine.
+
+=item offs
+
+Affine-only: the offset into the parent's data.
+
+=item incs
+
+Affine-only: the dimincs for each of the child's dims.
+
+=item ind_sizes
+
+The size of each named dim.
+
+=item inc_sizes
+
+The size of the inc for each use of a named dim.
+
 =back
 
 =head2 trans_children

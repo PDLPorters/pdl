@@ -1,4 +1,5 @@
 - switch FFT code to use heap, not VLA (#436) - thanks @HaraldJoerg for report
+- add methods PDL::Trans::{address,name,flags,flags_vtable,vaffine,offs,incs,ind_sizes,inc_sizes}
 
 2.084 2023-05-21
 - reduce size of PDL_KLUDGE_COPY_X macro to <4096 in line with C standard, to fix for older clang on many BSD
