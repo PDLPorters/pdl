@@ -140,6 +140,7 @@ void
 firstvals_nophys(x)
   pdl *x
   PPCODE:
+    if (!(x->state & PDL_ALLOCATED)) barf("firstvals_nophys called on non-ALLOCATED", x);
     PDL_Indx i, maxvals = PDLMIN(10, x->nvals);
     EXTEND(sp, maxvals);
     for(i=0; i<maxvals; i++) {
