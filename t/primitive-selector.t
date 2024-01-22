@@ -57,7 +57,8 @@ subtest 'where' => sub {
             my $x = sequence( 4, 3, 2 );
             my $y = ( random($x) < 0.3 );
             my $c = whereND( $x, $y );
-            ok tapprox( $c->squeeze, where( $x, $y ) ), "vs where";
+            my $where = where( $x, $y );
+            ok tapprox( $c->squeeze, $where ), "vs where" or diag "x=$x\ny=$y\nwhere=$where\nc=$c";
         };
 
         subtest 'lvalue' => sub {
