@@ -50,7 +50,7 @@ pdl_error pdl__make_physvaffine_recprotect(pdl *it, int recurse_count);
 pdl_error pdl__ensure_trans(pdl_trans *trans,int what,int *wd, int recurse_count)
 {
 	pdl_error PDL_err = {0, NULL, 0};
-	PDLDEBUG_f(printf("pdl__ensure_trans %p what=%d\n", trans, what));
+	PDLDEBUG_f(printf("pdl__ensure_trans %p what=", trans); pdl_dump_flags_fixspace(what, 0, PDL_FLAGS_PDL));
 	PDL_TR_CHKMAGIC(trans);
 	PDL_Indx j, flag=what, par_pvaf=0;
 	pdl_transvtable *vtable = trans->vtable;
@@ -62,6 +62,7 @@ pdl_error pdl__ensure_trans(pdl_trans *trans,int what,int *wd, int recurse_count
 	}
 	for(j=vtable->nparents; j<vtable->npdls; j++)
 		flag |= trans->pdls[j]->state & PDL_ANYCHANGED;
+	PDLDEBUG_f(printf("pdl__ensure_trans after accum, par_pvaf=%"IND_FLAG" flag=", par_pvaf); pdl_dump_flags_fixspace(what, 0, PDL_FLAGS_PDL));
 	if (flag & PDL_PARENTDIMSCHANGED) REDODIMS(PDL_RETERROR, trans);
 	for(j=vtable->nparents; j<vtable->npdls; j++)
 		if(trans->pdls[j]->trans_parent == trans)
@@ -70,6 +71,7 @@ pdl_error pdl__ensure_trans(pdl_trans *trans,int what,int *wd, int recurse_count
 		if(par_pvaf && (trans->flags & PDL_ITRANS_ISAFFINE)) {
 		  /* Attention: this assumes affine = p2child */
 		  /* need to signal that redodims has already been called */
+		        PDLDEBUG_f(printf("pdl__ensure_trans vaffine output turning off dimschanged, before="); pdl_dump_flags_fixspace(trans->pdls[1]->state, 0, PDL_FLAGS_PDL));
 		        trans->pdls[1]->state &= ~PDL_PARENTDIMSCHANGED;
 			PDL_RETERROR(PDL_err, pdl__make_physvaffine_recprotect(trans->pdls[1], recurse_count+1));
 			PDL_ACCUMERROR(PDL_err, pdl_readdata_vaffine(trans->pdls[1]));
@@ -78,8 +80,10 @@ pdl_error pdl__ensure_trans(pdl_trans *trans,int what,int *wd, int recurse_count
 	}
 	for(j=vtable->nparents; j<vtable->npdls; j++) {
 		pdl *child = trans->pdls[j];
+		PDLDEBUG_f(printf("pdl__ensure_trans child=%p turning off all changed, before=", child); pdl_dump_flags_fixspace(child->state, 0, PDL_FLAGS_PDL));
 		child->state &= ~PDL_ANYCHANGED;
 		if (!wd) continue;
+		PDLDEBUG_f(printf("   pdl__ensure_trans wd="); pdl_dump_flags_fixspace(wd[j], 0, PDL_FLAGS_PDL));
 		char isvaffine = (PDL_VAFFOK(child) &&
 		    VAFFINE_FLAG_OK(vtable->per_pdl_flags,j));
 		if (!isvaffine || (wd[j] & PDL_PARENTDIMSCHANGED))
@@ -615,12 +619,13 @@ pdl_error pdl_make_physdims(pdl *it) {
 	if (!it) return pdl_make_error_simple(PDL_EFATAL, "make_physdims called with NULL");
 	PDL_Indx i;
 	int c = (it->state & PDL_PARENTDIMSCHANGED);
-	PDLDEBUG_f(printf("make_physdims %p (%X)\n",(void*)it, c));
+	PDLDEBUG_f(printf("make_physdims %p (dimschanged=%X)\n",(void*)it, c));
         PDL_CHKMAGIC(it);
 	if(!c) {
 	  PDLDEBUG_f(printf("make_physdims exit (NOP) %p\n",(void*)it));
 	  return PDL_err;
 	}
+	PDLDEBUG_f(printf("make_physdims turning off dimschanged, before="); pdl_dump_flags_fixspace(it->state, 0, PDL_FLAGS_PDL));
 	it->state &= ~PDL_PARENTDIMSCHANGED;
 	pdl_trans *trans = it->trans_parent;
 	PDLDEBUG_f(printf("make_physdims %p TRANS:\n",it);
@@ -636,6 +641,7 @@ pdl_error pdl_make_physdims(pdl *it) {
 	REDODIMS(PDL_RETERROR, trans);
 	/* why this one? will the old allocated data be freed correctly? */
 	if((c & PDL_PARENTDIMSCHANGED) && (it->state & PDL_ALLOCATED)) {
+		PDLDEBUG_f(printf("make_physdims turning off allocated, before="); pdl_dump_flags_fixspace(it->state, 0, PDL_FLAGS_PDL));
 		it->state &= ~PDL_ALLOCATED;
 	}
 	PDLDEBUG_f(printf("make_physdims exit %p\n",(void*)it));
@@ -697,6 +703,7 @@ pdl_error pdl_make_trans_mutual(pdl_trans *trans)
     return PDL_err;
   }
   char dataflow = !!(pfflag || (trans->flags & PDL_ITRANS_DO_DATAFLOW_ANY));
+  PDLDEBUG_f(printf("make_trans_mutual dataflow=%d\n", (int)dataflow));
   for(i=0; i<nparents; i++) {
     pdl *parent = pdls[i];
     PDL_RETERROR(PDL_err, pdl__addchildtrans(parent,trans));
@@ -707,10 +714,12 @@ pdl_error pdl_make_trans_mutual(pdl_trans *trans)
 	pdl *child = pdls[i];
 	char isnull = !!(child->state & PDL_NOMYDIMS);
 	wd[i]=(isnull ? PDL_PARENTDIMSCHANGED : PDL_PARENTDATACHANGED);
+	PDLDEBUG_f(printf("make_trans_mutual wd[%"IND_FLAG"]=", i); pdl_dump_flags_fixspace(wd[i], 0, PDL_FLAGS_PDL));
 	if (dataflow) {
 		/* This is because for "+=" (a = a + b) we must check for
 		   previous parent transformations and mutate if they exist
 		   if no dataflow. */
+		PDLDEBUG_f(printf("make_trans_mutual turning on allchanged, before="); pdl_dump_flags_fixspace(child->state, 0, PDL_FLAGS_PDL));
 		child->state |= PDL_PARENTDIMSCHANGED | PDL_PARENTDATACHANGED;
 	}
 	if (dataflow || isnull) child->trans_parent = trans;
@@ -767,6 +776,7 @@ pdl_error pdl__make_physical_recprotect(pdl *it, int recurse_count) {
 	if(PDL_VAFFOK(it)) {
 		PDLDEBUG_f(printf("make_physical: VAFFOK\n"));
 		PDL_RETERROR(PDL_err, pdl_readdata_vaffine(it));
+		PDLDEBUG_f(printf("make_physical turning off anychanged, before="); pdl_dump_flags_fixspace(it->state, 0, PDL_FLAGS_PDL));
 		it->state &= (~PDL_ANYCHANGED);
 		PDLDEBUG_f(pdl_dump(it));
 		goto mkphys_end;
@@ -783,6 +793,7 @@ pdl_error pdl__make_physical_recprotect(pdl *it, int recurse_count) {
         /* XXX The real question is: why do we need another call to
          * redodims if !(it->state & PDL_ALLOCATED)??????
          */
+	PDLDEBUG_f(printf("make_physical vaffinepar=%d, state=", vaffinepar); pdl_dump_flags_fixspace(it->state, 0, PDL_FLAGS_PDL));
 	if((!(it->state & PDL_ALLOCATED) && vaffinepar) ||
 	   it->state & PDL_PARENTDIMSCHANGED)
 		REDODIMS(PDL_RETERROR, it->trans_parent);
@@ -790,6 +801,7 @@ pdl_error pdl__make_physical_recprotect(pdl *it, int recurse_count) {
 		PDL_RETERROR(PDL_err, pdl_allocdata(it));
 	}
 	READDATA(it->trans_parent);
+	PDLDEBUG_f(printf("make_physical turning off anychanged and OPTs, before="); pdl_dump_flags_fixspace(it->state, 0, PDL_FLAGS_PDL));
 	it->state &= ~(PDL_ANYCHANGED | PDL_OPT_ANY_OK);
   mkphys_end:
 	PDLDEBUG_f(printf("make_physical exit %p\n",(void*)it));
@@ -805,12 +817,13 @@ pdl_error pdl_changed(pdl *it, int what, int recursing)
     pdl_error PDL_err = {0, NULL, 0};
     int i; int j;
     PDLDEBUG_f(
-      printf("pdl_changed: entry for pdl %p recursing: %d, what ",
+      printf("pdl_changed: entry for pdl %p recursing: %d, what=",
 	     (void*)it,recursing);
       pdl_dump_flags_fixspace(what,0,PDL_FLAGS_PDL);
       if (it->state & PDL_TRACEDEBUG) pdl_dump(it);
     );
     if(recursing) {
+	PDLDEBUG_f(printf("pdl_changed: adding what to state, currently="); pdl_dump_flags_fixspace(it->state,0,PDL_FLAGS_PDL));
 	it->state |= what;
 	if(pdl__ismagic(it)) pdl__call_magic(it,PDL_MAGIC_MARKCHANGED);
     }
