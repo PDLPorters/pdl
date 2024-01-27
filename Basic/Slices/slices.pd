@@ -2445,7 +2445,6 @@ sub PDL::slice {
       my $nlm = $idx->nelem;
       if($nlm > 1) {
          #### More than one element - we have to dice (darn it).
-         my $n = $source->getndims;
          $source = $source->mv($i,0)->index1d($idx)->mv(0,$i);
          $others[$i] = '';
       }
