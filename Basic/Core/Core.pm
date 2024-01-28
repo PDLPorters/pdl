@@ -2234,6 +2234,169 @@ sub pdump_trans {
   join '', "PDUMPTRANS 0x${\sprintf '%x', $trans->address} (${\$trans->name})\n", map "  $_\n", @lines;
 }
 
+=head2 pdumphash
+
+=for ref
+
+Returns a hash-ref representing the information about a given object
+(C<PDL::Trans> or ndarray) and all the objects of either type it is
+connected to. Includes similar information to that shown by L</pdump>
+and L</pdump_trans>.
+
+Not exported, and not inserted into the C<PDL> namespace.
+
+=for example
+
+  $hashref = PDL::Core::pdumphash($pdl_trans); # or
+  $hashref = PDL::Core::pdumphash($pdl);
+
+=cut
+
+# only look at each obj once, mutates the hash
+sub pdumphash {
+  my ($obj, $sofar) = @_;
+  confess "expected object but got '$obj'" if !ref $obj;
+  $sofar ||= {};
+  my $addr = sprintf '0x%x', $obj->address; # both ndarray and trans
+  return $sofar if $sofar->{$addr};
+  if ($obj->isa('PDL::Trans')) {
+    my @ins = $obj->parents;
+    my @outs = $obj->children;
+    $sofar->{$addr} = {
+      kind => 'trans',
+      name => $obj->name,
+      flags => [$obj->flags],
+      vtable_flags => [$obj->flags_vtable],
+      !($obj->vaffine && !$outs[0]->dimschgd) ? () : (
+        affine => "o:".$obj->offs." i:(@{[$obj->incs]}) d:(@{[$outs[0]->dims_nophys]})"
+      ),
+      ins => [map sprintf('0x%x', $_->address), @ins],
+      outs => [map sprintf('0x%x', $_->address), @outs],
+    };
+    pdumphash($_, $sofar) for @ins, @outs;
+  } else {
+    my @ins = grep defined, $obj->trans_parent;
+    my @outs = $obj->trans_children;
+    $sofar->{$addr} = {
+      kind => 'ndarray',
+      datatype => $obj->get_datatype,
+      flags => [$obj->flags],
+      !$obj->vaffine ? () : (
+        vaffine_from => sprintf("0x%x", $obj->vaffine_from),
+      ),
+      !$obj->allocated ? () : (
+        data => sprintf("0x%x", $obj->address_data),
+        nbytes => $obj->nbytes,
+        nelem_nophys => $obj->nelem_nophys,
+        firstvals => [$obj->firstvals_nophys],
+      ),
+      ins => [map sprintf('0x%x', $_->address), @ins],
+      outs => [map sprintf('0x%x', $_->address), @outs],
+    };
+    pdumphash($_, $sofar) for @ins, @outs;
+  }
+  $sofar;
+}
+
+=head2 pdumpgraph
+
+=for ref
+
+Given a hash-ref returned by L</pdumphash>, returns a L<Graph> object
+representing the same information.
+
+Not exported, and not inserted into the C<PDL> namespace.
+
+=for example
+
+  $g = PDL::Core::pdumphash($hashref);
+
+=cut
+
+sub pdumpgraph {
+  my ($hash) = @_;
+  require Graph;
+  my $g = Graph->new(multiedged=>1);
+  for my $addr (keys %$hash) {
+    $g->set_vertex_attributes($addr, my $props = $hash->{$addr});
+    $g->add_edge_by_id($_, $addr, 'normal') for @{ $props->{ins} };
+    $g->add_edge_by_id($addr, $_, 'normal') for @{ $props->{outs} };
+    if (my $from = $props->{vaffine_from}) {
+      $g->add_edge_by_id($addr, $from, 'vaffine_from');
+    }
+  }
+  $g;
+}
+
+=head2 pdumpgraphvizify
+
+=for ref
+
+Given a L<Graph> object returned by L</pdumpgraph>, modifies it suitable
+for input to L<GraphViz2/from_graph>, then returns it. See example for
+how to use.
+
+Not exported, and not inserted into the C<PDL> namespace.
+
+=for example
+
+  $g = PDL::Core::pdumpgraphvizify($g);
+
+  # full example:
+  $count = 1; $format = 'png'; sub output {
+    $g = PDL::Core::pdumpgraph(PDL::Core::pdumphash($_[0]));
+    require GraphViz2;
+    $gv = GraphViz2->from_graph(PDL::Core::pdumpgraphvizify($g));
+    $gv->run(format => $format, output_file => 'output'.$count++.".$format");
+  }
+  # keep changing ndarray, then calling this to show each state:
+  output($pdl);
+
+  # run the above script, then show the ndarray evolve over time, in a
+  # left-to-right montage using ImageMagick tools:
+  perl myscript.pl
+  montage output* -tile "$(echo output*|wc -w)"x1 -geometry '1x1<' final.png
+  display final.png
+
+=cut
+
+sub pdumpgraphvizify {
+  my ($g) = @_;
+  for my $v ($g->vertices) {
+    my $kind = $g->get_vertex_attribute($v, 'kind');
+    if (my $from = $g->get_vertex_attribute($v, 'vaffine_from')) {
+      $g->set_edge_attribute_by_id(
+        $v, $from, 'vaffine_from',
+        graphviz => { style => 'dashed' },
+      );
+    }
+    my @blocks;
+    push @blocks, $g->get_vertex_attribute($v, 'name') if $kind eq 'trans';
+    push @blocks, join '', map "$_\\l", @{$g->get_vertex_attribute($v, 'flags')};
+    if ($kind eq 'trans') {
+      my @vflags = @{$g->get_vertex_attribute($v, 'vtable_flags')};
+      push @blocks, join '', map "$_\\l", @vflags ? @vflags : '(no vtable flags)';
+      my $affine = $g->get_vertex_attribute($v, 'affine');
+      push @blocks, $affine if $affine;
+    } else {
+      my $firstvals = $g->get_vertex_attribute($v, 'firstvals');
+      $firstvals = ", (".($firstvals ? "@$firstvals" : 'not allocated').")";
+      push @blocks, 'datatype: '.$g->get_vertex_attribute($v, 'datatype'). $firstvals;
+    }
+    $g->set_vertex_attribute($v, graphviz => {
+      shape => 'record',
+      color => $kind eq 'ndarray' ? 'blue' : 'red',
+      label => [\@blocks],
+    });
+  }
+  $g->set_graph_attribute(graphviz => {
+    global => {directed => 1, combine_node_and_port => 0},
+    graph => {concentrate => 'true', rankdir => 'TB'},
+  });
+
+  $g;
+}
+
 =head2 approx
 
 =for ref
