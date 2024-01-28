@@ -2367,7 +2367,7 @@ sub pdumpgraphvizify {
     if (my $from = $g->get_vertex_attribute($v, 'vaffine_from')) {
       $g->set_edge_attribute_by_id(
         $v, $from, 'vaffine_from',
-        graphviz => { style => 'dashed' },
+        graphviz => { style => 'dashed', constraint => 'false' },
       );
     }
     my @blocks;
