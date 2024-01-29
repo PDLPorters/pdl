@@ -61,8 +61,8 @@ print OUT makelister('ALL', 1, 0, @generics);
 print OUT makelister('ALL', 1, 1, @generics);
 print OUT makelister('REAL', 0, 0, @generics_real);
 print OUT makelister('REAL', 1, 0, @generics_real);
-print OUT makelister('COMPLEX', 0, 0, @generics_real);
-print OUT makelister('COMPLEX', 1, 0, @generics_real);
+print OUT makelister('COMPLEX', 0, 0, @generics_complex);
+print OUT makelister('COMPLEX', 1, 0, @generics_complex);
 
 print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  __FILE__;
 print OUT <<'EOF';
