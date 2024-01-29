@@ -85,7 +85,7 @@ EOF
 for (PDL::Types::types()) {
   print OUT "case @{[$_->sym]}: ";
   if ($_->real) {
-    my $upper = uc(my $letter = $_->integer ? 'i' : 'n');
+    my $upper = uc(my $letter = $_->unsigned ? 'u' : $_->integer ? 'i' : 'n');
     print OUT "sv_set${letter}v(outsv, (${upper}V)(inany.value.".$_->ppsym."))";
   } else {
     my ($fs, $ppsym) = ($_->floatsuffix, $_->ppsym);

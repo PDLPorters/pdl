@@ -5,6 +5,7 @@
 - fix segv if vsearch $x arg is empty (#454) - thanks @djerius
 - IO::HDF fix for HDF4 4.2.16 (#439) - thanks @sebastic
 - fix GIS::Proj to work better on Windows (#456) - thanks @shawnlaffan
+- fix conversion of ulonglong to Perl scalar and therefore stringification (#458) - thanks @vadim-160102 for report
 
 2.084 2023-05-21
 - reduce size of PDL_KLUDGE_COPY_X macro to <4096 in line with C standard, to fix for older clang on many BSD

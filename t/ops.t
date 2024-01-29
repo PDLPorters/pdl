@@ -280,6 +280,10 @@ TODO: {
   cmp_ok longlong($INT_MAX*4)%2, '==', 0, "big longlong modulus: @{[$INT_MAX*4]} % 2";
   #skip float intentionally here, since float($INT_MAX)!=$INT_MAX
   cmp_ok double($INT_MAX*4)%2  , '==', 0, "big double modulus: @{[$INT_MAX*4]} % 2";
+
+  my $u = pdl(ulonglong, [0,1]);
+  my $compl = ~$u;
+  is "$compl", '[18446744073709551615 18446744073709551614]', 'ULL get stringified right';
 }
 }
 
