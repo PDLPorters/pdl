@@ -53,19 +53,19 @@ our %EXPORT_TAGS = (Func=>[@EXPORT_OK]);
 =for ref
 
 Fills an ndarray with X index values.  Uses similar specifications to
-L</zeroes> and L</new_from_specification>, except that as of 2.064,
-the returned ndarray will be at least type C<double>.
+L</zeroes> and L</new_from_specification>.
 
 CAVEAT:
 
 If you use the single argument ndarray form (top row
-in the usage table) the output will have the same type as the input;
-this may give surprising results if, e.g., you have a byte array with
-a dimension of size greater than 256.  To force a type, use the third form.
+in the usage table) the output will have the same type as the input,
+except that as of 2.064, the returned ndarray will default to at least type
+C<double>. As of 2.085, this will respect a given type as in the second
+or third form below.
 
 =for usage
 
- $x = xvals($somearray);
+ $x = xvals($somearray); # at least type double
  $x = xvals([OPTIONAL TYPE],$nx,$ny,$nz...);
  $x = xvals([OPTIONAL TYPE], $somarray->dims);
 
@@ -225,13 +225,16 @@ sub xvals { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? $_[0]->xvals : PDL->xvals(
 sub yvals { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? $_[0]->yvals : PDL->yvals(@_) }
 sub zvals { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? $_[0]->zvals : PDL->zvals(@_) }
 sub PDL::xvals {
-    axisvals2(&PDL::Core::_construct,0,0);
+    my $type_given = grep +(ref($_[$_])||'') eq 'PDL::Type', 0..1;
+    axisvals2(&PDL::Core::_construct,0,$type_given);
 }
 sub PDL::yvals {
-    axisvals2(&PDL::Core::_construct,1,0);
+    my $type_given = grep +(ref($_[$_])||'') eq 'PDL::Type', 0..1;
+    axisvals2(&PDL::Core::_construct,1,$type_given);
 }
 sub PDL::zvals {
-    axisvals2(&PDL::Core::_construct,2,0);
+    my $type_given = grep +(ref($_[$_])||'') eq 'PDL::Type', 0..1;
+    axisvals2(&PDL::Core::_construct,2,$type_given);
 }
 
 sub _dimcheck {

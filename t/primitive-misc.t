@@ -7,10 +7,10 @@ use My::Test::Primitive;
 
 subtest 'why are these tested in Primitive?' => sub {
 
-    subtest 'non-wrapped xvals from byte ndarray' => sub {
-        my $orig  = ones( byte, 300 );
-        my $xvals = $orig->xvals;
-        is $xvals->at(280), 280,;
+    subtest 'xvals type' => sub {
+        my $xvals = ones( byte, 300 )->xvals;
+        is $xvals->at(280), 280,'non-overflow xvals from byte ndarray';
+        is xvals(short, 2)->type, 'short', 'xvals respects specified type';
     };
 
     subtest 'empty ndarray' => sub {
