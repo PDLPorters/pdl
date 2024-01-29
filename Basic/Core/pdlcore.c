@@ -154,6 +154,7 @@ pdl* pdl_SvPDLV ( SV* sv ) {
 
     /* Return the pdl * pointer */
     ret = INT2PTR(pdl *, SvIV(sv2));
+    if (!ret) croak("Fatal error: ndarray address is NULL");
 
     /* Final check -- make sure it has the right magic number */
     if(ret->magicno != PDL_MAGICNO) {
