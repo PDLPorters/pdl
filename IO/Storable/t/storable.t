@@ -16,7 +16,12 @@ $serialized = freeze $x;
 $oldx = thaw $serialized;
 # $oldx->dump;
 
-ok(sum(abs($x-$oldx))==0, 'PDL freeze/thaw');
+is sum(abs($x-$oldx)), 0, 'PDL freeze/thaw';
+
+$x = double '1';
+$serialized = freeze $x;
+$dthaw = thaw $serialized;
+is $dthaw, $x, 'PDL freeze/thaw of PDL scalar';
 
 # $oldb = thaw $serialized;
 # $oldc = thaw $serialized;
@@ -49,7 +54,7 @@ $pfreeze = $phash->freeze;
 $phthaw = thaw $pfreeze;
 
 ok(all($phthaw == $phash), 'PDL has-a works with freeze/thaw');
-ok(UNIVERSAL::isa($phthaw,'HASH'), 'PDL is a hash');
+isa_ok($phthaw,'HASH', 'PDL is a hash');
 
 # Test that freeze + thaw results in new object
 $seq1 = sequence(3);
@@ -66,6 +71,12 @@ $seq2->slice('2') .= 8;
 ok(! all($seq2 == $seq2_dc), 'Initialization from dclone object') or
     diag($seq2, $seq2_dc);
 
+{
+  my @w;
+  local $SIG{__WARN__} = sub { push @w, @_ };
+  thaw( freeze pdl([]) );
+  is "@w", '', 'no warnings';
+}
 
 # Now test reading from files
 testLoad($_) foreach( qw(t/storable_new_amd64.dat t/storable_old_amd64.dat) );
