@@ -64,14 +64,8 @@ EOPM
 pp_addhdr('
 #include <tgmath.h>
 
-/* MOD requires hackage to map properly into the positive-definite numbers. */
-/* Resurrect the old MOD operator as the unsigned BU_MOD to get around this. --DAL 27-Jun-2008 */
-/* Q_MOD is the same as MOD except the internal casts are to longlong.  -DAL 18-Feb-2015 */
-/* Also changed the typecast in MOD to (long), and added a N==0 conditional to BU_MOD. -DAL 06-Mar-2015 */
-
-#define MOD(X,N) (  ((N) == 0)   ?    0   :   (   (X) - (ABS(N))  *  ((long     )((X)/(ABS(N))) + (   ( ((N) * ((long     )((X)/(N)))) != (X) )   ?   ( ( ((N)<0) ? 1 : 0 )  +  ( (((X)<0) ? -1 : 0)))  :  0 ))))
-#define Q_MOD(X,N) (((N) == 0)   ?    0   :   (   (X) - (ABS(N))  *  ((long long)((X)/(ABS(N))) + (   ( ((N) * ((long long)((X)/(N)))) != (X) )   ?   ( ( ((N)<0) ? 1 : 0 )  +  ( (((X)<0) ? -1 : 0)))  :  0 ))))
-#define BU_MOD(X,N)(((N) == 0)   ?    0   :   ( (X)-(N)*((int)((X)/(N))) ))
+#define MOD(X,N) (((N) == 0)   ?    0   :   (   (X) - (ABS(N))  *  ((long long)((X)/(ABS(N))) + (   ( ((N) * ((long long)((X)/(N)))) != (X) )   ?   ( ( ((N)<0) ? 1 : 0 )  +  ( (((X)<0) ? -1 : 0)))  :  0 ))))
+#define BU_MOD(X,N)(((N) == 0)   ?    0   :   ( (X)-(N)*((uint64_t)((X)/(N))) ))
 #define SPACE(A,B)   ( ((A)<(B)) ? -1 : ((A)!=(B)) )
 #define ABS(A)       ( (A)>=0 ? (A) : -(A) )
 ');
@@ -225,7 +219,7 @@ EOH
 #a little dance to avoid the MOD macro warnings for byte & ushort datatypes
       my $t = join '', map $_->ppsym, grep $_->real, types();
       my $v = join ',', map
-        $_->unsigned ? 'BU_' : $_->ppsym eq 'Q' ? 'Q_' : '',
+        $_->unsigned ? 'BU_' : '',
         grep $_->real, types();
       $codestr = << "ENDCODE";
 \$c() = (\$GENERIC(c))\$T$t($v)$func(\$a(),\$b());

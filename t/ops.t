@@ -275,16 +275,14 @@ SKIP:
   my $INT_MAX = 2147483647;
   cmp_ok long($INT_MAX)%1      , '==', 0, "big long modulus: $INT_MAX % 1";
   cmp_ok indx($INT_MAX*4)%2    , '==', 0, "big indx modulus: @{[$INT_MAX*4]} % 2";
-TODO: {
-  local $TODO = 'Broken on Windows since 2.008';
   cmp_ok longlong($INT_MAX*4)%2, '==', 0, "big longlong modulus: @{[$INT_MAX*4]} % 2";
+  cmp_ok ulonglong($INT_MAX*4)%2, '==', 0, "big ulonglong modulus: @{[$INT_MAX*4]} % 2";
   #skip float intentionally here, since float($INT_MAX)!=$INT_MAX
   cmp_ok double($INT_MAX*4)%2  , '==', 0, "big double modulus: @{[$INT_MAX*4]} % 2";
 
   my $u = pdl(ulonglong, [0,1]);
   my $compl = ~$u;
   is "$compl", '[18446744073709551615 18446744073709551614]', 'ULL get stringified right';
-}
 }
 
 is(~pdl(1,2,3)              ."", '[-2 -3 -4]', 'bitwise negation');
