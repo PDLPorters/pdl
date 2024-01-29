@@ -218,16 +218,6 @@ $data &= 0;
 ok(all($data == 0), 'and assign complex');
 }
 
-if ($Config{ivsize} >= 8 and $Config{intsize} >= 8) { # else the IVs below are NVs which aren't exact
-# check ipow routine
-my $xdata = longlong(0xeb * ones(8));
-my $n = sequence(longlong,8);
-is $n->type, 'longlong', 'sequence with specified type has that type';
-my $exact = longlong(1,235,55225,12977875,3049800625,716703146875,168425239515625,39579931286171875);
-my $got = ipow($xdata,$n);
-ok(all($exact - $got == longlong(0)), 'ipow') or diag "got=$got\nexpected=$exact";
-}
-
 #### Modulus checks ####
 
 {
@@ -239,7 +229,8 @@ my $pc = cat(pdl("-1 0 -2 " x 5),zeroes(15),pdl("2 0 1 " x 5));
 ok all(short($pa) % short($pb) == short($pc)),'short modulus';
 ok all(long($pa) % long($pb) ==  long($pc)), 'long modulus';
 ok all(indx($pa) % indx($pb) == indx($pc)), 'indx modulus';
-ok all(longlong($pa) % longlong($pb) == longlong($pc)), 'longlong modulus';
+ok all(longlong($pa) % longlong($pb) == longlong($pc)), 'longlong modulus'
+  if $Config{ivsize} >= 8;
 ok all(float($pa) % float($pb) == float($pc)), 'float modulus';
 ok all(double($pa) % double($pb) == double($pc)), 'double modulus';
 }
@@ -254,22 +245,6 @@ ok all(byte($pa) % byte($pb)==byte($pc)), 'byte modulus';
 ok all(ushort($pa) % ushort($pb)==ushort($pc)), 'ushort modulus';
 }
 
-#and for big numbers (bigger than INT_MAX=2147483647)
-#basically this is exercising the (typecast)(X)/(N) in the macros
-my $INT_MAX = 2147483647;
-
-TODO: {
-local $TODO = undef;
-$TODO = 'Marking TODO for big modulus for 2.008 release';
-diag "\$Config{ivsize} = $Config::Config{ivsize}";
-diag "\$INT_MAX = $INT_MAX = @{[ sprintf '%x', $INT_MAX ]}";
-cmp_ok long($INT_MAX)%1      , '==', 0, "big long modulus: $INT_MAX % 1";
-cmp_ok indx($INT_MAX*4)%2    , '==', 0, "big indx modulus: @{[$INT_MAX*4]} % 2";
-cmp_ok longlong($INT_MAX*4)%2, '==', 0, "big longlong modulus: @{[$INT_MAX*4]} % 2";
-#skip float intentionally here, since float($INT_MAX)!=$INT_MAX
-cmp_ok double($INT_MAX*4)%2  , '==', 0, "big double modulus: @{[$INT_MAX*4]} % 2";
-}
-
 {
 #and do the same for byte (unsigned char) and ushort
 my $BYTE_MAX = 255;
@@ -281,7 +256,7 @@ ok ushort($USHORT_MAX)%1 == 0, 'big ushort modulus';
 
 SKIP:
 {
-  skip("your perl hasn't 64bit int support", 6) if $Config{ivsize} < 8;
+  skip("your perl hasn't 64bit int support", 12) if $Config{ivsize} < 8;
   # SF bug #343 longlong constructor and display lose digits due to implicit double precision conversions
   cmp_ok longlong(10555000100001145) - longlong(10555000100001144),      '==', 1, "longlong precision/1";
   cmp_ok longlong(9000000000000000002) - longlong(9000000000000000001),  '==', 1, "longlong precision/2";
@@ -289,6 +264,23 @@ SKIP:
   cmp_ok longlong(1000000000000000001) - longlong(1000000000000000000),  '==', 1, "longlong precision/4";
   cmp_ok longlong(9223372036854775807) - longlong(9223372036854775806),  '==', 1, "longlong precision/5";
   cmp_ok longlong(9223372036854775807) + longlong(-9223372036854775808), '==',-1, "longlong precision/6";
+  # check ipow routine
+  my $xdata = longlong(0xeb * ones(8));
+  my $n = sequence(longlong,8);
+  is $n->type, 'longlong', 'sequence with specified type has that type';
+  my $exact = longlong(1,235,55225,12977875,3049800625,716703146875,168425239515625,39579931286171875);
+  my $got = ipow($xdata,$n);
+  ok(all($exact - $got == longlong(0)), 'ipow') or diag "got=$got\nexpected=$exact";
+  #and for big numbers (bigger than INT_MAX=2147483647)
+  my $INT_MAX = 2147483647;
+  cmp_ok long($INT_MAX)%1      , '==', 0, "big long modulus: $INT_MAX % 1";
+  cmp_ok indx($INT_MAX*4)%2    , '==', 0, "big indx modulus: @{[$INT_MAX*4]} % 2";
+TODO: {
+  local $TODO = 'Broken on Windows since 2.008';
+  cmp_ok longlong($INT_MAX*4)%2, '==', 0, "big longlong modulus: @{[$INT_MAX*4]} % 2";
+  #skip float intentionally here, since float($INT_MAX)!=$INT_MAX
+  cmp_ok double($INT_MAX*4)%2  , '==', 0, "big double modulus: @{[$INT_MAX*4]} % 2";
+}
 }
 
 is(~pdl(1,2,3)              ."", '[-2 -3 -4]', 'bitwise negation');
