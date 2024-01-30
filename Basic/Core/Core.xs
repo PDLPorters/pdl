@@ -140,7 +140,7 @@ void
 firstvals_nophys(x)
   pdl *x
   PPCODE:
-    if (!(x->state & PDL_ALLOCATED)) barf("firstvals_nophys called on non-ALLOCATED", x);
+    if (!(x->state & PDL_ALLOCATED)) barf("firstvals_nophys called on non-ALLOCATED %p", x);
     PDL_Indx i, maxvals = PDLMIN(10, x->nvals);
     EXTEND(sp, maxvals);
     for(i=0; i<maxvals; i++) {
@@ -468,13 +468,6 @@ SV *
 listref_c(x)
    pdl *x
   PREINIT:
-   PDL_Indx * incs;
-   PDL_Indx offs;
-   void *data;
-   int ind;
-   int lind;
-   int stop = 0;
-   AV *av;
    SV *sv;
    volatile PDL_Anyval pdl_val = { PDL_INVALID, {0} }; /* same reason as below */
    volatile PDL_Anyval pdl_badval = { PDL_INVALID, {0} };
@@ -485,20 +478,18 @@ listref_c(x)
     #  returns
     */
 
-   int badflag = (x->state & PDL_BADVAL) > 0;
+   int stop = 0, badflag = (x->state & PDL_BADVAL) > 0;
    if (badflag) {
       pdl_badval = pdl_get_pdl_badvalue( x );
       if (pdl_badval.type < 0) barf("Error getting badvalue, type=%d", pdl_badval.type);
    }
 
    pdl_barf_if_error(pdl_make_physvaffine( x ));
-   data = PDL_REPRP(x);
-   incs = PDL_REPRINCS(x);
-   offs = PDL_REPROFFS(x);
-   av = newAV();
+   void *data = PDL_REPRP(x);
+   AV *av = newAV();
    av_extend(av,x->nvals);
-   lind=0;
-   PDL_Indx inds[x->ndims];
+   PDL_Indx ind, lind=0, inds[x->ndims];
+   PDL_Indx *incs = PDL_REPRINCS(x), offs = PDL_REPROFFS(x);
    for(ind=0; ind < x->ndims; ind++) inds[ind] = 0;
    while(!stop) {
       pdl_val = pdl_at( data, x->datatype, inds, x->dims, incs, offs, x->ndims );
@@ -723,8 +714,8 @@ pdl_dump(x)
 void
 pdl_add_threading_magic(it,nthdim,nthreads)
 	pdl *it
-	int nthdim
-	int nthreads
+	PDL_Indx nthdim
+	PDL_Indx nthreads
 	CODE:
 		pdl_barf_if_error(pdl_add_threading_magic(it,nthdim,nthreads));
 
@@ -816,7 +807,7 @@ badflag(x,newval=0)
   OUTPUT:
     RETVAL
 
-int
+PDL_Indx
 getndims(x)
 	pdl *x
 	ALIAS:
@@ -847,7 +838,7 @@ dims(x)
 PDL_Indx
 getdim(x,y)
 	pdl *x
-	int y
+	PDL_Indx y
 	ALIAS:
 	     PDL::dim = 1
 	CODE:
@@ -859,7 +850,7 @@ getdim(x,y)
 	OUTPUT:
 		RETVAL
 
-int
+PDL_Indx
 getnbroadcastids(x)
 	pdl *x
 	CODE:
@@ -884,11 +875,12 @@ broadcastids(x)
 			mXPUSHu(x->nbroadcastids);
 		}
 
-int
+PDL_Indx
 getbroadcastid(x,y)
 	pdl *x
-	int y
+	PDL_Indx y
 	CODE:
+		if (y >= x->nbroadcastids) barf("requested invalid broadcastid %"IND_FLAG", nbroadcastids=%"IND_FLAG, y, x->nbroadcastids);
 		RETVAL = x->broadcastids[y];
 	OUTPUT:
 		RETVAL
@@ -977,13 +969,13 @@ gethdr(p)
 void
 broadcastover_n(...)
    PREINIT:
-   int npdls;
+   PDL_Indx npdls;
    SV *sv;
    CODE:
     npdls = items - 1;
     if(npdls <= 0)
 	croak("Usage: broadcastover_n(pdl[,pdl...],sub)");
-    int i,sd;
+    PDL_Indx i,sd;
     pdl *pdls[npdls];
     PDL_Indx realdims[npdls];
     pdl_broadcast pdl_brc;
@@ -1025,7 +1017,7 @@ broadcastover_n(...)
 void
 broadcastover(...)
    PREINIT:
-    int npdls;
+    PDL_Indx npdls;
     int targs;
     int nothers = -1;
    CODE:
@@ -1034,8 +1026,8 @@ broadcastover(...)
     if(targs <= 0 || nothers < 0 || nothers >= targs)
 	croak("Usage: broadcastover(nothers,pdl[,pdl...][,otherpars..],realdims,creating,sub)");
     npdls = targs-nothers;
-    int i,dtype=0;
-    PDL_Indx nc=npdls,nd1,nd2;
+    int dtype=0;
+    PDL_Indx i,nc=npdls,nd1,nd2;
     SV* rdimslist = ST(items-3);
     SV* cdimslist = ST(items-2);
     SV *code = ST(items-1);
@@ -1044,10 +1036,10 @@ broadcastover(...)
     SV *csv[npdls], *others[nothers];
     PDL_Indx *creating = pdl_packdims(cdimslist,&nd2);
     if (!creating) croak("Failed to packdims for creating");
-    if (nd2 < npdls) croak("broadcastover: need at least one creating flag per pdl: %d pdls, %"IND_FLAG" flags", npdls, nd2);
+    if (nd2 < npdls) croak("broadcastover: need at least one creating flag per pdl: %"IND_FLAG" pdls, %"IND_FLAG" flags", npdls, nd2);
     PDL_Indx *realdims = pdl_packdims(rdimslist,&nd1);
     if (!realdims) croak("Failed to packdims for realdims");
-    if (nd1 != npdls) croak("broadcastover: need one realdim flag per pdl: %d pdls, %"IND_FLAG" flags", npdls, nd1);
+    if (nd1 != npdls) croak("broadcastover: need one realdim flag per pdl: %"IND_FLAG" pdls, %"IND_FLAG" flags", npdls, nd1);
     for(i=0; i<npdls; i++) {
 	pdls[i] = pdl_SvPDLV(ST(i+1));
 	if (creating[i])
@@ -1061,7 +1053,7 @@ broadcastover(...)
 	others[i-npdls-1] = ST(i);
     if (nd2 < nc)
 	croak("Not enough dimension info to create pdls");
-    PDLDEBUG_f(for (i=0;i<npdls;i++) { printf("pdl %d ",i); pdl_dump(pdls[i]); });
+    PDLDEBUG_f(for (i=0;i<npdls;i++) { printf("pdl %"IND_FLAG" ",i); pdl_dump(pdls[i]); });
     PDL_CLRMAGIC(&pdl_brc);
     pdl_brc.gflags = 0; /* avoid uninitialised value use below */
     pdl_barf_if_error(pdl_initbroadcaststruct(0,pdls,realdims,creating,npdls,
