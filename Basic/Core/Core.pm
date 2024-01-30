@@ -3271,7 +3271,10 @@ sub PDL::type { return PDL::Type->new($_[0]->get_datatype); }
 
 =for ref
 
-Convert ndarray to string, optionally using a C<sprintf> format.
+Convert ndarray to string, optionally using a C<sprintf> format. If such
+a format is provided, it is used. If not, then the formatting variables
+in L</VARIABLES> provide a default, though heuristics are attempted to
+make a nice-looking output.
 
 =for usage
 
@@ -3770,128 +3773,62 @@ sub strND {
 # String 1D array in nice format
 
 sub str1D {
-    my($self,$format)=@_;
-    barf "Not 1D" if $self->getndims()!=1;
-    my $x = listref_c($self);
-    my ($ret,$dformat,$t);
-    $ret = "[";
-    my $dtype = $self->get_datatype();
-    $dformat = $PDL::floatformat  if $dtype == $PDL_F;
-    $dformat = $PDL::doubleformat if $dtype == $PDL_D;
-    $dformat = $PDL::indxformat if $dtype == $PDL_IND;
+  my($self,$format)=@_;
+  barf "Not 1D" if $self->getndims != 1;
+  my $x = listref_c($self);
+  my $badflag = $self->badflag;
+  return "[".join($sep, map
+    $badflag && $_ eq "BAD" ? $_ :
+    $format ? sprintf $format,$_ : $_,
+  @$x)."]";
+}
 
-    my $badflag = $self->badflag();
-    for $t (@$x) {
-	if ( $badflag and $t eq "BAD" ) {
-	    # do nothing
-        } elsif ($format) {
-	  $t = sprintf $format,$t;
-	} else{ # Default
-	    if ($dformat && length($t)>7) { # Try smaller
-		$t = sprintf $dformat,$t;
-	    }
-	}
-       $ret .= $t.$sep;
+sub str_list {
+  my ($x, $row_len, $format, $dtype, $badflag) = @_;
+  my ($len, $findmax) = (0, 1);
+  if (!defined $format || $format eq "") {
+    # Format not given? - find max length of default
+    $len = max map length($_), @$x;
+    $format = "%".$len."s";
+    if ($len>7) { # Too long? - perhaps try smaller format
+      if ($dtype == $PDL_F) {
+        $format = $PDL::floatformat;
+      } elsif ($dtype == $PDL_D) {
+        $format = $PDL::doubleformat;
+      } elsif ($dtype == $PDL_IND) {
+        $format = $PDL::indxformat;
+      } else {
+        # Stick with default
+        $findmax = 0;
+      }
+    } else {
+      # Default ok
+      $findmax = 0;
     }
-
-    chop $ret; $ret.="]";
-    return $ret;
+  }
+  $len = $badflag ?
+    max $len, map $_ eq "BAD" ? 3 : length(sprintf $format,$_), @$x :
+    max $len, map length(sprintf $format,$_), @$x
+    if $findmax; # Find max length of strings in final format
+  my @ret;
+  for (my $i=0; $i<=$#$x; $i+=$row_len) {
+    push @ret, "[".join($sep, map sprintf("%${len}s", $badflag && $_ eq "BAD" ? "BAD" : sprintf $format,$_), @$x[$i..$i+$row_len-1])."]";
+  }
+  return @ret;
 }
 
 # String 2D array in nice uniform format
 
 sub str2D{
-    my($self,$format,$level)=@_;
-    my @dims = $self->dims();
-    barf "Not 2D" if scalar(@dims)!=2;
-    my $x = listref_c($self);
-    my ($i, $f, $t, $len, $ret);
-
-    my $dtype = $self->get_datatype();
-    my $badflag = $self->badflag();
-
-    my $findmax = 1;
-    if (!defined $format || $format eq "") {
-	# Format not given? - find max length of default
-	$len=0;
-
-	if ( $badflag ) {
-	    for (@$x) {
-		if ( $_ eq "BAD" ) { $i = 3; }
-		else               { $i = length($_); }
-		$len = $i>$len ? $i : $len;
-	    }
-	} else {
-	    for (@$x) {$i = length($_); $len = $i>$len ? $i : $len };
-	}
-
-	$format = "%".$len."s";
-
-	if ($len>7) { # Too long? - perhaps try smaller format
-	    if ($dtype == $PDL_F) {
-		$format = $PDL::floatformat;
-	    } elsif ($dtype == $PDL_D) {
-		$format = $PDL::doubleformat;
-	    } elsif ($dtype == $PDL_IND) {
-		$format = $PDL::indxformat;
-	    } else {
-		# Stick with default
-		$findmax = 0;
-	    }
-	}
-	else {
-	    # Default ok
-	    $findmax = 0;
-	}
-    }
-
-    if($findmax) {
-	# Find max length of strings in final format
-	$len=0;
-
-	if ( $badflag ) {
-	    for (@$x) {
-		if ( $_ eq "BAD" ) { $i = 3; }
-		else               { $i = length(sprintf $format,$_); }
-		$len = $i>$len ? $i : $len;
-	    }
-	} else {
-	    for (@$x) {
-		$i = length(sprintf $format,$_); $len = $i>$len ? $i : $len;
-	    }
-	}
-    } # if: $findmax
-
-    $ret = "\n" . " "x$level . "[\n";
-    {
-	my $level = $level+1;
-	$ret .= " "x$level ."[";
-	for ($i=0; $i<=$#$x; $i++) {
-
-	    if ( $badflag and $$x[$i] eq "BAD" ) {
-		$f = "BAD";
-	    } else {
-		$f = sprintf $format,$$x[$i];
-	    }
-
-	    $t = $len-length($f); $f = " "x$t .$f if $t>0;
-	    $ret .= $f;
-	    if (($i+1)%$dims[0]) {
-		$ret.=$sep;
-	    }
-	    else{ # End of output line
-		$ret.="]";
-		if ($i==$#$x) { # very last number
-		    $ret.="\n";
-		}
-		else{
-		    $ret.= $sep2."\n" . " "x$level ."[";
-		}
-	    }
-	}
-    }
-    $ret .= " "x$level."]\n";
-    return $ret;
+  my($self,$format,$level)=@_;
+  my @dims = $self->dims();
+  barf "Not 2D" if scalar(@dims)!=2;
+  my $x = listref_c($self);
+  my @lines = str_list($x, $dims[0], $format, $self->get_datatype, $self->badflag);
+  my $ret = "\n" . " "x$level . "[\n";
+  $ret .= join $sep2."\n", map " "x($level+1).$_, @lines;
+  $ret .= "\n".(" "x$level)."]\n";
+  return $ret;
 }
 
 ########## Docs for functions in Core.xs ##################

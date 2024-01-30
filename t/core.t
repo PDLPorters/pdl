@@ -131,6 +131,62 @@ isa_ok( PDL->topdl(1,2,3),   "PDL", "topdl(1,2,3) returns an ndarray" );
 $x=PDL->topdl(1,2,3);
 ok (($x->nelem == 3  and  all($x == pdl(1,2,3))), "topdl(1,2,3) returns a 3-ndarray containing (1,2,3)");
 
+# stringification
+{
+my $x = sequence( 3 + 1e7 );
+my $x_indx = which( $x > 1e7 - 4 );
+is $x_indx.'', "[9999997 9999998 9999999 10000000 10000001 10000002]";
+my $x_indx_bad = $x_indx->copy;
+$x_indx_bad->setbadat($_) for 1, 4;
+is $x_indx_bad.'', "[9999997 BAD 9999999 10000000 BAD 10000002]";
+is +($x_indx - 10).'', "[9999987 9999988 9999989 9999990 9999991 9999992]";
+is +($x_indx)->splitdim(0,3).'', "\n[\n [     9999997      9999998      9999999]\n [    10000000     10000001     10000002]\n]\n";
+is +($x_indx - 10)->splitdim(0,3).'', "\n[\n [9999987 9999988 9999989]\n [9999990 9999991 9999992]\n]\n";
+is +($x_indx_bad)->splitdim(0,3).'', "\n[\n [     9999997          BAD      9999999]\n [    10000000          BAD     10000002]\n]\n";
+is +($x_indx_bad - 10)->splitdim(0,3).'', "\n[\n [9999987     BAD 9999989]\n [9999990     BAD 9999992]\n]\n";
+my $x_double = where( $x, $x > 1e7 - 4 );
+is $x_double.'', "[9999997 9999998 9999999 10000000 10000001 10000002]";
+is +($x_double - 10).'', "[9999987 9999988 9999989 9999990 9999991 9999992]";
+is +($x_double)->splitdim(0,3).'', "\n[\n [   9999997    9999998    9999999]\n [  10000000   10000001   10000002]\n]\n";
+is +($x_double - 10)->splitdim(0,3).'', "\n[\n [9999987 9999988 9999989]\n [9999990 9999991 9999992]\n]\n";
+my $x_long = where( long($x), $x > 1e7 - 4 );
+is $x_long.'', "[9999997 9999998 9999999 10000000 10000001 10000002]";
+is +($x_long - 10).'', "[9999987 9999988 9999989 9999990 9999991 9999992]";
+is +($x_long)->splitdim(0,3).'', "\n[\n [ 9999997  9999998  9999999]\n [10000000 10000001 10000002]\n]\n";
+is +($x_long - 10)->splitdim(0,3).'', "\n[\n [9999987 9999988 9999989]\n [9999990 9999991 9999992]\n]\n";
+my $fracs = sequence(9) / 16;
+is $PDL::doubleformat, "%10.8g";
+is $fracs.'', "[0 0.0625 0.125 0.1875 0.25 0.3125 0.375 0.4375 0.5]";
+is $fracs->string($PDL::doubleformat).'', "[         0     0.0625      0.125     0.1875       0.25     0.3125      0.375     0.4375        0.5]";
+{
+local $PDL::doubleformat = '%8.2g';
+is $fracs.'', "[0 0.0625 0.125 0.1875 0.25 0.3125 0.375 0.4375 0.5]";
+is $fracs->string($PDL::doubleformat).'', "[       0    0.062     0.12     0.19     0.25     0.31     0.38     0.44      0.5]";
+}
+
+# from Data::Frame
+{
+  my $_pdl_stringify_temp = PDL::Core::pdl([[0]]);
+  my $_pdl_stringify_temp_single = PDL::Core::pdl(0);
+  sub element_stringify {
+    my ($self, $element) = @_;
+    return $_pdl_stringify_temp_single->set(0, $element)->string if $self->ndims == 0;
+    # otherwise
+    ( $_pdl_stringify_temp->set(0,0, $element)->string =~ /\[(.*)\]/ )[0];
+  }
+}
+sub element_stringify_max_width {
+  my ($self) = @_;
+  my @vals = @{ $self->uniq->unpdl };
+  my @lens = map { length element_stringify($self, $_) } @vals;
+  max( pdl @lens )->sclr;
+}
+for (1.23456789, 1.2345678901, 1.23456789012) {
+  my $ndim = length( pdl([ $_ ])->string ) - 2;
+  is element_stringify_max_width(pdl([ $_ ])), $ndim, "length right for [$_]";
+  is element_stringify_max_width(pdl([[ $_ ]])), $ndim, "length right for [[$_]]";
+}
+}
 
 # test $PDL::undefval support in pdl (bug #886263)
 #
