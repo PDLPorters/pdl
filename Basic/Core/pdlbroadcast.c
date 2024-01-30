@@ -229,13 +229,12 @@ pdl_error pdl_dim_checks(
 ) {
   pdl_error PDL_err = {0, NULL, 0};
   PDL_Indx i, j, ind_id;
-  PDLDEBUG_f(printf("pdl_dim_checks(%d) %p:\n", load_only, ind_sizes);
+  PDLDEBUG_f(printf("pdl_dim_checks(load_only=%d) %p:\n", load_only, ind_sizes);
     printf("  ind_sizes: "); pdl_print_iarr(ind_sizes, vtable->ninds);printf("\n"));
   for (i=0; i<vtable->npdls; i++) {
-    PDL_Indx ninds = vtable->par_realdims[i];
-    PDLDEBUG_f(printf("pdl_dim_checks pdl %"IND_FLAG" (creating=%"IND_FLAG" ninds=%"IND_FLAG"): ", i, creating ? creating[i] : -99, ninds));
     pdl *pdl = pdls[i];
-    PDL_Indx ndims = pdl->ndims;
+    PDL_Indx ninds = vtable->par_realdims[i], ndims = pdl->ndims;
+    PDLDEBUG_f(printf("pdl_dim_checks pdl %"IND_FLAG" (creating=%"IND_FLAG" ninds=%"IND_FLAG"): ", i, creating ? creating[i] : -99, ninds));
     PDLDEBUG_f(pdl_dump(pdl));
     if (!load_only && creating[i]) {
       PDL_Indx dims[PDLMAX(ninds+1, 1)];
@@ -258,18 +257,21 @@ pdl_error pdl_dim_checks(
       }
       /* Now, the real check. */
       for (j=0; j<ninds; j++) {
-	ind_id = PDL_IND_ID(vtable, i, j);
+	PDL_Indx ind_id = PDL_IND_ID(vtable, i, j), ind_sz = ind_sizes[ind_id];
 	if (
 	  (load_only && !((vtable->par_flags[i] & PDL_PARAM_ISCREAT) && (pdl->state & PDL_MYDIMS_TRANS))) ||
 	  (creating && !creating[i])
 	) {
-	  if (ind_sizes[ind_id] == -1 || (ndims > j && ind_sizes[ind_id] == 1))
+	  if (ind_sz == -1 || (ndims > j && ind_sz == 1))
 	    ind_sizes[ind_id] = dims[j];
-	  else if (ndims > j && ind_sizes[ind_id] != dims[j] && dims[j] != 1)
+	  else if (ndims > j && ind_sz != dims[j] && (
+	    (i < vtable->nparents && dims[j] != 1) ||
+	    (i >= vtable->nparents)
+	  ))
 	    return pdl_make_error(PDL_EUSERERROR,
 	      "Error in %s: parameter '%s' index %s size %"IND_FLAG", but ndarray dim has size %"IND_FLAG"\n",
 	      vtable->name, vtable->par_names[i], vtable->ind_names[ind_id],
-	      ind_sizes[ind_id], dims[j]
+	      ind_sz, dims[j]
 	    );
 	}
       }

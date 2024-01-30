@@ -10,6 +10,7 @@
 - update Opt::Simplex docs (#452) - thanks @KJ7LNW
 - fix Graphics::OpenGLQ on MacOS Ventura (#452) - thanks @deriamis
 - fix IO::Storable warning on empty (#448) - thanks @djerius for report
+- fix non-broadcast, non-matching size-1 dims on output being silently accepted (#445) - thanks @djerius for report
 
 2.084 2023-05-21
 - reduce size of PDL_KLUDGE_COPY_X macro to <4096 in line with C standard, to fix for older clang on many BSD

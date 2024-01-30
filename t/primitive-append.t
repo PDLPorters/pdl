@@ -26,14 +26,11 @@ subtest 'append(null, null, $output)' => sub {
 
 subtest 'output ndarray has different shape' => sub {
 
-    TODO: {
-      local $TODO = 'not fixed yet';
-      subtest 'output => [1]; required [2].  output too small' => sub {
-        my $output = zeroes(1);
-        throws_ok { append( pdl(1), pdl(2), $output ) }
-               qr/dim has size 1/;
-      };
-    }
+    subtest 'output => [1]; required [2].  output too small' => sub {
+      my $output = zeroes(1);
+      throws_ok { append( pdl(1), pdl(2), $output ) }
+             qr/dim has size 1/;
+    };
 
     subtest 'output => [3,1]; required [2]' => sub {
         my $output = zeroes(3,1);
