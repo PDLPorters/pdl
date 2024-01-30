@@ -3267,46 +3267,47 @@ sub PDL::type { return PDL::Type->new($_[0]->get_datatype); }
 
 ##################### Printing ####################
 
-# New string routine
+=head2 string
+
+=for ref
+
+Convert ndarray to string, optionally using a C<sprintf> format.
+
+=for usage
+
+ print $x; # overloaded
+ print $x->string; # explicit method call
+ print $x->string("%5d"); # providing sprintf format
+
+=cut
 
 $PDL::_STRINGIZING = 0;
 
 sub PDL::string {
-    my($self,$format)=@_;
-    my $to_return = eval {
-		if($PDL::_STRINGIZING) {
-			return "ALREADY_STRINGIZING_NO_LOOPS";
-		}
-		local $PDL::_STRINGIZING = 1;
-		my $ndims = $self->getndims;
-		if($self->nelem > $PDL::toolongtoprint) {
-			return "TOO LONG TO PRINT";
-		}
-		if ($ndims==0) {
-		if ( $self->badflag() and $self->isbad() ) {
-			return "BAD";
-		} else {
-			my @x = $self->at();
-			return ($format ? sprintf($format, $x[0]) : "$x[0]");
-		}
-		}
-		return "Null" if $self->isnull;
-		return "Empty[".join("x",$self->dims)."]" if $self->isempty; # Empty ndarray
-		local $sep  = $PDL::use_commas ? "," : " ";
-		local $sep2 = $PDL::use_commas ? "," : "";
-		if ($ndims==1) {
-		   return str1D($self,$format);
-		}
-		else{
-		   return strND($self,$format,0);
-		}
-	};
-	if ($@) {
-		# Remove reference to this line:
-		$@ =~ s/\s*at .* line \d+\s*\.\n*/./;
-		PDL::Core::barf("Stringizing problem: $@");
-	}
-	return $to_return;
+  my ($self,$format) = @_;
+  my $to_return = eval {
+    return "ALREADY_STRINGIZING_NO_LOOPS" if $PDL::_STRINGIZING;
+    local $PDL::_STRINGIZING = 1;
+    return "Null" if $self->isnull;
+    return "Empty[".join("x",$self->dims)."]" if $self->isempty;
+    return "TOO LONG TO PRINT" if $self->nelem > $PDL::toolongtoprint;
+    my $ndims = $self->getndims;
+    if ($ndims==0) {
+      return "BAD" if $self->badflag and $self->isbad;
+      my $x = $self->sclr;
+      return $format ? sprintf($format, $x) : "$x";
+    }
+    local $sep  = $PDL::use_commas ? "," : " ";
+    local $sep2 = $PDL::use_commas ? "," : "";
+    return str1D($self,$format) if $ndims==1;
+    return strND($self,$format,0);
+  };
+  if ($@) {
+    # Remove reference to this line:
+    $@ =~ s/\s*at .* line \d+\s*\.\n*/./;
+    PDL::Core::barf("Stringizing problem: $@");
+  }
+  return $to_return;
 }
 
 ############## Section/subsection functions ###################

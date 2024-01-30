@@ -1,3 +1,5 @@
+- document PDL::string (#459) - thanks @vadim-160102 for report
+
 2.085 2024-01-30
 - switch FFT code to use heap, not VLA (#436) - thanks @HaraldJoerg for report
 - add methods PDL::Trans::{address,name,flags,flags_vtable,vaffine,offs,incs,ind_sizes,inc_sizes}
