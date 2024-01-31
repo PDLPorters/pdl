@@ -587,4 +587,6 @@ is $@, '', 'setdims to same total size of set_donttouchdata should be fine';
 eval { $notouch->setdims([3,2]); $notouch->make_physical; };
 isnt $@, '', 'setdims/make_physical to different size of set_donttouchdata should fail';
 
+eval { pdl(3)->getbroadcastid($_) }, isnt $@, '', "getbroadcastid($_) out of range gives error" for -2, 5;
+
 done_testing;

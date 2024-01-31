@@ -880,7 +880,7 @@ getbroadcastid(x,y)
 	pdl *x
 	PDL_Indx y
 	CODE:
-		if (y >= x->nbroadcastids) barf("requested invalid broadcastid %"IND_FLAG", nbroadcastids=%"IND_FLAG, y, x->nbroadcastids);
+		if (y < 0 || y >= x->nbroadcastids) barf("requested invalid broadcastid %"IND_FLAG", nbroadcastids=%"IND_FLAG, y, x->nbroadcastids);
 		RETVAL = x->broadcastids[y];
 	OUTPUT:
 		RETVAL
