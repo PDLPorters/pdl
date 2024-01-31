@@ -1,4 +1,5 @@
 - test, document PDL::string, make more consistent (#459) - thanks @vadim-160102 for report
+- fix pre-2002 rangeb bug (#457) - thanks @jo-37 for report
 
 2.085 2024-01-30
 - switch FFT code to use heap, not VLA (#436) - thanks @HaraldJoerg for report

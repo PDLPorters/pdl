@@ -400,6 +400,16 @@ ok("$z" eq 'Empty[0]');
 $z .= 2; # should *not* segfault!
 ok all($x==5), 'empty range .= no mutate';   # should *not* change $x!
 
+# range on higher-dimensional
+for (4..6) {
+  my @dims = (5) x $_;
+  my $src = sequence @dims;
+  my $idx = ndcoords indx, $src;
+  (my $out = $src->range($idx, 2, 't'))->make_physdims;
+  my $expected = [@dims, (2) x $_];
+  is_deeply [$out->dims], $expected or diag explain [$out->dims];
+}
+
 ### Check slicing of a null PDL
 $x = PDL->null;
 eval { $y = $x->slice("") };

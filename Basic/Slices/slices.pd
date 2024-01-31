@@ -845,7 +845,6 @@ PDL_Indx i,rdvalid;
     stdim = 0;
 
   /* Set dimensionality of child */
-  $PDL(CHILD)->ndims = $COMP(itdim) + $COMP(ntsize) + stdim;
   $SETNDIMS($COMP(itdim)+$COMP(ntsize)+stdim);
 
   inc = 1;
