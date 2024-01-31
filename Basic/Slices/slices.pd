@@ -441,6 +441,10 @@ If you feed in a single string, it is interpreted as a packed boundary
 array if all of its characters are valid boundary specifiers (e.g. 'pet'),
 but as a single word-style specifier if they are not (e.g. 'forbid').
 
+Where the source PDL is empty, all non-barfing boundary conditions
+are changed to truncation, since there is no data to reflect, extend,
+or mirror.
+
 B<OUTPUT>
 
 The output broadcasts over both C<$index> and C<$source>.  Because implicit
