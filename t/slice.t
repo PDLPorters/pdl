@@ -84,7 +84,7 @@ is(join(',',$c->dims), "5,3,1", 'single-coord slice dims right');
 
 eval { my $d = $c->slice(":,:,2"); $d->string };
 
-like($@, qr/out of bounds/, 'check slice bounds error handling') or diag "ERROR WAS: '$@'\n" if $@;
+like($@, qr/out of bounds/, 'check slice bounds error handling');
 
 $x = zeroes 3,3;
 
@@ -206,23 +206,16 @@ $x = pdl(2);
 $y = $x->slice('');
 ok(tapprox($x, $y), "Empty slice");
 
-$x = pdl [1,1,1,3,3,4,4,1,1,2];
-$y = null;
-$c = null;
-rle($x,$y,$c);
-ok(tapprox($x, rld($y,$c)),"rle with null input");
-
-undef $y; undef $c;
-($y,$c) = rle($x);
-ok(tapprox($x, rld($y,$c)),"rle with return vals");
-
-my $x2d = $x->cat($x->rotate(1),$x->rotate(2),$x->rotate(3),$x->rotate(4));
-rle($x2d,$y=null,$c=null);
-ok(tapprox($x2d,rld($y,$c)),"rle 2d with null input");
-
-undef $y; undef $c;
-($y,$c) = rle($x2d);
-ok(tapprox($x2d, rld($y,$c)),"rle 2d with return vals");
+$x = pdl([1,1,1,3,3,4,4,1,1,2]);
+for my $in (
+  $x,
+  $x->cat(map $x->rotate($_), 1..4)
+) {
+  rle($in,my $y=null,my $z=null);
+  ok(tapprox(rld($y,$z), $in),"rle with null input");
+  ($y,$z) = rle($in);
+  ok(tapprox(rld($y,$z), $in),"rle with return vals");
+}
 
 $y = $x->mslice(0.5);
 ok(tapprox($y, 1), "mslice 1");
@@ -258,76 +251,42 @@ like($@, qr/lags:\s*step must be positive/, "make_physdim: negative step");
 eval { $y = $x->lags(0,1,11)->make_physdims };
 like($@, qr/too large/, "make_physdim: too large");
 
-##############################
-# Tests of some edge cases
 $x = sequence(10);
-eval { $y = $x->slice("5") };
-is $@, '', "simple slice works";
-ok(($y->nelem==1 and $y==5), "simple slice works right");
+my $x2 = xvals(5,5)+10*yvals(5,5);
+for (
+  [$x, "5", pdl(5), "simple slice"],
+  [$x, ":5", pdl(0,1,2,3,4,5), "empty first specifier"],
+  [$x, "5:", pdl(5,6,7,8,9), "empty second specifier"],
+  [$x, " 4:", pdl(4,5,6,7,8,9), "slice with whitespace 1"],
+  [$x, " :4", pdl(0,1,2,3,4), "slice with whitespace 2"],
+  [$x, " 3: 4 ", pdl(3,4), "slice with whitespace 3"],
+  [$x2, "1,2,(0)", [1,1], "squished 0th of non-existent dim"],
+  [$x2, "1,2,(1)", qr/too many dims/i, "squished 1th of non-existent dim"],
+  [$x2, "0:1,2:3,0", [2,2,1], "0th of non-existent dim"],
+) {
+  my ($src, $sl, $exp, $label) = @$_;
+  my $y = eval { $src->slice($sl)->make_physical };
+  like($@, $exp, "$label right error"), next if ref($exp) eq 'Regexp';
+  is $@, '', "$label works";
+  is_deeply([$y->dims], $exp, "$label dims right"), next if ref($exp) eq 'ARRAY';
+  is $y->nelem, $exp->nelem, "$label works right";
+  ok tapprox($y, $exp), "$label works right";
+}
 
-eval { $y = $x->slice("5:") };
-is $@, '', "empty second specifier works";
-ok(($y->nelem == 5  and  all($y == pdl(5,6,7,8,9))), "empty second specifier works right");
-
-eval { $y = $x->slice(":5") };
-is $@, '', "empty first specifier works";
-ok(($y->nelem == 6  and  all($y == pdl(0,1,2,3,4,5))), "empty first specifier works right");
-
-##############################
-# White space in slice specifier
-eval {  $y = $x->slice(" 4:") };
-is $@, '',"slice with whitespace worked - 1";
-ok(($y->nelem==6 and all($y==pdl(4,5,6,7,8,9))),"slice with whitespace works right - 1");
-eval { $y = $x->slice(" :4") };
-is $@, '',"slice with whitespace worked - 2";
-ok(($y->nelem==5 and all($y==pdl(0,1,2,3,4))),"slice with whitespace works right - 2");
-eval { $y = $x->slice(" 3: 4 ") };
-is $@, '',"slice with whitespace worked - 3";
-ok(($y->nelem==2 and all($y==pdl(3,4))),"slice with whitespace works right - 3");
-
-##############################
-# Tests of permissive slicing and dummying
-
-$x = xvals(5,5)+10*yvals(5,5);
-
-eval { $y = $x->slice("1,2,(0)")->make_physical };
-is $@, '';
-is($y->ndims, 2, "slice->make_physical: ndims");
-is(pdl($y->dims)->sumover, 2, "slice->make_physical: dims");
-
-eval { $c = $x->slice("1,2,(1)")->make_physical };
-like($@, qr/too many dims/i, "slice->make_physical: too many dims");
-
-# Hmmm, think these could be split up but not sure exactly what is being
-# tested so leave as is (ish)
-#
-eval { $d = $x->slice("0:1,2:3,0")->make_physical };
-is $@, '';
-is $d->ndims, 3;
-is +(pdl($d->dims) == pdl(2,2,1))->sumover, 3;
-is $d->ndims, 3;
-is +(pdl($d->dims) == pdl(2,2,1))->sumover, 3;
-
-eval { $d = $x->slice("0:1,2:3,0")->xchg(0,2) };
+eval { $d = $x2->slice("0:1,2:3,0")->xchg(0,2)->make_physical };
 is $@, '', "slice->xchg";
+is_deeply([$d->dims], [1,2,2], "permissive slice xchg dims right");
 
-is $d->ndims, 3;
-is +(pdl($d->dims) == pdl(1,2,2))->sumover, 3;
-
-eval { $e = $x->dummy(6,2) };
+eval { $e = $x2->dummy(6,2)->make_physical };
 is $@, '', "dummy";
-
-is $e->ndims, 7;
-is +(pdl($e->dims) == pdl(5,5,1,1,1,1,2))->sumover, 7;
+is_deeply([$e->dims], [5,5,1,1,1,1,2], "dummy dims right");
 
 ##############################
 # Tests of indexND (Nowadays this is just another call to range)
 
-my ($source, $index, $dest, $z);
-
 # Basic indexND operation
-$source = 10*xvals(10,10) + yvals(10,10);
-$index  = pdl([[2,3],[4,5]],[[6,7],[8,9]]);
+my $source = 10*xvals(10,10) + yvals(10,10);
+my $index  = pdl([[2,3],[4,5]],[[6,7],[8,9]]);
 eval { $x = $source->indexND( $index ) };
 is $@, '';
 ok(eval { zcheck($x != pdl([23,45],[67,89])) }, "eval of zcheck 1");
@@ -339,7 +298,6 @@ eval { $x = $source->indexND($index) };
 is $@, '';
 ok(eval { zcheck($x != pdl([[230,450],[670,890]],[[231,451],[671,891]])) }, "eval of zcheck 2");
 
-
 ##############################
 # Tests of range operator
 
@@ -347,7 +305,7 @@ ok(eval { zcheck($x != pdl([[230,450],[670,890]],[[231,451],[671,891]])) }, "eva
 $source = 10*xvals(10,10) + yvals(10,10);
 $index = pdl([[2,3],[4,5]],[[6,7],[8,9]]);
 
-eval { $dest = $source->range($index); };
+my $dest = eval { $source->range($index); };
 is $@, '';
 ok(eval { zcheck($dest != pdl([23,45],[67,89])); }, "eval of zcheck 3");
 
@@ -360,7 +318,7 @@ is($dest->ndims, 4, "ndims after range");
 ok(zcheck(pdl($dest->dims) != pdl(2,2,3,3)), "zcheck after range");
 
 #### Check boundary conditions
-eval { $z = $dest->copy; }; # Should throw range-out-of-bounds error
+my $z = eval { $dest->copy; }; # Should throw range-out-of-bounds error
 ok($@); # should check actual error message here
 
 ## Truncation
