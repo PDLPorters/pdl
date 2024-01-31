@@ -54,11 +54,16 @@ subtest 'where' => sub {
         };
 
         subtest 'vs where' => sub {
-            my $x = sequence( 4, 3, 2 );
-            my $y = ( random($x) < 0.3 );
-            my $c = whereND( $x, $y );
-            my $where = where( $x, $y );
-            ok tapprox( $c->squeeze, $where ), "vs where" or diag "x=$x\ny=$y\nwhere=$where\nc=$c";
+            my $x = sequence( 2, 2, 2 );
+            for my $y (
+              pdl('[[[0 0][0 0]][[0 0][0 0]]]'),
+              pdl('[[[0 0][0 0]][[0 0][0 1]]]'),
+              pdl('[[[0 0][0 0]][[0 1][0 1]]]'),
+            ) {
+                my $c = whereND( $x, $y );
+                my $where = where( $x, $y );
+                ok tapprox( $c->flat, $where ), "vs where" or diag "x=$x\ny=$y\nwhere=$where\nc=$c";
+            }
         };
 
         subtest 'lvalue' => sub {
