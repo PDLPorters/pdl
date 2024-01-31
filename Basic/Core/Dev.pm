@@ -491,6 +491,7 @@ my %flags = (
     allocated => { },
     vaffine => { FLAG => "OPT_VAFFTRANSOK" },
     anychgd => { FLAG => "ANYCHANGED" },
+    datachgd => { FLAG => "PARENTDATACHANGED" },
     dimschgd => { FLAG => "PARENTDIMSCHANGED" },
     tracedebug => { set => 1 },
 );
