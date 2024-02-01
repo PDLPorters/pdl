@@ -123,6 +123,9 @@ is($c->hdr->{demo}, "yes", "hdr before reshape");
 $c->reshape(5,5);
 is($c->hdr->{demo}, "yes", "hdr after reshape");
 
+eval {zeroes(0)->squeeze->dims};
+is $@, '', 'can "squeeze" an empty';
+
 # test topdl
 
 isa_ok( PDL->topdl(1),       "PDL", "topdl(1) returns an ndarray" );

@@ -172,6 +172,7 @@ for (
   [$x1, [pdl([])], pdl([]), "slice 2-elt ndarray with empty"],
   [$x1, [pdl(1)], pdl([2]), "slice 2-elt ndarray with length-1 ndarray"],
   [zeroes(2,1,0), [\[[],[0,0,0],[]]], zeroes(2,0), "squeeze empty"],
+  [zeroes(2,0), ",0:-1", zeroes(2,0), "slice empty string syntax"],
 ) {
   my ($src, $sl, $exp, $label) = @$_;
   my $y = $src;
