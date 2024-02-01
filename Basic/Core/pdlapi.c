@@ -80,8 +80,9 @@ pdl_error pdl__ensure_trans(pdl_trans *trans,int what,int *wd, int recurse_count
 	}
 	for(j=vtable->nparents; j<vtable->npdls; j++) {
 		pdl *child = trans->pdls[j];
-		PDLDEBUG_f(printf("pdl__ensure_trans child=%p turning off all changed, before=", child); pdl_dump_flags_fixspace(child->state, 0, PDL_FLAGS_PDL));
-		child->state &= ~PDL_ANYCHANGED;
+		PDLDEBUG_f(printf("pdl__ensure_trans child=%p considering turning off all changed, before=", child); pdl_dump_flags_fixspace(child->state, 0, PDL_FLAGS_PDL));
+		if (!PDL_VAFFOK(child) || (child->state & PDL_ALLOCATED))
+		    child->state &= ~PDL_ANYCHANGED;
 		if (!wd) continue;
 		PDLDEBUG_f(printf("   pdl__ensure_trans wd="); pdl_dump_flags_fixspace(wd[j], 0, PDL_FLAGS_PDL));
 		char isvaffine = (PDL_VAFFOK(child) &&
@@ -313,7 +314,8 @@ void pdl__removetrans_parent(pdl *it, pdl_trans *trans, PDL_Indx nth)
 	trans->pdls[nth] = 0;
 	if (it->trans_parent != trans) return; /* only do rest if trans is parent */
 	it->trans_parent = 0;
-	it->state &= ~PDL_MYDIMS_TRANS;
+	PDLDEBUG_f(printf("pdl__removetrans_parent turning off MYDIMS_TRANS and ANYCHANGED, was: "); pdl_dump_flags_fixspace(it->state, 0, PDL_FLAGS_PDL));
+	it->state &= ~(PDL_MYDIMS_TRANS | PDL_ANYCHANGED);
 }
 
 pdl_error pdl_trans_finaldestroy(pdl_trans *trans)

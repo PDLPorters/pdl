@@ -303,7 +303,7 @@ $x = zeroes 5,6,2;
 $y = (xvals $x) + 0.1 * (yvals $x) + 0.01 * (zvals $x);
 my $c = $y->copy->slice("2:3");
 ok tapprox $c, $c->copy;
-for ([0,1], [1,0]) {
+for ([0,1], [1,0], [1,1]) {
   my ($mv, $mult) = @$_;
   my $x_orig = pdl [1..4];
   my $x_mv = $mv ? $x_orig->mv(-1,0) : $x_orig;
@@ -321,7 +321,7 @@ for ([0,1], [1,0]) {
 }
 
 # captured from https://www.perlmonks.org/?node_id=11153348
-for ([0,1]) {
+for ([0,0], [0,1], [1,0]) {
   my ($phys_clump, $mutate_orig) = @$_;
   my $orig = zeroes 3,2,1;
   my $clump = $orig->clump(1,2);
