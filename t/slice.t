@@ -171,13 +171,14 @@ for (
   [pdl([1]), [pdl([])], pdl([]), "slice 1-elt ndarray with empty"],
   [$x1, [pdl([])], pdl([]), "slice 2-elt ndarray with empty"],
   [$x1, [pdl(1)], pdl([2]), "slice 2-elt ndarray with length-1 ndarray"],
+  [zeroes(2,1,0), [\[[],[0,0,0],[]]], zeroes(2,0), "squeeze empty"],
 ) {
   my ($src, $sl, $exp, $label) = @$_;
   my $y = $src;
-  $y = eval { $y->slice($_)->make_physical } for ref $sl ? @$sl : $sl;
+  $y = eval { $y->slice(ref($_) eq 'REF' ? @$$_ : $_)->make_physical } for ref $sl ? @$sl : $sl;
   like($@, $exp, "$label right error"), next if ref($exp) eq 'Regexp';
   is $@, '', "$label works";
-  is_deeply([$y->dims], ref($exp) eq 'ARRAY' ? $exp : [$exp->dims], "$label dims right");
+  is_deeply([$y->dims], ref($exp) eq 'ARRAY' ? $exp : [$exp->dims], "$label dims right") or diag explain [$y->dims];
   next if ref($exp) eq 'ARRAY';
   is $y->nelem, $exp->nelem, "$label works right";
   ok tapprox($y, $exp), "$label works right";
