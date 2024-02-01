@@ -778,7 +778,6 @@ pdl_error pdl__make_physical_recprotect(pdl *it, int recurse_count) {
 		PDL_RETERROR(PDL_err, pdl_readdata_vaffine(it));
 		PDLDEBUG_f(printf("make_physical turning off anychanged, before="); pdl_dump_flags_fixspace(it->state, 0, PDL_FLAGS_PDL));
 		it->state &= (~PDL_ANYCHANGED);
-		PDLDEBUG_f(pdl_dump(it));
 		goto mkphys_end;
 	}
 	PDL_TR_CHKMAGIC(it->trans_parent);
@@ -804,7 +803,7 @@ pdl_error pdl__make_physical_recprotect(pdl *it, int recurse_count) {
 	PDLDEBUG_f(printf("make_physical turning off anychanged and OPTs, before="); pdl_dump_flags_fixspace(it->state, 0, PDL_FLAGS_PDL));
 	it->state &= ~(PDL_ANYCHANGED | PDL_OPT_ANY_OK);
   mkphys_end:
-	PDLDEBUG_f(printf("make_physical exit %p\n",(void*)it));
+	PDLDEBUG_f(printf("make_physical exiting: "); pdl_dump(it));
 	return PDL_err;
 }
 
