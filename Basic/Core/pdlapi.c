@@ -761,11 +761,8 @@ pdl_error pdl__make_physical_recprotect(pdl *it, int recurse_count) {
 	  return pdl_make_error_simple(PDL_EUSERERROR, "PDL:Internal Error: data structure recursion limit exceeded (max 1000 levels)\n\tThis could mean that you have found an infinite-recursion error in PDL, or\n\tthat you are building data structures with very long dataflow dependency\n\tchains.  You may want to try using sever() to break the dependency.\n");
 	PDLDEBUG_f(printf("make_physical %p\n",(void*)it));
         PDL_CHKMAGIC(it);
-	if(it->state & PDL_ALLOCATED && !(it->state & PDL_ANYCHANGED))  {
-		goto mkphys_end;
-	}
 	if(!(it->state & PDL_ANYCHANGED))  {
-		PDL_RETERROR(PDL_err, pdl_allocdata(it));
+		if (!(it->state & PDL_ALLOCATED)) PDL_RETERROR(PDL_err, pdl_allocdata(it));
 		goto mkphys_end;
 	}
 	if(!it->trans_parent) {
