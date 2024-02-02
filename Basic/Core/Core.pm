@@ -1752,7 +1752,9 @@ the usual cases. The following example demonstrates typical usage:
   $x = sequence 2,3,3,3,5; # 5D ndarray
   $c = $x->clump(1..3);    # clump all the dims 1 to 3 into one
   print $c->info;          # resulting 3D ndarray has clumped dim at pos 1
- PDL: Double D [2,27,5]
+  PDL: Double D [2,27,5]
+
+Data flows back and forth as usual with slicing routines.
 
 =cut
 
@@ -3048,7 +3050,7 @@ then the connection is first severed.
 =cut
 
 *reshape = \&PDL::reshape;
-sub PDL::reshape{
+sub PDL::reshape {
     my $pdl = topdl($_[0]);
     if (@_ == 2 && $_[1] == -1) {  # a slicing reshape that drops 1-dims
 	return $pdl->slice( map $_==1 ? [0,0,0] : [], $pdl->dims);
@@ -3103,7 +3105,7 @@ flatten an ndarray (alias for C<< $pdl->clump(-1) >>)
 Useful method to make a 1D ndarray from an
 arbitrarily sized input ndarray. Data flows
 back and forth as usual with slicing routines.
-Falls through if argument already E<lt>= 1D.
+Falls through if argument already != 1D.
 
 =cut
 
