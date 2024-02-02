@@ -123,8 +123,10 @@ is($c->hdr->{demo}, "yes", "hdr before reshape");
 $c->reshape(5,5);
 is($c->hdr->{demo}, "yes", "hdr after reshape");
 
-eval {zeroes(0)->squeeze->dims};
+eval {empty->squeeze->dims};
 is $@, '', 'can "squeeze" an empty';
+eval {empty->copy->make_physical};
+is $@, '', 'can physicalise the copy of an empty';
 
 # test topdl
 
