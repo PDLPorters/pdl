@@ -303,6 +303,21 @@ $x = zeroes 5,6,2;
 $y = (xvals $x) + 0.1 * (yvals $x) + 0.01 * (zvals $x);
 my $c = $y->copy->slice("2:3");
 ok tapprox $c, $c->copy;
+for ([0,1], [1,0]) {
+  my ($mv, $mult) = @$_;
+  my $x_orig = pdl [1..4];
+  my $x_mv = $mv ? $x_orig->mv(-1,0) : $x_orig;
+  my $x_slice = $x_mv->slice("0:2");
+  $x_slice->make_physvaffine;
+  $x_slice *= 100 if $mult;
+  my $y = PDL::_clump_int($x_slice,-1);
+  $y->make_physvaffine;
+  my $got = [$x_slice->firstvals_nophys];
+  my $exp = [map $_*($mult ? 100 : 1), 1..3];
+  is_deeply $got, $exp, "mv=$mv mult=$mult firstvals_nophys" or diag explain $got;
+  $got = $y->unpdl;
+  is_deeply $got, $exp, "mv=$mv mult=$mult clump" or diag explain $got;
+}
 }
 
 my $pa = zeroes(7, 7); $pa->set(3, 4, 1);
