@@ -320,6 +320,21 @@ for ([0,1], [1,0]) {
 }
 }
 
+# captured from https://www.perlmonks.org/?node_id=11153348
+for ([0,1]) {
+  my ($phys_clump, $mutate_orig) = @$_;
+  my $orig = zeroes 3,2,1;
+  my $clump = $orig->clump(1,2);
+  $clump->make_physvaffine if $phys_clump;
+  ($mutate_orig ? $orig : $clump) .= 3;
+  my $got = $orig->unpdl;
+  is_deeply $got, [[[(3)x3],[(3)x3]]], "phys_clump=$phys_clump mutate_orig=$mutate_orig orig" or diag explain $got;
+  $got = $clump->unpdl;
+  is_deeply $got, [[(3)x3],[(3)x3]], "phys_clump=$phys_clump mutate_orig=$mutate_orig clump" or diag explain $got;
+  $got = $clump->uniqvec->unpdl;
+  is_deeply $got, [[(3)x3]], "phys_clump=$phys_clump mutate_orig=$mutate_orig uniqvec" or diag explain $got;
+}
+
 my $pa = zeroes(7, 7); $pa->set(3, 4, 1);
 my $indices = $pa->which->dummy(0,$pa->getndims)->make_physical;
 my $s = $indices->index(0);
