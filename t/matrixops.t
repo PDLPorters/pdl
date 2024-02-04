@@ -332,6 +332,13 @@ eval {squaretotri($x, zeroes(7))};
 like $@, qr/dim has size 7/;
 $y = squaretotri($x);
 is $y.'', "[0 3 4 6 7 8]", 'squaretotri with no output arg given';
+is tritosquare($y).'', '
+[
+ [0 0 0]
+ [3 4 0]
+ [6 7 8]
+]
+', 'tritosquare';
 $y = squaretotri(sequence(3,3,2));
 is $y.'', "
 [

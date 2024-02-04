@@ -1352,6 +1352,28 @@ Ignores upper half of input.
 ',
 );
 
+pp_def("tritosquare",
+	Pars => 'a(m); [o]b(n,n)',
+	GenericTypes => [ppdefs_all],
+	RedoDimsCode => '
+          float n = sqrtf(0.25 + 2*$SIZE(m)) - 0.5;
+          $SIZE(n) = roundf(n);
+          if (fabsf($SIZE(n) - n) > 0.1) $CROAK("Non-triangular vector size=%"IND_FLAG, $SIZE(m));
+	',
+	Code => '
+            register PDL_Indx mna=0, nb=0;
+            loop(m) %{
+                  $b(n0 => mna, n1 => nb) = $a();
+                  mna++; if(mna > nb) {mna = 0; nb ++;}
+            %}
+	',
+	Doc => '=for ref
+
+Convert a triangular vector to lower-triangular square matrix storage.
+Does not touch upper half of output.
+',
+);
+
 pp_addpm({At=>'Bot'},<<'EOD');
 
 =head1 AUTHOR
