@@ -812,51 +812,51 @@ pdl_error pdl_make_physical(pdl *it) {
 
 pdl_error pdl_changed(pdl *it, int what, int recursing)
 {
-    pdl_error PDL_err = {0, NULL, 0};
-    int i; int j;
-    PDLDEBUG_f(
-      printf("pdl_changed: entry for pdl %p recursing: %d, what=",
-	     (void*)it,recursing);
-      pdl_dump_flags_fixspace(what,0,PDL_FLAGS_PDL);
-      if (it->state & PDL_TRACEDEBUG) pdl_dump(it);
-    );
-    if(recursing) {
-	PDLDEBUG_f(printf("pdl_changed: adding what to state, currently="); pdl_dump_flags_fixspace(it->state,0,PDL_FLAGS_PDL));
-	it->state |= what;
-	if(pdl__ismagic(it)) pdl__call_magic(it,PDL_MAGIC_MARKCHANGED);
-    }
-    if(it->trans_parent && !recursing && (it->trans_parent->flags & PDL_ITRANS_DO_DATAFLOW_B)) {
-	pdl_trans *trans = it->trans_parent;
-	if((trans->flags & PDL_ITRANS_ISAFFINE) && (PDL_VAFFOK(it))) {
-	    PDLDEBUG_f(printf("pdl_changed: calling writebackdata_vaffine (pdl %p)\n",(void*)it));
-	    PDL_ACCUMERROR(PDL_err, pdl_writebackdata_vaffine(it));
-	    CHANGED(it->vafftrans->from,what,0);
-	} else {
-	    PDLDEBUG_f(printf("pdl_changed: calling writebackdata from vtable, triggered by pdl %p, using trans %p\n",(void*)it,(void*)(trans)));
-	    WRITEDATA(trans);
-	    for(i=0; i<trans->vtable->nparents; i++) {
-		pdl *pdl = trans->pdls[i];
-		CHANGED(
-		    (VAFFINE_FLAG_OK(trans->vtable->per_pdl_flags,i) &&
-		       pdl->trans_parent &&
-		       (pdl->trans_parent->flags & PDL_ITRANS_ISAFFINE) &&
-		       PDL_VAFFOK(pdl))
-		    ? pdl->vafftrans->from
-		    : pdl,
-		    what,0);
-	    }
-	}
+  pdl_error PDL_err = {0, NULL, 0};
+  int i; int j;
+  PDLDEBUG_f(
+    printf("pdl_changed: entry for pdl %p recursing: %d, what=",
+           (void*)it,recursing);
+    pdl_dump_flags_fixspace(what,0,PDL_FLAGS_PDL);
+    if (it->state & PDL_TRACEDEBUG) pdl_dump(it);
+  );
+  if (recursing) {
+    PDLDEBUG_f(printf("pdl_changed: adding what to state, currently="); pdl_dump_flags_fixspace(it->state,0,PDL_FLAGS_PDL));
+    it->state |= what;
+    if(pdl__ismagic(it)) pdl__call_magic(it,PDL_MAGIC_MARKCHANGED);
+  }
+  if (it->trans_parent && !recursing && (it->trans_parent->flags & PDL_ITRANS_DO_DATAFLOW_B)) {
+    pdl_trans *trans = it->trans_parent;
+    if (PDL_VAFFOK(it)) {
+      PDLDEBUG_f(printf("pdl_changed: calling writebackdata_vaffine (pdl %p)\n",(void*)it));
+      PDL_ACCUMERROR(PDL_err, pdl_writebackdata_vaffine(it));
+      CHANGED(it->vafftrans->from,what,0);
     } else {
-	PDL_DECL_CHILDLOOP(it);
-	PDL_START_CHILDLOOP(it)
-	    pdl_trans *trans = PDL_CHILDLOOP_THISCHILD(it);
-	    for(j=trans->vtable->nparents; j<trans->vtable->npdls; j++)
-		if (trans->pdls[j] != it && (trans->pdls[j]->state & what) != what)
-		    CHANGED(trans->pdls[j],what,1);
-	PDL_END_CHILDLOOP(it)
+      PDLDEBUG_f(printf("pdl_changed: calling writebackdata from vtable, triggered by pdl %p, using trans %p\n",(void*)it,(void*)(trans)));
+      WRITEDATA(trans);
+      for (i=0; i<trans->vtable->nparents; i++) {
+        pdl *pdl = trans->pdls[i];
+        CHANGED(
+          (VAFFINE_FLAG_OK(trans->vtable->per_pdl_flags,i) &&
+            pdl->trans_parent &&
+            (pdl->trans_parent->flags & PDL_ITRANS_ISAFFINE) &&
+            PDL_VAFFOK(pdl))
+          ? pdl->vafftrans->from
+          : pdl,
+          what,0);
+      }
     }
-    PDLDEBUG_f(printf("pdl_changed: exiting for pdl %p\n",(void*)it));
-    return PDL_err;
+  } else {
+    PDL_DECL_CHILDLOOP(it);
+    PDL_START_CHILDLOOP(it)
+      pdl_trans *trans = PDL_CHILDLOOP_THISCHILD(it);
+      for(j=trans->vtable->nparents; j<trans->vtable->npdls; j++)
+        if (trans->pdls[j] != it && (trans->pdls[j]->state & what) != what)
+          CHANGED(trans->pdls[j],what,1);
+    PDL_END_CHILDLOOP(it)
+  }
+  PDLDEBUG_f(printf("pdl_changed: exiting for pdl %p\n",(void*)it));
+  return PDL_err;
 }
 
 /* Current assumptions: only
