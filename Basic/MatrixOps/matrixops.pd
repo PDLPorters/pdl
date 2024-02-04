@@ -452,7 +452,6 @@ pp_def("eigens_sym",
       my (@d) = $x->dims;
       barf "Need real square matrix for eigens_sym" 
             if $#d < 1 or $d[0] != $d[1];
-      my ($n) = $d[0];
       my ($sym) = 0.5*($x + $x->transpose);
       my ($err) = PDL::max(abs($sym));
       barf "Need symmetric component non-zero for eigens_sym"
@@ -461,17 +460,7 @@ pp_def("eigens_sym",
       warn "Using symmetrized version of the matrix in eigens_sym"
 	if $err > 1e-5 && $PDL::debug;
 
-      ## Get lower diagonal form 
-      ## Use whichND/indexND because whereND doesn\'t exist (yet?) and
-      ## the combo is broadcastable (unlike where).  Note that for historical
-      ## reasons whichND needs a scalar() around it to give back a 
-      ## nice 2xn PDL index. 
-      my $lt  = PDL::indexND($sym,
-			     scalar(PDL::whichND(PDL->xvals($n,$n) <=
-						 PDL->yvals($n,$n)))
-			     )->copy;
-
-      &PDL::_eigens_sym_int($lt, my $ev=PDL->null, my $e=PDL->null);
+      &PDL::_eigens_sym_int($sym->squaretotri, my $ev=PDL->null, my $e=PDL->null);
 
       return $ev->transpose, $e
 	if(wantarray);
@@ -605,20 +594,11 @@ pp_def("eigens",
    sub PDL::eigens {
       my ($x) = @_;
       my (@d) = $x->dims;
-      my $n = $d[0];
       barf "Need real square matrix for eigens" 
             if $#d < 1 or $d[0] != $d[1];
       my $deviation = PDL::max(abs($x - $x->transpose))/PDL::max(abs($x));
       if ( $deviation <= 1e-5 ) {
-          #taken from eigens_sym code
-
-          my $lt  = PDL::indexND($x,
-			     scalar(PDL::whichND(PDL->xvals($n,$n) <=
-						 PDL->yvals($n,$n)))
-			     )->copy;
-
-          &PDL::_eigens_sym_int($lt, my $ev=PDL->null, my $e=PDL->null);
-
+          &PDL::_eigens_sym_int($x->squaretotri, my $ev=PDL->null, my $e=PDL->null);
           return $ev->transpose, $e   if wantarray;
           return $e;  #just eigenvalues
       }
@@ -716,25 +696,19 @@ pp_def(
        Code => '
               extern void SVD( double *W, double *Z, int nRow, int nCol );
               double *t = $P(w);
-              loop (m) %{
-                loop(n) %{
-                  *t++ = $a();
-                %}
+              loop (m,n) %{
+                *t++ = $a();
               %}
               SVD($P(w), $P(z), $SIZE(m), $SIZE(n));
               loop (n) %{
                 $z() = sqrt($z());
               %}
               t = $P(w);
-              loop (m) %{
-                loop (n) %{
-                  $u() = *t++/$z();
-                %}
+              loop (m,n) %{
+                $u() = *t++/$z();
               %}
-              loop (n1) %{
-                loop (n0) %{
-                  $v() = *t++;
-                %}
+              loop (n1,n0) %{
+                $v() = *t++;
               %}
 ',
       , Doc => q{
