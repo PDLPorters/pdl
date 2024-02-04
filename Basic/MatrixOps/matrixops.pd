@@ -436,14 +436,15 @@ EOD
 pp_def("eigens_sym",
        HandleBad => 0,
 	Pars => '[phys]a(m); [o,phys]ev(n,n); [o,phys]e(n)',
+	RedoDimsCode => '
+          float n = sqrtf(0.25 + 2*$SIZE(m)) - 0.5;
+          $SIZE(n) = roundf(n);
+          if (fabsf($SIZE(n) - n) > 0.1) $CROAK("Non-triangular vector size=%"IND_FLAG, $SIZE(m));
+	',
 	GenericTypes => ['D'],
 	Code => '
 		extern void eigens( double *A, double *RR, double *E, int N );
-		register int sn = $SIZE (n);
-		if($SIZE (m) != (sn * (sn + 1))/2) {
-			$CROAK("Wrong sized args for eigens_sym");
-		}
-		eigens($P (a), $P (ev), $P (e), sn);
+		eigens($P(a), $P(ev), $P(e), $SIZE(n));
 ',
       PMCode =>'
    sub PDL::eigens_sym {
@@ -469,10 +470,8 @@ pp_def("eigens_sym",
 			     scalar(PDL::whichND(PDL->xvals($n,$n) <=
 						 PDL->yvals($n,$n)))
 			     )->copy;
-      my $ev  = PDL->zeroes($sym->dims);
-      my $e   = PDL->zeroes($sym->index(0)->dims);
-      
-      &PDL::_eigens_sym_int($lt, $ev, $e);
+
+      &PDL::_eigens_sym_int($lt, my $ev=PDL->null, my $e=PDL->null);
 
       return $ev->transpose, $e
 	if(wantarray);
@@ -519,26 +518,23 @@ runs across their components.
 ###
 pp_def("eigens",
        HandleBad => 0,
-	Pars => '[phys]a(m); [o,phys]ev(l,n,n); [o,phys]e(l,n)',
+	Pars => '[phys]a(m); [o,phys]ev(l=2,n,n); [o,phys]e(l,n)',
+	RedoDimsCode => '
+          float n = sqrtf(0.25 + 2*$SIZE(m)) - 0.5;
+          $SIZE(n) = roundf(n);
+          if (fabsf($SIZE(n) - n) > 0.1) $CROAK("Non-triangular vector size=%"IND_FLAG, $SIZE(m));
+	',
 	GenericTypes => ['D'],
 	Code => '
 	    #include "eigen.h"
 
-	    register int sn = $SIZE(n);
+	    register PDL_Indx sn = $SIZE(n);
 	    int i,j;
 
             void **foo;
             void **bar;
             New(42, foo, sn, void*);
             New(111, bar, sn, void*);
-
-            if($SIZE (l) != 2) {
-	        $CROAK("eigens internal error...");
-            }
-            if($SIZE (m) != (sn * sn )) {
-		fprintf(stderr,"m=%"IND_FLAG", sn=%d\n",$SIZE(m),sn);
-		$CROAK("Wrong sized args for eigens");
-	    }
 
 	    for(  i=j=0;  i<$SIZE(m);  i += sn  ) {
 		foo[j] = &( ($P(a))[ i ] );
@@ -620,10 +616,8 @@ pp_def("eigens",
 			     scalar(PDL::whichND(PDL->xvals($n,$n) <=
 						 PDL->yvals($n,$n)))
 			     )->copy;
-          my $ev  = PDL->zeroes($x->dims);
-          my $e   = PDL->zeroes($x->index(0)->dims);
-      
-          &PDL::_eigens_sym_int($lt, $ev, $e);
+
+          &PDL::_eigens_sym_int($lt, my $ev=PDL->null, my $e=PDL->null);
 
           return $ev->transpose, $e   if wantarray;
           return $e;  #just eigenvalues
@@ -640,11 +634,8 @@ pp_def("eigens",
 		  "    PDL_EIGENS_HACK prior to calling eigens() with a non-symmetric matrix.\n";
 		  $PDL::eigens_bug_ack = 1;
 	  }
-	  
-          my $ev  = PDL->zeroes(2, $x->dims);
-          my $e   = PDL->zeroes(2, $x->index(0)->dims);
 
-          &PDL::_eigens_int($x->clump(0,1), $ev, $e);
+          &PDL::_eigens_int($x->clump(0,1), my $ev=PDL->null, my $e=PDL->null);
 
           return $ev->index(0)->transpose->sever, $e->index(0)->sever
               if(wantarray);
