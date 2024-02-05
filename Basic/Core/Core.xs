@@ -318,27 +318,20 @@ address(self)
   OUTPUT:
     RETVAL
 
-char *
-name(self)
-  pdl_trans *self;
-  CODE:
-    if (!self->vtable) barf("%p has NULL vtable", self);
-    RETVAL = self->vtable->name;
-  OUTPUT:
-    RETVAL
-
 void
 flags(x)
   pdl_trans *x
   PPCODE:
     PDL_FLAG_DUMP(PDL_LIST_FLAGS_PDLTRANS, x->flags)
 
-void
-flags_vtable(x)
+pdl_transvtable *
+vtable(x)
   pdl_trans *x
-  PPCODE:
+  CODE:
     if (!x->vtable) barf("%p has NULL vtable", x);
-    PDL_FLAG_DUMP(PDL_LIST_FLAGS_PDLVTABLE, x->vtable->flags)
+    RETVAL = x->vtable;
+  OUTPUT:
+    RETVAL
 
 int
 vaffine(x)
@@ -380,6 +373,22 @@ inc_sizes(x)
     PDL_Indx i, max = x->vtable->nind_ids;
     EXTEND(sp, max);
     for(i=0; i<max; i++) mPUSHi(x->inc_sizes[i]);
+
+MODULE = PDL::Core     PACKAGE = PDL::Trans::VTable
+
+char *
+name(x)
+  pdl_transvtable *x;
+  CODE:
+    RETVAL = x->name;
+  OUTPUT:
+    RETVAL
+
+void
+flags(x)
+  pdl_transvtable *x
+  PPCODE:
+    PDL_FLAG_DUMP(PDL_LIST_FLAGS_PDLVTABLE, x->flags)
 
 MODULE = PDL::Core     PACKAGE = PDL::Core
 

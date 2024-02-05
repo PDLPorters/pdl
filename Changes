@@ -3,6 +3,7 @@
 - add datachgd method
 - add MatrixOps::tritosquare
 - add gv command to shells
+- add PDL::Trans::VTable
 
 2.085 2024-01-30
 - switch FFT code to use heap, not VLA (#436) - thanks @HaraldJoerg for report

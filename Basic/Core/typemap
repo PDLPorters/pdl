@@ -1,6 +1,7 @@
 TYPEMAP
 pdl *	T_PDL
 pdl_trans * T_PDLTRANS
+pdl_transvtable * T_PDLTRANSVTABLE
 PDL_Indx  T_IV
 float	T_NV
 PDL_Anyval  T_PDL_ANYVAL
@@ -21,6 +22,11 @@ T_PDLTRANS
     croak(\"$var is not of type PDL::Trans\");
   $var = INT2PTR(pdl_trans *,SvIV(SvRV($arg)));
 
+T_PDLTRANSVTABLE
+  if (!sv_isa($arg,\"PDL::Trans::VTable\"))
+    croak(\"$var is not of type PDL::Trans::VTable\");
+  $var = INT2PTR(pdl_transvtable *,SvIV(SvRV($arg)));
+
 T_PDL_SLICEARGS
   $var = PDL_CORE_(slice_args_parse_sv)($arg)
 
@@ -40,6 +46,9 @@ T_PDL_ANYVAL
 
 T_PDLTRANS
   sv_setref_pv($arg, \"PDL::Trans\", (void*)$var);
+
+T_PDLTRANSVTABLE
+  sv_setref_pv($arg, \"PDL::Trans::VTable\", (void*)$var);
 
 T_PDL_LIST
   if ($var) {

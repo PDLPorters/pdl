@@ -581,9 +581,15 @@ my $slice = $s->slice;
 isnt +(my $tp=$slice->trans_parent), undef, 'trans_parent with trans defined';
 is ${($s->trans_children)[0]}, $$tp, 'correct trans_children';
 my @parents = $tp->parents;
-is ${$parents[0]}, $$s, 'correct parent ndarray';
+is ${$parents[0]}, $s->address, 'correct parent ndarray';
 my @children = $tp->children;
-is ${$children[0]}, $$slice, 'correct child ndarray';
+is ${$children[0]}, $slice->address, 'correct child ndarray';
+my $vtable = $tp->vtable;
+isnt $vtable->name, undef, 'trans vtable has a name';
+isnt PDL::Core::pdump($slice), undef, 'pdump works';
+isnt PDL::Core::pdump_trans($tp), undef, 'pdump_trans works';
+isnt PDL::Core::pdumphash($slice), undef, 'pdumphash works with ndarray';
+isnt PDL::Core::pdumphash($tp), undef, 'pdumphash works with trans';
 
 my $notouch = sequence(4);
 $notouch->set_donttouchdata(4 * PDL::Core::howbig($notouch->get_datatype));

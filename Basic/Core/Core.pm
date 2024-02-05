@@ -1469,17 +1469,9 @@ C<[o]>, C<[oca]>, C<[io]>, or C<[t]> in C<Pars>).
 
 The memory address of the struct.
 
-=item name
-
-The function name from the vtable.
-
 =item flags
 
 List of strings of flags set for this trans.
-
-=item flags_vtable
-
-List of strings of flags set for this trans's vtable.
 
 =item vaffine
 
@@ -1500,6 +1492,18 @@ The size of each named dim.
 =item inc_sizes
 
 The size of the inc for each use of a named dim.
+
+=item vtable
+
+This trans's vtable.
+
+=item C<< $vtable->name >>
+
+The function name from this vtable.
+
+=item C<< $vtable->flags >>
+
+List of strings of flags set for this vtable.
 
 =back
 
@@ -2217,9 +2221,10 @@ Not exported, and not inserted into the C<PDL> namespace.
 
 sub pdump_trans {
   my ($trans) = @_;
+  my $vtable = $trans->vtable;
   my @lines = (
     "State: ${\join '|', $trans->flags}",
-    "vtable flags: ${\join '|', $trans->flags_vtable}",
+    "vtable flags: ${\join '|', $vtable->flags}",
   );
   my @ins = $trans->parents;
   my @outs = $trans->children;
@@ -2233,7 +2238,7 @@ sub pdump_trans {
     "inc_sizes: (@{[$trans->inc_sizes]})",
     "INPUTS: (@{[map sprintf('0x%x', $_->address), @ins]})  OUTPUTS: (@{[map sprintf('0x%x', $_->address), @outs]})",
     ;
-  join '', "PDUMPTRANS 0x${\sprintf '%x', $trans->address} (${\$trans->name})\n", map "  $_\n", @lines;
+  join '', "PDUMPTRANS 0x${\sprintf '%x', $trans->address} (${\$vtable->name})\n", map "  $_\n", @lines;
 }
 
 =head2 pdumphash
@@ -2262,13 +2267,14 @@ sub pdumphash {
   my $addr = sprintf '0x%x', $obj->address; # both ndarray and trans
   return $sofar if $sofar->{$addr};
   if ($obj->isa('PDL::Trans')) {
+    my $vtable = $obj->vtable;
     my @ins = $obj->parents;
     my @outs = $obj->children;
     $sofar->{$addr} = {
       kind => 'trans',
-      name => $obj->name,
+      name => $vtable->name,
       flags => [$obj->flags],
-      vtable_flags => [$obj->flags_vtable],
+      vtable_flags => [$vtable->flags],
       !($obj->vaffine && !$outs[0]->dimschgd) ? () : (
         affine => "o:".$obj->offs." i:(@{[$obj->incs]}) d:(@{[$outs[0]->dims_nophys]})"
       ),
