@@ -2365,25 +2365,26 @@ Not exported, and not inserted into the C<PDL> namespace.
 sub pdumpgraphvizify {
   my ($g) = @_;
   for my $v ($g->vertices) {
-    my $kind = $g->get_vertex_attribute($v, 'kind');
-    if (my $from = $g->get_vertex_attribute($v, 'vaffine_from')) {
+    my $attrs = $g->get_vertex_attributes($v);
+    my $kind = $attrs->{kind};
+    if (my $from = $attrs->{vaffine_from}) {
       $g->set_edge_attribute_by_id(
         $v, $from, 'vaffine_from',
         graphviz => { style => 'dashed', constraint => 'false' },
       );
     }
     my @blocks;
-    push @blocks, $g->get_vertex_attribute($v, 'name') if $kind eq 'trans';
-    push @blocks, join '', map "$_\\l", @{$g->get_vertex_attribute($v, 'flags')};
+    push @blocks, $attrs->{name} if $kind eq 'trans';
+    push @blocks, join '', map "$_\\l", @{$attrs->{flags}};
     if ($kind eq 'trans') {
-      my @vflags = @{$g->get_vertex_attribute($v, 'vtable_flags')};
+      my @vflags = @{$attrs->{vtable_flags}};
       push @blocks, join '', map "$_\\l", @vflags ? @vflags : '(no vtable flags)';
-      my $affine = $g->get_vertex_attribute($v, 'affine');
+      my $affine = $attrs->{affine};
       push @blocks, $affine if $affine;
     } else {
-      my $firstvals = $g->get_vertex_attribute($v, 'firstvals');
+      my $firstvals = $attrs->{firstvals};
       $firstvals = ", (".($firstvals ? "@$firstvals" : 'not allocated').")";
-      push @blocks, 'datatype: '.$g->get_vertex_attribute($v, 'datatype'). $firstvals;
+      push @blocks, "datatype: $attrs->{datatype}$firstvals";
     }
     $g->set_vertex_attribute($v, graphviz => {
       shape => 'record',
