@@ -1505,6 +1505,11 @@ The function name from this vtable.
 
 List of strings of flags set for this vtable.
 
+=item C<< $vtable->par_names >>
+
+List of 2 array-refs of strings of names of input pars, then output pars,
+for this vtable.
+
 =back
 
 =head2 trans_children
@@ -2275,6 +2280,7 @@ sub pdumphash {
       name => $vtable->name,
       flags => [$obj->flags],
       vtable_flags => [$vtable->flags],
+      par_names => [$vtable->par_names],
       !($obj->vaffine && !$outs[0]->dimschgd) ? () : (
         affine => "o:".$obj->offs." i:(@{[$obj->incs]}) d:(@{[$outs[0]->dims_nophys]})"
       ),

@@ -590,6 +590,8 @@ isnt PDL::Core::pdump($slice), undef, 'pdump works';
 isnt PDL::Core::pdump_trans($tp), undef, 'pdump_trans works';
 isnt PDL::Core::pdumphash($slice), undef, 'pdumphash works with ndarray';
 isnt PDL::Core::pdumphash($tp), undef, 'pdumphash works with trans';
+my @pn = $vtable->par_names;
+is 0+@pn, 2, 'par_names returned 2 things';
 
 my $notouch = sequence(4);
 $notouch->set_donttouchdata(4 * PDL::Core::howbig($notouch->get_datatype));

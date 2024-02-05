@@ -390,6 +390,28 @@ flags(x)
   PPCODE:
     PDL_FLAG_DUMP(PDL_LIST_FLAGS_PDLVTABLE, x->flags)
 
+void
+par_names(x)
+  pdl_transvtable *x
+  PPCODE:
+    EXTEND(sp, 2);
+    PDL_Indx i;
+    for (i=0; i < 2; i++) {
+      AV *av = (AV *)sv_2mortal((SV *)newAV());
+      if (!av) barf("Failed to create AV");
+      mPUSHs(newRV_inc((SV *)av));
+      PDL_Indx start = i==0 ? 0 : x->nparents, j, max = i==0 ? x->nparents : x->npdls;
+      av_extend(av, max-start);
+      for (j = start; j < max; j++) {
+        SV *sv = newSVpv(x->par_names[j], 0);
+        if (!sv) barf("Failed to create SV");
+        if (!av_store( av, j-start, sv )) {
+          SvREFCNT_dec(sv);
+          barf("Failed to store SV");
+        }
+      }
+    }
+
 MODULE = PDL::Core     PACKAGE = PDL::Core
 
 IV
