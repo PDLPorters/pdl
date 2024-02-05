@@ -17,10 +17,9 @@ T_PDL_ANYVAL
   ANYVAL_FROM_SV($var, $arg, FALSE, -1)
 
 T_PDLTRANS
-  if(sv_isa($arg,\"PDL::Trans\"))
-    $var = INT2PTR(pdl_trans *,SvIV(SvRV($arg)));
-  else
+  if (!sv_isa($arg,\"PDL::Trans\"))
     croak(\"$var is not of type PDL::Trans\");
+  $var = INT2PTR(pdl_trans *,SvIV(SvRV($arg)));
 
 T_PDL_SLICEARGS
   $var = PDL_CORE_(slice_args_parse_sv)($arg)
