@@ -553,7 +553,7 @@ with a signature derived from its C<Pars> and C<OtherPars>. E.g.
 
 has the C signature:
 
-  void pdl_wtstat_run(pdl *a, pdl *wt, pdl *avg, pdl *b, int deg);
+  void pdl_run_wtstat(pdl *a, pdl *wt, pdl *avg, pdl *b, int deg);
 
 Not very surprisingly, all C<pdl*> parameters must be initialised (at
 least to C<< PDL->null >> status), and they are changed according to

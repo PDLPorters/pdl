@@ -810,10 +810,10 @@ pdl_error pdl_make_physical(pdl *it) {
   return pdl__make_physical_recprotect(it, 0);
 }
 
-pdl_error pdl_changed(pdl *it, int what, int recursing)
-{
+/* recursing = 0 when heading upwards, 1 when it reaches top and starts going downwards */
+pdl_error pdl_changed(pdl *it, int what, int recursing) {
   pdl_error PDL_err = {0, NULL, 0};
-  int i; int j;
+  PDL_Indx i, j;
   PDLDEBUG_f(
     printf("pdl_changed: entry for pdl %p recursing: %d, what=",
            (void*)it,recursing);
@@ -832,7 +832,7 @@ pdl_error pdl_changed(pdl *it, int what, int recursing)
       PDL_ACCUMERROR(PDL_err, pdl_writebackdata_vaffine(it));
       CHANGED(it->vafftrans->from,what,0);
     } else {
-      PDLDEBUG_f(printf("pdl_changed: calling writebackdata from vtable, triggered by pdl %p, using trans %p\n",(void*)it,(void*)(trans)));
+      PDLDEBUG_f(printf("pdl_changed: calling writebackdata from vtable, triggered by pdl %p, using trans %p\n",it,trans));
       WRITEDATA(trans);
       for (i=0; i<trans->vtable->nparents; i++) {
         pdl *pdl = trans->pdls[i];
