@@ -329,6 +329,15 @@ sub with_time (&) {
   printf "%g ms\n", Time::HiRes::tv_interval(\@t) * 1000;
 }
 
+sub gv {
+  my ($pdl, $file) = @_;
+  my $format = (split '.', $file)[-1];
+  my $g = PDL::Core::pdumpgraph(PDL::Core::pdumphash($pdl));
+  require GraphViz2;
+  my $gv = GraphViz2->from_graph(PDL::Core::pdumpgraphvizify($g));
+  $gv->run(format => $format, output_file => $file);
+}
+
 sub page {
   $PERLDL::PAGE = (defined $_[0] ? $_[0] : 1);
 }
@@ -715,6 +724,7 @@ Use PDL interactively:
   pdl> print "Hello, world!\n"; 
 
   pdl> with_time { print +($A->matmult($B))->info, "\n" } for 1..5;
+  pdl> gv $A, 'output.png' # uses GraphViz2 to show connected transforms etc
 
 Run a script:
 
@@ -943,6 +953,14 @@ C<with_time> runs the following code-block, and tells you how long it
 took, in milliseconds. Requires L<Time::HiRes>.
 
   pdl> with_time { print +($A->matmult($B))->info, "\n" } for 1..5;
+
+=item *
+
+C<gv> uses L<PDL::Core/pdumpgraph> etc to visualise the given ndarray,
+with all connected transformations, etc, into the given file. Requires
+L<Graph> and L<GraphViz2>.
+
+  pdl> gv $A, 'output.png'
 
 =back
 

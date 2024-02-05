@@ -121,6 +121,17 @@ sub apply_profile {
    } );
 
    $repl->eval( q{
+    sub gv {
+      my ($pdl, $file) = @_;
+      my $format = (split '.', $file)[-1];
+      my $g = PDL::Core::pdumpgraph(PDL::Core::pdumphash($pdl));
+      require GraphViz2;
+      my $gv = GraphViz2->from_graph(PDL::Core::pdumpgraphvizify($g));
+      $gv->run(format => $format, output_file => $file);
+    }
+   } );
+
+   $repl->eval( q{
     use PDL::Demos;
     sub demo {
       if (!$_[0]) {

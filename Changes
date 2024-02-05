@@ -2,6 +2,7 @@
 - fix pre-2002 rangeb bug (#457) - thanks @jo-37 for report
 - add datachgd method
 - add MatrixOps::tritosquare
+- add gv command to shells
 
 2.085 2024-01-30
 - switch FFT code to use heap, not VLA (#436) - thanks @HaraldJoerg for report
