@@ -2333,8 +2333,11 @@ sub pdumpgraph {
   my $g = Graph->new(multiedged=>1);
   for my $addr (keys %$hash) {
     $g->set_vertex_attributes($addr, my $props = $hash->{$addr});
-    $g->add_edge_by_id($_, $addr, 'normal') for @{ $props->{ins} };
-    $g->add_edge_by_id($addr, $_, 'normal') for @{ $props->{outs} };
+    if ($props->{kind} eq 'trans') {
+      my ($ins, $outs) = @$props{qw(ins outs)};
+      $g->add_edge_by_id($ins->[$_], $addr, $_) for 0..$#$ins;
+      $g->add_edge_by_id($addr, $outs->[$_], $_) for 0..$#$outs;
+    }
     if (my $from = $props->{vaffine_from}) {
       $g->add_edge_by_id($addr, $from, 'vaffine_from');
     }
@@ -2385,14 +2388,24 @@ sub pdumpgraphvizify {
         graphviz => { style => 'dashed', constraint => 'false' },
       );
     }
-    my @blocks;
-    push @blocks, $attrs->{name} if $kind eq 'trans';
-    push @blocks, join '', map "$_\\l", @{$attrs->{flags}};
+    my @blocks = join '', map "$_\\l", @{$attrs->{flags}};
     if ($kind eq 'trans') {
+      my ($in_names, $out_names) = @{$attrs->{par_names}}[0,1];
+      my ($ins, $outs) = @$attrs{qw(ins outs)};
+      unshift @blocks, [map +{text=>$in_names->[$_],port=>"i$_"}, 0..$#$ins], $attrs->{name};
+      $g->set_edge_attribute_by_id(
+        $ins->[$_], $v, $_,
+        graphviz => { headport => ["i$_","n"] },
+      ) for 0..$#$ins;
       my @vflags = @{$attrs->{vtable_flags}};
       push @blocks, join '', map "$_\\l", @vflags ? @vflags : '(no vtable flags)';
       my $affine = $attrs->{affine};
       push @blocks, $affine if $affine;
+      push @blocks, [map +{text=>$out_names->[$_],port=>"o$_"}, 0..$#$outs];
+      $g->set_edge_attribute_by_id(
+        $v, $outs->[$_], $_,
+        graphviz => { tailport => ["o$_","s"] },
+      ) for 0..$#$outs;
     } else {
       my $firstvals = $attrs->{firstvals};
       $firstvals = ", (".($firstvals ? "@$firstvals" : 'not allocated').")";
@@ -2408,7 +2421,6 @@ sub pdumpgraphvizify {
     global => {directed => 1, combine_node_and_port => 0},
     graph => {concentrate => 'true', rankdir => 'TB'},
   });
-
   $g;
 }
 
