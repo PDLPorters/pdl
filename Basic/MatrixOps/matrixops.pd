@@ -439,7 +439,7 @@ pp_def("eigens_sym",
 	RedoDimsCode => '
           float n = sqrtf(0.25 + 2*$SIZE(m)) - 0.5;
           $SIZE(n) = roundf(n);
-          if (fabsf($SIZE(n) - n) > 0.1) $CROAK("Non-triangular vector size=%"IND_FLAG, $SIZE(m));
+          if (fabsf($SIZE(n) - n) > 0.0001) $CROAK("Non-triangular vector size=%"IND_FLAG, $SIZE(m));
 	',
 	GenericTypes => ['D'],
 	Code => '
@@ -511,7 +511,7 @@ pp_def("eigens",
 	RedoDimsCode => '
           float n = sqrtf(0.25 + 2*$SIZE(m)) - 0.5;
           $SIZE(n) = roundf(n);
-          if (fabsf($SIZE(n) - n) > 0.1) $CROAK("Non-triangular vector size=%"IND_FLAG, $SIZE(m));
+          if (fabsf($SIZE(n) - n) > 0.0001) $CROAK("Non-triangular vector size=%"IND_FLAG, $SIZE(m));
 	',
 	GenericTypes => ['D'],
 	Code => '
@@ -1378,7 +1378,7 @@ pp_def("tritosquare",
 	RedoDimsCode => '
           float n = sqrtf(0.25 + 2*$SIZE(m)) - 0.5;
           $SIZE(n) = roundf(n);
-          if (fabsf($SIZE(n) - n) > 0.1) $CROAK("Non-triangular vector size=%"IND_FLAG, $SIZE(m));
+          if (fabsf($SIZE(n) - n) > 0.0001) $CROAK("Non-triangular vector size=%"IND_FLAG, $SIZE(m));
 	',
 	Code => '
             register PDL_Indx mna=0, nb=0;
