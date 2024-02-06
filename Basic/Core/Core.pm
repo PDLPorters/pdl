@@ -3604,6 +3604,20 @@ to 10x) than cat.
 
 =cut
 
+# takes a list of array-refs with dims, returns list of maximalised
+# broadcast-compatible dim lengths
+sub dims_filled {
+  my @resdims = @{shift()};
+  while (@_) {
+    my @d = @{shift()};
+    for my $j (0..$#d) {
+      $resdims[$j] = $d[$j] if( !defined($resdims[$j]) or $resdims[$j]==1 );
+      die "mismatched dims\n" if $d[$j] != 1 and $resdims[$j] != $d[$j];
+    }
+  }
+  @resdims;
+}
+
 sub PDL::cat {
 	my $res;
 	my $old_err = $@;
@@ -3612,17 +3626,10 @@ sub PDL::cat {
 		$res = $_[0]->initialize;
 		$res->set_datatype(max(map $_->get_datatype, @_));
 
-		my @resdims = $_[0]->dims;
-		for my $i(0..$#_){
-		    my @d = $_[$i]->dims;
-		    for my $j(0..$#d) {
-			$resdims[$j] = $d[$j] if( !defined($resdims[$j]) or $resdims[$j]==1 );
-			die "mismatched dims\n" if($d[$j] != 1 and $resdims[$j] != $d[$j]);
-		    }
-		}
+		my @resdims = dims_filled(map [$_->dims], @_);
 		$res->setdims( [@resdims,scalar(@_) ]);
-		my ($i,$t); my $s = ":,"x@resdims;
-		for (@_) { $t = $res->slice($s."(".$i++.")"); $t .= $_}
+		my @dog = $res->dog;
+		$dog[$_] .= $_[$_] for 0..$#_;
 
 		# propagate any bad flags
 		for (@_) { if ( $_->badflag() ) { $res->badflag(1); last; } }
