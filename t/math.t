@@ -63,6 +63,14 @@ ok all(approx $got=qsort(polyroots($coeffs)->re), $roots), 'polyroots native com
 polyroots $coeffs, $got=null; $got=$got->re->qsort;
 ok all(approx $got, $roots), 'polyroots native complex explicit output args' or diag $got;
 
+my ($coeffs2, $x, $exp_val) = (cdouble(3,2,1), cdouble(5,7,9), cdouble(86,162,262));
+ok all(approx $got=polyval($coeffs2, $x), $exp_val), 'polyval natcom no output' or diag $got;
+polyval($coeffs2, $x, $got=null);
+ok all(approx $got, $exp_val), 'polyval natcom explicit output' or diag $got;
+ok all(approx $got=(polyval($coeffs2->re, zeroes(3), $x->re, zeroes(3)))[0], $exp_val->re), 'polyval legacy no output' or diag $got;
+polyval($coeffs2->re, zeroes(3), $x->re, zeroes(3), $got=null);
+ok all(approx $got, $exp_val->re), 'polyval legacy explicit output' or diag $got;
+
 {
 my $pa = sequence(41) - 20;
 $pa /= 4;

@@ -5,6 +5,7 @@
 - add gv command to shells
 - add PDL::Trans::VTable
 - Math::polyroots now handles native-complex
+- add Math::polyval
 
 2.085 2024-01-30
 - switch FFT code to use heap, not VLA (#436) - thanks @HaraldJoerg for report

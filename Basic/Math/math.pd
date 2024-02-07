@@ -347,7 +347,7 @@ pp_def("polyroots",
   if (fail)
      $CROAK("cpoly: %s", fail);
 EOF
-      PMCode => <<'EOF',
+      PMCode => pp_line_numbers(__LINE__, <<'EOF'),
 sub PDL::polyroots {
   my @args = map PDL->topdl($_), @_;
   my $natcplx = !$args[0]->type->real;
@@ -366,8 +366,50 @@ of decreasing powers. As of 2.086, works with native-complex data.
 
 =for usage
 
- ($rr, $ri) = polyroots($cr, $ci);
  $roots = polyroots($coeffs); # native complex
+ ($rr, $ri) = polyroots($cr, $ci);
+',);
+
+pp_def("polyval",
+      Pars => 'c(n); x(); [o]y();',
+      GenericTypes => ['CD'],
+      Code => '$y() = polyev($SIZE(n), $x(), $P(c), NULL);',
+      PMCode => pp_line_numbers(__LINE__, <<'EOF'),
+sub PDL::polyval {
+  my @args = map PDL->topdl($_), @_;
+  my $natcplx = !$args[0]->type->real;
+  barf "need array context" if !$natcplx and !(wantarray//1);
+  if (!$natcplx) {
+    splice @args, 0, 2, $args[0]->czip($args[1]); # c
+    splice @args, 1, 2, $args[1]->czip($args[2]); # x
+  }
+  my @ins = splice @args, 0, 2;
+  my $explicit_out = my @outs = @args;
+  if ($natcplx) {
+    $_ //= PDL->null for $outs[0];
+  } else {
+    $_ //= PDL->null for @outs[0,1];
+  }
+  my @args_out = $natcplx ? @outs : PDL->null;
+  PDL::_polyval_int(@ins, @args_out);
+  if (!$natcplx) {
+    $outs[0] .= $args_out[0]->re;
+    $outs[1] .= $args_out[0]->im;
+  }
+  $natcplx ? $outs[0] : @outs;
+}
+EOF
+      Doc => '
+=for ref
+
+Complex value of a complex polynomial at given point, given coefficients
+in order of decreasing powers. Added in 2.086, works with native-complex
+data.
+
+=for usage
+
+ $y = polyval($coeffs, $x); # native complex
+ ($yr, $yi) = polyval($cr, $ci, $xr, $xi);
 ',);
 
 pp_addpm({At=>'Bot'},<<'EOD');

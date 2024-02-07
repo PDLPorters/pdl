@@ -24,8 +24,6 @@ static int fxshft(int l2, complex double *zc, int nn, complex double *shc, compl
 static int vrshft(int l3, complex double *zc, int nn, complex double *qpc, complex double *pc, complex double *qhc, complex double *hc, complex double *tc, complex double *sc, complex double *pvc);
 static int calct(int nn, complex double *qhc, complex double *hc, complex double *tc, complex double *sc, complex double *pvc);
 static void nexth(int boolvar, int nn, complex double *qhc, complex double *qpc, complex double *hc, complex double tc);
-static complex double polyev(int nn, complex double sc, complex double pc[],
-	    complex double qc[]);
 static double errev(int nn, complex double qc[], double ms, double mp);
 static double cauchy(int nn, complex double pc[]);
 static double scale(int nn, complex double pc[]);
@@ -513,16 +511,19 @@ static void nexth(int boolvar, int nn, complex double *qhc, complex double *qpc,
   }
 }
 
-static complex double polyev(int nn, complex double sc, complex double pc[],
+complex double polyev(int nn, complex double sc, complex double pc[],
 	    complex double qc[])
      /* Evaluates a polynomial  p  at  s  by the Horner recurrence,
-	placing the partial sums in q and the computed value in pv
+	optionally placing the partial sums in q, returns the computed value
      */
 {
   int i;
-  complex double vc = qc[0] = pc[0];
-  for (i=1;i<nn;i++)
-    qc[i] = vc = vc*sc + pc[i];
+  complex double vc = pc[0];
+  if (qc) qc[0] = vc;
+  for (i=1;i<nn;i++) {
+    vc = vc*sc + pc[i];
+    if (qc) qc[i] = vc;
+  }
   return vc;
 }
 
