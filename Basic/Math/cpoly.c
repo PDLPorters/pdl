@@ -24,8 +24,8 @@ static int fxshft(int l2, complex double *zc, int nn, complex double *shc, compl
 static int vrshft(int l3, complex double *zc, int nn, complex double *qpc, complex double *pc, complex double *qhc, complex double *hc, complex double *tc, complex double *sc, complex double *pvc);
 static int calct(int nn, complex double *qhc, complex double *hc, complex double *tc, complex double *sc, complex double *pvc);
 static void nexth(int boolvar, int nn, complex double *qhc, complex double *qpc, complex double *hc, complex double tc);
-static void polyev(int nn, complex double sc, complex double pc[],
-	    complex double qc[], complex double *tvc);
+static complex double polyev(int nn, complex double sc, complex double pc[],
+	    complex double qc[]);
 static double errev(int nn, complex double qc[], double ms, double mp);
 static double cauchy(int nn, complex double pc[]);
 static double scale(int nn, complex double pc[]);
@@ -216,7 +216,7 @@ int cpoly(double opr[], double opi[], int degree,
 
   double xx,yy,xxx,bnd;
   complex double zc,tc,sc,pvc;
-  int fail = FALSE,conv;
+  int fail = FALSE;
   int cnt1,cnt2,i,idnn2;
 
   /* initialization of constants */
@@ -293,8 +293,7 @@ int cpoly(double opr[], double opi[], int degree,
 	sc  = bnd*xx + I*bnd*yy;
 
 	/* Second stage calculation, fixed shift */
-	conv = fxshft(10*cnt2,&zc,nn,shc,qpc,hc,pc,qhc,&tc,&sc,&pvc);
-	if (conv) {
+	if (fxshft(10*cnt2,&zc,nn,shc,qpc,hc,pc,qhc,&tc,&sc,&pvc)) {
 
 	  /* The second stage jumps directly to the third stage iteration
 	     If successful the zero is stored and the polynomial deflated */
@@ -329,7 +328,6 @@ static void noshft(int l1, int nn, complex double *hc, complex double *pc, compl
 {
   /*  Computes the derivative polynomial as the initial h
       polynomial and computes l1 no-shift h polynomials. */
-  double t1,t2;
   int i,jj,n = nn-1,nm1 = n-1,nm2=nm1-1;
   for (i=0;i<n;i++) {
     double xni = n-i;
@@ -365,11 +363,11 @@ static int fxshft(int l2, complex double *zc, int nn, complex double *shc, compl
 	conv  - Flag indicating convergence of stage 3 iteration
      */
 {
-  int conv,test,pasd,boolvar;
+  int test,pasd,boolvar;
   int i,j,n = nn-1;
 
   /* Evaluate p at s */
-  polyev(nn,*sc,pc,qpc,pvc);
+  *pvc = polyev(nn,*sc,pc,qpc);
   test = TRUE;
   pasd = FALSE;
 
@@ -398,9 +396,8 @@ static int fxshft(int l2, complex double *zc, int nn, complex double *shc, compl
 	    shc[i] = hc[i];
 	  }
 	  complex double svsc = *sc;
-	  conv = vrshft(10,zc,nn,qpc,pc,qhc,hc,tc,sc,pvc);
-	  if (conv)
-	    return conv;
+	  if (vrshft(10,zc,nn,qpc,pc,qhc,hc,tc,sc,pvc))
+	    return TRUE;
 
 	  /* The iteration failed to converge
 	     Turn off testing and restore h,s,pv and t */
@@ -409,7 +406,7 @@ static int fxshft(int l2, complex double *zc, int nn, complex double *shc, compl
 	    hc[i] = shc[i];
 	  }
 	  *sc = svsc;
-	  polyev(nn,*sc,pc,qpc,pvc);
+	  *pvc = polyev(nn,*sc,pc,qpc);
 	  boolvar = calct(nn,qhc,hc,tc,sc,pvc);
 	} else {
 	  pasd = TRUE;
@@ -421,8 +418,7 @@ static int fxshft(int l2, complex double *zc, int nn, complex double *shc, compl
   }
 
   /* Attempt an iteration with final h polynomial from second stage */
-  conv = vrshft(10,zc,nn,qpc,pc,qhc,hc,tc,sc,pvc);
-  return conv;
+  return vrshft(10,zc,nn,qpc,pc,qhc,hc,tc,sc,pvc);
 }
 
 static int vrshft(int l3, complex double *zc, int nn, complex double *qpc, complex double *pc, complex double *qhc, complex double *hc, complex double *tc, complex double *sc, complex double *pvc)
@@ -435,25 +431,22 @@ static int vrshft(int l3, complex double *zc, int nn, complex double *qpc, compl
      */
 {
   double mp,ms,omp,relstp;
-  int i,j,conv,b,boolvar;
-
-  conv = FALSE;
-  b = FALSE;
+  int i,j,boolvar;
+  int b = FALSE;
   *sc = *zc;
 
   /* Main loop for stage three */
   for (i=0; i<l3;i++) {
 
     /* Evaluate p at s and test for convergence */
-    polyev(nn,*sc,pc,qpc,pvc);
+    *pvc = polyev(nn,*sc,pc,qpc);
     mp = cabs(*pvc);
     ms = cabs(*sc);
     if (mp <= 20.0L*errev(nn,qpc,ms,mp)) {
       /* Polynomial value is smaller in value than a bound on the error
 	 in evaluating p, terminate the iteration */
-      conv = TRUE;
       *zc = *sc;
-      return conv;
+      return TRUE;
     } else {
       if (i!=0) {
 	if (!b && mp>=omp && relstp < .05L) {
@@ -463,7 +456,7 @@ static int vrshft(int l3, complex double *zc, int nn, complex double *qpc, compl
 	  b = TRUE;
 	  double tp = (relstp < eta) ? eta : relstp;
 	  *sc *= 1.0L + sqrt(tp)*(1 + I);
-	  polyev(nn,*sc,pc,qpc,pvc);
+	  *pvc = polyev(nn,*sc,pc,qpc);
 	  for (j=0;j<5;j++) {
 	    boolvar = calct(nn,qhc,hc,tc,sc,pvc);
 	    nexth(boolvar,nn, qhc, qpc, hc, *tc);
@@ -472,7 +465,7 @@ static int vrshft(int l3, complex double *zc, int nn, complex double *qpc, compl
 	} else {
 	  /* Exit if polynomial value increases significantly */
           if (mp*0.1L > omp)
-	    return conv;
+	    return FALSE;
 	  omp = mp;
 	}
       } else {
@@ -489,7 +482,7 @@ static int vrshft(int l3, complex double *zc, int nn, complex double *qpc, compl
       *sc += *tc;
     }
   }
-  return conv;
+  return FALSE;
 }
 
 static int calct(int nn, complex double *qhc, complex double *hc, complex double *tc, complex double *sc, complex double *pvc)
@@ -497,17 +490,9 @@ static int calct(int nn, complex double *qhc, complex double *hc, complex double
 	Returns TRUE if h(s) is essentially zero
      */
 {
-  complex double  hvc;
-  int n = nn-1, boolvar;
-
-  /* Evaluate h(s) */
-  polyev(n,*sc,hc,qhc,&hvc);
-  boolvar = (cabs(hvc) <= are*10.0*cabs(hc[n-1]));
-  if (!boolvar) {
-    *tc = -*pvc / hvc;
-  } else {
-    *tc = 0.0;
-  }
+  complex double hvc = polyev(nn-1,*sc,hc,qhc); /* Evaluate h(s) */
+  int boolvar = (cabs(hvc) <= are*10.0*cabs(hc[nn-2]));
+  *tc = boolvar ? 0.0 : -*pvc / hvc;
   return boolvar;
 }
 
@@ -516,7 +501,6 @@ static void nexth(int boolvar, int nn, complex double *qhc, complex double *qpc,
      boolvar   -  TRUE if h(s) is essentially zero
   */
 {
-  double t1,t2;
   int j,n = nn-1;
 
   if (!boolvar) {
@@ -533,8 +517,8 @@ static void nexth(int boolvar, int nn, complex double *qhc, complex double *qpc,
   }
 }
 
-static void polyev(int nn, complex double sc, complex double pc[],
-	    complex double qc[], complex double *tvc)
+static complex double polyev(int nn, complex double sc, complex double pc[],
+	    complex double qc[])
      /* Evaluates a polynomial  p  at  s  by the Horner recurrence,
 	placing the partial sums in q and the computed value in pv
      */
@@ -543,7 +527,7 @@ static void polyev(int nn, complex double sc, complex double pc[],
   complex double vc = qc[0] = pc[0];
   for (i=1;i<nn;i++)
     qc[i] = vc = vc*sc + pc[i];
-  *tvc = vc;
+  return vc;
 }
 
 static double errev(int nn, complex double qc[], double ms, double mp)
