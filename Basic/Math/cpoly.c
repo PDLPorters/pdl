@@ -19,21 +19,20 @@
 #include "cpoly.h"
 
 /* Internal routines */
-static void noshft(int l1, int nn);
-static int fxshft(int l2, complex double *zc, int nn);
-static int vrshft(int l3, complex double *zc, int nn);
-static int calct(int nn);
-static void nexth(int boolvar, int nn);
+static void noshft(int l1, int nn, complex double *hc, complex double *pc);
+static int fxshft(int l2, complex double *zc, int nn, complex double *shc, complex double *qpc, complex double *hc, complex double *pc, complex double *qhc);
+static int vrshft(int l3, complex double *zc, int nn, complex double *qpc, complex double *pc, complex double *qhc, complex double *hc);
+static int calct(int nn, complex double *qhc, complex double *hc);
+static void nexth(int boolvar, int nn, complex double *qhc, complex double *qpc, complex double *hc);
 static void polyev(int nn, complex double sc, complex double pc[],
 	    complex double qc[], complex double *tvc);
 static double errev(int nn, complex double qc[], double ms, double mp);
 static double cauchy(int nn, complex double pc[]);
 static double scale(int nn, complex double pc[]);
 static void mcon(void);
-static int init(int nncr);
+static void init(int nncr);
 
 /* Internal global variables */
-static complex double *pc,*hc,*qpc,*qhc,*shc;
 static complex double tc,sc,pvc;
 static double are,mre,eta,infin,smalno,base;
 
@@ -211,27 +210,33 @@ int cpoly(double opr[], double opi[], int degree,
      the zerofinder will work provided the overflowed quantity is
      replaced by a large number. */
 
+  /* algorithm fails if the leading coefficient is zero. */
+  if (opr[0] == 0.0 && opi[0] == 0.0) {
+    return TRUE;
+  }
+
   double xx,yy,xxx,bnd;
   complex double zc;
-  int fail,conv;
+  int fail = FALSE,conv;
   int cnt1,cnt2,i,idnn2;
 
   /* initialization of constants */
   int nn = degree+1;
-  if (!init(nn)) {
+  init(nn);
+  complex double *pc  = malloc(nn*sizeof(complex double));
+  complex double *hc  = malloc(nn*sizeof(complex double));
+  complex double *qpc = malloc(nn*sizeof(complex double));
+  complex double *qhc = malloc(nn*sizeof(complex double));
+  complex double *shc = malloc(nn*sizeof(complex double));
+
+  if (!(pc && hc && qpc && qhc && shc)) {
+    fprintf(stderr,"Couldn't allocate space for cpoly\n");
     fail = TRUE;
-    return fail;
+    goto returnlab;
   }
 
   xx = .70710678L;
   yy = -xx;
-  fail = FALSE;
-
-  /* algorithm fails if the leading coefficient is zero. */
-  if (opr[0] == 0.0 && opi[0] == 0.0) {
-    fail = TRUE;
-    return fail;
-  }
 
   /* Remove the zeros at the origin if any */
   while (opr[nn-1] == 0.0 && opi[nn-1] == 0.0) {
@@ -262,7 +267,7 @@ int cpoly(double opr[], double opi[], int degree,
       /* Calculate the final zero and return */
       complex double zeroc = -pc[1] / pc[0];
       zeror[degree-1] = creal(zeroc); zeroi[degree-1] = cimag(zeroc);
-      return fail;
+      goto returnlab;
     }
 
     /* Calculate bnd, a lower bound on the modulus of the zeros */
@@ -277,7 +282,7 @@ int cpoly(double opr[], double opi[], int degree,
     for(cnt1=1;fail && (cnt1<=2);cnt1++) {
 
       /* First stage calculation, no shift */
-      noshft(5, nn);
+      noshft(5,nn,hc,pc);
 
       /* Inner loop to select a shift. */
       for (cnt2=1;fail && (cnt2<10);cnt2++) {
@@ -289,7 +294,7 @@ int cpoly(double opr[], double opi[], int degree,
 	sc  = bnd*xx + I*bnd*yy;
 
 	/* Second stage calculation, fixed shift */
-	conv = fxshft(10*cnt2,&zc,nn);
+	conv = fxshft(10*cnt2,&zc,nn,shc,qpc,hc,pc,qhc);
 	if (conv) {
 
 	  /* The second stage jumps directly to the third stage iteration
@@ -310,12 +315,18 @@ int cpoly(double opr[], double opi[], int degree,
     }
   }
 
+returnlab:
+  if (shc) free(shc);
+  if (qhc) free(qhc);
+  if (qpc) free(qpc);
+  if (hc) free(hc);
+  if (pc) free(pc);
   /* The zerofinder has failed on two major passes
      Return empty handed */
   return fail;
 }
 
-static void noshft(int l1, int nn)
+static void noshft(int l1, int nn, complex double *hc, complex double *pc)
 {
   /*  Computes the derivative polynomial as the initial h
       polynomial and computes l1 no-shift h polynomials. */
@@ -344,7 +355,7 @@ static void noshft(int l1, int nn)
   }
 }
 
-static int fxshft(int l2, complex double *zc, int nn)
+static int fxshft(int l2, complex double *zc, int nn, complex double *shc, complex double *qpc, complex double *hc, complex double *pc, complex double *qhc)
      /* Computes l2 fixed-shift h polynomials and tests for convergence
 
 	Initiates a variable-shift iteration and returns with the
@@ -364,15 +375,15 @@ static int fxshft(int l2, complex double *zc, int nn)
   pasd = FALSE;
 
   /* Calculate first t = -p(s)/h(s) */
-  boolvar = calct(nn);
+  boolvar = calct(nn,qhc,hc);
 
   /* Main loop for one second stage step */
   for (j=0;j<l2;j++) {
     complex double otc = tc;
 
     /* Compute next h polynomial and new t */
-    nexth(boolvar,nn);
-    boolvar = calct(nn);
+    nexth(boolvar,nn, qhc, qpc, hc);
+    boolvar = calct(nn,qhc,hc);
     *zc = sc+tc;
 
     /* Test for convergence unless stage 3 has failed once or
@@ -388,7 +399,7 @@ static int fxshft(int l2, complex double *zc, int nn)
 	    shc[i] = hc[i];
 	  }
 	  complex double svsc = sc;
-	  conv = vrshft(10,zc,nn);
+	  conv = vrshft(10,zc,nn,qpc,pc,qhc,hc);
 	  if (conv)
 	    return conv;
 
@@ -400,7 +411,7 @@ static int fxshft(int l2, complex double *zc, int nn)
 	  }
 	  sc = svsc;
 	  polyev(nn,sc,pc,qpc,&pvc);
-	  boolvar = calct(nn);
+	  boolvar = calct(nn,qhc,hc);
 	} else {
 	  pasd = TRUE;
 	}
@@ -411,11 +422,11 @@ static int fxshft(int l2, complex double *zc, int nn)
   }
 
   /* Attempt an iteration with final h polynomial from second stage */
-  conv = vrshft(10,zc,nn);
+  conv = vrshft(10,zc,nn,qpc,pc,qhc,hc);
   return conv;
 }
 
-static int vrshft(int l3, complex double *zc, int nn)
+static int vrshft(int l3, complex double *zc, int nn, complex double *qpc, complex double *pc, complex double *qhc, complex double *hc)
      /*  Carries out the third stage iteration
 
 	 l3      - Limit of steps in stage 3
@@ -455,8 +466,8 @@ static int vrshft(int l3, complex double *zc, int nn)
 	  sc *= 1.0L + sqrt(tp)*(1 + I);
 	  polyev(nn,sc,pc,qpc,&pvc);
 	  for (j=0;j<5;j++) {
-	    boolvar = calct(nn);
-	    nexth(boolvar,nn);
+	    boolvar = calct(nn,qhc,hc);
+	    nexth(boolvar,nn, qhc, qpc, hc);
 	  }
 	  omp = infin;
 	} else {
@@ -471,9 +482,9 @@ static int vrshft(int l3, complex double *zc, int nn)
     }
 
     /* Calculate next iterate. */
-    boolvar = calct(nn);
-    nexth(boolvar,nn);
-    boolvar = calct(nn);
+    boolvar = calct(nn,qhc,hc);
+    nexth(boolvar,nn, qhc, qpc, hc);
+    boolvar = calct(nn,qhc,hc);
     if (!boolvar) {
       relstp = cabs(tc)/cabs(sc);
       sc += tc;
@@ -482,7 +493,7 @@ static int vrshft(int l3, complex double *zc, int nn)
   return conv;
 }
 
-static int calct(int nn)
+static int calct(int nn, complex double *qhc, complex double *hc)
      /* Computes  t = -p(s)/h(s)
 	Returns TRUE if h(s) is essentially zero
      */
@@ -501,7 +512,7 @@ static int calct(int nn)
   return boolvar;
 }
 
-static void nexth(int boolvar, int nn)
+static void nexth(int boolvar, int nn, complex double *qhc, complex double *qpc, complex double *hc)
   /* Calculates the next shifted h polynomial
      boolvar   -  TRUE if h(s) is essentially zero
   */
@@ -689,7 +700,7 @@ static void mcon()
 #endif
 }
 
-static int init(int nncr)
+static void init(int nncr)
 {
   static int nmax=0;
 
@@ -701,27 +712,5 @@ static int init(int nncr)
        cf e.g. errev() above */
     are = eta;
     mre = 2.0L*sqrt(2.0L)*eta;
-
-  } else if (nmax >= nncr) {
-    return TRUE;            /* Present arrays are big enough */
-  } else {
-    /* Free old arrays (no need to preserve contents */
-    free(shc); free(qhc);
-    free(qpc); free(hc); free(pc);
-  }
-
-  nmax = nncr;
-
-  pc  = (complex double *) malloc(nmax*sizeof(complex double));
-  hc  = (complex double *) malloc(nmax*sizeof(complex double));
-  qpc = (complex double *) malloc(nmax*sizeof(complex double));
-  qhc = (complex double *) malloc(nmax*sizeof(complex double));
-  shc = (complex double *) malloc(nmax*sizeof(complex double));
-
-  if (!(pc && hc && qpc && qhc && shc)) {
-    fprintf(stderr,"Couldn't allocate space for cpoly\n");
-    return FALSE;
-  } else {
-    return TRUE;
   }
 }
