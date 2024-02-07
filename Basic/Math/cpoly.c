@@ -189,7 +189,7 @@ void prtz(int n,double zr[], double zi[])
 #define COSR (-.069756474L)
 #define SINR (.99756405L)
 
-int cpoly(double opr[], double opi[], int degree,
+char *cpoly(double opr[], double opi[], int degree,
 	   double zeror[], double zeroi[])
 {
   /* Finds the zeros of a complex polynomial.
@@ -209,14 +209,12 @@ int cpoly(double opr[], double opi[], int degree,
      the zerofinder will work provided the overflowed quantity is
      replaced by a large number. */
 
-  /* algorithm fails if the leading coefficient is zero. */
-  if (opr[0] == 0.0 && opi[0] == 0.0) {
-    return TRUE;
-  }
+  if (opr[0] == 0.0 && opi[0] == 0.0)
+    return "algorithm fails if the leading coefficient is zero.";
 
   double xx,yy,xxx,bnd;
   complex double zc,tc,sc,pvc;
-  int fail = FALSE;
+  char *failreason = NULL;
   int cnt1,cnt2,i,idnn2;
 
   /* initialization of constants */
@@ -229,8 +227,7 @@ int cpoly(double opr[], double opi[], int degree,
   complex double *shc = malloc(nn*sizeof(complex double));
 
   if (!(pc && hc && qpc && qhc && shc)) {
-    fprintf(stderr,"Couldn't allocate space for cpoly\n");
-    fail = TRUE;
+    failreason = "Couldn't allocate space for cpoly";
     goto returnlab;
   }
 
@@ -259,7 +256,7 @@ int cpoly(double opr[], double opi[], int degree,
     }
   }
 
-  while (!fail) {
+  while (!failreason) {
 
     /* Start the algorithm for one zero */
     if (nn < 3) {
@@ -277,14 +274,14 @@ int cpoly(double opr[], double opi[], int degree,
 
     /* Outer loop to control 2 major passes with different sequences
        of shifts */
-    fail = TRUE;
-    for(cnt1=1;fail && (cnt1<=2);cnt1++) {
+    failreason = "found fewer than degree zeros";
+    for(cnt1=1;failreason && (cnt1<=2);cnt1++) {
 
       /* First stage calculation, no shift */
       noshft(5,nn,hc,pc,&tc);
 
       /* Inner loop to select a shift. */
-      for (cnt2=1;fail && (cnt2<10);cnt2++) {
+      for (cnt2=1;failreason && (cnt2<10);cnt2++) {
 	/* Shift is chosen with modulus bnd and amplitude rotated by
 	   94 degrees from the previous shift */
 	xxx = COSR*xx-SINR*yy;
@@ -301,10 +298,9 @@ int cpoly(double opr[], double opi[], int degree,
 	  zeror[idnn2] = creal(zc);
 	  zeroi[idnn2] = cimag(zc);
 	  nn--;
-	  for(i=0;i<nn;i++) {
+	  for(i=0;i<nn;i++)
 	    pc[i] = qpc[i];
-	  }
-	  fail = FALSE;
+	  failreason = NULL;
 	}
 	/* If the iteration is unsuccessful another shift is chosen */
       }
@@ -321,7 +317,7 @@ returnlab:
   if (pc) free(pc);
   /* The zerofinder has failed on two major passes
      Return empty handed */
-  return fail;
+  return failreason;
 }
 
 static void noshft(int l1, int nn, complex double *hc, complex double *pc, complex double *tc)

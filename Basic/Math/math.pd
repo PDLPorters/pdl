@@ -135,6 +135,7 @@ EOD
 pp_addhdr('
 #include <tgmath.h>
 #include "protos.h"
+#include "cpoly.h"
 extern double ndtri(double);
 ');
 
@@ -342,11 +343,10 @@ pp_def("polyroots",
       RedoDimsCode => '$SIZE(m) = $SIZE(n)-1;',
       GenericTypes => ['D'],
       Code => '
-              extern int cpoly( double *cr, double *ci, int deg,
-                    double *rr, double *ri );
               int deg = (int)$SIZE(n)-1;
-              if (cpoly($P(cr), $P(ci), deg, $P(rr), $P(ri)))
-                 $CROAK("PDL::Math::polyroots failed");
+              char *fail = cpoly($P(cr), $P(ci), deg, $P(rr), $P(ri));
+              if (fail)
+                 $CROAK("cpoly: %s", fail);
 ',
       , Doc => '
 
