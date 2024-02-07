@@ -19,11 +19,11 @@
 #include "cpoly.h"
 
 /* Internal routines */
-static void noshft(int l1, int nn, complex double *hc, complex double *pc);
-static int fxshft(int l2, complex double *zc, int nn, complex double *shc, complex double *qpc, complex double *hc, complex double *pc, complex double *qhc);
-static int vrshft(int l3, complex double *zc, int nn, complex double *qpc, complex double *pc, complex double *qhc, complex double *hc);
-static int calct(int nn, complex double *qhc, complex double *hc);
-static void nexth(int boolvar, int nn, complex double *qhc, complex double *qpc, complex double *hc);
+static void noshft(int l1, int nn, complex double *hc, complex double *pc, complex double *tc);
+static int fxshft(int l2, complex double *zc, int nn, complex double *shc, complex double *qpc, complex double *hc, complex double *pc, complex double *qhc, complex double *tc, complex double *sc, complex double *pvc);
+static int vrshft(int l3, complex double *zc, int nn, complex double *qpc, complex double *pc, complex double *qhc, complex double *hc, complex double *tc, complex double *sc, complex double *pvc);
+static int calct(int nn, complex double *qhc, complex double *hc, complex double *tc, complex double *sc, complex double *pvc);
+static void nexth(int boolvar, int nn, complex double *qhc, complex double *qpc, complex double *hc, complex double tc);
 static void polyev(int nn, complex double sc, complex double pc[],
 	    complex double qc[], complex double *tvc);
 static double errev(int nn, complex double qc[], double ms, double mp);
@@ -33,7 +33,6 @@ static void mcon(void);
 static void init(int nncr);
 
 /* Internal global variables */
-static complex double tc,sc,pvc;
 static double are,mre,eta,infin,smalno,base;
 
 #ifdef DEBUGMAIN
@@ -216,7 +215,7 @@ int cpoly(double opr[], double opi[], int degree,
   }
 
   double xx,yy,xxx,bnd;
-  complex double zc;
+  complex double zc,tc,sc,pvc;
   int fail = FALSE,conv;
   int cnt1,cnt2,i,idnn2;
 
@@ -282,7 +281,7 @@ int cpoly(double opr[], double opi[], int degree,
     for(cnt1=1;fail && (cnt1<=2);cnt1++) {
 
       /* First stage calculation, no shift */
-      noshft(5,nn,hc,pc);
+      noshft(5,nn,hc,pc,&tc);
 
       /* Inner loop to select a shift. */
       for (cnt2=1;fail && (cnt2<10);cnt2++) {
@@ -294,7 +293,7 @@ int cpoly(double opr[], double opi[], int degree,
 	sc  = bnd*xx + I*bnd*yy;
 
 	/* Second stage calculation, fixed shift */
-	conv = fxshft(10*cnt2,&zc,nn,shc,qpc,hc,pc,qhc);
+	conv = fxshft(10*cnt2,&zc,nn,shc,qpc,hc,pc,qhc,&tc,&sc,&pvc);
 	if (conv) {
 
 	  /* The second stage jumps directly to the third stage iteration
@@ -326,7 +325,7 @@ returnlab:
   return fail;
 }
 
-static void noshft(int l1, int nn, complex double *hc, complex double *pc)
+static void noshft(int l1, int nn, complex double *hc, complex double *pc, complex double *tc)
 {
   /*  Computes the derivative polynomial as the initial h
       polynomial and computes l1 no-shift h polynomials. */
@@ -338,10 +337,10 @@ static void noshft(int l1, int nn, complex double *hc, complex double *pc)
   }
   for (jj=0;jj<l1;jj++) {
     if (cabs(hc[nm2]) > eta*10.0*cabs(pc[nm2])) {
-      tc = -pc[n] / hc[nm1];
+      *tc = -pc[n] / hc[nm1];
       for (i=0;i<nm1;i++) {
 	int j = nm1-i;
-	hc[j] = pc[j] + tc * hc[j-1];
+	hc[j] = pc[j] + *tc * hc[j-1];
       }
       hc[0] = pc[0];
     } else {
@@ -355,7 +354,7 @@ static void noshft(int l1, int nn, complex double *hc, complex double *pc)
   }
 }
 
-static int fxshft(int l2, complex double *zc, int nn, complex double *shc, complex double *qpc, complex double *hc, complex double *pc, complex double *qhc)
+static int fxshft(int l2, complex double *zc, int nn, complex double *shc, complex double *qpc, complex double *hc, complex double *pc, complex double *qhc, complex double *tc, complex double *sc, complex double *pvc)
      /* Computes l2 fixed-shift h polynomials and tests for convergence
 
 	Initiates a variable-shift iteration and returns with the
@@ -370,26 +369,26 @@ static int fxshft(int l2, complex double *zc, int nn, complex double *shc, compl
   int i,j,n = nn-1;
 
   /* Evaluate p at s */
-  polyev(nn,sc,pc,qpc,&pvc);
+  polyev(nn,*sc,pc,qpc,pvc);
   test = TRUE;
   pasd = FALSE;
 
   /* Calculate first t = -p(s)/h(s) */
-  boolvar = calct(nn,qhc,hc);
+  boolvar = calct(nn,qhc,hc,tc,sc,pvc);
 
   /* Main loop for one second stage step */
   for (j=0;j<l2;j++) {
-    complex double otc = tc;
+    complex double otc = *tc;
 
     /* Compute next h polynomial and new t */
-    nexth(boolvar,nn, qhc, qpc, hc);
-    boolvar = calct(nn,qhc,hc);
-    *zc = sc+tc;
+    nexth(boolvar,nn, qhc, qpc, hc, *tc);
+    boolvar = calct(nn,qhc,hc,tc,sc,pvc);
+    *zc = *sc+*tc;
 
     /* Test for convergence unless stage 3 has failed once or
        this is the last h polynomial */
     if (!boolvar && test && j != l2) {
-      if (cabs(tc-otc) < .5*cabs(*zc)) {
+      if (cabs(*tc-otc) < .5*cabs(*zc)) {
 	if (pasd) {
 
 	  /* The weak convergence test has been passed twice, start the
@@ -398,8 +397,8 @@ static int fxshft(int l2, complex double *zc, int nn, complex double *shc, compl
 	  for (i=0;i<n;i++) {
 	    shc[i] = hc[i];
 	  }
-	  complex double svsc = sc;
-	  conv = vrshft(10,zc,nn,qpc,pc,qhc,hc);
+	  complex double svsc = *sc;
+	  conv = vrshft(10,zc,nn,qpc,pc,qhc,hc,tc,sc,pvc);
 	  if (conv)
 	    return conv;
 
@@ -409,9 +408,9 @@ static int fxshft(int l2, complex double *zc, int nn, complex double *shc, compl
 	  for (i=0;i<n;i++) {
 	    hc[i] = shc[i];
 	  }
-	  sc = svsc;
-	  polyev(nn,sc,pc,qpc,&pvc);
-	  boolvar = calct(nn,qhc,hc);
+	  *sc = svsc;
+	  polyev(nn,*sc,pc,qpc,pvc);
+	  boolvar = calct(nn,qhc,hc,tc,sc,pvc);
 	} else {
 	  pasd = TRUE;
 	}
@@ -422,11 +421,11 @@ static int fxshft(int l2, complex double *zc, int nn, complex double *shc, compl
   }
 
   /* Attempt an iteration with final h polynomial from second stage */
-  conv = vrshft(10,zc,nn,qpc,pc,qhc,hc);
+  conv = vrshft(10,zc,nn,qpc,pc,qhc,hc,tc,sc,pvc);
   return conv;
 }
 
-static int vrshft(int l3, complex double *zc, int nn, complex double *qpc, complex double *pc, complex double *qhc, complex double *hc)
+static int vrshft(int l3, complex double *zc, int nn, complex double *qpc, complex double *pc, complex double *qhc, complex double *hc, complex double *tc, complex double *sc, complex double *pvc)
      /*  Carries out the third stage iteration
 
 	 l3      - Limit of steps in stage 3
@@ -440,20 +439,20 @@ static int vrshft(int l3, complex double *zc, int nn, complex double *qpc, compl
 
   conv = FALSE;
   b = FALSE;
-  sc = *zc;
+  *sc = *zc;
 
   /* Main loop for stage three */
   for (i=0; i<l3;i++) {
 
     /* Evaluate p at s and test for convergence */
-    polyev(nn,sc,pc,qpc,&pvc);
-    mp = cabs(pvc);
-    ms = cabs(sc);
+    polyev(nn,*sc,pc,qpc,pvc);
+    mp = cabs(*pvc);
+    ms = cabs(*sc);
     if (mp <= 20.0L*errev(nn,qpc,ms,mp)) {
       /* Polynomial value is smaller in value than a bound on the error
 	 in evaluating p, terminate the iteration */
       conv = TRUE;
-      *zc = sc;
+      *zc = *sc;
       return conv;
     } else {
       if (i!=0) {
@@ -463,11 +462,11 @@ static int vrshft(int l3, complex double *zc, int nn, complex double *qpc, compl
 	     to dominate */
 	  b = TRUE;
 	  double tp = (relstp < eta) ? eta : relstp;
-	  sc *= 1.0L + sqrt(tp)*(1 + I);
-	  polyev(nn,sc,pc,qpc,&pvc);
+	  *sc *= 1.0L + sqrt(tp)*(1 + I);
+	  polyev(nn,*sc,pc,qpc,pvc);
 	  for (j=0;j<5;j++) {
-	    boolvar = calct(nn,qhc,hc);
-	    nexth(boolvar,nn, qhc, qpc, hc);
+	    boolvar = calct(nn,qhc,hc,tc,sc,pvc);
+	    nexth(boolvar,nn, qhc, qpc, hc, *tc);
 	  }
 	  omp = infin;
 	} else {
@@ -482,18 +481,18 @@ static int vrshft(int l3, complex double *zc, int nn, complex double *qpc, compl
     }
 
     /* Calculate next iterate. */
-    boolvar = calct(nn,qhc,hc);
-    nexth(boolvar,nn, qhc, qpc, hc);
-    boolvar = calct(nn,qhc,hc);
+    boolvar = calct(nn,qhc,hc,tc,sc,pvc);
+    nexth(boolvar,nn, qhc, qpc, hc, *tc);
+    boolvar = calct(nn,qhc,hc,tc,sc,pvc);
     if (!boolvar) {
-      relstp = cabs(tc)/cabs(sc);
-      sc += tc;
+      relstp = cabs(*tc)/cabs(*sc);
+      *sc += *tc;
     }
   }
   return conv;
 }
 
-static int calct(int nn, complex double *qhc, complex double *hc)
+static int calct(int nn, complex double *qhc, complex double *hc, complex double *tc, complex double *sc, complex double *pvc)
      /* Computes  t = -p(s)/h(s)
 	Returns TRUE if h(s) is essentially zero
      */
@@ -502,17 +501,17 @@ static int calct(int nn, complex double *qhc, complex double *hc)
   int n = nn-1, boolvar;
 
   /* Evaluate h(s) */
-  polyev(n,sc,hc,qhc,&hvc);
+  polyev(n,*sc,hc,qhc,&hvc);
   boolvar = (cabs(hvc) <= are*10.0*cabs(hc[n-1]));
   if (!boolvar) {
-    tc = -pvc / hvc;
+    *tc = -*pvc / hvc;
   } else {
-    tc = 0.0;
+    *tc = 0.0;
   }
   return boolvar;
 }
 
-static void nexth(int boolvar, int nn, complex double *qhc, complex double *qpc, complex double *hc)
+static void nexth(int boolvar, int nn, complex double *qhc, complex double *qpc, complex double *hc, complex double tc)
   /* Calculates the next shifted h polynomial
      boolvar   -  TRUE if h(s) is essentially zero
   */
