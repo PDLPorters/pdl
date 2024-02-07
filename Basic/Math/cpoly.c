@@ -18,11 +18,11 @@
 #include "cpoly.h"
 
 /* Internal routines */
-static void noshft(int l1);
-static int fxshft(int l2, double *zr, double *zi);
-static int vrshft(int l3, double *zr, double *zi);
-static int calct(void);
-static void nexth(int boolvar);
+static void noshft(int l1, int nn);
+static int fxshft(int l2, double *zr, double *zi, int nn);
+static int vrshft(int l3, double *zr, double *zi, int nn);
+static int calct(int nn);
+static void nexth(int boolvar, int nn);
 static void polyev(int nn, double sr, double si, double pr[], double pi[],
 	    double qr[], double qi[], double *pvr, double *pvi);
 static double errev(int nn, double qr[], double qi[], double ms, double mp);
@@ -37,7 +37,6 @@ static int init(int nncr);
 /* Internal global variables */
 static double *pr,*pi,*hr,*hi,*qpr,*qpi,*qhr,*qhi,*shr,*shi;
 static double sr,si,tr,ti,pvr,pvi,are,mre,eta,infin,smalno,base;
-static int nn;
 
 #ifdef DEBUGMAIN
 /* driver to test cpoly */
@@ -218,7 +217,7 @@ int cpoly(double opr[], double opi[], int degree,
   int cnt1,cnt2,i,idnn2;
 
   /* initialization of constants */
-  nn = degree+1;
+  int nn = degree+1;
   if (!init(nn)) {
     fail = TRUE;
     return fail;
@@ -279,7 +278,7 @@ int cpoly(double opr[], double opi[], int degree,
     for(cnt1=1;fail && (cnt1<=2);cnt1++) {
 
       /* First stage calculation, no shift */
-      noshft(5);
+      noshft(5, nn);
 
       /* Inner loop to select a shift. */
       for (cnt2=1;fail && (cnt2<10);cnt2++) {
@@ -292,7 +291,7 @@ int cpoly(double opr[], double opi[], int degree,
 	si  = bnd*yy;
 
 	/* Second stage calculation, fixed shift */
-	conv = fxshft(10*cnt2,&zr,&zi);
+	conv = fxshft(10*cnt2,&zr,&zi, nn);
 	if (conv) {
 
 	  /* The second stage jumps directly to the third stage iteration
@@ -319,7 +318,7 @@ int cpoly(double opr[], double opi[], int degree,
   return fail;
 }
 
-static void noshft(int l1)
+static void noshft(int l1, int nn)
 {
   /*  Computes the derivative polynomial as the initial h
       polynomial and computes l1 no-shift h polynomials. */
@@ -357,7 +356,7 @@ static void noshft(int l1)
   }
 }
 
-static int fxshft(int l2, double *zr, double *zi)
+static int fxshft(int l2, double *zr, double *zi, int nn)
      /* Computes l2 fixed-shift h polynomials and tests for convergence
 
 	Initiates a variable-shift iteration and returns with the
@@ -378,7 +377,7 @@ static int fxshft(int l2, double *zr, double *zi)
   pasd = FALSE;
 
   /* Calculate first t = -p(s)/h(s) */
-  boolvar = calct();
+  boolvar = calct(nn);
 
   /* Main loop for one second stage step */
   for (j=0;j<l2;j++) {
@@ -386,8 +385,8 @@ static int fxshft(int l2, double *zr, double *zi)
     oti = ti;
 
     /* Compute next h polynomial and new t */
-    nexth(boolvar);
-    boolvar = calct();
+    nexth(boolvar,nn);
+    boolvar = calct(nn);
     *zr = sr+tr;
     *zi = si+ti;
 
@@ -406,7 +405,7 @@ static int fxshft(int l2, double *zr, double *zi)
 	  }
 	  svsr = sr;
 	  svsi = si;
-	  conv = vrshft(10,zr,zi);
+	  conv = vrshft(10,zr,zi,nn);
 	  if (conv) 
 	    return conv;
 
@@ -420,7 +419,7 @@ static int fxshft(int l2, double *zr, double *zi)
 	  sr = svsr;
 	  si = svsi;
 	  polyev(nn,sr,si,pr,pi,qpr,qpi,&pvr,&pvi);
-	  boolvar = calct();
+	  boolvar = calct(nn);
 	} else {
 	  pasd = TRUE;
 	}
@@ -431,11 +430,11 @@ static int fxshft(int l2, double *zr, double *zi)
   }
 
   /* Attempt an iteration with final h polynomial from second stage */
-  conv = vrshft(10,zr,zi);
+  conv = vrshft(10,zr,zi,nn);
   return conv;
 }
 
-static int vrshft(int l3, double *zr, double *zi)
+static int vrshft(int l3, double *zr, double *zi, int nn)
      /*  Carries out the third stage iteration
 
 	 l3      - Limit of steps in stage 3
@@ -483,8 +482,8 @@ static int vrshft(int l3, double *zr, double *zi)
 	  sr = r2;
 	  polyev(nn,sr,si,pr,pi,qpr,qpi,&pvr,&pvi);
 	  for (j=0;j<5;j++) {
-	    boolvar = calct();
-	    nexth(boolvar);
+	    boolvar = calct(nn);
+	    nexth(boolvar,nn);
 	  }
 	  omp = infin;
 	} else {
@@ -499,9 +498,9 @@ static int vrshft(int l3, double *zr, double *zi)
     }
 
     /* Calculate next iterate. */
-    boolvar = calct();
-    nexth(boolvar);
-    boolvar = calct();
+    boolvar = calct(nn);
+    nexth(boolvar,nn);
+    boolvar = calct(nn);
     if (!boolvar) {
       relstp = cmod(tr,ti)/cmod(sr,si);
       sr += tr;
@@ -511,7 +510,7 @@ static int vrshft(int l3, double *zr, double *zi)
   return conv;
 }
 
-static int calct(void)
+static int calct(int nn)
      /* Computes  t = -p(s)/h(s)
 	Returns TRUE if h(s) is essentially zero 
      */
@@ -531,7 +530,7 @@ static int calct(void)
   return boolvar;
 }
 
-static void nexth(int boolvar) 
+static void nexth(int boolvar, int nn)
   /* Calculates the next shifted h polynomial
      boolvar   -  TRUE if h(s) is essentially zero 
   */
