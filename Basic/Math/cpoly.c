@@ -27,6 +27,8 @@ static void nexth(int boolvar, int nn, complex double *qhc, complex double *qpc,
 static double errev(int nn, complex double qc[], double ms, double mp);
 static double cauchy(int nn, complex double pc[]);
 static double scale(int nn, complex double pc[]);
+static complex double cdivid(complex double a, complex double b);
+static double cmod(complex double a);
 static void mcon(void);
 static void init(int nncr);
 
@@ -243,7 +245,7 @@ char *cpoly(double opr[], double opi[], int degree,
   /* Make a copy of the coefficients */
   for (i=0;i<nn;i++) {
     pc[i] = opr[i] + I*opi[i];
-    shc[i] = cabs(pc[i]) + I*cimag(shc[i]);
+    shc[i] = cmod(pc[i]) + I*cimag(shc[i]);
   }
 
   /* Scale the polynomial */
@@ -259,14 +261,14 @@ char *cpoly(double opr[], double opi[], int degree,
     /* Start the algorithm for one zero */
     if (nn < 3) {
       /* Calculate the final zero and return */
-      complex double zeroc = -pc[1] / pc[0];
+      complex double zeroc = cdivid(-pc[1], pc[0]);
       zeror[degree-1] = creal(zeroc); zeroi[degree-1] = cimag(zeroc);
       goto returnlab;
     }
 
     /* Calculate bnd, a lower bound on the modulus of the zeros */
     for (i=0;i<nn;i++) {
-      shc[i] = cabs(pc[i]) + I*cimag(shc[i]);
+      shc[i] = cmod(pc[i]) + I*cimag(shc[i]);
     }
     bnd = cauchy(nn,shc);
 
@@ -328,8 +330,8 @@ static void noshft(int l1, int nn, complex double *hc, complex double *pc, compl
     hc[i] = xni*pc[i]/((double)(n));
   }
   for (jj=0;jj<l1;jj++) {
-    if (cabs(hc[nm2]) > eta*10.0*cabs(pc[nm2])) {
-      *tc = -pc[n] / hc[nm1];
+    if (cmod(hc[nm2]) > eta*10.0*cmod(pc[nm2])) {
+      *tc = cdivid(-pc[n], hc[nm1]);
       for (i=0;i<nm1;i++) {
 	int j = nm1-i;
 	hc[j] = pc[j] + *tc * hc[j-1];
@@ -380,7 +382,7 @@ static int fxshft(int l2, complex double *zc, int nn, complex double *shc, compl
     /* Test for convergence unless stage 3 has failed once or
        this is the last h polynomial */
     if (!boolvar && test && j != l2) {
-      if (cabs(*tc-otc) < .5*cabs(*zc)) {
+      if (cmod(*tc-otc) < .5*cmod(*zc)) {
 	if (pasd) {
 
 	  /* The weak convergence test has been passed twice, start the
@@ -434,8 +436,8 @@ static int vrshft(int l3, complex double *zc, int nn, complex double *qpc, compl
 
     /* Evaluate p at s and test for convergence */
     *pvc = polyev(nn,*sc,pc,qpc);
-    mp = cabs(*pvc);
-    ms = cabs(*sc);
+    mp = cmod(*pvc);
+    ms = cmod(*sc);
     if (mp <= 20.0L*errev(nn,qpc,ms,mp)) {
       /* Polynomial value is smaller in value than a bound on the error
 	 in evaluating p, terminate the iteration */
@@ -472,7 +474,7 @@ static int vrshft(int l3, complex double *zc, int nn, complex double *qpc, compl
     nexth(boolvar,nn, qhc, qpc, hc, *tc);
     boolvar = calct(nn,qhc,hc,tc,sc,pvc);
     if (!boolvar) {
-      relstp = cabs(*tc)/cabs(*sc);
+      relstp = cmod(*tc)/cmod(*sc);
       *sc += *tc;
     }
   }
@@ -485,8 +487,8 @@ static int calct(int nn, complex double *qhc, complex double *hc, complex double
      */
 {
   complex double hvc = polyev(nn-1,*sc,hc,qhc); /* Evaluate h(s) */
-  int boolvar = (cabs(hvc) <= are*10.0*cabs(hc[nn-2]));
-  *tc = boolvar ? 0.0 : -*pvc / hvc;
+  int boolvar = (cmod(hvc) <= are*10.0*cmod(hc[nn-2]));
+  *tc = boolvar ? 0.0 : cdivid(-*pvc, hvc);
   return boolvar;
 }
 
@@ -538,9 +540,9 @@ static double errev(int nn, complex double qc[], double ms, double mp)
   double e;
   int i;
 
-  e = cabs(qc[0])*mre/(are+mre);
+  e = cmod(qc[0])*mre/(are+mre);
   for (i=0;i<nn;i++)
-    e = e*ms+cabs(qc[i]);
+    e = e*ms+cmod(qc[i]);
   return e*(are+mre)-mp*mre;
 }
 
@@ -626,6 +628,39 @@ static double scale(int nn, complex double pc[])
   }
   l = log(sc)/log(base) + .500;
   return pow(base,l);
+}
+
+static complex double cdivid(complex double a, complex double b)
+     /* Complex division c = a/b, avoiding overflow */
+{
+  double ar=creal(a),ai=cimag(a),br=creal(b),bi=cimag(b);
+  if (br == 0.0  && bi == 0.0) {
+    /* division by zero, c = infinity. */
+    return infin*(1 + I);
+  } else if (fabs(br) < fabs(bi)) {
+    double r = br/bi;
+    double d = bi+r*br;
+    return (ar*r+ai + I*(ai*r-ar))/d;
+  } else {
+    double r = bi/br;
+    double d = br+r*bi;
+    return (ar+ai*r + I*(ai-ar*r))/d;
+  }
+}
+
+static double cmod(complex double a)
+     /* Modulus of a complex number avoiding overflow */
+{
+  double ar = fabs(creal(a)), ai = fabs(cimag(a)), f;
+  if (ar < ai) {
+    f = ar/ai;
+    return ai*sqrt(1.0+f*f);
+  } else if (ar > ai) {
+    f = ai/ar;
+    return ar*sqrt(1.0+f*f);
+  } else {
+    return ar*sqrt(2.0);
+  }
 }
 
 static void mcon()
