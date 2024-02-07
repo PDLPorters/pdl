@@ -53,12 +53,15 @@ $pa->inplace->erfi;
 ok( all( approx( $pa, pdl(0.00886,0.0) )), "erfi inplace" );
 }
 
-ok( all approx( qsort(
-	(polyroots(
-			pdl( 1,-55,1320,-18150,157773,-902055, 3416930,-8409500,12753576,-10628640,3628800 ),
-			zeroes(11)
-		))[0]
-), 1+sequence(10) ) );
+my $coeffs = pdl(cdouble, 1,-55,1320,-18150,157773,-902055, 3416930,-8409500,12753576,-10628640,3628800);
+my $roots = 1+sequence(10);
+my $got;
+ok all(approx $got=qsort((polyroots $coeffs->re, $coeffs->im)[0]), $roots), 'polyroots' or diag $got;
+polyroots $coeffs->re, $coeffs->im, $got=null; $got->inplace->qsort;
+ok all(approx $got, $roots), 'polyroots with explicit output args' or diag $got;
+ok all(approx $got=qsort(polyroots($coeffs)->re), $roots), 'polyroots native complex no output args' or diag $got;
+polyroots $coeffs, $got=null; $got=$got->re->qsort;
+ok all(approx $got, $roots), 'polyroots native complex explicit output args' or diag $got;
 
 {
 my $pa = sequence(41) - 20;
