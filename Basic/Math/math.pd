@@ -370,6 +370,60 @@ of decreasing powers. As of 2.086, works with native-complex data.
  ($rr, $ri) = polyroots($cr, $ci);
 ',);
 
+pp_def("polyfromroots",
+      Pars => 'r(m); [o]c(n);',
+      GenericTypes => ['CD'],
+      RedoDimsCode => '$SIZE(n) = $SIZE(m)+1;',
+      Code => <<'EOF',
+/*
+algorithm from octave poly.m, O(n^2)
+per https://cs.stackexchange.com/questions/116643/what-is-the-most-efficient-algorithm-to-compute-polynomial-coefficients-from-its, FFT allows O(n*log(n)^2)
+*/
+$c(n=>0) = 1.0;
+loop(m) %{ $c(n=>m+1) = 0.0; %}
+PDL_Indx k;
+loop(m) %{
+  for (k = m; k >= 0; k--) /* count down to use data before we mutate */
+    $c(n=>k+1) -= $r() * $c(n=>k);
+%}
+EOF
+      PMCode => pp_line_numbers(__LINE__, <<'EOF'),
+sub PDL::polyfromroots {
+  my @args = map PDL->topdl($_), @_;
+  my $natcplx = !$args[0]->type->real;
+  barf "need array context" if !$natcplx and !(wantarray//1);
+  if (!$natcplx) {
+    splice @args, 0, 2, $args[0]->czip($args[1]); # r
+  }
+  my @ins = splice @args, 0, 1;
+  my $explicit_out = my @outs = @args;
+  if ($natcplx) {
+    $_ //= PDL->null for $outs[0];
+  } else {
+    $_ //= PDL->null for @outs[0,1];
+  }
+  my @args_out = $natcplx ? @outs : PDL->null;
+  PDL::_polyfromroots_int(@ins, @args_out);
+  if (!$natcplx) {
+    $outs[0] .= $args_out[0]->re;
+    $outs[1] .= $args_out[0]->im;
+  }
+  $natcplx ? $outs[0] : @outs;
+}
+EOF
+      Doc => '
+=for ref
+
+Calculates the complex coefficients of a polynomial from its complex
+roots, in order of decreasing powers. Added in 2.086, works with
+native-complex data. Currently C<O(n^2)>.
+
+=for usage
+
+ $coeffs = polyfromroots($roots); # native complex
+ ($cr, $ci) = polyfromroots($rr, $ri);
+',);
+
 pp_def("polyval",
       Pars => 'c(n); x(); [o]y();',
       GenericTypes => ['CD'],

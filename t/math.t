@@ -64,6 +64,12 @@ polyroots $coeffs, $got=null; $got=$got->re->qsort;
 ok all(approx $got, $roots), 'polyroots native complex explicit output args' or diag $got;
 eval {polyroots(pdl("[1 0 0 0 -1]"),zeroes(5))};
 is $@, '', 'polyroots no crash on 4 complex roots of 1';
+ok all(approx $got=(polyfromroots $roots, $roots->zeroes)[0], $coeffs->re), 'polyfromroots legacy no outargs' or diag $got;
+polyfromroots $roots, $roots->zeroes, $got=null;
+ok all(approx $got, $coeffs->re), 'polyfromroots legacy with explicit output args' or diag $got;
+ok all(approx $got=polyfromroots(cdouble($roots)), $coeffs->re), 'polyfromroots natcom no outargs' or diag $got;
+polyfromroots cdouble($roots), $got=null;
+ok all(approx $got, $coeffs), 'polyfromroots natcom explicit outargs' or diag $got;
 
 my ($coeffs2, $x, $exp_val) = (cdouble(3,2,1), cdouble(5,7,9), cdouble(86,162,262));
 ok all(approx $got=polyval($coeffs2, $x), $exp_val), 'polyval natcom no output' or diag $got;
