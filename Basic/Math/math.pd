@@ -427,7 +427,12 @@ native-complex data. Currently C<O(n^2)>.
 pp_def("polyval",
       Pars => 'c(n); x(); [o]y();',
       GenericTypes => ['CD'],
-      Code => '$y() = polyev($SIZE(n), $x(), $P(c), NULL);',
+      Code => <<'EOF',
+$GENERIC(y) vc = $c(n=>0), sc = $x();
+PDL_Indx i;
+for (i=1; i<$SIZE(n); i++) vc = vc*sc + $c(n=>i);
+$y() = vc;
+EOF
       PMCode => pp_line_numbers(__LINE__, <<'EOF'),
 sub PDL::polyval {
   my @args = map PDL->topdl($_), @_;
@@ -457,8 +462,8 @@ EOF
 =for ref
 
 Complex value of a complex polynomial at given point, given coefficients
-in order of decreasing powers. Added in 2.086, works with native-complex
-data.
+in order of decreasing powers. Uses Horner recurrence. Added in 2.086,
+works with native-complex data.
 
 =for usage
 
