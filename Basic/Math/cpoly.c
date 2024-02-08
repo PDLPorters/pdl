@@ -19,11 +19,11 @@
 #include "cpoly.h"
 
 /* Internal routines */
-static void noshft(int l1, int nn, complex double *hc, complex double *pc, complex double *tc);
-static int fxshft(int l2, complex double *zc, int nn, complex double *shc, complex double *qpc, complex double *hc, complex double *pc, complex double *qhc, complex double *tc, complex double *sc, complex double *pvc);
-static int vrshft(int l3, complex double *zc, int nn, complex double *qpc, complex double *pc, complex double *qhc, complex double *hc, complex double *tc, complex double *sc, complex double *pvc);
-static int calct(int nn, complex double *qhc, complex double *hc, complex double *tc, complex double *sc, complex double *pvc);
-static void nexth(int boolvar, int nn, complex double *qhc, complex double *qpc, complex double *hc, complex double tc);
+static void noshft(int l1, int nn, complex double hc[], complex double pc[], complex double *tc);
+static int fxshft(int l2, complex double *zc, int nn, complex double shc[], complex double qpc[], complex double hc[], complex double pc[], complex double qhc[], complex double *tc, complex double *sc, complex double *pvc);
+static int vrshft(int l3, complex double *zc, int nn, complex double qpc[], complex double pc[], complex double qhc[], complex double hc[], complex double *tc, complex double *sc, complex double *pvc);
+static int calct(int nn, complex double qhc[], complex double hc[], complex double *tc, complex double sc, complex double pvc);
+static void nexth(int boolvar, int nn, complex double qhc[], complex double qpc[], complex double hc[], complex double tc);
 static double errev(int nn, complex double qc[], double ms, double mp);
 static double cauchy(int nn, complex double pc[]);
 static double scale(int nn, complex double pc[]);
@@ -320,7 +320,7 @@ returnlab:
   return failreason;
 }
 
-static void noshft(int l1, int nn, complex double *hc, complex double *pc, complex double *tc)
+static void noshft(int l1, int nn, complex double hc[], complex double pc[], complex double *tc)
 {
   /*  Computes the derivative polynomial as the initial h
       polynomial and computes l1 no-shift h polynomials. */
@@ -348,7 +348,7 @@ static void noshft(int l1, int nn, complex double *hc, complex double *pc, compl
   }
 }
 
-static int fxshft(int l2, complex double *zc, int nn, complex double *shc, complex double *qpc, complex double *hc, complex double *pc, complex double *qhc, complex double *tc, complex double *sc, complex double *pvc)
+static int fxshft(int l2, complex double *zc, int nn, complex double shc[], complex double qpc[], complex double hc[], complex double pc[], complex double qhc[], complex double *tc, complex double *sc, complex double *pvc)
      /* Computes l2 fixed-shift h polynomials and tests for convergence
 
 	Initiates a variable-shift iteration and returns with the
@@ -368,7 +368,7 @@ static int fxshft(int l2, complex double *zc, int nn, complex double *shc, compl
   pasd = FALSE;
 
   /* Calculate first t = -p(s)/h(s) */
-  boolvar = calct(nn,qhc,hc,tc,sc,pvc);
+  boolvar = calct(nn,qhc,hc,tc,*sc,*pvc);
 
   /* Main loop for one second stage step */
   for (j=0;j<l2;j++) {
@@ -376,7 +376,7 @@ static int fxshft(int l2, complex double *zc, int nn, complex double *shc, compl
 
     /* Compute next h polynomial and new t */
     nexth(boolvar,nn, qhc, qpc, hc, *tc);
-    boolvar = calct(nn,qhc,hc,tc,sc,pvc);
+    boolvar = calct(nn,qhc,hc,tc,*sc,*pvc);
     *zc = *sc+*tc;
 
     /* Test for convergence unless stage 3 has failed once or
@@ -403,7 +403,7 @@ static int fxshft(int l2, complex double *zc, int nn, complex double *shc, compl
 	  }
 	  *sc = svsc;
 	  *pvc = polyev(nn,*sc,pc,qpc);
-	  boolvar = calct(nn,qhc,hc,tc,sc,pvc);
+	  boolvar = calct(nn,qhc,hc,tc,*sc,*pvc);
 	} else {
 	  pasd = TRUE;
 	}
@@ -417,7 +417,7 @@ static int fxshft(int l2, complex double *zc, int nn, complex double *shc, compl
   return vrshft(10,zc,nn,qpc,pc,qhc,hc,tc,sc,pvc);
 }
 
-static int vrshft(int l3, complex double *zc, int nn, complex double *qpc, complex double *pc, complex double *qhc, complex double *hc, complex double *tc, complex double *sc, complex double *pvc)
+static int vrshft(int l3, complex double *zc, int nn, complex double qpc[], complex double pc[], complex double qhc[], complex double hc[], complex double *tc, complex double *sc, complex double *pvc)
      /*  Carries out the third stage iteration
 
 	 l3      - Limit of steps in stage 3
@@ -454,7 +454,7 @@ static int vrshft(int l3, complex double *zc, int nn, complex double *qpc, compl
 	  *sc *= 1.0L + sqrt(tp)*(1 + I);
 	  *pvc = polyev(nn,*sc,pc,qpc);
 	  for (j=0;j<5;j++) {
-	    boolvar = calct(nn,qhc,hc,tc,sc,pvc);
+	    boolvar = calct(nn,qhc,hc,tc,*sc,*pvc);
 	    nexth(boolvar,nn, qhc, qpc, hc, *tc);
 	  }
 	  omp = infin;
@@ -470,9 +470,9 @@ static int vrshft(int l3, complex double *zc, int nn, complex double *qpc, compl
     }
 
     /* Calculate next iterate. */
-    boolvar = calct(nn,qhc,hc,tc,sc,pvc);
+    boolvar = calct(nn,qhc,hc,tc,*sc,*pvc);
     nexth(boolvar,nn, qhc, qpc, hc, *tc);
-    boolvar = calct(nn,qhc,hc,tc,sc,pvc);
+    boolvar = calct(nn,qhc,hc,tc,*sc,*pvc);
     if (!boolvar) {
       relstp = cmod(*tc)/cmod(*sc);
       *sc += *tc;
@@ -481,18 +481,18 @@ static int vrshft(int l3, complex double *zc, int nn, complex double *qpc, compl
   return FALSE;
 }
 
-static int calct(int nn, complex double *qhc, complex double *hc, complex double *tc, complex double *sc, complex double *pvc)
+static int calct(int nn, complex double qhc[], complex double hc[], complex double *tc, complex double sc, complex double pvc)
      /* Computes  t = -p(s)/h(s)
 	Returns TRUE if h(s) is essentially zero
      */
 {
-  complex double hvc = polyev(nn-1,*sc,hc,qhc); /* Evaluate h(s) */
+  complex double hvc = polyev(nn-1,sc,hc,qhc); /* Evaluate h(s) */
   int boolvar = (cmod(hvc) <= are*10.0*cmod(hc[nn-2]));
-  *tc = boolvar ? 0.0 : cdivid(-*pvc, hvc);
+  *tc = boolvar ? 0.0 : cdivid(-pvc, hvc);
   return boolvar;
 }
 
-static void nexth(int boolvar, int nn, complex double *qhc, complex double *qpc, complex double *hc, complex double tc)
+static void nexth(int boolvar, int nn, complex double qhc[], complex double qpc[], complex double hc[], complex double tc)
   /* Calculates the next shifted h polynomial
      boolvar   -  TRUE if h(s) is essentially zero
   */
