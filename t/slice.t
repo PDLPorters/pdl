@@ -318,6 +318,18 @@ for ([0,1], [1,0], [1,1]) {
   $got = $y->unpdl;
   is_deeply $got, $exp, "mv=$mv mult=$mult clump" or diag explain $got;
 }
+# test the bug alluded to in the comments in pdl_changed (pdlapi.c)
+# used to segfault
+my $xx=ones(double,3,4);
+my $sl1 = $xx->slice('(0)');
+my $sl11 = $sl1->slice('');
+my $sl2 = $xx->slice('(1)');
+my $sl22 = $sl2->slice('');
+my $roots = pdl '[1 -2396-2796i -778800+5024412i 2652376792-1643494392i -684394069604-217389559200i]'; # gives 4 roots of 599+699i
+PDL::polyroots($roots->re, $roots->im, $sl11, $sl22);
+my $got;
+ok all(approx $got=$xx->slice('(0)'), 599), "col=0" or diag "got=$got";
+ok all(approx $got=$xx->slice('(1)'), 699), "col=1" or diag "got=$got";
 }
 
 # captured from https://www.perlmonks.org/?node_id=11153348

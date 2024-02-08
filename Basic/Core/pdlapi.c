@@ -84,9 +84,9 @@ pdl_error pdl__ensure_trans(pdl_trans *trans,int what,int *wd, int recurse_count
 		if (!PDL_VAFFOK(child) || (child->state & PDL_ALLOCATED))
 		    child->state &= ~PDL_ANYCHANGED;
 		if (!wd) continue;
-		PDLDEBUG_f(printf("   pdl__ensure_trans wd="); pdl_dump_flags_fixspace(wd[j], 0, PDL_FLAGS_PDL));
 		char isvaffine = (PDL_VAFFOK(child) &&
 		    VAFFINE_FLAG_OK(vtable->per_pdl_flags,j));
+		PDLDEBUG_f(printf("   pdl__ensure_trans isvaffine=%d wd=", (int)isvaffine); pdl_dump_flags_fixspace(wd[j], 0, PDL_FLAGS_PDL));
 		if (!isvaffine || (wd[j] & PDL_PARENTDIMSCHANGED))
 		    CHANGED(child,wd[j],0);
 		if (isvaffine)

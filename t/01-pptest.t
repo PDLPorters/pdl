@@ -34,15 +34,6 @@ void ppcp(PDL_Byte *dst, PDL_Byte *src, int len)
   for (i=0;i<len;i++)
      *dst++=*src++;
 }
-
-void tinplace_c2(int n, PDL_Float* data1, PDL_Float* data2)
-{
-  int i;
-  for (i=0;i<n;i++) {
-    data1[i] = 599.0;
-    data2[i] = 699.0;
-  }
-}
 EOF
 
     'tests.pd' => <<'EOF',
@@ -117,16 +108,6 @@ pp_def( '_flatten_into',
                 loop(m) %{ $idx() = $in(); %}
         ',
 );
-
-pp_addhdr << 'EOH';
-void tinplace_c2(int n, PDL_Float* data1, PDL_Float* data2);
-EOH
-
-pp_def('fooflow2',
-	Pars => '[io]a(n);[io]b(n)',
-        GenericTypes => ['F'],
-	Code => 'tinplace_c2($SIZE(n),$P(a),$P(b));',
-	);
 
 pp_def( 'broadcastloop_continue',
 	 Pars => 'in(); [o] out()',
@@ -488,19 +469,6 @@ is_deeply \@msg, [], 'no warnings' or diag explain \@msg;
 
 eval { _flatten_into(null, 2) };
 ok 1; #was also segfaulting
-
-# test the bug alluded to in the comments in pdl_changed (pdlapi.c)
-# used to segfault
-my $xx=ones(float,3,4);
-my $sl1 = $xx->slice('(0)');
-my $sl11 = $sl1->slice('');
-my $sl2 = $xx->slice('(1)');
-my $sl22 = $sl2->slice('');
-
-fooflow2($sl11, $sl22);
-
-ok(all $xx->slice('(0)') == 599);
-ok(all $xx->slice('(1)') == 699);
 
 # test that continues in a broadcastloop work
 {
