@@ -293,14 +293,45 @@ for my $start (0, 4, -4, 20, -20) {
 }
 
 {
+my @METHODS = qw(datachgd allocated vaffine);
+sub vafftest {
+  my ($all, $exp, $elabel) = @_[0..2];
+  local $Test::Builder::Level = $Test::Builder::Level + 1;
+  for (0..$#$all) {
+    my ($x, $name, $xexp) = (@{$all->[$_]}[0,1], $exp->[$_]);
+    is $x->${\$METHODS[$_]}, $xexp->[$_], "$elabel: $name $METHODS[$_]"
+      for 0..$#METHODS;
+  }
+}
 # Test vaffine optimisation
 my $x = zeroes(100,100);
 my $y = $x->slice('10:90,10:90');
+my $y2 = $y->slice('5:8,5:8');
+my $clump = $y2->clump(-1);
+my $all = [[$y,'vaff'], [$y2,'child'], [$clump,'clumped']];
+vafftest($all, [[1,0,0],[1,0,0],[1,0,0]], "start");
 $y++;
-ok( (not $y->allocated) ) ;
+vafftest($all, [[1,0,1],[1,0,0],[1,0,0]], "vaff mutated");
+$y2->make_physvaffine;
+vafftest($all, [[1,0,1],[1,0,1],[1,0,0]], "child vaffed");
+$y->make_physical;
+vafftest($all, [[0,1,1],[1,0,1],[1,0,0]], "vaff physicalised");
+$y2 += 1;
+vafftest($all, [[1,1,1],[1,0,1],[1,0,0]], "child mutated");
+$y->make_physvaffine;
+vafftest($all, [[1,1,1],[1,0,1],[1,0,0]], "vaff physvaffined");
+$clump++;
+vafftest($all, [[1,1,1],[0,1,1],[0,1,0]], "clumped mutated");
+$x->set(0,0,7);
+vafftest($all, [[1,1,1],[0,1,1],[0,1,0]], "root set()ed");
+$y->make_physvaffine;
+vafftest($all, [[1,1,1],[0,1,1],[0,1,0]], "vaff physvaffined");
+$y2->make_physvaffine;
+vafftest($all, [[1,1,1],[0,1,1],[0,1,0]], "child physvaffined");
+$clump->make_physvaffine;
+vafftest($all, [[1,1,1],[0,1,1],[0,1,0]], "clumped physvaffined");
 # Make sure that vaffining is properly working:
-$x = zeroes 5,6,2;
-$y = (xvals $x) + 0.1 * (yvals $x) + 0.01 * (zvals $x);
+$y = xvals(5,6,2) + 0.1 * yvals(5,6,2) + 0.01 * zvals(5,6,2);
 my $c = $y->copy->slice("2:3");
 ok tapprox $c, $c->copy;
 for ([0,1], [1,0], [1,1]) {
