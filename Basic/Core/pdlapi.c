@@ -67,7 +67,7 @@ pdl_error pdl__ensure_trans(pdl_trans *trans,int what,int *wd, int recurse_count
 	for(j=vtable->nparents; j<vtable->npdls; j++)
 		if(trans->pdls[j]->trans_parent == trans)
 			PDL_ENSURE_ALLOCATED(trans->pdls[j]);
-	if(flag & (PDL_PARENTDATACHANGED | PDL_PARENTDIMSCHANGED)) {
+	if(flag & PDL_ANYCHANGED) {
 		if(par_pvaf && (trans->flags & PDL_ITRANS_ISAFFINE)) {
 		  /* Attention: this assumes affine = p2child */
 		  /* need to signal that redodims has already been called */

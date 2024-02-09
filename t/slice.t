@@ -333,7 +333,7 @@ ok all(approx $got=$xx->slice('(1)'), 699), "col=1" or diag "got=$got";
 }
 
 # captured from https://www.perlmonks.org/?node_id=11153348
-for ([0,0], [0,1], [1,0]) {
+for ([0,0], [0,1], [1,0]) { # , [1,1] TODO
   my ($phys_clump, $mutate_orig) = @$_;
   my $orig = zeroes 3,2,1;
   my $clump = $orig->clump(1,2);
