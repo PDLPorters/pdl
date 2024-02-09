@@ -1482,8 +1482,8 @@ EOD
         'if ( $PRIV(bvalflag) ) { ' . $bad . ' } else { ' . $good . '}';
       }),
 
-   PDL::PP::Rule::Returns::Zero->new("Affine_Ok", "EquivCPOffsCode"),
-   PDL::PP::Rule::Returns::One->new("Affine_Ok"),
+   PDL::PP::Rule::Returns::Zero->new("CanVaffine", "EquivCPOffsCode"),
+   PDL::PP::Rule::Returns::One->new("CanVaffine"),
 
    PDL::PP::Rule::Returns::NULL->new("ReadDataFuncName", "AffinePriv"),
    PDL::PP::Rule::Returns::NULL->new("WriteBackDataFuncName", "AffinePriv"),
@@ -2025,19 +2025,19 @@ EOF
    PDL::PP::Rule->new("VTableDef",
       ["VTableName","ParamStructType","RedoDimsFuncName","ReadDataFuncName",
        "WriteBackDataFuncName","FreeFuncName",
-       "SignatureObj","Affine_Ok","HaveBroadcasting","NoPthread","Name",
+       "SignatureObj","CanVaffine","HaveBroadcasting","NoPthread","Name",
        "GenericTypes","IsAffineFlag","TwoWayFlag","DefaultFlowFlag",
        "BadFlag"],
       sub {
         my($vname,$ptype,$rdname,$rfname,$wfname,$ffname,
-           $sig,$affine_ok,$havebroadcasting, $noPthreadFlag, $name, $gentypes,
+           $sig,$canvaffine,$havebroadcasting, $noPthreadFlag, $name, $gentypes,
            $affflag, $revflag, $flowflag, $badflag) = @_;
         my ($pnames, $pobjs) = ($sig->names_sorted, $sig->objs);
         my $nparents = 0 + grep !$pobjs->{$_}->{FlagW}, @$pnames;
-        my $aff = ($affine_ok ? "PDL_TPDL_VAFFINE_OK" : 0);
         my $npdls = scalar @$pnames;
-        my $join_flags = join(", ",map {$pobjs->{$pnames->[$_]}->{FlagPhys} ?
-                                          0 : $aff} 0..$npdls-1) || '0';
+        my $join_flags = join(", ",
+          map $canvaffine && !$pobjs->{$pnames->[$_]}->{FlagPhys}
+            ? "PDL_TPDL_VAFFINE_OK" : 0, 0..$npdls-1) || '0';
         my @op_flags;
         push @op_flags, 'PDL_TRANS_DO_BROADCAST' if $havebroadcasting;
         push @op_flags, 'PDL_TRANS_BADPROCESS' if $badflag;
