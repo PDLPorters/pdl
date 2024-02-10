@@ -62,7 +62,7 @@ pdl_error pdl__ensure_trans(pdl_trans *trans,int what,int *wd, int recurse_count
 	}
 	for(j=vtable->nparents; j<vtable->npdls; j++)
 		flag |= trans->pdls[j]->state & PDL_ANYCHANGED;
-	PDLDEBUG_f(printf("pdl__ensure_trans after accum, par_pvaf=%"IND_FLAG" flag=", par_pvaf); pdl_dump_flags_fixspace(what, 0, PDL_FLAGS_PDL));
+	PDLDEBUG_f(printf("pdl__ensure_trans after accum, par_pvaf=%"IND_FLAG" flag=", par_pvaf); pdl_dump_flags_fixspace(flag, 0, PDL_FLAGS_PDL));
 	if (flag & PDL_PARENTDIMSCHANGED) REDODIMS(PDL_RETERROR, trans);
 	for(j=vtable->nparents; j<vtable->npdls; j++)
 		if(trans->pdls[j]->trans_parent == trans)
