@@ -6,6 +6,7 @@
 - add PDL::Trans::VTable
 - Math::polyroots now handles native-complex
 - add Math::poly{val,fromroots}
+- fix DATACHANGED propagation (#461) - thanks Karl Glazebrook and @vadim-160102 for report
 
 2.085 2024-01-30
 - switch FFT code to use heap, not VLA (#436) - thanks @HaraldJoerg for report

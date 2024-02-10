@@ -67,22 +67,19 @@ pdl_error pdl__ensure_trans(pdl_trans *trans,int what,int *wd, int recurse_count
 	for(j=vtable->nparents; j<vtable->npdls; j++)
 		if(trans->pdls[j]->trans_parent == trans)
 			PDL_ENSURE_ALLOCATED(trans->pdls[j]);
-	if(flag & PDL_ANYCHANGED) {
-		if(par_pvaf && (trans->flags & PDL_ITRANS_ISAFFINE)) {
-		  /* Attention: this assumes affine = p2child */
-		  /* need to signal that redodims has already been called */
-		        PDLDEBUG_f(printf("pdl__ensure_trans vaffine output turning off dimschanged, before="); pdl_dump_flags_fixspace(trans->pdls[1]->state, 0, PDL_FLAGS_PDL));
-		        trans->pdls[1]->state &= ~PDL_PARENTDIMSCHANGED;
-			PDL_RETERROR(PDL_err, pdl__make_physvaffine_recprotect(trans->pdls[1], recurse_count+1));
-			PDL_ACCUMERROR(PDL_err, pdl_readdata_vaffine(trans->pdls[1]));
-		} else
-			READDATA(trans);
-	}
+	if(par_pvaf && (trans->flags & PDL_ITRANS_ISAFFINE)) {
+	        PDLDEBUG_f(printf("pdl__ensure_trans vaffine output turning off dimschanged, before="); pdl_dump_flags_fixspace(trans->pdls[1]->state, 0, PDL_FLAGS_PDL));
+	  /* Attention: this assumes affine = p2child */
+	  /* need to signal that redodims has already been called */
+	        trans->pdls[1]->state &= ~PDL_PARENTDIMSCHANGED;
+		PDL_RETERROR(PDL_err, pdl__make_physvaffine_recprotect(trans->pdls[1], recurse_count+1));
+		PDL_ACCUMERROR(PDL_err, pdl_readdata_vaffine(trans->pdls[1]));
+	} else if(flag & PDL_ANYCHANGED)
+		READDATA(trans);
 	for(j=vtable->nparents; j<vtable->npdls; j++) {
 		pdl *child = trans->pdls[j];
-		PDLDEBUG_f(printf("pdl__ensure_trans child=%p considering turning off all changed, before=", child); pdl_dump_flags_fixspace(child->state, 0, PDL_FLAGS_PDL));
-		if (!((child->state & (PDL_OPT_VAFFTRANSOK|PDL_ALLOCATED)) == PDL_OPT_VAFFTRANSOK)) /* not "pure vaffine" */
-		    child->state &= ~PDL_ANYCHANGED;
+		PDLDEBUG_f(printf("pdl__ensure_trans child=%p turning off all changed, before=", child); pdl_dump_flags_fixspace(child->state, 0, PDL_FLAGS_PDL));
+		child->state &= ~PDL_ANYCHANGED;
 		if (!wd) continue;
 		char isvaffine = (PDL_VAFFOK(child) &&
 		    VAFFINE_FLAG_OK(vtable->per_pdl_flags,j));
@@ -722,7 +719,7 @@ pdl_error pdl_make_trans_mutual(pdl_trans *trans)
 		   previous parent transformations and mutate if they exist
 		   if no dataflow. */
 		PDLDEBUG_f(printf("make_trans_mutual turning on allchanged, before="); pdl_dump_flags_fixspace(child->state, 0, PDL_FLAGS_PDL));
-		child->state |= PDL_PARENTDIMSCHANGED | PDL_PARENTDATACHANGED;
+		child->state |= PDL_PARENTDIMSCHANGED | ((trans->flags & PDL_ITRANS_ISAFFINE) ? 0 : PDL_PARENTDATACHANGED);
 	}
 	if (dataflow || isnull) child->trans_parent = trans;
 	if (isnull)
@@ -763,7 +760,10 @@ pdl_error pdl__make_physical_recprotect(pdl *it, int recurse_count) {
 	  return pdl_make_error_simple(PDL_EUSERERROR, "PDL:Internal Error: data structure recursion limit exceeded (max 1000 levels)\n\tThis could mean that you have found an infinite-recursion error in PDL, or\n\tthat you are building data structures with very long dataflow dependency\n\tchains.  You may want to try using sever() to break the dependency.\n");
 	PDLDEBUG_f(printf("make_physical %p\n",(void*)it));
         PDL_CHKMAGIC(it);
-	if(!(it->state & PDL_ANYCHANGED))  {
+	if (
+		!(it->state & PDL_ANYCHANGED) && /* unchanged and */
+		!(it->trans_parent && !(it->state & PDL_ALLOCATED) && (it->trans_parent->flags & PDL_ITRANS_ISAFFINE)) /* not pure vaffine in waiting */
+	)  {
 		if (!(it->state & PDL_ALLOCATED)) PDL_RETERROR(PDL_err, pdl_allocdata(it));
 		goto mkphys_end;
 	}
@@ -821,8 +821,11 @@ pdl_error pdl_changed(pdl *it, int what, int recursing) {
     if (it->state & PDL_TRACEDEBUG) pdl_dump(it);
   );
   if (recursing) {
-    PDLDEBUG_f(printf("pdl_changed: adding what to state, currently="); pdl_dump_flags_fixspace(it->state,0,PDL_FLAGS_PDL));
-    it->state |= what;
+    PDLDEBUG_f(printf("pdl_changed: adding what to state except pure vaff, currently="); pdl_dump_flags_fixspace(it->state,0,PDL_FLAGS_PDL));
+    it->state |= !( /* neither */
+      ((it->state & (PDL_OPT_VAFFTRANSOK|PDL_ALLOCATED)) == PDL_OPT_VAFFTRANSOK) || /* already pure vaff nor */
+      (it->trans_parent && !(it->state & PDL_ALLOCATED) && (it->trans_parent->flags & PDL_ITRANS_ISAFFINE)) /* pure vaffine in waiting */
+    ) ? what : what & ~PDL_PARENTDATACHANGED;
     if(pdl__ismagic(it)) pdl__call_magic(it,PDL_MAGIC_MARKCHANGED);
   }
   if (it->trans_parent && !recursing && (it->trans_parent->flags & PDL_ITRANS_DO_DATAFLOW_B)) {
@@ -850,6 +853,7 @@ pdl_error pdl_changed(pdl *it, int what, int recursing) {
     PDL_DECL_CHILDLOOP(it);
     PDL_START_CHILDLOOP(it)
       pdl_trans *trans = PDL_CHILDLOOP_THISCHILD(it);
+      if (!(trans->flags & PDL_ITRANS_DO_DATAFLOW_F)) continue;
       for(j=trans->vtable->nparents; j<trans->vtable->npdls; j++)
         if (trans->pdls[j] != it && (trans->pdls[j]->state & what) != what)
           CHANGED(trans->pdls[j],what,1);

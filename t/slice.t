@@ -309,17 +309,17 @@ my $y = $x->slice('10:90,10:90');
 my $y2 = $y->slice('5:8,5:8');
 my $clump = $y2->clump(-1);
 my $all = [[$y,'vaff'], [$y2,'child'], [$clump,'clumped']];
-vafftest($all, [[1,0,0],[1,0,0],[1,0,0]], "start");
+vafftest($all, [[0,0,0],[0,0,0],[1,0,0]], "start");
 $y++;
-vafftest($all, [[1,0,1],[1,0,0],[1,0,0]], "vaff mutated");
+vafftest($all, [[0,0,1],[0,0,0],[1,0,0]], "vaff mutated");
 $y2->make_physvaffine;
-vafftest($all, [[1,0,1],[1,0,1],[1,0,0]], "child vaffed");
+vafftest($all, [[0,0,1],[0,0,1],[1,0,0]], "child vaffed");
 $y->make_physical;
-vafftest($all, [[0,1,1],[1,0,1],[1,0,0]], "vaff physicalised");
+vafftest($all, [[0,1,1],[0,0,1],[1,0,0]], "vaff physicalised");
 $y2 += 1;
-vafftest($all, [[1,1,1],[1,0,1],[1,0,0]], "child mutated");
+vafftest($all, [[1,1,1],[0,0,1],[1,0,0]], "child mutated");
 $y->make_physvaffine;
-vafftest($all, [[1,1,1],[1,0,1],[1,0,0]], "vaff physvaffined");
+vafftest($all, [[1,1,1],[0,0,1],[1,0,0]], "vaff physvaffined");
 $clump++;
 vafftest($all, [[1,1,1],[0,1,1],[0,1,0]], "clumped mutated");
 $x->set(0,0,7);
@@ -364,7 +364,7 @@ ok all(approx $got=$xx->slice('(1)'), 699), "col=1" or diag "got=$got";
 }
 
 # captured from https://www.perlmonks.org/?node_id=11153348
-for ([0,0], [0,1], [1,0]) { # , [1,1] TODO
+for ([0,0], [0,1], [1,0], [1,1]) {
   my ($phys_clump, $mutate_orig) = @$_;
   my $orig = zeroes 3,2,1;
   my $clump = $orig->clump(1,2);
