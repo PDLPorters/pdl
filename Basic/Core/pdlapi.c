@@ -81,7 +81,7 @@ pdl_error pdl__ensure_trans(pdl_trans *trans,int what,int *wd, int recurse_count
 	for(j=vtable->nparents; j<vtable->npdls; j++) {
 		pdl *child = trans->pdls[j];
 		PDLDEBUG_f(printf("pdl__ensure_trans child=%p considering turning off all changed, before=", child); pdl_dump_flags_fixspace(child->state, 0, PDL_FLAGS_PDL));
-		if (!PDL_VAFFOK(child) || (child->state & PDL_ALLOCATED))
+		if (!((child->state & (PDL_OPT_VAFFTRANSOK|PDL_ALLOCATED)) == PDL_OPT_VAFFTRANSOK)) /* not "pure vaffine" */
 		    child->state &= ~PDL_ANYCHANGED;
 		if (!wd) continue;
 		char isvaffine = (PDL_VAFFOK(child) &&
