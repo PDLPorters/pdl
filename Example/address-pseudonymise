@@ -3,11 +3,13 @@
 use strict;
 use warnings;
 
+my $anon = @ARGV && $ARGV[0] eq '-x' && shift;
+
 my (%addr2number, $i);
 while (<>) {
   s:^==\d+==:==[PID]==:;
-  s:0x([0-9a-f]+):
-    '[ADDR'.($addr2number{$1} //= ++$i).']'
-  :gie;
+  s{0x([0-9a-f]+)}{
+    '[ADDR'.($anon ? '' : ($addr2number{$1} //= ++$i)).']'
+  }gie;
   print;
 }
