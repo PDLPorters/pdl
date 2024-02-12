@@ -317,10 +317,10 @@ sub PDL::rebin {
       } elsif ($odims[$i] != $idims[$i]) {       # If something changes
          if (!($odims[$i] % $idims[$i])) {      # Cells map 1 -> n
                my ($r) = $odims[$i]/$idims[$i];
-               $y = $x->mv($i,0)->dupN($r);
+               $y = ($i==0 ? $x : $x->mv($i,0))->dupN($r);
          } elsif (!($idims[$i] % $odims[$i])) { # Cells map n -> 1
                my ($r) = $idims[$i]/$odims[$i];
-               $x = $x->mv($i,0);
+               $x = $x->mv($i,0) if $i != 0;
                # -> copy so won\'t corrupt input PDL
                $y = $x->slice("0:-1:$r")->copy;
                foreach (1..$r-1) {
@@ -328,7 +328,7 @@ sub PDL::rebin {
                }
                $y /= $r;
          } else {                               # Cells map n -> m
-             &PDL::_rebin_int($x->mv($i,0), $y = null, $odims[$i]);
+             &PDL::_rebin_int(($i==0 ? $x : $x->mv($i,0)), $y = null, $odims[$i]);
          }
          $x = $y->mv(0,$i);
       }

@@ -289,8 +289,8 @@ sub PDL::fftnd {
     $i = $i->copy;
     foreach (0..$n) {
       fft($r,$i);
-      $r = $r->mv(0,$n);
-      $i = $i->mv(0,$n);
+      $r = $r->mv(0,$n) if 0 != $n;
+      $i = $i->mv(0,$n) if 0 != $n;
     }
     if (!$_[0]->type->real) {
 	$_[0]= czip($r, $i);
@@ -332,8 +332,8 @@ sub PDL::ifftnd {
     $n--;
     foreach (0..$n) {
       ifft($r,$i);
-      $r = $r->mv(0,$n);
-      $i = $i->mv(0,$n);
+      $r = $r->mv(0,$n) if 0 != $n;
+      $i = $i->mv(0,$n) if 0 != $n;
     }
     if (!$_[0]->type->real) {
 	$_[0]= czip($r, $i);
