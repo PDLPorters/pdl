@@ -1603,7 +1603,7 @@ sub PDL::glue{
     while($dim >= $x->ndims) {
 	$x = $x->dummy(-1,1);
     }
-    $x = $x->xchg(0,$dim);
+    $x = $x->xchg(0,$dim) if 0 != $dim;
 
     while(scalar(@_)){
 	my $y = shift;
@@ -1612,10 +1612,10 @@ sub PDL::glue{
 	while($dim >= $y->ndims) {
 		$y = $y->dummy(-1,1);
         }
-	$y = $y->xchg(0,$dim);
+	$y = $y->xchg(0,$dim) if 0 != $dim;
 	$x = $x->append($y);
     }
-    $x->xchg(0,$dim);
+    0 == $dim ? $x : $x->xchg(0,$dim);
 }
 
 EOD
