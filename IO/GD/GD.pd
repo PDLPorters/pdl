@@ -92,7 +92,7 @@ EOH
 
 # Function to write a PNG image from an ndarray variable:
 pp_def( 'write_png',
-        Pars => 'byte img(x,y); byte lut(i,j);',
+        Pars => 'byte img(x,y); byte lut(i=3,j);',
         OtherPars => 'char* filename',
         Doc => <<'ENDDOC',
 Writes a 2-d PDL variable out to a PNG file, using the supplied color look-up-table ndarray
@@ -100,18 +100,16 @@ Writes a 2-d PDL variable out to a PNG file, using the supplied color look-up-ta
 
 The LUT contains a line for each value 0-255 with a corresponding R, G, and B value.
 ENDDOC
+        RedoDimsCode => <<'EOF',
+if ($SIZE(j) > 256)
+    $CROAK("Wrong LUT dimensions (%"IND_FLAG", %"IND_FLAG")! (should be (3, X), where X <= 256)\n",
+            $SIZE(i), $SIZE(j) );
+EOF
         Code => <<'EOC' );
 
 gdImagePtr im;
 int xsize, ysize, tmp, ind, x2, y2;
-char str[255];
 FILE *out;
-
-if ($SIZE(i) != 3 || $SIZE(j) > 256)
-{
-    croak("Wrong LUT dimensions (%"IND_FLAG", %"IND_FLAG")! (should be (3, X), where X <= 256)\n",
-            $SIZE(i), $SIZE(j) );
-}
 
 xsize = $SIZE(x);
 ysize = $SIZE(y);
@@ -124,7 +122,7 @@ for(ind = 0; ind < $SIZE(j); ind++)
     tmp = gdImageColorAllocate(im, $lut(i=>0,j=>ind), $lut(i=>1,j=>ind), $lut(i=>2,j=>ind));
     if (tmp != ind)
     {
-        croak("palette mismatch on index %d (mapped to %d)!\n", ind, tmp);
+        $CROAK("palette mismatch on index %d (mapped to %d)!\n", ind, tmp);
     }
 }
 
@@ -151,29 +149,24 @@ EOC
 # Function to write a PNG image from an ndarray variable, accepting a compression
 #    level argument:
 pp_def( 'write_png_ex',
-        Pars => 'img(x,y); lut(i,j);',
+        Pars => 'img(x,y); lut(i=3,j);',
         OtherPars => 'char* filename; int level',
         Doc => <<'ENDDOC',
 Same as write_png(), except you can specify the compression level (0-9) as the last argument.
 ENDDOC
-        Code => <<'EOC' );
-
-gdImagePtr im;
-int xsize, ysize, tmp, ind, x2, y2;
-char str[255];
-FILE *out;
+        RedoDimsCode => <<'EOF',
+if ($SIZE(j) > 256)
+    $CROAK("Wrong LUT dimensions (%"IND_FLAG", %"IND_FLAG")! (should be (3, X), where X <= 256)\n",
+            $SIZE(i), $SIZE(j) );
 
 if( $COMP(level) < -1 || $COMP(level) > 9 )
-{
-    croak("Invalid compression level %d, should be [-1,9]!\n", 
+    $CROAK("Invalid compression level %d, should be [-1,9]!\n",
         $COMP(level) );
-}
-
-if ($SIZE(i) != 3 || $SIZE(j) > 256)
-{
-    croak("Wrong LUT dimensions (%"IND_FLAG", %"IND_FLAG")! (should be (3, X), where X <= 256)\n",
-            $SIZE(i), $SIZE(j) );
-}
+EOF
+        Code => <<'EOC' );
+gdImagePtr im;
+int xsize, ysize, tmp, ind, x2, y2;
+FILE *out;
 
 xsize = $SIZE(x);
 ysize = $SIZE(y);
@@ -186,7 +179,7 @@ for(ind = 0; ind < $SIZE(j); ind++)
     tmp = gdImageColorAllocate(im, $lut(i=>0,j=>ind), $lut(i=>1,j=>ind), $lut(i=>2,j=>ind));
     if (tmp != ind)
     {
-        croak("palette mismatch on index %d (mapped to %d)!\n", ind, tmp);
+        $CROAK("palette mismatch on index %d (mapped to %d)!\n", ind, tmp);
     }
 }
 
@@ -212,7 +205,7 @@ EOC
 
 # Function to write a TRUE COLOR PNG image from an ndarray variable:
 pp_def( 'write_true_png',
-        Pars => 'img(x,y,z);',
+        Pars => 'img(x,y,z=3);',
         OtherPars => 'char* filename',
         Doc => <<'ENDDOC',
 Writes an (x, y, z(3)) PDL variable out to a PNG file, using a true color format.
@@ -220,17 +213,9 @@ Writes an (x, y, z(3)) PDL variable out to a PNG file, using a true color format
 This means a larger file on disk, but can contain more than 256 colors.
 ENDDOC
         Code => <<'EOC' );
-
 gdImagePtr im;
 int xsize, ysize, x2, y2;
-char str[255];
 FILE *out;
-
-if ($SIZE(z) != 3)
-{
-    croak("Wrong dimensions (%"IND_FLAG", %"IND_FLAG", %"IND_FLAG")! (should be (X,Y,3))\n",
-            $SIZE(x), $SIZE(y), $SIZE(z) );
-}
 
 xsize = $SIZE(x);
 ysize = $SIZE(y);
@@ -260,7 +245,7 @@ EOC
 # Function to write a TRUE COLOR PNG image from an ndarray variable, 
 #    with the specified compression level:
 pp_def( 'write_true_png_ex',
-        Pars => 'img(x,y,z);',
+        Pars => 'img(x,y,z=3);',
         OtherPars => 'char* filename; int level',
         Doc => <<'ENDDOC',
 Same as write_true_png(), except you can specify the compression level (0-9) as the last argument.
@@ -269,19 +254,12 @@ ENDDOC
 
 gdImagePtr im;
 int xsize, ysize, x2, y2;
-char str[255];
 FILE *out;
 
 if( $COMP(level) < -1 || $COMP(level) > 9 )
 {
-    croak("Invalid compression level %d, should be [-1,9]!\n", 
+    $CROAK("Invalid compression level %d, should be [-1,9]!\n",
         $COMP(level) );
-}
-
-if ($SIZE(z) != 3)
-{
-    croak("Wrong dimensions (%"IND_FLAG", %"IND_FLAG", %"IND_FLAG")! (should be (X,Y,3))\n",
-            $SIZE(x), $SIZE(y), $SIZE(z) );
 }
 
 xsize = $SIZE(x);
@@ -483,23 +461,21 @@ pp_def( '_read_true_png',
         Pars => 'int [o] img(x,y,z);',
         OtherPars => 'char* filename',
         Doc => undef,
-        Code => <<'EOC' );
+        Code => <<'EOC'
 gdImagePtr im;
 int xsize, ysize, x2, y2, z2;
-char* func = "PDL::IO::GD::_read_png(): ";
-char str[255];
 FILE *in = NULL;
 
 in = fopen($COMP(filename), "rb");
 if ( in == NULL )
 {
-    croak("%sError opening %s!\n", func, $COMP(filename));
+    $CROAK("Error opening %s!\n", $COMP(filename));
 }
 
 im = gdImageCreateFromPng(in);
 if ( im == NULL )
 {
-    croak("%sError reading PNG data!\n", func);
+    $CROAK("Error reading PNG data!\n");
 }
 fclose(in);
 
@@ -509,8 +485,8 @@ ysize = gdImageSY(im);
 /* Check the dims... */
 if ( !( ($SIZE(x)==xsize) && ($SIZE(y)==ysize) ) )
 {
-    croak("%sDims of %s (%dx%d) and ndarray (%"IND_FLAG"x%"IND_FLAG") do not match!\n",
-            func, $COMP(filename), xsize, ysize, $SIZE(x), $SIZE(y));
+    $CROAK("Dims of %s (%dx%d) and ndarray (%"IND_FLAG"x%"IND_FLAG") do not match!\n",
+            $COMP(filename), xsize, ysize, $SIZE(x), $SIZE(y));
 }
 
 /* read the data */
@@ -526,6 +502,7 @@ for( y2 = 0; y2 < ysize; y2++ )
 }
 gdImageDestroy(im);
 EOC
+);
 
 # Function to read PNG image into an ndarray variable:
 pp_def( '_read_png',
@@ -535,20 +512,18 @@ pp_def( '_read_png',
         Code => <<'EOC' );
 gdImagePtr im;
 int xsize, ysize, x2, y2;
-char* func = "PDL::IO::GD::_read_png(): ";
-char str[255];
 FILE *in = NULL;
 
 in = fopen($COMP(filename), "rb");
 if ( in == NULL )
 {
-    croak("%sError opening %s!\n", func, $COMP(filename));
+    $CROAK("Error opening %s!\n", $COMP(filename));
 }
 
 im = gdImageCreateFromPng(in);
 if ( im == NULL )
 {
-    croak("%sError reading PNG data!\n", func);
+    $CROAK("Error reading PNG data!\n");
 }
 fclose(in);
 
@@ -558,8 +533,8 @@ ysize = gdImageSY(im);
 /* Check the dims... */
 if ( !( ($SIZE(x)==xsize) && ($SIZE(y)==ysize) ) )
 {
-    croak("%sDims of %s (%dx%d) and ndarray (%"IND_FLAG"x%"IND_FLAG") do not match!\n",
-            func, $COMP(filename), xsize, ysize, $SIZE(x), $SIZE(y));
+    $CROAK("Dims of %s (%dx%d) and ndarray (%"IND_FLAG"x%"IND_FLAG") do not match!\n",
+            $COMP(filename), xsize, ysize, $SIZE(x), $SIZE(y));
 }
 
 /* read the data */
@@ -581,8 +556,6 @@ pp_def( '_gd_image_to_pdl_true',
         Code => <<'ENDCODE' );
 int xsize, ysize, x2, y2, z2;
 gdImagePtr im = $COMP(img_ptr);
-char* func = "PDL::IO::GD::_gd_image_to_pdl_true(): ";
-char str[255];
 
 xsize = gdImageSX(im);
 ysize = gdImageSY(im);
@@ -590,8 +563,8 @@ ysize = gdImageSY(im);
 /* Check the dims... */
 if ( !( ($SIZE(x)==xsize) && ($SIZE(y)==ysize) ) )
 {
-    croak("%sDims of gdImage (%dx%d) and ndarray (%"IND_FLAG"x%"IND_FLAG") do not match!\n",
-            func, xsize, ysize, $SIZE(x), $SIZE(y));
+    $CROAK("Dims of gdImage (%dx%d) and ndarray (%"IND_FLAG"x%"IND_FLAG") do not match!\n",
+            xsize, ysize, $SIZE(x), $SIZE(y));
 }
 
 /* read the data */
@@ -613,9 +586,7 @@ pp_def( '_gd_image_to_pdl',
         Doc => undef,
         Code => <<'ENDCODE' );
 int xsize, ysize, x2, y2;
-char* func = "PDL::IO::GD::_gd_image_to_pdl(): ";
 gdImagePtr im = $COMP(img_ptr);
-char str[255];
 
 xsize = gdImageSX(im);
 ysize = gdImageSY(im);
@@ -623,8 +594,8 @@ ysize = gdImageSY(im);
 /* Check the dims... */
 if ( !( ($SIZE(x)==xsize) && ($SIZE(y)==ysize) ) )
 {
-    croak("%sDims of gdImage (%dx%d) and ndarray (%"IND_FLAG"x%"IND_FLAG") do not match!\n",
-            func, xsize, ysize, $SIZE(x), $SIZE(y));
+    $CROAK("Dims of gdImage (%dx%d) and ndarray (%"IND_FLAG"x%"IND_FLAG") do not match!\n",
+            xsize, ysize, $SIZE(x), $SIZE(y));
 }
 
 /* read the data */
@@ -638,18 +609,11 @@ for( y2 = 0; y2 < ysize; y2++ )
 ENDCODE
 
 pp_def( '_pdl_to_gd_image_true',
-        Pars => 'byte img(x,y,z); longlong [o] img_ptr(i)',
+        Pars => 'byte img(x,y,z=3); longlong [o] img_ptr(i)',
         Doc => undef,
         Code => <<'ENDCODE' );
 gdImagePtr im;
 int xsize, ysize, x2, y2;
-char str[255];
-
-if ($SIZE(z) != 3)
-{
-    croak("Wrong dimensions (%"IND_FLAG", %"IND_FLAG", %"IND_FLAG")! (should be (X,Y,3))\n",
-            $SIZE(x), $SIZE(y), $SIZE(z) );
-}
 
 xsize = $SIZE(x);
 ysize = $SIZE(y);
@@ -673,19 +637,16 @@ $img_ptr(i=>0) = (PDL_LongLong) PTR2IV(im);
 ENDCODE
 
 pp_def( '_pdl_to_gd_image_lut',
-        Pars => 'byte img(x,y); byte lut(i,j); longlong [o] img_ptr(q)',
+        Pars => 'byte img(x,y); byte lut(i=3,j); longlong [o] img_ptr(q)',
         Doc => undef,
+        RedoDimsCode => <<'EOF',
+if ($SIZE(j) > 256)
+    $CROAK("Wrong LUT dimensions (%"IND_FLAG", %"IND_FLAG")! (should be (3, X), where X <= 256)\n",
+            $SIZE(i), $SIZE(j) );
+EOF
         Code => <<'ENDCODE' );
-
 gdImagePtr im;
 int xsize, ysize, tmp, ind, x2, y2;
-char str[255];
-
-if ($SIZE(i) != 3 || $SIZE(j) > 256)
-{
-    croak("Wrong LUT dimensions (%"IND_FLAG", %"IND_FLAG")! (should be (3, X), where X <= 256)\n",
-            $SIZE(i), $SIZE(j) );
-}
 
 xsize = $SIZE(x);
 ysize = $SIZE(y);
@@ -698,7 +659,7 @@ for(ind = 0; ind < $SIZE(j); ind++)
     tmp = gdImageColorAllocate(im, $lut(i=>0,j=>ind), $lut(i=>1,j=>ind), $lut(i=>2,j=>ind));
     if (tmp != ind)
     {
-        croak("palette mismatch on index %d (mapped to %d)!\n", ind, tmp);
+        $CROAK("palette mismatch on index %d (mapped to %d)!\n", ind, tmp);
     }
 }
 
@@ -735,32 +696,24 @@ EOPM
 pp_add_exported('', 'read_png_lut');
 
 pp_def( '_read_png_lut',
-        Pars => 'byte [o] lut(c,i);',
+        Pars => 'byte [o] lut(c=3,i);',
         OtherPars => 'char* filename',
         Doc => undef,
         Code => <<'EOC' );
 gdImagePtr im;
 int ind;
-char* func = "PDL::IO::GD::_read_png_lut(): ";
-char str[255];
 FILE *in = NULL;
-
-/* Check dims: */
-if ( $SIZE(c) != 3 )
-{
-    croak("%sLUT dims should be 3,256!\n", func);
-}
 
 in = fopen($COMP(filename), "rb");
 if ( in == NULL )
 {
-    croak("%sError opening %s!\n", func, $COMP(filename));
+    $CROAK("Error opening %s!\n", $COMP(filename));
 }
 
 im = gdImageCreateFromPng(in);
 if ( im == NULL )
 {
-    croak("%sError reading PNG data!\n", func);
+    $CROAK("Error reading PNG data!\n");
 }
 fclose(in);
 
