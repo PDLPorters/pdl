@@ -656,6 +656,18 @@ below for usage).
  $y = topdl $ndarray;       # fall through
  $x = topdl (1,2,3,4);      # Convert 1D array
 
+=cut
+
+# Convert numbers to PDL if not already
+sub PDL::topdl {
+    return $_[0]->new(@_[1..$#_]) if
+      @_ > 2 # PDLify a list
+      or ref(\$_[1]) eq 'SCALAR'
+      or ref($_[1]) eq 'ARRAY';
+    return $_[1] if blessed($_[1]); # Fall through
+    barf("Can not convert a ".ref($_[1])." to a ".$_[0]);
+0;}
+
 =head2 set_datatype
 
 =for ref
@@ -2508,18 +2520,7 @@ sub PDL::nslice_if_pdl {
    goto &PDL::slice;
 }
 
-# Convert numbers to PDL if not already
-
-sub PDL::topdl {
-    return $_[0]->new(@_[1..$#_]) if($#_ > 1); # PDLify an ARRAY
-    return $_[1] if blessed($_[1]); # Fall through
-    return $_[0]->new($_[1]) if ref(\$_[1]) eq  'SCALAR' or
-           ref($_[1]) eq 'ARRAY';
-    barf("Can not convert a ".ref($_[1])." to a ".$_[0]);
-0;}
-
 # Convert everything to PDL if not blessed
-
 sub alltopdl {
     if (ref $_[2] eq 'PDL::Type') {
       return convert($_[1], $_[2]) if blessed($_[1]);
