@@ -527,18 +527,16 @@ pp_def 'Cprodover',
 	Pars => 'a(m=2,n); [o]c(m=2)',
         Doc => 'Project via product to N-1 dimension',
         Code => q^
-	    PDL_Long iter;
 	    $GENERIC() br, bi, cr, ci,tmp;
 	    cr = $a(m=>0,n=>0);
 	    ci = $a(m=>1,n=>0);
-	   for  (iter=1; iter < $SIZE(n);iter++)
-	   {
-		   br = $a(m=>0,n=>iter);
-		   bi = $a(m=>1,n=>iter);
+	    loop(n=1) %{
+		   br = $a(m=>0);
+		   bi = $a(m=>1);
 		   tmp =  cr*bi + ci*br;
 	           cr = cr*br - ci*bi;
 	           ci = tmp;
-           }
+	    %}
 	    $c(m=>0) = cr;
 	    $c(m=>1) = ci;
         ^

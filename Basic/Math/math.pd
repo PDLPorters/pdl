@@ -429,8 +429,7 @@ pp_def("polyval",
       GenericTypes => ['CD'],
       Code => <<'EOF',
 $GENERIC(y) vc = $c(n=>0), sc = $x();
-PDL_Indx i;
-for (i=1; i<$SIZE(n); i++) vc = vc*sc + $c(n=>i);
+loop(n=1) %{ vc = vc*sc + $c(); %}
 $y() = vc;
 EOF
       PMCode => pp_line_numbers(__LINE__, <<'EOF'),

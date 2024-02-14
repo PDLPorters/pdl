@@ -203,13 +203,14 @@ sub sig {$_[0]->{Sig}}
 # This sub determines the index name for this index.
 # For example, a(x,y) and x0 becomes [x,x0]
 sub make_loopind { my($this,$ind) = @_;
+	($ind, my $initval) = split /\s*=\s*/, $ind;
 	my $orig = $ind;
 	while(!$this->{IndObjs}{$ind}) {
 		if(!((chop $ind) =~ /[0-9]/)) {
 			confess("Index not found for $_ ($ind)!\n");
 		}
 		}
-	return [$ind,$orig];
+	return [$ind,$orig,$initval//0];
 }
 
 my %access2class = (
@@ -446,7 +447,7 @@ sub myprelude { my($this,$parent,$context) = @_;
 	push @$context, map {
 		my $i = $parent->make_loopind($_);
 # Used to be $PRIV(.._size) but now we have it in a register.
-		$text .= "{PDL_COMMENT(\"Open $_\") register PDL_Indx $_; for($_=0; $_<(__$i->[0]_size); $_++) {";
+		$text .= "{PDL_COMMENT(\"Open $i->[1]\") register PDL_Indx $i->[1]; for($i->[1]=$i->[2]; $i->[1]<(__$i->[0]_size); $i->[1]++) {";
 		$i;
 	} @{$this->[0]};
 	$text;
