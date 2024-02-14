@@ -178,33 +178,32 @@ pp_def(
        Pars => 'a(n); indx ind(m); [oca] c(m);',
        Code => pp_line_numbers(__LINE__, <<'EOF'),
          PDL_Indx i;
-         for(i=0;i<$SIZE(m);i++) {
-                 PDL_Indx this_ind = $ind(m=>i);
+         loop(m) %{
+                 PDL_Indx this_ind = $ind();
                  PDL_IF_BAD(if( $ISBADVAR(this_ind, ind) ) {
-                     $SETBAD(c(m=>i));
+                     $SETBAD(c(m=>m));
                  } else,) {
                    if( this_ind<0 || this_ind >= $SIZE(n) ) {
                      $CROAK("invalid index %"IND_FLAG" at pos %"IND_FLAG" (valid range 0..%"IND_FLAG")",
-                      this_ind, i, $SIZE(n)-1);
+                      this_ind, m, $SIZE(n)-1);
                    }
-                   $c(m=>i) = $a(n=>this_ind);
+                   $c() = $a(n=>this_ind);
                  }
-         }
+         %}
 EOF
        BackCode => pp_line_numbers(__LINE__, <<'EOF'),
-         PDL_Indx i;
-         for(i=0;i<$SIZE(m);i++) {
-                 PDL_Indx this_ind = $ind(m=>i);
+         loop(m) %{
+                 PDL_Indx this_ind = $ind();
                  PDL_IF_BAD(if( $ISBADVAR(this_ind, ind) ) {
                    /* do nothing */
                  } else,) {
                    if( this_ind<0 || this_ind >= $SIZE(n) ) {
                      $CROAK("invalid index %"IND_FLAG" at pos %"IND_FLAG" (valid range 0..%"IND_FLAG")",
-                      this_ind, i, $SIZE(n)-1);
+                      this_ind, m, $SIZE(n)-1);
                    }
-                   $a(n=>this_ind) = $c(m=>i);
+                   $a(n=>this_ind) = $c();
                  }
-         }
+         %}
 EOF
        Doc => $doc,
        BadDoc =>

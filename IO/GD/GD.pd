@@ -106,27 +106,21 @@ if ($SIZE(j) > 256)
             $SIZE(i), $SIZE(j) );
 EOF
         Code => <<'EOC' );
-int ind, x2, y2;
 int xsize = $SIZE(x), ysize = $SIZE(y);
 gdImagePtr im = gdImageCreate(xsize, ysize);
 FILE *out;
 
 /* Set up the color palette */
-for(ind = 0; ind < $SIZE(j); ind++)
-{
-    int tmp = gdImageColorAllocate(im, $lut(i=>0,j=>ind), $lut(i=>1,j=>ind), $lut(i=>2,j=>ind));
-    if (tmp != ind)
-        $CROAK("palette mismatch on index %d (mapped to %d)!\n", ind, tmp);
-}
+loop(j) %{
+    int tmp = gdImageColorAllocate(im, $lut(i=>0), $lut(i=>1), $lut(i=>2));
+    if (tmp != j)
+        $CROAK("palette mismatch on index %"IND_FLAG" (mapped to %d)!\n", j, tmp);
+%}
 
 /* render the data */
-for( y2 = 0; y2 < $SIZE(y); y2++ )
-{
-    for( x2 = 0; x2 < $SIZE(x); x2++ )
-    {
-        gdImageSetPixel(im, x2, y2, $img(x=>x2,y=>y2));
-    }
-}
+loop(y,x) %{
+  gdImageSetPixel(im, x, y, $img());
+%}
 
 /* write the image to the file */
 out = fopen($COMP(filename), "wb");
@@ -157,27 +151,21 @@ if( $COMP(level) < -1 || $COMP(level) > 9 )
         $COMP(level) );
 EOF
         Code => <<'EOC' );
-int ind, x2, y2;
 int xsize = $SIZE(x), ysize = $SIZE(y);
 gdImagePtr im = gdImageCreate(xsize, ysize);
 FILE *out;
 
 /* Set up the color palette */
-for(ind = 0; ind < $SIZE(j); ind++)
-{
-    int tmp = gdImageColorAllocate(im, $lut(i=>0,j=>ind), $lut(i=>1,j=>ind), $lut(i=>2,j=>ind));
-    if (tmp != ind)
-        $CROAK("palette mismatch on index %d (mapped to %d)!\n", ind, tmp);
-}
+loop(j) %{
+    int tmp = gdImageColorAllocate(im, $lut(i=>0), $lut(i=>1), $lut(i=>2));
+    if (tmp != j)
+        $CROAK("palette mismatch on index %"IND_FLAG" (mapped to %d)!\n", j, tmp);
+%}
 
 /* render the data */
-for( y2 = 0; y2 < $SIZE(y); y2++ )
-{
-    for( x2 = 0; x2 < $SIZE(x); x2++ )
-    {
-        gdImageSetPixel(im, x2, y2, $img(x=>x2,y=>y2));
-    }
-}
+loop(y,x) %{
+  gdImageSetPixel(im, x, y, $img());
+%}
 
 /* write the image to the file */
 out = fopen($COMP(filename), "wb");
@@ -201,24 +189,15 @@ This means a larger file on disk, but can contain more than 256 colors.
 ENDDOC
         Code => <<'EOC' );
 FILE *out;
-int x2, y2;
 int xsize = $SIZE(x), ysize = $SIZE(y);
 gdImagePtr im = gdImageCreateTrueColor(xsize, ysize);
 
 /* render the data */
-for( y2 = 0; y2 < ysize; y2++ )
-{
-    for( x2 = 0; x2 < xsize; x2++ )
-    {
-        gdImageSetPixel(im, x2, y2,
-            gdImageColorResolve(im,
-                $img(x=>x2,y=>y2,z=>0),
-                $img(x=>x2,y=>y2,z=>1),
-                $img(x=>x2,y=>y2,z=>2)
-            )
-        );
-    }
-}
+loop(y,x) %{
+  gdImageSetPixel(im, x, y,
+    gdImageColorResolve(im, $img(z=>0), $img(z=>1), $img(z=>2))
+  );
+%}
 /* write the image to the file */
 out = fopen($COMP(filename), "wb");
 gdImagePng(im, out);
@@ -240,24 +219,15 @@ if( $COMP(level) < -1 || $COMP(level) > 9 )
         $COMP(level) );
 EOF
         Code => <<'EOC' );
-int x2, y2;
 int xsize = $SIZE(x), ysize = $SIZE(y);
 gdImagePtr im = gdImageCreateTrueColor(xsize, ysize);
 
 /* render the data */
-for( y2 = 0; y2 < ysize; y2++ )
-{
-    for( x2 = 0; x2 < xsize; x2++ )
-    {
-        gdImageSetPixel(im, x2, y2,
-            gdImageColorResolve(im,
-                $img(x=>x2,y=>y2,z=>0),
-                $img(x=>x2,y=>y2,z=>1),
-                $img(x=>x2,y=>y2,z=>2)
-            )
-        );
-    }
-}
+loop(y,x) %{
+  gdImageSetPixel(im, x, y,
+    gdImageColorResolve(im, $img(z=>0), $img(z=>1), $img(z=>2))
+  );
+%}
 /* write the image to the file */
 FILE *out = fopen($COMP(filename), "wb");
 gdImagePngEx( im, out, $COMP(level) );
@@ -449,7 +419,6 @@ if ( im == NULL )
     $CROAK("Error reading PNG data!\n");
 fclose(in);
 
-int x2, y2, z2;
 int xsize = gdImageSX(im), ysize = gdImageSY(im);
 
 /* Check the dims... */
@@ -458,16 +427,12 @@ if ( !( ($SIZE(x)==xsize) && ($SIZE(y)==ysize) ) )
             $COMP(filename), xsize, ysize, $SIZE(x), $SIZE(y));
 
 /* read the data */
-for( y2 = 0; y2 < ysize; y2++ )
-{
-    for( x2 = 0; x2 < xsize; x2++ )
-    {
-        int tpixel = gdImageTrueColorPixel(im, x2, y2);
-        $img(x=>x2,y=>y2,z=>0) = gdTrueColorGetRed(tpixel);
-        $img(x=>x2,y=>y2,z=>1) = gdTrueColorGetGreen(tpixel);
-        $img(x=>x2,y=>y2,z=>2) = gdTrueColorGetBlue(tpixel);
-    }
-}
+loop(y,x) %{
+  int tpixel = gdImageTrueColorPixel(im, x, y);
+  $img(z=>0) = gdTrueColorGetRed(tpixel);
+  $img(z=>1) = gdTrueColorGetGreen(tpixel);
+  $img(z=>2) = gdTrueColorGetBlue(tpixel);
+%}
 gdImageDestroy(im);
 EOC
 );
@@ -478,13 +443,11 @@ pp_def( '_read_png',
         OtherPars => 'char* filename',
         Doc => undef,
         Code => <<'EOC' );
-gdImagePtr im;
-int x2, y2;
 FILE *in = fopen($COMP(filename), "rb");
 if ( in == NULL )
     $CROAK("Error opening %s!\n", $COMP(filename));
 
-im = gdImageCreateFromPng(in);
+gdImagePtr im = gdImageCreateFromPng(in);
 if ( im == NULL )
     $CROAK("Error reading PNG data!\n");
 fclose(in);
@@ -496,13 +459,9 @@ if ( !( ($SIZE(x)==xsize) && ($SIZE(y)==ysize) ) )
             $COMP(filename), xsize, ysize, $SIZE(x), $SIZE(y));
 
 /* read the data */
-for( y2 = 0; y2 < ysize; y2++ )
-{
-    for( x2 = 0; x2 < xsize; x2++ )
-    {
-        $img(x=>x2,y=>y2) = gdImageGetPixel(im, x2, y2);
-    }
-}
+loop(y,x) %{
+  $img() = gdImageGetPixel(im, x, y);
+%}
 /* write the image to the file */
 gdImageDestroy(im);
 EOC
@@ -512,7 +471,6 @@ pp_def( '_gd_image_to_pdl_true',
         OtherPars => 'gdImagePtr img_ptr',
         Doc => undef,
         Code => <<'ENDCODE' );
-int x2, y2, z2;
 gdImagePtr im = $COMP(img_ptr);
 
 int xsize = gdImageSX(im), ysize = gdImageSY(im);
@@ -522,16 +480,12 @@ if ( !( ($SIZE(x)==xsize) && ($SIZE(y)==ysize) ) )
             xsize, ysize, $SIZE(x), $SIZE(y));
 
 /* read the data */
-for( y2 = 0; y2 < ysize; y2++ )
-{
-    for( x2 = 0; x2 < xsize; x2++ )
-    {
-        int tpixel = gdImageTrueColorPixel(im, x2, y2);
-        $img(x=>x2,y=>y2,z=>0) = gdTrueColorGetRed(tpixel);
-        $img(x=>x2,y=>y2,z=>1) = gdTrueColorGetGreen(tpixel);
-        $img(x=>x2,y=>y2,z=>2) = gdTrueColorGetBlue(tpixel);
-    }
-}
+loop(y,x) %{
+  int tpixel = gdImageTrueColorPixel(im, x, y);
+  $img(z=>0) = gdTrueColorGetRed(tpixel);
+  $img(z=>1) = gdTrueColorGetGreen(tpixel);
+  $img(z=>2) = gdTrueColorGetBlue(tpixel);
+%}
 ENDCODE
 
 pp_def( '_gd_image_to_pdl',
@@ -539,7 +493,6 @@ pp_def( '_gd_image_to_pdl',
         OtherPars => 'gdImagePtr img_ptr',
         Doc => undef,
         Code => <<'ENDCODE' );
-int x2, y2;
 gdImagePtr im = $COMP(img_ptr);
 
 int xsize = gdImageSX(im), ysize = gdImageSY(im);
@@ -549,37 +502,24 @@ if ( !( ($SIZE(x)==xsize) && ($SIZE(y)==ysize) ) )
             xsize, ysize, $SIZE(x), $SIZE(y));
 
 /* read the data */
-for( y2 = 0; y2 < ysize; y2++ )
-{
-    for( x2 = 0; x2 < xsize; x2++ )
-    {
-        $img(x=>x2,y=>y2) = gdImageGetPixel(im, x2, y2);
-    }
-}
+loop(y,x) %{
+  $img() = gdImageGetPixel(im, x, y);
+%}
 ENDCODE
 
 pp_def( '_pdl_to_gd_image_true',
         Pars => 'byte img(x,y,z=3); longlong [o] img_ptr(i)',
         Doc => undef,
         Code => <<'ENDCODE' );
-int x2, y2;
 int xsize = $SIZE(x), ysize = $SIZE(y);
 gdImagePtr im = gdImageCreateTrueColor(xsize, ysize);
 
 /* render the data */
-for( y2 = 0; y2 < ysize; y2++ )
-{
-    for( x2 = 0; x2 < xsize; x2++ )
-    {
-        gdImageSetPixel(im, x2, y2,
-            gdImageColorResolve(im,
-                $img(x=>x2,y=>y2,z=>0),
-                $img(x=>x2,y=>y2,z=>1),
-                $img(x=>x2,y=>y2,z=>2)
-            )
-        );
-    }
-}
+loop(y,x) %{
+  gdImageSetPixel(im, x, y,
+    gdImageColorResolve(im, $img(z=>0), $img(z=>1), $img(z=>2))
+  );
+%}
 $img_ptr(i=>0) = (PDL_LongLong) PTR2IV(im);
 ENDCODE
 
@@ -594,24 +534,18 @@ EOF
         Code => <<'ENDCODE' );
 int xsize = $SIZE(x), ysize = $SIZE(y);
 gdImagePtr im = gdImageCreate(xsize, ysize);
-int ind, x2, y2;
 
 /* Set up the color palette */
-for(ind = 0; ind < $SIZE(j); ind++)
-{
-    int tmp = gdImageColorAllocate(im, $lut(i=>0,j=>ind), $lut(i=>1,j=>ind), $lut(i=>2,j=>ind));
-    if (tmp != ind)
-        $CROAK("palette mismatch on index %d (mapped to %d)!\n", ind, tmp);
-}
+loop(j) %{
+    int tmp = gdImageColorAllocate(im, $lut(i=>0), $lut(i=>1), $lut(i=>2));
+    if (tmp != j)
+        $CROAK("palette mismatch on index %"IND_FLAG" (mapped to %d)!\n", j, tmp);
+%}
 
 /* render the data */
-for( y2 = 0; y2 < $SIZE(y); y2++ )
-{
-    for( x2 = 0; x2 < $SIZE(x); x2++ )
-    {
-        gdImageSetPixel(im, x2, y2, $img(x=>x2,y=>y2));
-    }
-}
+loop(y,x) %{
+  gdImageSetPixel(im, x, y, $img());
+%}
 $img_ptr(q=>0) = (PDL_LongLong) PTR2IV(im);
 ENDCODE
 
