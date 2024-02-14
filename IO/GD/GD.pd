@@ -106,24 +106,17 @@ if ($SIZE(j) > 256)
             $SIZE(i), $SIZE(j) );
 EOF
         Code => <<'EOC' );
-
-gdImagePtr im;
-int xsize, ysize, tmp, ind, x2, y2;
+int ind, x2, y2;
+int xsize = $SIZE(x), ysize = $SIZE(y);
+gdImagePtr im = gdImageCreate(xsize, ysize);
 FILE *out;
-
-xsize = $SIZE(x);
-ysize = $SIZE(y);
-
-im = gdImageCreate(xsize, ysize);
 
 /* Set up the color palette */
 for(ind = 0; ind < $SIZE(j); ind++)
 {
-    tmp = gdImageColorAllocate(im, $lut(i=>0,j=>ind), $lut(i=>1,j=>ind), $lut(i=>2,j=>ind));
+    int tmp = gdImageColorAllocate(im, $lut(i=>0,j=>ind), $lut(i=>1,j=>ind), $lut(i=>2,j=>ind));
     if (tmp != ind)
-    {
         $CROAK("palette mismatch on index %d (mapped to %d)!\n", ind, tmp);
-    }
 }
 
 /* render the data */
@@ -164,23 +157,17 @@ if( $COMP(level) < -1 || $COMP(level) > 9 )
         $COMP(level) );
 EOF
         Code => <<'EOC' );
-gdImagePtr im;
-int xsize, ysize, tmp, ind, x2, y2;
+int ind, x2, y2;
+int xsize = $SIZE(x), ysize = $SIZE(y);
+gdImagePtr im = gdImageCreate(xsize, ysize);
 FILE *out;
-
-xsize = $SIZE(x);
-ysize = $SIZE(y);
-
-im = gdImageCreate(xsize, ysize);
 
 /* Set up the color palette */
 for(ind = 0; ind < $SIZE(j); ind++)
 {
-    tmp = gdImageColorAllocate(im, $lut(i=>0,j=>ind), $lut(i=>1,j=>ind), $lut(i=>2,j=>ind));
+    int tmp = gdImageColorAllocate(im, $lut(i=>0,j=>ind), $lut(i=>1,j=>ind), $lut(i=>2,j=>ind));
     if (tmp != ind)
-    {
         $CROAK("palette mismatch on index %d (mapped to %d)!\n", ind, tmp);
-    }
 }
 
 /* render the data */
@@ -213,13 +200,10 @@ Writes an (x, y, z(3)) PDL variable out to a PNG file, using a true color format
 This means a larger file on disk, but can contain more than 256 colors.
 ENDDOC
         Code => <<'EOC' );
-gdImagePtr im;
-int xsize, ysize, x2, y2;
 FILE *out;
-
-xsize = $SIZE(x);
-ysize = $SIZE(y);
-im = gdImageCreateTrueColor(xsize, ysize);
+int x2, y2;
+int xsize = $SIZE(x), ysize = $SIZE(y);
+gdImagePtr im = gdImageCreateTrueColor(xsize, ysize);
 
 /* render the data */
 for( y2 = 0; y2 < ysize; y2++ )
@@ -250,21 +234,15 @@ pp_def( 'write_true_png_ex',
         Doc => <<'ENDDOC',
 Same as write_true_png(), except you can specify the compression level (0-9) as the last argument.
 ENDDOC
-        Code => <<'EOC' );
-
-gdImagePtr im;
-int xsize, ysize, x2, y2;
-FILE *out;
-
+        RedoDimsCode => <<'EOF',
 if( $COMP(level) < -1 || $COMP(level) > 9 )
-{
     $CROAK("Invalid compression level %d, should be [-1,9]!\n",
         $COMP(level) );
-}
-
-xsize = $SIZE(x);
-ysize = $SIZE(y);
-im = gdImageCreateTrueColor(xsize, ysize);
+EOF
+        Code => <<'EOC' );
+int x2, y2;
+int xsize = $SIZE(x), ysize = $SIZE(y);
+gdImagePtr im = gdImageCreateTrueColor(xsize, ysize);
 
 /* render the data */
 for( y2 = 0; y2 < ysize; y2++ )
@@ -281,7 +259,7 @@ for( y2 = 0; y2 < ysize; y2++ )
     }
 }
 /* write the image to the file */
-out = fopen($COMP(filename), "wb");
+FILE *out = fopen($COMP(filename), "wb");
 gdImagePngEx( im, out, $COMP(level) );
 fclose(out);
 gdImageDestroy(im);
@@ -462,32 +440,22 @@ pp_def( '_read_true_png',
         OtherPars => 'char* filename',
         Doc => undef,
         Code => <<'EOC'
-gdImagePtr im;
-int xsize, ysize, x2, y2, z2;
-FILE *in = NULL;
-
-in = fopen($COMP(filename), "rb");
+FILE *in = fopen($COMP(filename), "rb");
 if ( in == NULL )
-{
     $CROAK("Error opening %s!\n", $COMP(filename));
-}
 
-im = gdImageCreateFromPng(in);
+gdImagePtr im = gdImageCreateFromPng(in);
 if ( im == NULL )
-{
     $CROAK("Error reading PNG data!\n");
-}
 fclose(in);
 
-xsize = gdImageSX(im);
-ysize = gdImageSY(im);
+int x2, y2, z2;
+int xsize = gdImageSX(im), ysize = gdImageSY(im);
 
 /* Check the dims... */
 if ( !( ($SIZE(x)==xsize) && ($SIZE(y)==ysize) ) )
-{
     $CROAK("Dims of %s (%dx%d) and ndarray (%"IND_FLAG"x%"IND_FLAG") do not match!\n",
             $COMP(filename), xsize, ysize, $SIZE(x), $SIZE(y));
-}
 
 /* read the data */
 for( y2 = 0; y2 < ysize; y2++ )
@@ -511,31 +479,21 @@ pp_def( '_read_png',
         Doc => undef,
         Code => <<'EOC' );
 gdImagePtr im;
-int xsize, ysize, x2, y2;
-FILE *in = NULL;
-
-in = fopen($COMP(filename), "rb");
+int x2, y2;
+FILE *in = fopen($COMP(filename), "rb");
 if ( in == NULL )
-{
     $CROAK("Error opening %s!\n", $COMP(filename));
-}
 
 im = gdImageCreateFromPng(in);
 if ( im == NULL )
-{
     $CROAK("Error reading PNG data!\n");
-}
 fclose(in);
 
-xsize = gdImageSX(im);
-ysize = gdImageSY(im);
-
+int xsize = gdImageSX(im), ysize = gdImageSY(im);
 /* Check the dims... */
 if ( !( ($SIZE(x)==xsize) && ($SIZE(y)==ysize) ) )
-{
     $CROAK("Dims of %s (%dx%d) and ndarray (%"IND_FLAG"x%"IND_FLAG") do not match!\n",
             $COMP(filename), xsize, ysize, $SIZE(x), $SIZE(y));
-}
 
 /* read the data */
 for( y2 = 0; y2 < ysize; y2++ )
@@ -554,18 +512,14 @@ pp_def( '_gd_image_to_pdl_true',
         OtherPars => 'gdImagePtr img_ptr',
         Doc => undef,
         Code => <<'ENDCODE' );
-int xsize, ysize, x2, y2, z2;
+int x2, y2, z2;
 gdImagePtr im = $COMP(img_ptr);
 
-xsize = gdImageSX(im);
-ysize = gdImageSY(im);
-
+int xsize = gdImageSX(im), ysize = gdImageSY(im);
 /* Check the dims... */
 if ( !( ($SIZE(x)==xsize) && ($SIZE(y)==ysize) ) )
-{
     $CROAK("Dims of gdImage (%dx%d) and ndarray (%"IND_FLAG"x%"IND_FLAG") do not match!\n",
             xsize, ysize, $SIZE(x), $SIZE(y));
-}
 
 /* read the data */
 for( y2 = 0; y2 < ysize; y2++ )
@@ -585,18 +539,14 @@ pp_def( '_gd_image_to_pdl',
         OtherPars => 'gdImagePtr img_ptr',
         Doc => undef,
         Code => <<'ENDCODE' );
-int xsize, ysize, x2, y2;
+int x2, y2;
 gdImagePtr im = $COMP(img_ptr);
 
-xsize = gdImageSX(im);
-ysize = gdImageSY(im);
-
+int xsize = gdImageSX(im), ysize = gdImageSY(im);
 /* Check the dims... */
 if ( !( ($SIZE(x)==xsize) && ($SIZE(y)==ysize) ) )
-{
     $CROAK("Dims of gdImage (%dx%d) and ndarray (%"IND_FLAG"x%"IND_FLAG") do not match!\n",
             xsize, ysize, $SIZE(x), $SIZE(y));
-}
 
 /* read the data */
 for( y2 = 0; y2 < ysize; y2++ )
@@ -612,12 +562,9 @@ pp_def( '_pdl_to_gd_image_true',
         Pars => 'byte img(x,y,z=3); longlong [o] img_ptr(i)',
         Doc => undef,
         Code => <<'ENDCODE' );
-gdImagePtr im;
-int xsize, ysize, x2, y2;
-
-xsize = $SIZE(x);
-ysize = $SIZE(y);
-im = gdImageCreateTrueColor(xsize, ysize);
+int x2, y2;
+int xsize = $SIZE(x), ysize = $SIZE(y);
+gdImagePtr im = gdImageCreateTrueColor(xsize, ysize);
 
 /* render the data */
 for( y2 = 0; y2 < ysize; y2++ )
@@ -645,22 +592,16 @@ if ($SIZE(j) > 256)
             $SIZE(i), $SIZE(j) );
 EOF
         Code => <<'ENDCODE' );
-gdImagePtr im;
-int xsize, ysize, tmp, ind, x2, y2;
-
-xsize = $SIZE(x);
-ysize = $SIZE(y);
-
-im = gdImageCreate(xsize, ysize);
+int xsize = $SIZE(x), ysize = $SIZE(y);
+gdImagePtr im = gdImageCreate(xsize, ysize);
+int ind, x2, y2;
 
 /* Set up the color palette */
 for(ind = 0; ind < $SIZE(j); ind++)
 {
-    tmp = gdImageColorAllocate(im, $lut(i=>0,j=>ind), $lut(i=>1,j=>ind), $lut(i=>2,j=>ind));
+    int tmp = gdImageColorAllocate(im, $lut(i=>0,j=>ind), $lut(i=>1,j=>ind), $lut(i=>2,j=>ind));
     if (tmp != ind)
-    {
         $CROAK("palette mismatch on index %d (mapped to %d)!\n", ind, tmp);
-    }
 }
 
 /* render the data */
@@ -702,19 +643,13 @@ pp_def( '_read_png_lut',
         Code => <<'EOC' );
 gdImagePtr im;
 int ind;
-FILE *in = NULL;
-
-in = fopen($COMP(filename), "rb");
+FILE *in = fopen($COMP(filename), "rb");
 if ( in == NULL )
-{
     $CROAK("Error opening %s!\n", $COMP(filename));
-}
 
 im = gdImageCreateFromPng(in);
 if ( im == NULL )
-{
     $CROAK("Error reading PNG data!\n");
-}
 fclose(in);
 
 /* read the data */
