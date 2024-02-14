@@ -784,7 +784,7 @@ sub _pp_linenumber_fill {
     my ($seen_empty, $empty_first, $last_ci, @last_dir) = (0, undef, $ci); # list=(line, file)
     LINE: while (1) {
       last REALLINE if !@lines;
-      if (!length $lines[0]) {
+      if (!length $lines[0] && $lines[1] !~ /^=/) {
         $seen_empty = 1;
         shift @lines;
         next LINE;
