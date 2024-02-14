@@ -3541,6 +3541,49 @@ EOD
     );
 }
 
+pp_def('whichover',
+  HandleBad => 1,
+  Inplace => 1,
+  Pars => 'a(n); [o]o(n)',
+  GenericTypes => [ppdefs_all],
+  Code => <<'EOF',
+PDL_Indx last = 0;
+loop(n) %{
+  if ($a() PDL_IF_BAD(&& $ISGOOD($a()),)) $o(n=>last++) = n;
+%}
+loop(n=last) %{ $o() = -1; %}
+EOF
+  Doc => <<'EOF',
+=for ref
+
+Collects the coordinates of non-zero, non-bad values in each 1D mask in
+ndarray at the start of the output, and fills the rest with -1. Works
+inplace.
+
+By using L<PDL::Slices/xchg> etc. it is possible to use I<any> dimension.
+
+=for usage
+
+  my $a = pdl q[3 4 2 3 2 3 1];
+  my $b = $a->uniq;
+  my $c = +($a->dummy(0) == $b)->transpose;
+  print $c, $c->whichover;
+  # [
+  #  [0 0 0 0 0 0 1]
+  #  [0 0 1 0 1 0 0]
+  #  [1 0 0 1 0 1 0]
+  #  [0 1 0 0 0 0 0]
+  # ]
+  # [
+  #  [ 6 -1 -1 -1 -1 -1 -1]
+  #  [ 2  4 -1 -1 -1 -1 -1]
+  #  [ 0  3  5 -1 -1 -1 -1]
+  #  [ 1 -1 -1 -1 -1 -1 -1]
+  # ]
+
+EOF
+);
+
 pp_add_exported("", 'where');
 pp_addpm(<<'EOD');
 =head2 where

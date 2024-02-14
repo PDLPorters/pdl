@@ -115,7 +115,25 @@ subtest 'which' => sub {
         my ( $nonzero, $zero ) = which_both($which_both_test);
         ok tapprox( $nonzero, pdl( 0, 1, 2, 4, 6 ) ), 'nonzero indices';
         ok tapprox( $zero, pdl( 3, 5 ) ), 'zero indices';
+    };
 
+    subtest 'whichover' => sub {
+        my $a = pdl q[3 4 6 3 2 3 5 6 1 7];
+        my $b = $a->uniq;
+        my $c = +($a->dummy(0) == $b)->transpose;
+        my $expected = pdl q[
+         [ 8 -1 -1 -1 -1 -1 -1 -1 -1 -1]
+         [ 4 -1 -1 -1 -1 -1 -1 -1 -1 -1]
+         [ 0  3  5 -1 -1 -1 -1 -1 -1 -1]
+         [ 1 -1 -1 -1 -1 -1 -1 -1 -1 -1]
+         [ 6 -1 -1 -1 -1 -1 -1 -1 -1 -1]
+         [ 2  7 -1 -1 -1 -1 -1 -1 -1 -1]
+         [ 9 -1 -1 -1 -1 -1 -1 -1 -1 -1]
+        ];
+        my $got = $c->whichover;
+        ok tapprox( $got, $expected ), 'whichover';
+        $c->inplace->whichover;
+        ok tapprox( $c, $expected ), 'whichover inplace';
     };
 
     subtest 'whichND' => sub {

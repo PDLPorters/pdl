@@ -536,9 +536,7 @@ for my $op ( ['avg','average','average'],
 	     ['median', 'medover', 'median'],
 	     ['mode', 'modeover', 'mode'],
 	     ['oddmedian','oddmedover','oddmedian']) {
-    my $name = $op->[0];
-    my $func = $op->[1];
-    my $text = $op->[2];
+   my ($name, $func, $text) = @$op;
    pp_add_exported('', $name);
    pp_addpm(<<"EOD");
 =head2 $name
@@ -561,8 +559,8 @@ This routine handles bad values.
 
 *$name = \\&PDL::$name;
 sub PDL::$name {
-	my(\$x) = \@_; my \$tmp;
-	\$x->clump(-1)->${func}( \$tmp=PDL->nullcreate(\$x) );
+	my (\$x) = \@_;
+	\$x->clump(-1)->${func}( my \$tmp=PDL->nullcreate(\$x) );
 	\$tmp;
 }
 EOD
