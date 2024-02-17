@@ -144,6 +144,8 @@ isa_ok( PDL->topdl([1,2,3]), "PDL", "topdl([1,2,3]) returns an ndarray" );
 isa_ok( PDL->topdl(1,2,3),   "PDL", "topdl(1,2,3) returns an ndarray" );
 $x=PDL->topdl(1,2,3);
 ok (($x->nelem == 3  and  all($x == pdl(1,2,3))), "topdl(1,2,3) returns a 3-ndarray containing (1,2,3)");
+eval {PDL->topdl({})};
+isnt $@, '', 'topdl({}) no segfault';
 
 # stringification
 {

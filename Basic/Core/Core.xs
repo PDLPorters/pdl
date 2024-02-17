@@ -81,6 +81,29 @@ inplace(self, ...)
   OUTPUT:
     RETVAL
 
+SV *
+topdl(klass, arg1, ...)
+  SV *klass;
+  SV *arg1;
+  CODE:
+    if (items > 2 ||
+      (!SvROK(arg1) && SvTYPE(arg1) < SVt_PVAV) ||
+      (SvROK(arg1) && SvTYPE(SvRV(arg1)) == SVt_PVAV)
+    ) {
+      SP -= items; PUSHMARK(SP); SPAGAIN; /* these pass this set of args on */
+      int retvals = perl_call_method("new", G_SCALAR);
+      SPAGAIN;
+      if (retvals != 1) barf("new returned no values");
+      RETVAL = POPs;
+    } else if (SvROK(arg1) && SvOBJECT(SvRV(arg1))) {
+      RETVAL = arg1;
+    } else {
+      barf("Can not convert a %s to a %s", sv_reftype(arg1, 1), SvPV_nolen(klass));
+    }
+    SvREFCNT_inc(RETVAL);
+  OUTPUT:
+    RETVAL
+
 # Return the transformation object or an undef otherwise.
 pdl_trans *
 trans_parent(self)
