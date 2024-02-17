@@ -469,7 +469,7 @@ void hqr2(int n, int low, int upp, int maxits, double macheps,
           double **h, double **vecs, double *wr,
           double *wi, int *cnt, int *fail) {
 
-  int     i, j, k, l, m, na, its, en, dummy;
+  int     i, j, k, l, m, na, its, en;
   double  p = 0, q = 0, r = 0, s = 0, t, w, x, y, z = 0, ra, sa, vr, vi, norm;
   int     notlast;
   complex double c1, c2, c3;
@@ -617,8 +617,7 @@ void hqr2(int n, int low, int upp, int maxits, double macheps,
       vecs[i-1][k-1]-=p;
     } /* for i */
 
-  L233:
-    dummy=0; 
+  L233:;
   } /* for k */
   goto L220;
   
@@ -833,8 +832,7 @@ void hqr2(int n, int low, int upp, int maxits, double macheps,
 	} /* for i */
   } /* for j */
   
- L270:
-  dummy=0;
+ L270:;
 } /* hqr2 */
 	  
 void Eigen(int n, int ref, double **AJAC, int maxit, double eps, 

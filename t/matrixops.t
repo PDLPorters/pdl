@@ -148,6 +148,14 @@ ok(tapprox($got,$bb->transpose,$tol), "A x actually == B") or diag "got: $got";
 }
 
 {
+my $A = identity(4) + ones(4, 4); $A->slice('2,0') .= 0;
+my $B = sequence(1, 4);
+my ($x) = simq($A->copy, $B->transpose, 0);
+$x = $x->inplace->transpose;
+ok tapprox($A x $x, $B), 'simq right result';
+}
+
+{
 ### Check attempted inversion of a singular matrix
 my $pb = pdl([1,2,3],[4,5,6],[7,8,9]);
 my $b2;

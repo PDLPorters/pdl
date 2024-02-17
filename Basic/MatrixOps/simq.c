@@ -54,9 +54,9 @@ int n, flag;
 int IPS[];
 {
 int i, j, ij, ip, ipj, ipk, ipn;
-int idxpiv, iback;
-int k, kp, kp1, kpj, kpk, kpn;
-int nip, nkp, nm1;
+int idxpiv = 0, iback;
+int k, kp, kp1, kpk, kpn;
+int nip, nkp, nm1 = n-1;
 double em, q, rownrm, big, size, pivot, sum;
 double fabs();
 
@@ -88,7 +88,6 @@ for( i=0; i<n; i++ )
 /*							simq	3 */
 /*	Gaussian elimination with partial pivoting 	*/
 
-nm1 = n-1;
 for( k=0; k<nm1; k++ )
 	{
 	big= 0.0;
