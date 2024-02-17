@@ -246,52 +246,46 @@ void* pdl_smalloc ( STRLEN nbytes ) {
    For greppability: this is where pdl_pdl_barf and pdl_pdl_warn are defined
 */
 
-static void pdl_barf_or_warn(const char* pat, int iswarn, va_list* args)
-{
-    /* If we're in a worker thread, we queue the
-     * barf/warn for later, and exit the thread ...
-     */
-    if( pdl_pthread_barf_or_warn(pat, iswarn, args) )
-        return;
-
-    /* ... otherwise we fall through and barf by calling
-     * the perl-level PDL::barf() or PDL::cluck()
-     */
-
-    dSP;
-    ENTER;
-    SAVETMPS;
-    PUSHMARK(SP);
-    SV *sv = sv_2mortal(newSV(0));
-    int size = vsnprintf(NULL, 0, pat, *args);
-    va_end(*args);
-    if (size < 0) {
-      sv_setpv(sv, "vsnprintf error");
-    } else {
-      size += 2;             /* For '\0' + 1 as CentOS 7 is off by 1 */
-      char buf[size];
-      size = vsnprintf(buf, size, pat, *args);
-      va_end(*args);
-      sv_setpv(sv, size < 0 ? "vsnprintf error" : buf);
-    }
-    XPUSHs(sv);
-    PUTBACK;
-    call_pv(iswarn ? "PDL::cluck" : "PDL::barf", G_DISCARD);
-    FREETMPS;
-    LEAVE;
-}
-
 #define GEN_PDL_BARF_OR_WARN_I_STDARG(type, iswarn)     \
-    void pdl_pdl_##type(const char* pat, ...)           \
-    {                                                   \
-        va_list args;                                   \
-        va_start(args, pat);                            \
-        pdl_barf_or_warn(pat, iswarn, &args);           \
-    }
+  void pdl_pdl_##type(const char* pat, ...)           \
+  { \
+    va_list args;                                   \
+    va_start(args, pat);                            \
+    /* If we're in a worker thread, we queue the \
+     * barf/warn for later, and exit the thread ... \
+     */ \
+    if( pdl_pthread_barf_or_warn(pat, iswarn, &args) ) \
+      return; \
+    /* ... otherwise we fall through and barf by calling \
+     * the perl-level PDL::barf() or PDL::cluck() \
+     */ \
+    dSP; \
+    ENTER; \
+    SAVETMPS; \
+    PUSHMARK(SP); \
+    SV *sv = sv_2mortal(newSV(0)); \
+    va_start(args, pat); \
+    int size = vsnprintf(NULL, 0, pat, args); \
+    va_end(args); \
+    if (size < 0) { \
+      sv_setpv(sv, "vsnprintf error"); \
+    } else { \
+      size += 2;             /* For '\0' + 1 as CentOS 7 is off by 1 */ \
+      char buf[size]; \
+      va_start(args, pat); \
+      size = vsnprintf(buf, size, pat, args); \
+      va_end(args); \
+      sv_setpv(sv, size < 0 ? "vsnprintf error" : buf); \
+    } \
+    XPUSHs(sv); \
+    PUTBACK; \
+    call_pv(iswarn ? "PDL::cluck" : "PDL::barf", G_DISCARD); \
+    FREETMPS; \
+    LEAVE; \
+  }
 
 GEN_PDL_BARF_OR_WARN_I_STDARG(barf, 0)
 GEN_PDL_BARF_OR_WARN_I_STDARG(warn, 1)
-
 
 /**********************************************************************
  *
