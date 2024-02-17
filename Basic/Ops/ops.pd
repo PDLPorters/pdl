@@ -132,12 +132,12 @@ EOF
 	   NoBadifNaN => 1,
 	   Inplace => [ 'a' ], # quick and dirty solution to get ->inplace do its job
 	   Code => pp_line_numbers(__LINE__-1, <<EOF),
-char anybad = 0;
+PDL_IF_BAD(char anybad = 0;,)
 broadcastloop %{
   PDL_IF_BAD(if ( $badcode ) { \$SETBAD(c()); anybad = 1; } else,)
      \$c() = \$a() $op \$b();
 %}
-if (anybad) \$PDLSTATESETBAD(c);
+PDL_IF_BAD(if (anybad) \$PDLSTATESETBAD(c);,)
 EOF
 	   %extra,
 	   Doc => << "EOD");
@@ -240,13 +240,13 @@ ENDCODE
 	   ArgOrder => 1,
 	   Inplace => [ 'a' ],
 	   Code => pp_line_numbers(__LINE__-1, <<EOF),
-char anybad = 0;
+PDL_IF_BAD(char anybad = 0;,)
 broadcastloop %{
   PDL_IF_BAD(if ( \$ISBAD(a()) || \$ISBAD(b()) ) { anybad = 1; \$SETBAD(c()); } else ,) {
      $codestr
   }
 %}
-if (anybad) \$PDLSTATESETBAD(c);
+PDL_IF_BAD(if (anybad) \$PDLSTATESETBAD(c);,)
 EOF
 	   %extra,
 	   Doc => << "EOD");
@@ -458,7 +458,7 @@ pp_def(
        GenericTypes => $A,
        Pars => 'a(); [o]b();',
        Code => pp_line_numbers(__LINE__-1, q{
-char anybad = 0;
+PDL_IF_BAD(char anybad = 0;,)
 broadcastloop %{
   PDL_IF_BAD(if ( $ISBAD(a()) ) { anybad = 1; $SETBAD(b()); } else,)
     $b() = $a();

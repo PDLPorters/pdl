@@ -56,7 +56,7 @@ pp_def(
        GenericTypes => [ppdefs_all],
        Code =>
        'double tmp = 0;
-        int badflag = 0;
+        PDL_IF_BAD(int badflag = 0;,)
         loop(n) %{
            PDL_IF_BAD(if (!($ISGOOD(a()) && $ISGOOD(b()))) { badflag = 1; break; }
            else,)                                          { tmp += $a() * $b(); }
@@ -287,11 +287,11 @@ pp_def(
        GenericTypes => [ppdefs_all],
        Code =>
        'long double tmp = 0;
-        int flag = 0;
+        PDL_IF_BAD(int flag = 0;,)
 	loop(n) %{
            PDL_IF_BAD(if ( $ISGOOD(a()) && $ISGOOD(b()) && $ISGOOD(c()) ),) {
               tmp += $a() * $b() * $c();
-              flag = 1;
+              PDL_IF_BAD(flag = 1;,)
            }
         %}
         PDL_IF_BAD(if (!flag) { $SETBAD(d()); }
@@ -316,11 +316,11 @@ pp_def(
        GenericTypes => [ppdefs_all],
        Code =>
        'long double tmp = 0;
-        int flag = 0;
+        PDL_IF_BAD(int flag = 0;,)
 	loop(n,m) %{
            PDL_IF_BAD(if ( $ISGOOD(a()) && $ISGOOD(b()) && $ISGOOD(c()) ),) {
               tmp += $a() * $b() * $c();
-              flag = 1;
+              PDL_IF_BAD(flag = 1;,)
            }
         %}
         PDL_IF_BAD(if (!flag) { $SETBAD(d()); }
@@ -344,11 +344,11 @@ pp_def(
        GenericTypes => [ppdefs_all],
        Code =>
        'long double tmp = 0;
-        int flag = 0;
+        PDL_IF_BAD(int flag = 0;,)
 	loop(n,m) %{
            PDL_IF_BAD(if ( $ISGOOD(a()) && $ISGOOD(b()) ),) {
               tmp += $a() * $b();
-              flag = 1;
+              PDL_IF_BAD(flag = 1;,)
            }
         %}
         PDL_IF_BAD(if (!flag) { $SETBAD(c()); }
@@ -376,11 +376,11 @@ pp_def(
        Code =>
        'loop(n,k) %{
            long double tmp0 = 0;
-           int flag = 0;
+           PDL_IF_BAD(int flag = 0;,)
 	   loop(m) %{
               PDL_IF_BAD(if ( $ISGOOD(b()) && $ISGOOD(c()) ),) {
                  tmp0 += $b() * $c();
-                 flag = 1;
+                 PDL_IF_BAD(flag = 1;,)
               }
            %}
            PDL_IF_BAD(if (!flag) { $SETBAD(tmp()); }
@@ -388,11 +388,11 @@ pp_def(
 	%}
 	loop(j,k) %{
            long double tmp1 = 0;
-           int flag = 0;
+           PDL_IF_BAD(int flag = 0;,)
 	   loop(n) %{
               if ( $ISGOOD(a()) && $ISGOOD(tmp()) ) {
                  tmp1 += $a() * $tmp();
-                 flag = 1;
+                 PDL_IF_BAD(flag = 1;,)
               }
            %}
            PDL_IF_BAD(if (!flag) { $SETBAD(d()); }
@@ -459,7 +459,7 @@ pp_def('norm',
        Doc => 'Normalises a vector to unit Euclidean length',
        Code =>
        'long double sum=0;
-        int flag = 0;
+        PDL_IF_BAD(int flag = 0;,)
 	loop(n) %{
            PDL_IF_BAD(if ( $ISGOOD(vec()) ),) {
               sum +=
@@ -1011,7 +1011,7 @@ pp_def(
        Code =>
        'double wtsum = 0;
 	double statsum = 0;
-        int flag = 0;
+        PDL_IF_BAD(int flag = 0;,)
         loop(n) %{
            PDL_IF_BAD(if ($ISGOOD(wt()) && $ISGOOD(a()) && $ISGOOD(avg())),) {
               long double tmp;
@@ -1021,7 +1021,7 @@ pp_def(
               for(i=0; i<$COMP(deg); i++)
                  tmp *= $a();
               statsum += $wt() * (tmp - $avg());
-              flag = 1;
+              PDL_IF_BAD(flag = 1;,)
            }
         %}
         PDL_IF_BAD(if (!flag) { $SETBAD(b()); $PDLSTATESETBAD(b); }
@@ -1646,7 +1646,7 @@ pp_def(
     HandleBad => 1,
     Pars => 'a(n); b(n); sbyte [o]c();',
     Code => '
-     char anybad = 0;
+     PDL_IF_BAD(char anybad = 0;,)
      broadcastloop %{ $CMPVEC($a(), $b(), n, $c(), anybad); %}
      PDL_IF_BAD(if (anybad) { $SETBAD(c()); $PDLSTATESETBAD(c); },)
     ',
@@ -1668,7 +1668,7 @@ pp_def(
     HandleBad => 1,
     Pars => 'a(n); b(n); sbyte [o]c();',
     Code => '
-     char anybad = 0;
+     PDL_IF_BAD(char anybad = 0;,)
      broadcastloop %{
        $c() = 1;
        loop(n) %{
@@ -1761,8 +1761,7 @@ pp_def('vsearchvec',
    Code => q(
  int carp=0;
 broadcastloop %{
- PDL_Indx sizeM=$SIZE(M), sizeN=$SIZE(N), n1=sizeN-1;
- PDL_Indx nlo=-1, nhi=n1, nn;
+ PDL_Indx n1=$SIZE(N)-1, nlo=-1, nhi=n1, nn;
  int cmpval, is_asc_sorted;
  //
  //-- get sort direction
@@ -1773,7 +1772,7 @@ broadcastloop %{
  while (nhi-nlo > 1) {
    nn = (nhi+nlo) >> 1;
    $CMPVEC($find(),$which(N=>nn),M,cmpval);
-   if (cmpval > 0 == is_asc_sorted)
+   if ((cmpval > 0) == is_asc_sorted)
      nlo=nn;
    else
      nhi=nn;

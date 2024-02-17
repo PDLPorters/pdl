@@ -136,7 +136,7 @@ foreach my $func ( sort keys %over ) {
 	   $_->[2] ? (GenericTypes=>$_->[2]) : (),
            Code => qq{
             \$GENERIC(b) tmp = $init;
-            int flag = 0;
+            PDL_IF_BAD(int flag = 0;,)
             loop(n) %{
             PDL_IF_BAD(if ( \$ISGOOD(a()) ) { flag = 1;,)
               tmp $op \$a();
@@ -969,7 +969,8 @@ pp_def(
     Inplace => 1,
     Pars => 'a(n); [o]b(n);',
     Code =>
-    'register PDL_Indx nn = 0, nb = $SIZE(n) - 1;
+    'register PDL_Indx nn = 0;
+     PDL_IF_BAD(register PDL_Indx nb = $SIZE(n) - 1;,)
      '.qsort_croak('b',0,0).'
      loop(n) %{ 
         PDL_IF_BAD(if (!$ISGOOD(a())) { $SETBAD(b(n=>nb)); nb--; }
