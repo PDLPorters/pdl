@@ -1367,7 +1367,7 @@ EOD
       sub {
         my (undef,$name,$sname) = @_;
         ("PARENT(); [oca]CHILD();",0,0,[PDL::Types::ppdefs_all()],1,
-          "pdl *__it = $sname->pdls[1];\n",
+          "pdl *__it = $sname->pdls[1]; (void) __it;\n",
           "PDL->hdr_childcopy($sname); $sname->dims_redone = 1;\n",
         );
       }),
@@ -1841,7 +1841,7 @@ sub wrap_vfn {
   join "", PDL::PP::pp_line_numbers(__LINE__,
 qq[pdl_error $rout(pdl_trans *$sname$extra_args) {
   pdl_error PDL_err = {0, NULL, 0};]),
-    ($ptype ? "  $ptype *$pname = $sname->params;\n" : ''),
+    ($ptype ? "  $ptype *$pname = $sname->params; (void)$pname;\n" : ''),
     indent(2, join '', grep $_, $all_func_header, $func_header, $code),
     "  return PDL_err;\n}";
 }
