@@ -2599,16 +2599,6 @@ operate array element by array element like C<log10>).
  pdl> p $x
  [-inf 0    0.30103 0.47712125 0.60205999    0.69897 0.77815125 0.84509804 0.90308999 0.95424251]
 
-=cut
-
-# Flag pdl for in-place operations
-
-sub PDL::inplace {
-    my $pdl = PDL->topdl(shift); $pdl->set_inplace(1); return $pdl;
-}
-
-# Copy if not inplace
-
 =head2 is_inplace
 
 =for ref

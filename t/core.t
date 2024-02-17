@@ -130,6 +130,15 @@ is $@, '', 'can physicalise the copy of an empty';
 
 # test topdl
 
+{ package # hide from PAUSE
+  PDL::Trivial;
+our @ISA = qw(PDL);
+sub new {bless {PDL=>PDL->SUPER::new(@_[1..$#_])}} # like PDL::DateTime
+}
+my $subobj = PDL::Trivial->new(6);
+isa_ok $subobj, 'PDL::Trivial';
+isa_ok +PDL->topdl($subobj), 'PDL::Trivial';
+isa_ok $subobj->inplace, 'PDL::Trivial';
 isa_ok( PDL->topdl(1),       "PDL", "topdl(1) returns an ndarray" );
 isa_ok( PDL->topdl([1,2,3]), "PDL", "topdl([1,2,3]) returns an ndarray" );
 isa_ok( PDL->topdl(1,2,3),   "PDL", "topdl(1,2,3) returns an ndarray" );
@@ -336,6 +345,8 @@ $x = sequence(byte,5);
 
 $x->inplace;
 ok($x->is_inplace,"original item inplace-d true inplace flag");
+eval { $x->inplace(1) };
+is $@, '', 'passing spurious extra args no error';
 $y = $x->copy;
 ok($x->is_inplace,"original item true inplace flag after copy");
 ok(!$y->is_inplace,"copy has false inplace flag");

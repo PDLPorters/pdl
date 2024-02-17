@@ -70,6 +70,17 @@ DESTROY(sv)
     if (self != NULL)
       pdl_barf_if_error(pdl_destroy(self));
 
+SV *
+inplace(self, ...)
+  SV *self
+  CODE:
+    pdl *p = pdl_SvPDLV(self);
+    if (!p) barf("Failed to get PDL from arg");
+    p->state |= PDL_INPLACE;
+    SvREFCNT_inc(RETVAL = self);
+  OUTPUT:
+    RETVAL
+
 # Return the transformation object or an undef otherwise.
 pdl_trans *
 trans_parent(self)
