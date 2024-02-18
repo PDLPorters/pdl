@@ -5,6 +5,7 @@ use PDL::LiteF;
 use Config;
 use PDL::Types;
 use Math::Complex ();
+use Devel::Peek;
 
 sub tapprox ($$) {
     my ( $x, $y ) = @_;
@@ -21,6 +22,12 @@ my $p = sequence(100); # big enough to not fit in "value" field
 my $ref = $p->get_dataref;
 $p->reshape(3); # small enough now
 $p->upd_data;
+}
+
+{
+my $p = sequence(5);
+is Devel::Peek::SvREFCNT($p), 1, 'right refcnt blessed ref';
+is Devel::Peek::SvREFCNT($$p), 1, 'right refcnt pointer SV';
 }
 
 for (@PDL::Core::EXPORT_OK) {
