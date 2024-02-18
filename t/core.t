@@ -576,9 +576,13 @@ for (['ones', 1], ['zeroes', 0], ['nan', '.*NaN'], ['inf', '.*Inf'], ['i', 'i', 
   # from PDL::Core docs of zeroes
   my (@dims, $w) = (1..3);
   $w = $name->(byte, @dims); is_deeply [$w->dims], \@dims; is $w->type, $type || 'byte';
+  ok $w->allocated, "$name(type, dims) is allocated";
   $w = $name->(@dims); is_deeply [$w->dims], \@dims; is $w->type, $type || 'double';
+  ok $w->allocated, "$name(dims) is allocated";
   $w = PDL->$name(byte, @dims); is_deeply [$w->dims], \@dims; is $w->type, $type || 'byte';
+  ok $w->allocated, "PDL->$name(type, dims) is allocated";
   $w = PDL->$name(@dims); is_deeply [$w->dims], \@dims; is $w->type, $type || 'double';
+  ok $w->allocated, "PDL->$name(dims) is allocated";
   my $pdl = ones(float, 4, 5);
   $w = $pdl->$name(byte, @dims); is_deeply [$w->dims], \@dims; is $w->type, $type || 'byte';
   # usage type (ii):
