@@ -2840,7 +2840,7 @@ sub PDL::zeroes {
       ref($_[0]) eq 'PDL::Type' ? ${shift @_}[0] :
       $ispdl ? $class->get_datatype :
       $PDL_D;
-    my @dims = _dims_from_args($ispdl && !@_ ? $class->dims : @_);
+    my @dims = $ispdl && !@_ ? $class->dims : &_dims_from_args;
     my $pdl = $class->initialize();
     $pdl->set_datatype($type);
     $pdl->setdims(\@dims);
