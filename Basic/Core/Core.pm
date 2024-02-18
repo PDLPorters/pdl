@@ -2714,17 +2714,6 @@ obvious that would not break existing scripts.
 
 =cut
 
-sub PDL::new_from_specification{
-    my $class = shift;
-    my $type = ref($_[0]) eq 'PDL::Type' ? ${shift @_}[0]  : $PDL_D;
-    my @dims = &_dims_from_args;
-    my $pdl = $class->initialize();
-    $pdl->set_datatype($type);
-    $pdl->setdims(\@dims);
-    print "Dims: ",(join ',',@dims)," DLen: ",length(${$pdl->get_dataref}),"\n" if $PDL::debug;
-    return $pdl;
-}
-
 sub _dims_from_args {
     barf "Dimensions must be non-negative" if grep !ref && ($_||0)<0, @_;
     barf "Trying to use non-ndarray as dimensions?"

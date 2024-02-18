@@ -53,6 +53,37 @@ int pdl_autopthread_actual = 0;
 PDL_Indx pdl_autopthread_dim = -1;
 int pdl_autopthread_size   = 1;
 
+char *_dims_from_args(AV *av, SV **svs, IV n) {
+  IV i;
+  for (i = 0; i < n; i++) {
+    SV *sv = svs[i];
+    if (!SvROK(sv)) {
+      if (SvTRUE(sv) && SvIV(sv) < 0) return "Dimensions must be non-negative";
+      if (SvTRUE(sv))
+        SvREFCNT_inc(sv); /* stack entries are mortal */
+      else
+        sv = newSViv(0);
+      av_push(av, sv);
+      continue;
+    }
+    if (SvROK(sv) && !sv_derived_from(sv, "PDL")) return "Trying to use non-ndarray as dimensions?";
+    pdl *p = pdl_SvPDLV(sv);
+    if (!p) return "Failed to get PDL from arg";
+    if (p->ndims > 1) return "Trying to use multi-dim ndarray as dimensions?";
+    PDL_Indx nvals = p->nvals, v;
+    if (nvals > 10) warn("creating > 10 dim ndarray (ndarray arg)!");
+    for (v = 0; v < nvals; v++) {
+      PDL_Anyval anyval = pdl_get_offs(p, v);
+      if (anyval.type < 0) return "Error getting value from ndarray";
+      SV *dv = newSV(0);
+      ANYVAL_TO_SV(dv, anyval);
+      if (SvIV(dv) < 0) return "Dimensions must be non-negative";
+      av_push(av, dv);
+    }
+  }
+  return NULL;
+}
+
 MODULE = PDL::Core     PACKAGE = PDL
 
 # Destroy a PDL - note if a hash do nothing, the $$x{PDL} component
@@ -69,6 +100,58 @@ DESTROY(sv)
     PDLDEBUG_f(printf("DESTROYING %p\n",(void*)self);)
     if (self != NULL)
       pdl_barf_if_error(pdl_destroy(self));
+
+SV *
+new_from_specification(invoc, ...)
+  SV *invoc;
+  CODE:
+    IV argstart = 1, type = PDL_D;
+    if (items > 1 && sv_derived_from(ST(1), "PDL::Type")) {
+      argstart++;
+      AV *type_av = (AV *)SvRV(ST(1));
+      if (!type_av) barf("Arg 1 not a reference");
+      if (SvTYPE((SV *)type_av) != SVt_PVAV) barf("Arg 1 not an array-ref");
+      SV **firstval = av_fetch(type_av, 0, TRUE);
+      if (!firstval) barf("Failed to get type elt 0");
+      type = SvIV(*firstval);
+    }
+    ENTER; SAVETMPS;
+    AV *dims_av = newAV();
+    if (!dims_av) barf("Failed to make AV");
+    SV *dims_ref = sv_2mortal(newRV_noinc((SV *)dims_av));
+    if (!dims_ref) barf("Failed to make ref to AV");
+    char *retstr = _dims_from_args(dims_av, &ST(argstart), items-argstart);
+    if (retstr) barf("%s", retstr);
+    if (strcmp(SvPV_nolen(invoc), "PDL") == 0) {
+      pdl *p = pdl_pdlnew();
+      if (!p) barf("Failed to create ndarray");
+      p->datatype = type;
+      PDL_Indx ndims, *dims = pdl_packdims(dims_ref, &ndims);
+      if (!dims) barf("Failed to unpack dims");
+      pdl_barf_if_error(pdl_setdims(p, dims, ndims));
+      pdl_SetSV_PDL(RETVAL = newSV(0), p);
+    } else {
+      PUSHMARK(SP);
+      PUSHs(ST(0));
+      PUTBACK;
+      int retvals = perl_call_method("initialize", G_SCALAR);
+      SPAGAIN;
+      if (retvals != 1) barf("initialize returned no values");
+      SvREFCNT_inc(RETVAL = POPs);
+      PUSHMARK(SP);
+      EXTEND(SP, 2); PUSHs(RETVAL); mPUSHi(type);
+      PUTBACK;
+      perl_call_method("set_datatype", G_VOID);
+      SPAGAIN;
+      PUSHMARK(SP);
+      EXTEND(SP, 2); PUSHs(RETVAL); PUSHs(dims_ref);
+      PUTBACK;
+      perl_call_method("setdims", G_VOID);
+      SPAGAIN;
+    }
+    FREETMPS; LEAVE;
+  OUTPUT:
+    RETVAL
 
 SV *
 inplace(self, ...)
