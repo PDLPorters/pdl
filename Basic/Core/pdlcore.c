@@ -3,7 +3,7 @@
 #include "pdlcore.h"  /* Core declarations */
 #include "pdlperl.h"
 
-static SV *getref_pdl(pdl *it) {
+void pdl_SetSV_PDL ( SV *sv, pdl *it ) {
         SV *newref;
         if(!it->sv) {
                 newref = newRV_noinc(it->sv = newSViv(PTR2IV(it)));
@@ -12,18 +12,11 @@ static SV *getref_pdl(pdl *it) {
                 newref = newRV_inc(it->sv);
                 SvAMAGIC_on(newref);
         }
-        return newref;
-}
-
-void pdl_SetSV_PDL ( SV *sv, pdl *it ) {
-        SV *newref = getref_pdl(it); /* YUCK!!!! */
         sv_setsv(sv,newref);
         SvREFCNT_dec(newref);
 }
 
-
 /* Size of data type information */
-
 size_t pdl_howbig (int datatype) {
 #define X(datatype, ctype, ...) \
     return sizeof(ctype);
