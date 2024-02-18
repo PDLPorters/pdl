@@ -104,7 +104,19 @@ DESTROY(sv)
 SV *
 new_from_specification(invoc, ...)
   SV *invoc;
+  ALIAS:
+    PDL::zeroes = 1
   CODE:
+    char ispdl = ix && SvROK(invoc) && sv_derived_from(invoc, "PDL");
+    pdl *pdl_given = NULL;
+    if (ispdl) {
+      if (!(pdl_given = pdl_SvPDLV(invoc))) barf("Failed to get PDL from arg");
+      if (pdl_given->state & PDL_INPLACE) {
+        amagic_call(invoc, sv_2mortal(newSViv(0)), concat_ass_amg, AMGf_assign);
+        ST(0) = invoc;
+        XSRETURN(1);
+      }
+    }
     IV argstart = 1, type = PDL_D;
     if (items > 1 && sv_derived_from(ST(1), "PDL::Type")) {
       argstart++;
@@ -114,21 +126,32 @@ new_from_specification(invoc, ...)
       SV **firstval = av_fetch(type_av, 0, TRUE);
       if (!firstval) barf("Failed to get type elt 0");
       type = SvIV(*firstval);
-    }
+    } else if (ispdl)
+      type = pdl_given->datatype;
     ENTER; SAVETMPS;
-    AV *dims_av = newAV();
-    if (!dims_av) barf("Failed to make AV");
-    SV *dims_ref = sv_2mortal(newRV_noinc((SV *)dims_av));
-    if (!dims_ref) barf("Failed to make ref to AV");
-    char *retstr = _dims_from_args(dims_av, &ST(argstart), items-argstart);
-    if (retstr) barf("%s", retstr);
+    SV *dims_ref = NULL;
+    if (!(ispdl && items == 1)) {
+      AV *dims_av = newAV();
+      if (!dims_av) barf("Failed to make AV");
+      dims_ref = sv_2mortal(newRV_noinc((SV *)dims_av));
+      if (!dims_ref) barf("Failed to make ref to AV");
+      char *retstr = _dims_from_args(dims_av, &ST(argstart), items-argstart);
+      if (retstr) barf("%s", retstr);
+    }
     if (strcmp(SvPV_nolen(invoc), "PDL") == 0) {
       pdl *p = pdl_pdlnew();
       if (!p) barf("Failed to create ndarray");
       p->datatype = type;
-      PDL_Indx ndims, *dims = pdl_packdims(dims_ref, &ndims);
-      if (!dims) barf("Failed to unpack dims");
+      PDL_Indx ndims, *dims;
+      if (dims_ref) {
+        dims = pdl_packdims(dims_ref, &ndims);
+        if (!dims) barf("Failed to unpack dims");
+      } else {
+        dims = pdl_given->dims;
+        ndims = pdl_given->ndims;
+      }
       pdl_barf_if_error(pdl_setdims(p, dims, ndims));
+      if (ix) pdl_barf_if_error(pdl_make_physical(p));
       pdl_SetSV_PDL(RETVAL = newSV(0), p);
     } else {
       PUSHMARK(SP);
@@ -143,6 +166,15 @@ new_from_specification(invoc, ...)
       PUTBACK;
       perl_call_method("set_datatype", G_VOID);
       SPAGAIN;
+      if (!dims_ref) {
+        AV *dims_av = newAV();
+        if (!dims_av) barf("Failed to make AV");
+        dims_ref = sv_2mortal(newRV_noinc((SV *)dims_av));
+        if (!dims_ref) barf("Failed to make ref to AV");
+        PDL_Indx i, *dims = pdl_given->dims;
+        for (i = 0; i < pdl_given->ndims; i++)
+          av_push(dims_av, newSViv(dims[i]));
+      }
       PUSHMARK(SP);
       EXTEND(SP, 2); PUSHs(RETVAL); PUSHs(dims_ref);
       PUTBACK;

@@ -2712,19 +2712,6 @@ as if you had said
 This is unfortunate and confusing but no good solution seems
 obvious that would not break existing scripts.
 
-=cut
-
-sub _dims_from_args {
-    barf "Dimensions must be non-negative" if grep !ref && ($_||0)<0, @_;
-    barf "Trying to use non-ndarray as dimensions?"
-       if grep ref && !$_->isa('PDL'), @_;
-    barf "Trying to use multi-dim ndarray as dimensions?"
-       if grep ref && $_->getndims > 1, @_;
-    warn "creating > 10 dim ndarray (ndarray arg)!"
-       if grep ref && $_->nelem > 10, @_;
-    map ref($_) ? $_->list : $_ || 0, @_;
-}
-
 =head2 isnull
 
 =for ref
@@ -2818,24 +2805,6 @@ for details on using ndarrays in the dimensions list.
 =cut
 
 sub zeroes { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? PDL::zeroes($_[0]) : PDL->zeroes(@_) }
-sub PDL::zeroes {
-    my $class = shift;
-    my $ispdl = ref $class && UNIVERSAL::isa($class, 'PDL');
-    if ($ispdl and $class->is_inplace) {
-        $class .= 0; # resets the "inplace"
-        return $class;
-    }
-    my $type =
-      ref($_[0]) eq 'PDL::Type' ? ${shift @_}[0] :
-      $ispdl ? $class->get_datatype :
-      $PDL_D;
-    my @dims = $ispdl && !@_ ? $class->dims : &_dims_from_args;
-    my $pdl = $class->initialize();
-    $pdl->set_datatype($type);
-    $pdl->setdims(\@dims);
-    $pdl->make_physical;
-    return $pdl;
-}
 
 # Create convenience aliases for zeroes
 
