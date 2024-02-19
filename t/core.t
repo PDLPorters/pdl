@@ -135,6 +135,15 @@ is $@, '', 'can "squeeze" an empty';
 eval {empty->copy->make_physical};
 is $@, '', 'can physicalise the copy of an empty';
 
+# capture ancient pptest.t test for Solaris segfault
+ok all(tapprox(norm(pdl 3,4), pdl(0.6,0.8))), 'vector quasi-copy works';
+# pptest for null input
+eval {(my $tmp=null) .= null}; like $@, qr/input.*null/;
+# pptest for OtherPars=>named dim
+ok all(tapprox((5*sequence(5))->maximum_n_ind(3), pdl(4,3,2))), 'named dim';
+# pptest for dim with fixed value
+ok all(tapprox(crossp([1..3],[4..6]), pdl(-3,6,-3))), 'named dim=3';
+
 # test topdl
 
 { package # hide from PAUSE

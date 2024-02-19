@@ -81,32 +81,11 @@ pp_def(
 	 $b() = tmp;'
 );
 
-# test to set named dim with 'OtherPar'
-pp_def('setdim',
-	Pars => '[o] a(n)',
-	OtherPars => 'int ns => n',
-	Code => 'loop(n) %{ $a() = n; %}',
-);
-
 pp_def("gelsd",
         Pars => '[io,phys]A(m,n); [io,phys]B(p,q); [phys]rcond(); [o,phys]s(r); int [o,phys]rank();int [o,phys]info()',
         RedoDimsCode => '$SIZE(r) = PDLMIN($SIZE(m),$SIZE(n));',
         GenericTypes => ['F'],
         Code => '$CROAK("croaking");'
-);
-
-pp_def('fooseg',
-        Pars => 'a(n);  [o]b(n);',
-        Code => '
-	   loop(n) %{ $b() = $a(); %}
-');
-
-# adapted from PDL::NDBin: if in=null and b is a scalar, was SEGV-ing
-pp_def( '_flatten_into',
-        Pars => "in(m); indx b(m); [o] idx(m)",
-        Code => '
-                loop(m) %{ $idx() = $in(); %}
-        ',
 );
 
 pp_def( 'broadcastloop_continue',
@@ -155,12 +134,6 @@ EOXS
 pp_add_boot pp_line_numbers(__LINE__, q{
         /* nothing happening here */
 });
-
-# test fixed value for named dim, wrong Code for simplicity
-pp_def('Cpow',
-	Pars => 'a(m=2); b(m=2); [o]c(m=2)',
-	Code => '$c(m => 0) = $a(m => 0) + $b(m => 0);',
-);
 
 # test XS args with OtherPars
 pp_def('gl_arrows',
@@ -445,10 +418,6 @@ for (byte,short,ushort,long,float,double) {
   is( $y->at, 3000 );
 }
 
-setdim(($x=null),10);
-is( join(',',$x->dims), "10" );
-ok( tapprox($x,sequence(10)) );
-
 {
 my @msg;
 local $SIG{__WARN__} = sub { push @msg, @_ };
@@ -456,19 +425,6 @@ eval { nan(2,2)->gelsd(nan(2,2), -3) };
 like $@, qr/croaking/, 'right error message';
 is_deeply \@msg, [], 'no warnings' or diag explain \@msg;
 }
-
-# this used to segv under solaris according to Karl
-{
-  my $ny=7;
-  $x = double xvals zeroes (20,$ny);
-  fooseg $x, $y=null;
-  ok( 1 );  # if we get here at all that is alright
-  ok( tapprox($x,$y) )
-    or diag($x, "\n", $y);
-}
-
-eval { _flatten_into(null, 2) };
-ok 1; #was also segfaulting
 
 # test that continues in a broadcastloop work
 {
@@ -483,8 +439,6 @@ ok 1; #was also segfaulting
     ok( tapprox( $got, $exp ), "continue works in broadcastloop" )
       or do { diag "got     : $got"; diag "expected: $exp" };
 }
-
-Cpow(sequence(2), 1);
 
 polyfill_pp(zeroes(5,5), ones(2,3), 1);
 eval { polyfill_pp(ones(2,3), 1) };
