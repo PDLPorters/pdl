@@ -2878,38 +2878,24 @@ for my $func ( [
 
 
     my $code = undent q[
-                 if ( $SIZE(n) == 0 ){
-                    broadcastloop %{
-                      loop(n) %{
-                        $SETBAD(idx());
-                      %}
-                    %}
-                 }
-                 else {
-                   broadcastloop %{
+                 loop(n) %{
+                    if ( $ISGOOD(vals()) ) {
+                      PDL_Indx n1 = $SIZE(n)-1;
+                      PDL_Indx low = %LOW%;
+                      PDL_Indx high = %HIGH%;
+                      PDL_Indx mid;
 
-                     loop(n) %{
+                      $GENERIC() value = $vals();
 
-                        if ( $ISGOOD(vals()) ) {
-                          PDL_Indx n1 = $SIZE(n)-1;
-                          PDL_Indx low = %LOW%;
-                          PDL_Indx high = %HIGH%;
-                          PDL_Indx mid;
+                      /* determine sort order of data */
+                      int up = %UP%;
+                      %CODE%
+                    }
 
-                          $GENERIC() value = $vals();
-
-                          /* determine sort order of data */
-                          int up = %UP%;
-                          %CODE%
-                        }
-
-                        else {
-                          $SETBAD(idx());
-                        }
-                     %}
-
-                   %}
-                 }
+                    else {
+                      $SETBAD(idx());
+                    }
+                 %}
                  ----
                ];
 
