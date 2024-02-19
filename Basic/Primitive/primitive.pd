@@ -286,10 +286,9 @@ pp_def('innerwt',
        'complex long double tmp = 0;
         PDL_IF_BAD(int flag = 0;,)
 	loop(n) %{
-           PDL_IF_BAD(if ( $ISGOOD(a()) && $ISGOOD(b()) && $ISGOOD(c()) ),) {
-              tmp += $a() * $b() * $c();
-              PDL_IF_BAD(flag = 1;,)
-           }
+           PDL_IF_BAD(if (!( $ISGOOD(a()) && $ISGOOD(b()) && $ISGOOD(c()) )) continue;,)
+           tmp += $a() * $b() * $c();
+           PDL_IF_BAD(flag = 1;,)
         %}
         PDL_IF_BAD(if (!flag) { $SETBAD(d()); }
         else,)                { $d() = tmp; }',
@@ -314,10 +313,9 @@ pp_def('inner2',
        'complex long double tmp = 0;
         PDL_IF_BAD(int flag = 0;,)
 	loop(n,m) %{
-           PDL_IF_BAD(if ( $ISGOOD(a()) && $ISGOOD(b()) && $ISGOOD(c()) ),) {
-              tmp += $a() * $b() * $c();
-              PDL_IF_BAD(flag = 1;,)
-           }
+           PDL_IF_BAD(if (!( $ISGOOD(a()) && $ISGOOD(b()) && $ISGOOD(c()) )) continue;,)
+           tmp += $a() * $b() * $c();
+           PDL_IF_BAD(flag = 1;,)
         %}
         PDL_IF_BAD(if (!flag) { $SETBAD(d()); }
         else,)                { $d() = tmp; }',
@@ -341,10 +339,9 @@ pp_def('inner2d',
        'complex long double tmp = 0;
         PDL_IF_BAD(int flag = 0;,)
 	loop(n,m) %{
-           PDL_IF_BAD(if ( $ISGOOD(a()) && $ISGOOD(b()) ),) {
-              tmp += $a() * $b();
-              PDL_IF_BAD(flag = 1;,)
-           }
+           PDL_IF_BAD(if (!( $ISGOOD(a()) && $ISGOOD(b()) )) continue;,)
+           tmp += $a() * $b();
+           PDL_IF_BAD(flag = 1;,)
         %}
         PDL_IF_BAD(if (!flag) { $SETBAD(c()); }
         else,)                { $c() = tmp; }',
@@ -372,10 +369,9 @@ pp_def('inner2t',
            complex long double tmp0 = 0;
            PDL_IF_BAD(int flag = 0;,)
 	   loop(m) %{
-              PDL_IF_BAD(if ( $ISGOOD(b()) && $ISGOOD(c()) ),) {
-                 tmp0 += $b() * $c();
-                 PDL_IF_BAD(flag = 1;,)
-              }
+              PDL_IF_BAD(if (!( $ISGOOD(b()) && $ISGOOD(c()) )) continue;,)
+              tmp0 += $b() * $c();
+              PDL_IF_BAD(flag = 1;,)
            %}
            PDL_IF_BAD(if (!flag) { $SETBAD(tmp()); }
            else,)                { $tmp() = tmp0; }
@@ -384,10 +380,9 @@ pp_def('inner2t',
            complex long double tmp1 = 0;
            PDL_IF_BAD(int flag = 0;,)
 	   loop(n) %{
-              if ( $ISGOOD(a()) && $ISGOOD(tmp()) ) {
-                 tmp1 += $a() * $tmp();
-                 PDL_IF_BAD(flag = 1;,)
-              }
+              PDL_IF_BAD(if (!( $ISGOOD(a()) && $ISGOOD(tmp()) )) continue;,)
+              tmp1 += $a() * $tmp();
+              PDL_IF_BAD(flag = 1;,)
            %}
            PDL_IF_BAD(if (!flag) { $SETBAD(d()); }
            else,)                { $d() = tmp1; }
@@ -455,34 +450,32 @@ pp_def('norm',
        'long double sum=0;
         PDL_IF_BAD(int flag = 0;,)
         loop(n) %{
-           PDL_IF_BAD(if ( $ISGOOD(vec()) ),) {
-              sum +=
-                PDL_IF_GENTYPE_REAL(
-                  $vec()*$vec(),
-                  creall($vec())*creall($vec()) + cimagl($vec())*cimagl($vec())
-                );
-           PDL_IF_BAD(flag = 1;,) }
+           PDL_IF_BAD(if (!( $ISGOOD(vec()) )) continue;,)
+           sum +=
+             PDL_IF_GENTYPE_REAL(
+               $vec()*$vec(),
+               creall($vec())*creall($vec()) + cimagl($vec())*cimagl($vec())
+             );
+           PDL_IF_BAD(flag = 1;,)
         %}
-        PDL_IF_BAD(if ( flag ),) {
-	   if (sum > 0) {
-	      sum = sqrt(sum);
-	      loop(n) %{
-                 PDL_IF_BAD(if ( $ISBAD(vec()) ) { $SETBAD(norm()); }
-                            else              ,) {
-                    $norm() = $vec()/sum;
-                 }
-              %}
-	   } else {
-	      loop(n) %{
-                 if ( $ISBAD(vec()) ) { $SETBAD(norm()); }
-                 else                 { $norm() = $vec(); }
-              %}
-           }
-        } PDL_IF_BAD(else {
-	   loop(n) %{
-              $SETBAD(norm());
+        PDL_IF_BAD(if ( !flag ) {
+           loop(n) %{ $SETBAD(norm()); %}
+           continue;
+        },)
+        if (sum > 0) {
+           sum = sqrt(sum);
+           loop(n) %{
+              PDL_IF_BAD(if ( $ISBAD(vec()) ) { $SETBAD(norm()); }
+                         else              ,) {
+                 $norm() = $vec()/sum;
+              }
            %}
-	},)
+        } else {
+           loop(n) %{
+              PDL_IF_BAD(if ( $ISBAD(vec()) ) { $SETBAD(norm()); }
+                         else              ,) { $norm() = $vec(); }
+           %}
+        }
 	',
 );
 
@@ -1006,16 +999,14 @@ pp_def('wtstat',
         complex long double statsum = 0;
         PDL_IF_BAD(int flag = 0;,)
         loop(n) %{
-           PDL_IF_BAD(if ($ISGOOD(wt()) && $ISGOOD(a()) && $ISGOOD(avg())),) {
-              complex long double tmp;
-              PDL_Indx i;
-              wtsum += $wt();
-              tmp=1;
-              for(i=0; i<$COMP(deg); i++)
-                 tmp *= $a();
-              statsum += $wt() * (tmp - $avg());
-              PDL_IF_BAD(flag = 1;,)
-           }
+          PDL_IF_BAD(if (!($ISGOOD(wt()) && $ISGOOD(a()) && $ISGOOD(avg()))) continue;,)
+          PDL_Indx i;
+          wtsum += $wt();
+          complex long double tmp=1;
+          for(i=0; i<$COMP(deg); i++)
+            tmp *= $a();
+          statsum += $wt() * (tmp - $avg());
+          PDL_IF_BAD(flag = 1;,)
         %}
         PDL_IF_BAD(if (!flag) { $SETBAD(b()); $PDLSTATESETBAD(b); }
         else,)                { $b() = statsum / wtsum; }',
@@ -1049,15 +1040,14 @@ pp_def('statsover',
          int flag = 0;
          loop(n) %{             /* Accumulate sum and summed weight. */
             /* perhaps should check w() for bad values too ? */
-            PDL_IF_BAD(if ( $ISGOOD(a()) ),) {
-              tmp += $a()*$w();
-              norm += ($GENERIC(avg)) $w();
-              if (!flag) { curmin = $a(); curmax = $a(); flag=1; }
-              if ($a() < curmin) {
-                curmin = $a();
-              } else if ($a() > curmax) {
-                curmax = $a();
-              }
+            PDL_IF_BAD(if (!( $ISGOOD(a()) )) continue;,)
+            tmp += $a()*$w();
+            norm += ($GENERIC(avg)) $w();
+            if (!flag) { curmin = $a(); curmax = $a(); flag=1; }
+            if ($a() < curmin) {
+              curmin = $a();
+            } else if ($a() > curmax) {
+              curmax = $a();
             }
          %}
          /* have at least one valid point if flag true */
@@ -1075,11 +1065,10 @@ pp_def('statsover',
            /* Calculate the RMS and standard deviation. */
            tmp = 0;
            loop(n) %{
-              if ($ISGOOD(a())) {
-                 diff = $a()-$avg();
-                 tmp += diff * diff * $w();
-                 tmp1 += fabsl(diff) * $w();
-              }
+              PDL_IF_BAD(if (!$ISGOOD(a())) continue;,)
+              diff = $a()-$avg();
+              tmp += diff * diff * $w();
+              tmp1 += fabsl(diff) * $w();
            %}
            $rms() = sqrt( tmp/norm );
            if(norm>1)
@@ -1307,12 +1296,11 @@ for(
 	%}
 	broadcastloop %{
 	   loop(n) %{
-	     PDL_IF_BAD(if ( $ISGOOD(in()) ),) {
-	      j = (int) (($in()-min)/step);
-	      if (j<0) j=0;
-	      if (j > maxj) j = maxj;
-	      ($hist(m => j))'.$_->{HistOp}.';
-             }
+	     PDL_IF_BAD(if ( !$ISGOOD(in()) ) continue;,)
+	     j = (int) (($in()-min)/step);
+	     if (j<0) j=0;
+	     if (j > maxj) j = maxj;
+	     ($hist(m => j))'.$_->{HistOp}.';
 	   %}
 	%}';
 pp_def($_->{Name},
@@ -1423,15 +1411,14 @@ for(
 	%}
 	broadcastloop %{
 	   loop(n) %{
-	     PDL_IF_BAD(if ( $ISGOOD(ina()) && $ISGOOD(inb()) ),) {
-	      ja = (int) (($ina()-mina)/stepa);
-	      jb = (int) (($inb()-minb)/stepb);
-	      if (ja<0) ja=0;
-	      if (ja > maxja) ja = maxja;
-	      if (jb<0) jb=0;
-	      if (jb > maxjb) jb = maxjb;
-	      ($hist(ma => ja,mb => jb))'.$_->{HistOp}.';
-	     }
+	     PDL_IF_BAD(if (!( $ISGOOD(ina()) && $ISGOOD(inb()) )) continue;,)
+	     ja = (int) (($ina()-mina)/stepa);
+	     jb = (int) (($inb()-minb)/stepb);
+	     if (ja<0) ja=0;
+	     if (ja > maxja) ja = maxja;
+	     if (jb<0) jb=0;
+	     if (jb > maxjb) jb = maxjb;
+	     ($hist(ma => ja,mb => jb))'.$_->{HistOp}.';
 	   %}
 	%}';
 pp_def($_->{Name},
@@ -1638,9 +1625,12 @@ pp_def(
     HandleBad => 1,
     Pars => 'a(n); b(n); sbyte [o]c();',
     Code => '
-     PDL_IF_BAD(char anybad = 0;,)
-     broadcastloop %{ $CMPVEC($a(), $b(), n, $c(), anybad); %}
-     PDL_IF_BAD(if (anybad) { $SETBAD(c()); $PDLSTATESETBAD(c); },)
+PDL_IF_BAD(char anybad = 0;,)
+broadcastloop %{
+  $CMPVEC($a(), $b(), n, $c(), anybad);
+  PDL_IF_BAD(if (anybad) $SETBAD(c());,)
+%}
+PDL_IF_BAD(if (anybad) $PDLSTATESETBAD(c);,)
     ',
     Doc => '
 =for ref
