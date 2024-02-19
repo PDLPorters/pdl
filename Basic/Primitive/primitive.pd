@@ -1468,22 +1468,15 @@ pp_def('append',
         PMCode => pp_line_numbers(__LINE__-1, '
 sub PDL::append {
   my ($i1, $i2, $o) = map PDL->topdl($_), @_;
+  $_ = empty() for grep $_->isnull, $i1, $i2;
   my $nempty = grep $_->isempty, $i1, $i2;
   if ($nempty == 2) {
     my @dims = $i1->dims;
     $dims[0] += $i2->dim(0);
     return PDL->zeroes($i1->type, @dims);
   }
-  if ($nempty == 1) {
-    if (!defined $o) {
-      return $i2->isnull ? PDL->zeroes(0) : $i2->copy if $i1->isempty;
-      return $i1->isnull ? PDL->zeroes(0) : $i1->copy;
-    } else {
-      $o .= $i2->isnull ? PDL->zeroes(0) : $i2, return $o if $i1->isempty;
-      $o .= $i1->isnull ? PDL->zeroes(0) : $i1, return $o;
-    }
-  }
   $o //= PDL->null;
+  $o .= $i1->isempty ? $i2 : $i1, return $o if $nempty == 1;
   PDL::_append_int($i1, $i2->convert($i1->type), $o);
   $o;
 }
