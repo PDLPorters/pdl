@@ -1514,13 +1514,12 @@ sub PDL::append {
   $o;
 }
         '),
-	RedoDimsCode => '$SIZE(mn) = $SIZE(m)+$SIZE(n);',
-	Code => 'register PDL_Indx mnp;
-		 PDL_Indx ns = $SIZE(n);
+        RedoDimsCode => '$SIZE(mn) = $SIZE(n)+$SIZE(m);',
+        Code => 'PDL_Indx ns = $SIZE(n);
                  broadcastloop %{
                        loop(n) %{ $c(mn => n) = $a(); %}
-		       loop(m) %{ mnp = m+ns; $c(mn => mnp) = $b(); %}
-		 %}',
+                       loop(mn=ns) %{ $c() = $b(m=>mn-ns); %}
+                 %}',
 	Doc => '
 =for ref
 
@@ -1725,19 +1724,17 @@ EOD
 pp_def('enumvecg',
        Pars => 'v(M,N); indx [o]k(N)',
        Code =><<'EOC',
-  PDL_Indx vn, vnprev, sn=$SIZE(N), ki;
-  if (sn > 0) {
-    $k(N=>0) = ki = 0;
-    for (vnprev=0, vn=1; vn<sn; vnprev=vn++) {
-       loop (M) %{
-         if ($v(N=>vnprev) != $v(N=>vn)) {
-           ++ki;
-           break;
-         }
-       %}
-       $k(N=>vn) = ki;
-     }
-   }
+if (!$SIZE(N)) continue;
+PDL_Indx Nprev = 0, ki = $k(N=>0) = 0;
+loop(N=1) %{
+  loop (M) %{
+    if ($v(N=>Nprev) == $v()) continue;
+    ++ki;
+    break;
+  %}
+  $k() = ki;
+  Nprev = N;
+%}
 EOC
        Doc =><<'EOD',
 =for ref
@@ -1855,10 +1852,8 @@ EOD
    }
  }
  $nc() = nci;
- for ( ; nci < sizeNC; nci++) {
-  //-- zero unpopulated outputs
-  loop(M) %{ $c(NC=>nci) = 0; %}
- }
+ //-- zero unpopulated outputs
+ loop(NC=nci,M) %{ $c() = 0; %}
 ),
    Doc=><<'EOD'
 =for ref
@@ -1914,10 +1909,8 @@ EOD
    }
  }
  $nc() = nci;
- for ( ; nci < sizeNC; nci++) {
-  //-- zero unpopulated outputs
-  loop(M) %{ $c(NC=>nci) = 0; %}
- }
+ //-- zero unpopulated outputs
+ loop(NC=nci,M) %{ $c() = 0; %}
 ),
    Doc=><<'EOD'
 =for ref
@@ -1975,10 +1968,8 @@ EOD
    loop (M) %{ $c(NC=>nci) = $a(NA=>nai); %}
  }
  $nc() = nci;
- for ( ; nci < sizeNC; nci++) {
-  //-- zero unpopulated outputs
-  loop (M) %{ $c(NC=>nci) = 0; %}
- }
+ //-- zero unpopulated outputs
+ loop (NC=nci,M) %{ $c() = 0; %}
 ),
    Doc=><<'EOD'
 =for ref
