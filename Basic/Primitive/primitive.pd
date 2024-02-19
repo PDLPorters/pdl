@@ -620,28 +620,22 @@ sub PDL::conv1d {
 }
 EOPM
         Code => '
-           int i,i1,i2,poff,pflip;
-           complex long double tmp;
-           int reflect = $COMP(reflect);
-           int m_size = $SIZE(m);
-           int p_size = $SIZE(p);
-
-           poff = (p_size-1)/2;
-           for(i=0; i<m_size; i++) {
-              tmp = 0;
-                  for(i1=0; i1<p_size; i1++) {
-                     pflip = p_size - 1 - i1;
-                     i2 = i+i1 - poff;
-                     if (reflect && i2<0)
-                     	i2 = -i2;
-                     if (reflect && i2>=m_size)
-                     	i2 = m_size-(i2-m_size+1);
-
-                     REALMOD(i2,m_size);
-                     tmp += $a(m=>i2) * $kern(p=>pflip);
-                  }
-              $b(m=>i) = tmp;
-           }
+int reflect = $COMP(reflect);
+PDL_Indx m_size = $SIZE(m), p_size = $SIZE(p);
+PDL_Indx poff = (p_size-1)/2;
+loop(m) %{
+  complex long double tmp = 0;
+  loop(p) %{
+    PDL_Indx pflip = p_size - 1 - p, i2 = m+p - poff;
+    if (reflect && i2<0)
+      i2 = -i2;
+    if (reflect && i2>=m_size)
+      i2 = m_size-(i2-m_size+1);
+    REALMOD(i2,m_size);
+    tmp += $a(m=>i2) * $kern(p=>pflip);
+  %}
+  $b() = tmp;
+%}
 ');
 
 
@@ -3460,7 +3454,7 @@ EOD
 	  Pars => 'mask(n); indx [o] inds(n); indx [o]lastout()',
 	  Variables => 'PDL_Indx dm=0;',
 	  Elseclause => "",
-	  Outclause => '$lastout() = dm; while (dm < $SIZE(n)) $inds(n=>dm++) = -1;',
+	  Outclause => '$lastout() = dm; loop(n=dm) %{ $inds() = -1; %}',
 	  Doc => $doc_which,
 	  PMCode=>pp_line_numbers(__LINE__, <<'EOD'),
    sub which { my ($this,$out) = @_;
@@ -3477,7 +3471,7 @@ EOD
 	  Pars => 'mask(n); indx [o] inds(n); indx [o]notinds(n); indx [o]lastout(); indx [o]lastoutn()',
 	  Variables => 'PDL_Indx dm=0; int dm2=0;',
 	  Elseclause => "else { \n          \$notinds(n => dm2)=n; \n           dm2++;\n     }",
-	  Outclause => '$lastout() = dm; $lastoutn() = dm2; while (dm < $SIZE(n)) $inds(n=>dm++) = -1; while (dm2 < $SIZE(n)) $notinds(n=>dm2++) = -1;',
+	  Outclause => '$lastout() = dm; $lastoutn() = dm2; loop(n=dm) %{ $inds() = -1; %} loop(n=dm2) %{ $notinds() = -1; %}',
 	  Doc => $doc_which_both,
 	  PMCode=>pp_line_numbers(__LINE__, <<'EOD'),
    sub which_both { my ($this,$outi,$outni) = @_;
