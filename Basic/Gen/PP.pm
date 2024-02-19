@@ -1890,7 +1890,7 @@ sub make_vfn_args {
 
    PDL::PP::Rule->new("DefaultRedoDims",
       ["StructName"],
-      sub { "PDL_RETERROR(PDL_err, PDL->redodims_default($_[0]));" }),
+      sub { "PDL_RETERROR(PDL_err, PDL->redodims_default($_[0]));\n" }),
    PDL::PP::Rule->new("DimsSetters",
       ["SignatureObj"],
       sub { join "\n", sort map $_->get_initdim, $_[0]->dims_values }),
