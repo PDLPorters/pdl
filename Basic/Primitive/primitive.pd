@@ -49,13 +49,12 @@ EOD
 #  available via operator overloading)
 ################################################################
 
-pp_def(
-       'inner',
+pp_def('inner',
        HandleBad => 1,
        Pars => 'a(n); b(n); [o]c();',
        GenericTypes => [ppdefs_all],
        Code =>
-       'double tmp = 0;
+       'complex long double tmp = 0;
         PDL_IF_BAD(int badflag = 0;,)
         loop(n) %{
            PDL_IF_BAD(if (!($ISGOOD(a()) && $ISGOOD(b()))) { badflag = 1; break; }
@@ -79,8 +78,7 @@ as it will not contain any bad values.
 ',
        ); # pp_def( inner )
 
-pp_def(
-       'outer',
+pp_def('outer',
        HandleBad => 1,
        Pars => 'a(n); b(m); [o]c(n,m);',
        GenericTypes => [ppdefs_all],
@@ -280,13 +278,12 @@ For usage, see L</x>, a description of the overloaded 'x' operator
 EOD
 	);
 
-pp_def(
-       'innerwt',
+pp_def('innerwt',
        HandleBad => 1,
        Pars => 'a(n); b(n); c(n); [o]d();',
        GenericTypes => [ppdefs_all],
        Code =>
-       'long double tmp = 0;
+       'complex long double tmp = 0;
         PDL_IF_BAD(int flag = 0;,)
 	loop(n) %{
            PDL_IF_BAD(if ( $ISGOOD(a()) && $ISGOOD(b()) && $ISGOOD(c()) ),) {
@@ -309,13 +306,12 @@ Weighted (i.e. triple) inner product
 '
        );
 
-pp_def(
-       'inner2',
+pp_def('inner2',
        HandleBad => 1,
        Pars => 'a(n); b(n,m); c(m); [o]d();',
        GenericTypes => [ppdefs_all],
        Code =>
-       'long double tmp = 0;
+       'complex long double tmp = 0;
         PDL_IF_BAD(int flag = 0;,)
 	loop(n,m) %{
            PDL_IF_BAD(if ( $ISGOOD(a()) && $ISGOOD(b()) && $ISGOOD(c()) ),) {
@@ -337,13 +333,12 @@ very wasteful. Instead, you should use a temporary for C<b*c>.
 '
        );
 
-pp_def(
-       'inner2d',
+pp_def('inner2d',
        HandleBad => 1,
        Pars => 'a(n,m); b(n,m); [o]c();',
        GenericTypes => [ppdefs_all],
        Code =>
-       'long double tmp = 0;
+       'complex long double tmp = 0;
         PDL_IF_BAD(int flag = 0;,)
 	loop(n,m) %{
            PDL_IF_BAD(if ( $ISGOOD(a()) && $ISGOOD(b()) ),) {
@@ -368,14 +363,13 @@ Equivalent to
 '
        );
 
-pp_def(
-       'inner2t',
+pp_def('inner2t',
        HandleBad => 1,
        Pars => 'a(j,n); b(n,m); c(m,k); [t]tmp(n,k); [o]d(j,k));',
        GenericTypes => [ppdefs_all],
        Code =>
        'loop(n,k) %{
-           long double tmp0 = 0;
+           complex long double tmp0 = 0;
            PDL_IF_BAD(int flag = 0;,)
 	   loop(m) %{
               PDL_IF_BAD(if ( $ISGOOD(b()) && $ISGOOD(c()) ),) {
@@ -387,7 +381,7 @@ pp_def(
            else,)                { $tmp() = tmp0; }
 	%}
 	loop(j,k) %{
-           long double tmp1 = 0;
+           complex long double tmp1 = 0;
            PDL_IF_BAD(int flag = 0;,)
 	   loop(n) %{
               if ( $ISGOOD(a()) && $ISGOOD(tmp()) ) {
@@ -460,7 +454,7 @@ pp_def('norm',
        Code =>
        'long double sum=0;
         PDL_IF_BAD(int flag = 0;,)
-	loop(n) %{
+        loop(n) %{
            PDL_IF_BAD(if ( $ISGOOD(vec()) ),) {
               sum +=
                 PDL_IF_GENTYPE_REAL(
@@ -634,7 +628,7 @@ sub PDL::conv1d {
 EOPM
         Code => '
            int i,i1,i2,poff,pflip;
-           double tmp;
+           complex long double tmp;
            int reflect = $COMP(reflect);
            int m_size = $SIZE(m);
            int p_size = $SIZE(p);
@@ -1002,19 +996,18 @@ EOPM
 # elementary statistics and histograms
 ############################################################
 
-pp_def(
-       'wtstat',
+pp_def('wtstat',
        HandleBad => 1,
        Pars => 'a(n); wt(n); avg(); [o]b();',
        GenericTypes => [ppdefs_all],
        OtherPars => 'int deg',
        Code =>
-       'double wtsum = 0;
-	double statsum = 0;
+       'complex long double wtsum = 0;
+        complex long double statsum = 0;
         PDL_IF_BAD(int flag = 0;,)
         loop(n) %{
            PDL_IF_BAD(if ($ISGOOD(wt()) && $ISGOOD(a()) && $ISGOOD(avg())),) {
-              long double tmp;
+              complex long double tmp;
               PDL_Indx i;
               wtsum += $wt();
               tmp=1;
