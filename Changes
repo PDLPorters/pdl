@@ -1,5 +1,6 @@
 - PP add loop(n=value) idiom to start not at 0
 - add whichover, inspired by https://stackoverflow.com/questions/77551179/perl-pdl-indexing-and-which
+- random/randsym only produce real data
 
 2.085_01 2024-02-10
 - test, document PDL::string, make more consistent (#459) - thanks @vadim-160102 for report

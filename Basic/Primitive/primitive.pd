@@ -2205,7 +2205,6 @@ EOD
 pp_def(
 	'random',
 	Pars=>'[o] a();',
-        GenericTypes => [ppdefs_all],
 	PMFunc => '',
 	Code => <<'EOF',
 PDL_MAYBE_SRAND
@@ -2218,7 +2217,7 @@ EOF
 	Doc=> <<'EOF',
 =for ref
 
-Constructor which returns ndarray of random numbers
+Constructor which returns ndarray of random numbers, real data-types only.
 
 =for usage
 
@@ -2250,14 +2249,13 @@ EOD
 pp_def(
 	'randsym',
 	Pars=>'[o] a();',
-        GenericTypes => [ppdefs_all],
 	PMFunc => '',
 	Code => <<'EOF',
 PDL_MAYBE_SRAND
 int rand_offset = -1;
 broadcastloop %{
   PDL_RAND_SET_OFFSET(rand_offset, $PRIV(broadcast), $PDL(a));
-  double tmp;
+  long double tmp;
   do tmp = pdl_drand(pdl_rand_state + 4*rand_offset); while (tmp == 0.0); /* 0 < tmp < 1 */
   $a() = tmp;
 %}
@@ -2265,7 +2263,7 @@ EOF
 	Doc=> <<'EOF',
 =for ref
 
-Constructor which returns ndarray of random numbers
+Constructor which returns ndarray of random numbers, real data-types only.
 
 =for usage
 
