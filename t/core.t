@@ -3,6 +3,7 @@ use warnings;
 use Test::More;
 use Test::Exception;
 use PDL::LiteF;
+use PDL::Math; # for polyroots with [phys] params, for dim compat tests
 use Config;
 use PDL::Types;
 use Math::Complex ();
@@ -147,16 +148,32 @@ ok all(tapprox(crossp([1..3],[4..6]), pdl(-3,6,-3))), 'named dim=3';
 
 subtest 'dim compatibility' => sub {
   for (
-    [\&append, [pdl(1), pdl(2), zeroes(1)], 2, qr/dim has size 1/, 'output => [1]; required [2]. output too small'],
-    [\&append, [pdl(1), pdl(2), zeroes(3,1)], 2, qr/dim has size 3/, 'output => [3,1]; required [2]. output too small'],
-    [\&append, [pdl(1), pdl(2), null], 2, [ 1, 2 ], 'output => null; required [2]'],
+    # non-phys params
+    [\&append, [zeroes(1), zeroes(1), zeroes(1)], 2, qr/dim has size 1/, 'output=[1]; required [2]. output too small'],
+    [\&append, [pdl(1), pdl(2), null], 2, [ 1, 2 ], 'output=null; required [2]'],
+    [\&append, [pdl(1), pdl(2), zeroes(2)], 2, [ 1, 2 ], 'output=[2]; required [2]'],
+    [\&append, [zeroes(1), zeroes(1), zeroes(3)], 2, qr/dim has size 3/, 'output=[3]; required [2]. output too large'],
+    [\&append, [zeroes(1), zeroes(1), zeroes(1,1)], 2, qr/dim has size 1/, 'output=[1,1]; required [2]. output too small'],
+    [\&append, [pdl(1),    pdl(2),    zeroes(2,1)], 2, [[ 1, 2 ]], 'output=[2,1]; required [2]'],
+    [\&append, [zeroes(1), zeroes(1), zeroes(3,1)], 2, qr/dim has size 3/, 'output=[3,1]; required [2]. output too large'],
+    [\&append, [zeroes(1), zeroes(1), zeroes(1,2)], 2, qr/dim has size 1/, 'output=[1,2]; required [2]. output too small'],
+    [\&append, [zeroes(1), zeroes(1), zeroes(2,2)], 2, [[ 0, 0 ], [ 0, 0 ]], 'output=[2,2]; required [2]. input without that dim broadcasted up'],
+    [\&append, [zeroes(1,2), zeroes(1), zeroes(2,2)], 2, [[ 0, 0 ], [ 0, 0 ]], 'output=[2,2]; required [2]. one input without that dim broadcasted up'],
+    [\&append, [zeroes(1,3), zeroes(1), zeroes(2,2)], 2, qr/Mismatch/, 'input=[1,3] output=[2,2]. input with mismatched broadcast dim'],
+    [\&append, [zeroes(1,2), zeroes(1), zeroes(2,1)], 2, qr/implicit dim/, 'output=[2,1]; required [2,2]. output too small in broadcast dim'],
+    [\&append, [zeroes(1,2), zeroes(1,2), zeroes(2,1)], 2, qr/implicit dim/, 'output=[2,1]; required [2,2]. output too small in broadcast dim'],
+    # phys params
+    [\&polyroots, [ones(2), zeroes(2), zeroes(1), zeroes(1)], 2, [-1], '[phys] output=[1]'],
+    [\&polyroots, [ones(2), zeroes(2,2), zeroes(1,2), zeroes(1,2)], 2, [[-1],[-1]], '[phys] output=[1,2] ok broadcast over input'],
+    [\&polyroots, [ones(2), zeroes(2,2), zeroes(1,1), zeroes(1,2)], 2, qr/implicit dim/, '[phys] outputs=[1,1],[1,2] not ok broadcast over output explicit dim'],
   ) {
     my ($func, $args, $exp_index, $exp, $label) = @$_;
     if (ref $exp eq 'Regexp') {
       throws_ok { $func->( @$args ) } $exp, $label;
     } else {
       $func->( @$args );
-      is_deeply( $args->[$exp_index]->unpdl, $exp, $label );
+      my $got = $args->[$exp_index];
+      ok all(tapprox $got, pdl($exp)), $label or diag $got;
     }
   }
 };
