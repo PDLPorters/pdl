@@ -1292,8 +1292,8 @@ EOD
 # XXX Destroys a!!!
 # To use the new a again, must store both a and ips.
 pp_def("simq",
-       HandleBad => 0,
-	Pars => '[phys]a(n,n); [phys]b(n); [o,phys]x(n); int [o,phys]ips(n)',
+	HandleBad => 0,
+	Pars => '[io,phys]a(n,n); [phys]b(n); [o,phys]x(n); int [o,phys]ips(n)',
 	OtherPars => 'int flag;',
 	GenericTypes => ['D'],
 	Code => '

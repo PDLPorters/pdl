@@ -4,6 +4,7 @@ use Test::More;
 use Test::Exception;
 use PDL::LiteF;
 use PDL::Math; # for polyroots with [phys] params, for dim compat tests
+use PDL::MatrixOps; # for simq with [phys] params, for dim compat tests
 use Config;
 use PDL::Types;
 use Math::Complex ();
@@ -166,6 +167,9 @@ subtest 'dim compatibility' => sub {
     [\&polyroots, [ones(2), zeroes(2), zeroes(1), zeroes(1)], 2, [-1], '[phys] output=[1]'],
     [\&polyroots, [ones(2), zeroes(2,2), zeroes(1,2), zeroes(1,2)], 2, [[-1],[-1]], '[phys] output=[1,2] ok broadcast over input'],
     [\&polyroots, [ones(2), zeroes(2,2), zeroes(1,1), zeroes(1,2)], 2, qr/implicit dim/, '[phys] outputs=[1,1],[1,2] not ok broadcast over output explicit dim'],
+    # phys params with (n,n)
+    [\&simq, [identity(3)+1, sequence(3,1), null, null, 0], 2, [[-0.75,0.25,1.25]], '[phys] output=[3,3]'],
+    [\&simq, [[[2,1,1]], sequence(3,1), null, null, 0], 2, qr/dim has size/, '[phys] input=[3,1] output=[3,3] no expand input phys multi-used dim of 1'],
   ) {
     my ($func, $args, $exp_index, $exp, $label) = @$_;
     if (ref $exp eq 'Regexp') {
