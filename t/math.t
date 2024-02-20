@@ -53,6 +53,8 @@ $pa->inplace->erfi;
 ok( all( approx( $pa, pdl(0.00886,0.0) )), "erfi inplace" );
 }
 
+eval {polyroots(1,0)};
+like $@, qr/only works/, 'polyroots(1,0) throws exception not segfault';
 my $coeffs = pdl(cdouble, 1,-55,1320,-18150,157773,-902055, 3416930,-8409500,12753576,-10628640,3628800);
 my $roots = 1+sequence(10);
 my $got;

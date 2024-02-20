@@ -210,6 +210,9 @@ char *cpoly(double opr[], double opi[], int degree,
      the zerofinder will work provided the overflowed quantity is
      replaced by a large number. */
 
+  if (degree < 1)
+    return "algorithm only works for degree >= 1.";
+
   if (opr[0] == 0.0 && opi[0] == 0.0)
     return "algorithm fails if the leading coefficient is zero.";
 
