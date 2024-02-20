@@ -1,6 +1,7 @@
 use strict;
 use warnings;
 use Test::More;
+use Test::Exception;
 use PDL::LiteF;
 use Config;
 use PDL::Types;
@@ -143,6 +144,22 @@ eval {(my $tmp=null) .= null}; like $@, qr/input.*null/;
 ok all(tapprox((5*sequence(5))->maximum_n_ind(3), pdl(4,3,2))), 'named dim';
 # pptest for dim with fixed value
 ok all(tapprox(crossp([1..3],[4..6]), pdl(-3,6,-3))), 'named dim=3';
+
+subtest 'dim compatibility' => sub {
+  for (
+    [\&append, [pdl(1), pdl(2), zeroes(1)], 2, qr/dim has size 1/, 'output => [1]; required [2]. output too small'],
+    [\&append, [pdl(1), pdl(2), zeroes(3,1)], 2, qr/dim has size 3/, 'output => [3,1]; required [2]. output too small'],
+    [\&append, [pdl(1), pdl(2), null], 2, [ 1, 2 ], 'output => null; required [2]'],
+  ) {
+    my ($func, $args, $exp_index, $exp, $label) = @$_;
+    if (ref $exp eq 'Regexp') {
+      throws_ok { $func->( @$args ) } $exp, $label;
+    } else {
+      $func->( @$args );
+      is_deeply( $args->[$exp_index]->unpdl, $exp, $label );
+    }
+  }
+};
 
 # test topdl
 
