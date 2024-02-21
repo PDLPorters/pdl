@@ -249,16 +249,17 @@ pdl_error pdl_dim_checks(
       continue;
     }
     PDL_Indx *dims = pdl->dims;
-    if ((load_only || (creating && !creating[i])) && ninds > PDLMAX(0,ndims)) {
-      /* Dimensional promotion when number of dims is less than required: */
-      for (j=0; j<ninds; j++) {
-        ind_id = PDL_IND_ID(vtable, i, j);
-        if (ndims < j+1 && ind_sizes[ind_id] <= 1) ind_sizes[ind_id] = 1;
-      }
-    }
-    /* Now, the real check. */
     for (j=0; j<ninds; j++) {
       PDL_Indx ind_id = PDL_IND_ID(vtable, i, j), ind_sz = ind_sizes[ind_id];
+      if (
+        (load_only || (creating && !creating[i])) &&
+        ninds > PDLMAX(0,ndims) &&
+        ndims < j+1 &&
+        ind_sz < 1
+      )
+        /* Dimensional promotion when number of dims is less than required: */
+        ind_sz = ind_sizes[ind_id] = 1;
+      /* Now, the real check. */
       if (
         !(load_only && !((vtable->par_flags[i] & PDL_PARAM_ISCREAT) && (pdl->state & PDL_MYDIMS_TRANS))) &&
         (!creating || creating[i])
