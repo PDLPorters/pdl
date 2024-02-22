@@ -330,6 +330,20 @@ $vaff2->make_physvaffine;
 vafftest($all, [[1,1,1],[0,1,1],[0,1,0]], "vaff2 physvaffined");
 $clumped->make_physvaffine;
 vafftest($all, [[1,1,1],[0,1,1],[0,1,0]], "clumped physvaffined");
+
+# capturing GH#461
+$root = zeroes 2,2,2;
+my $clumped1 = $root->clump( 0,1 );
+my $clumped2 = $clumped1->clump( 0,1 );
+$all = [[$root,'root'], [$clumped1,'clumped1'], [$clumped2,'clumped2']];
+vafftest($all, [[0,1,0],[1,0,0],[1,0,0]], "start");
+$clumped2->make_physvaffine;
+vafftest($all, [[0,1,0],[0,1,0],[0,1,0]], "clumped2 physvaff 1");
+$root .= 3;
+vafftest($all, [[0,1,0],[1,1,0],[1,1,0]], "root assigned to");
+$clumped2->make_physvaffine;
+vafftest($all, [[0,1,0],[1,1,0],[0,1,0]], "clumped2 physvaff 2");
+
 # Make sure that vaffining is properly working:
 my $y = xvals(5,6,2) + 0.1 * yvals(5,6,2) + 0.01 * zvals(5,6,2);
 my $c = $y->copy->slice("2:3");
