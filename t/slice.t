@@ -304,34 +304,34 @@ sub vafftest {
   }
 }
 # Test vaffine optimisation
-my $x = zeroes(100,100);
-my $y = $x->slice('10:90,10:90');
-my $y2 = $y->slice('5:8,5:8');
-my $clump = $y2->clump(-1);
-my $all = [[$y,'vaff'], [$y2,'child'], [$clump,'clumped']];
+my $root = zeroes(100,100);
+my $vaff = $root->slice('10:90,10:90');
+my $vaff2 = $vaff->slice('5:8,5:8');
+my $clumped = $vaff2->clump(-1);
+my $all = [[$vaff,'vaff'], [$vaff2,'vaff2'], [$clumped,'clumped']];
 vafftest($all, [[0,0,0],[0,0,0],[1,0,0]], "start");
-$y++;
+$vaff++;
 vafftest($all, [[0,0,1],[0,0,0],[1,0,0]], "vaff mutated");
-$y2->make_physvaffine;
-vafftest($all, [[0,0,1],[0,0,1],[1,0,0]], "child vaffed");
-$y->make_physical;
+$vaff2->make_physvaffine;
+vafftest($all, [[0,0,1],[0,0,1],[1,0,0]], "vaff2 vaffed");
+$vaff->make_physical;
 vafftest($all, [[0,1,1],[0,0,1],[1,0,0]], "vaff physicalised");
-$y2 += 1;
-vafftest($all, [[1,1,1],[0,0,1],[1,0,0]], "child mutated");
-$y->make_physvaffine;
+$vaff2 += 1;
+vafftest($all, [[1,1,1],[0,0,1],[1,0,0]], "vaff2 mutated");
+$vaff->make_physvaffine;
 vafftest($all, [[1,1,1],[0,0,1],[1,0,0]], "vaff physvaffined");
-$clump++;
+$clumped++;
 vafftest($all, [[1,1,1],[0,1,1],[0,1,0]], "clumped mutated");
-$x->set(0,0,7);
+$root->set(0,0,7);
 vafftest($all, [[1,1,1],[0,1,1],[0,1,0]], "root set()ed");
-$y->make_physvaffine;
+$vaff->make_physvaffine;
 vafftest($all, [[1,1,1],[0,1,1],[0,1,0]], "vaff physvaffined");
-$y2->make_physvaffine;
-vafftest($all, [[1,1,1],[0,1,1],[0,1,0]], "child physvaffined");
-$clump->make_physvaffine;
+$vaff2->make_physvaffine;
+vafftest($all, [[1,1,1],[0,1,1],[0,1,0]], "vaff2 physvaffined");
+$clumped->make_physvaffine;
 vafftest($all, [[1,1,1],[0,1,1],[0,1,0]], "clumped physvaffined");
 # Make sure that vaffining is properly working:
-$y = xvals(5,6,2) + 0.1 * yvals(5,6,2) + 0.01 * zvals(5,6,2);
+my $y = xvals(5,6,2) + 0.1 * yvals(5,6,2) + 0.01 * zvals(5,6,2);
 my $c = $y->copy->slice("2:3");
 ok tapprox $c, $c->copy;
 for ([0,1], [1,0], [1,1]) {
