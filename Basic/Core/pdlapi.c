@@ -886,18 +886,9 @@ pdl_error pdl_changed(pdl *it, int what, int recursing) {
 pdl_error pdl__make_physvaffine_recprotect(pdl *it, int recurse_count)
 {
 	pdl_error PDL_err = {0, NULL, 0};
-	pdl_trans *t;
-	pdl *parent;
-	pdl *current;
 	PDL_Indx i,j;
-	PDL_Indx inc;
-	PDL_Indx newinc;
-	PDL_Indx ninced;
-	int flag;
-	int incsign;
 	PDLDEBUG_f(printf("make_physvaffine %p\n",(void*)it));
 	PDL_RETERROR(PDL_err, pdl_make_physdims(it));
-	PDL_Indx incsleft[it->ndims];
 	if(!it->trans_parent || !(it->trans_parent->flags & PDL_ITRANS_ISAFFINE)) {
 		PDL_RETERROR(PDL_err, pdl__make_physical_recprotect(it, recurse_count+1));
 		goto mkphys_vaff_end;
@@ -907,23 +898,22 @@ pdl_error pdl__make_physvaffine_recprotect(pdl *it, int recurse_count)
         for(i=0; i<it->ndims; i++) {
 		it->vafftrans->incs[i] = it->dimincs[i];
 	}
-	flag=0;
+	int flag=0;
 	it->vafftrans->offs = 0;
-	t=it->trans_parent;
-	current = it;
+	pdl_trans *t=it->trans_parent;
+	pdl *current = it;
 	while(t && (t->flags & PDL_ITRANS_ISAFFINE)) {
 		PDL_Indx cur_offset = 0;
 		if (!t->incs)
 		  return pdl_make_error_simple(PDL_EUSERERROR, "pdl_make_physvaffine: affine trans has NULL incs\n");
-		parent = t->pdls[0];
+		pdl *parent = t->pdls[0];
+		PDL_Indx incsleft[it->ndims];
 		/* For all dimensions of the childest ndarray */
 		for(i=0; i<it->ndims; i++) {
 			PDL_Indx offset_left = it->vafftrans->offs;
 			/* inc = the increment at the current stage */
-			inc = it->vafftrans->incs[i];
-			incsign = (inc >= 0 ? 1:-1);
+			PDL_Indx inc = it->vafftrans->incs[i], incsign = (inc >= 0 ? 1:-1), newinc = 0;
 			inc *= incsign;
-			newinc = 0;
 			/* For all dimensions of the current ndarray */
 			for(j=current->ndims-1; j>=0 && current->dimincs[j] != 0; j--) {
 				cur_offset = offset_left / current->dimincs[j];
@@ -935,7 +925,7 @@ pdl_error pdl__make_physvaffine_recprotect(pdl *it, int recurse_count)
 				/* we have a contribution from this dimension */
 				if(inc >= current->dimincs[j]) {
 					/* We used this many of this dim */
-					ninced = inc / current->dimincs[j];
+					PDL_Indx ninced = inc / current->dimincs[j];
 					if(cur_offset + it->dims[i]*ninced >
 						current->dims[j]) {
 					  PDL_Indx foo =
@@ -969,20 +959,15 @@ pdl_error pdl__make_physvaffine_recprotect(pdl *it, int recurse_count)
 		for(i=0; i<it->ndims; i++) {
 			it->vafftrans->incs[i] = incsleft[i];
 		}
-		{
-			PDL_Indx offset_left = it->vafftrans->offs;
-			inc = it->vafftrans->offs;
-			newinc = 0;
-			for(j=current->ndims-1; j>=0 && current->dimincs[j] != 0; j--) {
-				cur_offset = offset_left / current->dimincs[j];
-				offset_left -= cur_offset * current->dimincs[j];
-				newinc += t->incs[j]*cur_offset;
-			}
-			it->vafftrans->offs = newinc;
-			it->vafftrans->offs += t->offs;
+		PDL_Indx offset_left = it->vafftrans->offs;
+		PDL_Indx newinc = 0;
+		for(j=current->ndims-1; j>=0 && current->dimincs[j] != 0; j--) {
+			cur_offset = offset_left / current->dimincs[j];
+			offset_left -= cur_offset * current->dimincs[j];
+			newinc += t->incs[j]*cur_offset;
 		}
-		t = parent->trans_parent;
-		current = parent;
+		it->vafftrans->offs = newinc + t->offs;
+		t = (current = parent)->trans_parent;
 	}
 	it->vafftrans->from = current;
 	it->state |= PDL_OPT_VAFFTRANSOK;
