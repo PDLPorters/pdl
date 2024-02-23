@@ -79,7 +79,6 @@ pdl_error pdl__ensure_trans(pdl_trans *trans,int what,int *wd, int recurse_count
 		if(trans->pdls[j]->trans_parent == trans)
 			PDL_ENSURE_ALLOCATED(trans->pdls[j]);
 	if(par_pvaf && (trans->flags & PDL_ITRANS_ISAFFINE)) {
-	        PDLDEBUG_f(printf("pdl__ensure_trans vaffine output turning off dimschanged, before="); pdl_dump_flags_fixspace(trans->pdls[1]->state, 0, PDL_FLAGS_PDL));
 	  /* Attention: this assumes affine = p2child */
 		PDL_RETERROR(PDL_err, pdl__make_physvaffine_recprotect(trans->pdls[1], recurse_count+1));
 		PDL_ACCUMERROR(PDL_err, pdl_readdata_vaffine(trans->pdls[1]));
@@ -631,8 +630,6 @@ pdl_error pdl_make_physdims(pdl *it) {
 	  PDLDEBUG_f(printf("make_physdims exit (NOP) %p\n",(void*)it));
 	  return PDL_err;
 	}
-	PDLDEBUG_f(printf("make_physdims turning off dimschanged, before="); pdl_dump_flags_fixspace(it->state, 0, PDL_FLAGS_PDL));
-	it->state &= ~PDL_PARENTDIMSCHANGED;
 	pdl_trans *trans = it->trans_parent;
 	PDLDEBUG_f(printf("make_physdims %p TRANS:\n",it);
 	    pdl_dump_trans_fixspace(trans,3));
@@ -646,7 +643,7 @@ pdl_error pdl_make_physdims(pdl *it) {
 			  trans,it));
 	REDODIMS(PDL_RETERROR, trans);
 	/* why this one? will the old allocated data be freed correctly? */
-	if((c & PDL_PARENTDIMSCHANGED) && (it->state & PDL_ALLOCATED)) {
+	if(c && (it->state & PDL_ALLOCATED)) {
 		PDLDEBUG_f(printf("make_physdims turning off allocated, before="); pdl_dump_flags_fixspace(it->state, 0, PDL_FLAGS_PDL));
 		it->state &= ~PDL_ALLOCATED;
 	}
