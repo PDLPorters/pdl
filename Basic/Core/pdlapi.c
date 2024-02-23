@@ -774,6 +774,7 @@ pdl_error pdl__make_physical_recprotect(pdl *it, int recurse_count) {
 		PDL_RETERROR(PDL_err, pdl__make_physvaffine_recprotect(it, recurse_count+1));
 	if(PDL_VAFFOK(it)) {
 		PDLDEBUG_f(printf("make_physical: VAFFOK\n"));
+		PDL_RETERROR(PDL_err, pdl__make_physical_recprotect(it->vafftrans->from, recurse_count+1));
 		PDL_RETERROR(PDL_err, pdl_readdata_vaffine(it));
 		PDLDEBUG_f(printf("make_physical turning off anychanged, before="); pdl_dump_flags_fixspace(it->state, 0, PDL_FLAGS_PDL));
 		it->state &= (~PDL_ANYCHANGED);

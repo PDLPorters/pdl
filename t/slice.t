@@ -342,7 +342,8 @@ vafftest($all, [[0,1,0],[0,1,0],[0,1,0]], "clumped2 physvaff 1");
 $root .= 3;
 vafftest($all, [[0,1,0],[1,1,0],[1,1,0]], "root assigned to");
 $clumped2->make_physvaffine;
-vafftest($all, [[0,1,0],[1,1,0],[0,1,0]], "clumped2 physvaff 2");
+vafftest($all, [[0,1,0],[0,1,0],[0,1,0]], "clumped2 physvaff 2");
+is "@{$clumped2->unpdl}", "3 3 3 3 3 3 3 3";
 
 # Make sure that vaffining is properly working:
 my $y = xvals(5,6,2) + 0.1 * yvals(5,6,2) + 0.01 * zvals(5,6,2);
