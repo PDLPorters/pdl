@@ -5,30 +5,33 @@
 
 #define VTABLE_OR_DEFAULT(what, trans, is_fwd, func, default_func) \
   do { \
-    PDLDEBUG_f(printf("VTOD call " #func "(%p=%s)\n", trans, trans->vtable->name)); \
-    what(PDL_err, ((trans)->vtable->func \
-      ? (trans)->vtable->func \
+    pdl_transvtable *vtable = (trans)->vtable; \
+    PDLDEBUG_f(printf("VTOD call " #func "(%p=%s)\n", trans, vtable->name)); \
+    what(PDL_err, (vtable->func \
+      ? vtable->func \
       : pdl_ ## default_func)(trans)); \
-    pdl **pdls = trans->pdls; \
-    PDL_Indx i, istart = is_fwd ? trans->vtable->nparents : 0, iend = is_fwd ? trans->vtable->npdls : trans->vtable->nparents; \
-    for (i = istart; i < iend; i++) \
-      if (pdls[i] && (pdls[i]->state & PDL_BADVAL)) \
-        pdl_propagate_badflag(pdls[i], !!(pdls[i]->state & PDL_BADVAL)); \
+    PDL_Indx i, istart = is_fwd ? vtable->nparents : 0, iend = is_fwd ? vtable->npdls : vtable->nparents; \
+    for (i = istart; i < iend; i++) { \
+      pdl *child = (trans)->pdls[i]; \
+      if (child && (child->state & PDL_BADVAL)) \
+        pdl_propagate_badflag(child, !!(child->state & PDL_BADVAL)); \
+    } \
   } while (0)
 
 #define REDODIMS(what, trans) do { \
-    if ((trans)->vtable->redodims) \
+    pdl_transvtable *vtable = (trans)->vtable; \
+    if (vtable->redodims) \
       what(PDL_err, pdl_dim_checks( \
-	(trans)->vtable, (trans)->pdls, \
+	vtable, (trans)->pdls, \
 	NULL, NULL, \
 	(trans)->ind_sizes, 1)); \
-    if (trans->dims_redone) { \
+    if ((trans)->dims_redone) { \
 	FREETRANS(trans, 0); \
 	if (PDL_err.error) return PDL_err; \
-	trans->dims_redone = 0; \
+	(trans)->dims_redone = 0; \
     } \
-    what(PDL_err, ((trans)->vtable->redodims \
-      ? (trans)->vtable->redodims \
+    what(PDL_err, (vtable->redodims \
+      ? vtable->redodims \
       : pdl_redodims_default)(trans)); \
   } while (0)
 #define READDATA(trans) VTABLE_OR_DEFAULT(PDL_ACCUMERROR, trans, 1, readdata, readdata_affine)
