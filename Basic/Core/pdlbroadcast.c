@@ -236,15 +236,16 @@ pdl_error pdl_dim_checks(
     PDL_Indx ninds = vtable->par_realdims[i], ndims = pdl->ndims;
     PDLDEBUG_f(printf("pdl_dim_checks pdl %"IND_FLAG" (creating=%"IND_FLAG" ninds=%"IND_FLAG"): ", i, creating ? creating[i] : -99, ninds));
     PDLDEBUG_f(pdl_dump(pdl));
+    short flags = vtable->par_flags[i];
     if (!load_only && creating[i]) {
       PDL_Indx dims[PDLMAX(ninds+1, 1)];
       for (j=0; j<ninds; j++)
 	dims[j] = ind_sizes[PDL_IND_ID(vtable, i, j)];
-      if (vtable->par_flags[i] & PDL_PARAM_ISTEMP)
+      if (flags & PDL_PARAM_ISTEMP)
 	dims[ninds] = 1;
       PDL_RETERROR(PDL_err, pdl_broadcast_create_parameter(
 	broadcast,i,dims,
-	vtable->par_flags[i] & PDL_PARAM_ISTEMP
+	flags & PDL_PARAM_ISTEMP
       ));
       continue;
     }
@@ -261,24 +262,24 @@ pdl_error pdl_dim_checks(
         ind_sz = ind_sizes[ind_id] = 1;
       /* Now, the real check. */
       if (
-        !(load_only && !((vtable->par_flags[i] & PDL_PARAM_ISCREAT) && (pdl->state & PDL_MYDIMS_TRANS))) &&
+        !(load_only && !((flags & PDL_PARAM_ISCREAT) && (pdl->state & PDL_MYDIMS_TRANS))) &&
         (!creating || creating[i])
       ) continue;
       if (ind_sz == -1 || (ndims > j && ind_sz == 1)) {
         ind_sizes[ind_id] = dims[j];
         continue;
       }
-      if (!(ndims > j && ind_sz != dims[j] && (
+      if (ndims > j && ind_sz != dims[j] && (
         (i < vtable->nparents && dims[j] != 1) ||
         (i >= vtable->nparents)
-      ))) continue;
-      return pdl_make_error(PDL_EUSERERROR,
-        "Error in %s: parameter '%s' index %s size %"IND_FLAG", but ndarray dim has size %"IND_FLAG"\n",
-        vtable->name, vtable->par_names[i], vtable->ind_names[ind_id],
-        ind_sz, dims[j]
-      );
+      ))
+        return pdl_make_error(PDL_EUSERERROR,
+          "Error in %s: parameter '%s' index %s size %"IND_FLAG", but ndarray dim has size %"IND_FLAG"\n",
+          vtable->name, vtable->par_names[i], vtable->ind_names[ind_id],
+          ind_sz, dims[j]
+        );
     }
-    if (!load_only && (vtable->par_flags[i] & PDL_PARAM_ISPHYS))
+    if (!load_only && (flags & PDL_PARAM_ISPHYS))
       PDL_RETERROR(PDL_err, pdl_make_physical(pdl));
   }
   if (!load_only)
