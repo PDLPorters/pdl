@@ -519,33 +519,16 @@ sub PDL::polyfit {
   # it to match the size of $y_in :
   $w_in = $w_in + $template->zeroes;
   $eps_io = $eps_io + $template->slice('(0)')->zeroes; # also needs to match but with one less dim
-
-  # Create the output arrays
-  my $r = PDL->null;
-
-  # A array needs some work space
-  my $sz = ((3 * $x_in->getdim(0)) + (3*$maxdeg_in) + 3); # Buffer size called for by Slatec
-  my @otherdims = $template->dims; shift @otherdims;          # Broadcast dims
-  my $a1 =      PDL->new_from_specification($x_in->type,$sz,@otherdims);
-  my $coeffs = PDL->new_from_specification($x_in->type, $maxdeg_in + 1, @otherdims);
-
-  my $ierr = PDL->null;
-  my $ndeg = PDL->null;
+  my $max_maxdeg = $maxdeg_in->max->sclr;
 
   # Now call polfit
   my $rms = pdl($eps_io);
-  polfit($x_in, $y_in, $w_in, $maxdeg_in, $ndeg, $rms, $r, $ierr, $a1, $coeffs);
+  my ($ndeg, $r, $ierr, $a1, $coeffs) = polfit($x_in, $y_in, $w_in, $maxdeg_in, $rms, $max_maxdeg+1);
   # Preserve historic compatibility by flowing rms error back into the argument
-  if( UNIVERSAL::isa($eps_io,'PDL') ){
-      $eps_io .= $rms;
-  }
+  $eps_io .= $rms if UNIVERSAL::isa($_[4],'PDL');
 
   # Return the arrays
-  if(wantarray) {
-    return ($ndeg, $r, $ierr, $a1, $coeffs, $rms );
-  } else {
-      return $coeffs;
-  }
+  wantarray ? ($ndeg, $r, $ierr, $a1, $coeffs, $rms) : $coeffs;
 }
 
 
@@ -1508,6 +1491,8 @@ Error status returned by C<$ierr>:
 #  bar runs across polynomial coefficients.
 pp_def('polfit',
   Pars => 'x(n); y(n); w(n); longlong maxdeg(); longlong [o]ndeg(); [io]eps(); [o]r(n); longlong [o]ierr(); [o]a(foo); [o]coeffs(bar);[t]xtmp(n);[t]ytmp(n);[t]wtmp(n);[t]rtmp(n)',
+  OtherPars => 'IV max_maxdeg_plus1 => bar',
+  RedoDimsCode => '$SIZE(foo) = 3*($SIZE(n) + $SIZE(bar));',
   GenericTypes => ['F','D'],
   HandleBad => 1,
   NoBadifNaN => 1,
