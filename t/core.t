@@ -164,14 +164,20 @@ subtest 'dim compatibility' => sub {
     [\&append, [zeroes(1,2), zeroes(1), zeroes(2,2)], 2, [[ 0, 0 ], [ 0, 0 ]], 'output=[2,2]; required [2]. one input without that dim broadcasted up'],
     [\&append, [zeroes(1,3), zeroes(1), zeroes(2,2)], 2, qr/Mismatch/, 'input=[1,3] output=[2,2]. input with mismatched broadcast dim'],
     [\&append, [zeroes(1,2), zeroes(1), zeroes(2,1)], 2, qr/implicit dim/, 'output=[2,1]; required [2,2]. output too small in broadcast dim'],
+    [\&append, [zeroes(1,2), zeroes(1), zeroes(2)], 2, qr/implicit dim/, 'output=[2,1]; required [2,2]. output too small in broadcast implicit dim'],
     [\&append, [zeroes(1,2), zeroes(1,2), zeroes(2,1)], 2, qr/implicit dim/, 'output=[2,1]; required [2,2]. output too small in broadcast dim'],
     # phys params
     [\&polyroots, [ones(2), zeroes(2), zeroes(1), zeroes(1)], 2, [-1], '[phys] output=[1]'],
+    [\&polyroots, [ones(2), zeroes(1), zeroes(), zeroes(1)], 2, qr/dim has size 1/, '[phys] output=[2] mismatch'],
+    [\&polyroots, [ones(2), zeroes(1), zeroes(1), zeroes(1)], 2, qr/dim has size 1/, '[phys] output=[2] mismatch'],
+    [\&polyroots, [ones(2), zeroes(2), zeroes(1,2), zeroes(1)], 2, qr/implicit dim/, '[phys] one outputs=[1,2],[1] no promote output implicit dims'],
     [\&polyroots, [ones(2), zeroes(2,2), zeroes(1,2), zeroes(1,2)], 2, [[-1],[-1]], '[phys] output=[1,2] ok broadcast over input'],
+    [\&polyroots, [ones(2), zeroes(2,2), zeroes(1), zeroes(1,2)], 2, qr/implicit dim/, '[phys] output=[1,2] not ok broadcast over output implicit dim'],
     [\&polyroots, [ones(2), zeroes(2,2), zeroes(1,1), zeroes(1,2)], 2, qr/implicit dim/, '[phys] outputs=[1,1],[1,2] not ok broadcast over output explicit dim'],
     # phys params with (n,n)
     [\&simq, [identity(3)+1, sequence(3,1), null, null, 0], 2, [[-0.75,0.25,1.25]], '[phys] output=[3,3]'],
     [\&simq, [[[2,1,1]], sequence(3,1), null, null, 0], 2, qr/dim has size/, '[phys] input=[3,1] output=[3,3] no expand input phys multi-used dim of 1'],
+    [\&simq, [identity(3)+1, sequence(3,2), null, null, 0], 2, qr/implicit dim/, '[phys] inputs:n,n=[3,3],n=[3,2] no broadcast over [io]'],
   ) {
     my ($func, $args, $exp_index, $exp, $label) = @$_;
     if (ref $exp eq 'Regexp') {

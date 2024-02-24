@@ -401,7 +401,7 @@ isnt $@, '', '[phys] with multi-used mismatched dim of 1 throws exception';
 eval { foop(pdl([1]),($y=pdl([1]))) };
 is $@, '', '[phys] with multi-used matched dim of 1 no exception';
 
-eval { foop1($x,($y=pdl([1]))) };
+eval { foop1($x,($y=pdl([[1],[1],[1],[1]]))) };
 is $@, '', '[phys] with single-used dim of 1 no exception';
 
 # float qualifier

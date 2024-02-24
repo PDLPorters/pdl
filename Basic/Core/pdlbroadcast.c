@@ -292,6 +292,11 @@ static pdl_error pdl_broadcast_dim_checks(
     for (j=0; j<npdls; j++) {                    // Now loop over the PDLs to be merged
       if (creating[j]) continue;                 // If jth PDL is null, don't bother trying to match
       if (nth >= pdls[j]->broadcastids[0]-realdims[j]) { /* off end of current PDLs dimlist */
+        if (vtable && j >= vtable->nparents && broadcast->dims[nth] != 1)
+          return pdl_make_error(PDL_EUSERERROR,
+            "Error in %s: output parameter '%s' implicit dim %"IND_FLAG" size %"IND_FLAG", can't broadcast over output ndarray with size > 1\n",
+            vtable->name, vtable->par_names[j], nth, broadcast->dims[nth]
+          );
         continue;
       }
       PDL_Indx cur_pdl_dim = pdls[j]->dims[nth+realdims[j]];
