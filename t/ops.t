@@ -21,6 +21,8 @@ for (
   [$pa,$pb,\$pc, sub { ${$_[2]} = PDL::minus($_[0], $_[1]) }, [1,-1]],
   [$pa,$pb,\$pc, sub { ${$_[2]} = PDL::minus($_[0], $_[1], 0) }, [1,-1]],
   [$pa,$pb,\$pc, sub { ${$_[2]} = PDL::minus($_[0], $_[1], 1) }, [-1,1]],
+  [$pa,$pb,\$pc, sub { PDL::minus($_[0], $_[1], ${$_[2]}, 0) }, [1,-1]],
+  [$pa,$pb,\$pc, sub { PDL::minus($_[0], $_[1], ${$_[2]}, 1) }, [-1,1]],
 ) {
   my ($in1, $in2, $outref, $sub, $exp) = @$_;
   $sub->($in1, $in2, $outref);

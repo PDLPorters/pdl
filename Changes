@@ -2,6 +2,7 @@
 - add whichover, inspired by https://stackoverflow.com/questions/77551179/perl-pdl-indexing-and-which
 - random/randsym only produce real data
 - fix dataflow when vaffine ndarray is between modified and downstream (#461) - thanks @vadim-160102 for continued reporting
+- revert the use of ArgOrder for PDL::Ops so op($a,$b,$c,$swap) works again as pre 2.082_01
 
 2.085_01 2024-02-10
 - test, document PDL::string, make more consistent (#459) - thanks @vadim-160102 for report

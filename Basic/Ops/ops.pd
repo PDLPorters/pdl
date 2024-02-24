@@ -121,13 +121,12 @@ EOF
         delete $extra{Comparison};
     }
 
-    pp_addpm(make_overload($op, $name, $mutator));
     my $bitwise = delete $extra{Bitwise};
+    pp_addpm(make_overload($op, $name, $mutator, $bitwise));
     pp_def($name,
 	   Pars => 'a(); b(); [o]c();',
-	   OtherPars => 'int $swap'.($bitwise ? '; SV *$ign; int $ign2' : ''),
-	   OtherParsDefaults => { swap => 0, ($bitwise ? (ign=>'&PL_sv_undef', ign2=>0) : ()) },
-	   ArgOrder => 1,
+	   OtherPars => 'int $swap',
+	   OtherParsDefaults => { swap => 0 },
 	   HandleBad => 1,
 	   NoBadifNaN => 1,
 	   Inplace => [ 'a' ], # quick and dirty solution to get ->inplace do its job
@@ -151,6 +150,9 @@ $doc
    \$c = PDL::$name(\$x, \$y);     # explicit call with default swap of 0
    \$c = PDL::$name(\$x, \$y, 0);  # explicit call with explicit swap of 0
    \$c = PDL::$name(\$x, \$y, 1);  # explicit call with trailing 1 to swap args
+   PDL::$name(\$x, \$y, \$c, 1);   # all params given
+   \$x->$name(\$y, \$c, 0);        # method call, all params given
+   \$c = \$x->$name(\$y);          # method call
    \$x->inplace->$name(\$y);      # modify \$x inplace
 
 It can be made to work inplace with the C<< \$x->inplace >> syntax.
@@ -164,8 +166,9 @@ EOD
 } # sub: biop()
 
 sub make_overload {
-    my ($op, $name, $mutator, $one_arg) = @_;
+    my ($op, $name, $mutator, $bitwise, $one_arg) = @_;
     my $ret;
+    my $bitwise_passon = $bitwise ? '$_[2]?@_[1,0]:@_[0,1]' : '@_';
     if ($one_arg) {
       $ret = pp_line_numbers(__LINE__, <<EOF);
 BEGIN { \$OVERLOADS{'$op'} = sub { PDL::$name(\$_[0]) } }
@@ -175,7 +178,7 @@ EOF
 {
   my (\$foo, \$overload_sub);
   BEGIN { \$OVERLOADS{'$op'} = \$overload_sub = sub(;\@) {
-      goto &PDL::$name unless ref \$_[1]
+      return PDL::$name($bitwise_passon) unless ref \$_[1]
               && (ref \$_[1] ne 'PDL')
               && defined(\$foo = overload::Method(\$_[1], '$op'))
               && \$foo != \$overload_sub; # recursion guard
@@ -236,7 +239,6 @@ ENDCODE
 	   Pars => 'a(); b(); [o]c();',
 	   OtherPars => 'int $swap',
 	   OtherParsDefaults => { swap => 0 },
-	   ArgOrder => 1,
 	   Inplace => [ 'a' ],
 	   Code => pp_line_numbers(__LINE__-1, <<EOF),
 PDL_IF_BAD(char anybad = 0;,)
@@ -297,7 +299,7 @@ sub ufunc {
             (map 'types('.$_->ppsym.') %{$b() = c'.$func.$_->floatsuffix.'($a());%}', @Ctypes),
             ;
     }
-    pp_addpm(make_overload($funcov, $name, 0, 1)) if $overload;
+    pp_addpm(make_overload($funcov, $name, 0, 0, 1)) if $overload;
     # do not have to worry about propagation of the badflag when
     # inplace since only input ndarray is a, hence its badflag
     # won't change
@@ -569,7 +571,7 @@ Returns the absolute value of a number.
 
 sub PDL::abs { $_[0]->type->real ? goto &PDL::_rabs : goto &PDL::_cabs }
 EOPM
-pp_addpm(make_overload(qw(abs abs), 0, 1));
+pp_addpm(make_overload(qw(abs abs), 0, 0, 1));
 
 pp_addpm(<<'EOPM');
 
