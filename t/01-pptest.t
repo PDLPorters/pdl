@@ -349,6 +349,21 @@ pp_def('ftr',
        FtrCode => "  sv_setiv(perl_get_sv(\"main::FOOTERVAL\",TRUE), 1);\n",
       );
 
+pp_def('ftrPM',
+       Pars => 'a(); [o]b()',
+       Code => ';',
+       HdrCode => "  sv_setiv(perl_get_sv(\"main::HEADERVAL\",TRUE), 1);\n",
+       FtrCode => "  sv_setiv(perl_get_sv(\"main::FOOTERVAL\",TRUE), 1);\n",
+       PMCode => <<'EOPM',
+sub PDL::ftrPM {
+  my ($a, $b) = @_;
+  $b //= PDL->null;
+  PDL::_ftrPM_int($a, $b);
+  $b;
+}
+EOPM
+      );
+
 pp_done;
 
 # this tests the bug with a trailing comment and *no* newline
@@ -531,6 +546,12 @@ is $@, '';
 
 undef $main::FOOTERVAL;
 ftr(1);
+is $main::FOOTERVAL, 1;
+
+undef $main::HEADERVAL;
+undef $main::FOOTERVAL;
+ftrPM(1);
+is $main::HEADERVAL, 1;
 is $main::FOOTERVAL, 1;
 
 done_testing;

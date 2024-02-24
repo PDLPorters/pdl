@@ -2013,7 +2013,7 @@ EOF
       sub {(undef,(make_xs_code(' CODE:','',@_))[1..2])}),
    # if PMCode supplied, no var-args stuff
    PDL::PP::Rule->new(["NewXSCode","BootSetNewXS","NewXSInPrelude"],
-      [qw(PMCode NewXSHdr NewXSCHdrs? FixArgsXSOtherOutDeclSV RunFuncCall XSOtherOutSet)],
+      [qw(PMCode NewXSHdr NewXSCHdrs? FixArgsXSOtherOutDeclSV HdrCode RunFuncCall FtrCode XSOtherOutSet)],
       "Non-varargs XS code when PMCode given",
       sub {make_xs_code(' CODE:','',@_[1..$#_])}),
    PDL::PP::Rule->new(["NewXSCode","BootSetNewXS","NewXSInPrelude"],
