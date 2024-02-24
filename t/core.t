@@ -170,6 +170,7 @@ subtest 'dim compatibility' => sub {
     [\&polyroots, [ones(2), zeroes(2), zeroes(1), zeroes(1)], 2, [-1], '[phys] output=[1]'],
     [\&polyroots, [ones(2), zeroes(1), zeroes(), zeroes(1)], 2, qr/dim has size 1/, '[phys] output=[2] mismatch'],
     [\&polyroots, [ones(2), zeroes(1), zeroes(1), zeroes(1)], 2, qr/dim has size 1/, '[phys] output=[2] mismatch'],
+    [\&polyroots, [ones(2), zeroes(2), zeroes(2), zeroes(2)], 2, qr/dim has size 2/, '[phys] output=[2] mismatch'],
     [\&polyroots, [ones(2), zeroes(2), zeroes(1,2), zeroes(1)], 2, qr/implicit dim/, '[phys] one outputs=[1,2],[1] no promote output implicit dims'],
     [\&polyroots, [ones(2), zeroes(2,2), zeroes(1,2), zeroes(1,2)], 2, [[-1],[-1]], '[phys] output=[1,2] ok broadcast over input'],
     [\&polyroots, [ones(2), zeroes(2,2), zeroes(1), zeroes(1,2)], 2, qr/implicit dim/, '[phys] output=[1,2] not ok broadcast over output implicit dim'],

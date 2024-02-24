@@ -245,7 +245,7 @@ pdl_error pdl_dim_checks(
         /* Dimensional promotion when number of dims is less than required: */
         ind_sz = ind_sizes[ind_id] = 1;
       if (load_only && creating[i]) continue;
-      if (ind_sz == -1 || (j < ndims && ind_sz == 1)) {
+      if (ind_sz == -1 || (!(flags & PDL_PARAM_ISPHYS) && j < ndims && ind_sz == 1)) {
         ind_sizes[ind_id] = dims[j];
         continue;
       }
