@@ -281,12 +281,54 @@ pdl_error pdl_dim_checks(
   return PDL_err;
 }
 
+static pdl_error pdl_broadcast_dim_checks(
+  pdl_transvtable *vtable, pdl **pdls,
+  pdl_broadcast *broadcast, PDL_Indx *creating,
+  PDL_Indx nimpl, PDL_Indx *realdims, PDL_Indx npdls, char *flags, PDL_Indx *nthp
+) {
+  pdl_error PDL_err = {0, NULL, 0};
+  PDL_Indx j, nth /* Index to dimensions */;
+  for (nth=0; nth<nimpl; nth++) {                // Loop over number of implicit broadcast dims
+    for (j=0; j<npdls; j++) {                    // Now loop over the PDLs to be merged
+      if (creating[j]) continue;                 // If jth PDL is null, don't bother trying to match
+      if (pdls[j]->broadcastids[0]-              // If we're off the end of the current PDLs dimlist,
+         realdims[j] <= nth)                    //    then just skip it.
+        continue;
+      PDL_Indx cur_pdl_dim = pdls[j]->dims[nth+realdims[j]];
+      if (vtable && j >= vtable->nparents && cur_pdl_dim == 1 && cur_pdl_dim != broadcast->dims[nth])
+        return pdl_make_error(PDL_EUSERERROR,
+          "Error in %s: output parameter '%s' implicit dim %"IND_FLAG" size %"IND_FLAG", but dim has size %"IND_FLAG"\n",
+          vtable->name, vtable->par_names[j], nth, broadcast->dims[nth],
+          cur_pdl_dim
+        );
+      if (cur_pdl_dim != 1) { // If the current dim in the current PDL is not 1,
+        if (broadcast->dims[nth] != 1) {            //   ... and the current planned size isn't 1,
+          if (broadcast->dims[nth] != cur_pdl_dim) { //   ... then check to make sure they're the same.
+            char buf0[BUFSIZ];
+            buf0[0] = '\0';
+            pdl_broadcast_mismatch_msg(
+              buf0, pdls, broadcast, nth, j, nimpl, realdims, creating
+            );
+            return pdl_croak_param(vtable,j,"%s\n..",buf0);
+          }
+          /* If we're still here, they're the same -- OK! */
+        } else {                                // current planned size is 1 -- mod it to match this PDL
+          broadcast->dims[nth] = cur_pdl_dim;
+        }
+        PDL_BRC_INC(broadcast->incs, npdls, j, nth) =       // Update the corresponding data stride
+          PDL_BREPRINC(pdls[j],flags[j],nth+realdims[j]);//   from the PDL or from its vafftrans if relevant.
+      }
+    }
+  }
+  *nthp = nth;
+  return PDL_err;
+}
+
 /* The assumptions this function makes:
  *  pdls is dynamic and may go away -> copied
  *  realdims is static and is NOT copied and NOT freed!!!
  *  creating is only used inside this routine.
  *  vtable is assumed static.
- *  usevaffine is assumed static. (uses if exists)
  *
  * Only the first thread-magicked pdl is taken into account.
  *
@@ -395,43 +437,10 @@ pdl_error pdl_initbroadcaststruct(int nobl,
 	}
 	flags = broadcast->flags; /* shortcut for the remainder */
 
-/* Make implicit inds */
-
-	for(nth=0; nth<nimpl; nth++) {                // Loop over number of implicit broadcast dims
-	  for(j=0; j<npdls; j++) {                    // Now loop over the PDLs to be merged
-	    if(creating[j]) continue;                 // If jth PDL is null, don't bother trying to match
-	    if(pdls[j]->broadcastids[0]-         // If we're off the end of the current PDLs dimlist,
-	       realdims[j] <= nth)                    //    then just skip it.
-	      continue;
-	    PDL_Indx cur_pdl_dim = pdls[j]->dims[nth+realdims[j]];
-	    if (vtable && j >= vtable->nparents && cur_pdl_dim == 1 && cur_pdl_dim != broadcast->dims[nth])
-	      return pdl_make_error(PDL_EUSERERROR,
-		"Error in %s: output parameter '%s' implicit dim %"IND_FLAG" size %"IND_FLAG", but dim has size %"IND_FLAG"\n",
-		vtable->name, vtable->par_names[j], nth, broadcast->dims[nth],
-		cur_pdl_dim
-	      );
-	    if(cur_pdl_dim != 1) { // If the current dim in the current PDL is not 1,
-	      if(broadcast->dims[nth] != 1) {            //   ... and the current planned size isn't 1,
-		if(broadcast->dims[nth] != cur_pdl_dim) { //   ... then check to make sure they're the same.
-		  char buf0[BUFSIZ];
-		  buf0[0] = '\0';
-		  pdl_broadcast_mismatch_msg(
-		    buf0, pdls, broadcast, nth, j, nimpl, realdims, creating
-		  );
-		  return pdl_croak_param(vtable,j,"%s\n..",buf0);
-		}
-
-		/* If we're still here, they're the same -- OK! */
-
-	      } else {                                // current planned size is 1 -- mod it to match this PDL
-		broadcast->dims[nth] = cur_pdl_dim;
-	      }
-
-	      PDL_BRC_INC(broadcast->incs, npdls, j, nth) =       // Update the corresponding data stride
-		PDL_BREPRINC(pdls[j],flags[j],nth+realdims[j]);//   from the PDL or from its vafftrans if relevant.
-	    }
-	  }
-	}
+/* check dims, make implicit inds */
+	PDL_RETERROR(PDL_err, pdl_broadcast_dim_checks(
+	  vtable, pdls, broadcast, creating, nimpl, realdims, npdls, flags, &nth
+	));
 
 /* Go through everything again and make the real things */
 
