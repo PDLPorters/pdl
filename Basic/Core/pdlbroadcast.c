@@ -249,6 +249,11 @@ pdl_error pdl_dim_checks(
         ind_sizes[ind_id] = dims[j];
         continue;
       }
+      if (j >= ndims && i >= vtable->nparents && ind_sz != 1)
+        return pdl_make_error(PDL_EUSERERROR,
+          "Error in %s: parameter '%s' index '%s' size %"IND_FLAG", can't broadcast over output ndarray with size > 1\n",
+          vtable->name, vtable->par_names[i], vtable->ind_names[ind_id], ind_sz
+        );
       if (j < ndims && ind_sz != dims[j] && (
         (i >= vtable->nparents) ||
         dims[j] != 1
