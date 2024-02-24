@@ -237,18 +237,7 @@ pdl_error pdl_dim_checks(
     PDLDEBUG_f(printf("pdl_dim_checks pdl %"IND_FLAG" (creating=%"IND_FLAG" ninds=%"IND_FLAG"): ", i, creating ? creating[i] : -99, ninds));
     PDLDEBUG_f(pdl_dump(pdl));
     short flags = vtable->par_flags[i];
-    if (!load_only && creating[i]) {
-      PDL_Indx dims[PDLMAX(ninds+1, 1)];
-      for (j=0; j<ninds; j++)
-	dims[j] = ind_sizes[PDL_IND_ID(vtable, i, j)];
-      if (flags & PDL_PARAM_ISTEMP)
-	dims[ninds] = 1;
-      PDL_RETERROR(PDL_err, pdl_broadcast_create_parameter(
-	broadcast,i,dims,
-	flags & PDL_PARAM_ISTEMP
-      ));
-      continue;
-    }
+    if (!load_only && creating[i]) continue;
     PDL_Indx *dims = pdl->dims;
     for (j=0; j<ninds; j++) {
       PDL_Indx ind_id = PDL_IND_ID(vtable, i, j), ind_sz = ind_sizes[ind_id];
@@ -279,14 +268,12 @@ pdl_error pdl_dim_checks(
           ind_sz, dims[j]
         );
     }
-    if (!load_only && (flags & PDL_PARAM_ISPHYS))
-      PDL_RETERROR(PDL_err, pdl_make_physical(pdl));
   }
   if (!load_only)
     for (i=0; i<vtable->npdls; i++) {
       PDL_Indx ninds = vtable->par_realdims[i];
       short flags = vtable->par_flags[i];
-      if (!ninds || !(flags & PDL_PARAM_ISPHYS)) continue;
+      if (!ninds || !(flags & PDL_PARAM_ISPHYS) || creating[i]) continue;
       pdl *pdl = pdls[i];
       PDL_Indx *dims = pdl->dims;
       for (j=0; j<ninds; j++) {
@@ -513,8 +500,26 @@ pdl_error pdl_initbroadcaststruct(int nobl,
 		    for(i=n2; i<nthr; i++)
 			broadcast->dims[broadcast->mag_nth + i*ndims]--;
 	}
-	if (ind_sizes)
+	if (ind_sizes) {
 		PDL_RETERROR(PDL_err, pdl_dim_checks(vtable, pdls, broadcast, creating, ind_sizes, 0));
+		for (i=0; i<vtable->npdls; i++) {
+		  PDL_Indx ninds = vtable->par_realdims[i];
+		  short flags = vtable->par_flags[i];
+		  if (creating[i]) {
+		    PDL_Indx dims[PDLMAX(ninds+1, 1)];
+		    for (j=0; j<ninds; j++)
+		      dims[j] = ind_sizes[PDL_IND_ID(vtable, i, j)];
+		    if (flags & PDL_PARAM_ISTEMP)
+		      dims[ninds] = 1;
+		    PDL_RETERROR(PDL_err, pdl_broadcast_create_parameter(
+		      broadcast,i,dims,
+		      flags & PDL_PARAM_ISTEMP
+		    ));
+		  }
+		  if ((flags & PDL_PARAM_ISPHYS))
+		    PDL_RETERROR(PDL_err, pdl_make_physical(pdls[i]));
+		}
+	}
 	if (inc_sizes)
 	  for (i=0; i<vtable->npdls; i++) {
 	    pdl *pdl = pdls[i];
