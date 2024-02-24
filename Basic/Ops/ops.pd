@@ -147,10 +147,11 @@ $doc
 
 =for example
 
-   \$c = \$x $op \$y;        # overloaded call
-   \$c = $name \$x, \$y;     # explicit call with default swap of 0
-   \$c = $name \$x, \$y, 1;  # explicit call with trailing 1 to swap args
-   \$x->inplace->$name(\$y); # modify \$x inplace
+   \$c = \$x $op \$y;               # overloaded call
+   \$c = PDL::$name(\$x, \$y);     # explicit call with default swap of 0
+   \$c = PDL::$name(\$x, \$y, 0);  # explicit call with explicit swap of 0
+   \$c = PDL::$name(\$x, \$y, 1);  # explicit call with trailing 1 to swap args
+   \$x->inplace->$name(\$y);      # modify \$x inplace
 
 It can be made to work inplace with the C<< \$x->inplace >> syntax.
 This function is used to overload the binary C<$optxt> operator.
@@ -196,7 +197,7 @@ EOF
 sub bifunc {
     my ($name,$func,$mutator,$doc,%extra) = @_;
     my $funcov = ref $func eq 'ARRAY' ? $func->[1] : $func;
-    my $isop=0; if ($funcov =~ s/^op//) { $isop = 1; }
+    my $isop = $funcov =~ s/^op//;
     my $funcovp = protect_chars $funcov;
     $func = $func->[0] if ref $func eq 'ARRAY';
     my $got_complex = PDL::Core::Dev::got_complex_version($func, 2);
@@ -209,10 +210,8 @@ sub bifunc {
     b = tmp;
   }
 EOH
-    my $ovcall;
     # is this one to be used as a function or operator ?
-    if ($isop) { $ovcall = "\$c = \$a $funcov \$b;    # overloaded use"; }
-    else       { $ovcall = "\$c = $funcov \$a, \$b;    # overloaded use"; }
+    my $ovcall = "\$c = ".($isop ? "\$a $funcov" : "$funcov \$a,")." \$b;    # overloaded use";
 
     my $codestr;
     if ($extra{unsigned}){

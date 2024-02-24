@@ -15,12 +15,19 @@ my $can_complex_power = PDL::Core::Dev::got_complex_version('pow', 2)
 approx(pdl(0), pdl(0), 0.01); # set eps
 
 {
-my $pa = xvals zeroes 3,5;
-my $pb = yvals zeroes 3,5;
-my $pc = $pa + $pb;
-ok($pc->at(2,2) == 4, 'pdl addition 1');
-ok($pc->at(2,3) == 5, 'pdl addition 2');
-throws_ok { $pc->at(3,3); } qr/Position.*out of range/, 'invalid position';
+my ($pa, $pb, $pc) = (xvals(3,5), yvals(3,5));
+for (
+  [$pa,$pb,\$pc, sub { ${$_[2]} = $_[0] - $_[1] }, [1,-1]],
+  [$pa,$pb,\$pc, sub { ${$_[2]} = PDL::minus($_[0], $_[1]) }, [1,-1]],
+  [$pa,$pb,\$pc, sub { ${$_[2]} = PDL::minus($_[0], $_[1], 0) }, [1,-1]],
+  [$pa,$pb,\$pc, sub { ${$_[2]} = PDL::minus($_[0], $_[1], 1) }, [-1,1]],
+) {
+  my ($in1, $in2, $outref, $sub, $exp) = @$_;
+  $sub->($in1, $in2, $outref);
+  ok($$outref->at(2,1) == $exp->[0], 'pdl subtraction 1');
+  ok($$outref->at(2,3) == $exp->[1], 'pdl subtraction 2');
+  throws_ok { $$outref->at(3,3); } qr/Position.*out of range/, 'invalid position';
+}
 }
 
 {

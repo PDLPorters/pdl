@@ -291,9 +291,9 @@ static pdl_error pdl_broadcast_dim_checks(
   for (nth=0; nth<nimpl; nth++) {                // Loop over number of implicit broadcast dims
     for (j=0; j<npdls; j++) {                    // Now loop over the PDLs to be merged
       if (creating[j]) continue;                 // If jth PDL is null, don't bother trying to match
-      if (pdls[j]->broadcastids[0]-              // If we're off the end of the current PDLs dimlist,
-         realdims[j] <= nth)                    //    then just skip it.
+      if (nth >= pdls[j]->broadcastids[0]-realdims[j]) { /* off end of current PDLs dimlist */
         continue;
+      }
       PDL_Indx cur_pdl_dim = pdls[j]->dims[nth+realdims[j]];
       if (vtable && j >= vtable->nparents && cur_pdl_dim == 1 && cur_pdl_dim != broadcast->dims[nth])
         return pdl_make_error(PDL_EUSERERROR,
