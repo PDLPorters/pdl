@@ -28,7 +28,6 @@ pdl_error pdl_ ## name(pdl *a) { \
 	if(!PDL_VAFFOK(a)) { \
 		return pdl_make_error_simple(PDL_EUSERERROR, "pdl_" #name " without vaffine"); \
 	} \
-	PDL_ENSURE_ALLOCATED(a); \
     PDL_GENERICSWITCH(PDL_TYPELIST2_ALL, intype, X, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", intype)) \
     return PDL_err; \
 }

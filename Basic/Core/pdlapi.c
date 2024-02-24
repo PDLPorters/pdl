@@ -81,6 +81,7 @@ pdl_error pdl__ensure_trans(pdl_trans *trans,int what,int *wd, int recurse_count
 	if(par_pvaf && (trans->flags & PDL_ITRANS_ISAFFINE)) {
 	  /* Attention: this assumes affine = p2child */
 		PDL_RETERROR(PDL_err, pdl__make_physvaffine_recprotect(trans->pdls[1], recurse_count+1));
+		PDL_ENSURE_ALLOCATED(trans->pdls[1]);
 		PDL_ACCUMERROR(PDL_err, pdl_readdata_vaffine(trans->pdls[1]));
 	} else if(flag & PDL_ANYCHANGED)
 		READDATA(trans);
@@ -779,6 +780,7 @@ pdl_error pdl__make_physical_recprotect(pdl *it, int recurse_count) {
 	if(PDL_VAFFOK(it)) {
 		PDLDEBUG_f(printf("make_physical: VAFFOK\n"));
 		PDL_RETERROR(PDL_err, pdl__make_physical_recprotect(it->vafftrans->from, recurse_count+1));
+		PDL_ENSURE_ALLOCATED(it);
 		PDL_RETERROR(PDL_err, pdl_readdata_vaffine(it));
 		PDLDEBUG_f(printf("make_physical turning off datachanged, before="); pdl_dump_flags_fixspace(it->state, 0, PDL_FLAGS_PDL));
 		it->state &= (~PDL_PARENTDATACHANGED); /* assumption: no siblings */
@@ -836,6 +838,7 @@ pdl_error pdl_changed(pdl *it, int what, int recursing) {
   if (it->trans_parent && !recursing && (it->trans_parent->flags & PDL_ITRANS_DO_DATAFLOW_B)) {
     pdl_trans *trans = it->trans_parent;
     if (PDL_VAFFOK(it)) {
+      PDL_ENSURE_ALLOCATED(it);
       PDLDEBUG_f(printf("pdl_changed: calling writebackdata_vaffine (pdl %p)\n",(void*)it));
       PDL_ACCUMERROR(PDL_err, pdl_writebackdata_vaffine(it));
       CHANGED(it->vafftrans->from,what,0);
