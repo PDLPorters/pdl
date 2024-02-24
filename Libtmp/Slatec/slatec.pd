@@ -511,18 +511,21 @@ sub PDL::polyfit {
   barf 'Usage: polyfit($x, $y, $w, $maxdeg, [$eps]);'
     unless (@_ == 5 || @_==4 );
 
-  my ($x_in, $y_in, $w_in, $maxdeg_in, $eps_in) = @_;
+  my ($x_in, $y_in, $w_in, $maxdeg_in, $eps_io) = map PDL->topdl($_), @_;
 
+  my $template_ind = maximum_n_ind([(map $_->ndims-1, $x_in, $y_in, $w_in), $maxdeg_in->ndims, defined $eps_io ? $eps_io->ndims : -1], 1)->sclr;
+  my $template = $_[$template_ind];
   # if $w_in does not match the data vectors ($x_in, $y_in), then we can resize
   # it to match the size of $y_in :
-  $w_in = $w_in + $y_in->zeros;
+  $w_in = $w_in + $template->zeroes;
+  $eps_io = $eps_io + $template->slice('(0)')->zeroes; # also needs to match but with one less dim
 
   # Create the output arrays
   my $r = PDL->null;
 
   # A array needs some work space
   my $sz = ((3 * $x_in->getdim(0)) + (3*$maxdeg_in) + 3); # Buffer size called for by Slatec
-  my @otherdims = $_[0]->dims; shift @otherdims;          # Thread dims
+  my @otherdims = $template->dims; shift @otherdims;          # Broadcast dims
   my $a1 =      PDL->new_from_specification($x_in->type,$sz,@otherdims);
   my $coeffs = PDL->new_from_specification($x_in->type, $maxdeg_in + 1, @otherdims);
 
@@ -530,11 +533,11 @@ sub PDL::polyfit {
   my $ndeg = PDL->null;
 
   # Now call polfit
-  my $rms = pdl($eps_in);                                       
+  my $rms = pdl($eps_io);
   polfit($x_in, $y_in, $w_in, $maxdeg_in, $ndeg, $rms, $r, $ierr, $a1, $coeffs);
   # Preserve historic compatibility by flowing rms error back into the argument
-  if( UNIVERSAL::isa($eps_in,'PDL') ){
-      $eps_in .= $rms;
+  if( UNIVERSAL::isa($eps_io,'PDL') ){
+      $eps_io .= $rms;
   }
 
   # Return the arrays
@@ -1504,7 +1507,7 @@ Error status returned by C<$ierr>:
 #  foo runs across wacky Slatec buffer size;
 #  bar runs across polynomial coefficients.
 pp_def('polfit',
-  Pars => 'x(n); y(n); w(n); longlong maxdeg(); longlong [o]ndeg(); [o]eps(); [o]r(n); longlong [o]ierr(); [o]a(foo); [o]coeffs(bar);[t]xtmp(n);[t]ytmp(n);[t]wtmp(n);[t]rtmp(n)',
+  Pars => 'x(n); y(n); w(n); longlong maxdeg(); longlong [o]ndeg(); [io]eps(); [o]r(n); longlong [o]ierr(); [o]a(foo); [o]coeffs(bar);[t]xtmp(n);[t]ytmp(n);[t]wtmp(n);[t]rtmp(n)',
   GenericTypes => ['F','D'],
   HandleBad => 1,
   NoBadifNaN => 1,
