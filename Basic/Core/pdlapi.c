@@ -22,11 +22,18 @@
 
 #define REDODIMS(what, trans) do { \
     pdl_transvtable *vtable = (trans)->vtable; \
-    if (vtable->redodims) \
+    if (vtable->redodims) { \
+      PDL_Indx creating[vtable->npdls]; \
+      pdl **pdls = (trans)->pdls; \
+      PDL_Indx i; \
+      for (i=0; i<vtable->npdls; i++) \
+        creating[i] = (vtable->par_flags[i] & PDL_PARAM_ISCREAT) && \
+          PDL_DIMS_FROM_TRANS(trans,pdls[i]); \
       what(PDL_err, pdl_dim_checks( \
-	vtable, (trans)->pdls, \
-	NULL, NULL, \
+	vtable, pdls, \
+	NULL, creating, \
 	(trans)->ind_sizes, 1)); \
+    } \
     if ((trans)->dims_redone) { \
 	FREETRANS(trans, 0); \
 	if (PDL_err.error) return PDL_err; \
@@ -740,19 +747,18 @@ pdl_error pdl_redodims_default(pdl_trans *trans) {
   pdl_error PDL_err = {0, NULL, 0};
   PDLDEBUG_f(printf("pdl_redodims_default ");pdl_dump_trans_fixspace(trans,0));
   pdl_transvtable *vtable = trans->vtable;
-  PDL_Indx creating[vtable->npdls];
-  pdl **pdls = trans->pdls;
-  PDL_Indx i;
-  for (i=0; i<vtable->npdls; i++) {
-    short flags = vtable->par_flags[i];
-    creating[i] = (flags & PDL_PARAM_ISCREAT) &&
-      PDL_DIMS_FROM_TRANS(trans,pdls[i]);
-  }
-  if (vtable->flags & PDL_TRANS_DO_BROADCAST)
+  if (vtable->flags & PDL_TRANS_DO_BROADCAST) {
+    PDL_Indx creating[vtable->npdls];
+    pdl **pdls = trans->pdls;
+    PDL_Indx i;
+    for (i=0; i<vtable->npdls; i++)
+      creating[i] = (vtable->par_flags[i] & PDL_PARAM_ISCREAT) &&
+        PDL_DIMS_FROM_TRANS(trans,pdls[i]);
     PDL_RETERROR(PDL_err, pdl_initbroadcaststruct(2, pdls,
       vtable->par_realdims, creating, vtable->npdls, vtable,
       &trans->broadcast, trans->ind_sizes, trans->inc_sizes,
       vtable->per_pdl_flags, vtable->flags & PDL_TRANS_NO_PARALLEL));
+  }
   pdl_hdr_childcopy(trans);
   trans->dims_redone = 1;
   return PDL_err;

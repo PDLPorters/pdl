@@ -234,33 +234,24 @@ pdl_error pdl_dim_checks(
   for (i=0; i<vtable->npdls; i++) {
     pdl *pdl = pdls[i];
     PDL_Indx ninds = vtable->par_realdims[i], ndims = pdl->ndims;
-    PDLDEBUG_f(printf("pdl_dim_checks pdl %"IND_FLAG" (creating=%"IND_FLAG" ninds=%"IND_FLAG"): ", i, creating ? creating[i] : -99, ninds));
+    PDLDEBUG_f(printf("pdl_dim_checks pdl %"IND_FLAG" (creating=%"IND_FLAG" ninds=%"IND_FLAG"): ", i, creating[i], ninds));
     PDLDEBUG_f(pdl_dump(pdl));
     short flags = vtable->par_flags[i];
     if (!load_only && creating[i]) continue;
     PDL_Indx *dims = pdl->dims;
     for (j=0; j<ninds; j++) {
       PDL_Indx ind_id = PDL_IND_ID(vtable, i, j), ind_sz = ind_sizes[ind_id];
-      if (
-        (load_only || (creating && !creating[i])) &&
-        ninds > PDLMAX(0,ndims) &&
-        ndims < j+1 &&
-        ind_sz < 1
-      )
+      if (j >= ndims && ind_sz == -1)
         /* Dimensional promotion when number of dims is less than required: */
         ind_sz = ind_sizes[ind_id] = 1;
-      /* Now, the real check. */
-      if (
-        !(load_only && !((flags & PDL_PARAM_ISCREAT) && (pdl->state & PDL_MYDIMS_TRANS))) &&
-        (!creating || creating[i])
-      ) continue;
-      if (ind_sz == -1 || (ndims > j && ind_sz == 1)) {
+      if (load_only && creating[i]) continue;
+      if (ind_sz == -1 || (j < ndims && ind_sz == 1)) {
         ind_sizes[ind_id] = dims[j];
         continue;
       }
-      if (ndims > j && ind_sz != dims[j] && (
-        (i < vtable->nparents && dims[j] != 1) ||
-        (i >= vtable->nparents)
+      if (j < ndims && ind_sz != dims[j] && (
+        (i >= vtable->nparents) ||
+        dims[j] != 1
       ))
         return pdl_make_error(PDL_EUSERERROR,
           "Error in %s: parameter '%s' index %s size %"IND_FLAG", but ndarray dim has size %"IND_FLAG"\n",
