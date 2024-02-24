@@ -254,29 +254,22 @@ pdl_error pdl_dim_checks(
         dims[j] != 1
       ))
         return pdl_make_error(PDL_EUSERERROR,
-          "Error in %s: parameter '%s' index %s size %"IND_FLAG", but ndarray dim has size %"IND_FLAG"\n",
+          "Error in %s: parameter '%s' index '%s' size %"IND_FLAG", but ndarray dim has size %"IND_FLAG"\n",
           vtable->name, vtable->par_names[i], vtable->ind_names[ind_id],
           ind_sz, dims[j]
         );
-    }
-  }
-  if (!load_only)
-    for (i=0; i<vtable->npdls; i++) {
-      PDL_Indx ninds = vtable->par_realdims[i];
-      short flags = vtable->par_flags[i];
-      if (!ninds || !(flags & PDL_PARAM_ISPHYS) || creating[i]) continue;
-      pdl *pdl = pdls[i];
-      PDL_Indx *dims = pdl->dims;
-      for (j=0; j<ninds; j++) {
-        PDL_Indx ind_id = PDL_IND_ID(vtable, i, j), ind_sz = ind_sizes[ind_id];
-        if (!(ind_sz > 1 && ind_sz != dims[j])) continue;
+      if (j < ndims && ind_sz != dims[j] &&
+        !load_only && !creating[i] &&
+        ind_sz > 1 &&
+        (flags & PDL_PARAM_ISPHYS)
+      )
         return pdl_make_error(PDL_EUSERERROR,
           "Error in %s: [phys] parameter '%s' index '%s' size %"IND_FLAG", but ndarray dim has size %"IND_FLAG"\n",
           vtable->name, vtable->par_names[i], vtable->ind_names[ind_id],
           ind_sz, dims[j]
         );
-      }
     }
+  }
   PDLDEBUG_f(printf("pdl_dim_checks after:\n");
     printf("  ind_sizes: "); pdl_print_iarr(ind_sizes, vtable->ninds);
     printf("\n"));
