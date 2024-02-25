@@ -1623,6 +1623,7 @@ EOD
           confess "$name got default-less arg '$_' after default-ful arg '$default_seen'"
             if $default_seen and !exists $otherdefaults->{$_};
         }
+        ();
       }),
    PDL::PP::Rule->new("VarArgsXSHdr",
       [qw(Name SignatureObj
