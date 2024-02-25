@@ -79,7 +79,18 @@ my $pb = pdl( [-1,0],[0,1] );
     my $pa = sequence(6,6);
     my $ans = pdl([14,22,30],[62,70,78],[110,118,126]);
     ok( all( $ans==rebin($pa,3,3,{Norm=>1}) ) );
+}
 
+{
+my $got = circ_mean_p(sequence(8,8));
+my $expected = pdl('[36 36 36 36 23.14285 14.4]');
+ok all approx($got, $expected, 1e-3) or diag "got: $got\nexp: $expected";
+}
+
+{
+my $got = circ_mean(sequence(2,2));
+my $expected = pdl('[[1 1][1 3]]');
+ok all approx($got, $expected, 1e-3) or diag "got: $got\nexp: $expected";
 }
 
 done_testing;

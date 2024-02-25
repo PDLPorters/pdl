@@ -133,7 +133,7 @@ sub PDL::convolve{
     barf("Usage: convolve(a(*), b(*), [o]c(*)") if $#_<1 || $#_>2;
     $c = PDL->null if $#_<2;
     &PDL::_convolve_int( $x->flat, $y->flat,
-       long([$x->dims]), long([$y->dims]),
+       $x->shape, $y->shape,
        $c->isnull ? $c : $c->flat,
      );
      $c->setdims([$x->dims]);
@@ -397,14 +397,15 @@ sub circ_mean_p {
  my ($rad,$sum,$norm);
 
  if (defined $opt) {
-   $rad = long PDL::rvals($x,$opt);
+   $rad = indx PDL::rvals($x,$opt);
  }
  else {
-   $rad = long rvals $x;
+   $rad = indx rvals $x;
  }
- $sum = zeroes($rad->max+1);
+ my $max1 = $rad->max->sclr+1;
+ $sum = zeroes($max1);
  PDL::indadd $x->flat, $rad->flat, $sum; # this does the real work
- $norm = zeroes($rad->max+1);
+ $norm = zeroes($max1);
  PDL::indadd pdl(1), $rad->flat, $norm;       # equivalent to get norm
  $sum /= $norm;
  return $sum;
@@ -430,14 +431,15 @@ sub circ_mean {
  my ($rad,$sum,$norm,$a1);
 
  if (defined $opt) {
-   $rad = long PDL::rvals($x,$opt);
+   $rad = indx PDL::rvals($x,$opt);
  }
  else {
-   $rad = long rvals $x;
+   $rad = indx rvals $x;
  }
- $sum = zeroes($rad->max+1);
+ my $max1 = $rad->max->sclr+1;
+ $sum = zeroes($max1);
  PDL::indadd $x->flat, $rad->flat, $sum; # this does the real work
- $norm = zeroes($rad->max+1);
+ $norm = zeroes($max1);
  PDL::indadd pdl(1), $rad->flat, $norm;       # equivalent to get norm
  $sum /= $norm;
  $a1 = $x->flat;
