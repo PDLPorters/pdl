@@ -90,9 +90,92 @@ pp_addhdr(<<'EOH');
 
 EOH
 
+my %gdi_from_pngfile = (
+  OtherPars => 'char* filename',
+  Comp => 'gdImagePtr im',
+  MakeComp => '
+    FILE *fh = fopen($COMP(filename), "rb");
+    if (!fh) $CROAK("Error opening %s!\n", $COMP(filename));
+    $COMP(im) = gdImageCreateFromPng(fh);
+    fclose(fh);
+    if (!$COMP(im)) $CROAK("Error reading PNG data!\n");
+  ',
+  CompFreeCodeComp => 'gdImageDestroy($COMP(im));',
+);
+my %gdi_from_args = (
+  OtherPars => 'gdImagePtr im',
+);
+my %dims_from_gdi = (
+  RedoDimsCode => '
+    $SIZE(x) = gdImageSX($COMP(im));
+    $SIZE(y) = gdImageSY($COMP(im));
+  ',
+);
+my %gdi_dims_from_pngfile = (
+  %gdi_from_pngfile,
+  %dims_from_gdi,
+);
+my %lu_dim_check = (
+  RedoDimsCode => <<'EOF',
+if ($SIZE(j) > 256)
+    $CROAK("Wrong LUT dimensions (%"IND_FLAG", %"IND_FLAG")! (should be (3, X), where X <= 256)\n",
+            $SIZE(i), $SIZE(j) );
+EOF
+);
+my %level_check = (
+  RedoDimsCode => <<'EOF',
+if( $COMP(level) < -1 || $COMP(level) > 9 )
+    $CROAK("Invalid compression level %d, should be [-1,9]!\n",
+        $COMP(level) );
+EOF
+);
+my %lu_dim_level_check = (
+  RedoDimsCode => $lu_dim_check{RedoDimsCode}.$level_check{RedoDimsCode},
+);
+my $gdi_from_dims = "gdImagePtr im = gdImageCreate(\$SIZE(x), \$SIZE(y));\n";
+my $gdi_to_file = <<'EOF';
+FILE *out = fopen($COMP(filename), "wb");
+gdImagePng(im, out);
+fclose(out);
+gdImageDestroy(im);
+EOF
+my $gdi_to_fileEx = <<'EOF';
+FILE *out = fopen($COMP(filename), "wb");
+gdImagePngEx(im, out, $COMP(level));
+fclose(out);
+gdImageDestroy(im);
+EOF
+my $gdiTrue_from_dims = "gdImagePtr im = gdImageCreateTrueColor(\$SIZE(x), \$SIZE(y));\n";
+my $lut_allocate = <<'EOF';
+loop(j) %{
+  int tmp = gdImageColorAllocate(im, $lut(i=>0), $lut(i=>1), $lut(i=>2));
+  if (tmp != j)
+    $CROAK("palette mismatch on index %"IND_FLAG" (mapped to %d)!\n", j, tmp);
+%}
+EOF
+my $img_to_gdi = 'loop(y,x) %{ gdImageSetPixel(im, x, y, $img()); %}';
+my $img_to_gdiTrue = <<'EOF';
+loop(y,x) %{
+  gdImageSetPixel(im, x, y,
+    gdImageColorResolve(im, $img(z=>0), $img(z=>1), $img(z=>2))
+  );
+%}
+EOF
+my $gdi_to_img = 'loop(y,x) %{ $img() = gdImageGetPixel($COMP(im), x, y); %}';
+my $gdiTrue_to_img = <<'EOF';
+loop(y,x) %{
+  int tpixel = gdImageTrueColorPixel($COMP(im), x, y);
+  $img(z=>0) = gdTrueColorGetRed(tpixel);
+  $img(z=>1) = gdTrueColorGetGreen(tpixel);
+  $img(z=>2) = gdTrueColorGetBlue(tpixel);
+%}
+EOF
+my $gdi_to_ptr = '$img_ptr() = PTR2IV(im);';
+
 # Function to write a PNG image from an ndarray variable:
 pp_def( 'write_png',
-        Pars => 'byte img(x,y); byte lut(i=3,j);',
+        Pars => 'img(x,y); lut(i=3,j);',
+        GenericTypes => ['B'],
         OtherPars => 'char* filename',
         Doc => <<'ENDDOC',
 Writes a 2-d PDL variable out to a PNG file, using the supplied color look-up-table ndarray
@@ -100,140 +183,48 @@ Writes a 2-d PDL variable out to a PNG file, using the supplied color look-up-ta
 
 The LUT contains a line for each value 0-255 with a corresponding R, G, and B value.
 ENDDOC
-        RedoDimsCode => <<'EOF',
-if ($SIZE(j) > 256)
-    $CROAK("Wrong LUT dimensions (%"IND_FLAG", %"IND_FLAG")! (should be (3, X), where X <= 256)\n",
-            $SIZE(i), $SIZE(j) );
-EOF
-        Code => <<'EOC' );
-int xsize = $SIZE(x), ysize = $SIZE(y);
-gdImagePtr im = gdImageCreate(xsize, ysize);
-FILE *out;
-
-/* Set up the color palette */
-loop(j) %{
-    int tmp = gdImageColorAllocate(im, $lut(i=>0), $lut(i=>1), $lut(i=>2));
-    if (tmp != j)
-        $CROAK("palette mismatch on index %"IND_FLAG" (mapped to %d)!\n", j, tmp);
-%}
-
-/* render the data */
-loop(y,x) %{
-  gdImageSetPixel(im, x, y, $img());
-%}
-
-/* write the image to the file */
-out = fopen($COMP(filename), "wb");
-
-gdImagePng(im, out);
-
-fclose(out);
-
-gdImageDestroy(im);
-
-EOC
+        %lu_dim_check,
+        Code => $gdi_from_dims . $lut_allocate . $img_to_gdi . $gdi_to_file,
+);
 
 # Function to write a PNG image from an ndarray variable, accepting a compression
 #    level argument:
 pp_def( 'write_png_ex',
         Pars => 'img(x,y); lut(i=3,j);',
+        GenericTypes => ['B'],
         OtherPars => 'char* filename; int level',
         Doc => <<'ENDDOC',
 Same as write_png(), except you can specify the compression level (0-9) as the last argument.
 ENDDOC
-        RedoDimsCode => <<'EOF',
-if ($SIZE(j) > 256)
-    $CROAK("Wrong LUT dimensions (%"IND_FLAG", %"IND_FLAG")! (should be (3, X), where X <= 256)\n",
-            $SIZE(i), $SIZE(j) );
-
-if( $COMP(level) < -1 || $COMP(level) > 9 )
-    $CROAK("Invalid compression level %d, should be [-1,9]!\n",
-        $COMP(level) );
-EOF
-        Code => <<'EOC' );
-int xsize = $SIZE(x), ysize = $SIZE(y);
-gdImagePtr im = gdImageCreate(xsize, ysize);
-FILE *out;
-
-/* Set up the color palette */
-loop(j) %{
-    int tmp = gdImageColorAllocate(im, $lut(i=>0), $lut(i=>1), $lut(i=>2));
-    if (tmp != j)
-        $CROAK("palette mismatch on index %"IND_FLAG" (mapped to %d)!\n", j, tmp);
-%}
-
-/* render the data */
-loop(y,x) %{
-  gdImageSetPixel(im, x, y, $img());
-%}
-
-/* write the image to the file */
-out = fopen($COMP(filename), "wb");
-
-gdImagePngEx(im, out, $COMP(level));
-
-fclose(out);
-
-gdImageDestroy(im);
-
-EOC
+        %lu_dim_level_check,
+        Code => $gdi_from_dims . $lut_allocate . $img_to_gdi . $gdi_to_fileEx,
+);
 
 # Function to write a TRUE COLOR PNG image from an ndarray variable:
 pp_def( 'write_true_png',
         Pars => 'img(x,y,z=3);',
+        GenericTypes => ['B'],
         OtherPars => 'char* filename',
         Doc => <<'ENDDOC',
 Writes an (x, y, z(3)) PDL variable out to a PNG file, using a true color format.
 
 This means a larger file on disk, but can contain more than 256 colors.
 ENDDOC
-        Code => <<'EOC' );
-FILE *out;
-int xsize = $SIZE(x), ysize = $SIZE(y);
-gdImagePtr im = gdImageCreateTrueColor(xsize, ysize);
-
-/* render the data */
-loop(y,x) %{
-  gdImageSetPixel(im, x, y,
-    gdImageColorResolve(im, $img(z=>0), $img(z=>1), $img(z=>2))
-  );
-%}
-/* write the image to the file */
-out = fopen($COMP(filename), "wb");
-gdImagePng(im, out);
-fclose(out);
-gdImageDestroy(im);
-EOC
+        Code => $gdiTrue_from_dims . $img_to_gdiTrue . $gdi_to_file,
+);
 
 # Function to write a TRUE COLOR PNG image from an ndarray variable, 
 #    with the specified compression level:
 pp_def( 'write_true_png_ex',
         Pars => 'img(x,y,z=3);',
+        GenericTypes => ['B'],
         OtherPars => 'char* filename; int level',
         Doc => <<'ENDDOC',
 Same as write_true_png(), except you can specify the compression level (0-9) as the last argument.
 ENDDOC
-        RedoDimsCode => <<'EOF',
-if( $COMP(level) < -1 || $COMP(level) > 9 )
-    $CROAK("Invalid compression level %d, should be [-1,9]!\n",
-        $COMP(level) );
-EOF
-        Code => <<'EOC' );
-int xsize = $SIZE(x), ysize = $SIZE(y);
-gdImagePtr im = gdImageCreateTrueColor(xsize, ysize);
-
-/* render the data */
-loop(y,x) %{
-  gdImageSetPixel(im, x, y,
-    gdImageColorResolve(im, $img(z=>0), $img(z=>1), $img(z=>2))
-  );
-%}
-/* write the image to the file */
-FILE *out = fopen($COMP(filename), "wb");
-gdImagePngEx( im, out, $COMP(level) );
-fclose(out);
-gdImageDestroy(im);
-EOC
+        %level_check,
+        Code => $gdiTrue_from_dims . $img_to_gdiTrue . $gdi_to_fileEx,
+);
 
 #
 # Add some perl level alias functions to automatically use the best compression
@@ -313,289 +304,81 @@ pp_add_exported( '', 'recompress_png_best' );
 # End of recompress_png_best() XS code...
 
 pp_addpm(<<'EOPM');
-
 =head2 load_lut( $filename )
 
 Loads a color look up table from an ASCII file. returns an ndarray
 
 =cut
 
-
-sub load_lut
-{
-    return xchg(byte(cat(rcols(shift))), 0, 1);
-} # end of load_lut()...
-
-=head2 read_png( $filename )
-
-Reads a (palette) PNG image into a (new) PDL variable.
-
-=cut
-
-
-sub read_png
-{
-    my $filename = shift;
-
-    # Get the image dims...
-    my $x = _get_png_xs($filename);
-    my $y = _get_png_ys($filename);
-    #print "\$x=$x\t\$y=$y\n";
-
-    my $temp = zeroes(long, $x, $y);
-    _read_png($temp, $filename);
-    return byte($temp);
-} # End of read_png()...
-
-=head2 read_png_true( $filename )
-
-Reads a true color PNG image into a (new) PDL variable.
-
-=cut
-
-
-sub read_true_png
-{
-    my $filename = shift;
-
-    # Get the image dims...
-    my $x = _get_png_xs($filename);
-    my $y = _get_png_ys($filename);
-    #print "\$x=$x\t\$y=$y\n";
-
-
-    my $temp = zeroes(long, $x, $y, 3);
-    _read_true_png($temp, $filename);
-    return byte($temp);
-} # End of read_png()...
-
-
+sub load_lut {
+    xchg(byte(cat(rcols(shift))), 0, 1);
+}
 EOPM
 
-pp_add_exported('', 'load_lut read_png read_true_png');
+pp_add_exported('', 'load_lut');
 
-pp_addxs('', <<'EOXS');
-int
-_get_png_xs(char* filename)
-    CODE:
-        gdImagePtr im;
-        FILE* in;
-
-        in = fopen(filename, "rb");
-        im = gdImageCreateFromPng(in);
-        fclose(in);
-        RETVAL = gdImageSX(im);
-        gdImageDestroy(im);
-    OUTPUT:
-        RETVAL
-
-int
-_get_png_ys(char* filename)
-    CODE:
-        gdImagePtr im;
-        FILE* in;
-
-        in = fopen(filename, "rb");
-        im = gdImageCreateFromPng(in);
-        fclose(in);
-        RETVAL = gdImageSY(im);
-        gdImageDestroy(im);
-    OUTPUT:
-        RETVAL
-EOXS
-
-# Function to read a TRUE COLOR PNG image into an ndarray variable:
-pp_def( '_read_true_png',
-        Pars => 'int [o] img(x,y,z);',
-        OtherPars => 'char* filename',
-        Doc => undef,
-        Code => <<'EOC'
-FILE *in = fopen($COMP(filename), "rb");
-if ( in == NULL )
-    $CROAK("Error opening %s!\n", $COMP(filename));
-
-gdImagePtr im = gdImageCreateFromPng(in);
-if ( im == NULL )
-    $CROAK("Error reading PNG data!\n");
-fclose(in);
-
-int xsize = gdImageSX(im), ysize = gdImageSY(im);
-
-/* Check the dims... */
-if ( !( ($SIZE(x)==xsize) && ($SIZE(y)==ysize) ) )
-    $CROAK("Dims of %s (%dx%d) and ndarray (%"IND_FLAG"x%"IND_FLAG") do not match!\n",
-            $COMP(filename), xsize, ysize, $SIZE(x), $SIZE(y));
-
-/* read the data */
-loop(y,x) %{
-  int tpixel = gdImageTrueColorPixel(im, x, y);
-  $img(z=>0) = gdTrueColorGetRed(tpixel);
-  $img(z=>1) = gdTrueColorGetGreen(tpixel);
-  $img(z=>2) = gdTrueColorGetBlue(tpixel);
-%}
-gdImageDestroy(im);
-EOC
+pp_def( 'read_true_png',
+        Pars => '[o] img(x,y,z=3);',
+        GenericTypes => ['B'],
+        %gdi_dims_from_pngfile,
+        Doc => "=for ref\n\nReads a true colour PNG image into a (new) PDL variable.\n",
+        Code => $gdiTrue_to_img,
 );
 
-# Function to read PNG image into an ndarray variable:
-pp_def( '_read_png',
-        Pars => 'int [o] img(x,y);',
-        OtherPars => 'char* filename',
-        Doc => undef,
-        Code => <<'EOC' );
-FILE *in = fopen($COMP(filename), "rb");
-if ( in == NULL )
-    $CROAK("Error opening %s!\n", $COMP(filename));
-
-gdImagePtr im = gdImageCreateFromPng(in);
-if ( im == NULL )
-    $CROAK("Error reading PNG data!\n");
-fclose(in);
-
-int xsize = gdImageSX(im), ysize = gdImageSY(im);
-/* Check the dims... */
-if ( !( ($SIZE(x)==xsize) && ($SIZE(y)==ysize) ) )
-    $CROAK("Dims of %s (%dx%d) and ndarray (%"IND_FLAG"x%"IND_FLAG") do not match!\n",
-            $COMP(filename), xsize, ysize, $SIZE(x), $SIZE(y));
-
-/* read the data */
-loop(y,x) %{
-  $img() = gdImageGetPixel(im, x, y);
-%}
-/* write the image to the file */
-gdImageDestroy(im);
-EOC
+pp_def( 'read_png',
+        Pars => '[o] img(x,y);',
+        GenericTypes => ['L'],
+        %gdi_dims_from_pngfile,
+        Doc => "=for ref\n\nReads a (palette) PNG image into a (new) PDL variable.\n",
+        Code => $gdi_to_img,
+);
 
 pp_def( '_gd_image_to_pdl_true',
-        Pars => 'byte [o] img(x,y,z);',
-        OtherPars => 'gdImagePtr img_ptr',
+        Pars => '[o] img(x,y,z=3);',
+        GenericTypes => ['B'],
+        %gdi_from_args,
+        %dims_from_gdi,
         Doc => undef,
-        Code => <<'ENDCODE' );
-gdImagePtr im = $COMP(img_ptr);
-
-int xsize = gdImageSX(im), ysize = gdImageSY(im);
-/* Check the dims... */
-if ( !( ($SIZE(x)==xsize) && ($SIZE(y)==ysize) ) )
-    $CROAK("Dims of gdImage (%dx%d) and ndarray (%"IND_FLAG"x%"IND_FLAG") do not match!\n",
-            xsize, ysize, $SIZE(x), $SIZE(y));
-
-/* read the data */
-loop(y,x) %{
-  int tpixel = gdImageTrueColorPixel(im, x, y);
-  $img(z=>0) = gdTrueColorGetRed(tpixel);
-  $img(z=>1) = gdTrueColorGetGreen(tpixel);
-  $img(z=>2) = gdTrueColorGetBlue(tpixel);
-%}
-ENDCODE
+        Code => $gdiTrue_to_img,
+);
 
 pp_def( '_gd_image_to_pdl',
-        Pars => 'byte [o] img(x,y);',
-        OtherPars => 'gdImagePtr img_ptr',
+        Pars => '[o] img(x,y);',
+        GenericTypes => ['L'],
+        %gdi_from_args,
+        %dims_from_gdi,
         Doc => undef,
-        Code => <<'ENDCODE' );
-gdImagePtr im = $COMP(img_ptr);
-
-int xsize = gdImageSX(im), ysize = gdImageSY(im);
-/* Check the dims... */
-if ( !( ($SIZE(x)==xsize) && ($SIZE(y)==ysize) ) )
-    $CROAK("Dims of gdImage (%dx%d) and ndarray (%"IND_FLAG"x%"IND_FLAG") do not match!\n",
-            xsize, ysize, $SIZE(x), $SIZE(y));
-
-/* read the data */
-loop(y,x) %{
-  $img() = gdImageGetPixel(im, x, y);
-%}
-ENDCODE
+        Code => $gdi_to_img,
+);
 
 pp_def( '_pdl_to_gd_image_true',
-        Pars => 'byte img(x,y,z=3); longlong [o] img_ptr(i)',
+        Pars => 'img(x,y,z=3); indx [o] img_ptr()',
+        GenericTypes => ['B'],
         Doc => undef,
-        Code => <<'ENDCODE' );
-int xsize = $SIZE(x), ysize = $SIZE(y);
-gdImagePtr im = gdImageCreateTrueColor(xsize, ysize);
-
-/* render the data */
-loop(y,x) %{
-  gdImageSetPixel(im, x, y,
-    gdImageColorResolve(im, $img(z=>0), $img(z=>1), $img(z=>2))
-  );
-%}
-$img_ptr(i=>0) = (PDL_LongLong) PTR2IV(im);
-ENDCODE
+        Code => $gdiTrue_from_dims . $img_to_gdiTrue . $gdi_to_ptr,
+);
 
 pp_def( '_pdl_to_gd_image_lut',
-        Pars => 'byte img(x,y); byte lut(i=3,j); longlong [o] img_ptr(q)',
+        Pars => 'img(x,y); lut(i=3,j); indx [o] img_ptr()',
+        GenericTypes => ['B'],
         Doc => undef,
-        RedoDimsCode => <<'EOF',
-if ($SIZE(j) > 256)
-    $CROAK("Wrong LUT dimensions (%"IND_FLAG", %"IND_FLAG")! (should be (3, X), where X <= 256)\n",
-            $SIZE(i), $SIZE(j) );
-EOF
-        Code => <<'ENDCODE' );
-int xsize = $SIZE(x), ysize = $SIZE(y);
-gdImagePtr im = gdImageCreate(xsize, ysize);
+        %lu_dim_check,
+        Code => $gdi_from_dims . $lut_allocate . $img_to_gdi . $gdi_to_ptr,
+);
 
-/* Set up the color palette */
-loop(j) %{
-    int tmp = gdImageColorAllocate(im, $lut(i=>0), $lut(i=>1), $lut(i=>2));
-    if (tmp != j)
-        $CROAK("palette mismatch on index %"IND_FLAG" (mapped to %d)!\n", j, tmp);
+pp_def( 'read_png_lut',
+        Pars => '[o] lut(c=3,i=256);',
+        GenericTypes => ['B'],
+        %gdi_from_pngfile,
+        Doc => "=for ref\n\nReads a color LUT from an already-existing palette PNG file.\n",
+        Code => <<'EOC',
+loop(i) %{
+  $lut(c=>0) = gdImageRed($COMP(im), i);
+  $lut(c=>1) = gdImageGreen($COMP(im), i);
+  $lut(c=>2) = gdImageBlue($COMP(im), i);
 %}
-
-/* render the data */
-loop(y,x) %{
-  gdImageSetPixel(im, x, y, $img());
-%}
-$img_ptr(q=>0) = (PDL_LongLong) PTR2IV(im);
-ENDCODE
-
-# Function to write Read PNG LUT Table into an ndarray variable:
-pp_addpm(<<'EOPM');
-
-=head2 read_png_lut( $filename )
-
-Reads a color LUT from an already-existing palette PNG file.
-
-=cut
-
-
-sub read_png_lut
-{
-    my $filename = shift;
-    my $lut = zeroes(byte, 3, 256);
-    _read_png_lut($lut, $filename);
-    return $lut;
-} # End of read_png_lut()...
-EOPM
-
-pp_add_exported('', 'read_png_lut');
-
-pp_def( '_read_png_lut',
-        Pars => 'byte [o] lut(c=3,i);',
-        OtherPars => 'char* filename',
-        Doc => undef,
-        Code => <<'EOC' );
-gdImagePtr im;
-int ind;
-FILE *in = fopen($COMP(filename), "rb");
-if ( in == NULL )
-    $CROAK("Error opening %s!\n", $COMP(filename));
-
-im = gdImageCreateFromPng(in);
-if ( im == NULL )
-    $CROAK("Error reading PNG data!\n");
-fclose(in);
-
-/* read the data */
-for( ind = 0; ind < 256; ind++ )
-{
-    $lut(c=>0,i=>ind) = gdImageRed(im, ind);
-    $lut(c=>1,i=>ind) = gdImageGreen(im, ind);
-    $lut(c=>2,i=>ind) = gdImageBlue(im, ind);
-}
-gdImageDestroy(im);
 EOC
-
+);
 
 pp_addxs( <<'ENDXS' );
 void 
@@ -925,36 +708,20 @@ EOF
         {
             if( defined( $options->{lut} ) )
             {
-                my $ptr = zeroes( longlong, 1 );
-                my $lut = $options->{lut};
-                _pdl_to_gd_image_lut( $pdl, $lut, $ptr );
-#		print STDERR "in new (with lut), setting IMG_PTR to " . $ptr->at(0) . "\n";
-                $self->{IMG_PTR} = $ptr->at(0);
-                $ptr = null;
-                die "$sub: _pdl_to_gd_image_lut() failed!\n"
-                    if( $self->{IMG_PTR} == 0 );
+                die "$sub: _pdl_to_gd_image_lut() failed!\n" unless
+                  $self->{IMG_PTR} = _pdl_to_gd_image_lut( $pdl, $options->{lut} )->sclr;
             }
             else
             {
-                my $ptr = zeroes( longlong, 1 );
                 my $lut = sequence(byte, 255)->slice("*3,:");
-                _pdl_to_gd_image_lut( $pdl, $lut, $ptr );
-#		print STDERR "in new (no lut), setting IMG_PTR to " . $ptr->at(0) . "\n";
-                $self->{IMG_PTR} = $ptr->at(0);
-                $ptr = null;
-                die "$sub: _pdl_to_gd_image_lut() failed!\n"
-                    if( $self->{IMG_PTR} == 0 );
+                die "$sub: _pdl_to_gd_image_lut() failed!\n" unless
+                  $self->{IMG_PTR} = _pdl_to_gd_image_lut( $pdl, $lut )->sclr;
             }
         }
         elsif( $num_dims == 3 )
         {
-            my $ptr = zeroes( longlong, 1 );
-            _pdl_to_gd_image_true( $pdl, $ptr );
-#	    print STDERR "in new (ndims=3), setting IMG_PTR to " . $ptr->at(0) . "\n";
-            $self->{IMG_PTR} = $ptr->at(0);
-            $ptr = null;
-            die "$sub: _pdl_to_gd_image_true() failed!\n"
-                if( $self->{IMG_PTR} == 0 );
+            die "$sub: _pdl_to_gd_image_true() failed!\n" unless
+              $self->{IMG_PTR} = _pdl_to_gd_image_true( $pdl )->sclr;
         }
         else
         {
@@ -979,21 +746,16 @@ EOF
     elsif( defined( $options->{x} ) && defined( $options->{y} ) )
     {   # Create an empty image:
         my $done = 0;
-        if( defined( $options->{true_color} ) )
-        {
-            if( $options->{true_color} )
-            {   # Create an empty true color image:
-                $self->{IMG_PTR} = _gdImageCreateTrueColor( $options->{x}, $options->{y} );
-                die "$sub: _gdImageCreateTrueColor() failed!\n"
-                    if( $self->{IMG_PTR} == 0 );
-                $done = 1;
-            }
+        if( $options->{true_color} )
+        {   # Create an empty true color image:
+            die "$sub: _gdImageCreateTrueColor() failed!\n" unless
+              $self->{IMG_PTR} = _gdImageCreateTrueColor( $options->{x}, $options->{y} );
+            $done = 1;
         }
         unless( $done )
         {   # Create an empty palette image:
-            $self->{IMG_PTR} = _gdImageCreatePalette( $options->{x}, $options->{y} );
-            die "$sub: _gdImageCreatePalette() failed!\n"
-                if( $self->{IMG_PTR} == 0 );
+            die "$sub: _gdImageCreatePalette() failed!\n" unless
+              $self->{IMG_PTR} = _gdImageCreatePalette( $options->{x}, $options->{y} );
         }
     }
     elsif( defined( $options->{data} ) )
@@ -1033,27 +795,11 @@ When you're done playing with your GDImage and want an ndarray back, use this fu
 
 =cut
 
-
-sub to_pdl
-{
+sub to_pdl {
     my $self = shift;
-
-    my $sub = _pkg_name( "to_pdl" );
-    
-    my $x = $self->gdImageSX();
-    my $y = $self->gdImageSY();
-    
-    if( $self->gdImageTrueColor() )
-    {
-        my $pdl = zeroes(byte, $x, $y, 3);
-        _gd_image_to_pdl_true( $pdl, $self->{IMG_PTR} );
-        return $pdl;
-    }
-    
-    my $pdl = zeroes(byte, $x, $y);
-    _gd_image_to_pdl( $pdl, $self->{IMG_PTR} );
-    return $pdl;
-} # End of to_pdl()...
+    $self->gdImageTrueColor() ? _gd_image_to_pdl_true( $self->{IMG_PTR} )
+      : _gd_image_to_pdl( $self->{IMG_PTR} );
+}
 
 =head2 apply_lut( $lut(ndarray) )
 
@@ -1823,6 +1569,7 @@ sub generate_pp_def_members
         #
         pp_def( $pdlpp_name,
             Pars => $pdlpp_arg_list,
+            GenericTypes => ['B'],
             OtherPars => 'gdImagePtr img_ptr',
             Doc => undef,
             Code => "$orig_name( \$COMP(img_ptr), $pdlpp_call_arg_list );" );
