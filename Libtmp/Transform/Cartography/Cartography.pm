@@ -362,8 +362,8 @@ sub graticule {
 		    $yp->flat->append($ym->flat)
 	    )->mv(1,0);
     } else {
-	 our $pp = (zeroes($xp)-1); $pp->slice("(-1)") .= 0;
-	 our $pm = (zeroes($xm)-1); $pm->slice("(-1)") .= 0;
+	 our $pp = zeroes($xp)-1; $pp->slice("(-1)") .= 0;
+	 our $pm = zeroes($xm)-1; $pm->slice("(-1)") .= 0;
 
 	if(wantarray) {
 	    return (  pdl( $xp->flat->append($xm->flat),

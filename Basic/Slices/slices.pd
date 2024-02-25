@@ -1042,20 +1042,12 @@ pp_def(
         'rld',
         GenericTypes => [ppdefs_all],
         Pars=>'indx a(n); b(n); [o]c(m);',
+        OtherPars=>'IV sumover_max => m',
         PMCode =>pp_line_numbers(__LINE__, <<'EOD'),
 sub PDL::rld {
   my ($x,$y) = @_;
-  my ($c);
-  if ($#_ == 2) {
-    $c = $_[2];
-  } else {
-# XXX Need to improve emulation of broadcasting in auto-generating c
-    my ($size) = $x->sumover->max->sclr;
-    my (@dims) = $x->dims;
-    shift @dims;
-    $c = $y->zeroes($size,@dims);
-  }
-  &PDL::_rld_int($x,$y,$c);
+  my ($c,$sm) = @_ == 3 ? ($_[2], $_[2]->dim(0)) : (PDL->null, $x->sumover->max->sclr);
+  PDL::_rld_int($x,$y,$c,$sm);
   $c;
 }
 EOD
@@ -1217,37 +1209,32 @@ EOD
 );
 
 pp_def('rldvec',
-       Pars => 'indx a(N); b(M,N); [o]c(M,N)',
-       PMCode =>pp_line_numbers(__LINE__, <<'EOC'),
+  Pars => 'indx a(uniqvals); b(M,uniqvals); [o]c(M,decodedvals)',
+  OtherPars=>'IV sumover_max => decodedvals',
+  PMCode =>pp_line_numbers(__LINE__, <<'EOC'),
 sub PDL::rldvec {
   my ($a,$b,$c) = @_;
-  if (!defined($c)) {
-# XXX Need to improve emulation of threading in auto-generating c
-    my ($rowlen) = $b->dim(0);
-    my ($size) = $a->sumover->max;
-    my (undef, @dims) = $a->dims;
-    $c = $b->zeroes($b->type,$rowlen,$size,@dims);
-  }
-  &PDL::_rldvec_int($a,$b,$c);
+  ($c,my $sm) = defined($c) ? ($c,$c->dim(1)) : (PDL->null,$a->sumover->max->sclr);
+  PDL::_rldvec_int($a,$b,$c,$sm);
   return $c;
 }
 EOC
        Code =>pp_line_numbers(__LINE__, <<'EOC'),
   PDL_Indx cn=0;
-  loop (N) %{
+  loop (uniqvals) %{
     PDL_Indx i, nrows = $a();
     for (i=0; i<nrows; i++) {
-      loop (M) %{ $c(N=>cn) = $b(); %}
+      loop (M) %{ $c(decodedvals=>cn) = $b(); %}
       cn++;
     }
    %}
 EOC
-       Doc =><<'EOD'
+  Doc =><<'EOD'
 =for ref
 
 Run-length decode a set of vectors, akin to a higher-order rld().
 
-Given a vector $a() of the number of occurrences of each row, and a set $c()
+Given a vector $a() of the number of occurrences of each row, and a set $b()
 of row-vectors each of length $M, run-length decode to $c().
 
 Can be used together with clump() to run-length decode "values" of arbitrary dimensions.
@@ -1295,29 +1282,26 @@ EOD
 );
 
 pp_def('rldseq',
-       Pars => 'indx a(N); b(N); [o]c(M)',
-       PMCode =>pp_line_numbers(__LINE__, <<'EOC'),
+  Pars => 'indx a(N); b(N); [o]c(M)',
+  OtherPars=>'IV sumover_max => M',
+  PMCode =>pp_line_numbers(__LINE__, <<'EOC'),
 sub PDL::rldseq {
   my ($a,$b,$c) = @_;
-  if (!defined($c)) {
-    my $size   = $a->sumover->max;
-    my (undef, @dims) = $a->dims;
-    $c = $b->zeroes($b->type,$size,@dims);
-  }
-  &PDL::_rldseq_int($a,$b,$c);
+  ($c,my $sm) = defined($c) ? ($c,$c->dim(1)) : (PDL->null,$a->sumover->max->sclr);
+  PDL::_rldseq_int($a,$b,$c,$sm);
   return $c;
 }
 EOC
        Code =>pp_line_numbers(__LINE__, <<'EOC'),
-  size_t mi=0;
+  PDL_Indx mi=0;
   loop (N) %{
-    size_t     len = $a(), li;
+    PDL_Indx     len = $a(), li;
     for (li=0; li < len; ++li, ++mi) {
       $c(M=>mi) = $b() + li;
     }
   %}
 EOC
-       Doc =><<'EOD'
+  Doc =><<'EOD'
 =for ref
 
 Run-length decode a subsequence vector.
@@ -1364,7 +1348,7 @@ sub rleND {
   my @vdimsN = $data->dims;
 
   ##-- construct output pdls
-  my $counts = $#_ >= 0 ? $_[0] : zeroes(long, $vdimsN[$#vdimsN]);
+  my $counts = $#_ >= 0 ? $_[0] : PDL->null;
   my $elts   = $#_ >= 1 ? $_[1] : zeroes($data->type, @vdimsN);
 
   ##-- guts: call rlevec()

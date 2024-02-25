@@ -1826,8 +1826,7 @@ sub map {
               croak("Whups -- got a nonlinear t_fits transformation.  Can't deal with it.");
           }
 
-          my $inv_sc_mat = zeroes($nd,$nd);
-          $inv_sc_mat->diagonal(0,1) .= $scale;
+          my $inv_sc_mat = PDL::MatrixOps::stretcher($scale);
           my $mat = $f_in->{params}->{matrix} x $inv_sc_mat;
           print "scale is $scale; mat is $mat\n" if($PDL::Transform::debug);
 
@@ -2456,7 +2455,7 @@ sub t_lookup {
         my $maxvals = $p->{table}->clump($me->{idim})->maximum;
 
         # Scale so that the range runs from 0 through the top pixel in the table
-        my $scale = (  pdl(  $itable->dims  )->slice("0:-2")-1  ) /
+        my $scale = (  $itable->shape->slice("0:-2")-1  ) /
                     (($maxvals - $minvals)+ (($maxvals-$minvals) == 0));
         my $offset = - ($minvals * $scale);
 
@@ -3843,8 +3842,7 @@ sub t_spherical {
     $me->{odim}=3;
 
     $me->{params}->{origin} = _opt($o,['o','origin','Origin']);
-    $me->{params}->{origin} = PDL->zeroes(3)
-        unless defined($me->{params}->{origin});
+    $me->{params}->{origin} //= PDL->zeroes(3);
     $me->{params}->{origin} = PDL->pdl($me->{params}->{origin});
 
     $me->{params}->{deg} = _opt($o,['d','degrees','Degrees']);

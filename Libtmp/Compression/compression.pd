@@ -145,16 +145,13 @@ sub PDL::rice_compress {
 	) {
 	die("rice_compress: input needs to have type byte, short, ushort, or long, not ".($in->type)."\n");
     }
-    # output buffer starts the same size; truncate at the end.
-    my ($out) = zeroes($in);
-    # lengths go here
-    my ($len) = zeroes(long, $in->slice("(0)")->dims);
-    PDL::_rice_compress_int( $in, $out, $len, $blocksize  );
-    my $l = $len->max;
+    PDL::_rice_compress_int( $in, my $out=PDL->null, my $len=PDL->null, $blocksize );
+    my $l = $len->max->sclr;
     $out = $out->slice("0:".($l-1))->sever;
     return wantarray ? ($out, $in->dim(0), $blocksize, $len) : $out;
 }
 EOD
+	RedoDimsCode => '$SIZE(m) = $SIZE(n);', # output same size; truncate after
 	Code => <<'EOD',
 int len;
 char *err = rcomp( $P(in),
@@ -174,7 +171,8 @@ pp_def(
 	"rice_expand",
 	HandleBad=>0,
 	Pars=>'in(n); [o]out(m);',
-	OtherPars=>'int blocksize',
+	OtherPars=>'IV dim0 => m; int blocksize',
+	OtherParsDefaults=>{ blocksize=>32 },
 	GenericTypes=>['B','S','US','L'],
 	Doc=><<'EOD',
 =for ref
@@ -185,17 +183,6 @@ Unsquishes a PDL that has been squished by rice_compress.
 
      ($out, $len, $blocksize, $dim0) = $pdl->rice_compress;
      $copy = $out->rice_expand($dim0, $blocksize);
-EOD
-	PMCode => <<'EOD',
-sub PDL::rice_expand {
-    my $squished = shift;
-    my $dim0 =shift;
-    my $blocksize = shift || 32;
-    # Allocate output array
-    my $out = zeroes( $squished->slice("(0),*$dim0") );
-    PDL::_rice_expand_int( $squished, $out, $blocksize );
-    return $out;
-}
 EOD
 	Code=><<'EOD',
 char *err = rdecomp( (unsigned char *)($P(in)),

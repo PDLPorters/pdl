@@ -130,12 +130,12 @@ sub new {
 	}
 	my $ndims1 = ($#{$ndims==0} ? $ndims : [1]);
 	bless {
-		Mu => (PDL->zeroes (@$ndims1,@$nfuncs)->double),
-		ICV => (PDL->zeroes (@$ndims1,@$ndims1,@$nfuncs)->double),
-		CV => (PDL->zeroes (@$ndims1,@$ndims1,@$nfuncs)->double),
-		lnPrefactor=> (PDL->zeroes(@$nfuncs)->double),
-		EigVec => (PDL->zeroes (@$ndims1,@$ndims1,@$nfuncs)->double),
-		EigVal => (PDL->zeroes (@$ndims1,@$nfuncs)->double),
+		Mu => PDL->zeroes(PDL::double, @$ndims1,@$nfuncs),
+		ICV => PDL->zeroes(PDL::double, @$ndims1,@$ndims1,@$nfuncs),
+		CV => PDL->zeroes(PDL::double, @$ndims1,@$ndims1,@$nfuncs),
+		lnPrefactor=> PDL->zeroes(PDL::double, @$nfuncs),
+		EigVec => PDL->zeroes(PDL::double, @$ndims1,@$ndims1,@$nfuncs),
+		EigVal => PDL->zeroes(PDL::double, @$ndims1,@$nfuncs),
 		NDims => $ndims,
 		NFuncs => $nfuncs,
 	},$type;
@@ -193,9 +193,9 @@ sub upd_icovariance {
 sub _eigs {
 	my($this,$mat) = @_;
 	my $tmpvec = $this->{EigVec}->float;
-	my $fvone = (PDL->zeroes(@{$this->{NDims}}))->float;
-	my $fvtwo = (PDL->zeroes(@{$this->{NDims}}))->float;
-	my $ierr = (PDL->zeroes(@{$this->{NFuncs}}))->long;
+	my $fvone = PDL->zeroes(PDL::float, @{$this->{NDims}});
+	my $fvtwo = PDL->zeroes(PDL::float, @{$this->{NDims}});
+	my $ierr = PDL->zeroes(PDL::long, @{$this->{NFuncs}});
 	my $tmp = $mat->float; # Copy, since is destroyed.
 	my $tmpval = $this->{EigVal}->float;
 
@@ -242,7 +242,7 @@ sub calc_value ($$$) {
 sub calc_lnvalue ($$$) {
 	my($this,$xorig,$p) = @_;
 	my $x = $xorig;
-	my $muxed = (PDL->zeroes(@{$this->{NDims}},@{$p->{Dims}}))->double;
+	my $muxed = PDL->zeroes(PDL::double, @{$this->{NDims}},@{$p->{Dims}});
 
 #	print "MUXED1: $muxed\n";
 

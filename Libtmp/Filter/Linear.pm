@@ -58,7 +58,7 @@ use strict;
 sub new($$) {
 	my($type,$npoints,$sigma) = @_;
 	my $cent = int($npoints/2);
-	my $x = ((PDL->zeroes($npoints )->xvals) - $cent)->float;
+	my $x = PDL->zeroes(float, $npoints )->xvals - $cent;
 	my $y = exp(-($x**2)/(2*$sigma**2));
 # Normalize to unit total
 	$y /= sum($y);
@@ -77,8 +77,8 @@ use strict;
 sub new($$) {
 	my($type,$deg,$nleft,$nright) = @_;
 	my $npoints = $nright + $nleft + 1;
-	my $x = ((PDL->zeroes($npoints )->xvals) - $nleft)->float;
-	my $mat1 = ((PDL->zeroes($npoints,$deg+1)->xvals))->float;
+	my $x = PDL->zeroes(float, $npoints )->xvals - $nleft;
+	my $mat1 = PDL->zeroes(float, $npoints,$deg+1)->xvals;
 	for(0..$deg-1) {
 		(my $tmp = $mat1->slice(":,($_)")) .= ($x ** $_);
 	}
@@ -88,4 +88,4 @@ sub new($$) {
 			Point => $nleft});
 }
 
-
+1;

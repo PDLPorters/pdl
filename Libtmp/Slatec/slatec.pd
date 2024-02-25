@@ -208,7 +208,7 @@ compute the determinant of an invertible matrix
 
 =for example
 
-  $mat = zeroes(5,5); $mat->diagonal(0,1) .= 1; # unity matrix
+  $mat = identity(5); # unity matrix
   $det = detslatec $mat;
 
 Usage:

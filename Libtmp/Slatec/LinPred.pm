@@ -106,7 +106,7 @@ sub _mk_mat {
 
 	my $auc = $this->{AutoCor};
 
-	my $autocov = PDL::float PDL->zeroes($nl*2,$nl*2);
+	my $autocov = PDL->zeroes(PDL::float, $nl*2,$nl*2);
 	$this->{AutoCov} = $autocov;
 
 	my $sal = $this->{SymAutoCor}->px->lags(0,1,$this->{NLags})->px;
@@ -130,7 +130,7 @@ sub _mk_mat {
 
 	my $autocinv = inv($autocov);
 #	print "$autocinv,$auc,$n\n"; $auc->slice("$n:-1");
-	$this->{AutoSliceUsed} = PDL->zeroes(2*$nl)->float;
+	$this->{AutoSliceUsed} = PDL->zeroes(PDL::float, 2*$nl);
 
 	($tmp = $this->{AutoSliceUsed}->slice("0:$nl1"))
 		.= $auc->slice(($n+$nl-1).":$n");
@@ -264,7 +264,7 @@ sub new ($$) {
 	$this->{AutoCor} = $auc;
 	my $n = $this->{NTotLags};
 	$this->{SymAutoCor} =
-		(PDL->zeroes($n * 2 - 1)->float);
+		PDL->zeroes(PDL::float, $n * 2 - 1);
 	my $tmp;
 	($tmp = $this->{SymAutoCor}->slice("0:".($n-2)))  .=
 		$auc->slice("-1:1");
