@@ -4,15 +4,25 @@ die "Usage: $0 outfile\n" if !@ARGV;
 
 use strict;
 use warnings;
-use PDL::PP;
+use PDL::PP qw(math.pd Math PDL::Math);
+PDL::PP::pp_def('dummy', Code=>'', Pars=>'a()'); # lazy-loads stuff
 use Graph;
 use GraphViz2;
+use Scalar::Util qw(refaddr);
 
 my $g = Graph->new; # should really be hypergraph but GraphViz2 not do yet
+$PDL::PP::deftbl = $PDL::PP::deftbl; # suppress warning
 for my $r (@{$PDL::PP::deftbl}) {
-  for my $t (@{$r->{targets}}) {
-    $g->add_vertex($t);
-    $g->add_edge($t, $_) for map s/_//gr, @{$r->{conditions}||[]};
+  my $r_addr = refaddr $r;
+  my $r_label = ref($r) =~ s/^PDL::PP:://r;
+  $g->set_vertex_attribute($r_addr, graphviz => { shape => 'box', label => $r_label });
+  $g->add_edge($_, $r_addr) for @{$r->{targets}};
+  for my $c (@{$r->{conditions}||[]}) {
+    my $maybe = $c =~ s/\?//g;
+    $g->add_edge($r_addr, $c);
+    $g->set_edge_attribute($r_addr, $c,
+      graphviz => { style => 'dashed' },
+    ) if $maybe;
   }
 }
 my ($fmt) = $ARGV[0] =~ /\.([^.]+)$/;
