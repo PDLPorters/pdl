@@ -132,9 +132,9 @@ sub PDL::convolve{
     my($x,$y,$c) = @_;
     barf("Usage: convolve(a(*), b(*), [o]c(*)") if $#_<1 || $#_>2;
     $c = PDL->null if $#_<2;
-    &PDL::_convolve_int( $x->clump(-1), $y->clump(-1),
+    &PDL::_convolve_int( $x->flat, $y->flat,
        long([$x->dims]), long([$y->dims]),
-       ($c->getndims>1? $c->clump(-1) : $c)
+       $c->isnull ? $c : $c->flat,
      );
      $c->setdims([$x->dims]);
 
@@ -403,9 +403,9 @@ sub circ_mean_p {
    $rad = long rvals $x;
  }
  $sum = zeroes($rad->max+1);
- PDL::indadd $x->clump(-1), $rad->clump(-1), $sum; # this does the real work
+ PDL::indadd $x->flat, $rad->flat, $sum; # this does the real work
  $norm = zeroes($rad->max+1);
- PDL::indadd pdl(1), $rad->clump(-1), $norm;       # equivalent to get norm
+ PDL::indadd pdl(1), $rad->flat, $norm;       # equivalent to get norm
  $sum /= $norm;
  return $sum;
 }
@@ -436,12 +436,12 @@ sub circ_mean {
    $rad = long rvals $x;
  }
  $sum = zeroes($rad->max+1);
- PDL::indadd $x->clump(-1), $rad->clump(-1), $sum; # this does the real work
+ PDL::indadd $x->flat, $rad->flat, $sum; # this does the real work
  $norm = zeroes($rad->max+1);
- PDL::indadd pdl(1), $rad->clump(-1), $norm;       # equivalent to get norm
+ PDL::indadd pdl(1), $rad->flat, $norm;       # equivalent to get norm
  $sum /= $norm;
- $a1 = $x->clump(-1);
- $a1 .= $sum->index($rad->clump(-1));
+ $a1 = $x->flat;
+ $a1 .= $sum->index($rad->flat);
 
  return $x;
 }

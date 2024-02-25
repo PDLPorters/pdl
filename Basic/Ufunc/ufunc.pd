@@ -560,7 +560,7 @@ This routine handles bad values.
 *$name = \\&PDL::$name;
 sub PDL::$name {
 	my (\$x) = \@_;
-	\$x->clump(-1)->${func}( my \$tmp=PDL->nullcreate(\$x) );
+	\$x->flat->${func}( my \$tmp=PDL->nullcreate(\$x) );
 	\$tmp;
 }
 EOD
@@ -642,7 +642,7 @@ and therefore ignore whether the values are bad.
 *minmax = \&PDL::minmax;
 sub PDL::minmax {
   my ($x)=@_; my $tmp;
-  my @arr = $x->clump(-1)->minmaximum;
+  my @arr = $x->flat->minmaximum;
   map $_->sclr, @arr[0,1]; # as scalars !
 }
 
@@ -947,7 +947,7 @@ specified percentile falls between data points, the $_->[1].
 *$_->[0]pct = \\&PDL::$_->[0]pct;
 sub PDL::$_->[0]pct {
 	my(\$x, \$p) = \@_;
-	\$x->clump(-1)->$_->[0]pctover(\$p, my \$tmp=PDL->nullcreate(\$x));
+	\$x->flat->$_->[0]pctover(\$p, my \$tmp=PDL->nullcreate(\$x));
 	\$tmp;
 }
 EOD

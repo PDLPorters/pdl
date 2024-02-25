@@ -1855,8 +1855,8 @@ sub PDL::applywarp2d {
     #
     my $mat = _mkbasis( ones(byte,$nf,$nf), $npts, $u, $v );
 
-    my $x = reshape( $mat x $px->clump(-1)->transpose(), $npts );
-    my $y = reshape( $mat x $py->clump(-1)->transpose(), $npts );
+    my $x = reshape( $mat x $px->flat->transpose(), $npts );
+    my $y = reshape( $mat x $py->flat->transpose(), $npts );
     return ( $x, $y );
 
 } # sub: applywarp2d

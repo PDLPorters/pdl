@@ -757,7 +757,7 @@ sub topdl {PDL->topdl(@_)}
         unless $_[0]->nelem == 1;
       confess("bad value ndarray in conditional expression")
         if $_[0]->badflag and $_[0].'' eq 'BAD';
-      $_[0]->clump(-1)->at(0);
+      $_[0]->flat->at(0);
     },
     ;
 }
@@ -3025,7 +3025,7 @@ sub PDL::reshape {
     $pdl->setdims(\@dims);
     $pdl->make_physical;
     if ($pdl->nelem > $nelem) {
-	my $tmp=$pdl->clump(-1)->slice("$nelem:-1");
+	my $tmp = $pdl->flat->slice("$nelem:-1");
 	$tmp .= 0;
     }
     $_[0] = $pdl;

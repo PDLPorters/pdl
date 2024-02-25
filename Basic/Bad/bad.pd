@@ -514,7 +514,7 @@ foreach my $op (
 *$op->[0] = \\&PDL::$op->[0];
 sub PDL::$op->[0] {
 	my(\$x) = \@_; my \$tmp;
-	\$x->clump(-1)->$op->[1](\$tmp=PDL->nullcreate(\$x) );
+	\$x->flat->$op->[1](\$tmp=PDL->nullcreate(\$x) );
 	return \$tmp;
 }
 EOD

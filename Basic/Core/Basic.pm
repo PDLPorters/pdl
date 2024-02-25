@@ -405,7 +405,7 @@ sub PDL::hist {
     my($pdl,$min,$max,$step)=@_;
     ($step, $min, my $bins, my $xvals) =
         _hist_bin_calc($pdl, $min, $max, $step, wantarray());
-    PDL::Primitive::histogram($pdl->clump(-1),(my $hist = null),
+    PDL::Primitive::histogram($pdl->flat,(my $hist = null),
 			      $step,$min,$bins);
     return wantarray() ? ($xvals,$hist) : $hist;
 }
@@ -449,7 +449,7 @@ sub PDL::whist {
     ($step, $min, my $bins, my $xvals) =
         _hist_bin_calc($pdl, $min, $max, $step, wantarray());
 
-    PDL::Primitive::whistogram($pdl->clump(-1),$wt->clump(-1),
+    PDL::Primitive::whistogram($pdl->flat,$wt->flat,
 			       (my $hist = null), $step, $min, $bins);
     return wantarray() ? ($xvals,$hist) : $hist;
 }
@@ -505,8 +505,7 @@ sub PDL::sequence {
     my $type_given = grep +(ref($_[$_])||'') eq 'PDL::Type', 0..1;
     $type_given ||= ref($_[0]) && UNIVERSAL::isa($_[0], 'PDL'); # instance method
     my $pdl = &PDL::Core::_construct;
-    my $bar = $pdl->clump(-1)->inplace;
-    axisvals2($bar,0,$type_given);
+    axisvals2($pdl->flat->inplace,0,$type_given);
     return $pdl;
 }
 

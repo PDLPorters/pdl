@@ -1443,7 +1443,7 @@ sub fibonacci { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? $_[0]->fibonacci : PDL
 sub PDL::fibonacci{
    my $x = &PDL::Core::_construct;
    my $is_inplace = $x->is_inplace;
-   my ($in, $out) = $x->clump(-1);
+   my ($in, $out) = $x->flat;
    $out = $is_inplace ? $in->inplace : PDL->null;
    PDL::_fibonacci_int($in, $out);
    $out;
@@ -3576,21 +3576,9 @@ broadcast over a smaller mask, for example.
 =cut
 
 sub PDL::where {
-    barf "Usage: where( \$pdl1, ..., \$pdlN, \$mask )\n" if @_ == 1;
-    if(@_ == 2) {
-	my($data,$mask) = @_;
-	$data = $_[0]->clump(-1) if $_[0]->getndims>1;
-	$mask = $_[1]->clump(-1) if $_[0]->getndims>1;
-	return $data->index($mask->which());
-    } else {
-	if($_[-1]->getndims > 1) {
-	    my $mask = $_[-1]->clump(-1)->which;
-	    return map {$_->clump(-1)->index($mask)} @_[0..$#_-1];
-	} else {
-	    my $mask = $_[-1]->which;
-	    return map {$_->index($mask)} @_[0..$#_-1];
-	}
-    }
+  barf "Usage: where( \$pdl1, ..., \$pdlN, \$mask )\n" if @_ == 1;
+  my $mask = pop->flat->which;
+  @_ == 1 ? $_[0]->flat->index($mask) : map $_->flat->index($mask), @_;
 }
 *where = \&PDL::where;
 
@@ -3628,7 +3616,7 @@ rather than index-sets are returned.
 sub PDL::where_both {
   barf "Usage: where_both(\$pdl, \$mask)\n" if @_ != 2;
   my ($arr, $mask) = @_;  # $mask has 0==false, 1==true
-  my $arr_flat = $arr->clump(-1);
+  my $arr_flat = $arr->flat;
   map $arr_flat->index1d($_), PDL::which_both($mask);
 }
 *where_both = \&PDL::where_both;
@@ -3791,8 +3779,7 @@ sub PDL::whichND {
 	  printf STDERR "whichND: WARNING - list context deprecated. Set \$PDL::whichND. Details in pod.";
       } elsif($PDL::whichND =~ m/l/i) {
 	  # old list context enabled by setting $PDL::whichND to 'l'
-	  my $ind=($mask->clump(-1))->which;
-	  return $mask->one2nd($ind);
+	  return $mask->one2nd($mask->flat->which);
       }
       # if $PDL::whichND does not contain 'l' or 'L', fall through to scalar context
   }

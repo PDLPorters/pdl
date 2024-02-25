@@ -45,7 +45,7 @@ if ($ExtUtils::F77::VERSION > 1.03) {
 
 sub tapprox {
     my ($x,$y) = @_;
-    my $c = abs($x->clump(-1)-$y->clump(-1));
+    my $c = abs($x->flat-$y->flat);
     my $d = max($c);
     $d < 0.01;
 }

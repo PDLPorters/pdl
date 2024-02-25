@@ -56,14 +56,14 @@ sub get_boundingbox {
 	my $foo = PDL->zeroes(6)->double;
 	my $A = $this->{Vertices}; printdims "A",$A;
 	my $B = $x->broadcast(0); printdims "B",$B;
-	my $C = $y->clump(-1); printdims "C",$C;
+	my $C = $y->flat; printdims "C",$C;
 	my $D = $c->unbroadcast(1); printdims "D",$D;
 
 	$this->{Vertices}->broadcast(0);
 
-	PDL::Primitive::minimum($this->{Vertices}->broadcast(0)->clump(-1)->unbroadcast(1),
+	PDL::Primitive::minimum($this->{Vertices}->broadcast(0)->flat->unbroadcast(1),
 		 $foo->slice('0:2'));
-	PDL::Primitive::maximum($this->{Vertices}->broadcast(0)->clump(-1)->unbroadcast(1),
+	PDL::Primitive::maximum($this->{Vertices}->broadcast(0)->flat->unbroadcast(1),
 		 $foo->slice('3:5'));
 	print "MeshBound: ",(join ',',$foo->list()),"\n";
 	return PDL::Graphics::TriD::BoundingBox->new( $foo->list() );

@@ -332,7 +332,7 @@ sub mapchunk {
     local $flexmapok=1;
     local $SIG{BUS} = \&myhandler unless $^O =~ /MSWin32/i;
     local $SIG{FPE} = \&myhandler;
-    eval {$pdl->clump(-1)->at(0)};
+    eval {$pdl->flat->at(0)};
     $_[4] += $len; # mutate input
     $flexmapok;
 }
