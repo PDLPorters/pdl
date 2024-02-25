@@ -702,11 +702,7 @@ pp_def('map',
         bounds[i] = 4;
         break;
       default:
-        {
-          char buf[BUFSIZ];
-          sprintf(buf,"Error in map: Unknown boundary condition '%c'",bstr[i]);
-          $CROAK("%s", buf);
-        }
+        $CROAK("Error in map: Unknown boundary condition '%c'",bstr[i]);
         break;
       }
     }
@@ -718,15 +714,15 @@ pp_def('map',
  */
  big    = labs($COMP(big));
  if(big <= 0)
-   $CROAK("%s","map: 'big' parameter must be >0");
+   $CROAK("map: 'big' parameter must be >0");
 
  blur   = fabs($COMP(blur));
  if(blur < 0)
-   $CROAK("%s","map: 'blur' parameter must be >= 0");
+   $CROAK("map: 'blur' parameter must be >= 0");
 
  sv_min = fabs($COMP(sv_min));
  if(sv_min < 0)
-   $CROAK("%s","map: 'sv_min' parameter must be >= 0");
+   $CROAK("map: 'sv_min' parameter must be >= 0");
 
  flux   = $COMP(flux) != 0;
 
@@ -775,11 +771,7 @@ pp_def('map',
     case 'G': case 'J':       // Jacobian -- same thing, with direct calculation
       method = 'G'; break;
     default:
-      {
-        char err[80];
-        sprintf(err,"Bug in map: unknown method '%c'",*mstr);
-        $CROAK("%s", err);
-      }
+      $CROAK("Bug in map: unknown method '%c'",*mstr);
       break;
     }
  }
@@ -878,7 +870,7 @@ pp_def('map',
        if(j<0 || j >= in->dims[i]) {
          switch(bounds[i]) {
          case 0: /* no breakage allowed */
-           $CROAK("%s","index out-of-bounds in map");
+           $CROAK("index out-of-bounds in map");
            break;
          case 1: /* truncation */
            t_vio++;
@@ -906,7 +898,7 @@ pp_def('map',
            }
            break;
          default:
-           $CROAK("%s", "Unknown boundary condition in map -- bug alert!");
+           $CROAK("Unknown boundary condition %d in map -- bug alert!", (int)bounds[i]);
            break;
          }
        }
@@ -1073,11 +1065,7 @@ pp_def('map',
               }
               break;
          default:
-           {
-             char buf[80];
-             sprintf(buf,"This can't happen: method='%c'",method);
-             $CROAK("%s", buf);
-           }
+           $CROAK("This can't happen: method='%c'",method);
          }
 
          {  /* convenience block -- accumulate the current point into the weighted sum.  */
@@ -2212,7 +2200,7 @@ sub _compose_op {
 sub _pow_op {
     my($x,$y,$c) = @_;
 
-    barf("%s", "Can't raise anything to the power of a transform")
+    barf("Can't raise anything to the power of a transform")
         if($c || UNIVERSAL::isa($y,'PDL::Transform')) ;
 
     $x = $x->inverse
