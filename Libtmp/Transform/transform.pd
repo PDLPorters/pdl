@@ -340,24 +340,14 @@ use Carp;
 
 *PDL::apply = \&apply;
 sub apply {
-  my($me) = shift;
-  my($from) = shift;
-
-  if(UNIVERSAL::isa($me,'PDL')){
-      my($x) = $from;
-      $from = $me;
-      $me = $x;
-  }
-
-  if(UNIVERSAL::isa($me,'PDL::Transform') && UNIVERSAL::isa($from,'PDL')){
-      croak "Applying a PDL::Transform with no func! Oops.\n" unless(defined($me->{func}) and ref($me->{func}) eq 'CODE');
-      my $result = &{$me->{func}}($from,$me->{params});
-      $result->is_inplace(0); # clear inplace flag, just in case.
-      return $result;
-  } else {
-      croak "apply requires both a PDL and a PDL::Transform.\n";
-  }
-
+  my ($me, $from) = UNIVERSAL::isa($_[0],'PDL') ? @_[1,0] : @_;
+  croak "apply requires both a PDL and a PDL::Transform.\n"
+    unless UNIVERSAL::isa($me,'PDL::Transform') && UNIVERSAL::isa($from,'PDL');
+  croak "Applying a PDL::Transform with no func! Oops.\n"
+    unless(defined($me->{func}) and ref($me->{func}) eq 'CODE');
+  my $result = $me->{func}->($from,$me->{params});
+  $result->is_inplace(0); # clear inplace flag, just in case.
+  return $result;
 }
 
 +======EOD_apply======
@@ -390,23 +380,14 @@ For convenience this is both a PDL method and a PDL::Transform method.
 
 *PDL::invert = \&invert;
 sub invert {
-  my($me) = shift;
-  my($data) = shift;
-
-  if(UNIVERSAL::isa($me,'PDL')){
-      my($x) = $data;
-      $data = $me;
-      $me = $x;
-  }
-
-  if(UNIVERSAL::isa($me,'PDL::Transform') && UNIVERSAL::isa($data,'PDL')){
-      croak "Inverting a PDL::Transform with no inverse! Oops.\n" unless(defined($me->{inv}) and ref($me->{inv}) eq 'CODE');
-      my $result = &{$me->{inv}}($data, $me->{params});
-      $result->is_inplace(0);  # make sure inplace flag is clear.
-      return $result;
-  } else {
-      croak("invert requires a PDL and a PDL::Transform (did you want 'inverse' instead?)\n");
-  }
+  my ($me, $from) = UNIVERSAL::isa($_[0],'PDL') ? @_[1,0] : @_;
+  croak "invert requires a PDL and a PDL::Transform (did you want 'inverse' instead?)\n"
+    unless UNIVERSAL::isa($me,'PDL::Transform') && UNIVERSAL::isa($from,'PDL');
+  croak "Inverting a PDL::Transform with no inverse! Oops.\n"
+    unless(defined($me->{inv}) and ref($me->{inv}) eq 'CODE');
+  my $result = $me->{inv}->($from, $me->{params});
+  $result->is_inplace(0);  # make sure inplace flag is clear.
+  return $result;
 }
 
 +======EOD_invert======
