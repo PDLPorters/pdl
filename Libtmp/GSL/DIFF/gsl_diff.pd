@@ -36,6 +36,8 @@ GNU Scientific Library.
      my ($x) = @_;
      return $x**2;
    }
+
+=cut
 EOD
 
 pp_addpm({At=>'Bot'},<<'EOD'); # the rest of FUNCTIONS section
@@ -149,7 +151,7 @@ sub diff_func {
   pp_def("diff_$which",
           Pars => 'double x(); double [o] res(); double [o] abserr();',
           OtherPars => 'SV* function;',
-          Docs => undef,
+          Doc => undef,
           Code => <<EOF,
   set_funname(\$COMP(function));
   gsl_function F;

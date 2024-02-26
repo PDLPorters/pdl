@@ -1478,7 +1478,7 @@ the largest non-broadcast input dimension.  (i.e. the default won't let
 you reduce the original image to less than 5 pixels across).  This places
 a limit on how long the processing can take for pathological transformations.
 Smaller numbers keep the code from hanging for a long time; larger numbers
-provide for photometric accuracy in more pathological cases.  Numbers larer
+provide for photometric accuracy in more pathological cases.  Numbers larger
 than 1.0 are silly, because they allow the entire input array to be compressed
 into a region smaller than a single pixel.
 

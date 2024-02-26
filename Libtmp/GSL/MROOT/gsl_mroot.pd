@@ -20,7 +20,7 @@ int fsolver (double *xfree, int  nelem, double epsabs, int method);
 pp_def('gslmroot_fsolver',
         Pars => 'double [io]xfree(n);   double epsabs(); int method();',
         OtherPars => 'SV* function1;',
-        Docs => <<'EOF',
+        Doc => <<'EOF',
 =for ref
 
 Multidimensional root finder without using derivatives
