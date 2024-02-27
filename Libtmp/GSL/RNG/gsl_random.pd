@@ -1561,25 +1561,25 @@ pp_addpm('
        ');
 
 pp_defnd(
-	'ran_bivariate_gaussian_meat',
+	'ran_bivariate_gaussian',
 	Pars => ';[o]x(n)',
 	OtherPars => 'double sigma_x; double sigma_y; double rho; IV rng',
-        Code =>'
+        Code => <<'EOF',
 double xx,yy;
 gsl_ran_bivariate_gaussian(INT2PTR(gsl_rng *, $COMP(rng)), $COMP(sigma_x), $COMP(sigma_y),$COMP(rho), &xx, &yy);
 $x(n=>0)=xx;
 $x(n=>1)=yy;
-');
-
-pp_addpm('
-       sub ran_bivariate_gaussian {
-	 my ($obj,$sigma_x,$sigma_y,$rho,$n) = @_;
-	 barf("Not enough parameters for gaussian bivariate!") if $n<=0;
-	 my $p = zeroes(2,$n);
-	 ran_bivariate_gaussian_meat($p,$sigma_x,$sigma_y,$rho,$$obj);
-	 return $p;
-       }
-       ');
+EOF
+        PMCode => <<'EOF',
+sub ran_bivariate_gaussian {
+ my ($obj,$sigma_x,$sigma_y,$rho,$n) = @_;
+ barf("Not enough parameters for gaussian bivariate!") if $n<=0;
+ my $p = zeroes(2,$n);
+ _ran_bivariate_gaussian_int($p,$sigma_x,$sigma_y,$rho,$$obj);
+ return $p;
+}
+EOF
+);
 
 pp_defnd(
 	'ran_dir_2d_meat',
