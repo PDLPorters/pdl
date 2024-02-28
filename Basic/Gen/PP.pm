@@ -666,7 +666,7 @@ sub _pp_addpm_nolineno {
 	if (ref $pm) {
 	  my $opt = $pm;
 	  $pm = shift;
-	  croak "unknown option" unless defined $opt->{At} &&
+	  confess "unknown option '$opt->{At}' (only Top|Bot|Middle)" unless defined $opt->{At} &&
 	    $opt->{At} =~ /^(Top|Bot|Middle)$/;
 	  $pos = $opt->{At};
 	} else {

@@ -9,6 +9,9 @@ use PDL::PP qw(foo::bar foo::bar foobar);
 # Prevent file generation (does not prevent calling of functions)
 $PDL::PP::done = 1;
 
+eval {pp_addpm({At=>'Mid'}, "blah")};
+like $@, qr/Middle/, 'pp_addpm says valid options';
+
 # Check the loop malformed call:
 eval {
 	pp_def(test1 =>
