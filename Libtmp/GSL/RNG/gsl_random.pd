@@ -56,16 +56,133 @@ The new method initializes a new instance of the RNG.
 
 The available RNGs are:
 
- coveyou cmrg fishman18 fishman20 fishman2x gfsr4 knuthran
- knuthran2 knuthran2002 lecuyer21 minstd mrg mt19937 mt19937_1999
- mt19937_1998 r250 ran0 ran1 ran2 ran3 rand rand48 random128_bsd
- random128_glibc2 random128_libc5 random256_bsd random256_glibc2
- random256_libc5 random32_bsd random32_glibc2 random32_libc5
- random64_bsd random64_glibc2 random64_libc5 random8_bsd
- random8_glibc2 random8_libc5 random_bsd random_glibc2
- random_libc5 randu ranf ranlux ranlux389 ranlxd1 ranlxd2 ranlxs0
- ranlxs1 ranlxs2 ranmar slatec taus taus2 taus113 transputer tt800
- uni uni32 vax waterman14 zuf default
+=over
+
+=item coveyou
+
+=item cmrg
+
+=item fishman18
+
+=item fishman20
+
+=item fishman2x
+
+=item gfsr4
+
+=item knuthran
+
+=item knuthran2
+
+=item knuthran2002
+
+=item lecuyer21
+
+=item minstd
+
+=item mrg
+
+=item mt19937
+
+=item mt19937_1999
+
+=item mt19937_1998
+
+=item r250
+
+=item ran0
+
+=item ran1
+
+=item ran2
+
+=item ran3
+
+=item rand
+
+=item rand48
+
+=item random128_bsd
+
+=item random128_glibc2
+
+=item random128_libc5
+
+=item random256_bsd
+
+=item random256_glibc2
+
+=item random256_libc5
+
+=item random32_bsd
+
+=item random32_glibc2
+
+=item random32_libc5
+
+=item random64_bsd
+
+=item random64_glibc2
+
+=item random64_libc5
+
+=item random8_bsd
+
+=item random8_glibc2
+
+=item random8_libc5
+
+=item random_bsd
+
+=item random_glibc2
+
+=item random_libc5
+
+=item randu
+
+=item ranf
+
+=item ranlux
+
+=item ranlux389
+
+=item ranlxd1
+
+=item ranlxd2
+
+=item ranlxs0
+
+=item ranlxs1
+
+=item ranlxs2
+
+=item ranmar
+
+=item slatec
+
+=item taus
+
+=item taus2
+
+=item taus113
+
+=item transputer
+
+=item tt800
+
+=item uni
+
+=item uni32
+
+=item vax
+
+=item waterman14
+
+=item zuf
+
+=item default
+
+=back
 
 The last one (default) uses the environment variable GSL_RNG_TYPE.
 
@@ -158,92 +275,6 @@ Example:
 
    $name = $rng->name();
 
-=head2 get
-
-=for ref
-
-This function creates an ndarray with given dimensions or accepts an
-existing ndarray and fills it. get() returns integer values
-between a minimum and a maximum specific to every RNG.
-
-Usage:
-
-=for usage
-
-   $ndarray = $rng->get($list_of_integers)
-   $rng->get($ndarray);
-
-Example:
-
-=for example
-
-   $x = zeroes 5,6;
-   $o = $rng->get(10,10); $rng->get($x);
-
-=head2 get_int
-
-=for ref
-
-This function creates an ndarray with given dimensions or accepts an
-existing ndarray and fills it. get_int() returns integer values
-between 0 and $max.
-
-Usage:
-
-=for usage
-
-   $ndarray = $rng->get($max, $list_of_integers)
-   $rng->get($max, $ndarray);
-
-Example:
-
-=for example
-
-   $x = zeroes 5,6; $max=100;
-   $o = $rng->get(10,10); $rng->get($x);
-
-=head2 get_uniform
-
-=for ref
-
-This function creates an ndarray with given dimensions or accepts an
-existing ndarray and fills it. get_uniform() returns values 0<=x<1,
-
-Usage:
-
-=for usage
-
-   $ndarray = $rng->get_uniform($list_of_integers)
-   $rng->get_uniform($ndarray);
-
-Example:
-
-=for example
-
-   $x = zeroes 5,6; $max=100;
-   $o = $rng->get_uniform(10,10); $rng->get_uniform($x);
-
-=head2 get_uniform_pos
-
-=for ref
-
-This function creates an ndarray with given dimensions or accepts an
-existing ndarray and fills it. get_uniform_pos() returns values 0<x<1,
-
-Usage:
-
-=for usage
-
-   $ndarray = $rng->get_uniform_pos($list_of_integers)
-   $rng->get_uniform_pos($ndarray);
-
-Example:
-
-=for example
-
-   $x = zeroes 5,6;
-   $o = $rng->get_uniform_pos(10,10); $rng->get_uniform_pos($x);
-
 =head2 ran_shuffle
 
 =for ref
@@ -292,850 +323,6 @@ Usage:
 
    @chosen = $rng->ran_choose_vec($n,@vec);
 
-=head2 ran_gaussian
-
-=for ref
-
-Fills output ndarray with random values from Gaussian distribution with mean zero and standard deviation C<$sigma>.
-
-Usage:
-
-=for usage
-
- $ndarray = $rng->ran_gaussian($sigma,[list of integers = output ndarray dims]);
- $rng->ran_gaussian($sigma, $output_ndarray);
-
-Example:
-
-=for example
-
-  $o = $rng->ran_gaussian($sigma,10,10);
-  $rng->ran_gaussian($sigma,$o);
-
-=head2 ran_gaussian_var
-
-=for ref
-
-This method is similar to L</ran_gaussian> except that it takes
-the parameters of the distribution as an ndarray and returns an ndarray of equal
-dimensions.
-
-Usage:
-
-=for usage
-
-   $ndarray = $rng->ran_gaussian_var($sigma_ndarray);
-   $rng->ran_gaussian_var($sigma_ndarray, $output_ndarray);
-
-Example:
-
-=for example
-
-   $sigma_pdl = rvals zeroes 11,11;
-   $o = $rng->ran_gaussian_var($sigma_pdl);
-
-=head2 ran_additive_gaussian
-
-=for ref
-
-Add Gaussian noise of given sigma to an ndarray.
-
-Usage:
-
-=for usage
-
-   $rng->ran_additive_gaussian($sigma,$ndarray);
-
-Example:
-
-=for example
-
-   $rng->ran_additive_gaussian(1,$image);
-
-=head2 ran_poisson
-
-=for ref
-
-Fills output ndarray by with random integer values from the Poisson distribution with mean C<$mu>.
-
-Usage:
-
-=for usage
-
-   $ndarray = $rng->ran_poisson($mu,[list of integers = output ndarray dims]);
-   $rng->ran_poisson($mu,$output_ndarray);
-
-=head2 ran_poisson_var
-
-=for ref
-
-Similar to L</ran_poisson> except that it takes the distribution
-parameters as an ndarray and returns an ndarray of equal dimensions.
-
-Usage:
-
-=for usage
-
-   $ndarray = $rng->ran_poisson_var($mu_ndarray);
-
-=head2 ran_additive_poisson
-
-=for ref
-
-Add Poisson noise of given C<$mu> to a C<$ndarray>.
-
-Usage:
-
-=for usage
-
-   $rng->ran_additive_poisson($mu,$ndarray);
-
-Example:
-
-=for example
-
-   $rng->ran_additive_poisson(1,$image);
-
-=head2 ran_feed_poisson
-
-=for ref
-
-This method simulates shot noise, taking the values of ndarray as
-values for C<$mu> to be fed in the poissonian RNG.
-
-Usage:
-
-=for usage
-
-   $rng->ran_feed_poisson($ndarray);
-
-Example:
-
-=for example
-
-   $rng->ran_feed_poisson($image);
-
-=head2 ran_bernoulli
-
-=for ref
-
-Fills output ndarray with random values 0 or 1, the result of a Bernoulli trial with probability C<$p>.
-
-Usage:
-
-=for usage
-
-   $ndarray = $rng->ran_bernoulli($p,[list of integers = output ndarray dims]);
-   $rng->ran_bernoulli($p,$output_ndarray);
-
-=head2 ran_bernoulli_var
-
-=for ref
-
-Similar to L</ran_bernoulli> except that it takes the distribution
-parameters as an ndarray and returns an ndarray of equal dimensions.
-
-Usage:
-
-=for usage
-
-   $ndarray = $rng->ran_bernoulli_var($p_ndarray);
-
-=head2 ran_beta
-
-=for ref
-
-Fills output ndarray with random variates from the beta distribution with parameters C<$pa> and C<$pb>.
-
-Usage:
-
-=for usage
-
-   $ndarray = $rng->ran_beta($pa,$pb,[list of integers = output ndarray dims]);
-   $rng->ran_beta($pa,$pb,$output_ndarray);
-
-=head2 ran_beta_var
-
-=for ref
-
-Similar to L</ran_beta> except that it takes the distribution
-parameters as an ndarray and returns an ndarray of equal dimensions.
-
-Usage:
-
-=for usage
-
-   $ndarray = $rng->ran_beta_var($a_ndarray, $b_ndarray);
-
-=head2 ran_binomial
-
-=for ref
-
-Fills output ndarray with random integer values from the binomial distribution, the number of
-successes in C<$n> independent trials with probability C<$p>.
-
-Usage:
-
-=for usage
-
-   $ndarray = $rng->ran_binomial($p,$n,[list of integers = output ndarray dims]);
-   $rng->ran_binomial($p,$n,$output_ndarray);
-
-=head2 ran_binomial_var
-
-=for ref
-
-Similar to L</ran_binomial> except that it takes the distribution
-parameters as an ndarray and returns an ndarray of equal dimensions.
-
-Usage:
-
-=for usage
-
-   $ndarray = $rng->ran_binomial_var($p_ndarray, $n_ndarray);
-
-=head2 ran_cauchy
-
-=for ref
-
-Fills output ndarray with random variates from the Cauchy distribution with scale parameter C<$pa>.
-
-Usage:
-
-=for usage
-
-   $ndarray = $rng->ran_cauchy($pa,[list of integers = output ndarray dims]);
-   $rng->ran_cauchy($pa,$output_ndarray);
-
-=head2 ran_cauchy_var
-
-=for ref
-
-Similar to L</ran_cauchy> except that it takes the distribution
-parameters as an ndarray and returns an ndarray of equal dimensions.
-
-Usage:
-
-=for usage
-
-   $ndarray = $rng->ran_cauchy_var($a_ndarray);
-
-=head2 ran_chisq
-
-=for ref
-
-Fills output ndarray with random variates from the chi-squared distribution with
-C<$nu> degrees of freedom.
-
-Usage:
-
-=for usage
-
-   $ndarray = $rng->ran_chisq($nu,[list of integers = output ndarray dims]);
-   $rng->ran_chisq($nu,$output_ndarray);
-
-=head2 ran_chisq_var
-
-=for ref
-
-Similar to L</ran_chisq> except that it takes the distribution
-parameters as an ndarray and returns an ndarray of equal dimensions.
-
-Usage:
-
-=for usage
-
-   $ndarray = $rng->ran_chisq_var($nu_ndarray);
-
-=head2 ran_exponential
-
-=for ref
-
-Fills output ndarray with random variates from the exponential distribution with mean C<$mu>.
-
-Usage:
-
-=for usage
-
-   $ndarray = $rng->ran_exponential($mu,[list of integers = output ndarray dims]);
-   $rng->ran_exponential($mu,$output_ndarray);
-
-=head2 ran_exponential_var
-
-=for ref
-
-Similar to L</ran_exponential> except that it takes the distribution
-parameters as an ndarray and returns an ndarray of equal dimensions.
-
-Usage:
-
-=for usage
-
-   $ndarray = $rng->ran_exponential_var($mu_ndarray);
-
-=head2 ran_exppow
-
-=for ref
-
-Fills output ndarray with random variates from the exponential power distribution with scale
-parameter C<$pa> and exponent C<$pb>.
-
-Usage:
-
-=for usage
-
-   $ndarray = $rng->ran_exppow($pa,$pb,[list of integers = output ndarray dims]);
-   $rng->ran_exppow($pa,$pb,$output_ndarray);
-
-=head2 ran_exppow_var
-
-=for ref
-
-Similar to L</ran_exppow> except that it takes the distribution
-parameters as an ndarray and returns an ndarray of equal dimensions.
-
-Usage:
-
-=for usage
-
-   $ndarray = $rng->ran_exppow_var($a_ndarray, $b_ndarray);
-
-=head2 ran_fdist
-
-=for ref
-
-Fills output ndarray with random variates from the F-distribution with degrees
-of freedom C<$nu1> and C<$nu2>.
-
-Usage:
-
-=for usage
-
-   $ndarray = $rng->ran_fdist($nu1, $nu2,[list of integers = output ndarray dims]);
-   $rng->ran_fdist($nu1, $nu2,$output_ndarray);
-
-=head2 ran_fdist_var
-
-=for ref
-
-Similar to L</ran_fdist> except that it takes the distribution
-parameters as an ndarray and returns an ndarray of equal dimensions.
-
-Usage:
-
-=for usage
-
-   $ndarray = $rng->ran_fdist_var($nu1_ndarray, $nu2_ndarray);
-
-=head2 ran_flat
-
-=for ref
-
-Fills output ndarray with random variates from the flat (uniform) distribution from C<$la> to C<$lb>.
-
-Usage:
-
-=for usage
-
-   $ndarray = $rng->ran_flat($la,$lb,[list of integers = output ndarray dims]);
-   $rng->ran_flat($la,$lb,$output_ndarray);
-
-=head2 ran_flat_var
-
-=for ref
-
-Similar to L</ran_flat> except that it takes the distribution
-parameters as an ndarray and returns an ndarray of equal dimensions.
-
-Usage:
-
-=for usage
-
-   $ndarray = $rng->ran_flat_var($a_ndarray, $b_ndarray);
-
-=head2 ran_gamma
-
-=for ref
-
-Fills output ndarray with random variates from the gamma distribution.
-
-Usage:
-
-=for usage
-
-   $ndarray = $rng->ran_gamma($pa,$pb,[list of integers = output ndarray dims]);
-   $rng->ran_gamma($pa,$pb,$output_ndarray);
-
-=head2 ran_gamma_var
-
-=for ref
-
-Similar to L</ran_gamma> except that it takes the distribution
-parameters as an ndarray and returns an ndarray of equal dimensions.
-
-Usage:
-
-=for usage
-
-   $ndarray = $rng->ran_gamma_var($a_ndarray, $b_ndarray);
-
-=head2 ran_geometric
-
-=for ref
-
-Fills output ndarray with random integer values from the geometric distribution,
-the number of independent trials with probability C<$p> until the first success.
-
-Usage:
-
-=for usage
-
-   $ndarray = $rng->ran_geometric($p,[list of integers = output ndarray dims]);
-   $rng->ran_geometric($p,$output_ndarray);
-
-=head2 ran_geometric_var
-
-=for ref
-
-Similar to L</ran_geometric> except that it takes the distribution
-parameters as an ndarray and returns an ndarray of equal dimensions.
-
-Usage:
-
-=for usage
-
-   $ndarray = $rng->ran_geometric_var($p_ndarray);
-
-=head2 ran_gumbel1
-
-=for ref
-
-Fills output ndarray with random variates from the Type-1 Gumbel distribution.
-
-Usage:
-
-=for usage
-
-   $ndarray = $rng->ran_gumbel1($pa,$pb,[list of integers = output ndarray dims]);
-   $rng->ran_gumbel1($pa,$pb,$output_ndarray);
-
-=head2 ran_gumbel1_var
-
-=for ref
-
-Similar to L</ran_gumbel1> except that it takes the distribution
-parameters as an ndarray and returns an ndarray of equal dimensions.
-
-Usage:
-
-=for usage
-
-   $ndarray = $rng->ran_gumbel1_var($a_ndarray, $b_ndarray);
-
-=head2 ran_gumbel2
-
-=for ref
-
-Fills output ndarray with random variates from the Type-2 Gumbel distribution.
-
-Usage:
-
-=for usage
-
-   $ndarray = $rng->ran_gumbel2($pa,$pb,[list of integers = output ndarray dims]);
-   $rng->ran_gumbel2($pa,$pb,$output_ndarray);
-
-=head2 ran_gumbel2_var
-
-=for ref
-
-Similar to L</ran_gumbel2> except that it takes the distribution
-parameters as an ndarray and returns an ndarray of equal dimensions.
-
-Usage:
-
-=for usage
-
-   $ndarray = $rng->ran_gumbel2_var($a_ndarray, $b_ndarray);
-
-=head2 ran_hypergeometric
-
-=for ref
-
-Fills output ndarray with random integer values from the hypergeometric distribution.
-If a population contains C<$n1> elements of type 1 and C<$n2> elements of
-type 2 then the hypergeometric distribution gives the probability of obtaining
-C<$x> elements of type 1 in C<$t> samples from the population without replacement.
-
-Usage:
-
-=for usage
-
-   $ndarray = $rng->ran_hypergeometric($n1, $n2, $t,[list of integers = output ndarray dims]);
-   $rng->ran_hypergeometric($n1, $n2, $t,$output_ndarray);
-
-=head2 ran_hypergeometric_var
-
-=for ref
-
-Similar to L</ran_hypergeometric> except that it takes the distribution
-parameters as an ndarray and returns an ndarray of equal dimensions.
-
-Usage:
-
-=for usage
-
-   $ndarray = $rng->ran_hypergeometric_var($n1_ndarray, $n2_ndarray, $t_ndarray);
-
-=head2 ran_laplace
-
-=for ref
-
-Fills output ndarray with random variates from the Laplace distribution with width C<$pa>.
-
-Usage:
-
-=for usage
-
-   $ndarray = $rng->ran_laplace($pa,[list of integers = output ndarray dims]);
-   $rng->ran_laplace($pa,$output_ndarray);
-
-=head2 ran_laplace_var
-
-=for ref
-
-Similar to L</ran_laplace> except that it takes the distribution
-parameters as an ndarray and returns an ndarray of equal dimensions.
-
-Usage:
-
-=for usage
-
-   $ndarray = $rng->ran_laplace_var($a_ndarray);
-
-=head2 ran_levy
-
-=for ref
-
-Fills output ndarray with random variates from the Levy symmetric stable
-distribution with scale C<$c> and exponent C<$alpha>.
-
-Usage:
-
-=for usage
-
-   $ndarray = $rng->ran_levy($mu,$x,[list of integers = output ndarray dims]);
-   $rng->ran_levy($mu,$x,$output_ndarray);
-
-=head2 ran_levy_var
-
-=for ref
-
-Similar to L</ran_levy> except that it takes the distribution
-parameters as an ndarray and returns an ndarray of equal dimensions.
-
-Usage:
-
-=for usage
-
-   $ndarray = $rng->ran_levy_var($mu_ndarray, $a_ndarray);
-
-=head2 ran_logarithmic
-
-=for ref
-
-Fills output ndarray with random integer values from the logarithmic distribution.
-
-Usage:
-
-=for usage
-
-   $ndarray = $rng->ran_logarithmic($p,[list of integers = output ndarray dims]);
-   $rng->ran_logarithmic($p,$output_ndarray);
-
-=head2 ran_logarithmic_var
-
-=for ref
-
-Similar to L</ran_logarithmic> except that it takes the distribution
-parameters as an ndarray and returns an ndarray of equal dimensions.
-
-Usage:
-
-=for usage
-
-   $ndarray = $rng->ran_logarithmic_var($p_ndarray);
-
-=head2 ran_logistic
-
-=for ref
-
-Fills output ndarray with random random variates from the logistic distribution.
-
-Usage:
-
-=for usage
-
-   $ndarray = $rng->ran_logistic($m,[list of integers = output ndarray dims]u)
-   $rng->ran_logistic($m,$output_ndarray)
-
-=head2 ran_logistic_var
-
-=for ref
-
-Similar to L</ran_logistic> except that it takes the distribution
-parameters as an ndarray and returns an ndarray of equal dimensions.
-
-Usage:
-
-=for usage
-
-   $ndarray = $rng->ran_logistic_var($m_ndarray);
-
-=head2 ran_lognormal
-
-=for ref
-
-Fills output ndarray with random variates from the lognormal distribution with
-parameters C<$mu> (location) and C<$sigma> (scale).
-
-Usage:
-
-=for usage
-
-   $ndarray = $rng->ran_lognormal($mu,$sigma,[list of integers = output ndarray dims]);
-   $rng->ran_lognormal($mu,$sigma,$output_ndarray);
-
-=head2 ran_lognormal_var
-
-=for ref
-
-Similar to L</ran_lognormal> except that it takes the distribution
-parameters as an ndarray and returns an ndarray of equal dimensions.
-
-Usage:
-
-=for usage
-
-   $ndarray = $rng->ran_lognormal_var($mu_ndarray, $sigma_ndarray);
-
-=head2 ran_negative_binomial
-
-=for ref
-
-Fills output ndarray with random integer values from the negative binomial
-distribution, the number of failures occurring before C<$n> successes in
-independent trials with probability C<$p> of success. Note that C<$n> is
-not required to be an integer.
-
-Usage:
-
-=for usage
-
-   $ndarray = $rng->ran_negative_binomial($p,$n,[list of integers = output ndarray dims]);
-   $rng->ran_negative_binomial($p,$n,$output_ndarray);
-
-=head2 ran_negative_binomial_var
-
-=for ref
-
-Similar to L</ran_negative_binomial> except that it takes the distribution
-parameters as an ndarray and returns an ndarray of equal dimensions.
-
-Usage:
-
-=for usage
-
-   $ndarray = $rng->ran_negative_binomial_var($p_ndarray, $n_ndarray);
-
-=head2 ran_pareto
-
-=for ref
-
-Fills output ndarray with random variates from the Pareto distribution of
-order C<$pa> and scale C<$lb>.
-
-Usage:
-
-=for usage
-
-   $ndarray = $rng->ran_pareto($pa,$lb,[list of integers = output ndarray dims]);
-   $rng->ran_pareto($pa,$lb,$output_ndarray);
-
-=head2 ran_pareto_var
-
-=for ref
-
-Similar to L</ran_pareto> except that it takes the distribution
-parameters as an ndarray and returns an ndarray of equal dimensions.
-
-Usage:
-
-=for usage
-
-   $ndarray = $rng->ran_pareto_var($a_ndarray, $b_ndarray);
-
-=head2 ran_pascal
-
-=for ref
-
-Fills output ndarray with random integer values from the Pascal distribution.
-The Pascal distribution is simply a negative binomial distribution
-(see L</ran_negative_binomial>) with an integer value of C<$n>.
-
-Usage:
-
-=for usage
-
-   $ndarray = $rng->ran_pascal($p,$n,[list of integers = output ndarray dims]);
-   $rng->ran_pascal($p,$n,$output_ndarray);
-
-=head2 ran_pascal_var
-
-=for ref
-
-Similar to L</ran_pascal> except that it takes the distribution
-parameters as an ndarray and returns an ndarray of equal dimensions.
-
-Usage:
-
-=for usage
-
-   $ndarray = $rng->ran_pascal_var($p_ndarray, $n_ndarray);
-
-=head2 ran_rayleigh
-
-=for ref
-
-Fills output ndarray with random variates from the Rayleigh distribution with scale parameter C<$sigma>.
-
-Usage:
-
-=for usage
-
-   $ndarray = $rng->ran_rayleigh($sigma,[list of integers = output ndarray dims]);
-   $rng->ran_rayleigh($sigma,$output_ndarray);
-
-=head2 ran_rayleigh_var
-
-=for ref
-
-Similar to L</ran_rayleigh> except that it takes the distribution
-parameters as an ndarray and returns an ndarray of equal dimensions.
-
-Usage:
-
-=for usage
-
-   $ndarray = $rng->ran_rayleigh_var($sigma_ndarray);
-
-=head2 ran_rayleigh_tail
-
-=for ref
-
-Fills output ndarray with random variates from the tail of the Rayleigh distribution
-with scale parameter C<$sigma> and a lower limit of C<$la>.
-
-Usage:
-
-=for usage
-
-   $ndarray = $rng->ran_rayleigh_tail($la,$sigma,[list of integers = output ndarray dims]);
-   $rng->ran_rayleigh_tail($x,$sigma,$output_ndarray);
-
-=head2 ran_rayleigh_tail_var
-
-=for ref
-
-Similar to L</ran_rayleigh_tail> except that it takes the distribution
-parameters as an ndarray and returns an ndarray of equal dimensions.
-
-Usage:
-
-=for usage
-
-   $ndarray = $rng->ran_rayleigh_tail_var($a_ndarray, $sigma_ndarray);
-
-=head2 ran_tdist
-
-=for ref
-
-Fills output ndarray with random variates from the t-distribution (AKA Student's
-t-distribution) with C<$nu> degrees of freedom.
-
-Usage:
-
-=for usage
-
-   $ndarray = $rng->ran_tdist($nu,[list of integers = output ndarray dims]);
-   $rng->ran_tdist($nu,$output_ndarray);
-
-=head2 ran_tdist_var
-
-=for ref
-
-Similar to L</ran_tdist> except that it takes the distribution
-parameters as an ndarray and returns an ndarray of equal dimensions.
-
-Usage:
-
-=for usage
-
-   $ndarray = $rng->ran_tdist_var($nu_ndarray);
-
-=head2 ran_ugaussian_tail
-
-=for ref
-
-Fills output ndarray with random variates from the upper tail of a Gaussian
-distribution with C<standard deviation = 1> (AKA unit Gaussian distribution).
-
-Usage:
-
-=for usage
-
-   $ndarray = $rng->ran_ugaussian_tail($tail,[list of integers = output ndarray dims]);
-   $rng->ran_ugaussian_tail($tail,$output_ndarray);
-
-=head2 ran_ugaussian_tail_var
-
-=for ref
-
-Similar to L</ran_ugaussian_tail> except that it takes the distribution
-parameters as an ndarray and returns an ndarray of equal dimensions.
-
-Usage:
-
-=for usage
-
-   $ndarray = $rng->ran_ugaussian_tail_var($tail_ndarray);
-
-=head2 ran_weibull
-
-=for ref
-
-Fills output ndarray with random variates from the Weibull distribution with scale C<$pa> and exponent C<$pb>. (Some literature uses C<lambda> for C<$pa> and C<k> for C<$pb>.)
-
-Usage:
-
-=for usage
-
-   $ndarray = $rng->ran_weibull($pa,$pb,[list of integers = output ndarray dims]);
-   $rng->ran_weibull($pa,$pb,$output_ndarray);
-
-=head2 ran_weibull_var
-
-=for ref
-
-Similar to L</ran_weibull> except that it takes the distribution
-parameters as an ndarray and returns an ndarray of equal dimensions.
-
-Usage:
-
-=for usage
-
-   $ndarray = $rng->ran_weibull_var($a_ndarray, $b_ndarray);
-
 =head2 ran_dir
 
 =for ref
@@ -1175,53 +362,6 @@ Example:
    $prob = pdl [0.1,0.3,0.6];
    $ddh = $rng->ran_discrete_preproc($prob);
    $o = $rng->ran_discrete($discrete_dist_handle,100);
-
-=head2 ran_discrete
-
-=for ref
-
-Is used to get the desired samples once a proper handle has been
-enstablished (see ran_discrete_preproc()).
-
-Usage:
-
-=for usage
-
-   $ndarray = $rng->ran_discrete($discrete_dist_handle,$num);
-
-Example:
-
-=for example
-
-   $prob = pdl [0.1,0.3,0.6];
-   $ddh = $rng->ran_discrete_preproc($prob);
-   $o = $rng->ran_discrete($discrete_dist_handle,100);
-
-=head2 ran_ver
-
-=for ref
-
-Returns an ndarray with C<$n> values generated by the Verhulst map from C<$x0> and
-parameter C<$r>.
-
-Usage:
-
-=for usage
-
-   $rng->ran_ver($x0, $r, $n);
-
-=head2 ran_caos
-
-=for ref
-
-Returns values from Verhuls map with C<$r=4.0> and randomly chosen
-C<$x0>. The values are scaled by C<$m>.
-
-Usage:
-
-=for usage
-
-   $rng->ran_caos($m,$n);
 
 =cut
 EOD
@@ -1264,9 +404,7 @@ EOD
 #
 sub make_get_sub {
   my ($fname,$par) =@_;
-  my $s;
-
-  $s = '
+  my $s = '
 sub ' . $fname . ' {
 my ($obj,' . $par . '@var) = @_;';
 
@@ -1278,38 +416,19 @@ my ($obj,' . $par . '@var) = @_;';
     }
 
 $s .= 'if (ref($var[0]) eq \'PDL\') {
-    gsl_' . $fname . '_meat($var[0],' . $par . '$$obj);
+    _' . $fname . '_int($var[0],' . $par . '$$obj);
     return $var[0];
 }
 else {
     my $p;
 
     $p = zeroes @var;
-    gsl_' . $fname . '_meat($p,' . $par . '$$obj);
+    _' . $fname . '_int($p,' . $par . '$$obj);
     return $p;
 }
 }
 '
 }
-
-pp_addpm(<<'EOPM');
-
-use strict;
-
-# PDL::GSL::RNG::nullcreate just creates a null PDL. Used
-#  for the GSL functions that create PDLs
-sub nullcreate{
-
-	my ($type,$arg) = @_;
-
-	PDL->nullcreate($arg);
-}
-EOPM
-
-pp_addpm(make_get_sub('get_uniform',''));
-pp_addpm(make_get_sub('get_uniform_pos',''));
-pp_addpm(make_get_sub('get',''));
-pp_addpm(make_get_sub('get_int','$n,'));
 
 pp_addhdr('
 #include <string.h>
@@ -1325,239 +444,361 @@ sub pp_defnd { # hide the docs
   pp_def($name,%hash,Doc=>undef);
 }
 
-pp_defnd(
-       'gsl_get_uniform_meat',
+pp_def(
+       'get_uniform',
        Pars => '[o]a()',
        GenericTypes => ['F','D'],
        OtherPars => 'IV rng',
        Code => '
-$a() = gsl_rng_uniform(INT2PTR(gsl_rng *, $COMP(rng)));');
+$a() = gsl_rng_uniform(INT2PTR(gsl_rng *, $COMP(rng)));',
+       PMCode => make_get_sub('get_uniform',''),
+       Doc => <<'EOF',
+=for ref
 
-pp_defnd(
-       'gsl_get_uniform_pos_meat',
+This function creates an ndarray with given dimensions or accepts an
+existing ndarray and fills it. get_uniform() returns values 0<=x<1,
+
+Usage:
+
+=for usage
+
+   $ndarray = $rng->get_uniform($list_of_integers)
+   $rng->get_uniform($ndarray);
+
+Example:
+
+=for example
+
+   $x = zeroes 5,6; $max=100;
+   $o = $rng->get_uniform(10,10); $rng->get_uniform($x);
+EOF
+);
+
+pp_def(
+       'get_uniform_pos',
        Pars => '[o]a()',
        GenericTypes => ['F','D'],
        OtherPars => 'IV rng',
        Code => '
-$a() = gsl_rng_uniform_pos(INT2PTR(gsl_rng *, $COMP(rng)));');
+$a() = gsl_rng_uniform_pos(INT2PTR(gsl_rng *, $COMP(rng)));',
+       PMCode => make_get_sub('get_uniform_pos',''),
+       Doc => <<'EOF',
+=for ref
 
-pp_defnd(
-       'gsl_get_meat',
+This function creates an ndarray with given dimensions or accepts an
+existing ndarray and fills it. get_uniform_pos() returns values 0<x<1,
+
+Usage:
+
+=for usage
+
+   $ndarray = $rng->get_uniform_pos($list_of_integers)
+   $rng->get_uniform_pos($ndarray);
+
+Example:
+
+=for example
+
+   $x = zeroes 5,6;
+   $o = $rng->get_uniform_pos(10,10); $rng->get_uniform_pos($x);
+EOF
+);
+
+pp_def(
+       'get',
        Pars => '[o]a()',
        GenericTypes => ['F','D'],
        OtherPars => 'IV rng',
        Code => '
-$a() = gsl_rng_get(INT2PTR(gsl_rng *, $COMP(rng)));');
+$a() = gsl_rng_get(INT2PTR(gsl_rng *, $COMP(rng)));',
+       PMCode => make_get_sub('get',''),
+       Doc => <<'EOF',
+=for ref
 
-pp_defnd(
-       'gsl_get_int_meat',
+This function creates an ndarray with given dimensions or accepts an
+existing ndarray and fills it. get() returns integer values
+between a minimum and a maximum specific to every RNG.
+
+Usage:
+
+=for usage
+
+   $ndarray = $rng->get($list_of_integers)
+   $rng->get($ndarray);
+
+Example:
+
+=for example
+
+   $x = zeroes 5,6;
+   $o = $rng->get(10,10); $rng->get($x);
+EOF
+);
+
+pp_def(
+       'get_int',
        Pars => '[o]a()',
        GenericTypes => ['F','D'],
        OtherPars => 'int n; IV rng',
        Code => '
-$a() = gsl_rng_uniform_int(INT2PTR(gsl_rng *, $COMP(rng)),$COMP(n));');
+$a() = gsl_rng_uniform_int(INT2PTR(gsl_rng *, $COMP(rng)),$COMP(n));',
+       PMCode => make_get_sub('get_int','$n,'),
+       Doc => <<'EOF',
+=for ref
+
+This function creates an ndarray with given dimensions or accepts an
+existing ndarray and fills it. get_int() returns integer values
+between 0 and $max.
+
+Usage:
+
+=for usage
+
+   $ndarray = $rng->get($max, $list_of_integers)
+   $rng->get($max, $ndarray);
+
+Example:
+
+=for example
+
+   $x = zeroes 5,6; $max=100;
+   $o = $rng->get(10,10); $rng->get($x);
+EOF
+);
 
 # randist stuff
 
 sub add_randist {
-  my ($name,$npar) = @_;
-  my ($pars1,$pars2,$fcall1,$fcall2,$arglist);
+  my ($name,$doc,$params) = @_;
+  my $npar = @$params;
+  my $pars1=join '; ', (map "double $_", @$params), 'IV rng';
+  my $fcall1=join ',', map "\$COMP($_)", @$params;
+  my $arglist=join '', map "\$$_,", @$params;
+  my $pars2=join ';', map "$_()", @$params;
+  my $fcall2=join ',', map "\$$_()", @$params;
+  my $arglist2=join ',', map "\$${_}_ndarray", @$params;
 
-  if ($npar==1) {
-    $pars1='double a; IV rng';
-    $fcall1='$COMP(a)';
-    $arglist='$a,';
-    $pars2='a()';
-    $fcall2='$a()';
-  }
-  if ($npar==2) {
-    $pars1='double a; double b; IV rng';
-    $fcall1='$COMP(a),$COMP(b)';
-    $arglist='$a,$b,';
-    $pars2='a();b()';
-    $fcall2='$a(),$b()';
-  }
-  if ($npar==3) {
-    $pars1='double a; double b; double c; IV rng';
-    $fcall1='$COMP(a),$COMP(b),$COMP(c)';
-    $arglist='$a,$b,$c,';
-    $pars2='a();b();c()';
-    $fcall2='$a(),$b(),$c()';
-  }
-
-  pp_defnd(
-	 'ran_' . $name . '_meat',
-	 Pars => '[o]x()',
+  pp_def(
+	 'ran_' . $name,
+	 Pars => '[o]output()',
 	 GenericTypes => ['F','D'],
 	 OtherPars => $pars1,
 	 Code =>'
-$x() = gsl_ran_' . $name . '(INT2PTR(gsl_rng *, $COMP(rng)),' . $fcall1 . ');');
-
-  pp_addpm('
+$output() = gsl_ran_' . $name . '(INT2PTR(gsl_rng *, $COMP(rng)),' . $fcall1 . ');',
+	 PMCode =>'
 sub ran_' . $name . ' {
 my ($obj,' . $arglist . '@var) = @_;
 if (ref($var[0]) eq \'PDL\') {
-    ran_' . $name . '_meat($var[0],' . $arglist . '$$obj);
+    _ran_' . $name . '_int($var[0],' . $arglist . '$$obj);
     return $var[0];
 }
 else {
     my $p;
-
     $p = zeroes @var;
-    ran_' . $name . '_meat($p,' . $arglist . '$$obj);
+    _ran_' . $name . '_int($p,' . $arglist . '$$obj);
     return $p;
 }
 }
-');
+',
+	 Doc => <<EOF,
+=for ref
 
-  pp_defnd(
-	 'ran_' . $name . '_var_meat',
-	 Pars => $pars2 . ';[o]x()',
+Fills output ndarray with random $doc
+
+Usage:
+
+=for usage
+
+ \$ndarray = \$rng->ran_$name(@{[join ', ', map qq{\$$_}, @$params]},[list of integers = output ndarray dims]);
+ \$rng->ran_$name(@{[join ', ', map qq{\$$_}, @$params]}, \$output_ndarray);
+
+Example:
+
+=for example
+
+  \$o = \$rng->ran_$name(@{[join ', ', map qq{\$$_}, @$params]},10,10);
+  \$rng->ran_$name(@{[join ', ', map qq{\$$_}, @$params]},\$o);
+EOF
+);
+
+  pp_def(
+	 'ran_' . $name . '_var',
+	 Pars => $pars2 . ';[o]output()',
 	 GenericTypes => ['F','D'],
 	 OtherPars => 'IV rng',
 	 Code =>'
-$x() = gsl_ran_' . $name . '(INT2PTR(gsl_rng *, $COMP(rng)),' . $fcall2 . ');');
-
-  pp_addpm('
+$output() = gsl_ran_' . $name . '(INT2PTR(gsl_rng *, $COMP(rng)),' . $fcall2 . ');',
+	 PMCode =>'
 sub ran_' . $name . '_var {
 my ($obj,@var) = @_;
     if (scalar(@var) != ' . $npar . ') {barf("Bad number of parameters!");}
-    return ran_' . $name . '_var_meat(@var,$$obj);
+    _ran_' . $name . '_var_int(@var,my $x=PDL->null,$$obj);
+    return $x;
 }
-');
+',
+	 Doc => <<EOF,
+=for ref
 
-#  pp_defnd(
-#	 'ran_' . $name . '_add_meat',
-#	 Pars => '[o]x()',
-#	 GenericTypes => ['F','D'],
-#	 OtherPars => $pars1,
-#	 Code =>'
-#$x() += gsl_ran_' . $name . '(INT2PTR(gsl_rng *, $COMP(rng)),' . $fcall1 . ');');
+Similar to L</ran_$name> except that it takes the distribution
+parameters as an ndarray and returns an ndarray of equal dimensions.
 
-#  pp_addpm('
-#sub ran_' . $name . '_add {
-#my ($obj,' . $arglist . '@var) = @_;
-#if (ref($var[0]) eq \'PDL\') {
-#    PDL::ran_' . $name . '_add_meat($var[0],' . $arglist . '$$obj);
-#    return $var[0];
-#}
-#else {
-#    barf("In add mode you must specify an ndarray!");
-#}
-#}
-#');
+Usage:
 
-#  if ($npar==1) {
-#    pp_defnd(
-#	   'ran_' . $name . '_feed_meat',
-#	   Pars => '[o]x()',
-#	   GenericTypes => ['F','D'],
-#	   OtherPars => 'IV rng',
-#	   Code =>'
-#$x() = gsl_ran_' . $name . '(INT2PTR(gsl_rng *, $COMP(rng)), $x());');
+=for usage
 
-#    pp_addpm('
-#sub ran_' . $name . '_feed {
-#my ($obj, @var) = @_;
-#if (ref($var[0]) eq \'PDL\') {
-#    PDL::ran_' . $name . '_feed_meat($var[0], $$obj);
-#    return $var[0];
-#}
-#else {
-#    barf("In feed mode you must specify an ndarray!");
-#}
-#}
-#');
-#  }
-
+   \$ndarray = \$rng->ran_${name}_var($arglist2);
+EOF
+  );
 }
 
-add_randist('gaussian',1);
-add_randist('ugaussian_tail',1);
-add_randist('exponential',1);
-add_randist('laplace',1);
-add_randist('exppow',2);
-add_randist('cauchy',1);
-add_randist('rayleigh',1);
-add_randist('rayleigh_tail',2);
-add_randist('levy',2);
-add_randist('gamma',2);
-add_randist('flat',2);
-add_randist('lognormal',2);
-add_randist('chisq',1);
-add_randist('fdist',2);
-add_randist('tdist',1);
-add_randist('beta',2);
-add_randist('logistic',1);
-add_randist('pareto',2);
-add_randist('weibull',2);
-add_randist('gumbel1',2);
-add_randist('gumbel2',2);
-add_randist('poisson',1);
-add_randist('bernoulli',1);
-add_randist('binomial',2);
-add_randist('negative_binomial',2);
-add_randist('pascal',2);
-add_randist('geometric',1);
-add_randist('hypergeometric',3);
-add_randist('logarithmic',1);
+add_randist('gaussian','values from Gaussian distribution with mean zero and standard deviation C<$sigma>.',[qw(sigma)]);
+add_randist('ugaussian_tail', 'variates from the upper tail of a Gaussian distribution with C<standard deviation = 1> (AKA unit Gaussian distribution).',[qw(tail)]);
+add_randist('exponential', 'variates from the exponential distribution with mean C<$mu>.',[qw(mu)]);
+add_randist('laplace', 'variates from the Laplace distribution with width C<$pa>.',[qw(pa)]);
+add_randist('exppow', 'variates from the exponential power distribution with scale parameter C<$pa> and exponent C<$pb>.',[qw(pa pb)]);
+add_randist('cauchy', 'variates from the Cauchy distribution with scale parameter C<$pa>.',[qw(pa)]);
+add_randist('rayleigh', 'variates from the Rayleigh distribution with scale parameter C<$sigma>.',[qw(sigma)]);
+add_randist('rayleigh_tail', 'variates from the tail of the Rayleigh distribution
+with scale parameter C<$sigma> and a lower limit of C<$la>.',[qw(x sigma)]);
+add_randist('levy', 'variates from the Levy symmetric stable distribution with scale C<$c> and exponent C<$alpha>.',[qw(mu x)]);
+add_randist('gamma', 'variates from the gamma distribution.',[qw(pa pb)]);
+add_randist('flat', 'variates from the flat (uniform) distribution from C<$la> to C<$lb>.',[qw(la lb)]);
+add_randist('lognormal', 'variates from the lognormal distribution with parameters C<$mu> (location) and C<$sigma> (scale).',[qw(mu sigma)]);
+add_randist('chisq', 'variates from the chi-squared distribution with C<$nu> degrees of freedom.',[qw(nu)]);
+add_randist('fdist', 'variates from the F-distribution with degrees of freedom C<$nu1> and C<$nu2>.',[qw(nu1 nu2)]);
+add_randist('tdist', q{variates from the t-distribution (AKA Student's
+t-distribution) with C<$nu> degrees of freedom.},[qw(nu)]);
+add_randist('beta', 'variates from the beta distribution with parameters C<$pa> and C<$pb>.',[qw(pa pb)]);
+add_randist('logistic', 'random variates from the logistic distribution.',[qw(m)]);
+add_randist('pareto', 'variates from the Pareto distribution of order C<$pa> and scale C<$lb>.',[qw(pa lb)]);
+add_randist('weibull', 'variates from the Weibull distribution with scale C<$pa> and exponent C<$pb>. (Some literature uses C<lambda> for C<$pa> and C<k> for C<$pb>.)',[qw(pa pb)]);
+add_randist('gumbel1', 'variates from the Type-1 Gumbel distribution.',[qw(pa pb)]);
+add_randist('gumbel2', 'variates from the Type-2 Gumbel distribution.',[qw(pa pb)]);
+add_randist('poisson','integer values from the Poisson distribution with mean C<$mu>.',[qw(mu)]);
+add_randist('bernoulli', 'values 0 or 1, the result of a Bernoulli trial with probability C<$p>.',[qw(p)]);
+add_randist('binomial', 'integer values from the binomial distribution, the number of successes in C<$n> independent trials with probability C<$p>.',[qw(p n)]);
+add_randist('negative_binomial', 'integer values from the negative binomial
+distribution, the number of failures occurring before C<$n> successes in
+independent trials with probability C<$p> of success. Note that C<$n> is
+not required to be an integer.',[qw(p n)]);
+add_randist('pascal', 'integer values from the Pascal distribution.
+The Pascal distribution is simply a negative binomial distribution
+(see L</ran_negative_binomial>) with an integer value of C<$n>.',[qw(p n)]);
+add_randist('geometric', 'integer values from the geometric distribution, the number of independent trials with probability C<$p> until the first success.',[qw(p)]);
+add_randist('hypergeometric', 'integer values from the hypergeometric distribution.
+If a population contains C<$n1> elements of type 1 and C<$n2> elements of
+type 2 then the hypergeometric distribution gives the probability of obtaining
+C<$x> elements of type 1 in C<$t> samples from the population without replacement.',[qw(n1 n2 t)]);
+add_randist('logarithmic', 'integer values from the logarithmic distribution.',[qw(p)]);
 
-# specific rnadist
+# specific randist
 
-pp_defnd(
-       'ran_additive_gaussian_meat',
-       Pars => ';[o]x()',
+pp_def(
+       'ran_additive_gaussian',
+       Pars => '[o]x()',
        GenericTypes => ['F','D'],
        OtherPars => 'double sigma; IV rng',
-       Code =>'$x() += gsl_ran_gaussian(INT2PTR(gsl_rng *, $COMP(rng)), $COMP(sigma));');
-
-pp_addpm('
+       Code =>'$x() += gsl_ran_gaussian(INT2PTR(gsl_rng *, $COMP(rng)), $COMP(sigma));',
+       PMCode =>'
        sub ran_additive_gaussian {
 	 my ($obj,$sigma,$var) = @_;
 	 barf("In additive gaussian mode you must specify an ndarray!")
 	   if ref($var) ne \'PDL\';
-	 ran_additive_gaussian_meat($var,$sigma,$$obj);
+	 _ran_additive_gaussian_int($var,$sigma,$$obj);
 	 return $var;
        }
-       ');
+       ',
+       Doc => <<'EOF',
+=for ref
 
-pp_defnd(
-       'ran_additive_poisson_meat',
-       Pars => ';[o]x()',
+Add Gaussian noise of given sigma to an ndarray.
+
+Usage:
+
+=for usage
+
+   $rng->ran_additive_gaussian($sigma,$ndarray);
+
+Example:
+
+=for example
+
+   $rng->ran_additive_gaussian(1,$image);
+EOF
+);
+
+pp_def(
+       'ran_additive_poisson',
+       Pars => '[o]x()',
        GenericTypes => ['F','D'],
        OtherPars => 'double sigma; IV rng',
-       Code =>'$x() += gsl_ran_poisson(INT2PTR(gsl_rng *, $COMP(rng)), $COMP(sigma));');
-
-pp_addpm('
+       Code =>'$x() += gsl_ran_poisson(INT2PTR(gsl_rng *, $COMP(rng)), $COMP(sigma));',
+       PMCode =>'
        sub ran_additive_poisson {
 	 my ($obj,$sigma,$var) = @_;
 	 barf("In additive poisson mode you must specify an ndarray!")
 	   if ref($var) ne \'PDL\';
-	 ran_additive_poisson_meat($var,$sigma,$$obj);
+	 _ran_additive_poisson_int($var,$sigma,$$obj);
 	 return $var;
        }
-       ');
+       ',
+       Doc => <<'EOF',
+=for ref
 
-pp_defnd(
-       'ran_feed_poisson_meat',
-       Pars => ';[o]x()',
+Add Poisson noise of given C<$mu> to a C<$ndarray>.
+
+Usage:
+
+=for usage
+
+   $rng->ran_additive_poisson($mu,$ndarray);
+
+Example:
+
+=for example
+
+   $rng->ran_additive_poisson(1,$image);
+EOF
+);
+
+pp_def(
+       'ran_feed_poisson',
+       Pars => '[o]x()',
        GenericTypes => ['F','D'],
        OtherPars => 'IV rng',
-       Code =>'$x() = gsl_ran_poisson(INT2PTR(gsl_rng *, $COMP(rng)), $x());');
-
-pp_addpm('
+       Code =>'$x() = gsl_ran_poisson(INT2PTR(gsl_rng *, $COMP(rng)), $x());',
+       PMCode =>'
        sub ran_feed_poisson {
 	 my ($obj,$var) = @_;
 	 barf("In poisson mode you must specify an ndarray!")
 	   if ref($var) ne \'PDL\';
-	 ran_feed_poisson_meat($var,$$obj);
+	 _ran_feed_poisson_int($var,$$obj);
 	 return $var;
        }
-       ');
+       ',
+       Doc => <<'EOF',
+=for ref
+
+This method simulates shot noise, taking the values of ndarray as
+values for C<$mu> to be fed in the poissonian RNG.
+
+Usage:
+
+=for usage
+
+   $rng->ran_feed_poisson($ndarray);
+
+Example:
+
+=for example
+
+   $rng->ran_feed_poisson($image);
+EOF
+);
 
 pp_def(
 	'ran_bivariate_gaussian',
-	Pars => ';[o]x(n)',
+	Pars => '[o]x(n)',
 	GenericTypes => ['F','D'],
 	OtherPars => 'double sigma_x; double sigma_y; double rho; IV rng',
         Code => <<'EOF',
@@ -1595,8 +836,8 @@ EOF
 );
 
 pp_defnd(
-	'ran_dir_2d_meat',
-	Pars => ';[o]x(n)',
+	'ran_dir_2d',
+	Pars => '[o]x(n)',
 	GenericTypes => ['F','D'],
 	OtherPars => 'IV rng',
         Code =>'
@@ -1607,8 +848,8 @@ $x(n=>1)=yy;
 ');
 
 pp_defnd(
-	'ran_dir_3d_meat',
-	Pars => ';[o]x(n)',
+	'ran_dir_3d',
+	Pars => '[o]x(n)',
 	GenericTypes => ['F','D'],
 	OtherPars => 'IV rng',
         Code =>'
@@ -1622,8 +863,8 @@ $x(n=>2)=zz;
 my $MAX_DIMENSIONS = 100;
 
 pp_defnd(
-	'ran_dir_nd_meat',
-	Pars => ';[o]x(n)',
+	'ran_dir_nd',
+	Pars => '[o]x(n)',
 	GenericTypes => ['F','D'],
 	OtherPars => 'int ns => n; IV rng',
         Code =>'
@@ -1636,38 +877,57 @@ pp_addpm('
 	 my ($obj,$ndim,$n) = @_;
 	 barf("Not enough parameters for random vectors!") if $n<=0;
 	 my $p = zeroes($ndim,$n);
-	 if ($ndim==2) { ran_dir_2d_meat($p,$$obj); }
-	 elsif ($ndim==3) { ran_dir_3d_meat($p,$$obj); }
-	 elsif ($ndim>=4 && $ndim<=' . $MAX_DIMENSIONS . ') { ran_dir_nd_meat($p,$ndim,$$obj); }
+	 if ($ndim==2) { ran_dir_2d($p,$$obj); }
+	 elsif ($ndim==3) { ran_dir_3d($p,$$obj); }
+	 elsif ($ndim>=4 && $ndim<=' . $MAX_DIMENSIONS . ') { ran_dir_nd($p,$ndim,$$obj); }
 	 else { barf("Bad number of dimensions!"); }
 	 return $p;
        }
        ');
 
-pp_defnd(
-	'ran_discrete_meat',
-	Pars => ';[o]x()',
+pp_def(
+	'ran_discrete',
+	Pars => '[o]x()',
 	GenericTypes => ['F','D'],
 	OtherPars => 'IV rng_discrete; IV rng',
         Code =>'
-$x()=gsl_ran_discrete(INT2PTR(gsl_rng *, $COMP(rng)), INT2PTR(gsl_ran_discrete_t *, $COMP(rng_discrete))); ');
-
-  pp_addpm('
+$x()=gsl_ran_discrete(INT2PTR(gsl_rng *, $COMP(rng)), INT2PTR(gsl_ran_discrete_t *, $COMP(rng_discrete))); ',
+        PMCode =>'
 sub ran_discrete {
 my ($obj, $rdt, @var) = @_;
 if (ref($var[0]) eq \'PDL\') {
-    ran_discrete_meat($var[0], $$rdt, $$obj);
+    _ran_discrete_int($var[0], $$rdt, $$obj);
     return $var[0];
 }
 else {
     my $p;
-
     $p = zeroes @var;
-    ran_discrete_meat($p, $$rdt, $$obj);
+    _ran_discrete_int($p, $$rdt, $$obj);
     return $p;
 }
 }
-');
+',
+       Doc => <<'EOF',
+=for ref
+
+Is used to get the desired samples once a proper handle has been
+enstablished (see ran_discrete_preproc()).
+
+Usage:
+
+=for usage
+
+   $ndarray = $rng->ran_discrete($discrete_dist_handle,$num);
+
+Example:
+
+=for example
+
+   $prob = pdl [0.1,0.3,0.6];
+   $ddh = $rng->ran_discrete_preproc($prob);
+   $o = $rng->ran_discrete($discrete_dist_handle,100);
+EOF
+);
 
   pp_addpm('
 sub ran_shuffle_vec {
@@ -1699,45 +959,69 @@ return @out;
 ');
 
 
-pp_defnd(
-	'ran_ver_meat',
-	Pars => ';[o]x(n)',
+pp_def(
+	'ran_ver',
+	Pars => '[o]x(n)',
 	GenericTypes => ['F','D'],
 	OtherPars => 'double x0; double r;int ns => n; IV rng',
         Code =>'
 double xx=$COMP(x0);
 
-loop (n) %{ $x() = xx; xx = $COMP(r)*(1-xx)*xx; %}');
+loop (n) %{ $x() = xx; xx = $COMP(r)*(1-xx)*xx; %}',
+        PMCode =>'
+       sub ran_ver {
+	 my ($obj,$x0,$r,$n) = @_;
+	 barf("Not enough parameters for ran_ver!") if $n<=0;
+	 my $p = zeroes($n);
+	 _ran_ver_int($p,$x0,$r,$n,$$obj);
+	 return $p;
+       }
+       ',
+       Doc => <<'EOF',
+=for ref
 
-pp_defnd(
-	'ran_caos_meat',
-	Pars => ';[o]x(n)',
+Returns an ndarray with C<$n> values generated by the Verhulst map from C<$x0> and
+parameter C<$r>.
+
+Usage:
+
+=for usage
+
+   $rng->ran_ver($x0, $r, $n);
+EOF
+);
+
+pp_def(
+	'ran_caos',
+	Pars => '[o]x(n)',
 	GenericTypes => ['F','D'],
 	OtherPars => 'double m; int ns => n; IV rng',
         Code =>'
 double xx=gsl_ran_gaussian(INT2PTR(gsl_rng *, $COMP(rng)),0.1)+0.5;
 
-loop (n) %{ $x() = (xx-0.5)*$COMP(m); xx = 4.0*(1-xx)*xx; %}');
-
-pp_addpm('
-       sub ran_ver {
-	 my ($obj,$x0,$r,$n) = @_;
-	 barf("Not enough parameters for ran_ver!") if $n<=0;
-	 my $p = zeroes($n);
-	 ran_ver_meat($p,$x0,$r,$n,$$obj);
-	 return $p;
-       }
-       ');
-
-pp_addpm('
+loop (n) %{ $x() = (xx-0.5)*$COMP(m); xx = 4.0*(1-xx)*xx; %}',
+        PMCode =>'
        sub ran_caos {
 	 my ($obj,$m,$n) = @_;
 	 barf("Not enough parameters for ran_caos!") if $n<=0;
 	 my $p = zeroes($n);
-	 ran_caos_meat($p,$m,$n,$$obj);
+	 _ran_caos_int($p,$m,$n,$$obj);
 	 return $p;
        }
-       ');
+       ',
+       Doc => <<'EOF',
+=for ref
+
+Returns values from Verhuls map with C<$r=4.0> and randomly chosen
+C<$x0>. The values are scaled by C<$m>.
+
+Usage:
+
+=for usage
+
+   $rng->ran_caos($m,$n);
+EOF
+);
 
 # XS function for the RNG object
 
