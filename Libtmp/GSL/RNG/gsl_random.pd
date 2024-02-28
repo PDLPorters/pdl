@@ -44,8 +44,10 @@ variables C<$a> and C<$b>, here we refer to Parameters C<a> and C<b>
 as C<$pa> and C<$pb>, respectively, and Limits (of domain or
 integration) as C<$la> and C<$lb>.
 
-=head1 FUNCTIONS
+=cut
+EOD
 
+pp_addpm({At=>'Middle'},<<'EOD');
 =head2 new
 
 =for ref
@@ -349,24 +351,6 @@ Example:
 =for example
 
    $rng->ran_additive_gaussian(1,$image);
-
-=head2 ran_bivariate_gaussian
-
-=for ref
-
-Generates C<$n> bivariate gaussian random deviates.
-
-Usage:
-
-=for usage
-
-   $ndarray = $rng->ran_bivariate_gaussian($sigma_x,$sigma_y,$rho,$n);
-
-Example:
-
-=for example
-
-   $o = $rng->ran_bivariate_gaussian(1,2,0.5,1000);
 
 =head2 ran_poisson
 
@@ -1239,6 +1223,10 @@ Usage:
 
    $rng->ran_caos($m,$n);
 
+=cut
+EOD
+
+pp_addpm({At=>'Bot'},<<'EOD');
 =head1 BUGS
 
 Feedback is welcome. Log bugs in the PDL bug database (the
@@ -1263,8 +1251,6 @@ PDL distribution, the copyright notice should be included in the file.
 The GSL RNG and randist modules were written by James Theiler.
 
 =cut
-
-
 EOD
 
 # PP interface to RNG
@@ -1358,6 +1344,7 @@ $a() = gsl_rng_uniform_pos(INT2PTR(gsl_rng *, $COMP(rng)));');
 pp_defnd(
        'gsl_get_meat',
        Pars => '[o]a()',
+       GenericTypes => ['F','D'],
        OtherPars => 'IV rng',
        Code => '
 $a() = gsl_rng_get(INT2PTR(gsl_rng *, $COMP(rng)));');
@@ -1365,6 +1352,7 @@ $a() = gsl_rng_get(INT2PTR(gsl_rng *, $COMP(rng)));');
 pp_defnd(
        'gsl_get_int_meat',
        Pars => '[o]a()',
+       GenericTypes => ['F','D'],
        OtherPars => 'int n; IV rng',
        Code => '
 $a() = gsl_rng_uniform_int(INT2PTR(gsl_rng *, $COMP(rng)),$COMP(n));');
@@ -1400,6 +1388,7 @@ sub add_randist {
   pp_defnd(
 	 'ran_' . $name . '_meat',
 	 Pars => '[o]x()',
+	 GenericTypes => ['F','D'],
 	 OtherPars => $pars1,
 	 Code =>'
 $x() = gsl_ran_' . $name . '(INT2PTR(gsl_rng *, $COMP(rng)),' . $fcall1 . ');');
@@ -1424,6 +1413,7 @@ else {
   pp_defnd(
 	 'ran_' . $name . '_var_meat',
 	 Pars => $pars2 . ';[o]x()',
+	 GenericTypes => ['F','D'],
 	 OtherPars => 'IV rng',
 	 Code =>'
 $x() = gsl_ran_' . $name . '(INT2PTR(gsl_rng *, $COMP(rng)),' . $fcall2 . ');');
@@ -1439,6 +1429,7 @@ my ($obj,@var) = @_;
 #  pp_defnd(
 #	 'ran_' . $name . '_add_meat',
 #	 Pars => '[o]x()',
+#	 GenericTypes => ['F','D'],
 #	 OtherPars => $pars1,
 #	 Code =>'
 #$x() += gsl_ran_' . $name . '(INT2PTR(gsl_rng *, $COMP(rng)),' . $fcall1 . ');');
@@ -1460,6 +1451,7 @@ my ($obj,@var) = @_;
 #    pp_defnd(
 #	   'ran_' . $name . '_feed_meat',
 #	   Pars => '[o]x()',
+#	   GenericTypes => ['F','D'],
 #	   OtherPars => 'IV rng',
 #	   Code =>'
 #$x() = gsl_ran_' . $name . '(INT2PTR(gsl_rng *, $COMP(rng)), $x());');
@@ -1515,6 +1507,7 @@ add_randist('logarithmic',1);
 pp_defnd(
        'ran_additive_gaussian_meat',
        Pars => ';[o]x()',
+       GenericTypes => ['F','D'],
        OtherPars => 'double sigma; IV rng',
        Code =>'$x() += gsl_ran_gaussian(INT2PTR(gsl_rng *, $COMP(rng)), $COMP(sigma));');
 
@@ -1531,6 +1524,7 @@ pp_addpm('
 pp_defnd(
        'ran_additive_poisson_meat',
        Pars => ';[o]x()',
+       GenericTypes => ['F','D'],
        OtherPars => 'double sigma; IV rng',
        Code =>'$x() += gsl_ran_poisson(INT2PTR(gsl_rng *, $COMP(rng)), $COMP(sigma));');
 
@@ -1547,6 +1541,7 @@ pp_addpm('
 pp_defnd(
        'ran_feed_poisson_meat',
        Pars => ';[o]x()',
+       GenericTypes => ['F','D'],
        OtherPars => 'IV rng',
        Code =>'$x() = gsl_ran_poisson(INT2PTR(gsl_rng *, $COMP(rng)), $x());');
 
@@ -1560,9 +1555,10 @@ pp_addpm('
        }
        ');
 
-pp_defnd(
+pp_def(
 	'ran_bivariate_gaussian',
 	Pars => ';[o]x(n)',
+	GenericTypes => ['F','D'],
 	OtherPars => 'double sigma_x; double sigma_y; double rho; IV rng',
         Code => <<'EOF',
 double xx,yy;
@@ -1579,11 +1575,29 @@ sub ran_bivariate_gaussian {
  return $p;
 }
 EOF
+        Doc => <<'EOF',
+=for ref
+
+Generates C<$n> bivariate gaussian random deviates.
+
+Usage:
+
+=for usage
+
+   $ndarray = $rng->ran_bivariate_gaussian($sigma_x,$sigma_y,$rho,$n);
+
+Example:
+
+=for example
+
+   $o = $rng->ran_bivariate_gaussian(1,2,0.5,1000);
+EOF
 );
 
 pp_defnd(
 	'ran_dir_2d_meat',
 	Pars => ';[o]x(n)',
+	GenericTypes => ['F','D'],
 	OtherPars => 'IV rng',
         Code =>'
 double xx,yy;
@@ -1595,6 +1609,7 @@ $x(n=>1)=yy;
 pp_defnd(
 	'ran_dir_3d_meat',
 	Pars => ';[o]x(n)',
+	GenericTypes => ['F','D'],
 	OtherPars => 'IV rng',
         Code =>'
 double xx,yy,zz;
@@ -1609,6 +1624,7 @@ my $MAX_DIMENSIONS = 100;
 pp_defnd(
 	'ran_dir_nd_meat',
 	Pars => ';[o]x(n)',
+	GenericTypes => ['F','D'],
 	OtherPars => 'int ns => n; IV rng',
         Code =>'
 double xxx[' . $MAX_DIMENSIONS .'];
@@ -1631,6 +1647,7 @@ pp_addpm('
 pp_defnd(
 	'ran_discrete_meat',
 	Pars => ';[o]x()',
+	GenericTypes => ['F','D'],
 	OtherPars => 'IV rng_discrete; IV rng',
         Code =>'
 $x()=gsl_ran_discrete(INT2PTR(gsl_rng *, $COMP(rng)), INT2PTR(gsl_ran_discrete_t *, $COMP(rng_discrete))); ');
@@ -1685,6 +1702,7 @@ return @out;
 pp_defnd(
 	'ran_ver_meat',
 	Pars => ';[o]x(n)',
+	GenericTypes => ['F','D'],
 	OtherPars => 'double x0; double r;int ns => n; IV rng',
         Code =>'
 double xx=$COMP(x0);
@@ -1694,6 +1712,7 @@ loop (n) %{ $x() = xx; xx = $COMP(r)*(1-xx)*xx; %}');
 pp_defnd(
 	'ran_caos_meat',
 	Pars => ';[o]x(n)',
+	GenericTypes => ['F','D'],
 	OtherPars => 'double m; int ns => n; IV rng',
         Code =>'
 double xx=gsl_ran_gaussian(INT2PTR(gsl_rng *, $COMP(rng)),0.1)+0.5;
