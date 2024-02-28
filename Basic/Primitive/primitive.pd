@@ -2224,9 +2224,8 @@ EOF
 	PMCode=>pp_line_numbers(__LINE__, <<'EOD'),
 sub random { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? $_[0]->random : PDL->random(@_) }
 sub PDL::random {
-   my $class = shift;
-   unshift @_, double() if !ref($class) and !@_;
-   my $x = scalar(@_)? $class->new_from_specification(@_) : $class->new_or_inplace;
+   splice @_, 1, 0, double() if !ref($_[0]) and @_<=1;
+   my $x = &PDL::Core::_construct;
    PDL::_random_int($x);
    return $x;
 }
@@ -2269,9 +2268,8 @@ EOF
 	PMCode=>pp_line_numbers(__LINE__, <<'EOD'),
 sub randsym { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? $_[0]->randsym : PDL->randsym(@_) }
 sub PDL::randsym {
-   my $class = shift;
-   unshift @_, double() if !ref($class) and !@_;
-   my $x = scalar(@_)? $class->new_from_specification(@_) : $class->new_or_inplace;
+   splice @_, 1, 0, double() if !ref($_[0]) and @_<=1;
+   my $x = &PDL::Core::_construct;
    PDL::_randsym_int($x);
    return $x;
 }
@@ -2304,8 +2302,7 @@ If it has not been called yet, it will be with the current time.
 
 sub grandom { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? $_[0]->grandom : PDL->grandom(@_) }
 sub PDL::grandom {
-   my $class = shift;
-   my $x = scalar(@_)? $class->new_from_specification(@_) : $class->new_or_inplace;
+   my $x = &PDL::Core::_construct;
    use PDL::Math 'ndtri';
    $x .= ndtri(randsym($x));
    return $x;
