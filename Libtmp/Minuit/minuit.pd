@@ -14,7 +14,7 @@ pp_addhdr('
 pp_addpm({At=>'Top'},<<'EOD');
 =head1 NAME
 
-PDL::Minuit -- a PDL interface to the Minuit library
+PDL::Minuit - a PDL interface to the Minuit library
 
 =head1 DESCRIPTION
 
@@ -23,13 +23,32 @@ of the CERN Library)
 
 =head1 SYNOPSIS
 
+  use PDL::LiteF;
+  use PDL::Minuit;
+  $x = sequence(10);
+  $y = 3.0 + 4.0*$x;
+  mn_init(\&chi2, {Title => 'test title'});
+  mn_def_pars($pars=pdl(2.5,3.0), $steps=pdl(0.3,0.5), {Names => [qw(intercept slope)]});
+  mn_excm('set pri',pdl(3.0));
+  mn_excm('migrad');
+  mn_excm('minos');
+  print "emat=", mn_emat();
+  print "out=", mn_pout(1), "\n";
+  mn_err(1);
+  mn_stat();
+
+  sub chi2 {
+      my ($npar,$grad,$fval,$xval,$iflag) = @_;
+      $fval = (($y - $xval->slice(0) - $xval->slice(1)*$x)**2)->sumover
+        if $iflag == 4;
+      ($fval,$grad);
+  }
+
 A basic fit with Minuit will call three functions in this package. First, a basic
 initialization is done with mn_init(). Then, the parameters are defined via
 the function mn_def_pars(), which allows setting upper and lower bounds. Then
 the function mn_excm() can be used to issue many Minuit commands, including simplex
 and migrad minimization algorithms (see Minuit manual for more details).
-
-See the test file minuit.t in the test (t/) directory for a basic example.
 
 =cut
 EOD
@@ -83,6 +102,7 @@ sub mn_init{
 pp_def('mninit',
         Pars => 'a(); b(); c();',
         GenericTypes => ['LL'],
+        Doc => undef,
         Code => 'MNINIT($P(a),$P(b),$P(c));
       ');
 pp_addxs('','
@@ -98,6 +118,7 @@ pp_def('mn_abre',
         Pars => 'l();',
         GenericTypes => ['LL'],
         OtherPars => 'char* nombre; char* mode;',
+        Doc => undef,
         Code => '
          PDL_Indx l1 = strlen($COMP(nombre)), l2 = strlen($COMP(mode));
          ABRE($P(l),$COMP(nombre),$COMP(mode),l1,l2);
@@ -105,6 +126,7 @@ pp_def('mn_abre',
 pp_def('mn_cierra',
         Pars => 'l();',
         GenericTypes => ['LL'],
+        Doc => undef,
         Code => 'CIERRA($P(l));'
 );
 
@@ -160,6 +182,7 @@ pp_def('mnparm',
        Pars => 'longlong a(); b(); c(); d(); e(); longlong [o] ia()',
        GenericTypes => ['D'],
        OtherPars => "char* str",
+       Doc => undef,
        Code => ' PDL_Indx largo=strlen($COMP(str));
                  MNPARM($P(a),$COMP(str),$P(b),$P(c),$P(d),$P(e),$P(ia),largo);
        ');
@@ -199,6 +222,7 @@ pp_def('mnexcm',
 	Pars =>'double a(n); ia(); [o] ib();',
 	GenericTypes => ['LL'],
 	OtherPars => 'char* str; SV* function; IV numelem;',
+	Doc => undef,
 	Code => 'double zero = 0.0;
         PDL_Indx largo=strlen($COMP(str));
         ene = $COMP(numelem);
@@ -237,6 +261,7 @@ pp_def('mnpout',
 	Pars => 'longlong ia(); [o] a(); [o] b(); [o] c(); [o] d();longlong [o] ib();',
 	GenericTypes => ['D'],
 	OtherPars => 'SV* str;',
+	Doc => undef,
 	Code => 'STRLEN largo; SV* tempo; char* uuu;
 	tempo = SvRV($COMP(str));
 	uuu = SvPV(tempo,largo);
@@ -263,6 +288,7 @@ pp_addpm('
 pp_def('mnstat',
         Pars => '[o] a(); [o] b(); [o] c(); longlong [o] ia(); longlong [o] ib(); longlong [o] ic();',
         GenericTypes => ['D'],
+        Doc => undef,
         Code => 'MNSTAT($P(a),$P(b),$P(c),$P(ia),$P(ib),$P(ic));
        ');
 
@@ -291,6 +317,7 @@ pp_addpm('
 pp_def('mnemat',
         Pars => '[o] mat(n,n);',
         GenericTypes => ['D'],
+        Doc => undef,
         Code => 'PDL_LongLong numrows = $SIZE(n);
         MNEMAT($P(mat),&numrows);
        ');
@@ -321,6 +348,7 @@ pp_addpm('
 pp_def('mnerrs',
 	Pars => 'longlong ia(); [o] a(); [o] b(); [o] c(); [o] d();',
 	GenericTypes => ['D'],
+	Doc => undef,
         Code => 'MNERRS($P(ia),$P(a),$P(b),$P(c),$P(d));
        ');
 
@@ -357,6 +385,7 @@ pp_def('mncont',
         Pars => 'ia(); ib(); ic(); double [o] a(n); double [o] b(n); [o] id();',
         GenericTypes => ['LL'],
         OtherPars => 'SV* function; IV numelem;',
+        Doc => undef,
         Code => 'double zero = 0.0;
         mnfunname = $COMP(function);
 	ene = $COMP(numelem);
