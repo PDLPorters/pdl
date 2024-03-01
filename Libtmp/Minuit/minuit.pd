@@ -67,14 +67,14 @@ sub mn_init{
            
   if (defined (my $logfile = $mn_options->{Log})){ 
     if (-e $logfile) { unlink $logfile; }   
-    PDL::Minuit::mn_abre($mn_options->{Unit},$logfile,\'new\');
+    mn_abre($mn_options->{Unit},$logfile,\'new\');
   }
 
-  PDL::Minuit::mninit(5,$mn_options->{Unit},$mn_options->{Unit});
-  PDL::Minuit::mnseti($mn_options->{Title});
+  mninit(5,$mn_options->{Unit},$mn_options->{Unit});
+  mnseti($mn_options->{Title});
 
   if (defined (my $logfile = $mn_options->{Log})){
-    PDL::Minuit::mn_cierra($mn_options->{Unit});
+    mn_cierra($mn_options->{Unit});
   }
 
 }
@@ -137,12 +137,12 @@ sub mn_def_pars{
   my $iflag = 0;
 
   if (defined (my $logfile = $mn_options->{Log})){
-    PDL::Minuit::mn_abre($mn_options->{Unit},$logfile,\'old\');
+    mn_abre($mn_options->{Unit},$logfile,\'old\');
   }
 
   foreach my $i ( 0..(nelem($pars)-1) ){
      my $ii = $i + 1;
-     $iflag = PDL::Minuit::mnparm($ii,$pars->slice("($i)"),
+     $iflag = mnparm($ii,$pars->slice("($i)"),
 		       $steps->slice("($i)"),
 		       $lo_bounds->slice("($i)"),
 		       $up_bounds->slice("($i)"),
@@ -151,7 +151,7 @@ sub mn_def_pars{
   }
   
   if (defined (my $logfile = $mn_options->{Log})){
-     PDL::Minuit::mn_cierra($mn_options->{Unit});
+     mn_cierra($mn_options->{Unit});
   }
 }
 ');
@@ -178,17 +178,17 @@ sub mn_excm{
   if ( @_ ) { barf "Usage : mn_excm($command, [$arglis]) \n"; }
 
   if (defined (my $logfile = $mn_options->{Log})){
-    PDL::Minuit::mn_abre($mn_options->{Unit},$logfile,\'old\');
+    mn_abre($mn_options->{Unit},$logfile,\'old\');
   }
 
   my $iflag = pdl(0);
 
 
-  $iflag = PDL::Minuit::mnexcm($arglis, $narg, $command, $fun_ref,$mn_options->{N});
+  $iflag = mnexcm($arglis, $narg, $command, $fun_ref,$mn_options->{N});
   warn "Problem executing command \'$command\' " unless ($iflag == 0);
 
   if (defined (my $logfile = $mn_options->{Log})){
-    PDL::Minuit::mn_cierra($mn_options->{Unit});
+    mn_cierra($mn_options->{Unit});
   }
 
   return $iflag;
@@ -214,7 +214,7 @@ pp_addpm('
     if (($par_num < 1) || ($par_num > $n)) { barf "Parameter numbers range from 1 to $n "; }
 
     if (defined (my $logfile = $mn_options->{Log})){
-      PDL::Minuit::mn_abre($mn_options->{Unit},$logfile,\'old\');
+      mn_abre($mn_options->{Unit},$logfile,\'old\');
     }
 
     my $val = pdl(0);
@@ -223,10 +223,10 @@ pp_addpm('
     my $bnd2 = pdl(0);
     my $ivarbl = pdl(0);
     my $par_name = "          ";
-    PDL::Minuit::mnpout($par_num,$val,$err,$bnd1,$bnd2,$ivarbl,\$par_name);
+    mnpout($par_num,$val,$err,$bnd1,$bnd2,$ivarbl,\$par_name);
 
     if (defined (my $logfile = $mn_options->{Log})){
-      PDL::Minuit::mn_cierra($mn_options->{Unit});
+      mn_cierra($mn_options->{Unit});
     }
 
     return ($val,$err,$bnd1,$bnd2,$ivarbl,$par_name);    
@@ -247,14 +247,14 @@ pp_def('mnpout',
 pp_addpm('
   sub mn_stat{
      if (defined (my $logfile = $mn_options->{Log})){
-       PDL::Minuit::mn_abre($mn_options->{Unit},$logfile,\'old\');
+       mn_abre($mn_options->{Unit},$logfile,\'old\');
      }
 
 
-     my ($fmin,$fedm,$errdef,$npari,$nparx,$istat) = PDL::Minuit::mnstat();
+     my ($fmin,$fedm,$errdef,$npari,$nparx,$istat) = mnstat();
 
      if (defined (my $logfile = $mn_options->{Log})){
-       PDL::Minuit::mn_cierra($mn_options->{Unit});
+       mn_cierra($mn_options->{Unit});
      }
 
      return ($fmin,$fedm,$errdef,$npari,$nparx,$istat);
@@ -271,17 +271,17 @@ pp_addpm('
   sub mn_emat{
    
     if (defined (my $logfile = $mn_options->{Log})){
-      PDL::Minuit::mn_abre($mn_options->{Unit},$logfile,\'old\');
+      mn_abre($mn_options->{Unit},$logfile,\'old\');
     }
 
-    my ($fmin,$fedm,$errdef,$npari,$nparx,$istat) = PDL::Minuit::mnstat();
+    my ($fmin,$fedm,$errdef,$npari,$nparx,$istat) = mnstat();
     my $n = $npari->sum->at;
     my $mat = zeroes($n,$n);
 
-    PDL::Minuit::mnemat($mat);
+    mnemat($mat);
 
     if (defined (my $logfile = $mn_options->{Log})){
-      PDL::Minuit::mn_cierra($mn_options->{Unit});
+      mn_cierra($mn_options->{Unit});
     }
     
     return $mat;
@@ -306,13 +306,13 @@ pp_addpm('
     if (($par_num < 1) || ($par_num > $n)) { barf "Parameter numbers range from 1 to $n "; }
 
     if (defined (my $logfile = $mn_options->{Log})){
-      PDL::Minuit::mn_abre($mn_options->{Unit},$logfile,\'old\');
+      mn_abre($mn_options->{Unit},$logfile,\'old\');
     }
 
-    my ($eplus,$eminus,$eparab,$globcc) = PDL::Minuit::mnerrs($par_num);
+    my ($eplus,$eminus,$eparab,$globcc) = mnerrs($par_num);
 
     if (defined (my $logfile = $mn_options->{Log})){
-      PDL::Minuit::mn_cierra($mn_options->{Unit});
+      mn_cierra($mn_options->{Unit});
     }
 
     return ($eplus,$eminus,$eparab,$globcc);
@@ -343,10 +343,10 @@ pp_addpm('
     my $ypt = zeroes($npt);
     my $nfound = pdl->new;
 
-    PDL::Minuit::mncont($par_num_1,$par_num_2,$npt,$xpt,$ypt,$nfound,$fun_ref,$n);
+    mncont($par_num_1,$par_num_2,$npt,$xpt,$ypt,$nfound,$fun_ref,$n);
 
     if (defined (my $logfile = $mn_options->{Log})){
-      PDL::Minuit::mn_cierra($mn_options->{Unit});
+      mn_cierra($mn_options->{Unit});
     }
 
     return ($xpt,$ypt,$nfound);
