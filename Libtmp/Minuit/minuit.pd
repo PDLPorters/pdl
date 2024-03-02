@@ -555,7 +555,7 @@ Example:
   $iflag = mn_excm('set strategy',$arglist);
 
   # each command can be specified by a minimal string that uniquely
-  # identifies it (see Chapter 4 of Minuit manual). The comannd above
+  # identifies it (see Chapter 4 of Minuit manual). The command above
   # is equivalent to:
   $iflag = mn_excm('set stra',$arglis);
 

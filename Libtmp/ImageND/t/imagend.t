@@ -40,7 +40,7 @@ my $pb = pdl( [-1,0],[0,1] );
 	my $pc = convolveND($pa,$pb,{m=>'d',b=>'e'});
 	ok( all PDL::approx($pc,$ans_e, $eps) ) or diag $pc;
 	$pc = convolveND($pa,$pb,{m=>'f',b=>'e'});
-	ok( all PDL::approx($pc,$ans_e, $eps) );
+	ok( all PDL::approx($pc,$ans_e, $eps) ) or diag $pc;
 }
 
 {

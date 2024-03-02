@@ -666,7 +666,7 @@ sub PDL::convolveND {
 
   ###
   # Pad the array to include boundary conditions
-  my $adims = pdl($x->dims);
+  my $adims = $x->shape;
   my $koff = ($kdims/2)->ceil - 1;
 
   my $aa = $x->range( -$koff, $adims + $kdims, $opt->{Boundary} )
@@ -680,10 +680,7 @@ sub PDL::convolveND {
     # FFT works best on doubles; do our work there then cast back
     # at the end.  
     $aa = double($aa);
-    my $aai = $aa->zeroes;
-
-    my $kk = $aa->zeroes;
-    my $kki = $aa->zeroes;
+    $_ = $aa->zeroes for my ($aai, $kk, $kki);
     my $tmp;  # work around new perl -d "feature"
     ($tmp = $kk->range( - ($kdims/2)->floor, $kdims, 'p')) .= $k;
     PDL::fftnd($kk, $kki);
