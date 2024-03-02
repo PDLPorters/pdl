@@ -923,16 +923,14 @@ sub pp_def {
 	croak("ERROR: No FreeFunc for pp_def=$name!\n")
 	  unless exists $obj{FreeFunc};
 
-	my $ctext = join("\n\n",grep $_, @obj{'StructDecl','RedoDimsFunc',
-		'ReadDataFunc','WriteBackDataFunc',
-		'FreeFunc',
-		'VTableDef','RunFunc',
-		}
-		);
+	my $ctext = join("\n\n",grep $_, @obj{qw(
+		CHeader StructDecl RedoDimsFunc
+		ReadDataFunc WriteBackDataFunc
+		FreeFunc
+		VTableDef RunFunc
+	)});
 	if ($::PDLMULTI_C) {
-	  PDL::PP->printxsc(undef, <<EOF);
-$obj{RunFuncHdr};
-EOF
+	  PDL::PP->printxsc(undef, "$obj{RunFuncHdr};\n");
 	  PDL::PP->printxsc("pp-$obj{Name}.c", $ctext);
 	} else {
 	  PDL::PP->printxsc(undef, $ctext);

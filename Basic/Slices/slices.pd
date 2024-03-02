@@ -2467,16 +2467,6 @@ SLICE-MC
 EOF
 );
 
-pp_addhdr(<<END
-static int cmp_pdll(const void *a_,const void *b_) {
-        PDL_Indx *a = (PDL_Indx *)a_; PDL_Indx *b=(PDL_Indx *)b_;
-        if(*a>*b) return 1;
-        else if(*a==*b) return 0;
-        else return -1;
-}
-END
-);
-
 pp_def('diagonal',
         P2Child => 1,
         TwoWay => 1,
@@ -2488,6 +2478,14 @@ pp_def('diagonal',
                 qsort($COMP(whichdims), $COMP(whichdims_count), sizeof(PDL_Indx),
                         cmp_pdll);
         '),
+        CHeader => <<'END',
+static int cmp_pdll(const void *a_,const void *b_) {
+        PDL_Indx *a = (PDL_Indx *)a_; PDL_Indx *b=(PDL_Indx *)b_;
+        if(*a>*b) return 1;
+        else if(*a==*b) return 0;
+        else return -1;
+}
+END
         RedoDims => pp_line_numbers(__LINE__-1, '
                 PDL_Indx nthp,nthc,nthd, cd = $COMP(whichdims)[0];
                 $SETNDIMS($PDL(PARENT)->ndims-$COMP(whichdims_count)+1);

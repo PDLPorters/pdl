@@ -1469,6 +1469,10 @@ especially CPU intensive code) only once per thread, i.e.
 		   }'
    );
 
+As of 2.086, you can put those C<#define>s in a C<CHeader> instead of
+C<pp_addhdr>ing so that if you're using multi-C files, it doesn't cause
+recompilation (or warnings) for any other transformations you C<pp_def>.
+
 =head3 types
 
 The types function works similar to the C<$T> macro. However, with the
@@ -1898,6 +1902,9 @@ C<pp_def>s, e.g.:
 		   do_the_real_work($P(a),$P(b),ns);
                  ',
   );
+
+If such things are relevant for only one transformation, consider putting
+it in a C<CHeader> key for that C<pp_def> (as of 2.086).
 
 =head3 pp_addpm
 
