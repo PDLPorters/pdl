@@ -101,7 +101,7 @@ sub new {
     }
     amalgamate_sizeprivs(@sizeprivs) if @sizeprivs > 1;
     my $sizeprivs = $sizeprivs[0];
-    my $coderef = @coderefs > 1 ? PDL::PP::BadSwitch->new( @coderefs ) : $coderefs[0];
+    my $coderef = PDL::PP::BadSwitch->new( @coderefs );
     print "SIZEPRIVSX: ",(join ',',%$sizeprivs),"\n" if $::PP_VERBOSE;
 
     my $pobjs = $sig->objs;
@@ -409,7 +409,12 @@ sub new {
 sub get_str {
     my ($this,$parent,$context) = @_;
     my $good = $this->[0];
-    my $bad  = $this->[1];
+    my $good_str = <<EOF;
+#define PDL_IF_BAD(t,f) f
+@{[ $good->get_str($parent,$context)
+]}#undef PDL_IF_BAD
+EOF
+    return $good_str if !defined(my $bad  = $this->[1]);
     my $str = <<EOF;
 if ( \$PRIV(bvalflag) ) { PDL_COMMENT("** do 'bad' Code **")
   #define PDL_BAD_CODE
@@ -418,10 +423,8 @@ if ( \$PRIV(bvalflag) ) { PDL_COMMENT("** do 'bad' Code **")
 ]}  #undef PDL_BAD_CODE
   #undef PDL_IF_BAD
 } else { PDL_COMMENT("** else do 'good' Code **")
-  #define PDL_IF_BAD(t,f) f
-@{[ PDL::PP::indent 2, $good->get_str($parent,$context)
-]}  #undef PDL_IF_BAD
-}
+@{[ PDL::PP::indent 2, $good_str
+]}}
 EOF
 }
 
