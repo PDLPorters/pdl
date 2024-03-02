@@ -977,7 +977,10 @@ pdl_error pdl__make_physvaffine_recprotect(pdl *it, int recurse_count)
 	it->vafftrans->from = current;
 	it->state |= PDL_OPT_VAFFTRANSOK;
 	PDLDEBUG_f(printf("make_physvaffine exit %p, physicalising final parent=%p\n", it, current));
-	return pdl__make_physical_recprotect(current, recurse_count+1);
+	PDL_RETERROR(PDL_err, pdl__make_physical_recprotect(current, recurse_count+1));
+	if (it->state & PDL_PARENTDATACHANGED)
+		READDATA_VAFFINE(PDL_RETERROR, it, recurse_count);
+	return PDL_err;
 }
 
 pdl_error pdl_make_physvaffine(pdl *it)
