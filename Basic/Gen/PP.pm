@@ -1415,48 +1415,21 @@ EOD
         ';
       }),
 
-   PDL::PP::Rule->new("Code", ["EquivCPOffsCode","BadFlag"],
+   PDL::PP::Rule->new("Code", "EquivCPOffsCode",
       "create Code from EquivCPOffsCode",
       sub {
-        my $good  = shift;
-        my $bflag = shift;
-        my $bad = $good;
-        # parse 'good' code
+        my ($good) = @_;
         $good =~ s/
           \$EQUIVCPOFFS\(([^()]+),([^()]+)\)
-        /do { \$PP(CHILD)[$1] = \$PP(PARENT)[$2]; } while (0)/gx;
+        /do { PDL_IF_BAD(if( \$PPISBAD(PARENT,[$2]) ) { \$PPSETBAD(CHILD,[$1]); } else,) { \$PP(CHILD)[$1] = \$PP(PARENT)[$2]; } } while (0)/gx;
         $good =~ s/
           \$EQUIVCPTRUNC\(([^()]+),([^()]+),([^()]+)\)
-        /do { \$PP(CHILD)[$1] = ($3) ? 0 : \$PP(PARENT)[$2]; } while (0)/gx;
-        return $good if !$bflag;
-        # parse 'bad' code
-        $bad  =~ s/
-          \$EQUIVCPOFFS\(([^()]+),([^()]+)\)
-        /do { if( \$PPISBAD(PARENT,[$2]) ) { \$PPSETBAD(CHILD,[$1]); } else { \$PP(CHILD)[$1] = \$PP(PARENT)[$2]; } } while (0)/gx;
-        $bad =~ s/
-          \$EQUIVCPTRUNC\(([^()]+),([^()]+),([^()]+)\)
-        /do { if( ($3) || \$PPISBAD(PARENT,[$2]) ) { \$PPSETBAD(CHILD,[$1]); } else {\$PP(CHILD)[$1] = \$PP(PARENT)[$2]; } } while (0)/gx;
-        'if ( $PRIV(bvalflag) ) { ' . $bad . ' } else { ' . $good . ' }';
+        /do { if( ($3) PDL_IF_BAD(|| \$PPISBAD(PARENT,[$2]),) ) { PDL_IF_BAD(\$PPSETBAD(CHILD,[$1]),\$PP(CHILD)[$1] = 0); } else {\$PP(CHILD)[$1] = \$PP(PARENT)[$2]; } } while (0)/gx;
+        $good;
       }),
 
-   PDL::PP::Rule->new("BackCode", ["EquivCPOffsCode","BadFlag"],
+   PDL::PP::Rule->new("BackCode", "EquivCPOffsCode",
       "create BackCode from EquivCPOffsCode",
-      # If there is an EquivCPOffsCode and:
-      #    no bad-value support ==> use that
-      #    bad value support ==> write a bit of code that does
-      #      if ( $PRIV(bvalflag) ) { bad-EquivCPOffsCode }
-      #      else                   { good-EquivCPOffsCode }
-      #
-      #  Note: since EquivCPOffsCode doesn't (or I haven't seen any that
-      #  do) use 'loop %{' or 'broadcastloop %{', we can't rely on
-      #  PDLCode to automatically write code like above, hence the
-      #  explicit definition here.
-      #
-      #  Note: I *assume* that bad-Equiv..Code == good-Equiv..Code *EXCEPT*
-      #        that we re-define the meaning of the $EQUIVCPOFFS macro to
-      #        check for bad values when copying things over.
-      #        This means having to write less code.
-      #
       # Since PARENT & CHILD need NOT be the same type we cannot just copy
       # values from one to the other - we have to check for the presence
       # of bad values, hence the expansion for the $bad code
@@ -1469,24 +1442,15 @@ EOD
       # from copying.
       #                    --CED 27-Jan-2003
       sub {
-        my ($good, $bflag) = @_;
-        my $bad  = $good;
+        my ($good) = @_;
         # parse 'good' code
         $good =~ s/
           \$EQUIVCPOFFS\(([^()]+),([^()]+)\)
-        /do { \$PP(PARENT)[$2] = \$PP(CHILD)[$1]; } while (0)/gx;
+        /do { PDL_IF_BAD(if( \$PPISBAD(CHILD,[$1]) ) { \$PPSETBAD(PARENT,[$2]); } else,) { \$PP(PARENT)[$2] = \$PP(CHILD)[$1]; } } while (0)/gx;
         $good =~ s/
           \$EQUIVCPTRUNC\(([^()]+),([^()]+),([^()]+)\)
-        /do { if(!($3)) \$PP(PARENT)[$2] = \$PP(CHILD)[$1]; } while (0)/gx;
-        return $good if !$bflag;
-        # parse 'bad' code
-        $bad  =~ s/
-          \$EQUIVCPOFFS\(([^()]+),([^()]+)\)
-        /do { if( \$PPISBAD(CHILD,[$1]) ) { \$PPSETBAD(PARENT,[$2]); } else { \$PP(PARENT)[$2] = \$PP(CHILD)[$1]; } } while (0)/gx;
-        $bad =~ s/
-          \$EQUIVCPTRUNC\(([^()]+),([^()]+),([^()]+)\)
-        /do { if(!($3)) { if( \$PPISBAD(CHILD,[$1]) ) { \$PPSETBAD(PARENT,[$2]); } else { \$PP(PARENT)[$2] = \$PP(CHILD)[$1]; } } } while (0)/gx;
-        'if ( $PRIV(bvalflag) ) { ' . $bad . ' } else { ' . $good . ' }';
+        /do { if(!($3)) { PDL_IF_BAD(if( \$PPISBAD(CHILD,[$1]) ) { \$PPSETBAD(PARENT,[$2]); } else,) { \$PP(PARENT)[$2] = \$PP(CHILD)[$1]; } } } while (0)/gx;
+        $good;
       }),
 
    PDL::PP::Rule::Returns::Zero->new("CanVaffine", "EquivCPOffsCode"),
