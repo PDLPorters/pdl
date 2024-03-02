@@ -162,30 +162,32 @@ sub mn_def_pars{
     mn_abre($mn_options->{Unit},$logfile,\'old\');
   }
 
-  foreach my $i ( 0..(nelem($pars)-1) ){
-     my $ii = $i + 1;
-     $iflag = mnparm($ii,$pars->slice("($i)"),
-		       $steps->slice("($i)"),
-		       $lo_bounds->slice("($i)"),
-		       $up_bounds->slice("($i)"),
-		       $names[$i]);
-     barf "Problem initializing parameter $i in Minuit, got $iflag" unless ($iflag == 0);
-  }
-  
-  if (defined (my $logfile = $mn_options->{Log})){
-     mn_cierra($mn_options->{Unit});
-  }
+  $iflag = mnparm($pars, $steps, $lo_bounds, $up_bounds, \@names);
+  barf "Problem initializing parameters in Minuit, got $iflag"
+    unless PDL::all($iflag == 0);
+
+  mn_cierra($mn_options->{Unit}) if defined $mn_options->{Log};
 }
 ');
 
 pp_def('mnparm',
-       Pars => 'longlong a(); b(); c(); d(); e(); longlong [o] ia()',
-       GenericTypes => ['D'],
-       OtherPars => "char* str",
-       Doc => undef,
-       Code => ' PDL_Indx largo=strlen($COMP(str));
-                 MNPARM($P(a),$COMP(str),$P(b),$P(c),$P(d),$P(e),$P(ia),largo);
-       ');
+  Pars => 'pars(n); steps(n); lo_bounds(n); up_bounds(n); longlong [o] ia(n)',
+  GenericTypes => ['D'],
+  OtherPars => "char* names[]",
+  RedoDimsCode => <<'EOF',
+if ($COMP(names_count) != $SIZE(n))
+  $CROAK("Number of names=%"IND_FLAG" different from n=%"IND_FLAG, $COMP(names_count), $SIZE(n));
+EOF
+  Doc => undef,
+  Code => <<'EOF',
+loop(n) %{
+  char *name = $COMP(names)[n];
+  PDL_Indx largo=strlen(name);
+  PDL_LongLong a = n + 1;
+  MNPARM(&a,name,$P(pars),$P(steps),$P(lo_bounds),$P(up_bounds),$P(ia),largo);
+%}
+EOF
+);
 
 
 pp_addpm('
