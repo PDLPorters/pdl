@@ -335,6 +335,11 @@ $vaff2->make_physvaffine;
 vafftest($all, [[1,1,1],[0,1,1],[0,1,0]], "vaff2 physvaffined");
 $clumped->make_physvaffine;
 vafftest($all, [[1,1,1],[0,1,1],[0,1,0]], "clumped physvaffined");
+push @$all, [my $latevaff=$vaff2->slice(''), 'latevaff'];
+vafftest($all, [[1,1,1],[0,1,1],[0,1,0],[0,0,0]], "latevaff created");
+$latevaff->make_physvaffine;
+vafftest($all, [[1,1,1],[0,1,1],[0,1,0],[0,0,1]], "latevaff physvaffined");
+is $latevaff->vaffine_from, $root->address, 'latevaff vaffine_from root';
 
 # capturing GH#461
 $root = zeroes 2,2,2;
