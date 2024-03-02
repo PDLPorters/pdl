@@ -61,9 +61,18 @@
 #define CHANGED(...) \
     PDL_ACCUMERROR(PDL_err, pdl_changed(__VA_ARGS__))
 
+#define READDATA_VAFFINE(what, it, recurse_count) do { \
+    what(PDL_err, pdl__make_physical_recprotect(it->vafftrans->from, recurse_count+1)); \
+    PDL_ENSURE_ALLOCATED(it); \
+    what(PDL_err, pdl_readdata_vaffine(it)); \
+    PDLDEBUG_f(printf("READDATA_VAFFINE turning off datachanged, before="); pdl_dump_flags_fixspace(it->state, 0, PDL_FLAGS_PDL)); \
+    it->state &= (~PDL_PARENTDATACHANGED); /* assumption: no siblings */ \
+  } while (0)
+
 extern Core PDL;
 
 pdl_error pdl__make_physvaffine_recprotect(pdl *it, int recurse_count);
+pdl_error pdl__make_physical_recprotect(pdl *it, int recurse_count);
 /* Make sure transformation is done */
 pdl_error pdl__ensure_trans(pdl_trans *trans,int what,int *wd, int recurse_count)
 {
@@ -87,8 +96,7 @@ pdl_error pdl__ensure_trans(pdl_trans *trans,int what,int *wd, int recurse_count
 			PDL_ENSURE_ALLOCATED(trans->pdls[j]);
 	if(par_pvaf && (trans->flags & PDL_ITRANS_ISAFFINE)) {
 	  /* Attention: this assumes affine = p2child */
-		PDL_ENSURE_ALLOCATED(trans->pdls[1]);
-		PDL_ACCUMERROR(PDL_err, pdl_readdata_vaffine(trans->pdls[1]));
+		READDATA_VAFFINE(PDL_ACCUMERROR, trans->pdls[1], recurse_count);
 	} else if(flag & PDL_ANYCHANGED)
 		READDATA(trans);
 	if (!wd) return PDL_err;
@@ -784,11 +792,7 @@ pdl_error pdl__make_physical_recprotect(pdl *it, int recurse_count) {
 		PDL_RETERROR(PDL_err, pdl__make_physvaffine_recprotect(it, recurse_count+1));
 	if(PDL_VAFFOK(it)) {
 		PDLDEBUG_f(printf("make_physical: VAFFOK\n"));
-		PDL_RETERROR(PDL_err, pdl__make_physical_recprotect(it->vafftrans->from, recurse_count+1));
-		PDL_ENSURE_ALLOCATED(it);
-		PDL_RETERROR(PDL_err, pdl_readdata_vaffine(it));
-		PDLDEBUG_f(printf("make_physical turning off datachanged, before="); pdl_dump_flags_fixspace(it->state, 0, PDL_FLAGS_PDL));
-		it->state &= (~PDL_PARENTDATACHANGED); /* assumption: no siblings */
+		READDATA_VAFFINE(PDL_RETERROR, it, recurse_count);
 		goto mkphys_end;
 	}
 	PDL_TR_CHKMAGIC(it->trans_parent);
@@ -876,12 +880,6 @@ pdl_error pdl_changed(pdl *it, int what, int recursing) {
   return PDL_err;
 }
 
-/* Current assumptions: only
- * "slice" and "diagonal"-type things supported.
- *
- * We need to do careful testing for clump-type things.
- */
-
 /* pdl_make_physvaffine can be called on *any* pdl -- vaffine or not --
    it will call make_physical as needed on those
    this function is the right one to call in any case if you want to
@@ -903,7 +901,7 @@ pdl_error pdl__make_physvaffine_recprotect(pdl *it, int recurse_count)
 	}
 	if (!it->vafftrans || it->vafftrans->ndims < it->ndims)
 	  PDL_RETERROR(PDL_err, pdl_vafftrans_alloc(it));
-        for(i=0; i<it->ndims; i++) {
+	for(i=0; i<it->ndims; i++) {
 		it->vafftrans->incs[i] = it->dimincs[i];
 	}
 	int flag=0;
