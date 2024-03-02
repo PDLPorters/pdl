@@ -24,6 +24,7 @@ sub new {
        $handlebad, $sig,$generictypes,$extrageneric,$havebroadcasting,$name,
        $dont_add_brcloop, $backcode, $nulldatacheck) = @_;
     my $parnames = $sig->names_sorted;
+    $handlebad = !!$handlebad;
 
     die "Error: missing name argument to PDL::PP::Code->new call!\n"
       unless defined $name;
