@@ -72,7 +72,7 @@ pdl_error pdl__ensure_trans(pdl_trans *trans,int what,int *wd, int recurse_count
 	PDL_TR_CHKMAGIC(trans);
 	PDL_Indx j, flag=what, par_pvaf=0;
 	pdl_transvtable *vtable = trans->vtable;
-/* Make parents physical */
+/* Make all pdls physvaffine */
 	for(j=0; j<vtable->npdls; j++) {
 		if(VAFFINE_FLAG_OK(vtable->per_pdl_flags,j))
 			par_pvaf++;
@@ -87,14 +87,13 @@ pdl_error pdl__ensure_trans(pdl_trans *trans,int what,int *wd, int recurse_count
 			PDL_ENSURE_ALLOCATED(trans->pdls[j]);
 	if(par_pvaf && (trans->flags & PDL_ITRANS_ISAFFINE)) {
 	  /* Attention: this assumes affine = p2child */
-		PDL_RETERROR(PDL_err, pdl__make_physvaffine_recprotect(trans->pdls[1], recurse_count+1));
 		PDL_ENSURE_ALLOCATED(trans->pdls[1]);
 		PDL_ACCUMERROR(PDL_err, pdl_readdata_vaffine(trans->pdls[1]));
 	} else if(flag & PDL_ANYCHANGED)
 		READDATA(trans);
+	if (!wd) return PDL_err;
 	for(j=vtable->nparents; j<vtable->npdls; j++) {
 		pdl *child = trans->pdls[j];
-		if (!wd) continue;
 		char isvaffine = (PDL_VAFFOK(child) && /* same cond as DECLARE_PARAM */
 		    VAFFINE_FLAG_OK(vtable->per_pdl_flags,j));
 		PDLDEBUG_f(printf("   pdl__ensure_trans isvaffine=%d wd=", (int)isvaffine); pdl_dump_flags_fixspace(wd[j], 0, PDL_FLAGS_PDL));
