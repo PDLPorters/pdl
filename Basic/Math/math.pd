@@ -167,9 +167,8 @@ my (@besbifuncs) = qw(jn yn); # "
 
 sub code_ufunc {
 <<EOF
-PDL_IF_BAD(if ( \$ISBAD(a()) ) { \$SETBAD(b()); } else {,)
+PDL_IF_BAD(if ( \$ISBAD(a()) ) { \$SETBAD(b()); } else,)
   \$b() = $_[0](\$a());
-PDL_IF_BAD(},)
 EOF
 }
 
@@ -177,9 +176,8 @@ sub code_bifunc {
     my $name = $_[0];
     my $x = $_[1] || 'a'; my $y = $_[2] || 'b'; my $c = $_[3] || 'c';
 <<EOF
-PDL_IF_BAD(if ( \$ISBAD($x()) || \$ISBAD($y()) ) { \$SETBAD($c()); } else {,)
+PDL_IF_BAD(if ( \$ISBAD($x()) || \$ISBAD($y()) ) { \$SETBAD($c()); } else,)
   \$$c() = $name(\$$x(),\$$y());
-PDL_IF_BAD(},)
 EOF
 }
 
@@ -271,10 +269,10 @@ if ($^O !~ /win32/i) {
 	   Doc => $doco{"lgamma"},
 	   Code => '
 	    extern int signgam;
-	    PDL_IF_BAD(if ( $ISBAD(a()) ) { $SETBAD(b()); $SETBAD(s()); } else {,)
+	    PDL_IF_BAD(if ( $ISBAD(a()) ) { $SETBAD(b()); $SETBAD(s()); } else,) {
 	      $b() = lgamma($a());
 	      $s() = signgam;
-	    PDL_IF_BAD(},)
+	    }
 	   ',     # what happens to signgam if $a() is bad?
 	   );
 } # if: os !~ win32
@@ -285,10 +283,10 @@ elsif ($Config{cc} =~ /\bgcc/i) {
 	   Pars => 'a(); [o]b(); int[o]s()',
 	   Doc => $doco{"lgamma"},
 	   Code => '
-	    PDL_IF_BAD(if ( $ISBAD(a()) ) { $SETBAD(b()); $SETBAD(s()); } else {,)
+	    PDL_IF_BAD(if ( $ISBAD(a()) ) { $SETBAD(b()); $SETBAD(s()); } else,) {
 	    $b() = lgamma($a());
 	    $s() = tgamma($a()) < 0 ? -1 : 1;
-	    PDL_IF_BAD(},)
+	    }
 	    ',     # what happens to signgam if $a() is bad?
 	   );
 } # elsif: cc =~ /\bgcc/i
