@@ -1375,7 +1375,8 @@ array" type parameter as an C<OtherPars> entry:
     # ...
   );
 
-There is an XS F<typemap> entry (for C<PDL_Indx> and C<pdl*> array types for
+There is an XS F<typemap> entry (for C<PDL_Indx>, C<char*>, and C<pdl*>
+array types for
 now) that relies on a C<(varname)_count> variable being declared in the
 XS C<INPUT> section (PP does this for you), to extract the index
 numbers from an array-ref parameter, and sets the count variable to the

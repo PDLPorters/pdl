@@ -153,7 +153,8 @@ void pdl_dump_anyval(PDL_Anyval v);
   X(barf_if_error, void, (pdl_error err)) \
   X(error_accumulate, pdl_error, (pdl_error err_current, pdl_error err_new)) \
   X(packpdls, pdl **, ( SV* sv, PDL_Indx *npdls )) \
-  X(unpackpdls, SV*, ( pdl **, PDL_Indx npdls ))
+  X(unpackpdls, SV*, ( pdl **, PDL_Indx npdls )) \
+  X(packstrings, char **, ( SV* sv, PDL_Indx *nstrings )) \
 
 /*************** Function prototypes *********************/
 #define X(sym, rettype, args) \

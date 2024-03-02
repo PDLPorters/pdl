@@ -6,6 +6,7 @@
 - error on inflating output ndarrays over dims sized 1 or implicit as undefined
 - make HdrCode and FtrCode run when PMCode supplied (#463) - thanks @jo-37 for suggestion
 - PP add CHeader key
+- OtherPars can now be incomplete arrays of char*
 
 2.085_01 2024-02-10
 - test, document PDL::string, make more consistent (#459) - thanks @vadim-160102 for report
