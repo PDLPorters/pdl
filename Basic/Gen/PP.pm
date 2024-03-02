@@ -1030,8 +1030,9 @@ sub typemap {
 }
 sub typemap_eval { # lifted from ExtUtils::ParseXS::Eval, ignoring eg $ALIAS
   my ($code, $varhash) = @_;
-  my ($var, $type, $num, $init, $printed_name, $arg, $ntype, $argoff, $subtype)
-    = @$varhash{qw(var type num init printed_name arg ntype argoff subtype)};
+  my ($var, $type, $num, $init, $pname, $arg, $ntype, $argoff, $subtype)
+    = @$varhash{qw(var type num init pname arg ntype argoff subtype)};
+  my $ALIAS;
   my $rv = eval qq("$code");
   die $@ if $@;
   $rv;
@@ -1078,9 +1079,10 @@ sub callPerlInit {
 }
 
 sub callTypemap {
-  my ($x, $ptype) = @_;
+  my ($x, $ptype, $pname) = @_;
   my ($setter, $type) = typemap($ptype, 'get_inputmap');
-  my $ret = typemap_eval($setter, {var=>$x, type=>$type, arg=>("${x}_SV")});
+  my $ret = typemap_eval($setter, {var=>$x, type=>$type, arg=>("${x}_SV"),
+      pname=>$pname});
   $ret =~ s/^\s*(.*?)\s*$/$1/g;
   $ret =~ s/\s*\n\s*/ /g;
   $ret;
@@ -1648,7 +1650,7 @@ EOD
           $name2cnts{$x} = [$cnt, undef];
           $name2cnts{$x}[1] = ++$shortcnt if !($out{$x} || $other_out{$x});
           push @xsargs, "$x=$x";
-          push @inputdecls, "$ptypes{$x}$x".($other{$x} && !exists $otherdefaults->{$x} ? "; { ".callTypemap($x, $ptypes{$x})."; }" : "=NO_INIT");
+          push @inputdecls, "$ptypes{$x}$x".($other{$x} && !exists $otherdefaults->{$x} ? "; { ".callTypemap($x, $ptypes{$x}, $name)."; }" : "=NO_INIT");
         }
         push @inputdecls, map "$ptypes{$_}$_=".callPerlInit($_."_SV", $callcopy).";", grep $outca{$_}, @args;
         my $defaults_rawcond = $ndefault ? "items == $nin_minus_default" : '';
@@ -1668,10 +1670,10 @@ EOD
           indent(2, join '',
             (map
               "if (!${_}_SV) { $_ = ($otherdefaults->{$_}); } else ".
-              "{ ".callTypemap($_, $ptypes{$_})."; }\n",
+              "{ ".callTypemap($_, $ptypes{$_}, $name)."; }\n",
               grep !$argorder && exists $otherdefaults->{$_}, @{$sig->othernames(1, 1)}),
-            (map callTypemap($_, $ptypes{$_}).";\n", grep !$already_read{$_}, $sig->names_in),
-            (map +("if (${_}_SV) { ".($argorder ? '' : callTypemap($_, $ptypes{$_}))."; } else ")."$_ = ".callPerlInit($_."_SV", $callcopy).";\n", grep $out{$_} && !$already_read{$_} && !($inplace && $_ eq $inplace->[1]), @args)
+            (map callTypemap($_, $ptypes{$_}, $name).";\n", grep !$already_read{$_}, $sig->names_in),
+            (map +("if (${_}_SV) { ".($argorder ? '' : callTypemap($_, $ptypes{$_}, $name))."; } else ")."$_ = ".callPerlInit($_."_SV", $callcopy).";\n", grep $out{$_} && !$already_read{$_} && !($inplace && $_ eq $inplace->[1]), @args)
           );
         push @preinit, qq[PDL_XS_PREAMBLE($nretval);] if $nallout;
         push @preinit, qq{if (!(@{[join ' || ', map "(items == $_)", sort keys %valid_itemcounts]}))
@@ -1719,7 +1721,8 @@ $preamble@{[join "\n  ", "", @inputdecls]}
         my %ptypes = map +($_=>$$optypes{$_}->get_decl('', {VarArrays2Ptrs=>1})), @other_output;
         for my $x (@other_output) {
           my ($setter, $type) = typemap($ptypes{$x}, 'get_outputmap');
-          $setter = typemap_eval($setter, {var=>$x, type=>$type, arg=>"tsv"});
+          $setter = typemap_eval($setter, {var=>$x, type=>$type, arg=>"tsv",
+              pname=>$name});
           $clause1 .= <<EOF;
 if (!${x}_SV)
   PDL->pdl_barf("Internal error in $name: tried to output to NULL ${x}_SV");

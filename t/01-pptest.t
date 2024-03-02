@@ -192,11 +192,12 @@ pp_def('incomp_dim',
 
 pp_addhdr('
 typedef NV NV_ADD1;
+typedef HV* NV_HR;
 ');
 pp_add_typemaps(string=><<'EOT');
-TYPEMAP: <<END_OF_TYPEMAP
 TYPEMAP
 NV_ADD1 T_NV_ADD1
+NV_HR T_HVREF
 
 INPUT
 T_NV_ADD1
@@ -205,11 +206,11 @@ T_NV_ADD1
 OUTPUT
 T_NV_ADD1
   sv_setnv($arg, $var - 1);
-END_OF_TYPEMAP
 EOT
+
 pp_def('typem',
   Pars => 'int [o] out()',
-  OtherPars => '[io] NV_ADD1 v1',
+  OtherPars => '[io] NV_ADD1 v1; NV_HR v2;',
   Code => '$out() = $COMP(v1); $COMP(v1) = 8;',
 );
 
@@ -483,13 +484,16 @@ is "$o", 4;
 $o = incomp_dim([0..3]);
 is "$o", 4;
 
-$o = typem(my $oth = 3);
+$o = typem(my $oth = 3, {});
 is "$o", 4;
 is "$oth", 7;
 
-typem($o = PDL->null, $oth = 3);
+typem($o = PDL->null, $oth = 3, {});
 is "$o", 4;
 is "$oth", 7;
+
+eval {typem($o = PDL->null, $oth = 3, []);};
+like $@, qr/^typem:.*not a HASH reference/;
 
 incomp_in($o = PDL->null, [sequence(3), sequence(byte, 4)]);
 is "$o", 9;
@@ -558,6 +562,7 @@ done_testing;
 EOF
 
 );
+
 
 do_tests(\%PPTESTFILES);
 

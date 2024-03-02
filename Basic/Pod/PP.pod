@@ -118,7 +118,6 @@ C<string>, or C<file>.
 =for example
 
   pp_add_typemaps(string=><<'EOT');
-  TYPEMAP: <<END_OF_TYPEMAP
   TYPEMAP
   NV_ADD1 T_NV_ADD1
 
@@ -129,7 +128,6 @@ C<string>, or C<file>.
   OUTPUT
   T_NV_ADD1
     sv_setnv($arg, $var - 1);
-  END_OF_TYPEMAP
   EOT
   # ...
     OtherPars => '[o] NV_ADD1 v1',
