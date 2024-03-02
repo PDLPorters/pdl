@@ -212,6 +212,7 @@ ok(tapprox($x, pdl([[230,450],[670,890]],[[231,451],[671,891]])));
 
 # Tests of range operator
 $source = 10*xvals(10,10) + yvals(10,10);
+my $source3 = 10*xvals(3,3) + yvals(3,3);
 $index = pdl([[2,3],[4,5]],[[6,7],[8,9]]);
 my $mt = which(pdl(0));
 my $dex = pdl(5,4,3);
@@ -220,6 +221,7 @@ for (
   [$source, [$index,3], [2,2,3,3], qr/out-of-bounds/, "out of bounds with scalar size"],
   [$source, [$index,3,"t"], [2,2,3,3], pdl([[89,99,0],[0,0,0],[0,0,0]]), "truncate size 3", sub {shift->slice("(1),(1)")}],
   [$source, [$index,3,"tp"], [2,2,3,3], pdl([[89,99,0],[80,90,0],[81,91,0]]), "truncate+periodic size 3", sub {shift->slice("(1),(1)")}],
+  [$source3, [[-1,-1],[2,2],"p"], [2,2], pdl([[22,2],[20,0]]), "periodic size [2 2]", undef, sub {$_[0] .= 6}, [[6,10,6],[1,11,21],[6,12,6]]],
   [$source, [$index,3,["e","p"]], [2,2,3,3], pdl([[89,99,99],[80,90,90],[81,91,91]]), "extension+periodic list syntax size 3", sub {shift->slice("(1),(1)")}],
   [$dex, [$mt], [0], pdl([]), "scalar Empty[0] indices"],
   [$dex, [zeroes(1,0)], [0], pdl([]), "Empty[1,0] indices"],
@@ -227,8 +229,8 @@ for (
   [$mt, [$mt], [0], pdl([]), "empty source and index"],
   [pdl(5,5,5,5), [$mt], [0], pdl([]), "non-empty source, empty index", sub {$_[0] .= 2}],
 ) {
-  my ($src, $args, $exp_dims, $exp, $label, $exp_mod) = @$_;
-  my $src_copy = $src->copy;
+  my ($src, $args, $exp_dims, $exp, $label, $exp_mod, $mutate, $mutate_exp) = @$_;
+  $_ = $src->copy for $src, my $src_copy;
   my $y = eval { $src->range(@$args) };
   is $@, '', "$label works";
   is_deeply([$y->dims], $exp_dims, "$label dims right") or diag explain [$y->dims];
@@ -239,6 +241,9 @@ for (
   is $y->nelem, $exp->nelem, "$label nelem right";
   ok tapprox($y, $exp), "$label right data";
   ok tapprox($src, $src_copy), "$label source not mutated";
+  next if !$mutate;
+  $mutate->($y);
+  ok tapprox($src, $mutate_exp), "$label src right data after mutation" or diag "got=$src";
 }
 
 # range on higher-dimensional
