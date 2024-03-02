@@ -109,6 +109,7 @@ sub new {
     print "SIZEPRIVS: ",(join ',',%$sizeprivs),"\n" if $::PP_VERBOSE;
     $this->{Code} = (join '',sort values %$sizeprivs).
        ($dont_add_brcloop?'':join '', map "$_\n",
+        'if (!$PRIV(broadcast).incs) $CROAK("broadcast.incs NULL");',
         'PDL_COMMENT("broadcastloop declarations")',
         'int __brcloopval;',
         'register PDL_Indx __tind0,__tind1; PDL_COMMENT("counters along dim")',
