@@ -1399,7 +1399,7 @@ EOD
       sub {
         my($pdimexpr,$dimcheck) = @_;
         $pdimexpr =~ s/\$CDIM\b/i/g;
-        ' int i,cor;
+        ' PDL_Indx i,cor;
           '.$dimcheck.'
           $SETNDIMS($PDL(PARENT)->ndims);
           $DOPRIVALLOC();
@@ -1417,24 +1417,26 @@ EOD
 
    PDL::PP::Rule->new("Code", ["EquivCPOffsCode","BadFlag"],
       "create Code from EquivCPOffsCode",
-      # NOTE: EQUIVCPOFFS and EQUIVCPTRUNC both suffer from the macro-block
-      # wart of C preprocessing.  They look like statements but sometimes
-      # process into blocks, so if/then/else constructs can get broken.
-      # Either (1) use blocks for if/then/else, or (2) get excited and
-      # use the "do {BLOCK} while(0)" block-to-statement conversion construct
-      # in the substitution.  I'm too Lazy. --CED 27-Jan-2003
       sub {
         my $good  = shift;
         my $bflag = shift;
         my $bad = $good;
         # parse 'good' code
-        $good =~ s/\$EQUIVCPOFFS\(([^()]+),([^()]+)\)/\$PP(CHILD)[$1] = \$PP(PARENT)[$2]/g;
-        $good =~ s/\$EQUIVCPTRUNC\(([^()]+),([^()]+),([^()]+)\)/\$PP(CHILD)[$1] = ($3) ? 0 : \$PP(PARENT)[$2]/g;
+        $good =~ s/
+          \$EQUIVCPOFFS\(([^()]+),([^()]+)\)
+        /do { \$PP(CHILD)[$1] = \$PP(PARENT)[$2]; } while (0)/gx;
+        $good =~ s/
+          \$EQUIVCPTRUNC\(([^()]+),([^()]+),([^()]+)\)
+        /do { \$PP(CHILD)[$1] = ($3) ? 0 : \$PP(PARENT)[$2]; } while (0)/gx;
         return $good if !$bflag;
         # parse 'bad' code
-        $bad  =~ s/\$EQUIVCPOFFS\(([^()]+),([^()]+)\)/if( \$PPISBAD(PARENT,[$2]) ) { \$PPSETBAD(CHILD,[$1]); } else { \$PP(CHILD)[$1] = \$PP(PARENT)[$2]; }/g;
-        $bad =~ s/\$EQUIVCPTRUNC\(([^()]+),([^()]+),([^()]+)\)/ if( ($3) || \$PPISBAD(PARENT,[$2]) ) { \$PPSETBAD(CHILD,[$1]); } else {\$PP(CHILD)[$1] = \$PP(PARENT)[$2]; }/g;
-        'if ( $PRIV(bvalflag) ) { ' . $bad . ' } else { ' . $good . '}';
+        $bad  =~ s/
+          \$EQUIVCPOFFS\(([^()]+),([^()]+)\)
+        /do { if( \$PPISBAD(PARENT,[$2]) ) { \$PPSETBAD(CHILD,[$1]); } else { \$PP(CHILD)[$1] = \$PP(PARENT)[$2]; } } while (0)/gx;
+        $bad =~ s/
+          \$EQUIVCPTRUNC\(([^()]+),([^()]+),([^()]+)\)
+        /do { if( ($3) || \$PPISBAD(PARENT,[$2]) ) { \$PPSETBAD(CHILD,[$1]); } else {\$PP(CHILD)[$1] = \$PP(PARENT)[$2]; } } while (0)/gx;
+        'if ( $PRIV(bvalflag) ) { ' . $bad . ' } else { ' . $good . ' }';
       }),
 
    PDL::PP::Rule->new("BackCode", ["EquivCPOffsCode","BadFlag"],
@@ -1466,20 +1468,25 @@ EOD
       # forward code puts BAD/0 into the child, and reverse code refrains
       # from copying.
       #                    --CED 27-Jan-2003
-      #
-      # this just reverses PARENT & CHILD in the expansion of
-      # the $EQUIVCPOFFS macro (ie compared to Code from EquivCPOffsCode)
       sub {
         my ($good, $bflag) = @_;
         my $bad  = $good;
         # parse 'good' code
-        $good =~ s/\$EQUIVCPOFFS\(([^()]+),([^()]+)\)/\$PP(PARENT)[$2] = \$PP(CHILD)[$1]/g;
-        $good =~ s/\$EQUIVCPTRUNC\(([^()]+),([^()]+),([^()]+)\)/if(!($3)) \$PP(PARENT)[$2] = \$PP(CHILD)[$1] /g;
+        $good =~ s/
+          \$EQUIVCPOFFS\(([^()]+),([^()]+)\)
+        /do { \$PP(PARENT)[$2] = \$PP(CHILD)[$1]; } while (0)/gx;
+        $good =~ s/
+          \$EQUIVCPTRUNC\(([^()]+),([^()]+),([^()]+)\)
+        /do { if(!($3)) \$PP(PARENT)[$2] = \$PP(CHILD)[$1]; } while (0)/gx;
         return $good if !$bflag;
         # parse 'bad' code
-        $bad  =~ s/\$EQUIVCPOFFS\(([^()]+),([^()]+)\)/if( \$PPISBAD(CHILD,[$1]) ) { \$PPSETBAD(PARENT,[$2]); } else { \$PP(PARENT)[$2] = \$PP(CHILD)[$1]; }/g;
-        $bad =~ s/\$EQUIVCPTRUNC\(([^()]+),([^()]+),([^()]+)\)/if(!($3)) { if( \$PPISBAD(CHILD,[$1]) ) { \$PPSETBAD(PARENT,[$2]); } else { \$PP(PARENT)[$2] = \$PP(CHILD)[$1]; } } /g;
-        'if ( $PRIV(bvalflag) ) { ' . $bad . ' } else { ' . $good . '}';
+        $bad  =~ s/
+          \$EQUIVCPOFFS\(([^()]+),([^()]+)\)
+        /do { if( \$PPISBAD(CHILD,[$1]) ) { \$PPSETBAD(PARENT,[$2]); } else { \$PP(PARENT)[$2] = \$PP(CHILD)[$1]; } } while (0)/gx;
+        $bad =~ s/
+          \$EQUIVCPTRUNC\(([^()]+),([^()]+),([^()]+)\)
+        /do { if(!($3)) { if( \$PPISBAD(CHILD,[$1]) ) { \$PPSETBAD(PARENT,[$2]); } else { \$PP(PARENT)[$2] = \$PP(CHILD)[$1]; } } } while (0)/gx;
+        'if ( $PRIV(bvalflag) ) { ' . $bad . ' } else { ' . $good . ' }';
       }),
 
    PDL::PP::Rule::Returns::Zero->new("CanVaffine", "EquivCPOffsCode"),
