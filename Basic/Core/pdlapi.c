@@ -66,7 +66,7 @@
     PDL_ENSURE_ALLOCATED(it); \
     what(PDL_err, pdl_readdata_vaffine(it)); \
     PDLDEBUG_f(printf("READDATA_VAFFINE turning off datachanged, before="); pdl_dump_flags_fixspace(it->state, 0, PDL_FLAGS_PDL)); \
-    it->state &= (~PDL_PARENTDATACHANGED); /* assumption: no siblings */ \
+    it->state &= ~PDL_PARENTDATACHANGED; /* assumption: no siblings */ \
   } while (0)
 
 extern Core PDL;

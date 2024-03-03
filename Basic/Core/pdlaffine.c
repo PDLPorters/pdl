@@ -13,19 +13,18 @@ pp_def(
        ReadDataFuncName => "pdl_readdata_affineinternal",
        WriteBackDataFuncName => "pdl_writebackdata_affineinternal",
        EquivCPOffsCode => '
-          if ($PDL(CHILD)->state & $PDL(PARENT)->state & PDL_ALLOCATED) {
-            PDL_Indx i, poffs=$PRIV(offs), nd;
-            for(i=0; i<$PDL(CHILD)->nvals; i++) {
-              $EQUIVCPOFFS(i,poffs);
-              for(nd=0; nd<$PDL(CHILD)->ndims; nd++) {
-                poffs += $PRIV(incs)[nd];
-                if( (nd<$PDL(CHILD)->ndims-1 &&
-                     (i+1)%$PDL(CHILD)->dimincs[nd+1]) ||
-                   nd == $PDL(CHILD)->ndims-1)
-                        break;
-                poffs -= $PRIV(incs)[nd] *
-                        $PDL(CHILD)->dims[nd];
-              }
+          if (!($PDL(CHILD)->state & $PDL(PARENT)->state & PDL_ALLOCATED))
+            return PDL_err;
+          PDL_Indx i, poffs=$PRIV(offs), nd;
+          for(i=0; i<$PDL(CHILD)->nvals; i++) {
+            $EQUIVCPOFFS(i,poffs);
+            for(nd=0; nd<$PDL(CHILD)->ndims; nd++) {
+              poffs += $PRIV(incs)[nd];
+              if( (nd<$PDL(CHILD)->ndims-1 &&
+                   (i+1)%$PDL(CHILD)->dimincs[nd+1]) ||
+                 nd == $PDL(CHILD)->ndims-1)
+                      break;
+              poffs -= $PRIV(incs)[nd] * $PDL(CHILD)->dims[nd];
             }
           }',
        Doc => undef,    # 'internal',
