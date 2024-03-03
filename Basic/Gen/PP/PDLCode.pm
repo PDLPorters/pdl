@@ -110,6 +110,7 @@ sub new {
     print "SIZEPRIVS: ",(join ',',%$sizeprivs),"\n" if $::PP_VERBOSE;
     $this->{Code} = (join '',sort values %$sizeprivs).
        ($dont_add_brcloop?'':join '', map "$_\n",
+        'if (!$PRIV(broadcast).incs) $CROAK("broadcast.incs NULL");',
         'PDL_COMMENT("broadcastloop declarations")',
         'int __brcloopval;',
         'register PDL_Indx __tind0,__tind1; PDL_COMMENT("counters along dim")',
@@ -287,14 +288,14 @@ sub expand {
     if($pdl =~ /^T/) {@add = PDL::PP::MacroAccess->new($pdl,$inds,
 			   $this->{Generictypes},$this->{Name});}
     elsif(my $c = $access2class{$pdl}) {@add = $c->new($pdl,$inds)}
-    elsif($pdl =~ /^(PP|)(ISBAD|ISGOOD|SETBAD)(VAR|)$/) {
+    elsif($pdl =~ /^(P|)(ISBAD|ISGOOD|SETBAD)(VAR|)$/) {
 	my ($opcode, $name) = ($2);
 	my $get = $1 || $3;
 	if (!$get) {
 	    $inds =~ s/^\$?([a-zA-Z_]\w*)\s*//; # $ is optional
 	    $name = $1;
 	    $inds = substr $inds, 1, -1; # chop off brackets
-	} elsif ($get eq 'PP') {
+	} elsif ($get eq 'P') {
 	    ($name, $inds) = PDL::PP::Rule::Substitute::split_cpp($inds);
 	} else {
 	    ($inds, $name) = PDL::PP::Rule::Substitute::split_cpp($inds);
@@ -637,7 +638,7 @@ our %ops = (
 );
 my %getters = (
     '' => sub {my ($obj, $inds, $context)=@_; $obj->do_access($inds,$context)},
-    PP => sub {my ($obj, $inds)=@_; $obj->do_physpointeraccess.$inds},
+    P => sub {my ($obj, $inds)=@_; $obj->do_pointeraccess.$inds},
     VAR => sub {my ($obj, $inds)=@_; $inds},
 );
 

@@ -153,7 +153,8 @@ void pdl_dump_anyval(PDL_Anyval v);
   X(barf_if_error, void, (pdl_error err)) \
   X(error_accumulate, pdl_error, (pdl_error err_current, pdl_error err_new)) \
   X(packpdls, pdl **, ( SV* sv, PDL_Indx *npdls )) \
-  X(unpackpdls, SV*, ( pdl **, PDL_Indx npdls ))
+  X(unpackpdls, SV*, ( pdl **, PDL_Indx npdls )) \
+  X(packstrings, char **, ( SV* sv, PDL_Indx *nstrings )) \
 
 /*************** Function prototypes *********************/
 #define X(sym, rettype, args) \
@@ -187,10 +188,8 @@ typedef struct Core Core;
 
 #define PDL_DECLARE_PARAMETER(type, flag, name, pdlname, nullcheck) \
   type *name ## _datap = ((type *)(PDL_REPRP_TRANS(pdlname, flag))); \
-  type *name ## _physdatap = ((type *)(pdlname->data)); \
   if ((nullcheck) && pdlname->nvals > 0 && !name ## _datap) \
     return PDL_CORE_(make_error_simple)(PDL_EUSERERROR, "parameter " #name " got NULL data"); \
-  (void)name ## _physdatap;
 
 #define PDL_DECLARE_PARAMETER_BADVAL(type, flag, name, pdlname, nullcheck) \
   PDL_DECLARE_PARAMETER(type, flag, name, pdlname, nullcheck) \

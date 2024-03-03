@@ -47,7 +47,7 @@ pp_def('gsl_sf_coulomb_wave_FGp_array',
        Pars=>'double x(); double [o]fc(n); double [o]fcp(n); double [o]gc(n); double [o]gcp(n); int [o]ovfw(); double [o]fe(n); double [o]ge(n);',
        Code =>'
 int s;
-s = gsl_sf_coulomb_wave_FGp_array($COMP(lam_min),$COMP(kmax),$COMP(eta),$x(),$PP(fc),$PP(fcp),$PP(gc),$PP(gcp),$PP(fe),$PP(ge));
+s = gsl_sf_coulomb_wave_FGp_array($COMP(lam_min),$COMP(kmax),$COMP(eta),$x(),$P(fc),$P(fcp),$P(gc),$P(gcp),$P(fe),$P(ge));
 if (s==GSL_EOVRFLW) {
 $ovfw()=1;
 }
@@ -64,7 +64,7 @@ pp_def('gsl_sf_coulomb_wave_sphF_array',
        Pars=>'double x(); double [o]fc(n); int [o]ovfw(); double [o]fe(n);',
        Code =>'
 int s;
-s = gsl_sf_coulomb_wave_sphF_array($COMP(lam_min),$COMP(kmax),$COMP(eta),$x(),$PP(fc),$PP(fe));
+s = gsl_sf_coulomb_wave_sphF_array($COMP(lam_min),$COMP(kmax),$COMP(eta),$x(),$P(fc),$P(fe));
 if (s==GSL_EOVRFLW) {
 $ovfw()=1;
 }

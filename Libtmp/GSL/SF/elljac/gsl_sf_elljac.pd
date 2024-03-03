@@ -27,7 +27,7 @@ pp_def('gsl_sf_elljac',
        GenericTypes => ['D'],
        Pars=>'double u(); double m(); double [o]sn(); double [o]cn(); double [o]dn()',
        Code =>'
-if (gsl_sf_elljac_e($u(),$m(),$PP(sn),$PP(cn),$PP(dn))) {$CROAK("Error in gsl_sf_elljac");};
+if (gsl_sf_elljac_e($u(),$m(),$P(sn),$P(cn),$P(dn))) {$CROAK("Error in gsl_sf_elljac");};
 ',
        Doc =>'Jacobian elliptic functions sn, dn, cn by descending Landen transformations'
       );

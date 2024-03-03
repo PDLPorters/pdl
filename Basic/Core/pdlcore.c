@@ -1167,3 +1167,18 @@ uint64_t pdl_pdl_seed() {
 	s = (uint64_t)seconds;
 	return ((s*181)*((pid-83)*359))%104729;
 }
+
+/* Pack strings array - returns strings[] (pdl_smalloced) and nstrings */
+char ** pdl_packstrings ( SV* sv, PDL_Indx *nstrings ) {
+   if (!(SvROK(sv) && SvTYPE(SvRV(sv))==SVt_PVAV))  /* Test */
+       return NULL;
+   AV *array = (AV *) SvRV(sv);   /* dereference */
+   *nstrings = (PDL_Indx) av_len(array) + 1;  /* Number of entities */
+   char **strings = pdl_smalloc( (*nstrings) * sizeof(*strings) ); /* Array space */
+   if (strings == NULL) return NULL;
+   PDL_Indx i;
+   for(i=0; i<(*nstrings); i++) {
+      strings[i] = SvPV_nolen(*(av_fetch( array, i, 0 )));
+   }
+   return strings;
+}

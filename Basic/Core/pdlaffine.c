@@ -37,8 +37,8 @@ pp_def(
   PDL_DECLARE_PARAMETER_BADVAL(ctype, (trans->vtable->per_pdl_flags[from_id]), from_pdl, (trans->pdls[from_id]), 1) \
   PDL_Indx i, poffs=trans->offs, nd; \
   for (i=0; i<trans->pdls[to_id]->nvals ; i++) { \
-    to_pdl_physdatap[i] = (trans->bvalflag && from_pdl_physdatap[poffs] == from_pdl_badval) \
-      ? to_pdl_badval : from_pdl_physdatap[poffs]; \
+    to_pdl_datap[i] = (trans->bvalflag && from_pdl_datap[poffs] == from_pdl_badval) \
+      ? to_pdl_badval : from_pdl_datap[poffs]; \
     for (nd=0; nd<trans->pdls[to_id]->ndims ; nd++) { \
       poffs += trans->incs[nd]; \
       if ((nd<trans->pdls[to_id]->ndims -1 && \
@@ -235,9 +235,9 @@ pdl_error pdl_converttypei_redodims(pdl_trans *trans) {
   { \
     PDL_Indx i; \
     for(i=0; i<trans->pdls[1]->nvals; i++) { \
-      to_pdl ## _physdatap[i] = trans->bvalflag && from_pdl ## _physdatap[i] == from_pdl ## _badval \
+      to_pdl ## _datap[i] = trans->bvalflag && from_pdl ## _datap[i] == from_pdl ## _badval \
         ? to_pdl ## _badval \
-        : from_pdl ## _physdatap[i]; \
+        : from_pdl ## _datap[i]; \
       ; \
     } \
   }
@@ -277,8 +277,8 @@ static char pdl_converttypei_vtable_flags[] = {
 static PDL_Indx pdl_converttypei_vtable_realdims[] = { 0, 0 };
 static char *pdl_converttypei_vtable_parnames[] = { "PARENT","CHILD" };
 static short pdl_converttypei_vtable_parflags[] = {
-  0,
-  PDL_PARAM_ISCREAT|PDL_PARAM_ISCREATEALWAYS|PDL_PARAM_ISIGNORE|PDL_PARAM_ISOUT|PDL_PARAM_ISWRITE
+  PDL_PARAM_ISPHYS,
+  PDL_PARAM_ISCREAT|PDL_PARAM_ISCREATEALWAYS|PDL_PARAM_ISIGNORE|PDL_PARAM_ISOUT|PDL_PARAM_ISPHYS|PDL_PARAM_ISWRITE
 };
 static pdl_datatypes pdl_converttypei_vtable_partypes[] = { -1, -1 };
 static PDL_Indx pdl_converttypei_vtable_realdims_starts[] = { 0, 0 };

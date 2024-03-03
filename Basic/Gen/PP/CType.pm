@@ -62,7 +62,7 @@ sub get_copy {
 	return "($to) = ($from); /* CType.get_copy */" if !@{$this->{Chain}};
 	# strdup loses portability :(
 	return "($to) = malloc(strlen($from)+1); strcpy($to,$from); /* CType.get_copy */"
-	 if $this->{Base} =~ /^\s*char\s*$/;
+	 if $this->{Base} =~ /^\s*char\s*$/ and @{$this->{Chain}} == 1;
 	return "($to) = newSVsv($from); /* CType.get_copy */" if $this->{Base} =~ /^\s*SV\s*$/;
 	my $code = $this->get_malloc($to,$from);
 	return "($to) = ($from); /* CType.get_copy */" if !defined $code; # pointer

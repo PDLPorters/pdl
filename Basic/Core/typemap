@@ -8,6 +8,7 @@ PDL_Anyval  T_PDL_ANYVAL
 pdl_slice_args * T_PDL_SLICEARGS
 PDL_Indx * T_PDL_DIMLIST
 pdl ** T_PDL_LIST
+char ** T_STRING_LIST
 
 INPUT
 
@@ -35,6 +36,9 @@ T_PDL_DIMLIST
 
 T_PDL_LIST
   $var = PDL_CORE_(packpdls)($arg, &${var}_count)
+
+T_STRING_LIST
+  $var = PDL_CORE_(packstrings)($arg, &${var}_count)
 
 OUTPUT
 
