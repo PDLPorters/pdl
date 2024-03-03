@@ -117,8 +117,8 @@ void pdl_print_iarr(PDL_Indx *iarr, int n) {
 }
 
 void pdl_dump_broadcast(pdl_broadcast *broadcast) {
-  int i, j, found=0, sz=0;
-  char spaces[] = "    ";
+  int i, j, found=0, sz=0, nspac=4;
+  SET_SPACE(spaces, nspac);
   int flagval[] = {
 #define X(f) f,
 PDL_LIST_FLAGS_PDLBROADCAST(X)
@@ -162,10 +162,11 @@ PDL_TYPELIST_ALL(X)
     psp; printf("Types: ");
     found=0; sz=0;
     for (i=0;vtable->gentypes[i]!=-1; i++) {
-      if (sz>PDL_MAXLIN) {sz=0; printf("\n");psp;psp;}
-      printf("%s%s",found ? ",":"",typechar[vtable->gentypes[i]]);
-      found = 1;
-      sz += strlen(typechar[vtable->gentypes[i]]);
+      char *this_str = typechar[vtable->gentypes[i]];
+      size_t thislen = strlen(this_str);
+      if ((sz+thislen)>PDL_MAXLIN) {sz=nspac*2; printf("\n%s%s",spaces,spaces);}
+      printf("%s%s",found ? ",":"",this_str); found = 1;
+      sz += thislen;
     }
     printf("\n");
     psp; printf("Parameters:\n");
@@ -189,10 +190,11 @@ PDL_TYPELIST_ALL(X)
       found=0; sz=0;
       for (j=0;paramflagval[j]!=0; j++)
         if (vtable->par_flags[i] & paramflagval[j]) {
-          if (sz>PDL_MAXLIN) {sz=0; printf("\n");psp;psp;psp;}
-          printf("%s",found ? "|":""); found = 1;
-          printf("%s",paramflagchar[j]);
-          sz += strlen(paramflagchar[j]);
+          char *this_str = paramflagchar[j];
+          size_t thislen = strlen(this_str);
+          if ((sz+thislen)>PDL_MAXLIN) {sz=nspac*3; printf("\n%s%s%s",spaces,spaces,spaces);}
+          printf("%s%s",found ? "|":"",this_str); found = 1;
+          sz += thislen;
         }
       if (!found) printf("(no flags set)");
       printf("\n");
@@ -201,16 +203,16 @@ PDL_TYPELIST_ALL(X)
     for (i=0;i<vtable->ninds;i++)
       printf("%s ",vtable->ind_names[i]);
     printf("\n");
-    psp; printf("Realdims: "); pdl_print_iarr(vtable->par_realdims,broadcast->npdls); printf("\n");
   }
   psp; printf("Flags: ");
   found=0; sz=0;
   for (i=0;flagval[i]!=0; i++)
     if (broadcast->gflags & flagval[i]) {
-      if (sz>PDL_MAXLIN) {sz=0; printf("\n");psp;}
-      printf("%s%s",found ? "|":"",flagchar[i]);
-      found = 1;
-      sz += strlen(flagchar[i]);
+      char *this_str = flagchar[i];
+      size_t thislen = strlen(this_str);
+      if ((sz+thislen)>PDL_MAXLIN) {sz=nspac; printf("\n%s",spaces);}
+      printf("%s%s",found ? "|":"",this_str); found = 1;
+      sz += thislen;
     }
   printf("\n");
   psp; printf("Ndims: %"IND_FLAG", Nimplicit: %"IND_FLAG", Npdls: %"IND_FLAG", Nextra: %"IND_FLAG"\n",
@@ -391,10 +393,11 @@ PDL_LIST_FLAGS_PDLVTABLE(X)
 	found = 0; sz = 0;
 	for (i=0;flagval[i]!=0; i++)
 	  if (flags & flagval[i]) {
-	    if (sz>PDL_MAXLIN) {sz=0; printf("\n       %s",spaces);}
-	    printf("%s%s",found ? "|":"",flagchar[i]);
-	    found = 1;
-	    sz += strlen(flagchar[i]);
+	    char *this_str = flagchar[i];
+	    size_t thislen = strlen(this_str);
+	    if ((sz+thislen)>PDL_MAXLIN) {sz=7+nspac; printf("\n       %s",spaces);}
+	    printf("%s%s",found ? "|":"",this_str); found = 1;
+	    sz += thislen;
 	  }
 	printf("\n");
 }
