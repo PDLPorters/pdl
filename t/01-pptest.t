@@ -493,7 +493,7 @@ is "$o", 4;
 is "$oth", 7;
 
 eval {typem($o = PDL->null, $oth = 3, []);};
-like $@, qr/^typem:.*not a HASH reference/;
+like $@, qr/^typem:.*not a HASH reference/i;
 
 incomp_in($o = PDL->null, [sequence(3), sequence(byte, 4)]);
 is "$o", 9;
