@@ -375,7 +375,7 @@ sub dosubst_private {
       PDLSTATESETGOOD => sub { ($sig->objs->{$_[0]}->do_pdlaccess//confess "Can't get PDLSTATESETGOOD for unknown ndarray '$_[0]'")."->state &= ~PDL_BADVAL" },
       PDLSTATEISBAD => sub {badflag_isset(($sig->objs->{$_[0]}//confess "Can't get PDLSTATEISBAD for unknown ndarray '$_[0]'")->do_pdlaccess)},
       PDLSTATEISGOOD => sub {"!".badflag_isset(($sig->objs->{$_[0]}//confess "Can't get PDLSTATEISGOOD for unknown ndarray '$_[0]'")->do_pdlaccess)},
-      PP => sub { ($sig->objs->{$_[0]}//confess "Can't get PP for unknown ndarray '$_[0]'")->do_physpointeraccess },
+      PP => sub { (my $o = ($sig->objs->{$_[0]}//confess "Can't get PP for unknown ndarray '$_[0]'"))->{FlagPhys} = 1; $o->do_pointeraccess; },
       P => sub { (my $o = ($sig->objs->{$_[0]}//confess "Can't get P for unknown ndarray '$_[0]'"))->{FlagPhys} = 1; $o->do_pointeraccess; },
       PDL => sub { ($sig->objs->{$_[0]}//confess "Can't get PDL for unknown ndarray '$_[0]'")->do_pdlaccess },
       SIZE => sub { ($sig->ind_obj($_[0])//confess "Can't get SIZE of unknown dim '$_[0]'")->get_size },
@@ -1149,14 +1149,6 @@ $PDL::PP::deftbl =
           $SETDELTABROADCASTIDS(0);
           $PRIV(dims_redone) = 1;
         '),
-        # NOTE: we use the same bit of code for all-good and bad data -
-        #  see the Code rule
-        # we can NOT assume that PARENT and CHILD have the same type,
-        # hence the version for bad code
-        #
-        # NOTE: we use the same code for 'good' and 'bad' cases - it's
-        # just that when we use it for 'bad' data, we have to change the
-        # definition of the EQUIVCPOFFS macro - see the Code rule
         PDL::PP::pp_line_numbers(__LINE__,
             'PDL_Indx i;
              for(i=0; i<$PDL(CHILD)->nvals; i++)  {
@@ -1419,10 +1411,10 @@ EOD
         my ($good) = @_;
         $good =~ s/
           \$EQUIVCPOFFS\(([^()]+),([^()]+)\)
-        /do { PDL_IF_BAD(if( \$PPISBAD(PARENT,[$2]) ) { \$PPSETBAD(CHILD,[$1]); } else,) { \$PP(CHILD)[$1] = \$PP(PARENT)[$2]; } } while (0)/gx;
+        /do { PDL_IF_BAD(if( \$PISBAD(PARENT,[$2]) ) { \$PSETBAD(CHILD,[$1]); } else,) { \$P(CHILD)[$1] = \$P(PARENT)[$2]; } } while (0)/gx;
         $good =~ s/
           \$EQUIVCPTRUNC\(([^()]+),([^()]+),([^()]+)\)
-        /do { if( ($3) PDL_IF_BAD(|| \$PPISBAD(PARENT,[$2]),) ) { PDL_IF_BAD(\$PPSETBAD(CHILD,[$1]),\$PP(CHILD)[$1] = 0); } else {\$PP(CHILD)[$1] = \$PP(PARENT)[$2]; } } while (0)/gx;
+        /do { if( ($3) PDL_IF_BAD(|| \$PISBAD(PARENT,[$2]),) ) { PDL_IF_BAD(\$PSETBAD(CHILD,[$1]),\$P(CHILD)[$1] = 0); } else {\$P(CHILD)[$1] = \$P(PARENT)[$2]; } } while (0)/gx;
         $good;
       }),
 
@@ -1444,15 +1436,12 @@ EOD
         # parse 'good' code
         $good =~ s/
           \$EQUIVCPOFFS\(([^()]+),([^()]+)\)
-        /do { PDL_IF_BAD(if( \$PPISBAD(CHILD,[$1]) ) { \$PPSETBAD(PARENT,[$2]); } else,) { \$PP(PARENT)[$2] = \$PP(CHILD)[$1]; } } while (0)/gx;
+        /do { PDL_IF_BAD(if( \$PISBAD(CHILD,[$1]) ) { \$PSETBAD(PARENT,[$2]); } else,) { \$P(PARENT)[$2] = \$P(CHILD)[$1]; } } while (0)/gx;
         $good =~ s/
           \$EQUIVCPTRUNC\(([^()]+),([^()]+),([^()]+)\)
-        /do { if(!($3)) { PDL_IF_BAD(if( \$PPISBAD(CHILD,[$1]) ) { \$PPSETBAD(PARENT,[$2]); } else,) { \$PP(PARENT)[$2] = \$PP(CHILD)[$1]; } } } while (0)/gx;
+        /do { if(!($3)) { PDL_IF_BAD(if( \$PISBAD(CHILD,[$1]) ) { \$PSETBAD(PARENT,[$2]); } else,) { \$P(PARENT)[$2] = \$P(CHILD)[$1]; } } } while (0)/gx;
         $good;
       }),
-
-   PDL::PP::Rule::Returns::Zero->new("CanVaffine", "EquivCPOffsCode"),
-   PDL::PP::Rule::Returns::One->new("CanVaffine"),
 
    PDL::PP::Rule::Returns::NULL->new("ReadDataFuncName", "AffinePriv"),
    PDL::PP::Rule::Returns::NULL->new("WriteBackDataFuncName", "AffinePriv"),
@@ -1995,18 +1984,18 @@ EOF
    PDL::PP::Rule->new("VTableDef",
       ["VTableName","ParamStructType","RedoDimsFuncName","ReadDataFuncName",
        "WriteBackDataFuncName","FreeFuncName",
-       "SignatureObj","CanVaffine","HaveBroadcasting","NoPthread","Name",
+       "SignatureObj","HaveBroadcasting","NoPthread","Name",
        "GenericTypes","IsAffineFlag","TwoWayFlag","DefaultFlowFlag",
        "BadFlag"],
       sub {
         my($vname,$ptype,$rdname,$rfname,$wfname,$ffname,
-           $sig,$canvaffine,$havebroadcasting, $noPthreadFlag, $name, $gentypes,
+           $sig,$havebroadcasting, $noPthreadFlag, $name, $gentypes,
            $affflag, $revflag, $flowflag, $badflag) = @_;
         my ($pnames, $pobjs) = ($sig->names_sorted, $sig->objs);
         my $nparents = 0 + grep !$pobjs->{$_}->{FlagW}, @$pnames;
         my $npdls = scalar @$pnames;
         my $join_flags = join(", ",
-          map $canvaffine && !$pobjs->{$pnames->[$_]}->{FlagPhys}
+          map !$pobjs->{$pnames->[$_]}->{FlagPhys}
             ? "PDL_TPDL_VAFFINE_OK" : 0, 0..$npdls-1) || '0';
         my @op_flags;
         push @op_flags, 'PDL_TRANS_DO_BROADCAST' if $havebroadcasting;

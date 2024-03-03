@@ -200,11 +200,6 @@ sub do_pointeraccess {
 	return $this->{Name}."_datap";
 }
 
-sub do_physpointeraccess {
-	my($this) = @_;
-	return $this->{Name}."_physdatap";
-}
-
 sub do_indterm { my($this,$pdl,$ind,$subst,$context) = @_;
   my $substname = $this->get_substname($ind);
 # See if substitutions

@@ -239,8 +239,8 @@ for (i = 0; i < $COMP(ins_count); i++) {
 #define X_CAT_INNER(datatype_in, ctype_in, ppsym_in, ...) \
   PDL_DECLARE_PARAMETER_BADVAL(ctype_in, 0, in, (in), 1) \
   for(j=0; j<in->nvals; j++) { \
-    if ($PRIV(bvalflag) && PDL_ISBAD(in_physdatap[j], in_badval, ppsym_in)) continue; \
-    $out() += in_physdatap[j]; \
+    if ($PRIV(bvalflag) && PDL_ISBAD(in_datap[j], in_badval, ppsym_in)) continue; \
+    $out() += in_datap[j]; \
   }
   PDL_GENERICSWITCH(PDL_TYPELIST2_ALL, in->datatype, X_CAT_INNER, $CROAK("Not a known data type code=%d", in->datatype))
 #undef X_CAT_INNER

@@ -1049,7 +1049,7 @@ isn't bad.
 To copy the bad value for an ndarray into a c variable, use
 C<$SETBADVAR(foo,a)>.
 
-I<TODO:> mention C<$PPISBAD()> etc macros.
+I<TODO:> mention C<$PISBAD()> etc macros.
 
 =head2 PDL STATE macros
 
@@ -1145,6 +1145,9 @@ The correct way of defining the PDL function is
 
 The C<$P(>I<par>C<)> syntax returns a pointer to the first
 element and the other elements are guaranteed to lie after that.
+Using it in your C<Code> guarantees it will be "physicalised", so that
+all the data is contiguous, because external C functions usually expect
+that.
 
 Notice that here it is possible to make many mistakes. First,
 C<$SIZE(n)> must be used instead of C<n>. Second, you shouldn't put
@@ -1243,14 +1246,6 @@ on the type of the transformation):
 
 There is a limitation that the comma-separated values cannot have
 parentheses.
-
-=head3 $PP
-
-The C<$PP> macro is used for a so called I<physical pointer access>. The
-I<physical> refers to some internal optimisations of PDL (for those who
-are familiar with the PDL core we are talking about the vaffine
-optimisations). This macro is mainly for internal use and you shouldn't
-need to use it in any of your normal code.
 
 =head3 $PPSYM
 
@@ -2558,11 +2553,7 @@ replaced by the C type that is equal to the runtime type of the operation
 =head3 $P(a)
 
 a pointer to the data of the PDL named C<a> in the signature. Useful for
-interfacing to C functions
-
-=head3 $PP(a)
-
-a physical pointer access to pdl C<a>; mainly for internal use
+interfacing to C functions. Causes that PDL to have a C<[phys]> flag.
 
 =head3 $TXYZ(AlternativeX,AlternativeY,AlternativeZ)
 
