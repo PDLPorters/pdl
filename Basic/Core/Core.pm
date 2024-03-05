@@ -1879,7 +1879,7 @@ sub PDL::broadcast_define ($$) {
   *{"$package\::$name"} = sub {
     @_[0..$args] = map PDL::Core::topdl($_), @_[0..$args];
     $sig->checkdims(@_);
-    PDL::broadcastover($others,@_,$sig->realdims,$sig->creating,$sub);
+    PDL::broadcastover($sub,$sig->realdims,$sig->creating,$others,@_);
   };
 }
 

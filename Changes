@@ -8,7 +8,7 @@
 - PP add CHeader key
 - OtherPars can now be incomplete arrays of char*
 - make typemaps able to use more Perl ones like T_HVREF - thanks @jo-37
-- removed threadover_n alias since not used elsewhere and broadcastover_n interface adjusted to move mandatory to start
+- removed threadover_n alias since not used elsewhere and broadcastover{,_n} interface adjusted to move mandatory to start
 
 2.085_01 2024-02-10
 - test, document PDL::string, make more consistent (#459) - thanks @vadim-160102 for report

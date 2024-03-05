@@ -1191,33 +1191,28 @@ broadcastover_n(code, pdl1, ...)
     pdl_freebroadcaststruct(&pdl_brc);
 
 void
-broadcastover(...)
-   PREINIT:
-    PDL_Indx npdls;
-    int targs;
-    int nothers = -1;
+broadcastover(code, realdims, creating, nothers, pdl1, ...)
+    PDL_Indx realdims_count=0;
+    PDL_Indx creating_count=0;
+    SV *code;
+    PDL_Indx *realdims;
+    PDL_Indx *creating;
+    int nothers;
+    pdl *pdl1;
    CODE:
-    targs = items - 4;
-    if (items > 0) nothers = SvIV(ST(0));
-    if(targs <= 0 || nothers < 0 || nothers >= targs)
-	croak("Usage: broadcastover(nothers,pdl[,pdl...][,otherpars..],realdims,creating,sub)");
-    npdls = targs-nothers;
-    int dtype=0;
-    PDL_Indx i,nc=npdls,nd1,nd2;
-    SV* rdimslist = ST(items-3);
-    SV* cdimslist = ST(items-2);
-    SV *code = ST(items-1);
-    pdl_broadcast pdl_brc;
+    int targs = items - 4;
+    if(nothers < 0 || nothers >= targs)
+	croak("Usage: broadcastover(sub,realdims,creating,nothers,pdl1[,pdl...][,otherpars..])");
+    PDL_Indx npdls = targs-nothers, i,nc=npdls;
     pdl *pdls[npdls], *child[npdls];
     SV *csv[npdls], *others[nothers];
-    PDL_Indx *creating = pdl_packdims(cdimslist,&nd2);
-    if (!creating) croak("Failed to packdims for creating");
-    if (nd2 < npdls) croak("broadcastover: need at least one creating flag per pdl: %"IND_FLAG" pdls, %"IND_FLAG" flags", npdls, nd2);
-    PDL_Indx *realdims = pdl_packdims(rdimslist,&nd1);
-    if (!realdims) croak("Failed to packdims for realdims");
-    if (nd1 != npdls) croak("broadcastover: need one realdim flag per pdl: %"IND_FLAG" pdls, %"IND_FLAG" flags", npdls, nd1);
+    if (creating_count < npdls) croak("broadcastover: need at least one creating flag per pdl: %"IND_FLAG" pdls, %"IND_FLAG" flags", npdls, creating_count);
+    if (realdims_count != npdls) croak("broadcastover: need one realdim flag per pdl: %"IND_FLAG" pdls, %"IND_FLAG" flags", npdls, realdims_count);
+    int dtype=0;
+    pdls[0] = pdl1;
+    for(i=1; i<npdls; i++)
+	pdls[i] = pdl_SvPDLV(ST(i+4));
     for(i=0; i<npdls; i++) {
-	pdls[i] = pdl_SvPDLV(ST(i+1));
 	if (creating[i])
 	  nc += realdims[i];
 	else {
@@ -1225,11 +1220,12 @@ broadcastover(...)
 	  dtype = PDLMAX(dtype,pdls[i]->datatype);
 	}
     }
-    for (i=npdls+1; i<=targs; i++)
-	others[i-npdls-1] = ST(i);
-    if (nd2 < nc)
+    if (creating_count < nc)
 	croak("Not enough dimension info to create pdls");
+    for (i=npdls; i<=targs; i++)
+	others[i-npdls] = ST(i+4);
     PDLDEBUG_f(for (i=0;i<npdls;i++) { printf("pdl %"IND_FLAG" ",i); pdl_dump(pdls[i]); });
+    pdl_broadcast pdl_brc;
     PDL_CLRMAGIC(&pdl_brc);
     pdl_brc.gflags = 0; /* avoid uninitialised value use below */
     pdl_barf_if_error(pdl_initbroadcaststruct(0,pdls,realdims,creating,npdls,
@@ -1270,7 +1266,7 @@ broadcastover(...)
 	pdl_trans *traff;
 	dSP;
 	PUSHMARK(sp);
-	EXTEND(sp,npdls);
+	EXTEND(sp,npdls+nothers);
 	for(i=0; i<npdls; i++) {
 	   /* just twiddle the offset - quick and dirty */
 	   /* we must twiddle both !! */
