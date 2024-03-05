@@ -189,7 +189,7 @@ typedef struct Core Core;
 #define PDL_DECLARE_PARAMETER(type, flag, name, pdlname, nullcheck) \
   type *name ## _datap = ((type *)(PDL_REPRP_TRANS(pdlname, flag))); \
   if ((nullcheck) && pdlname->nvals > 0 && !name ## _datap) \
-    return PDL_CORE_(make_error_simple)(PDL_EUSERERROR, "parameter " #name " got NULL data"); \
+    return PDL_CORE_(make_error)(PDL_EUSERERROR, "parameter " #name "=%p got NULL data", pdlname); \
 
 #define PDL_DECLARE_PARAMETER_BADVAL(type, flag, name, pdlname, nullcheck) \
   PDL_DECLARE_PARAMETER(type, flag, name, pdlname, nullcheck) \
