@@ -342,16 +342,9 @@ is(join(',',$pc->dims), "4,6,5", 'unbroadcast dims');
 #### Now, test whether the Perl-accessible broadcast works:
 my $pa = pdl [[0,1,2],[3,4,5],[6,7,8]],[[10,11,12],[13,14,15],[16,17,18]];
 my $pb = pdl [2,3,4];
-PDL::broadcastover_n($pa,$pb,sub {print "ROUND: @_\n"});
+PDL::broadcastover_n(sub {print "ROUND: @_\n"},$pa,$pb);
 # As well as with virtuals...
-PDL::broadcastover_n($pa->slice("-1:0,-1:0"),$pb,sub {print "ROUND: @_\n"});
-}
-
-{
-# test compat alias still works
-my $pa = pdl [[0,1,2],[3,4,5],[6,7,8]],[[10,11,12],[13,14,15],[16,17,18]];
-my $pb = pdl [2,3,4];
-PDL::threadover_n($pa,$pb,sub {print "ROUND: @_\n"});
+PDL::broadcastover_n(sub {print "ROUND: @_\n"},$pa->slice("-1:0,-1:0"),$pb);
 }
 
 done_testing;

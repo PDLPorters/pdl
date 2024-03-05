@@ -1147,21 +1147,19 @@ gethdr(p)
 	 RETVAL
 
 void
-broadcastover_n(...)
-   PREINIT:
-   PDL_Indx npdls;
-   SV *sv;
+broadcastover_n(code, pdl1, ...)
+    SV *code;
+    pdl *pdl1;
    CODE:
-    npdls = items - 1;
-    if(npdls <= 0)
-	croak("Usage: broadcastover_n(pdl[,pdl...],sub)");
+    PDL_Indx npdls = items - 1;
     PDL_Indx i,sd;
     pdl *pdls[npdls];
     PDL_Indx realdims[npdls];
     pdl_broadcast pdl_brc;
-    SV *code = ST(items-1);
+    pdls[0] = pdl1;
+    for(i=1; i<npdls; i++)
+	pdls[i] = pdl_SvPDLV(ST(i+1));
     for(i=0; i<npdls; i++) {
-	pdls[i] = pdl_SvPDLV(ST(i));
 	/* XXXXXXXX Bad */
 	pdl_barf_if_error(pdl_make_physical(pdls[i]));
 	realdims[i] = 0;
@@ -1180,10 +1178,8 @@ broadcastover_n(...)
 	EXTEND(sp,items);
 	PUSHs(sv_2mortal(newSViv((sd-1))));
 	for(i=0; i<npdls; i++) {
-		PDL_Anyval pdl_val = { PDL_INVALID, {0} };
-		pdl_val = pdl_get_offs(pdls[i],pdl_brc.offs[i]);
-		sv = sv_newmortal();
-		ANYVAL_TO_SV(sv, pdl_val);
+		SV *sv = sv_newmortal();
+		ANYVAL_TO_SV(sv, pdl_get_offs(pdls[i],pdl_brc.offs[i]));
 		PUSHs(sv);
 	}
 	PUTBACK;

@@ -60,7 +60,6 @@ $PDL::toolongtoprint = 10000;  # maximum pdl size to stringify for printing
 
 *at_c = *at_bad_c; # back-compat alias
 *thread_define = *broadcast_define;
-*PDL::threadover_n = *PDL::broadcastover_n;
 
 for my $t (PDL::Types::types()) {
   my $conv = $t->convertfunc;
