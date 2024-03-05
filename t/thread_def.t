@@ -69,14 +69,14 @@ is $text, '[1 1 1]';
 
 # cut down from PDL::Apply which got broken by 2.057_01
 thread_define '_apply_slice_ND(data(n);sl(2,m);[o]output(m)),NOtherPars=>2', over {
-  _apply_slice_1D($_[1], ones($_[0]->type), my $output = null, @_[0,3,4]);
-  $_[2] .= $output;
+  my ($data, $sl, $output, $func, $args) = @_;
+  _apply_slice_1D($sl, ones($data->type), my $output1D = null, $data, $func, $args);
+  $output .= $output1D;
 };
 thread_define '_apply_slice_1D(slices(n);dummy();[o]output()),NOtherPars=>3', over {
-  my $func = $_[4];
-  my $args = $_[5];
-  my $data = slice($_[3], $_[0]->unpdl);
-  $_[2] .= PDL::Core::topdl($data->$func(@$args));
+  my ($slices, $dummy, $output1D, $data, $func, $args) = @_;
+  my $data_sliced = slice($data, $slices->unpdl);
+  $output1D .= PDL::Core::topdl($data_sliced->$func(@$args));
 };
 my $x = sequence(5,3,2);
 my $slices = indx([0,2], [1,3], [2,4]);
