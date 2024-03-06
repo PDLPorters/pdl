@@ -298,10 +298,7 @@ instead.  PDL::Transform::map runs slower but is more flexible.
 EOD
         Pars => 'a(m); [o]b(n);',
         OtherPars => 'int ns => n',
-        PMCode => '
-
-# Custom Perl wrapper
-
+        PMCode => pp_line_numbers(__LINE__, <<'EOF'),
 sub PDL::rebin {
     my($x) = shift;
     my($opts) = ref $_[-1] eq "HASH" ? pop : {};
@@ -349,7 +346,7 @@ sub PDL::rebin {
       return $x -> copy;
     }
 }
-',
+EOF
         Code => '
         int ms = $SIZE(m);
         int nv = $COMP(ns);
