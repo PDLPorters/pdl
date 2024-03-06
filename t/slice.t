@@ -388,6 +388,9 @@ PDL::polyroots($roots->re, $roots->im, $sl11, $sl22);
 my $got;
 ok all(approx $got=$xx->slice('(0)'), 599), "col=0" or diag "got=$got";
 ok all(approx $got=$xx->slice('(1)'), 699), "col=1" or diag "got=$got";
+
+eval {(my $y = zeroes(3,6)) += sequence(6,6)->mv(1,0)->slice("1:-1:2")};
+is $@, '', 'can += an mv->slice';
 }
 
 # captured from https://www.perlmonks.org/?node_id=11153348
