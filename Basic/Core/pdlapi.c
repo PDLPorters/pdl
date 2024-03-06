@@ -908,7 +908,6 @@ pdl_error pdl__make_physvaffine_recprotect(pdl *it, int recurse_count)
 	pdl_trans *t=it->trans_parent;
 	pdl *current = it;
 	do {
-		PDL_Indx cur_offset = 0;
 		if (!t->incs)
 		  return pdl_make_error_simple(PDL_EUSERERROR, "pdl_make_physvaffine: affine trans has NULL incs\n");
 		pdl *parent = t->pdls[0];
@@ -921,11 +920,6 @@ pdl_error pdl__make_physvaffine_recprotect(pdl *it, int recurse_count)
 			inc *= incsign;
 			/* For all dimensions of the current ndarray */
 			for(j=current->ndims-1; j>=0 && current->dimincs[j] != 0; j--) {
-				cur_offset = offset_left / current->dimincs[j];
-				offset_left -= cur_offset * current->dimincs[j];
-				if(incsign < 0) {
-					cur_offset = (current->dims[j]-1) - cur_offset;
-				}
 				/* If the absolute value > this so */
 				/* we have a contribution from this dimension */
 				if (inc < current->dimincs[j]) continue;
@@ -942,7 +936,7 @@ pdl_error pdl__make_physvaffine_recprotect(pdl *it, int recurse_count)
 		PDL_Indx offset_left = it->vafftrans->offs;
 		PDL_Indx newinc = 0;
 		for(j=current->ndims-1; j>=0 && current->dimincs[j] != 0; j--) {
-			cur_offset = offset_left / current->dimincs[j];
+			PDL_Indx cur_offset = offset_left / current->dimincs[j];
 			offset_left -= cur_offset * current->dimincs[j];
 			newinc += t->incs[j]*cur_offset;
 		}
