@@ -904,7 +904,6 @@ pdl_error pdl__make_physvaffine_recprotect(pdl *it, int recurse_count)
 	for(i=0; i<it->ndims; i++) {
 		it->vafftrans->incs[i] = it->dimincs[i];
 	}
-	int flag=0;
 	it->vafftrans->offs = 0;
 	pdl_trans *t=it->trans_parent;
 	pdl *current = it;
@@ -932,35 +931,11 @@ pdl_error pdl__make_physvaffine_recprotect(pdl *it, int recurse_count)
 				if (inc < current->dimincs[j]) continue;
 				/* We used this many of this dim */
 				PDL_Indx ninced = inc / current->dimincs[j];
-				if(cur_offset + it->dims[i]*ninced >
-					current->dims[j]) {
-				  PDL_Indx foo =
-				   (cur_offset + it->dims[i]*ninced)*
-				   current->dimincs[j];
-				  PDL_Indx k;
-				  for(k=j+1; k<current->ndims; k++) {
-					foo -= current->dimincs[k-1] *
-						current->dims[k-1];
-					if(foo<=0) break;
-					if(t->incs[k] !=
-					   t->incs[k-1] *
-					   current->dims[k-1]) {
-					   /* XXXXX */
-						flag=1;
-					 /*
-	warn("Illegal vaffine; fix loop to break: %d %d %d k=%d s=%d, (%d+%d*%d>%d) %d %d %d %d.\n",t,current,it,
-		k,incsign,cur_offset,it->dims[i],ninced,current->dims[j],current->dimincs[j],
-		t->incs[k],t->incs[k-1],current->dims[k-1]);
-					*/
-					}
-				  }
-				}
 				newinc += t->incs[j]*ninced;
 				inc %= current->dimincs[j];
 			}
 			incsleft[i] = incsign*newinc;
 		}
-		if(flag) break;
 		for(i=0; i<it->ndims; i++) {
 			it->vafftrans->incs[i] = incsleft[i];
 		}
