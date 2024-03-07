@@ -95,7 +95,8 @@ pdl_error pdl__ensure_trans(pdl_trans *trans,int what,int *wd, int recurse_count
 		if(trans->pdls[j]->trans_parent == trans)
 			PDL_ENSURE_ALLOCATED(trans->pdls[j]);
 	if(par_pvaf && (trans->flags & PDL_ITRANS_ISAFFINE)) {
-	  /* Attention: this assumes affine = p2child */
+		if (!(vtable->nparents == 1 && vtable->npdls == 2))
+		  return pdl_make_error_simple(PDL_EUSERERROR, "Affine trans other than 1 input 1 output");
 		READDATA_VAFFINE(PDL_ACCUMERROR, trans->pdls[1], recurse_count);
 	} else if(flag & PDL_ANYCHANGED)
 		READDATA(trans);
