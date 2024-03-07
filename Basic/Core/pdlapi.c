@@ -807,8 +807,12 @@ pdl_error pdl__make_physical_recprotect(pdl *it, int recurse_count) {
                 }  else
 			PDL_RETERROR(PDL_err, pdl__make_physical_recprotect(trans->pdls[i], recurse_count+1));
 	}
-        /* XXX The real question is: why do we need another call to
-         * redodims if !(it->state & PDL_ALLOCATED)??????
+        /* need another call to redodims if !(it->state & PDL_ALLOCATED)
+          because with true vaffinepar means we have "pure vaffine", so
+          redodims will call initbroadcast which will update inc_sizes
+          from the vafftrans
+          this almost certainly means make_physvaffine needs to redodims
+          AFTER its bookkeeping, not at start
          */
 	PDLDEBUG_f(printf("make_physical vaffinepar=%d, state=", vaffinepar); pdl_dump_flags_fixspace(it->state, 0, PDL_FLAGS_PDL));
 	if ((!(it->state & PDL_ALLOCATED) && vaffinepar) ||
