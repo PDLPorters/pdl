@@ -7,10 +7,14 @@
   do { \
     pdl_transvtable *vtable = (trans)->vtable; \
     PDLDEBUG_f(printf("VTOD call " #func "(%p=%s)\n", trans, vtable->name)); \
+    PDL_Indx i, istart = is_fwd ? vtable->nparents : 0, iend = is_fwd ? vtable->npdls : vtable->nparents; \
+    if (is_fwd) \
+      for (i = istart; i < iend; i++) \
+        if (trans->pdls[i]->trans_parent == trans) \
+          PDL_ENSURE_ALLOCATED(trans->pdls[i]); \
     what(PDL_err, (vtable->func \
       ? vtable->func \
       : pdl_ ## default_func)(trans)); \
-    PDL_Indx i, istart = is_fwd ? vtable->nparents : 0, iend = is_fwd ? vtable->npdls : vtable->nparents; \
     for (i = istart; i < iend; i++) { \
       pdl *child = (trans)->pdls[i]; \
       PDLDEBUG_f(printf("VTOD " #func " child=%p turning off datachanged, before=", child); pdl_dump_flags_fixspace(child->state, 0, PDL_FLAGS_PDL)); \
@@ -19,6 +23,8 @@
         pdl_propagate_badflag(child, !!(child->state & PDL_BADVAL)); \
     } \
   } while (0)
+#define READDATA(trans) VTABLE_OR_DEFAULT(PDL_ACCUMERROR, trans, 1, readdata, readdata_affine)
+#define WRITEDATA(trans) VTABLE_OR_DEFAULT(PDL_ACCUMERROR, trans, 0, writebackdata, writebackdata_affine)
 
 #define REDODIMS(what, trans) do { \
     pdl_transvtable *vtable = (trans)->vtable; \
@@ -49,8 +55,6 @@
       child->state &= ~PDL_PARENTDIMSCHANGED; \
     } \
   } while (0)
-#define READDATA(trans) VTABLE_OR_DEFAULT(PDL_ACCUMERROR, trans, 1, readdata, readdata_affine)
-#define WRITEDATA(trans) VTABLE_OR_DEFAULT(PDL_ACCUMERROR, trans, 0, writebackdata, writebackdata_affine)
 #define FREETRANS(trans, destroy) \
     if(trans->vtable->freetrans) { \
 	PDLDEBUG_f(printf("call freetrans\n")); \
@@ -82,19 +86,16 @@ pdl_error pdl__ensure_trans(pdl_trans *trans,int what,int *wd, int recurse_count
 	PDL_Indx j, flag=what, par_pvaf=0;
 	pdl_transvtable *vtable = trans->vtable;
 /* Make all pdls physvaffine */
-	for(j=0; j<vtable->npdls; j++) {
-		if(VAFFINE_FLAG_OK(vtable->per_pdl_flags,j))
+	for (j=0; j<vtable->npdls; j++) {
+		if (VAFFINE_FLAG_OK(vtable->per_pdl_flags,j))
 			par_pvaf++;
 		PDL_RETERROR(PDL_err, pdl__make_physvaffine_recprotect(trans->pdls[j], recurse_count+1));
 	}
-	for(j=vtable->nparents; j<vtable->npdls; j++)
+	for (j=vtable->nparents; j<vtable->npdls; j++)
 		flag |= trans->pdls[j]->state & PDL_ANYCHANGED;
 	PDLDEBUG_f(printf("pdl__ensure_trans after accum, par_pvaf=%"IND_FLAG" flag=", par_pvaf); pdl_dump_flags_fixspace(flag, 0, PDL_FLAGS_PDL));
 	if (flag & PDL_PARENTDIMSCHANGED) REDODIMS(PDL_RETERROR, trans);
-	for(j=vtable->nparents; j<vtable->npdls; j++)
-		if(trans->pdls[j]->trans_parent == trans)
-			PDL_ENSURE_ALLOCATED(trans->pdls[j]);
-	if(par_pvaf && (trans->flags & PDL_ITRANS_ISAFFINE)) {
+	if (par_pvaf && (trans->flags & PDL_ITRANS_ISAFFINE)) {
 		if (!(vtable->nparents == 1 && vtable->npdls == 2))
 		  return pdl_make_error_simple(PDL_EUSERERROR, "Affine trans other than 1 input 1 output");
 		READDATA_VAFFINE(PDL_ACCUMERROR, trans->pdls[1], recurse_count);
@@ -783,7 +784,7 @@ pdl_error pdl__make_physical_recprotect(pdl *it, int recurse_count) {
 		!(it->state & PDL_ANYCHANGED) && /* unchanged and */
 		!(it->trans_parent && !(it->state & PDL_ALLOCATED) && (it->trans_parent->flags & PDL_ITRANS_ISAFFINE)) /* not pure vaffine in waiting */
 	)  {
-		if (!(it->state & PDL_ALLOCATED)) PDL_RETERROR(PDL_err, pdl_allocdata(it));
+		PDL_ENSURE_ALLOCATED(it);
 		goto mkphys_end;
 	}
 	if(!it->trans_parent) {
@@ -812,9 +813,6 @@ pdl_error pdl__make_physical_recprotect(pdl *it, int recurse_count) {
 	if((!(it->state & PDL_ALLOCATED) && vaffinepar) ||
 	   it->state & PDL_PARENTDIMSCHANGED)
 		REDODIMS(PDL_RETERROR, it->trans_parent);
-	if(!(it->state & PDL_ALLOCATED)) {
-		PDL_RETERROR(PDL_err, pdl_allocdata(it));
-	}
 	READDATA(it->trans_parent);
 	PDLDEBUG_f(printf("make_physical turning off OPTs, before="); pdl_dump_flags_fixspace(it->state, 0, PDL_FLAGS_PDL));
 	it->state &= ~(PDL_OPT_ANY_OK);
