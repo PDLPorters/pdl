@@ -3037,7 +3037,7 @@ an error message is printed.
 
 =cut
 
-# kept in for backwards compatability
+# kept in for backwards compatibility
 sub interpol ($$$;$) {
     my $xi = shift;
     my $x  = shift;

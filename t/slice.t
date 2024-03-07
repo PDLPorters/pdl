@@ -72,24 +72,26 @@ is("$in", "
  [1 1]
 ]
 ");
-ok(tapprox($lut,pdl([[1,0],[1,1]])));
+my $expected = pdl([[1,0],[1,1]]);
+ok(tapprox($lut, $expected)) or diag "lut=$lut exp=$expected";
 
 # Test of dice and dice_axis
 $x = sequence(10,4);
 is($x->dice([1,2],[0,3])->sum, 66, "dice");
 is($x->dice([0,1],'X')->sum, 124, "dice 'X'");
 
-# Test of dice clump compatability
+my $got;
+# Test of dice clump compatibility
 my $xxx = PDL->new([[[0,0]],[[1,1]],[[2,2]]]);
 is_deeply($xxx->where($xxx == 0)->unpdl,[0,0],"dice clump base zero");
 my $dice = $xxx->dice("X","X",[1,0]);
-is_deeply($dice->clump(-1)->unpdl,[1,1,0,0],"dice clump correct");
+is_deeply($got=$dice->clump(-1)->unpdl,[1,1,0,0],"dice clump correct") or diag "got=", explain $got;
 is_deeply($dice->where($dice == 0)->unpdl,[0,0],"dice clump where zero");
 
 $x = sequence(5,3,2);
 my @newDimOrder = (2,1,0);
 $y = $x->reorder(@newDimOrder);
-my $got = [$y->dims];
+$got = [$y->dims];
 is_deeply($got, [2,3,5], "Test of reorder") or diag explain $got;
 
 $x = zeroes(3,4);

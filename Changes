@@ -1958,7 +1958,7 @@ General Notes:
 Highlights:
 
  * This release should be a working PDL::IO::Storable that
-   is compatable with the new 64bit index support.
+   is compatible with the new 64bit index support.
  
  * PDL::IO::Storable now requires perl 5.10.x or greater
    although the overall distribution requirements are not
@@ -2871,7 +2871,7 @@ Highlights:
 
    Supports Term::ReadLine::Perl and Term::ReadLine::Gnu.
 
-   Upward compatable with the original PDL shell, perldl.
+   Upward compatible with the original PDL shell, perldl.
 
    Adds completion and command line editing support
    across all PDL platforms.
