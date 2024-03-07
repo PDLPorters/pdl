@@ -134,17 +134,17 @@ foreach my $func ( sort keys %over ) {
 	   HandleBad => 1,
 	   Pars => "a(n); $_->[1] [o]b();",
 	   $_->[2] ? (GenericTypes=>$_->[2]) : (),
-           Code => qq{
+           Code => <<EOF,
             \$GENERIC(b) tmp = $init;
             PDL_IF_BAD(int flag = 0;,)
             loop(n) %{
-            PDL_IF_BAD(if ( \$ISGOOD(a()) ) { flag = 1;,)
+            PDL_IF_BAD(if ( \$ISGOOD(a()) ) { flag = 1;,{)
               tmp $op \$a();
-            PDL_IF_BAD(},)
+            }
             %}
             PDL_IF_BAD(if ( !flag ) \$SETBAD(b()); else,)
             \$b() = tmp;
-           },
+EOF
 	   Doc => projectdocs( $name, $_->[0].$func, $_->[3] ),
 	   ) for (
       ['', 'int+', $A, ''],
@@ -166,15 +166,19 @@ precision."
            Code => qq{
             \$GENERIC(b) tmp = $init;
             loop(n) %{
-              PDL_IF_BAD(if ( \$ISBAD(a()) ) { \$SETBAD(b()); } else {,)
+              PDL_IF_BAD(if ( \$ISBAD(a()) ) { \$SETBAD(b()); } else,) {
                 tmp $op \$a();
                 \$b() = tmp;
-              PDL_IF_BAD(},)
+              }
             %}
            },
 	   Doc => cumuprojectdocs( $name, $_->[0].$cfunc, $_->[3] ),
 	   ) for (
       ['', 'int+', $A, ''],
+      ['c', 'cdouble', $C,
+"Unlike L</$cfunc>, the calculations are performed in complex double
+precision."
+      ],
       ['d', 'double', undef,
 "Unlike L</$cfunc>, the calculations are performed in double precision."
       ],
