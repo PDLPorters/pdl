@@ -116,19 +116,11 @@ EOD
 my %over = 
     (
      sumover  => { name => 'sum',     op => '+=', init => 0, },
-     prodover => { name => 'product', op => '*=', init => 1, },
+     prodover => { name => 'product', op => '*=', init => 1, leftzero => 'tmp == 0' },
      );
 
 foreach my $func ( sort keys %over ) {
-
-    # creates $func and cumu$func functions
-    # and d$func and dcumu$func functions, which
-    # perform the calculations in double precision
-    
-    my $name = $over{$func}{name};
-    my $op   = $over{$func}{op};
-    my $init = $over{$func}{init};
-
+    my ($name, $op, $init, $leftzero) = @{$over{$func}}{qw(name op init leftzero)};
     pp_def(
 	   $_->[0].$func,
 	   HandleBad => 1,
@@ -141,6 +133,7 @@ foreach my $func ( sort keys %over ) {
             PDL_IF_BAD(if ( \$ISGOOD(a()) ) { flag = 1;,{)
               tmp $op \$a();
             }
+            @{[$leftzero ? "if ($leftzero) break;" : '']}
             %}
             PDL_IF_BAD(if ( !flag ) \$SETBAD(b()); else,)
             \$b() = tmp;
