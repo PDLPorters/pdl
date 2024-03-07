@@ -6,7 +6,7 @@
 #define VTABLE_OR_DEFAULT(what, trans, is_fwd, func, default_func) \
   do { \
     pdl_transvtable *vtable = (trans)->vtable; \
-    PDLDEBUG_f(printf("VTOD call " #func "(%p=%s)\n", trans, vtable->name)); \
+    PDLDEBUG_f(printf("VTOD call " #func "(trans=%p/%s)\n", trans, vtable->name)); \
     PDL_Indx i, istart = is_fwd ? vtable->nparents : 0, iend = is_fwd ? vtable->npdls : vtable->nparents; \
     if (is_fwd) \
       for (i = istart; i < iend; i++) \
@@ -734,7 +734,7 @@ pdl_error pdl_make_trans_mutual(pdl_trans *trans)
 	pdl *child = pdls[i];
 	char isnull = !!(child->state & PDL_NOMYDIMS);
 	wd[i]=(isnull ? PDL_PARENTDIMSCHANGED : PDL_PARENTDATACHANGED);
-	PDLDEBUG_f(printf("make_trans_mutual wd[%"IND_FLAG"]=", i); pdl_dump_flags_fixspace(wd[i], 0, PDL_FLAGS_PDL));
+	PDLDEBUG_f(printf("make_trans_mutual child=%p wd[%"IND_FLAG"]=", child, i); pdl_dump_flags_fixspace(wd[i], 0, PDL_FLAGS_PDL));
 	if (dataflow) {
 		/* This is because for "+=" (a = a + b) we must check for
 		   previous parent transformations and mutate if they exist
@@ -776,44 +776,45 @@ pdl_error pdl_redodims_default(pdl_trans *trans) {
 pdl_error pdl__make_physical_recprotect(pdl *it, int recurse_count) {
 	pdl_error PDL_err = {0, NULL, 0};
 	int i, vaffinepar=0;
-	if(recurse_count > 1000)
+	if (recurse_count > 1000)
 	  return pdl_make_error_simple(PDL_EUSERERROR, "PDL:Internal Error: data structure recursion limit exceeded (max 1000 levels)\n\tThis could mean that you have found an infinite-recursion error in PDL, or\n\tthat you are building data structures with very long dataflow dependency\n\tchains.  You may want to try using sever() to break the dependency.\n");
 	PDLDEBUG_f(printf("make_physical %p\n",(void*)it));
-        PDL_CHKMAGIC(it);
+	pdl_trans *trans = it->trans_parent;
+	PDL_CHKMAGIC(it);
 	if (
 		!(it->state & PDL_ANYCHANGED) && /* unchanged and */
-		!(it->trans_parent && !(it->state & PDL_ALLOCATED) && (it->trans_parent->flags & PDL_ITRANS_ISAFFINE)) /* not pure vaffine in waiting */
+		!(trans && !(it->state & PDL_ALLOCATED) && (trans->flags & PDL_ITRANS_ISAFFINE)) /* not pure vaffine in waiting */
 	)  {
 		PDL_ENSURE_ALLOCATED(it);
 		goto mkphys_end;
 	}
-	if(!it->trans_parent) {
+	if (!trans) {
 		return pdl_make_error_simple(PDL_EFATAL, "PDL Not physical but doesn't have parent");
 	}
-	if((it->trans_parent->flags & PDL_ITRANS_ISAFFINE) && !PDL_VAFFOK(it))
+	if ((trans->flags & PDL_ITRANS_ISAFFINE) && !PDL_VAFFOK(it))
 		PDL_RETERROR(PDL_err, pdl__make_physvaffine_recprotect(it, recurse_count+1));
-	if(PDL_VAFFOK(it)) {
+	if (PDL_VAFFOK(it)) {
 		PDLDEBUG_f(printf("make_physical: VAFFOK\n"));
 		READDATA_VAFFINE(PDL_RETERROR, it, recurse_count);
 		goto mkphys_end;
 	}
-	PDL_TR_CHKMAGIC(it->trans_parent);
-	for(i=0; i<it->trans_parent->vtable->nparents; i++) {
-		if(VAFFINE_FLAG_OK(it->trans_parent->vtable->per_pdl_flags,i)) {
-			PDL_RETERROR(PDL_err, pdl__make_physvaffine_recprotect(it->trans_parent->pdls[i], recurse_count+1));
+	PDL_TR_CHKMAGIC(trans);
+	for (i=0; i<trans->vtable->nparents; i++) {
+		if (VAFFINE_FLAG_OK(trans->vtable->per_pdl_flags,i)) {
+			PDL_RETERROR(PDL_err, pdl__make_physvaffine_recprotect(trans->pdls[i], recurse_count+1));
                         /* check if any of the parents is a vaffine */
-                        vaffinepar = vaffinepar || (it->trans_parent->pdls[i]->data != PDL_REPRP(it->trans_parent->pdls[i]));
+                        vaffinepar = vaffinepar || PDL_VAFFOK(trans->pdls[i]);
                 }  else
-			PDL_RETERROR(PDL_err, pdl__make_physical_recprotect(it->trans_parent->pdls[i], recurse_count+1));
+			PDL_RETERROR(PDL_err, pdl__make_physical_recprotect(trans->pdls[i], recurse_count+1));
 	}
         /* XXX The real question is: why do we need another call to
          * redodims if !(it->state & PDL_ALLOCATED)??????
          */
 	PDLDEBUG_f(printf("make_physical vaffinepar=%d, state=", vaffinepar); pdl_dump_flags_fixspace(it->state, 0, PDL_FLAGS_PDL));
-	if((!(it->state & PDL_ALLOCATED) && vaffinepar) ||
+	if ((!(it->state & PDL_ALLOCATED) && vaffinepar) ||
 	   it->state & PDL_PARENTDIMSCHANGED)
-		REDODIMS(PDL_RETERROR, it->trans_parent);
-	READDATA(it->trans_parent);
+		REDODIMS(PDL_RETERROR, trans);
+	READDATA(trans);
 	PDLDEBUG_f(printf("make_physical turning off OPTs, before="); pdl_dump_flags_fixspace(it->state, 0, PDL_FLAGS_PDL));
 	it->state &= ~(PDL_OPT_ANY_OK);
   mkphys_end:
