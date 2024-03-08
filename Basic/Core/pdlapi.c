@@ -653,9 +653,6 @@ pdl_error pdl_make_physdims(pdl *it) {
 	for(i=0; i<trans->vtable->nparents; i++) {
 		PDL_RETERROR(PDL_err, pdl_make_physdims(trans->pdls[i]));
 	}
-	/* doesn't this mean that all children of this trans have
-	   now their dims set and accordingly all those flags should
-	   be reset? Otherwise redodims will be called for them again? */
 	PDLDEBUG_f(printf("make_physdims: calling redodims %p on %p\n",
 			  trans,it));
 	REDODIMS(PDL_RETERROR, trans);
