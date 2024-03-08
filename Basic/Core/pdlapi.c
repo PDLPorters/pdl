@@ -656,11 +656,6 @@ pdl_error pdl_make_physdims(pdl *it) {
 	PDLDEBUG_f(printf("make_physdims: calling redodims %p on %p\n",
 			  trans,it));
 	REDODIMS(PDL_RETERROR, trans);
-	/* why this one? will the old allocated data be freed correctly? */
-	if(c && (it->state & PDL_ALLOCATED)) {
-		PDLDEBUG_f(printf("make_physdims turning off allocated, before="); pdl_dump_flags_fixspace(it->state, 0, PDL_FLAGS_PDL));
-		it->state &= ~PDL_ALLOCATED;
-	}
 	PDLDEBUG_f(printf("make_physdims exit %p\n",(void*)it));
 	return PDL_err;
 }
