@@ -1255,7 +1255,7 @@ broadcastover(code, realdims, creating, nothers, pdl1, ...)
 	pdl_barf_if_error(pdl_affine_new(pdls[i],child[i],pdl_brc.offs[i],
 		thesedims,realdims[i],
 		theseincs,realdims[i]));
-	pdl_barf_if_error(pdl_make_physical(child[i])); /* make sure we can get at
+	pdl_barf_if_error(pdl_make_physvaffine(child[i])); /* make sure we can get at
 					the vafftrans          */
 	csv[i] = sv_newmortal();
 	pdl_SetSV_PDL(csv[i], child[i]); /* pdl* into SV* */
