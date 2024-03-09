@@ -66,12 +66,15 @@
     PDL_ACCUMERROR(PDL_err, pdl_changed(__VA_ARGS__))
 
 pdl_error pdl__make_physical_recprotect(pdl *it, int recurse_count);
+void pdl_vafftrans_remove(pdl * it, char this_one);
 #define READDATA_VAFFINE(what, it, recurse_count) do { \
     what(PDL_err, pdl__make_physical_recprotect(it->vafftrans->from, recurse_count+1)); \
+    char already_allocated = (it->state & PDL_ALLOCATED); \
     PDL_ENSURE_ALLOCATED(it); \
     what(PDL_err, pdl_readdata_vaffine(it)); \
     PDLDEBUG_f(printf("READDATA_VAFFINE pdl=%p turning off datachanged, before=", it); pdl_dump_flags_fixspace(it->state, 0, PDL_FLAGS_PDL)); \
     it->state &= ~PDL_PARENTDATACHANGED; /* assumption: no siblings */ \
+    if (!already_allocated) pdl_vafftrans_remove(it, 0); \
   } while (0)
 
 extern Core PDL;
@@ -243,18 +246,18 @@ pdl_error pdl_vafftrans_alloc(pdl *it)
 }
 
 /* Recursive! */
-void pdl_vafftrans_remove(pdl * it)
+void pdl_vafftrans_remove(pdl * it, char this_one)
 {
-	PDLDEBUG_f(printf("pdl_vafftrans_remove: %p\n", (void*)it));
+	PDLDEBUG_f(printf("pdl_vafftrans_remove: %p, this_one=%d\n", (void*)it, (int)this_one));
 	PDL_DECL_CHILDLOOP(it);
 	PDL_START_CHILDLOOP(it)
 		pdl_trans *t = PDL_CHILDLOOP_THISCHILD(it);
 		if(!(t->flags & PDL_ITRANS_ISAFFINE)) continue;
 		int i;
 		for(i=t->vtable->nparents; i<t->vtable->npdls; i++)
-			pdl_vafftrans_remove(t->pdls[i]);
+			pdl_vafftrans_remove(t->pdls[i], 1);
 	PDL_END_CHILDLOOP(it)
-	pdl_vafftrans_free(it);
+	if (this_one) pdl_vafftrans_free(it);
 }
 
 /* Explicit free. Do not use, use destroy instead, which causes this
@@ -387,7 +390,7 @@ pdl_error pdl_destroytransform(pdl_trans *trans,int ensure,int *wd, int recurse_
 	  pdl *child = trans->pdls[j];
 	  PDL_CHKMAGIC(child);
 	  pdl__removetrans_parent(child,trans,j);
-	  if (ismutual && child->vafftrans) pdl_vafftrans_remove(child);
+	  if (ismutual && child->vafftrans) pdl_vafftrans_remove(child, 1);
 	  if ((!(child->state & PDL_DESTROYING) && !child->sv) ||
 	      (trans->vtable->par_flags[j] & PDL_PARAM_ISTEMP)) {
 	    child->state |= PDL_DESTROYING; /* so no mark twice */
@@ -938,7 +941,7 @@ pdl_error pdl__make_physvaffine_recprotect(pdl *it, int recurse_count)
 		}
 		it->vafftrans->offs = newinc + t->offs;
 		t = (current = parent)->trans_parent;
-	} while (t && (t->flags & PDL_ITRANS_ISAFFINE));
+	} while (t && (t->flags & PDL_ITRANS_ISAFFINE) && !(current->state & PDL_ALLOCATED));
 	it->vafftrans->from = current;
 	it->state |= PDL_OPT_VAFFTRANSOK;
 	PDLDEBUG_f(printf("make_physvaffine exit %p, physicalising final parent=%p\n", it, current));
