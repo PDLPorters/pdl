@@ -492,28 +492,17 @@ pdl_error pdl_destroy(pdl *it) {
 
 /* Straight copy, no dataflow */
 pdl *pdl_hard_copy(pdl *src) {
-	PDLDEBUG_f(printf("pdl_hard_copy (src=%p): ", src));
-	pdl_error PDL_err = pdl_make_physical(src); /* Wasteful XXX... should be lazier */
-	if (PDL_err.error) return NULL;
-	int i;
-	pdl *it = pdl_pdlnew();
-	if (!it) return it;
-	it->state = 0;
-	PDLDEBUG_f(printf("pdl_hard_copy (src=%p): ", src);pdl_dump(it));
-	it->datatype = src->datatype;
-	PDL_err = pdl_setdims(it,src->dims,src->ndims);
-	if (PDL_err.error) { pdl_destroy(it); return NULL; }
-	PDL_err = pdl_allocdata(it);
-	if (PDL_err.error) { pdl_destroy(it); return NULL; }
-	if(src->state & PDL_NOMYDIMS)
-		it->state |= PDL_NOMYDIMS;
-	PDL_err = pdl_reallocbroadcastids(it,src->nbroadcastids);
-	if (PDL_err.error) { pdl_destroy(it); return NULL; }
-	for(i=0; i<src->nbroadcastids; i++) {
-		it->broadcastids[i] = src->broadcastids[i];
-	}
-	memcpy(it->data,src->data, pdl_howbig(it->datatype) * (size_t)it->nvals);
-	return it;
+  PDLDEBUG_f(printf("pdl_hard_copy (src=%p): ", src));
+  int i;
+  pdl *it = pdl_pdlnew();
+  if (!it) return it;
+  pdl_error PDL_err = {0, NULL, 0};
+  PDL_RETERROR2(PDL_err, pdl_affine_new(src, it, 0, src->dims, src->ndims, src->dimincs, src->ndims), pdl_destroy(it); return NULL;);
+  PDLDEBUG_f(printf("pdl_hard_copy (src=%p): ", src);pdl_dump(it));
+  it->sv = (void *)1; /* stop sever from tidying it up */
+  PDL_RETERROR2(PDL_err, pdl_sever(it), pdl_destroy(it); return NULL;);
+  it->sv = NULL; /* destroyable again */
+  return it;
 }
 
 /* Reallocate this PDL to have ndims dimensions. */
