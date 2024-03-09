@@ -1657,17 +1657,16 @@ Compare two vectors, returning 1 if equal, 0 if not equal.
 
 pp_def('enumvec',
        Pars => 'v(M,N); indx [o]k(N)',
-       Code =><<'EOC',
-  PDL_Indx vn, kn, sn=$SIZE(N), matches;
+       Code => pp_line_numbers(__LINE__, <<'EOC'),
+  PDL_Indx vn, kn=0, sn=$SIZE(N), matches;
   for (vn=0; vn<sn; vn=kn) {
      for (kn=vn, matches=1; matches && kn<sn; ) {
        $k(N=>kn) = kn-vn;
        ++kn;
        loop (M) %{
-         if ($v(N=>vn) != $v(N=>kn)) {
-           matches=0;
-           break;
-         }
+         if ($v(N=>vn) == $v(N=>kn)) continue;
+         matches=0;
+         break;
        %}
      }
    }
