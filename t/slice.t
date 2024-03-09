@@ -310,7 +310,8 @@ sub vafftest {
       is $x->${\$METHODS[$m]}, $xexp->[$m], "$elabel: $name $METHODS[$m]";
     }
     next if !(my $from = $xexp->[$#METHODS+1]);
-    is $addr2label->{$x->vaffine_from}, $from, "$elabel: $name vaffine_from";
+    eval {is $addr2label->{$x->vaffine_from}, $from, "$elabel: $name vaffine_from"};
+    is $@, '', "$elabel: $name vaffine_from no error";
   }
 }
 # Test vaffine optimisation
