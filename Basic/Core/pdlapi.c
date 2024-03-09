@@ -803,8 +803,6 @@ pdl_error pdl__make_physical_recprotect(pdl *it, int recurse_count) {
 	   it->state & PDL_PARENTDIMSCHANGED)
 		REDODIMS(PDL_RETERROR, trans);
 	READDATA(trans);
-	PDLDEBUG_f(printf("make_physical turning off OPTs, before="); pdl_dump_flags_fixspace(it->state, 0, PDL_FLAGS_PDL));
-	it->state &= ~(PDL_OPT_ANY_OK);
   mkphys_end:
 	PDLDEBUG_f(printf("make_physical exiting: "); pdl_dump(it));
 	return PDL_err;
