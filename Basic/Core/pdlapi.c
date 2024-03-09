@@ -90,9 +90,12 @@ pdl_error pdl__ensure_trans(pdl_trans *trans,int what,int *wd, int recurse_count
 	pdl_transvtable *vtable = trans->vtable;
 /* Make all pdls physvaffine */
 	for (j=0; j<vtable->npdls; j++) {
-		if (!(vtable->par_flags[j] & PDL_PARAM_ISPHYS))
-			par_pvaf++;
-		PDL_RETERROR(PDL_err, pdl__make_physvaffine_recprotect(trans->pdls[j], recurse_count+1));
+		if (vtable->par_flags[j] & PDL_PARAM_ISPHYS)
+			PDL_RETERROR(PDL_err, pdl__make_physical_recprotect(trans->pdls[j], recurse_count+1));
+		else {
+			PDL_RETERROR(PDL_err, pdl__make_physvaffine_recprotect(trans->pdls[j], recurse_count+1));
+			if (PDL_VAFFOK(trans->pdls[j])) par_pvaf++;
+		}
 	}
 	for (j=vtable->nparents; j<vtable->npdls; j++)
 		flag |= trans->pdls[j]->state & PDL_ANYCHANGED;
@@ -691,7 +694,7 @@ static inline pdl_error pdl_trans_flow_null_checks(pdl_trans *trans, int *ret) {
 pdl_error pdl_make_trans_mutual(pdl_trans *trans)
 {
   pdl_error PDL_err = {0, NULL, 0};
-  PDLDEBUG_f(printf("make_trans_mutual %p\n",(void*)trans);pdl_dump_trans_fixspace(trans,3));
+  PDLDEBUG_f(printf("make_trans_mutual ");pdl_dump_trans_fixspace(trans,0));
   pdl_transvtable *vtable = trans->vtable;
   pdl **pdls = trans->pdls;
   PDL_Indx i, npdls=vtable->npdls, nparents=vtable->nparents;
@@ -725,6 +728,7 @@ pdl_error pdl_make_trans_mutual(pdl_trans *trans)
 		   if no dataflow. */
 		PDLDEBUG_f(printf("make_trans_mutual turning on allchanged, before="); pdl_dump_flags_fixspace(child->state, 0, PDL_FLAGS_PDL));
 		child->state |= PDL_PARENTDIMSCHANGED | ((trans->flags & PDL_ITRANS_ISAFFINE) ? 0 : PDL_PARENTDATACHANGED);
+		PDLDEBUG_f(printf("make_trans_mutual after change="); pdl_dump_flags_fixspace(child->state, 0, PDL_FLAGS_PDL));
 	}
 	if (dataflow || isnull) child->trans_parent = trans;
 	if (isnull)
@@ -784,12 +788,13 @@ pdl_error pdl__make_physical_recprotect(pdl *it, int recurse_count) {
 	}
 	PDL_TR_CHKMAGIC(trans);
 	for (i=0; i<trans->vtable->nparents; i++) {
-		if (!(trans->vtable->par_flags[i] & PDL_PARAM_ISPHYS)) {
-			PDL_RETERROR(PDL_err, pdl__make_physvaffine_recprotect(trans->pdls[i], recurse_count+1));
-                        /* check if any of the parents is a vaffine */
-                        vaffinepar = vaffinepar || PDL_VAFFOK(trans->pdls[i]);
-                }  else
+		if (trans->vtable->par_flags[i] & PDL_PARAM_ISPHYS)
 			PDL_RETERROR(PDL_err, pdl__make_physical_recprotect(trans->pdls[i], recurse_count+1));
+		else {
+			PDL_RETERROR(PDL_err, pdl__make_physvaffine_recprotect(trans->pdls[i], recurse_count+1));
+			/* check if any of the parents is a vaffine */
+			vaffinepar = vaffinepar || PDL_VAFFOK(trans->pdls[i]);
+		}
 	}
         /* need another call to redodims if !(it->state & PDL_ALLOCATED)
           because with true vaffinepar means we have "pure vaffine", so

@@ -508,19 +508,16 @@ pdl_error pdl_initbroadcaststruct(int nobl,
 		for (i=0; i<vtable->npdls; i++) {
 		  PDL_Indx ninds = vtable->par_realdims[i];
 		  short flags = vtable->par_flags[i];
-		  if (creating[i]) {
-		    PDL_Indx dims[PDLMAX(ninds+1, 1)];
-		    for (j=0; j<ninds; j++)
-		      dims[j] = ind_sizes[PDL_IND_ID(vtable, i, j)];
-		    if (flags & PDL_PARAM_ISTEMP)
-		      dims[ninds] = 1;
-		    PDL_RETERROR(PDL_err, pdl_broadcast_create_parameter(
-		      broadcast,i,dims,
-		      flags & PDL_PARAM_ISTEMP
-		    ));
-		  }
-		  if ((flags & PDL_PARAM_ISPHYS))
-		    PDL_RETERROR(PDL_err, pdl_make_physical(pdls[i]));
+		  if (!creating[i]) continue;
+		  PDL_Indx dims[PDLMAX(ninds+1, 1)];
+		  for (j=0; j<ninds; j++)
+		    dims[j] = ind_sizes[PDL_IND_ID(vtable, i, j)];
+		  if (flags & PDL_PARAM_ISTEMP)
+		    dims[ninds] = 1;
+		  PDL_RETERROR(PDL_err, pdl_broadcast_create_parameter(
+		    broadcast,i,dims,
+		    flags & PDL_PARAM_ISTEMP
+		  ));
 		}
 	}
 	if (inc_sizes)
