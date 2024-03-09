@@ -72,8 +72,8 @@ pp_def( 'affine',
         TwoWay => 1,
         AffinePriv => 1,
         GlobalNew => 'affine_new',
-        OtherPars => 'PDL_Indx offspar; PDL_Indx dims[]; PDL_Indx incs[]',
-        Comp => 'PDL_Indx nd; PDL_Indx offset; PDL_Indx sdims[$COMP(nd)];
+        OtherPars => 'PDL_Indx offset; PDL_Indx dims[]; PDL_Indx incs[]',
+        Comp => 'PDL_Indx nd; PDL_Indx sdims[$COMP(nd)];
                 PDL_Indx sincs[$COMP(nd)];',
         MakeComp => '
                 PDL_Indx i = 0;
@@ -83,7 +83,6 @@ pp_def( 'affine',
                 if ($COMP(nd) != incs_count)
                       $CROAK("Affine: number of incs does not match dims");
                 $DOCOMPALLOC();
-                $COMP(offset) = offspar;
                 for (i=0; i<$COMP(nd); i++) {
                         $COMP(sdims)[i] = dims[i];
                         $COMP(sincs)[i] = incs[i];
@@ -166,7 +165,7 @@ pdl_transvtable pdl_affine_vtable = {
   sizeof(pdl_params_affine),"affine_new"
 };
 
-pdl_error pdl_affine_new(pdl *PARENT,pdl *CHILD,PDL_Indx offspar,PDL_Indx *dims,PDL_Indx dims_count, PDL_Indx *incs, PDL_Indx incs_count) {
+pdl_error pdl_affine_new(pdl *PARENT,pdl *CHILD,PDL_Indx offset,PDL_Indx *dims,PDL_Indx dims_count, PDL_Indx *incs, PDL_Indx incs_count) {
   pdl_error PDL_err = {0, NULL, 0};
   pdl_trans *trans = (void *)pdl_create_trans(&pdl_affine_vtable);
   pdl_params_affine *params = trans->params;
@@ -187,7 +186,7 @@ pdl_error pdl_affine_new(pdl *PARENT,pdl *CHILD,PDL_Indx offspar,PDL_Indx *dims,
   if (!params->sdims) return pdl_make_error_simple(PDL_EFATAL, "Out of Memory\n");
   params->sincs = malloc(sizeof(* params->sincs) * params->nd);
   if (!params->sincs) return pdl_make_error_simple(PDL_EFATAL, "Out of Memory\n");
-  params->offset = offspar;
+  params->offset = offset;
   for (i=0; i<params->nd; i++) {
     params->sdims[i] = dims[i];
     params->sincs[i] = incs[i];
