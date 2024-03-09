@@ -484,7 +484,6 @@ typedef struct pdl_vaffine {
 #define PDL_TR_VAFFOK(flag) (flag & PDL_TPDL_VAFFINE_OK)
 #define PDL_REPRP_TRANS(pdl,flag) ((PDL_VAFFOK(pdl) && \
       PDL_TR_VAFFOK(flag)) ? pdl->vafftrans->from->data : pdl->data)
-#define VAFFINE_FLAG_OK(flags,i) ((flags == NULL) ? 1 : PDL_TR_VAFFOK(flags[i]))
 
 typedef struct pdl_trans_children {
         pdl_trans *trans[PDL_NCHILDREN];

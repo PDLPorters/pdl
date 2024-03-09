@@ -90,7 +90,7 @@ pdl_error pdl__ensure_trans(pdl_trans *trans,int what,int *wd, int recurse_count
 	pdl_transvtable *vtable = trans->vtable;
 /* Make all pdls physvaffine */
 	for (j=0; j<vtable->npdls; j++) {
-		if (VAFFINE_FLAG_OK(vtable->per_pdl_flags,j))
+		if (!(vtable->par_flags[j] & PDL_PARAM_ISPHYS))
 			par_pvaf++;
 		PDL_RETERROR(PDL_err, pdl__make_physvaffine_recprotect(trans->pdls[j], recurse_count+1));
 	}
@@ -108,7 +108,7 @@ pdl_error pdl__ensure_trans(pdl_trans *trans,int what,int *wd, int recurse_count
 	for(j=vtable->nparents; j<vtable->npdls; j++) {
 		pdl *child = trans->pdls[j];
 		char isvaffine = (PDL_VAFFOK(child) && /* same cond as DECLARE_PARAM */
-		    VAFFINE_FLAG_OK(vtable->per_pdl_flags,j));
+		    !(vtable->par_flags[j] & PDL_PARAM_ISPHYS));
 		PDLDEBUG_f(printf("   pdl__ensure_trans isvaffine=%d wd=", (int)isvaffine); pdl_dump_flags_fixspace(wd[j], 0, PDL_FLAGS_PDL));
 		if (!isvaffine || (wd[j] & PDL_PARENTDIMSCHANGED))
 		    CHANGED(child,wd[j],0);
@@ -784,7 +784,7 @@ pdl_error pdl__make_physical_recprotect(pdl *it, int recurse_count) {
 	}
 	PDL_TR_CHKMAGIC(trans);
 	for (i=0; i<trans->vtable->nparents; i++) {
-		if (VAFFINE_FLAG_OK(trans->vtable->per_pdl_flags,i)) {
+		if (!(trans->vtable->par_flags[i] & PDL_PARAM_ISPHYS)) {
 			PDL_RETERROR(PDL_err, pdl__make_physvaffine_recprotect(trans->pdls[i], recurse_count+1));
                         /* check if any of the parents is a vaffine */
                         vaffinepar = vaffinepar || PDL_VAFFOK(trans->pdls[i]);
@@ -845,7 +845,7 @@ pdl_error pdl_changed(pdl *it, int what, int recursing) {
       for (i=0; i<trans->vtable->nparents; i++) {
         pdl *pdl = trans->pdls[i];
         CHANGED(
-          (VAFFINE_FLAG_OK(trans->vtable->per_pdl_flags,i) &&
+          (!(trans->vtable->par_flags[i] & PDL_PARAM_ISPHYS) &&
             pdl->trans_parent &&
             (pdl->trans_parent->flags & PDL_ITRANS_ISAFFINE) &&
             PDL_VAFFOK(pdl))
