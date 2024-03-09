@@ -81,26 +81,27 @@ extern Core PDL;
 
 pdl_error pdl__make_physvaffine_recprotect(pdl *it, int recurse_count);
 /* Make sure transformation is done */
-pdl_error pdl__ensure_trans(pdl_trans *trans,int what,int *wd, int recurse_count)
+pdl_error pdl__ensure_trans(pdl_trans *trans,int what,int *wd, char inputs_only, int recurse_count)
 {
 	pdl_error PDL_err = {0, NULL, 0};
 	PDLDEBUG_f(printf("pdl__ensure_trans %p what=", trans); pdl_dump_flags_fixspace(what, 0, PDL_FLAGS_PDL));
 	PDL_TR_CHKMAGIC(trans);
-	PDL_Indx j, flag=what, par_pvaf=0;
 	pdl_transvtable *vtable = trans->vtable;
+	PDL_Indx j, flag=what, par_pvaf=0, j_end = inputs_only ? vtable->nparents : vtable->npdls;
 /* Make all pdls physvaffine */
-	for (j=0; j<vtable->npdls; j++) {
+	for (j=0; j<j_end; j++) {
 		if (vtable->par_flags[j] & PDL_PARAM_ISPHYS)
 			PDL_RETERROR(PDL_err, pdl__make_physical_recprotect(trans->pdls[j], recurse_count+1));
 		else {
 			PDL_RETERROR(PDL_err, pdl__make_physvaffine_recprotect(trans->pdls[j], recurse_count+1));
-			if (PDL_VAFFOK(trans->pdls[j])) par_pvaf++;
+			if (!(trans->pdls[j]->state & PDL_ALLOCATED) && PDL_VAFFOK(trans->pdls[j])) par_pvaf++;
 		}
 	}
 	for (j=vtable->nparents; j<vtable->npdls; j++)
 		flag |= trans->pdls[j]->state & PDL_ANYCHANGED;
 	PDLDEBUG_f(printf("pdl__ensure_trans after accum, par_pvaf=%"IND_FLAG" flag=", par_pvaf); pdl_dump_flags_fixspace(flag, 0, PDL_FLAGS_PDL));
-	if (flag & PDL_PARENTDIMSCHANGED) REDODIMS(PDL_RETERROR, trans);
+	if (par_pvaf || flag & PDL_PARENTDIMSCHANGED)
+		REDODIMS(PDL_RETERROR, trans);
 	if (par_pvaf && (trans->flags & PDL_ITRANS_ISAFFINE)) {
 		if (!(vtable->nparents == 1 && vtable->npdls == 2))
 		  return pdl_make_error_simple(PDL_EUSERERROR, "Affine trans other than 1 input 1 output");
@@ -376,7 +377,7 @@ pdl_error pdl_destroytransform(pdl_trans *trans,int ensure,int *wd, int recurse_
 			  trans->vtable->name,
 			  (void*)trans,ensure,ismutual));
 	if (ensure)
-		PDL_ACCUMERROR(PDL_err, pdl__ensure_trans(trans,ismutual ? 0 : PDL_PARENTDIMSCHANGED,wd, recurse_count+1));
+		PDL_ACCUMERROR(PDL_err, pdl__ensure_trans(trans,ismutual ? 0 : PDL_PARENTDIMSCHANGED,wd,0, recurse_count+1));
 	pdl *destbuffer[trans->vtable->npdls];
 	int ndest = 0;
 	for (j=0; j<trans->vtable->nparents; j++) {
@@ -786,28 +787,7 @@ pdl_error pdl__make_physical_recprotect(pdl *it, int recurse_count) {
 		READDATA_VAFFINE(PDL_RETERROR, it, recurse_count);
 		goto mkphys_end;
 	}
-	PDL_TR_CHKMAGIC(trans);
-	for (i=0; i<trans->vtable->nparents; i++) {
-		if (trans->vtable->par_flags[i] & PDL_PARAM_ISPHYS)
-			PDL_RETERROR(PDL_err, pdl__make_physical_recprotect(trans->pdls[i], recurse_count+1));
-		else {
-			PDL_RETERROR(PDL_err, pdl__make_physvaffine_recprotect(trans->pdls[i], recurse_count+1));
-			/* check if any of the parents is a vaffine */
-			vaffinepar = vaffinepar || PDL_VAFFOK(trans->pdls[i]);
-		}
-	}
-        /* need another call to redodims if !(it->state & PDL_ALLOCATED)
-          because with true vaffinepar means we have "pure vaffine", so
-          redodims will call initbroadcast which will update inc_sizes
-          from the vafftrans
-          this almost certainly means make_physvaffine needs to redodims
-          AFTER its bookkeeping, not at start
-         */
-	PDLDEBUG_f(printf("make_physical vaffinepar=%d, state=", vaffinepar); pdl_dump_flags_fixspace(it->state, 0, PDL_FLAGS_PDL));
-	if ((!(it->state & PDL_ALLOCATED) && vaffinepar) ||
-	   it->state & PDL_PARENTDIMSCHANGED)
-		REDODIMS(PDL_RETERROR, trans);
-	READDATA(trans);
+	PDL_RETERROR(PDL_err, pdl__ensure_trans(trans,0,NULL,1, recurse_count+1));
   mkphys_end:
 	PDLDEBUG_f(printf("make_physical exiting: "); pdl_dump(it));
 	return PDL_err;
