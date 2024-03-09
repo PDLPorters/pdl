@@ -943,7 +943,7 @@ get_dataref(self)
 	if(self->state & PDL_DONTTOUCHDATA)
 	  croak("Trying to get dataref to magical (mmaped?) pdl");
 	PDLDEBUG_f(printf("get_dataref %p\n", self));
-	pdl_barf_if_error(pdl_make_physical(self)); /* XXX IS THIS MEMLEAK WITHOUT MORTAL? */
+	pdl_barf_if_error(pdl_make_physical(self));
 	if (!self->datasv) {
 	  PDLDEBUG_f(printf("get_dataref no datasv\n"));
 	  self->datasv = newSVpvn("", 0);
@@ -1160,7 +1160,6 @@ broadcastover_n(code, pdl1, ...)
     for(i=1; i<npdls; i++)
 	pdls[i] = pdl_SvPDLV(ST(i+1));
     for(i=0; i<npdls; i++) {
-	/* XXXXXXXX Bad */
 	pdl_barf_if_error(pdl_make_physical(pdls[i]));
 	realdims[i] = 0;
     }
@@ -1216,7 +1215,7 @@ broadcastover(code, realdims, creating, nothers, pdl1, ...)
 	if (creating[i])
 	  nc += realdims[i];
 	else {
-	  pdl_barf_if_error(pdl_make_physical(pdls[i])); /* is this what we want?XXX */
+	  pdl_barf_if_error(pdl_make_physvaffine(pdls[i]));
 	  dtype = PDLMAX(dtype,pdls[i]->datatype);
 	}
     }
@@ -1251,12 +1250,11 @@ broadcastover(code, realdims, creating, nothers, pdl1, ...)
 	   pdls[i] = pdls[i]->vafftrans->from;
 	child[i]=pdl_pdlnew();
 	if (!child[i]) pdl_pdl_barf("Error making null pdl");
-	/*  instead of pdls[i] its vaffine parent !!!XXX */
 	pdl_barf_if_error(pdl_affine_new(pdls[i],child[i],pdl_brc.offs[i],
 		thesedims,realdims[i],
 		theseincs,realdims[i]));
-	pdl_barf_if_error(pdl_make_physvaffine(child[i])); /* make sure we can get at
-					the vafftrans          */
+	pdl_barf_if_error(pdl_make_physvaffine(child[i])); /* make sure we can
+					get at the vafftrans */
 	csv[i] = sv_newmortal();
 	pdl_SetSV_PDL(csv[i], child[i]); /* pdl* into SV* */
     }
