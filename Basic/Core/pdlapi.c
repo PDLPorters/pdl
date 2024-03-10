@@ -750,16 +750,38 @@ pdl_error pdl_redodims_default(pdl_trans *trans) {
   PDLDEBUG_f(printf("pdl_redodims_default ");pdl_dump_trans_fixspace(trans,0));
   pdl_transvtable *vtable = trans->vtable;
   if (vtable->flags & PDL_TRANS_DO_BROADCAST) {
-    PDL_Indx creating[vtable->npdls];
+    PDL_Indx creating[vtable->npdls], i, j;
     pdl **pdls = trans->pdls;
-    PDL_Indx i;
     for (i=0; i<vtable->npdls; i++)
       creating[i] = (vtable->par_flags[i] & PDL_PARAM_ISCREAT) &&
         PDL_DIMS_FROM_TRANS(trans,pdls[i]);
     PDL_RETERROR(PDL_err, pdl_initbroadcaststruct(2, pdls,
       vtable->par_realdims, creating, vtable->npdls, vtable,
-      &trans->broadcast, trans->ind_sizes, trans->inc_sizes,
+      &trans->broadcast, NULL, NULL,
       vtable->per_pdl_flags, vtable->flags & PDL_TRANS_NO_PARALLEL));
+    PDL_RETERROR(PDL_err, pdl_dim_checks(vtable, pdls, &trans->broadcast, creating, trans->ind_sizes, 0));
+    for (i=0; i<vtable->npdls; i++) {
+      PDL_Indx ninds = vtable->par_realdims[i];
+      short flags = vtable->par_flags[i];
+      if (!creating[i]) continue;
+      PDL_Indx dims[PDLMAX(ninds+1, 1)];
+      for (j=0; j<ninds; j++)
+        dims[j] = trans->ind_sizes[PDL_IND_ID(vtable, i, j)];
+      if (flags & PDL_PARAM_ISTEMP)
+        dims[ninds] = 1;
+      PDL_RETERROR(PDL_err, pdl_broadcast_create_parameter(
+        &trans->broadcast,i,dims,
+        flags & PDL_PARAM_ISTEMP
+      ));
+    }
+    for (i=0; i<vtable->npdls; i++) {
+      pdl *pdl = pdls[i];
+      for (j=0; j<vtable->par_realdims[i]; j++)
+        trans->inc_sizes[PDL_INC_ID(vtable,i,j)] =
+          (pdl->ndims <= j || pdl->dims[j] <= 1) ? 0 :
+          (vtable->par_flags[i] & PDL_PARAM_ISPHYS) ? pdl->dimincs[j] :
+          PDL_REPRINC(pdl,j);
+    }
   }
   pdl_hdr_childcopy(trans);
   trans->dims_redone = 1;

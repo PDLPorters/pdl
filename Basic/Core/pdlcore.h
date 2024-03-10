@@ -2,7 +2,7 @@
 #define __PDLCORE_H
 
 /* version 20: memory-management changes */
-/* on 21, unify pdl_broadcast per_pdl_flags, par_flags; remove threadloop #defines; change creating to char; relocate struct pdl.value appropriately, remove pdl_null, safe_indterm */
+/* on 21, unify pdl_broadcast per_pdl_flags, par_flags; remove threadloop #defines; change creating to char; relocate struct pdl.value appropriately, remove pdl_null, safe_indterm, initbroadcaststruct to take trans & remove in[cd]_sizes, remove broadcaststruct from Core list */
 #define PDL_CORE_VERSION 20
 #define startbroadcastloop startthreadloop
 #define pdl_startbroadcastloop pdl_startthreadloop

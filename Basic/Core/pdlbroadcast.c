@@ -503,32 +503,6 @@ pdl_error pdl_initbroadcaststruct(int nobl,
 		    for(i=n2; i<nthr; i++)
 			broadcast->dims[broadcast->mag_nth + i*ndims]--;
 	}
-	if (ind_sizes) {
-		PDL_RETERROR(PDL_err, pdl_dim_checks(vtable, pdls, broadcast, creating, ind_sizes, 0));
-		for (i=0; i<vtable->npdls; i++) {
-		  PDL_Indx ninds = vtable->par_realdims[i];
-		  short flags = vtable->par_flags[i];
-		  if (!creating[i]) continue;
-		  PDL_Indx dims[PDLMAX(ninds+1, 1)];
-		  for (j=0; j<ninds; j++)
-		    dims[j] = ind_sizes[PDL_IND_ID(vtable, i, j)];
-		  if (flags & PDL_PARAM_ISTEMP)
-		    dims[ninds] = 1;
-		  PDL_RETERROR(PDL_err, pdl_broadcast_create_parameter(
-		    broadcast,i,dims,
-		    flags & PDL_PARAM_ISTEMP
-		  ));
-		}
-	}
-	if (inc_sizes)
-	  for (i=0; i<vtable->npdls; i++) {
-	    pdl *pdl = pdls[i];
-	    for (j=0; j<vtable->par_realdims[i]; j++)
-	      inc_sizes[PDL_INC_ID(vtable,i,j)] =
-		(pdl->ndims <= j || pdl->dims[j] <= 1) ? 0 :
-		(vtable->par_flags[i] & PDL_PARAM_ISPHYS) ? pdl->dimincs[j] :
-		PDL_REPRINC(pdl,j);
-	  }
 	broadcast->gflags |= PDL_BROADCAST_INITIALIZED;
 	PDLDEBUG_f(pdl_dump_broadcast(broadcast));
 	return PDL_err;
