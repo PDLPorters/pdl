@@ -169,7 +169,6 @@ pdl_error pdl_find_max_pthread(
 pdl_error pdl_autopthreadmagic( pdl **pdls, int npdls, PDL_Indx* realdims, PDL_Indx* creating, int noPthreadFlag ){
 	pdl_error PDL_err = {0, NULL, 0};
 	PDL_Indx j, nthrd;
-	PDL_Indx largest_nvals = 0;  /* The largest PDL size for all the pdls involved */
 	int maxPthreadPDL = -1; /* PDL that has the max (or right at the target) num pthreads */
 	int maxPthreadDim = -1; /* Threaded dim number that has the max num pthreads */
 	int maxPthread = 0;    /* Maximum achievable pthread */
@@ -178,34 +177,22 @@ pdl_error pdl_autopthreadmagic( pdl **pdls, int npdls, PDL_Indx* realdims, PDL_I
 	pdl_autopthread_dim = -1; /* Initialize the global variable indicating actual dim pthreaded on */
 
 	/* Don't do anything if auto_pthreading is turned off (i.e. equal zero) */
-	if( !target_pthread ) return PDL_err;
+	if ( !target_pthread ) return PDL_err;
 
+	PDL_Indx largest_nvals = 0;
 	/* Remove any existing threading magic */
-	for(j=0; j<npdls; j++) {
-		if(creating[j]) continue;
-
+	for (j=0; j<npdls; j++) {
+		if (creating[j]) continue;
+		MAX2(largest_nvals, pdls[j]->nvals); /* Find largest size */
 		/* Remove thread magic, if there is some set for this pdl */
-		if( pdls[j]->magic &&
-		  (pdl_magic_thread_nthreads(pdls[j],&nthrd))) {
+		if (pdls[j]->magic &&
+		  (pdl_magic_thread_nthreads(pdls[j],&nthrd)))
 			PDL_RETERROR(PDL_err, pdl_add_threading_magic(pdls[j], -1, -1));
-		}
 	}
 
-	if( noPthreadFlag ) return PDL_err;  /* Don't go further if the current pdl function isn't thread-safe */
-
-	/* Find the largest nvals */
-	for(j=0; j<npdls; j++) {
-		if(creating[j]) continue;
-		if( pdls[j]->nvals > largest_nvals ){
-			largest_nvals = pdls[j]->nvals;
-		}
-	}
-
-	/* See if the largest nvals is above the auto_pthread threshold */
-	largest_nvals = largest_nvals>>20; /* Convert to MBytes */
-
+	if ( noPthreadFlag ) return PDL_err;  /* Don't go further if the current pdl function isn't thread-safe */
 	/* Don't do anything if we are lower than the threshold */
-	if( largest_nvals < pdl_autopthread_size )
+	if ( (largest_nvals>>20 /* as MBytes */) < pdl_autopthread_size )
 		return PDL_err;
 
 	PDL_RETERROR(PDL_err, pdl_find_max_pthread(
@@ -214,7 +201,7 @@ pdl_error pdl_autopthreadmagic( pdl **pdls, int npdls, PDL_Indx* realdims, PDL_I
 	));
 
 	/* Add threading magic */
-	if( maxPthread > 1 ){
+	if ( maxPthread > 1 ) {
 		PDL_RETERROR(PDL_err, pdl_add_threading_magic(pdls[maxPthreadPDL], maxPthreadDim, maxPthread));
 		pdl_autopthread_actual = maxPthread; /* Set the global variable indicating actual number of pthreads */
 		pdl_autopthread_dim = maxPthreadDim;
