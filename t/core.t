@@ -679,6 +679,9 @@ eval { $notouch->setdims([2,2]); $notouch->make_physical; };
 is $@, '', 'setdims to same total size of set_donttouchdata should be fine';
 eval { $notouch->setdims([3,2]); $notouch->make_physical; };
 isnt $@, '', 'setdims/make_physical to different size of set_donttouchdata should fail';
+my $sliced = sequence(4)->slice('');
+eval { $sliced->setdims([3,2]) };
+like $@, qr/but has trans_parent/, 'setdims on pdl with trans_parent is error';
 
 eval { pdl(3)->getbroadcastid($_) }, isnt $@, '', "getbroadcastid($_) out of range gives error" for -2, 5;
 

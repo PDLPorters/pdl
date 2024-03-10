@@ -497,7 +497,6 @@ pdl_error pdl_destroy(pdl *it) {
 /* Straight copy, no dataflow */
 pdl *pdl_hard_copy(pdl *src) {
   PDLDEBUG_f(printf("pdl_hard_copy (src=%p): ", src));
-  int i;
   pdl *it = pdl_pdlnew();
   if (!it) return it;
   pdl_error PDL_err = {0, NULL, 0};
@@ -576,6 +575,11 @@ void pdl_resize_defaultincs(pdl *it) {
 pdl_error pdl_setdims(pdl* it, PDL_Indx * dims, PDL_Indx ndims) {
   pdl_error PDL_err = {0, NULL, 0};
   PDLDEBUG_f(printf("pdl_setdims %p: ", it);pdl_print_iarr(dims, ndims);printf("\n"));
+  if (it->trans_parent)
+    return pdl_make_error(PDL_EUSERERROR,
+      "setdims called on %p but has trans_parent %s",
+      it, it->trans_parent->vtable->name
+    );
   PDL_Indx i, old_nvals = it->nvals, new_nvals = 1;
   for (i=0; i<ndims; i++) new_nvals *= dims[i];
   int what = (old_nvals == new_nvals) ? 0 : PDL_PARENTDATACHANGED;
