@@ -267,10 +267,10 @@ static void *pthread_perform(void *vp) {
 	return NULL;
 }
 
-int pdl_magic_thread_nthreads(pdl *it,PDL_Indx *nthdim) {
+int pdl_magic_thread_nthreads(pdl *it, PDL_Indx *nthdim) {
 	pdl_magic_pthread *ptr = (pdl_magic_pthread *)pdl__find_magic(it, PDL_MAGIC_THREADING);
 	if(!ptr) return 0;
-	*nthdim = ptr->nthdim;
+	if (nthdim) *nthdim = ptr->nthdim;
 	return ptr->nthreads;
 }
 
