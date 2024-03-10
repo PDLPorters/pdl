@@ -62,6 +62,12 @@ typedef struct pdl_broadcast {
 
 #define PDL_BRC_OFFSET(thr, broadcast) ((thr)*((broadcast)->mag_stride) + PDLMIN((thr),(broadcast)->mag_skip))
 #define PDL_BRC_INC(incs, npdls, p, d) ((incs)[(d)*(npdls) + (p)])
+#define PDL_BRC_THR_OFFSET(broadcast, thr, j) \
+  (PDL_BREPROFFS(broadcast->pdls[j],broadcast->flags[j]) + ( \
+    !thr ? 0 : \
+    PDL_BISTEMP(broadcast->flags[j]) ? thr * broadcast->pdls[j]->dimincs[broadcast->pdls[j]->ndims-1] : \
+    PDL_BRC_OFFSET(thr, broadcast) * PDL_BRC_INC(broadcast->incs, broadcast->npdls, j, broadcast->mag_nth) \
+  ))
 
 /* Broadcast per pdl flags */
 #define		PDL_BROADCAST_VAFFINE_OK	0x01

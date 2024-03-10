@@ -581,30 +581,21 @@ int pdl_startbroadcastloop(pdl_broadcast *broadcast,pdl_error (*func)(pdl_trans 
 /* nth is how many dims are done inside the broadcastloop itself */
 /* inds is how far along each non-broadcastloop dim we are */
 int pdl_iterbroadcastloop(pdl_broadcast *broadcast,PDL_Indx nth) {
-	PDL_Indx i,j;
-	int another_broadcastloop = 0;
-	PDL_Indx *offsp; int thr;
-	PDL_Indx *inds, *dims;
-	offsp = pdl_get_threadoffsp_int(broadcast,&thr, &inds, &dims);
-	if (!offsp) return -1;
-	for (i=nth; i<broadcast->ndims; i++) {
-		inds[i] ++;
-		if ( inds[i] >= dims[i])
-			inds[i] = 0;
-		else
-		{	another_broadcastloop = 1; break; }
-	}
-	if (another_broadcastloop)
-	    for (j=0; j<broadcast->npdls; j++) {
-		offsp[j] = PDL_BREPROFFS(broadcast->pdls[j],broadcast->flags[j]);
-		if (thr)
-		    offsp[j] += PDL_BISTEMP(broadcast->flags[j])
-			? thr * broadcast->pdls[j]->dimincs[broadcast->pdls[j]->ndims-1]
-			: PDL_BRC_OFFSET(thr, broadcast) *
-			    PDL_BRC_INC(broadcast->incs, broadcast->npdls, j, broadcast->mag_nth);
-		for (i=nth; i<broadcast->ndims; i++) {
-		    offsp[j] += PDL_BRC_INC(broadcast->incs, broadcast->npdls, j, i) * inds[i];
-		}
-	    }
-	return another_broadcastloop;
+  PDL_Indx i,j;
+  int another_broadcastloop = 0;
+  PDL_Indx *offsp; int thr;
+  PDL_Indx *inds, *dims;
+  offsp = pdl_get_threadoffsp_int(broadcast,&thr, &inds, &dims);
+  if (!offsp) return -1;
+  for (i=nth; i<broadcast->ndims; i++) {
+    if (++inds[i] >= dims[i]) inds[i] = 0;
+    else                      { another_broadcastloop = 1; break; }
+  }
+  if (another_broadcastloop)
+    for (j=0; j<broadcast->npdls; j++) {
+      offsp[j] = PDL_BRC_THR_OFFSET(broadcast, thr, j);
+      for (i=nth; i<broadcast->ndims; i++)
+        offsp[j] += PDL_BRC_INC(broadcast->incs, broadcast->npdls, j, i) * inds[i];
+    }
+  return another_broadcastloop;
 }
