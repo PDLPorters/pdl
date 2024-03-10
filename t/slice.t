@@ -235,6 +235,7 @@ for (
   $_ = $src->copy for $src, my $src_copy;
   my $y = eval { $src->range(@$args) };
   is $@, '', "$label works";
+  fail("$label got undef back from range"), next if !defined $y;
   is_deeply([$y->dims], $exp_dims, "$label dims right") or diag explain [$y->dims];
   eval { $y->make_physical };
   like($@, $exp, "$label right error"), next if ref($exp) eq 'Regexp';
@@ -253,7 +254,9 @@ for (4..6) {
   my @dims = (5) x $_;
   my $src = sequence @dims;
   my $idx = ndcoords indx, $src;
-  (my $out = $src->range($idx, 2, 't'))->make_physdims;
+  my $out = eval {$src->range($idx, 2, 't')};
+  is $@, '', "range(@dims) got no error" or next;
+  $out->make_physdims;
   my $expected = [@dims, (2) x $_];
   is_deeply [$out->dims], $expected or diag explain [$out->dims];
 }

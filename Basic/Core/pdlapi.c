@@ -106,10 +106,10 @@ pdl_error pdl__ensure_trans(pdl_trans *trans,int what,int *wd, char inputs_only,
 		if (!(vtable->nparents == 1 && vtable->npdls == 2))
 		  return pdl_make_error_simple(PDL_EUSERERROR, "Affine trans other than 1 input 1 output");
 		READDATA_VAFFINE(PDL_ACCUMERROR, trans->pdls[1], recurse_count);
-	} else if(flag & PDL_ANYCHANGED)
+	} else if (flag & PDL_ANYCHANGED)
 		READDATA(trans);
 	if (!wd) return PDL_err;
-	for(j=vtable->nparents; j<vtable->npdls; j++) {
+	for (j=vtable->nparents; j<vtable->npdls; j++) {
 		pdl *child = trans->pdls[j];
 		char isvaffine = (PDL_VAFFOK(child) && /* same cond as DECLARE_PARAM */
 		    !(vtable->par_flags[j] & PDL_PARAM_ISPHYS));
