@@ -43,8 +43,10 @@ VAFF_IO(writebackdata_vaffine, X)
 pdl_error pdl_converttype( pdl* a, int targtype ) {
     pdl_error PDL_err = {0, NULL, 0};
     PDLDEBUG_f(printf("pdl_converttype to %d: ", targtype); pdl_dump(a));
-    if(a->state & PDL_DONTTOUCHDATA)
+    if (a->state & PDL_DONTTOUCHDATA)
       return pdl_make_error_simple(PDL_EUSERERROR, "Trying to converttype magical (mmaped?) pdl");
+    if (!a->data)
+      return pdl_make_error(PDL_EUSERERROR, "converttype called with NULL data on pdl %p", a);
 
     int intype = a->datatype;
     if (intype == targtype)
