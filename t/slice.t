@@ -242,7 +242,7 @@ for (
   is $@, '', "$label works 2";
   $y = $exp_mod->($y) if $exp_mod;
   is $y->nelem, $exp->nelem, "$label nelem right";
-  ok tapprox($y, $exp), "$label right data";
+  ok tapprox($y, $exp), "$label right data" or diag "got=$y\nexp=$exp";
   ok tapprox($src, $src_copy), "$label source not mutated";
   next if !$mutate;
   $mutate->($y);

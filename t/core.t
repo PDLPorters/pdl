@@ -28,6 +28,13 @@ $p->upd_data;
 }
 
 {
+my $p = sequence(3);
+my $p2 = sequence(2);
+eval {$p->set(1,$p2)};
+isnt $@, '', 'set(..., $multi_elt) should error';
+}
+
+{
 my $p = sequence(5);
 is Devel::Peek::SvREFCNT($p), 1, 'right refcnt blessed ref';
 is Devel::Peek::SvREFCNT($$p), 1, 'right refcnt pointer SV';

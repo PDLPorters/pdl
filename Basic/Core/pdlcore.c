@@ -546,7 +546,7 @@ PDL_Anyval pdl_at0( pdl* it ) {
     PDL_Indx dummyi = 1;
     pdl_error err = pdl_make_physvaffine( it );
     if (err.error) { return result; }
-    if (it->nvals < 1) { return result; }
+    if (it->nvals != 1) { return result; }
     return pdl_at(PDL_REPRP(it), it->datatype, &nullp, &dummyd,
             &dummyi, PDL_REPROFFS(it),1);
 }
