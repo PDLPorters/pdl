@@ -541,14 +541,9 @@ PDL_Indx pdl_get_offset(PDL_Indx* pos, PDL_Indx* dims, PDL_Indx *incs, PDL_Indx 
 /* wrapper for pdl_at where only want first item, cf sclr_c */
 PDL_Anyval pdl_at0( pdl* it ) {
     PDL_Anyval result = { PDL_INVALID, {0} };
-    PDL_Indx nullp = 0;
-    PDL_Indx dummyd = 1;
-    PDL_Indx dummyi = 1;
-    pdl_error err = pdl_make_physvaffine( it );
-    if (err.error) { return result; }
     if (it->nvals != 1) { return result; }
-    return pdl_at(PDL_REPRP(it), it->datatype, &nullp, &dummyd,
-            &dummyi, PDL_REPROFFS(it),1);
+    ANYVAL_FROM_CTYPE_OFFSET(result, it->datatype, PDL_REPRP(it), PDL_REPROFFS(it));
+    return result;
 }
 
 /* Return value at position (x,y,z...) */

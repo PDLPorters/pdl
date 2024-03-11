@@ -916,6 +916,7 @@ sclr(it)
          */
         pdl_barf_if_error(pdl_make_physdims(it));
         if (it->nvals > 1) barf("multielement ndarray in 'sclr' call");
+        pdl_barf_if_error(pdl_make_physvaffine( it ));
         RETVAL = pdl_at0(it);
         if (RETVAL.type < 0) croak("Position out of range");
     OUTPUT:
