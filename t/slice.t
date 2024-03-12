@@ -420,9 +420,15 @@ my $pa = zeroes(7, 7); $pa->set(3, 4, 1);
 my $indices = $pa->which->dummy(0,$pa->getndims)->make_physical;
 my $s = $indices->index(0);
 $s %= 7;
-is $indices.'', <<EOF, 'mutate indexed slice affects only right column';
-\n[\n [ 3 31]\n]
-EOF
+is $indices.'', "\n[\n [ 3 31]\n]\n", 'mutate indexed slice affects only right column';
+
+{ # captures behaviour in GH#467
+my $x = sequence(1000);
+my $idx = random( $x->nelem) * $x->nelem;
+$x .= $x->index($idx);
+eval {$x->min};
+is $@, '', 'no error assigning $x->index(..) to $x';
+}
 
 ## rlevec(), rldvec(): 2d ONLY
 my $p = pdl([[1,2],[1,2],[1,2],[3,4],[3,4],[5,6]]);
