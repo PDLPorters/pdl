@@ -3,6 +3,7 @@
 #include "pdl.h"      /* Data structure declarations */
 #include "pdlcore.h"  /* Core declarations */
 
+/* CORE21 incorporate error in here if no vtable function */
 #define VTABLE_OR_DEFAULT(what, trans, is_fwd, func, default_func) \
   do { \
     pdl_transvtable *vtable = (trans)->vtable; \

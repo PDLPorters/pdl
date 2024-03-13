@@ -4,66 +4,12 @@
 
 #define PDL_ALL_GENTYPES { PDL_SB, PDL_B, PDL_S, PDL_US, PDL_L, PDL_UL, PDL_IND, PDL_ULL, PDL_LL, PDL_F, PDL_D, PDL_LD, PDL_CF, PDL_CD, PDL_CLD, -1 }
 
-/* generated from:
-pp_def(
-       'affineinternal',
-       HandleBad => 1,
-       AffinePriv => 1,
-       P2Child => 1,
-       ReadDataFuncName => "pdl_readdata_affineinternal",
-       WriteBackDataFuncName => "pdl_writebackdata_affineinternal",
-       EquivCPOffsCode => '
-          if (!($PDL(CHILD)->state & $PDL(PARENT)->state & PDL_ALLOCATED))
-            return PDL_err;
-          PDL_Indx i, poffs=$PRIV(offs), nd;
-          for(i=0; i<$PDL(CHILD)->nvals; i++) {
-            $EQUIVCPOFFS(i,poffs);
-            for(nd=0; nd<$PDL(CHILD)->ndims; nd++) {
-              poffs += $PRIV(incs)[nd];
-              if( (nd<$PDL(CHILD)->ndims-1 &&
-                   (i+1)%$PDL(CHILD)->dimincs[nd+1]) ||
-                 nd == $PDL(CHILD)->ndims-1)
-                      break;
-              poffs -= $PRIV(incs)[nd] * $PDL(CHILD)->dims[nd];
-            }
-          }',
-       Doc => undef,    # 'internal',
-);
-*/
-
-#define COPYDATA(ctype, from_id, to_id) \
-  PDL_DECLARE_PARAMETER_BADVAL(ctype, (trans->vtable->per_pdl_flags[to_id]), to_pdl, (trans->pdls[to_id]), 1) \
-  PDL_DECLARE_PARAMETER_BADVAL(ctype, (trans->vtable->per_pdl_flags[from_id]), from_pdl, (trans->pdls[from_id]), 1) \
-  PDL_Indx i, poffs=trans->offs, nd; \
-  for (i=0; i<trans->pdls[to_id]->nvals ; i++) { \
-    to_pdl_datap[i] = (trans->bvalflag && from_pdl_datap[poffs] == from_pdl_badval) \
-      ? to_pdl_badval : from_pdl_datap[poffs]; \
-    for (nd=0; nd<trans->pdls[to_id]->ndims ; nd++) { \
-      poffs += trans->incs[nd]; \
-      if ((nd<trans->pdls[to_id]->ndims -1 && \
-          (i+1)%trans->pdls[to_id]->dimincs[nd+1]) || \
-         nd == trans->pdls[to_id]->ndims -1) \
-              break; \
-      poffs -= trans->incs[nd] * trans->pdls[to_id]->dims[nd]; \
-    } \
-  }
-
+/* delete these in CORE21 */
 pdl_error pdl_readdata_affine(pdl_trans *trans) {
-  pdl_error PDL_err = {0, NULL, 0};
-  if (!(trans->pdls[0]->state & trans->pdls[1]->state & PDL_ALLOCATED)) return PDL_err;
-#define X(sym, ctype, ...) COPYDATA(ctype, 0, 1)
-  PDL_GENERICSWITCH(PDL_TYPELIST2_ALL, trans->__datatype, X, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", trans->__datatype))
-#undef X
-  return PDL_err;
+  return (pdl_error){PDL_EUSERERROR, "readdata called with no vtable entry", 0};
 }
-
 pdl_error pdl_writebackdata_affine(pdl_trans *trans) {
-  pdl_error PDL_err = {0, NULL, 0};
-  if (!(trans->pdls[0]->state & trans->pdls[1]->state & PDL_ALLOCATED)) return PDL_err;
-#define X(sym, ctype, ...) COPYDATA(ctype, 1, 0)
-  PDL_GENERICSWITCH(PDL_TYPELIST2_ALL, trans->__datatype, X, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", trans->__datatype))
-#undef X
-  return PDL_err;
+  return (pdl_error){PDL_EUSERERROR, "writebackdata called with no vtable entry", 0};
 }
 
 /* generated from:
