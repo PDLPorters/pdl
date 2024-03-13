@@ -340,7 +340,7 @@ vafftest(\%addr2label, $all, [[1,1,1,'root'],[1,1,1,'vaff'],[1,1,0]], "clumped m
 $root->set(0,0,7);
 vafftest(\%addr2label, $all, [[1,1,1,'root'],[1,1,1,'vaff'],[1,1,0]], "root set()ed");
 $vaff->make_physvaffine;
-vafftest(\%addr2label, $all, [[0,1,1,'root'],[1,1,1,'vaff'],[1,1,0]], "vaff physvaffined");
+vafftest(\%addr2label, $all, [[0,1,1,'root'],[1,1,1,'vaff'],[1,1,0]], "vaff physvaffined2");
 $vaff2->make_physvaffine;
 vafftest(\%addr2label, $all, [[0,1,1,'root'],[0,1,1,'vaff'],[1,1,0]], "vaff2 physvaffined");
 $clumped->make_physvaffine;

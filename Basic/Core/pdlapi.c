@@ -896,15 +896,16 @@ pdl_error pdl__make_physvaffine_recprotect(pdl *it, int recurse_count)
     PDLDEBUG_f(printf("make_physvaffine handing off to make_physical %p\n",(void*)it));
     return pdl__make_physical_recprotect(it, recurse_count+1);
   }
-  if (!it->vafftrans || it->vafftrans->ndims < it->ndims)
+  pdl *current = it;
+  if (!it->vafftrans || it->vafftrans->ndims < it->ndims) {
     PDL_RETERROR(PDL_err, pdl_vafftrans_alloc(it));
+  }
   for(i=0; i<it->ndims; i++) it->vafftrans->incs[i] = it->dimincs[i];
   it->vafftrans->offs = 0;
   pdl_trans *t=it->trans_parent;
-  pdl *current = it;
   do {
     if (!t->incs)
-      return pdl_make_error_simple(PDL_EUSERERROR, "pdl_make_physvaffine: affine trans has NULL incs\n");
+      return pdl_make_error(PDL_EUSERERROR, "make_physvaffine: affine trans %p has NULL incs\n", t);
     pdl *parent = t->pdls[0];
     PDL_Indx incsleft[it->ndims];
     /* For all dimensions of the childest ndarray */
