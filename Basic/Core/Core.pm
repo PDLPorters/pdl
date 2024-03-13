@@ -61,6 +61,7 @@ $PDL::toolongtoprint = 10000;  # maximum pdl size to stringify for printing
 *at_c = *at_bad_c; # back-compat alias
 *thread_define = *broadcast_define;
 
+our @pdl_ones; # optimisation to provide a "one" of the right type to avoid converttype
 for my $t (PDL::Types::types()) {
   my $conv = $t->convertfunc;
   no strict 'refs';
@@ -68,6 +69,7 @@ for my $t (PDL::Types::types()) {
     return $t unless @_;
     alltopdl('PDL', (@_>1 ? [@_] : shift), $t);
   };
+  $pdl_ones[$t->enum] = pdl($t, 1);
 }
 
 BEGIN {
@@ -2478,7 +2480,7 @@ Alias to L<PDL::Slices/slice>.
 =for ref
 
 If C<$self> is a PDL, then calls C<slice> with all but the last
-argument, otherwise $self->($_[-1]) is called where $_[-1} is the
+argument, otherwise C<< $self->($_[-1]) >> is called where C<$_[-1]> is the
 original argument string found during PDL::NiceSlice filtering.
 
 DEVELOPER'S NOTE: this routine is found in Core.pm.PL but would be
@@ -2515,7 +2517,7 @@ sub alltopdl {
     }
     return $_[1] if blessed($_[1]); # Fall through
     return $_[0]->new($_[1]);
-0;}
+}
 
 =head2 tracedebug
 
@@ -2845,7 +2847,7 @@ sub _construct {
 sub ones { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? PDL::ones($_[0]) : PDL->ones(@_) }
 sub PDL::ones {
     my $pdl = &_construct;
-    $pdl.=1;
+    $pdl .= ($pdl_ones[$pdl->get_datatype]//barf "Couldn't find 'one' for type ", $pdl->get_datatype);
     return $pdl;
 }
 

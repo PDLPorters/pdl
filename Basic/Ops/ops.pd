@@ -638,8 +638,8 @@ sub warn_non_numeric_op_wrapper {
       PDL::Ops::assgn(@args);
       return $args[1];
     },
-    '++' => sub { $_[0] += 1 },
-    '--' => sub { $_[0] -= 1 },
+    '++' => sub { $_[0] += ($PDL::Core::pdl_ones[$_[0]->get_datatype]//barf "Couldn't find 'one' for type ", $_[0]->get_datatype) },
+    '--' => sub { $_[0] -= ($PDL::Core::pdl_ones[$_[0]->get_datatype]//barf "Couldn't find 'one' for type ", $_[0]->get_datatype) },
     ;
 }
 EOF
