@@ -13,6 +13,7 @@
 - setdims on ndarray with trans_parent (i.e. flowing) now an error
 - set(..., $multi_elt) now an error (#466) - thank @djerius for report
 - convert can work inplace (by using set_datatype)
+- flowing convert of ndarrays preserves badvalues that are NaN
 
 2.085_01 2024-02-10
 - test, document PDL::string, make more consistent (#459) - thanks @vadim-160102 for report

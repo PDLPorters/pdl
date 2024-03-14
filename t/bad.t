@@ -86,6 +86,8 @@ $y = $x->copy;
 $y->badvalue('nan');
 $y->setbadat(2);
 is $y."", "[1 2 BAD 4 5]", "y correct bad before set_datatype with badval=nan";
+my $z = $y->convert(ushort);
+is( PDL::Core::string($z), "[1 2 BAD 4 5]", "non-inplace converting NaN-badvalued pdl preserves badvals" );
 $y->set_datatype(ushort->enum);
 is $y."", "[1 2 BAD 4 5]", "y correct bad after set_datatype with badval=nan";
 

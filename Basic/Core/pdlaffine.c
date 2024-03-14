@@ -175,11 +175,15 @@ pdl_error pdl_converttypei_redodims(pdl_trans *trans) {
   return PDL_err;
 }
 
+#define THIS_ISBAD(from_badval_isnan, from_badval, from_val) \
+  ((from_badval_isnan) \
+    ? isnan((double)(from_val)) \
+    : (from_val) == (from_badval))
 #define COPYCONVERT(from_pdl, to_pdl) \
   { \
     PDL_Indx i; \
     for(i=0; i<trans->pdls[1]->nvals; i++) { \
-      to_pdl ## _datap[i] = trans->bvalflag && from_pdl ## _datap[i] == from_pdl ## _badval \
+      to_pdl ## _datap[i] = trans->bvalflag && THIS_ISBAD(from_pdl ## _badval_isnan, from_pdl ## _badval, from_pdl ## _datap[i]) \
         ? to_pdl ## _badval \
         : from_pdl ## _datap[i]; \
       ; \
@@ -190,11 +194,13 @@ pdl_error pdl_converttypei_readdata(pdl_trans *trans) {
   pdl_error PDL_err = {0, NULL, 0};
   pdl_params_converttypei *params = trans->params;
   PDLDEBUG_f(printf("pdl_converttypei_readdata %s=%p from parent: ", trans->vtable->name, trans); pdl_dump(trans->pdls[0]));
-#define X_OUTER(datatype_out, ctype_out, ...) \
-  PDL_DECLARE_PARAMETER_BADVAL(ctype_out, (trans->vtable->per_pdl_flags[1]), CHILD, (trans->pdls[1]), 1) \
+#define X_OUTER(datatype_child, ctype_child, ppsym_child, ...) \
+  PDL_DECLARE_PARAMETER_BADVAL(ctype_child, (trans->vtable->per_pdl_flags[1]), CHILD, (trans->pdls[1]), 1) \
+  char CHILD_badval_isnan = PDL_ISNAN_##ppsym_child(CHILD_badval); \
   PDL_GENERICSWITCH2(PDL_TYPELIST2_ALL_, trans->__datatype, X_INNER, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", trans->__datatype))
-#define X_INNER(datatype_in, ctype_in, ...) \
-  PDL_DECLARE_PARAMETER_BADVAL(ctype_in, (trans->vtable->per_pdl_flags[0]), PARENT, (trans->pdls[0]), 1) \
+#define X_INNER(datatype_parent, ctype_parent, ppsym_parent, ...) \
+  PDL_DECLARE_PARAMETER_BADVAL(ctype_parent, (trans->vtable->per_pdl_flags[0]), PARENT, (trans->pdls[0]), 1) \
+  char PARENT_badval_isnan = PDL_ISNAN_##ppsym_parent(PARENT_badval); \
   COPYCONVERT(PARENT, CHILD)
   PDL_GENERICSWITCH(PDL_TYPELIST2_ALL, params->totype, X_OUTER, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", params->totype))
 #undef X_INNER
@@ -205,8 +211,9 @@ pdl_error pdl_converttypei_writebackdata(pdl_trans *trans) {
   pdl_error PDL_err = {0, NULL, 0};
   pdl_params_converttypei *params = trans->params;
   PDLDEBUG_f(printf("pdl_converttypei_writebackdata %s=%p from child: ", trans->vtable->name, trans); pdl_dump(trans->pdls[1]));
-#define X_INNER(datatype_in, ctype_in, ...) \
-  PDL_DECLARE_PARAMETER_BADVAL(ctype_in, (trans->vtable->per_pdl_flags[0]), PARENT, (trans->pdls[0]), 1) \
+#define X_INNER(datatype_parent, ctype_parent, ppsym_parent, ...) \
+  PDL_DECLARE_PARAMETER_BADVAL(ctype_parent, (trans->vtable->per_pdl_flags[0]), PARENT, (trans->pdls[0]), 1) \
+  char PARENT_badval_isnan = PDL_ISNAN_##ppsym_parent(PARENT_badval); \
   COPYCONVERT(CHILD, PARENT)
   PDL_GENERICSWITCH(PDL_TYPELIST2_ALL, params->totype, X_OUTER, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", params->totype))
 #undef X_INNER
