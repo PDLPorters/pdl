@@ -609,17 +609,20 @@ note "F ($pb * string(-2.2)) is $pf";
 }
 
 {
-my @types = (
-	{ typefunc => *byte  , size => 1 },
-	{ typefunc => *short , size => 2 },
-	{ typefunc => *ushort, size => 2 },
-	{ typefunc => *long  , size => 4 },
-	{ typefunc => *float , size => 4 },
-	{ typefunc => *double, size => 8 },
-);
-for my $type (@types) {
-	my $pdl = $type->{typefunc}(42); # build a PDL with datatype $type->{type}
-	is( PDL::Core::howbig( $pdl->get_datatype ), $type->{size} );
+for my $type (
+  { typefunc => *byte  , size => 1 },
+  { typefunc => *short , size => 2 },
+  { typefunc => *ushort, size => 2 },
+  { typefunc => *long  , size => 4 },
+  { typefunc => *float , size => 4 },
+  { typefunc => *double, size => 8 },
+) {
+  my $pdl = $type->{typefunc}(42); # build a PDL with datatype $type->{type}
+  is( PDL::Core::howbig( $pdl->get_datatype ), $type->{size} );
+  is $pdl->type, $type->{typefunc}->().'', 'pdl has right type';
+  is $pdl->convert(longlong).'', 42, 'converted to longlong same value';
+  $pdl->inplace->convert(longlong);
+  is $pdl->type, 'longlong', 'pdl has new right type, inplace convert worked';
 }
 }
 

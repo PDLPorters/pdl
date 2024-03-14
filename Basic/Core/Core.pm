@@ -3086,28 +3086,33 @@ Generic datatype conversion function
 =for usage
 
  $y = convert($x, $newtype);
+ $y = $x->convert($newtype);
+ $x->inplace->convert($newtype);
 
 C<$newtype> is a type number or L<PDL::Type> object, for convenience they are
 returned by C<long()> etc when called without arguments.
+Can work in-place, though will C<sever> if so.
 
 =for example
 
  $y = convert $x, long;
- $y = convert $x, ushort;
+ $y = $x->convert(ushort);
+ $x->inplace->convert(double);
 
 =cut
 
+my $CONVERT_ERR = "Usage: \$y = convert(\$x, \$newtype)\n";
 sub PDL::convert {
-  # we don't allow inplace conversion at the moment
-  # (not sure what needs to be changed)
-  barf 'Usage: $y = convert($x, $newtype)'."\n" if @_ != 2;
+  barf $CONVERT_ERR if @_ != 2;
   my ($pdl,$type)= @_;
   $pdl = topdl($pdl); # Allow normal numbers
   barf "Tried to convert(null)" if $pdl->isnull;
   $type = $type->enum if ref($type) eq 'PDL::Type';
-  barf 'Usage: $y = convert($x, $newtype)'."\n" unless Scalar::Util::looks_like_number($type);
+  barf $CONVERT_ERR unless Scalar::Util::looks_like_number($type);
   return $pdl if $pdl->get_datatype == $type;
-  $pdl->_convert_int($type)->sever;
+  return $pdl->_convert_int($type)->sever if !$pdl->is_inplace;
+  $pdl->set_datatype($type);
+  $pdl;
 }
 
 =head2 Datatype_conversions
