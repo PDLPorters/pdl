@@ -844,9 +844,11 @@ pdl_error pdl_changed(pdl *it, int what, int recursing) {
     if (pdl__ismagic(it)) pdl__call_magic(it,PDL_MAGIC_MARKCHANGED);
   }
   if (trans && !recursing && (trans->flags & PDL_ITRANS_DO_DATAFLOW_B)) {
-    if (PDL_VAFFOK(it)) {
-      PDLDEBUG_f(printf("pdl_changed: calling writebackdata_vaffine (pdl %p)\n",(void*)it));
-      PDL_ACCUMERROR(PDL_err, pdl_writebackdata_vaffine(it));
+    if (it->vafftrans) {
+      if (it->state & PDL_ALLOCATED) {
+        PDLDEBUG_f(printf("pdl_changed: calling writebackdata_vaffine (pdl %p)\n",(void*)it));
+        PDL_ACCUMERROR(PDL_err, pdl_writebackdata_vaffine(it));
+      }
       CHANGED(it->vafftrans->from,what,0);
     } else {
       PDLDEBUG_f(printf("pdl_changed: calling writebackdata from vtable, triggered by pdl %p, using trans %p\n",it,trans));
