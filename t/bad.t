@@ -92,13 +92,15 @@ is $y."", "[1 2 BAD 4 5]", "y correct bad after set_datatype with badval=nan";
 # now check that badvalue() changes the ndarray
 # (only for integer types)
 $x = convert($x,ushort);
+is( PDL::Core::string($x), "[1 2 BAD 4 5]", "before change badvalue" );
 my $badval = $x->badvalue;
 $x->badvalue(44);
 is( PDL::Core::string($x), "[1 2 BAD 4 5]", "changed badvalue" );
 $x->badflag(0);
 is( PDL::Core::string($x), "[1 2 44 4 5]", "can remove the badflag setting" );
 # restore the bad value
-$x->badvalue($badval);
+$x->badflag(1);
+is( PDL::Core::string($x), "[1 2 BAD 4 5]", "still 'bad' w/changed badvalue" );
 
 $x = byte(1,2,3);
 $y = byte(1,byte->badvalue,3);
