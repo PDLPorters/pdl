@@ -445,27 +445,27 @@ void pdl_dump_fixspace(pdl *it,int nspac)
 	pdl_dump_flags_fixspace(it->state,nspac+3,PDL_FLAGS_PDL);
 	printf("%s   transvtable: %p, trans: %p, sv: %p\n",spaces,
 		(void*)(it->trans_parent?it->trans_parent->vtable:0), (void*)(it->trans_parent), (void*)(it->sv));
-	if(it->datasv)
+	if (it->datasv)
 		printf("%s   datasv: %p, Svlen: %d, refcnt: %d\n", spaces,
 			(void*)it->datasv, (int)SvCUR((SV*)it->datasv), (int)SvREFCNT((SV*)it->datasv));
-	if(it->data)
+	if (it->data)
 		printf("%s   data: %p, nbytes: %"IND_FLAG", nvals: %"IND_FLAG"\n", spaces,
 			(void*)(it->data), it->nbytes, it->nvals);
-	if(it->hdrsv)
+	if (it->hdrsv)
 		printf("%s   hdrsv: %p, reftype %s\n", spaces,
 			(void*)it->hdrsv, sv_reftype((SV*)it->hdrsv, TRUE));
 	printf("%s   Dims: %p ",spaces,(void*)it->dims);
 	pdl_print_iarr(it->dims, it->ndims);
 	printf("\n%s   BroadcastIds: %p ",spaces,(void*)(it->broadcastids));
 	pdl_print_iarr(it->broadcastids, it->nbroadcastids);
-	if(PDL_VAFFOK(it)) {
-		printf("\n%s   Vaffine ok: %p (parent), o:%"IND_FLAG", i:",
+	if (it->vafftrans) {
+		printf("\n%s   Vafftrans: %p (parent), o:%"IND_FLAG", i:",
 			spaces,(void*)(it->vafftrans->from),it->vafftrans->offs);
 		pdl_print_iarr(PDL_REPRINCS(it), it->vafftrans->ndims);
 	}
-	if(it->state & PDL_ALLOCATED) {
+	if (it->state & PDL_ALLOCATED) {
 		printf("\n%s   First values: (",spaces);
-		for(i=0; i<it->nvals && i<10; i++) {
+		for (i=0; i<it->nvals && i<10; i++) {
                        if (i) printf(" ");
                        pdl_dump_anyval(pdl_get_offs(it,i));
 		}
@@ -473,7 +473,7 @@ void pdl_dump_fixspace(pdl *it,int nspac)
 		printf("\n%s   (not allocated",spaces);
 	}
 	printf(")\n");
-	if(it->trans_parent) {
+	if (it->trans_parent) {
 		pdl_dump_trans_fixspace(it->trans_parent,nspac+3);
 	}
 	printf("%s   CHILDREN:\n",spaces);
