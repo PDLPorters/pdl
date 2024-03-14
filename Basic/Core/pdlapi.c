@@ -834,16 +834,16 @@ pdl_error pdl_changed(pdl *it, int what, int recursing) {
     pdl_dump_flags_fixspace(what,0,PDL_FLAGS_PDL);
     if (it->state & PDL_TRACEDEBUG) pdl_dump(it);
   );
+  pdl_trans *trans = it->trans_parent;
   if (recursing) {
     PDLDEBUG_f(printf("pdl_changed: adding what to state except pure vaff, currently="); pdl_dump_flags_fixspace(it->state,0,PDL_FLAGS_PDL));
     it->state |= !( /* neither */
       ((it->state & (PDL_OPT_VAFFTRANSOK|PDL_ALLOCATED)) == PDL_OPT_VAFFTRANSOK) || /* already pure vaff nor */
-      (it->trans_parent && !(it->state & PDL_ALLOCATED) && (it->trans_parent->flags & PDL_ITRANS_ISAFFINE)) /* pure vaffine in waiting */
+      (trans && !(it->state & PDL_ALLOCATED) && (trans->flags & PDL_ITRANS_ISAFFINE)) /* pure vaffine in waiting */
     ) ? what : what & ~PDL_PARENTDATACHANGED;
-    if(pdl__ismagic(it)) pdl__call_magic(it,PDL_MAGIC_MARKCHANGED);
+    if (pdl__ismagic(it)) pdl__call_magic(it,PDL_MAGIC_MARKCHANGED);
   }
-  if (it->trans_parent && !recursing && (it->trans_parent->flags & PDL_ITRANS_DO_DATAFLOW_B)) {
-    pdl_trans *trans = it->trans_parent;
+  if (trans && !recursing && (trans->flags & PDL_ITRANS_DO_DATAFLOW_B)) {
     if (PDL_VAFFOK(it)) {
       PDL_ENSURE_ALLOCATED(it);
       PDLDEBUG_f(printf("pdl_changed: calling writebackdata_vaffine (pdl %p)\n",(void*)it));
