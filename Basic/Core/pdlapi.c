@@ -897,11 +897,11 @@ pdl_error pdl__make_physvaffine_recprotect(pdl *it, int recurse_count)
     PDLDEBUG_f(printf("make_physvaffine handing off to make_physical %p\n",(void*)it));
     return pdl__make_physical_recprotect(it, recurse_count+1);
   }
-  pdl *current = it;
   if (!it->vafftrans || it->vafftrans->ndims < it->ndims) {
     PDL_RETERROR(PDL_err, pdl_vafftrans_alloc(it));
     for(i=0; i<it->ndims; i++) it->vafftrans->incs[i] = it->dimincs[i];
     it->vafftrans->offs = 0;
+    pdl *current = it;
     pdl_trans *t=it->trans_parent;
     do {
       if (!t->incs)
@@ -940,10 +940,8 @@ pdl_error pdl__make_physvaffine_recprotect(pdl *it, int recurse_count)
     it->vafftrans->from = current;
     it->state |= PDL_OPT_VAFFTRANSOK;
   }
-  if (it != it->vafftrans->from) {
-    PDLDEBUG_f(printf("make_physvaffine %p, physicalising final parent=%p\n", it, it->vafftrans->from));
-    PDL_RETERROR(PDL_err, pdl__make_physical_recprotect(it->vafftrans->from, recurse_count+1));
-  }
+  PDLDEBUG_f(printf("make_physvaffine %p, physicalising final parent=%p\n", it, it->vafftrans->from));
+  PDL_RETERROR(PDL_err, pdl__make_physical_recprotect(it->vafftrans->from, recurse_count+1));
   if (it->state & PDL_PARENTDATACHANGED)
     READDATA_VAFFINE(PDL_RETERROR, it, recurse_count);
   PDLDEBUG_f(printf("make_physvaffine exit %p\n", it));
