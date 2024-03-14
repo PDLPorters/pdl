@@ -156,9 +156,9 @@ sub params_declare {
     my ($this) = @_;
     my ($ord,$pdls) = $this->get_pdls;
     my %istyped = map +($_=>1), grep $pdls->{$_}{FlagTypeOverride}, @$ord;
-    my @decls = map $_->get_xsdatapdecl($istyped{$_->name} ? "PDL_TYPE_PARAM_".$_->name : "PDL_TYPE_OP", $this->{NullDataCheck}),
+    my @decls = map $_->get_xsdatapdecl($istyped{$_->name} ? "PDL_TYPE_PARAM_".$_->name : "PDL_TYPE_OP", $this->{NullDataCheck}, $istyped{$_->name} ? "PDL_PPSYM_PARAM_".$_->name : "PDL_PPSYM_OP"),
       map $pdls->{$_}, @$ord;
-    my @param_names = ("PDL_TYPE_OP", map "PDL_TYPE_PARAM_$_", grep $istyped{$_}, @$ord);
+    my @param_names = ("PDL_TYPE_OP", "PDL_PPSYM_OP", map +("PDL_TYPE_PARAM_$_","PDL_PPSYM_PARAM_$_"), grep $istyped{$_}, @$ord);
     <<EOF;
 #ifndef PDL_DECLARE_PARAMS_$this->{Name}_$this->{NullDataCheck}
 #define PDL_DECLARE_PARAMS_$this->{Name}_$this->{NullDataCheck}(@{[join ',', @param_names]}) \\
@@ -503,10 +503,13 @@ sub myitemstart {
     @$parent{qw(ftypes_type ftypes_vars)} = ($item, $this->[2]) if defined $this->[1];
     my ($ord,$pdls) = $parent->get_pdls;
     my %istyped = map +($_=>1), grep $pdls->{$_}{FlagTypeOverride}, @$ord;
-    my @param_ctypes = ($item->ctype, map $pdls->{$_}->adjusted_type($item)->ctype, grep $istyped{$_}, @$ord);
+    my @param_ctypes = ($item->ctype, $item->ppsym,
+      map +($pdls->{$_}->adjusted_type($item)->ctype,
+        $pdls->{$_}->adjusted_type($item)->ppsym),
+      grep $istyped{$_}, @$ord);
     my $decls = keys %{$this->[2]} == @$ord
       ? "PDL_DECLARE_PARAMS_$parent->{Name}_$parent->{NullDataCheck}(@{[join ',', @param_ctypes]})\n"
-      : join '', map $_->get_xsdatapdecl($_->adjusted_type($item)->ctype, $parent->{NullDataCheck}),
+      : join '', map $_->get_xsdatapdecl($_->adjusted_type($item)->ctype, $parent->{NullDataCheck}, $_->adjusted_type($item)->ppsym),
           map $parent->{ParObjs}{$_}, sort keys %{$this->[2]};
     my @gentype_decls = !$this->[4] ? () : map "#define PDL_IF_GENTYPE_".uc($_)."(t,f) ".
 	($item->$_ ? 't' : 'f')."\n",
@@ -630,7 +633,7 @@ sub new {
     bless [$opcode, $get, $name, $inds], $type;
 }
 
-sub _isbad { "PDL_ISBAD($_[0],$_[1],$_[2])" }
+sub _isbad { "PDL_ISBAD2($_[0],$_[1],$_[2],$_[3])" }
 our %ops = (
     ISBAD => \&_isbad,
     ISGOOD => sub {'!'.&_isbad},
@@ -658,7 +661,7 @@ sub get_str {
     my $type = exists $parent->{ftypes_vars}{$name}
 	? $parent->{ftypes_type}
 	: $obj->adjusted_type($parent->{Gencurtype}[-1]);
-    $op->($lhs, $rhs, $type->ppsym);
+    $op->($lhs, $rhs, $type->ppsym, $rhs."_isnan");
 }
 
 

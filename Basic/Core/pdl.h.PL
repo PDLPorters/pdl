@@ -221,6 +221,8 @@ static inline int _anyval_isbad(PDL_Anyval inany, PDL_Anyval badval) {
 
 #define PDL_ISBAD(inval,badval,ppsym) \
   (PDL_ISNAN_ ## ppsym(badval) ? PDL_ISNAN_ ## ppsym(inval) : inval == badval)
+#define PDL_ISBAD2(inval,badval,ppsym,badval_isnan) \
+  (badval_isnan ? PDL_ISNAN_ ## ppsym(inval) : inval == badval)
 
 typedef struct badvals {
 #define X(symbol, ctype, ppsym, shortctype, ...) ctype shortctype;

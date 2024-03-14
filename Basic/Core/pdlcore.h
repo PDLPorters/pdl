@@ -186,18 +186,17 @@ struct Core {
 
 typedef struct Core Core;
 
-#define PDL_DECLARE_PARAMETER(type, flag, name, pdlname, nullcheck) \
+#define PDL_DECLARE_PARAMETER(type, flag, name, pdlname, nullcheck, ppsym) \
   type *name ## _datap = ((type *)(PDL_REPRP_TRANS(pdlname, flag))); \
   if ((nullcheck) && pdlname->nvals > 0 && !name ## _datap) \
     return PDL_CORE_(make_error)(PDL_EUSERERROR, "parameter " #name "=%p got NULL data", pdlname); \
 
-#define PDL_DECLARE_PARAMETER_BADVAL(type, flag, name, pdlname, nullcheck) \
-  PDL_DECLARE_PARAMETER(type, flag, name, pdlname, nullcheck) \
-  type name ## _badval = 0; \
-  PDL_Anyval name ## _anyval_badval = PDL_CORE_(get_pdl_badvalue)(pdlname); \
-  (void)name ## _badval; \
-  (void)name ## _anyval_badval; \
-  ANYVAL_TO_CTYPE(name ## _badval, type, name ## _anyval_badval);
+#define PDL_DECLARE_PARAMETER_BADVAL(type, flag, name, pdlname, nullcheck, ppsym) \
+  PDL_DECLARE_PARAMETER(type, flag, name, pdlname, nullcheck, ppsym) \
+  PDL_Anyval name ## _anyval_badval = PDL_CORE_(get_pdl_badvalue)(pdlname); (void)name ## _anyval_badval; \
+  type name ## _badval = 0; (void)name ## _badval; \
+  ANYVAL_TO_CTYPE(name ## _badval, type, name ## _anyval_badval); \
+  char name ## _badval_isnan = PDL_ISNAN_ ## ppsym(name ## _badval); (void) name ## _badval_isnan; \
 
 /* __PDLCORE_H */
 #endif

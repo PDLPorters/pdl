@@ -238,9 +238,9 @@ for (i = 0; i < $COMP(ins_count); i++) {
   pdl *in = ins[i];
   PDL_Indx j;
 #define X_CAT_INNER(datatype_in, ctype_in, ppsym_in, ...) \
-  PDL_DECLARE_PARAMETER_BADVAL(ctype_in, 0, in, (in), 1) \
+  PDL_DECLARE_PARAMETER_BADVAL(ctype_in, 0, in, (in), 1, ppsym_in) \
   for(j=0; j<in->nvals; j++) { \
-    if ($PRIV(bvalflag) && PDL_ISBAD(in_datap[j], in_badval, ppsym_in)) continue; \
+    if ($PRIV(bvalflag) && PDL_ISBAD2(in_datap[j], in_badval, ppsym_in, in_badval_isnan)) continue; \
     $out() += in_datap[j]; \
   }
   PDL_GENERICSWITCH(PDL_TYPELIST2_ALL, in->datatype, X_CAT_INNER, $CROAK("Not a known data type code=%d", in->datatype))
@@ -268,7 +268,7 @@ for (i = 0; i < $COMP(outs_count); i++) {
   if (PDL_err.error) { for (; i >= 0; i--) PDL->destroy(outs[i]); free(outs); return PDL_err; }
   PDL_err = PDL->allocdata(o);
   if (PDL_err.error) { for (; i >= 0; i--) PDL->destroy(outs[i]); free(outs); return PDL_err; }
-  PDL_DECLARE_PARAMETER_BADVAL($GENERIC(in), 0, o, (o), 1)
+  PDL_DECLARE_PARAMETER_BADVAL($GENERIC(in), 0, o, (o), 1, $PPSYM(in))
   loop(n) %{ o_datap[n] = $in(); %}
 }
 EOC

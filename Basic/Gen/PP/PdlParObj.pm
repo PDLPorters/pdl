@@ -213,12 +213,12 @@ sub do_indterm { my($this,$pdl,$ind,$subst,$context) = @_;
 }
 
 sub get_xsdatapdecl { 
-    my($this,$ctype,$nulldatacheck) = @_;
+    my($this,$ctype,$nulldatacheck,$ppsym) = @_;
     my $pdl = $this->get_nname;
     my $flag = $this->get_nnflag;
     my $name = $this->{Name};
     my $macro = "PDL_DECLARE_PARAMETER".($this->{BadFlag} ? "_BADVAL" : "");
-    "$macro($ctype, $flag, $name, $pdl, $nulldatacheck)";
+    "$macro($ctype, $flag, $name, $pdl, $nulldatacheck, $ppsym)";
 }
 
 1;
