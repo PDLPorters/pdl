@@ -56,22 +56,11 @@ ok(tapprox($x->mslice('X',[6,7]),
 	       ])));
 
 my $lut = pdl [[1,0],[0,1]];
-$im = pdl [1];
+$im = pdl indx, [1];
 my $in = $lut->transpose->index($im->dummy(0));
-
-is("$in", "
-[
- [0 1]
-]
-");
-
+is("$in", "\n[\n [0 1]\n]\n");
 $in .= pdl 1;
-
-is("$in", "
-[
- [1 1]
-]
-");
+is("$in", "\n[\n [1 1]\n]\n");
 my $expected = pdl([[1,0],[1,1]]);
 ok(tapprox($lut, $expected)) or diag "lut=$lut exp=$expected";
 
