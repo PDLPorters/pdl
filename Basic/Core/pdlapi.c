@@ -845,7 +845,6 @@ pdl_error pdl_changed(pdl *it, int what, int recursing) {
   }
   if (trans && !recursing && (trans->flags & PDL_ITRANS_DO_DATAFLOW_B)) {
     if (PDL_VAFFOK(it)) {
-      PDL_ENSURE_ALLOCATED(it);
       PDLDEBUG_f(printf("pdl_changed: calling writebackdata_vaffine (pdl %p)\n",(void*)it));
       PDL_ACCUMERROR(PDL_err, pdl_writebackdata_vaffine(it));
       CHANGED(it->vafftrans->from,what,0);

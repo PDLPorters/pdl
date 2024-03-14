@@ -21,15 +21,15 @@
 
 #define VAFF_IO(name, X) \
 pdl_error pdl_ ## name(pdl *a) { \
-	pdl_error PDL_err = {0, NULL, 0}; \
-	PDL_Indx i; \
-	int j; \
-	int intype = a->datatype; \
-	if(!PDL_VAFFOK(a)) { \
-		return pdl_make_error_simple(PDL_EUSERERROR, "pdl_" #name " without vaffine"); \
-	} \
-    PDL_GENERICSWITCH(PDL_TYPELIST2_ALL, intype, X, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", intype)) \
-    return PDL_err; \
+  pdl_error PDL_err = {0, NULL, 0}; \
+  PDL_Indx i, j; \
+  int intype = a->datatype; \
+  if (!a->vafftrans) \
+    return pdl_make_error_simple(PDL_EUSERERROR, "pdl_" #name " without vafftrans"); \
+  if (a->nvals && !a->data) \
+    return pdl_make_error_simple(PDL_EUSERERROR, "pdl_" #name " non-empty with NULL data"); \
+  PDL_GENERICSWITCH(PDL_TYPELIST2_ALL, intype, X, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", intype)) \
+  return PDL_err; \
 }
 
 #define X(...) XCODE(*ap = *pp, __VA_ARGS__)
