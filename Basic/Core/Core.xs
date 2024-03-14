@@ -483,7 +483,7 @@ vtable(x)
     RETVAL
 
 int
-vaffine(x)
+affine(x)
   pdl_trans *x
   CODE:
     RETVAL= !!(x->flags & PDL_ITRANS_ISAFFINE);

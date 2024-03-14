@@ -1474,7 +1474,7 @@ The memory address of the struct.
 
 List of strings of flags set for this trans.
 
-=item vaffine
+=item affine
 
 Whether the trans is affine.
 
@@ -2238,7 +2238,7 @@ sub pdump_trans {
     "AFFINE, " . ($outs[0]->dimschgd
       ? "BUT DIMSCHANGED"
       : "o:".$trans->offs."  i:(@{[$trans->incs]}) d:(@{[$outs[0]->dims_nophys]})")
-    if $trans->vaffine;
+    if $trans->affine;
   push @lines,
     "ind_sizes: (@{[$trans->ind_sizes]})",
     "inc_sizes: (@{[$trans->inc_sizes]})",
@@ -2282,7 +2282,7 @@ sub pdumphash {
       flags => [$obj->flags],
       vtable_flags => [$vtable->flags],
       par_names => [$vtable->par_names],
-      !($obj->vaffine && !$outs[0]->dimschgd) ? () : (
+      !($obj->affine && !$outs[0]->dimschgd) ? () : (
         affine => "o:".$obj->offs." i:(@{[$obj->incs]}) d:(@{[$outs[0]->dims_nophys]})"
       ),
       ins => [map sprintf('0x%x', $_->address), @ins],
