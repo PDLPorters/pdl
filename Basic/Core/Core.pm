@@ -2195,7 +2195,7 @@ sub pdump {
     "Dims: (@dims)",
     "BroadcastIds: (@{[$pdl->broadcastids_nophys]})",
   );
-  push @lines, sprintf "Vaffine: 0x%x (parent)", $pdl->vaffine_from if $pdl->vaffine;
+  push @lines, sprintf "Vaffine: 0x%x (parent)", $pdl->vaffine_from if $pdl->has_vafftrans;
   push @lines, !$pdl->allocated ? '(not allocated)' : join "\n  ",
     sprintf("data: 0x%x, nbytes: %d, nvals: %d", $pdl->address_data, $pdl->nbytes, $pdl->nelem_nophys),
     "First values: (@{[$pdl->firstvals_nophys]})",
@@ -2296,7 +2296,7 @@ sub pdumphash {
       kind => 'ndarray',
       datatype => $obj->get_datatype,
       flags => [$obj->flags],
-      !$obj->vaffine ? () : (
+      !$obj->has_vafftrans ? () : (
         vaffine_from => sprintf("0x%x", $obj->vaffine_from),
       ),
       !$obj->allocated ? () : (

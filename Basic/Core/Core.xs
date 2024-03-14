@@ -219,6 +219,14 @@ topdl(klass, arg1, ...)
   OUTPUT:
     RETVAL
 
+int
+has_vafftrans(self)
+	pdl *self;
+	CODE:
+	RETVAL = !!self->vafftrans;
+	OUTPUT:
+	RETVAL
+
 # Return the transformation object or an undef otherwise.
 pdl_trans *
 trans_parent(self)
