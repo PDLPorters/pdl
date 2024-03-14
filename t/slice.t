@@ -319,25 +319,25 @@ vafftest(\%addr2label, $all, [[0,0,1,1,'root'],[0,0,0,0],[1,0,0,0]], "vaff mutat
 $vaff2->make_physvaffine;
 vafftest(\%addr2label, $all, [[0,0,1,1,'root'],[0,0,1,1,'root'],[1,0,0,0]], "vaff2 vaffed");
 $vaff->make_physical;
-vafftest(\%addr2label, $all, [[0,1,1,1,'root'],[0,0,0,0],[1,0,0,0]], "vaff physicalised");
+vafftest(\%addr2label, $all, [[0,1,1,0,'root'],[0,0,0,0],[1,0,0,0]], "vaff physicalised");
 $vaff2 += 1;
-vafftest(\%addr2label, $all, [[1,1,1,1,'root'],[0,0,1,1,'vaff'],[1,0,0,0]], "vaff2 mutated");
+vafftest(\%addr2label, $all, [[1,1,1,0,'root'],[0,0,1,1,'vaff'],[1,0,0,0]], "vaff2 mutated");
 $vaff->make_physvaffine;
-vafftest(\%addr2label, $all, [[0,1,1,1,'root'],[0,0,1,1,'vaff'],[1,0,0,0]], "vaff physvaffined");
+vafftest(\%addr2label, $all, [[0,1,1,0,'root'],[0,0,1,1,'vaff'],[1,0,0,0]], "vaff physvaffined");
 $clumped++;
-vafftest(\%addr2label, $all, [[1,1,1,1,'root'],[1,1,1,1,'vaff'],[1,1,0,0]], "clumped mutated");
+vafftest(\%addr2label, $all, [[1,1,1,0,'root'],[1,1,1,0,'vaff'],[1,1,0,0]], "clumped mutated");
 $root->set(0,0,7);
-vafftest(\%addr2label, $all, [[1,1,1,1,'root'],[1,1,1,1,'vaff'],[1,1,0,0]], "root set()ed");
+vafftest(\%addr2label, $all, [[1,1,1,0,'root'],[1,1,1,0,'vaff'],[1,1,0,0]], "root set()ed");
 $vaff->make_physvaffine;
-vafftest(\%addr2label, $all, [[0,1,1,1,'root'],[1,1,1,1,'vaff'],[1,1,0,0]], "vaff physvaffined2");
+vafftest(\%addr2label, $all, [[0,1,1,0,'root'],[1,1,1,0,'vaff'],[1,1,0,0]], "vaff physvaffined2");
 $vaff2->make_physvaffine;
-vafftest(\%addr2label, $all, [[0,1,1,1,'root'],[0,1,1,1,'vaff'],[1,1,0,0]], "vaff2 physvaffined");
+vafftest(\%addr2label, $all, [[0,1,1,0,'root'],[0,1,1,0,'vaff'],[1,1,0,0]], "vaff2 physvaffined");
 $clumped->make_physvaffine;
-vafftest(\%addr2label, $all, [[0,1,1,1,'root'],[0,1,1,1,'vaff'],[0,1,0,0]], "clumped physvaffined");
+vafftest(\%addr2label, $all, [[0,1,1,0,'root'],[0,1,1,0,'vaff'],[0,1,0,0]], "clumped physvaffined");
 push @$all, [my $latevaff=$vaff2->slice(''), 'latevaff'];
-vafftest(\%addr2label, $all, [[0,1,1,1,'root'],[0,1,1,1,'vaff'],[0,1,0,0],[0,0,0,0]], "latevaff created");
+vafftest(\%addr2label, $all, [[0,1,1,0,'root'],[0,1,1,0,'vaff'],[0,1,0,0],[0,0,0,0]], "latevaff created");
 $latevaff->make_physvaffine;
-vafftest(\%addr2label, $all, [[0,1,1,1,'root'],[0,1,1,1,'vaff'],[0,1,0,0],[0,0,1,1,'vaff2']], "latevaff physvaffined");
+vafftest(\%addr2label, $all, [[0,1,1,0,'root'],[0,1,1,0,'vaff'],[0,1,0,0],[0,0,1,1,'vaff2']], "latevaff physvaffined");
 
 # capturing GH#461
 $root = zeroes 2,2,2;

@@ -73,8 +73,8 @@ void pdl_vafftrans_remove(pdl * it, char this_one);
     char already_allocated = (it->state & PDL_ALLOCATED); \
     PDL_ENSURE_ALLOCATED(it); \
     what(PDL_err, pdl_readdata_vaffine(it)); \
-    PDLDEBUG_f(printf("READDATA_VAFFINE pdl=%p turning off datachanged, before=", it); pdl_dump_flags_fixspace(it->state, 0, PDL_FLAGS_PDL)); \
-    it->state &= ~PDL_PARENTDATACHANGED; /* assumption: no siblings */ \
+    PDLDEBUG_f(printf("READDATA_VAFFINE pdl=%p turning off datachanged and OPT_VAFFTRANSOK, before=", it); pdl_dump_flags_fixspace(it->state, 0, PDL_FLAGS_PDL)); \
+    it->state &= ~(PDL_PARENTDATACHANGED|PDL_OPT_VAFFTRANSOK); /* assumption: no siblings */ \
     if (!already_allocated) pdl_vafftrans_remove(it, 0); \
   } while (0)
 
