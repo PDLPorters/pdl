@@ -106,7 +106,8 @@ pdl_error pdl__ensure_trans(pdl_trans *trans,int what,int *wd, char inputs_only,
 	if (par_pvaf && (trans->flags & PDL_ITRANS_ISAFFINE)) {
 		if (!(vtable->nparents == 1 && vtable->npdls == 2))
 		  return pdl_make_error_simple(PDL_EUSERERROR, "Affine trans other than 1 input 1 output");
-		READDATA_VAFFINE(PDL_ACCUMERROR, trans->pdls[1], recurse_count);
+		trans->pdls[1]->state |= PDL_PARENTDATACHANGED;
+		PDL_RETERROR(PDL_err, pdl__make_physvaffine_recprotect(trans->pdls[1], recurse_count+1));
 	} else if (flag & PDL_ANYCHANGED)
 		READDATA(trans);
 	if (!wd) return PDL_err;
