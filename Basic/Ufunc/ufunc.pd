@@ -637,11 +637,7 @@ and therefore ignore whether the values are bad.
 =cut
 
 *minmax = \&PDL::minmax;
-sub PDL::minmax {
-  my ($x)=@_; my $tmp;
-  my @arr = $x->flat->minmaximum;
-  map $_->sclr, @arr[0,1]; # as scalars !
-}
+sub PDL::minmax { map $_->sclr, ($_[0]->flat->minmaximum)[0,1] }
 
 EOPM
 
