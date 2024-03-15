@@ -808,14 +808,12 @@ pdl_error pdl__make_physical_recprotect(pdl *it, int recurse_count) {
 	if (!trans) {
 		return pdl_make_error_simple(PDL_EFATAL, "PDL Not physical but doesn't have parent");
 	}
-	if ((trans->flags & PDL_ITRANS_ISAFFINE) && !PDL_VAFFOK(it))
+	if (trans->flags & PDL_ITRANS_ISAFFINE) {
+		PDLDEBUG_f(printf("make_physical: affine\n"));
+		trans->pdls[1]->state |= PDL_PARENTDATACHANGED;
 		PDL_RETERROR(PDL_err, pdl__make_physvaffine_recprotect(it, recurse_count+1));
-	if (PDL_VAFFOK(it)) {
-		PDLDEBUG_f(printf("make_physical: VAFFOK\n"));
-		READDATA_VAFFINE(PDL_RETERROR, it, recurse_count);
-		goto mkphys_end;
-	}
-	PDL_RETERROR(PDL_err, pdl__ensure_trans(trans,0,NULL,1, recurse_count+1));
+	} else
+		PDL_RETERROR(PDL_err, pdl__ensure_trans(trans,0,NULL,1, recurse_count+1));
   mkphys_end:
 	PDLDEBUG_f(printf("make_physical exiting: "); pdl_dump(it));
 	return PDL_err;
