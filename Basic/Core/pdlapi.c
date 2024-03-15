@@ -71,7 +71,7 @@ extern Core PDL;
 pdl_error pdl__make_physical_recprotect(pdl *it, int recurse_count);
 pdl_error pdl__make_physvaffine_recprotect(pdl *it, int recurse_count);
 /* Make sure transformation is done */
-pdl_error pdl__ensure_trans(pdl_trans *trans,int what,int *wd, char inputs_only, int recurse_count)
+pdl_error pdl__ensure_trans(pdl_trans *trans, int what, char inputs_only, int recurse_count)
 {
 	pdl_error PDL_err = {0, NULL, 0};
 	PDLDEBUG_f(printf("pdl__ensure_trans %p what=", trans); pdl_dump_flags_fixspace(what, 0, PDL_FLAGS_PDL));
@@ -99,17 +99,6 @@ pdl_error pdl__ensure_trans(pdl_trans *trans,int what,int *wd, char inputs_only,
 		PDL_RETERROR(PDL_err, pdl__make_physvaffine_recprotect(trans->pdls[1], recurse_count+1));
 	} else if (flag & PDL_ANYCHANGED)
 		READDATA(trans);
-	if (!wd) return PDL_err;
-	for (j=vtable->nparents; j<vtable->npdls; j++) {
-		pdl *child = trans->pdls[j];
-		char isvaffine = (PDL_VAFFOK(child) && /* same cond as DECLARE_PARAM */
-		    !(vtable->par_flags[j] & PDL_PARAM_ISPHYS));
-		PDLDEBUG_f(printf("   pdl__ensure_trans isvaffine=%d wd=", (int)isvaffine); pdl_dump_flags_fixspace(wd[j], 0, PDL_FLAGS_PDL));
-		if (!isvaffine || (wd[j] & PDL_PARENTDIMSCHANGED))
-		    CHANGED(child,wd[j],0);
-		if (isvaffine)
-		    CHANGED(child->vafftrans->from,PDL_PARENTDATACHANGED,0);
-	}
 	return PDL_err;
 }
 
@@ -355,50 +344,62 @@ pdl_error pdl_trans_finaldestroy(pdl_trans *trans)
 pdl_error pdl__destroy_recprotect(pdl *it, int recurse_count);
 pdl_error pdl_destroytransform(pdl_trans *trans,int ensure,int *wd, int recurse_count)
 {
-	pdl_error PDL_err = {0, NULL, 0};
-	PDL_TR_CHKMAGIC(trans);
-	PDL_Indx j;
-	int ismutual = (trans->flags & PDL_ITRANS_DO_DATAFLOW_ANY);
-	if (!trans->vtable)
-		return pdl_make_error(PDL_EFATAL, "ZERO VTABLE DESTTRAN 0x%p %d\n",trans,ensure);
-	if (!ismutual) for(j=0; j<trans->vtable->nparents; j++)
-	  if (!trans->pdls[j]) return pdl_make_error(PDL_EFATAL, "NULL pdls[%td] in %s", j, trans->vtable->name); else
-	  if (trans->pdls[j]->state & PDL_DATAFLOW_ANY) { ismutual=1; break; }
-	PDLDEBUG_f(printf("pdl_destroytransform %s=%p (ensure=%d ismutual=%d)\n",
-			  trans->vtable->name,
-			  (void*)trans,ensure,ismutual));
-	if (ensure)
-		PDL_ACCUMERROR(PDL_err, pdl__ensure_trans(trans,ismutual ? 0 : PDL_PARENTDIMSCHANGED,wd,0, recurse_count+1));
-	pdl *destbuffer[trans->vtable->npdls];
-	int ndest = 0;
-	for (j=0; j<trans->vtable->nparents; j++) {
-	  pdl *parent = trans->pdls[j];
-	  if (!parent) continue;
-	  PDL_CHKMAGIC(parent);
-	  pdl__removetrans_children(parent,trans);
-	  if (!(parent->state & PDL_DESTROYING) && !parent->sv) {
-	    parent->state |= PDL_DESTROYING; /* so no mark twice */
-	    destbuffer[ndest++] = parent;
-	  }
-	}
-	for (j=trans->vtable->nparents; j<trans->vtable->npdls; j++) {
-	  pdl *child = trans->pdls[j];
-	  PDL_CHKMAGIC(child);
-	  pdl__removetrans_parent(child,trans,j);
-	  if (ismutual && child->vafftrans) pdl_vafftrans_remove(child, 1);
-	  if ((!(child->state & PDL_DESTROYING) && !child->sv) ||
-	      (trans->vtable->par_flags[j] & PDL_PARAM_ISTEMP)) {
-	    child->state |= PDL_DESTROYING; /* so no mark twice */
-	    destbuffer[ndest++] = child;
-	  }
-	}
-	PDL_ACCUMERROR(PDL_err, pdl_trans_finaldestroy(trans));
-	for (j=0; j<ndest; j++) {
-		destbuffer[j]->state &= ~PDL_DESTROYING; /* safe, set by us */
-		PDL_ACCUMERROR(PDL_err, pdl__destroy_recprotect(destbuffer[j], recurse_count+1));
-	}
-	PDLDEBUG_f(printf("pdl_destroytransform leaving %p\n", (void*)trans));
-	return PDL_err;
+  pdl_error PDL_err = {0, NULL, 0};
+  PDL_TR_CHKMAGIC(trans);
+  PDL_Indx j;
+  int ismutual = (trans->flags & PDL_ITRANS_DO_DATAFLOW_ANY);
+  pdl_transvtable *vtable = trans->vtable;
+  if (!vtable)
+    return pdl_make_error(PDL_EFATAL, "ZERO VTABLE DESTTRAN 0x%p %d\n",trans,ensure);
+  if (!ismutual) for(j=0; j<vtable->nparents; j++)
+    if (!trans->pdls[j]) return pdl_make_error(PDL_EFATAL, "NULL pdls[%td] in %s", j, vtable->name); else
+    if (trans->pdls[j]->state & PDL_DATAFLOW_ANY) { ismutual=1; break; }
+  PDLDEBUG_f(printf("pdl_destroytransform %s=%p (ensure=%d ismutual=%d)\n",
+    vtable->name, (void*)trans,ensure,ismutual));
+  if (ensure) {
+    PDL_ACCUMERROR(PDL_err, pdl__ensure_trans(trans, ismutual ? 0 : PDL_PARENTDIMSCHANGED, 0, recurse_count+1));
+    if (wd)
+      for (j=vtable->nparents; j<vtable->npdls; j++) {
+        pdl *child = trans->pdls[j];
+        char isvaffine = (PDL_VAFFOK(child) && /* same cond as DECLARE_PARAM */
+            !(vtable->par_flags[j] & PDL_PARAM_ISPHYS));
+        PDLDEBUG_f(printf("pdl_destroytransform isvaffine=%d wd=", (int)isvaffine); pdl_dump_flags_fixspace(wd[j], 0, PDL_FLAGS_PDL));
+        if (!isvaffine || (wd[j] & PDL_PARENTDIMSCHANGED))
+          CHANGED(child,wd[j],0);
+        if (isvaffine)
+          CHANGED(child->vafftrans->from,PDL_PARENTDATACHANGED,0);
+      }
+  }
+  pdl *destbuffer[vtable->npdls];
+  int ndest = 0;
+  for (j=0; j<vtable->nparents; j++) {
+    pdl *parent = trans->pdls[j];
+    if (!parent) continue;
+    PDL_CHKMAGIC(parent);
+    pdl__removetrans_children(parent,trans);
+    if (!(parent->state & PDL_DESTROYING) && !parent->sv) {
+      parent->state |= PDL_DESTROYING; /* so no mark twice */
+      destbuffer[ndest++] = parent;
+    }
+  }
+  for (j=vtable->nparents; j<vtable->npdls; j++) {
+    pdl *child = trans->pdls[j];
+    PDL_CHKMAGIC(child);
+    pdl__removetrans_parent(child,trans,j);
+    if (ismutual && child->vafftrans) pdl_vafftrans_remove(child, 1);
+    if ((!(child->state & PDL_DESTROYING) && !child->sv) ||
+        (vtable->par_flags[j] & PDL_PARAM_ISTEMP)) {
+      child->state |= PDL_DESTROYING; /* so no mark twice */
+      destbuffer[ndest++] = child;
+    }
+  }
+  PDL_ACCUMERROR(PDL_err, pdl_trans_finaldestroy(trans));
+  for (j=0; j<ndest; j++) {
+    destbuffer[j]->state &= ~PDL_DESTROYING; /* safe, set by us */
+    PDL_ACCUMERROR(PDL_err, pdl__destroy_recprotect(destbuffer[j], recurse_count+1));
+  }
+  PDLDEBUG_f(printf("pdl_destroytransform leaving %p\n", (void*)trans));
+  return PDL_err;
 }
 
 /*
@@ -802,7 +803,7 @@ pdl_error pdl__make_physical_recprotect(pdl *it, int recurse_count) {
 		trans->pdls[1]->state |= PDL_PARENTDATACHANGED;
 		PDL_RETERROR(PDL_err, pdl__make_physvaffine_recprotect(it, recurse_count+1));
 	} else
-		PDL_RETERROR(PDL_err, pdl__ensure_trans(trans,0,NULL,1, recurse_count+1));
+		PDL_RETERROR(PDL_err, pdl__ensure_trans(trans,0,1,recurse_count+1));
   mkphys_end:
 	PDLDEBUG_f(printf("make_physical exiting: "); pdl_dump(it));
 	return PDL_err;
