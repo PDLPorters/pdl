@@ -341,34 +341,22 @@ pdl_error pdl_trans_finaldestroy(pdl_trans *trans)
 }
 
 pdl_error pdl__destroy_recprotect(pdl *it, int recurse_count);
-pdl_error pdl_destroytransform(pdl_trans *trans,int ensure,int *wd, int recurse_count)
+pdl_error pdl_destroytransform(pdl_trans *trans, int ensure, int recurse_count)
 {
   pdl_error PDL_err = {0, NULL, 0};
   PDL_TR_CHKMAGIC(trans);
   PDL_Indx j;
-  int ismutual = (trans->flags & PDL_ITRANS_DO_DATAFLOW_ANY);
   pdl_transvtable *vtable = trans->vtable;
   if (!vtable)
     return pdl_make_error(PDL_EFATAL, "ZERO VTABLE DESTTRAN 0x%p %d\n",trans,ensure);
+  char ismutual = (trans->flags & PDL_ITRANS_DO_DATAFLOW_ANY);
   if (!ismutual) for(j=0; j<vtable->nparents; j++)
     if (!trans->pdls[j]) return pdl_make_error(PDL_EFATAL, "NULL pdls[%td] in %s", j, vtable->name); else
     if (trans->pdls[j]->state & PDL_DATAFLOW_ANY) { ismutual=1; break; }
   PDLDEBUG_f(printf("pdl_destroytransform %s=%p (ensure=%d ismutual=%d)\n",
-    vtable->name, (void*)trans,ensure,ismutual));
-  if (ensure) {
+    vtable->name,trans,ensure,(int)ismutual));
+  if (ensure)
     PDL_ACCUMERROR(PDL_err, pdl__ensure_trans(trans, ismutual ? 0 : PDL_PARENTDIMSCHANGED, 0, recurse_count+1));
-    if (wd)
-      for (j=vtable->nparents; j<vtable->npdls; j++) {
-        pdl *child = trans->pdls[j];
-        char isvaffine = (PDL_VAFFOK(child) && /* same cond as DECLARE_PARAM */
-            !(vtable->par_flags[j] & PDL_PARAM_ISPHYS));
-        PDLDEBUG_f(printf("pdl_destroytransform isvaffine=%d wd=", (int)isvaffine); pdl_dump_flags_fixspace(wd[j], 0, PDL_FLAGS_PDL));
-        if (!isvaffine || (wd[j] & PDL_PARENTDIMSCHANGED))
-          CHANGED(child,wd[j],0);
-        if (isvaffine)
-          CHANGED(child->vafftrans->from,PDL_PARENTDATACHANGED,0);
-      }
-  }
   pdl *destbuffer[vtable->npdls];
   int ndest = 0;
   for (j=0; j<vtable->nparents; j++) {
@@ -463,13 +451,13 @@ pdl_error pdl__destroy_recprotect(pdl *it, int recurse_count) {
 	goto soft_destroy;
     }
     PDL_START_CHILDLOOP(it)
-	PDL_RETERROR(PDL_err, pdl_destroytransform(PDL_CHILDLOOP_THISCHILD(it),1,NULL, recurse_count+1));
+	PDL_RETERROR(PDL_err, pdl_destroytransform(PDL_CHILDLOOP_THISCHILD(it), 1, recurse_count+1));
     PDL_END_CHILDLOOP(it)
     pdl_trans *trans = it->trans_parent;
     if (trans)
         /* Ensure only if there are other children! */
-      PDL_RETERROR(PDL_err, pdl_destroytransform(trans,trans->vtable->npdls
-				      - trans->vtable->nparents > 1,NULL, recurse_count+1));
+      PDL_RETERROR(PDL_err, pdl_destroytransform(trans,
+        trans->vtable->npdls - trans->vtable->nparents > 1, recurse_count+1));
 /* Here, this is a child but has no children - fall through to hard_destroy */
    PDL_RETERROR(PDL_err, pdl__free(it));
    PDLDEBUG_f(printf("pdl_destroy end %p\n",(void*)it));
@@ -714,24 +702,36 @@ pdl_error pdl_make_trans_mutual(pdl_trans *trans)
   }
   int wd[npdls];
   for(i=nparents; i<npdls; i++) {
-	pdl *child = pdls[i];
-	char isnull = !!(child->state & PDL_NOMYDIMS);
-	wd[i]=(isnull ? PDL_PARENTDIMSCHANGED : PDL_PARENTDATACHANGED);
-	PDLDEBUG_f(printf("make_trans_mutual child=%p wd[%"IND_FLAG"]=", child, i); pdl_dump_flags_fixspace(wd[i], 0, PDL_FLAGS_PDL));
-	if (dataflow) {
-		/* This is because for "+=" (a = a + b) we must check for
-		   previous parent transformations and mutate if they exist
-		   if no dataflow. */
-		PDLDEBUG_f(printf("make_trans_mutual turning on allchanged, before="); pdl_dump_flags_fixspace(child->state, 0, PDL_FLAGS_PDL));
-		child->state |= PDL_PARENTDIMSCHANGED | ((trans->flags & PDL_ITRANS_ISAFFINE) ? 0 : PDL_PARENTDATACHANGED);
-		PDLDEBUG_f(printf("make_trans_mutual after change="); pdl_dump_flags_fixspace(child->state, 0, PDL_FLAGS_PDL));
-	}
-	if (dataflow || isnull) child->trans_parent = trans;
-	if (isnull)
-	    child->state = (child->state & ~PDL_NOMYDIMS) | PDL_MYDIMS_TRANS;
+    pdl *child = pdls[i];
+    char isnull = !!(child->state & PDL_NOMYDIMS);
+    wd[i]=(isnull ? PDL_PARENTDIMSCHANGED : PDL_PARENTDATACHANGED);
+    PDLDEBUG_f(printf("make_trans_mutual child=%p wd[%"IND_FLAG"]=", child, i); pdl_dump_flags_fixspace(wd[i], 0, PDL_FLAGS_PDL));
+    if (dataflow) {
+      /* This is because for "+=" (a = a + b) we must check for
+         previous parent transformations and mutate if they exist
+         if no dataflow. */
+      PDLDEBUG_f(printf("make_trans_mutual turning on allchanged, before="); pdl_dump_flags_fixspace(child->state, 0, PDL_FLAGS_PDL));
+      child->state |= PDL_PARENTDIMSCHANGED | ((trans->flags & PDL_ITRANS_ISAFFINE) ? 0 : PDL_PARENTDATACHANGED);
+      PDLDEBUG_f(printf("make_trans_mutual after change="); pdl_dump_flags_fixspace(child->state, 0, PDL_FLAGS_PDL));
+    }
+    if (dataflow || isnull) child->trans_parent = trans;
+    if (isnull)
+      child->state = (child->state & ~PDL_NOMYDIMS) | PDL_MYDIMS_TRANS;
   }
-  if (!dataflow)
-	PDL_ACCUMERROR(PDL_err, pdl_destroytransform(trans,1,wd,0));
+  if (!dataflow) {
+    PDL_ACCUMERROR(PDL_err, pdl__ensure_trans(trans, dataflow ? 0 : PDL_PARENTDIMSCHANGED, 0, 0));
+    for (i=vtable->nparents; i<vtable->npdls; i++) {
+      pdl *child = trans->pdls[i];
+      char isvaffine = (PDL_VAFFOK(child) && /* same cond as DECLARE_PARAM */
+          !(vtable->par_flags[i] & PDL_PARAM_ISPHYS));
+      PDLDEBUG_f(printf("make_trans_mutual isvaffine=%d wd=", (int)isvaffine); pdl_dump_flags_fixspace(wd[i], 0, PDL_FLAGS_PDL));
+      if (!isvaffine || (wd[i] & PDL_PARENTDIMSCHANGED))
+        CHANGED(child,wd[i],0);
+      if (isvaffine)
+        CHANGED(child->vafftrans->from,PDL_PARENTDATACHANGED,0);
+    }
+    PDL_ACCUMERROR(PDL_err, pdl_destroytransform(trans,0,0));
+  }
   PDLDEBUG_f(printf("make_trans_mutual exit %p\n",(void*)trans));
   return PDL_err;
 } /* pdl_make_trans_mutual() */
@@ -953,7 +953,7 @@ pdl_error pdl_set_datatype(pdl *a, int datatype)
     pdl_error PDL_err = {0, NULL, 0};
     PDL_RETERROR(PDL_err, pdl_make_physical(a));
     if(a->trans_parent)
-	PDL_RETERROR(PDL_err, pdl_destroytransform(a->trans_parent,1,NULL,0));
+	PDL_RETERROR(PDL_err, pdl_destroytransform(a->trans_parent,1,0));
     if (a->state & PDL_NOMYDIMS)
 	a->datatype = datatype;
     else
@@ -966,7 +966,7 @@ pdl_error pdl_sever(pdl *src)
     pdl_error PDL_err = {0, NULL, 0};
     if (!src->trans_parent) return PDL_err;
     PDL_RETERROR(PDL_err, pdl_make_physvaffine(src));
-    PDL_RETERROR(PDL_err, pdl_destroytransform(src->trans_parent,1,NULL,0));
+    PDL_RETERROR(PDL_err, pdl_destroytransform(src->trans_parent,1,0));
     return PDL_err;
 }
 
