@@ -88,7 +88,7 @@ pdl_error pdl__ensure_trans(pdl_trans *trans, int what, char inputs_only, int re
       PDL_RETERROR(PDL_err, pdl__make_physical_recprotect(trans->pdls[j], recurse_count+1));
     else {
       PDL_RETERROR(PDL_err, pdl__make_physvaffine_recprotect(trans->pdls[j], recurse_count+1));
-      if (!(trans->pdls[j]->state & PDL_ALLOCATED) && PDL_VAFFOK(trans->pdls[j])) par_pvaf++;
+      if (PDL_VAFFOK(trans->pdls[j])) par_pvaf++;
     }
   }
   for (j=vtable->nparents; j<vtable->npdls; j++)
@@ -721,8 +721,7 @@ pdl_error pdl_make_trans_mutual(pdl_trans *trans)
     PDL_ACCUMERROR(PDL_err, pdl__ensure_trans(trans, dataflow ? 0 : PDL_PARENTDIMSCHANGED, 0, 0));
     for (i=vtable->nparents; i<vtable->npdls; i++) {
       pdl *child = trans->pdls[i];
-      char isvaffine = (PDL_VAFFOK(child) && /* same cond as DECLARE_PARAM */
-          !(vtable->par_flags[i] & PDL_PARAM_ISPHYS));
+      char isvaffine = !!PDL_VAFFOK(child);
       PDLDEBUG_f(printf("make_trans_mutual isvaffine=%d wasnull=%d\n", (int)isvaffine, (int)wasnull[i]));
       if (!isvaffine || wasnull[i])
         CHANGED(child, wasnull[i] ? PDL_PARENTDIMSCHANGED : PDL_PARENTDATACHANGED, 0);
@@ -769,7 +768,6 @@ pdl_error pdl_redodims_default(pdl_trans *trans) {
       for (j=0; j<vtable->par_realdims[i]; j++)
         trans->inc_sizes[PDL_INC_ID(vtable,i,j)] =
           (pdl->ndims <= j || pdl->dims[j] <= 1) ? 0 :
-          (vtable->par_flags[i] & PDL_PARAM_ISPHYS) ? pdl->dimincs[j] :
           PDL_REPRINC(pdl,j);
     }
   }
@@ -842,14 +840,7 @@ pdl_error pdl_changed(pdl *it, int what, int recursing) {
       WRITEDATA(trans);
       for (i=0; i<trans->vtable->nparents; i++) {
         pdl *pdl = trans->pdls[i];
-        CHANGED(
-          (!(trans->vtable->par_flags[i] & PDL_PARAM_ISPHYS) &&
-            pdl->trans_parent &&
-            (pdl->trans_parent->flags & PDL_ITRANS_ISAFFINE) &&
-            PDL_VAFFOK(pdl))
-          ? pdl->vafftrans->from
-          : pdl,
-          what,0);
+        CHANGED(PDL_VAFFOK(pdl) ? pdl->vafftrans->from : pdl, what, 0);
       }
     }
   } else {

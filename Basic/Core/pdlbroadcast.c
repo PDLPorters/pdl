@@ -419,7 +419,7 @@ pdl_error pdl_initbroadcaststruct(int nobl,
 
 	/* populate the per_pdl_flags */
 	for (i=0;i<npdls; i++) {
-	  if (pdls[i] && PDL_VAFFOK(pdls[i]) && !(vtable && vtable->par_flags[i] & PDL_PARAM_ISPHYS))
+	  if (pdls[i] && PDL_VAFFOK(pdls[i]))
 	    broadcast->flags[i] |= PDL_BROADCAST_VAFFINE_OK;
 	  if (vtable && vtable->par_flags[i] & PDL_PARAM_ISTEMP)
 	    broadcast->flags[i] |= PDL_BROADCAST_TEMP;
