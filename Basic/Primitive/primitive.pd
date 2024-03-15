@@ -589,8 +589,7 @@ another dimension use the slicing routines, e.g.
 This function is useful for broadcasted filtering of 1D signals.
 
 Compare also L<conv2d|PDL::Image2D/conv2d>, L<convolve|PDL::ImageND/convolve>,
-L<fftconvolve|PDL::FFT/fftconvolve()>, L<fftwconv|PDL::FFTW/fftwconv>,
-L<rfftwconv|PDL::FFTW/rfftwconv>
+L<fftconvolve|PDL::FFT/fftconvolve()>
 
 =for bad
 

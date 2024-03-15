@@ -197,10 +197,6 @@ RGB image data handling.
 
 Fast Fourier Transform (native implementation).
 
-=item L<PDL::FFTW>
-
-PDL interface to the FFTW library.
-
 =item L<PDL::Filter::LinPred>
 
 Linear predictive filtering.
