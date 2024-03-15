@@ -747,7 +747,7 @@ pdl_error pdl_redodims_default(pdl_trans *trans) {
     PDL_RETERROR(PDL_err, pdl_initbroadcaststruct(2, pdls,
       vtable->par_realdims, creating, vtable->npdls, vtable,
       &trans->broadcast, NULL, NULL,
-      vtable->per_pdl_flags, vtable->flags & PDL_TRANS_NO_PARALLEL));
+      NULL, vtable->flags & PDL_TRANS_NO_PARALLEL));
     PDL_RETERROR(PDL_err, pdl_dim_checks(vtable, pdls, &trans->broadcast, creating, trans->ind_sizes, 0));
     for (i=0; i<vtable->npdls; i++) {
       PDL_Indx ninds = vtable->par_realdims[i];

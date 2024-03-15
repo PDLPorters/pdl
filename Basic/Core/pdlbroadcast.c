@@ -268,7 +268,7 @@ pdl_error pdl_dim_checks(
 static pdl_error pdl_broadcast_dim_checks(
   pdl_transvtable *vtable, pdl **pdls,
   pdl_broadcast *broadcast, PDL_Indx *creating,
-  PDL_Indx nimpl, PDL_Indx *realdims, PDL_Indx npdls, char *flags, PDL_Indx *nthp
+  PDL_Indx nimpl, PDL_Indx *realdims, PDL_Indx npdls, PDL_Indx *nthp
 ) {
   pdl_error PDL_err = {0, NULL, 0};
   PDL_Indx j, nth /* Index to dimensions */;
@@ -305,7 +305,7 @@ static pdl_error pdl_broadcast_dim_checks(
           broadcast->dims[nth] = cur_pdl_dim;
         }
         PDL_BRC_INC(broadcast->incs, npdls, j, nth) =       // Update the corresponding data stride
-          PDL_BREPRINC(pdls[j],flags[j],nth+realdims[j]);//   from the PDL or from its vafftrans if relevant.
+          PDL_REPRINC(pdls[j],nth+realdims[j]);//   from the PDL or from its vafftrans if relevant.
       }
     }
   }
@@ -328,7 +328,7 @@ pdl_error pdl_initbroadcaststruct(int nobl,
 	pdl **pdls,PDL_Indx *realdims,PDL_Indx *creating,PDL_Indx npdls,
 	pdl_transvtable *vtable,pdl_broadcast *broadcast,
 	PDL_Indx *ind_sizes, PDL_Indx *inc_sizes,
-	char *flags, int noPthreadFlag
+	char *flags_UNUSED /*CORE21*/, int noPthreadFlag
 ) {
 	pdl_error PDL_err = {0, NULL, 0};
 	PDL_Indx i, j;
@@ -417,18 +417,14 @@ pdl_error pdl_initbroadcaststruct(int nobl,
 	  if (broadcast->flags == NULL) return pdl_make_error_simple(PDL_EFATAL, "Failed to allocate memory for broadcast->flags in pdlbroadcast.c");
 	}
 
-	/* populate the per_pdl_flags */
-	for (i=0;i<npdls; i++) {
-	  if (pdls[i] && PDL_VAFFOK(pdls[i]))
-	    broadcast->flags[i] |= PDL_BROADCAST_VAFFINE_OK;
+	char *flags = broadcast->flags; /* shortcut for the remainder */
+	for (i=0;i<npdls; i++)
 	  if (vtable && vtable->par_flags[i] & PDL_PARAM_ISTEMP)
-	    broadcast->flags[i] |= PDL_BROADCAST_TEMP;
-	}
-	flags = broadcast->flags; /* shortcut for the remainder */
+	    flags[i] |= PDL_BROADCAST_TEMP;
 
 /* check dims, make implicit inds */
 	PDL_RETERROR(PDL_err, pdl_broadcast_dim_checks(
-	  vtable, pdls, broadcast, creating, nimpl, realdims, npdls, flags, &nth
+	  vtable, pdls, broadcast, creating, nimpl, realdims, npdls, &nth
 	));
 
 /* Go through everything again and make the real things */
@@ -460,7 +456,7 @@ pdl_error pdl_initbroadcaststruct(int nobl,
 						pdls[j]->dims[mydim];
 				}
 				PDL_BRC_INC(broadcast->incs, npdls, j, nth) =
-					PDL_BREPRINC(pdls[j],flags[j],mydim);
+					PDL_REPRINC(pdls[j],mydim);
 			}
 		}
 		nth++;
