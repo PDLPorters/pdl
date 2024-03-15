@@ -522,8 +522,6 @@ See the manual for why this is impossible");
 int pdl_startbroadcastloop(pdl_broadcast *broadcast,pdl_error (*func)(pdl_trans *),
       pdl_trans *t, pdl_error *error_ret) {
   PDL_Indx i, j, npdls = broadcast->npdls;
-  PDL_Indx *offsp; int thr;
-  PDL_Indx *inds, *dims;
   /* Pre-calculate base offsets for all pdls and thr once */
   PDL_Indx nthr1 = PDLMAX(broadcast->mag_nthr, 1);
   for (j=0; j<npdls; j++)
@@ -558,7 +556,8 @@ int pdl_startbroadcastloop(pdl_broadcast *broadcast,pdl_error (*func)(pdl_trans 
       return 1; /* DON'T DO BROADCASTLOOP AGAIN */
     }
   }
-  offsp = pdl_get_threadoffsp_int(broadcast,&thr, &inds, &dims);
+  PDL_Indx *inds, *dims; int thr;
+  PDL_Indx *offsp = pdl_get_threadoffsp_int(broadcast,&thr, &inds, &dims);
   if (!offsp) return -1;
   for (j=0; j<broadcast->ndims; j++)
     if (!dims[j]) return 1; /* do nothing if empty */
@@ -571,21 +570,16 @@ int pdl_startbroadcastloop(pdl_broadcast *broadcast,pdl_error (*func)(pdl_trans 
 /* inds is how far along each non-broadcastloop dim we are */
 int pdl_iterbroadcastloop(pdl_broadcast *broadcast,PDL_Indx nth) {
   PDL_Indx i,j;
-  int another_broadcastloop = 0;
   PDL_Indx *offsp; int thr;
   PDL_Indx *inds, *dims;
-  PDL_Indx nthr1 = PDLMAX(broadcast->mag_nthr, 1), npdls = broadcast->npdls; /* CORE21 have new offs_thr area instead of back end of offs */
+  PDL_Indx npdls = broadcast->npdls;
   offsp = pdl_get_threadoffsp_int(broadcast,&thr, &inds, &dims);
   if (!offsp) return -1;
-  for (i=nth; i<broadcast->ndims; i++) {
-    if (++inds[i] >= dims[i]) inds[i] = 0;
-    else                      { another_broadcastloop = 1; break; }
+  for (i=nth; i < broadcast->ndims; i++) {
+    for (j=0; j < npdls; j++) offsp[j] += PDL_BRC_INC(broadcast->incs, npdls, j, i);
+    if (++inds[i] < dims[i]) return 1; /* Actual carry test */
+    inds[i] = 0;
+    for (j=0; j < npdls; j++) offsp[j] -= PDL_BRC_INC(broadcast->incs, npdls, j, i) * dims[i];
   }
-  if (another_broadcastloop)
-    for (j=0; j<broadcast->npdls; j++) {
-      offsp[j] = broadcast->offs[j + thr*npdls + nthr1*npdls];
-      for (i=nth; i<broadcast->ndims; i++)
-        offsp[j] += PDL_BRC_INC(broadcast->incs, npdls, j, i) * inds[i];
-    }
-  return another_broadcastloop;
+  return 0;
 }
