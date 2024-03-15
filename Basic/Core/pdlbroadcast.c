@@ -404,7 +404,7 @@ pdl_error pdl_initbroadcaststruct(int nobl,
 	  if (broadcast->inds == NULL) return pdl_make_error_simple(PDL_EFATAL, "Failed to allocate memory for broadcast->inds in pdlbroadcast.c");
 	  Newxz(broadcast->dims, ndims * nthr1, PDL_Indx);
 	  if (broadcast->dims == NULL) return pdl_make_error_simple(PDL_EFATAL, "Failed to allocate memory for broadcast->dims in pdlbroadcast.c");
-	  Newxz(broadcast->offs, 2 * npdls * nthr1, PDL_Indx); /* Create space for pthread-specific offs, then CORE21 also pre-calculated offsets (hence 2x) */
+	  Newxz(broadcast->offs, npdls * nthr1, PDL_Indx); /* Create space for pthread-specific offs */
 	  if (broadcast->offs == NULL) return pdl_make_error_simple(PDL_EFATAL, "Failed to allocate memory for broadcast->offs in pdlbroadcast.c");
 	}
 	for (nth=0; nth<ndims; nth++) broadcast->dims[nth]=1; // all start size 1
@@ -522,11 +522,6 @@ See the manual for why this is impossible");
 int pdl_startbroadcastloop(pdl_broadcast *broadcast,pdl_error (*func)(pdl_trans *),
       pdl_trans *t, pdl_error *error_ret) {
   PDL_Indx i, j, npdls = broadcast->npdls;
-  /* Pre-calculate base offsets for all pdls and thr once */
-  PDL_Indx nthr1 = PDLMAX(broadcast->mag_nthr, 1);
-  for (j=0; j<npdls; j++)
-    for (i=0; i<nthr1; i++)
-      broadcast->offs[j + i*npdls + nthr1*npdls] = PDL_BRC_THR_OFFSET(broadcast, i, j);
   if ((broadcast->gflags & (PDL_BROADCAST_MAGICKED | PDL_BROADCAST_MAGICK_BUSY))
        == PDL_BROADCAST_MAGICKED ) {
     /* If no function supplied (i.e. being called from PDL::broadcast_over), don't run in parallel */
@@ -562,7 +557,7 @@ int pdl_startbroadcastloop(pdl_broadcast *broadcast,pdl_error (*func)(pdl_trans 
   for (j=0; j<broadcast->ndims; j++)
     if (!dims[j]) return 1; /* do nothing if empty */
   for (j=0; j<npdls; j++)
-    offsp[j] = broadcast->offs[j + thr*npdls + nthr1*npdls];
+    offsp[j] = PDL_BRC_THR_OFFSET(broadcast, thr, j);
   return 0;
 }
 
