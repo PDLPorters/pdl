@@ -156,7 +156,7 @@ sub PDL::convolve{
    PDL_Indx bnvals = $SIZE(n);
    double cc;
 
-   PDL_Indx i,i2,j,k,n,offcen,cen,ncen,nrow;
+   PDL_Indx i,i2,j,k,n,offcen=0,ncen=0,nrow;
 
    if (andims != bndims)
       $CROAK("Arguments do not have the same dimensionality");
@@ -752,12 +752,8 @@ Code => <<'EOD'
   $GENERIC() *aptr = ($GENERIC() *)k->data + k->nvals - 1;
 
   do {
-	PDL_Indx acc; 
-
 	*(kval++) = *aptr;     /* Copy kernel value into kernel list */
-
 	*(koff++) = j;	       /* Copy current aa offset into koffs list */
-
 	/* Advance k-vector */
 	for(i=0; 
 	      (i < ndims) && 
