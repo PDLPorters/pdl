@@ -695,17 +695,16 @@ pdl_error pdl_make_trans_mutual(pdl_trans *trans)
   }
   char dataflow = !!(pfflag || (trans->flags & PDL_ITRANS_DO_DATAFLOW_ANY));
   PDLDEBUG_f(printf("make_trans_mutual dataflow=%d\n", (int)dataflow));
-  for(i=0; i<nparents; i++) {
+  for (i=0; i<nparents; i++) {
     pdl *parent = pdls[i];
     PDL_RETERROR(PDL_err, pdl__addchildtrans(parent,trans));
     if (parent->state & PDL_DATAFLOW_F) trans->flags |= PDL_ITRANS_DO_DATAFLOW_F;
   }
-  int wd[npdls];
-  for(i=nparents; i<npdls; i++) {
+  char wasnull[npdls];
+  for (i=nparents; i<npdls; i++) {
     pdl *child = pdls[i];
-    char isnull = !!(child->state & PDL_NOMYDIMS);
-    wd[i]=(isnull ? PDL_PARENTDIMSCHANGED : PDL_PARENTDATACHANGED);
-    PDLDEBUG_f(printf("make_trans_mutual child=%p wd[%"IND_FLAG"]=", child, i); pdl_dump_flags_fixspace(wd[i], 0, PDL_FLAGS_PDL));
+    wasnull[i] = !!(child->state & PDL_NOMYDIMS);
+    PDLDEBUG_f(printf("make_trans_mutual child=%p wasnull[%"IND_FLAG"]=%d", child, i, (int)wasnull[i]));
     if (dataflow) {
       /* This is because for "+=" (a = a + b) we must check for
          previous parent transformations and mutate if they exist
@@ -714,8 +713,8 @@ pdl_error pdl_make_trans_mutual(pdl_trans *trans)
       child->state |= PDL_PARENTDIMSCHANGED | ((trans->flags & PDL_ITRANS_ISAFFINE) ? 0 : PDL_PARENTDATACHANGED);
       PDLDEBUG_f(printf("make_trans_mutual after change="); pdl_dump_flags_fixspace(child->state, 0, PDL_FLAGS_PDL));
     }
-    if (dataflow || isnull) child->trans_parent = trans;
-    if (isnull)
+    if (dataflow || wasnull[i]) child->trans_parent = trans;
+    if (wasnull[i])
       child->state = (child->state & ~PDL_NOMYDIMS) | PDL_MYDIMS_TRANS;
   }
   if (!dataflow) {
@@ -724,9 +723,9 @@ pdl_error pdl_make_trans_mutual(pdl_trans *trans)
       pdl *child = trans->pdls[i];
       char isvaffine = (PDL_VAFFOK(child) && /* same cond as DECLARE_PARAM */
           !(vtable->par_flags[i] & PDL_PARAM_ISPHYS));
-      PDLDEBUG_f(printf("make_trans_mutual isvaffine=%d wd=", (int)isvaffine); pdl_dump_flags_fixspace(wd[i], 0, PDL_FLAGS_PDL));
-      if (!isvaffine || (wd[i] & PDL_PARENTDIMSCHANGED))
-        CHANGED(child,wd[i],0);
+      PDLDEBUG_f(printf("make_trans_mutual isvaffine=%d wasnull=%d\n", (int)isvaffine, (int)wasnull[i]));
+      if (!isvaffine || wasnull[i])
+        CHANGED(child, wasnull[i] ? PDL_PARENTDIMSCHANGED : PDL_PARENTDATACHANGED, 0);
       if (isvaffine)
         CHANGED(child->vafftrans->from,PDL_PARENTDATACHANGED,0);
     }
