@@ -3562,107 +3562,78 @@ sub dims_filled {
 }
 
 sub PDL::cat {
-	my $res;
-	my $old_err = $@;
-	$@ = '';
-	eval {
-		$res = $_[0]->initialize;
-		$res->set_datatype(max(map $_->get_datatype, @_));
+  barf("Called PDL::cat without any arguments") unless @_;
+  my (@yes_ndarray, @not_a_ndarray);
+  push @{UNIVERSAL::isa($_[$_], 'PDL')?\@yes_ndarray:\@not_a_ndarray}, $_ for 0..$#_;
+  barf("Called PDL::cat without any ndarray arguments") if !@yes_ndarray;
+  my $old_err = $@;
+  $@ = '';
+  my @resdims = eval { dims_filled(map [$_->dims], @_[@yes_ndarray]) };
+  if (!$@ and $yes_ndarray[0] == 0) {
+    my $res;
+    eval {
+      $res = $_[0]->initialize;
+      $res->set_datatype(max(map $_->get_datatype, @_));
 
-		my @resdims = dims_filled(map [$_->dims], @_);
-		$res->setdims( [@resdims,scalar(@_) ]);
-		my @dog = $res->dog;
-		$dog[$_] .= $_[$_] for 0..$#_;
+      $res->setdims([@resdims,scalar(@_)]);
+      my @dog = $res->dog;
+      $dog[$_] .= $_[$_] for 0..$#_;
 
-		# propagate any bad flags
-		for (@_) { if ( $_->badflag() ) { $res->badflag(1); last; } }
-	};
-	$@ = $old_err, return $res if !$@; # Restore the old error and return
+      # propagate any bad flags
+      for (@_) { if ( $_->badflag() ) { $res->badflag(1); last; } }
+    };
+    $@ = $old_err, return $res if !$@; # Restore the old error and return
+  }
 
-	# If we've gotten here, then there's been an error, so check things
-	# and barf out a meaningful message.
+  # If we've gotten here, then there's been an error, so check things
+  # and barf out a meaningful message.
 
-	if  ($@ =~ /PDL::Ops::assgn|mismatched/
-	  or $@ =~ /"badflag"/
-	  or $@ =~ /"initialize"/) {
-		my (@mismatched_dims, @not_a_ndarray);
-		my $i = 0;
+  my ($first_ndarray_argument, @mismatched_dims) = $yes_ndarray[0];
+  if ($@ and $@ =~ /mismatched/) {
+    # Get the dimensions of the first actual ndarray in the argument list:
+    my @dims = $_[$first_ndarray_argument]->dims;
+    # Figure out all the ways that the caller screwed up:
+    for my $i (@yes_ndarray) {
+      my $arg = $_[$i];
+      if (@dims != $arg->ndims) { # Check if different number of dimensions
+        push @mismatched_dims, $i;
+      } else { # Check if size of dimensions agree
+        DIMENSION: for (my $j = 0; $j < @dims; $j++) {
+          next if $dims[$j] == $arg->dim($j);
+          push @mismatched_dims, $i;
+          last DIMENSION;
+        }
+      }
+      $i++;
+    }
+  }
+  # Handle the edge case that something else happened:
+  barf "cat: unknown error from the internals:\n$@"
+    if ($@ and $@ !~ /PDL::Ops::assgn|mismatched/) or
+    (!@not_a_ndarray and !@mismatched_dims);
 
-		# non-ndarrays and/or dimension mismatch.  The first argument is
-		# ok unless we have the "initialize" error:
-		if ($@ =~ /"initialize"/) {
-			# Handle the special case that there are *no* args passed:
-			barf("Called PDL::cat without any arguments") unless @_;
-
-			while ($i < @_ and not eval{ $_[$i]->isa('PDL')}) {
-				push (@not_a_ndarray, $i);
-				$i++;
-			}
-		}
-
-		# Get the dimensions of the first actual ndarray in the argument
-		# list:
-		my $first_ndarray_argument = $i;
-		my @dims = $_[$i]->dims if ref($_[$i]) =~ /PDL/;
-
-		# Figure out all the ways that the caller screwed up:
-		while ($i < @_) {
-			my $arg = $_[$i];
-			# Check if not an ndarray
-			if (not eval{$arg->isa('PDL')}) {
-				push @not_a_ndarray, $i;
-			}
-			# Check if different number of dimensions
-			elsif (@dims != $arg->ndims) {
-				push @mismatched_dims, $i;
-			}
-			# Check if size of dimensions agree
-			else {
-				DIMENSION: for (my $j = 0; $j < @dims; $j++) {
-					if ($dims[$j] != $arg->dim($j)) {
-						push @mismatched_dims, $i;
-						last DIMENSION;
-					}
-				}
-			}
-			$i++;
-		}
-
-		# Construct a message detailing the results
-		my $message = "bad arguments passed to function PDL::cat\n";
-		if (@mismatched_dims > 1) {
-			# Many dimension mismatches
-			$message .= "The dimensions of arguments "
-						. join(', ', @mismatched_dims[0 .. $#mismatched_dims-1])
-						. " and $mismatched_dims[-1] do not match the\n"
-						. "   dimensions of the first ndarray argument (argument $first_ndarray_argument).\n";
-		}
-		elsif (@mismatched_dims) {
-			# One dimension mismatch
-			$message .= "The dimensions of argument $mismatched_dims[0] do not match the\n"
-						. "   dimensions of the first ndarray argument (argument $first_ndarray_argument).\n";
-		}
-		if (@not_a_ndarray > 1) {
-			# many non-ndarrays
-			$message .= "Arguments " . join(', ', @not_a_ndarray[0 .. $#not_a_ndarray-1])
-						. " and $not_a_ndarray[-1] are not ndarrays.\n";
-		}
-		elsif (@not_a_ndarray) {
-			# one non-ndarray
-			$message .= "Argument $not_a_ndarray[0] is not an ndarray.\n";
-		}
-
-		# Handle the edge case that something else happened:
-		if (@not_a_ndarray == 0 and @mismatched_dims == 0) {
-			barf("cat: unknown error from the internals:\n$@");
-		}
-
-		$message .= "(Argument counting starts from zero.)";
-		croak($message);
-	}
-	else {
-		croak("cat: unknown error from the internals:\n$@");
-	}
+  # Construct a message detailing the results
+  my $message = "bad arguments passed to function PDL::cat\n";
+  if (@mismatched_dims > 1) {
+    # Many dimension mismatches
+    $message .= "The dimensions of arguments "
+      . join(', ', @mismatched_dims[0 .. $#mismatched_dims-1])
+      . " and $mismatched_dims[-1] do not match the\n"
+      . "   dimensions of the first ndarray argument (argument $first_ndarray_argument).\n";
+  } elsif (@mismatched_dims) {
+    # One dimension mismatch
+    $message .= "The dimensions of argument $mismatched_dims[0] do not match the\n"
+      . "   dimensions of the first ndarray argument (argument $first_ndarray_argument).\n";
+  }
+  if (@not_a_ndarray > 1) {
+    # many non-ndarrays
+    $message .= "Arguments " . join(', ', @not_a_ndarray[0 .. $#not_a_ndarray-1])
+      . " and $not_a_ndarray[-1] are not ndarrays.\n";
+  } elsif (@not_a_ndarray) {
+    # one non-ndarray
+    $message .= "Argument $not_a_ndarray[0] is not an ndarray.\n";
+  }
+  croak($message . "(Argument counting starts from zero.)");
 }
 
 =head2 dog
