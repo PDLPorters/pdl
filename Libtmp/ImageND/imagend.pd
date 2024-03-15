@@ -755,42 +755,38 @@ Code => <<'EOD'
 	*(kval++) = *aptr;     /* Copy kernel value into kernel list */
 	*(koff++) = j;	       /* Copy current aa offset into koffs list */
 	/* Advance k-vector */
-	for(i=0; 
-	      (i < ndims) && 
-	      (aptr -=  k->dimincs[i]) &&    /* Funky pre-test part of loop */
-	      (j    += aa->dimincs[i]) &&    /* Funky pre-test part of loop */
-	      (++(ivec[i]) >= k->dims[i]); 
-	    i++) {
+	for (i=0; i < ndims; i++) {
+	  aptr -=  k->dimincs[i];
+	  j    += aa->dimincs[i];
+	  if (++ivec[i] < k->dims[i]) break; /* Actual carry test */
 	  ivec[i] = 0;
 	  aptr +=  k->dimincs[i] *  k->dims[i];
 	  j    -= aa->dimincs[i] *  k->dims[i];
-        }
+	}
   } while(i<ndims);
 
   /******************************/
   /* Now do the actual convolution: for each vector in a,   */
   /* accumulate the appropriate aa-sum and stick it into a. */
-  for(i=0;i<ndims;ivec[i++] = 0) ;
+  for (i=0; i < ndims; i++) ivec[i] = 0;
   aptr  = a->data;
   $GENERIC() *aaptr = aa->data;
   do {
 	$GENERIC() acc = 0;
 	koff = koffs;
 	kval = kvals;
-	for(i=0;i<k->nvals;i++)
+	for (i=0;i<k->nvals;i++)
 	  acc += aaptr[*(koff++)] * (*(kval++));
 	*aptr = acc;
 
 	/* Advance a-vector and aa-vector */
-        for(i=0;
-	        (i<ndims) &&
-		(aptr  +=  a->dimincs[i]) && /* Funky pre-test part of loop */
-	        (aaptr += aa->dimincs[i]) && /* Funky pre-test part of loop */
-                (++(ivec[i]) >= a->dims[i]);
-	    i++) {
-	    ivec[i] = 0;
-	    aptr  -=  a->dimincs[i] * ( a->dims[i]);
-	    aaptr -= aa->dimincs[i] * ( a->dims[i]); /* sic */
+	for (i=0; i < ndims; i++) {
+	  aptr  +=  a->dimincs[i];
+	  aaptr += aa->dimincs[i];
+	  if (++ivec[i] < a->dims[i]) break; /* Actual carry test */
+	  ivec[i] = 0;
+	  aptr  -=  a->dimincs[i] * ( a->dims[i]);
+	  aaptr -= aa->dimincs[i] * ( a->dims[i]); /* sic */
 	}
   } while(i<ndims);
 

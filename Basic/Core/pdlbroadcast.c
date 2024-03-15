@@ -520,52 +520,51 @@ See the manual for why this is impossible");
 }
 
 int pdl_startbroadcastloop(pdl_broadcast *broadcast,pdl_error (*func)(pdl_trans *),
-			pdl_trans *t, pdl_error *error_ret) {
-	PDL_Indx i, j, npdls = broadcast->npdls;
-	PDL_Indx *offsp; int thr;
-	PDL_Indx *inds, *dims;
-	/* Pre-calculate base offsets for all pdls and thr once */
-	PDL_Indx nthr1 = PDLMAX(broadcast->mag_nthr, 1);
-	for (j=0; j<npdls; j++)
-	  for (i=0; i<nthr1; i++)
-	    broadcast->offs[j + i*npdls + nthr1*npdls] = PDL_BRC_THR_OFFSET(broadcast, i, j);
-	if ( (broadcast->gflags & (PDL_BROADCAST_MAGICKED | PDL_BROADCAST_MAGICK_BUSY))
-	     == PDL_BROADCAST_MAGICKED ) {
-		/* If no function supplied (i.e. being called from PDL::broadcast_over), don't run in parallel */
-		if (!func) {
-			broadcast->gflags &= ~PDL_BROADCAST_MAGICKED; /* Cancel thread_magicked */
-		}
-		else{
-			broadcast->gflags |= PDL_BROADCAST_MAGICK_BUSY;
-			/* Do the broadcastloop magically (i.e. in parallel) */
-			for (j=0; j<npdls; j++) {
-			    if (!(t->vtable->par_flags[j] & PDL_PARAM_ISTEMP)) continue;
-			    pdl *it = broadcast->pdls[j];
-			    it->dims[it->ndims-1] = broadcast->mag_nthr;
-			    pdl_resize_defaultincs(it);
-			    pdl_error PDL_err = pdl_make_physical(it);
-			    if (PDL_err.error) {
-				*error_ret = PDL_err;
-				return 1;
-			    }
-			}
-			pdl_error PDL_err = pdl_magic_thread_cast(broadcast->pdls[broadcast->mag_nthpdl],
-				func,t, broadcast);
-			if (PDL_err.error) {
-			    *error_ret = PDL_err;
-			    return 1;
-			}
-			broadcast->gflags &= ~PDL_BROADCAST_MAGICK_BUSY;
-			return 1; /* DON'T DO BROADCASTLOOP AGAIN */
-		}
-	}
-	offsp = pdl_get_threadoffsp_int(broadcast,&thr, &inds, &dims);
-	if (!offsp) return -1;
-	for (j=0; j<broadcast->ndims; j++)
-	    if (!dims[j]) return 1; /* do nothing if empty */
-	for (j=0; j<npdls; j++)
-	    offsp[j] = broadcast->offs[j + thr*npdls + nthr1*npdls];
-	return 0;
+      pdl_trans *t, pdl_error *error_ret) {
+  PDL_Indx i, j, npdls = broadcast->npdls;
+  PDL_Indx *offsp; int thr;
+  PDL_Indx *inds, *dims;
+  /* Pre-calculate base offsets for all pdls and thr once */
+  PDL_Indx nthr1 = PDLMAX(broadcast->mag_nthr, 1);
+  for (j=0; j<npdls; j++)
+    for (i=0; i<nthr1; i++)
+      broadcast->offs[j + i*npdls + nthr1*npdls] = PDL_BRC_THR_OFFSET(broadcast, i, j);
+  if ((broadcast->gflags & (PDL_BROADCAST_MAGICKED | PDL_BROADCAST_MAGICK_BUSY))
+       == PDL_BROADCAST_MAGICKED ) {
+    /* If no function supplied (i.e. being called from PDL::broadcast_over), don't run in parallel */
+    if (!func)
+      broadcast->gflags &= ~PDL_BROADCAST_MAGICKED; /* Cancel thread_magicked */
+    else {
+      broadcast->gflags |= PDL_BROADCAST_MAGICK_BUSY;
+      /* Do the broadcastloop magically (i.e. in parallel) */
+      for (j=0; j<npdls; j++) {
+        if (!(t->vtable->par_flags[j] & PDL_PARAM_ISTEMP)) continue;
+        pdl *it = broadcast->pdls[j];
+        it->dims[it->ndims-1] = broadcast->mag_nthr;
+        pdl_resize_defaultincs(it);
+        pdl_error PDL_err = pdl_make_physical(it);
+        if (PDL_err.error) {
+          *error_ret = PDL_err;
+          return 1;
+        }
+      }
+      pdl_error PDL_err = pdl_magic_thread_cast(broadcast->pdls[broadcast->mag_nthpdl],
+        func,t, broadcast);
+      if (PDL_err.error) {
+        *error_ret = PDL_err;
+        return 1;
+      }
+      broadcast->gflags &= ~PDL_BROADCAST_MAGICK_BUSY;
+      return 1; /* DON'T DO BROADCASTLOOP AGAIN */
+    }
+  }
+  offsp = pdl_get_threadoffsp_int(broadcast,&thr, &inds, &dims);
+  if (!offsp) return -1;
+  for (j=0; j<broadcast->ndims; j++)
+    if (!dims[j]) return 1; /* do nothing if empty */
+  for (j=0; j<npdls; j++)
+    offsp[j] = broadcast->offs[j + thr*npdls + nthr1*npdls];
+  return 0;
 }
 
 /* nth is how many dims are done inside the broadcastloop itself */

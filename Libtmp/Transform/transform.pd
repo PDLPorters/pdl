@@ -1190,15 +1190,13 @@ pp_def('map',
 
    /* Increment the pixel counter */
    {
-     for(i=0;
-             (i<ndims) &&
-             (map_ptr += map->dimincs[i+1]) &&  /* Funky pre-test increment */
-             (++(ovec[i]) >= out->dims[i]);     /* Actual carry test */
-         i++) {
-        ovec[i] = 0;
-        map_ptr -= out->dims[i] * map->dimincs[i+1];
+     for (i=0; i < ndims; i++) {
+       map_ptr += map->dimincs[i+1];
+       if (++ovec[i] < out->dims[i]) break; /* Actual carry test */
+       ovec[i] = 0;
+       map_ptr -= out->dims[i] * map->dimincs[i+1];
      }
-    }
+   }
   } while(i<ndims);
 
 
