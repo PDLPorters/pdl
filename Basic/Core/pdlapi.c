@@ -66,20 +66,9 @@
 #define CHANGED(...) \
     PDL_ACCUMERROR(PDL_err, pdl_changed(__VA_ARGS__))
 
-pdl_error pdl__make_physical_recprotect(pdl *it, int recurse_count);
-void pdl_vafftrans_remove(pdl * it, char this_one);
-#define READDATA_VAFFINE(what, it, recurse_count) do { \
-    what(PDL_err, pdl__make_physical_recprotect(it->vafftrans->from, recurse_count+1)); \
-    char already_allocated = (it->state & PDL_ALLOCATED); \
-    PDL_ENSURE_ALLOCATED(it); \
-    what(PDL_err, pdl_readdata_vaffine(it)); \
-    PDLDEBUG_f(printf("READDATA_VAFFINE pdl=%p turning off datachanged and OPT_VAFFTRANSOK, before=", it); pdl_dump_flags_fixspace(it->state, 0, PDL_FLAGS_PDL)); \
-    it->state &= ~(PDL_PARENTDATACHANGED|PDL_OPT_VAFFTRANSOK); /* assumption: no siblings */ \
-    if (!already_allocated) pdl_vafftrans_remove(it, 0); \
-  } while (0)
-
 extern Core PDL;
 
+pdl_error pdl__make_physical_recprotect(pdl *it, int recurse_count);
 pdl_error pdl__make_physvaffine_recprotect(pdl *it, int recurse_count);
 /* Make sure transformation is done */
 pdl_error pdl__ensure_trans(pdl_trans *trans,int what,int *wd, char inputs_only, int recurse_count)
@@ -942,8 +931,14 @@ pdl_error pdl__make_physvaffine_recprotect(pdl *it, int recurse_count)
   }
   PDLDEBUG_f(printf("make_physvaffine %p, physicalising final parent=%p\n", it, it->vafftrans->from));
   PDL_RETERROR(PDL_err, pdl__make_physical_recprotect(it->vafftrans->from, recurse_count+1));
-  if (it->state & PDL_PARENTDATACHANGED)
-    READDATA_VAFFINE(PDL_RETERROR, it, recurse_count);
+  if (it->state & PDL_PARENTDATACHANGED) {
+    char already_allocated = (it->state & PDL_ALLOCATED);
+    PDL_ENSURE_ALLOCATED(it);
+    PDL_RETERROR(PDL_err, pdl_readdata_vaffine(it));
+    PDLDEBUG_f(printf("make_physvaffine pdl=%p turning off datachanged and OPT_VAFFTRANSOK, before=", it); pdl_dump_flags_fixspace(it->state, 0, PDL_FLAGS_PDL));
+    it->state &= ~(PDL_PARENTDATACHANGED|PDL_OPT_VAFFTRANSOK);
+    if (!already_allocated) pdl_vafftrans_remove(it, 0);
+  }
   PDLDEBUG_f(printf("make_physvaffine exit %p\n", it));
   return PDL_err;
 }
