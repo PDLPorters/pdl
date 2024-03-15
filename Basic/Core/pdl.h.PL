@@ -329,9 +329,6 @@ PDL_TYPELIST_ALL(X)
   X(PDL_TRANS_BADIGNORE) \
   X(PDL_TRANS_NO_PARALLEL)
 
-/* Transpdl flags */
-#define         PDL_TPDL_VAFFINE_OK     0x01
-
 typedef struct pdl_trans pdl_trans;
 
 typedef enum {
@@ -351,7 +348,7 @@ typedef struct pdl_transvtable {
         pdl_datatypes *gentypes; /* ordered list of types handled, ending -1 */
         PDL_Indx nparents;
         PDL_Indx npdls;
-        char *per_pdl_flags;
+        char *per_pdl_flags; /*CORE21*/
         PDL_Indx *par_realdims; /* quantity of dimensions each par has */
         char **par_names;
         short *par_flags;
@@ -482,10 +479,6 @@ typedef struct pdl_vaffine {
 #define PDL_REPROFFS(pdl) (PDL_VAFFOK(pdl) ? pdl->vafftrans->offs : 0)
 
 #define PDL_REPRP(pdl) (PDL_VAFFOK(pdl) ? pdl->vafftrans->from->data : pdl->data)
-
-#define PDL_TR_VAFFOK(flag) (flag & PDL_TPDL_VAFFINE_OK)
-#define PDL_REPRP_TRANS(pdl,flag) ((PDL_VAFFOK(pdl) && \
-      PDL_TR_VAFFOK(flag)) ? pdl->vafftrans->from->data : pdl->data)
 
 typedef struct pdl_trans_children {
         pdl_trans *trans[PDL_NCHILDREN];

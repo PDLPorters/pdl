@@ -1997,9 +1997,6 @@ EOF
         my ($pnames, $pobjs) = ($sig->names_sorted, $sig->objs);
         my $nparents = 0 + grep !$pobjs->{$_}->{FlagW}, @$pnames;
         my $npdls = scalar @$pnames;
-        my $join_flags = join(", ",
-          map !$pobjs->{$pnames->[$_]}->{FlagPhys}
-            ? "PDL_TPDL_VAFFINE_OK" : 0, 0..$npdls-1) || '0';
         my @op_flags;
         push @op_flags, 'PDL_TRANS_DO_BROADCAST' if $havebroadcasting;
         push @op_flags, 'PDL_TRANS_BADPROCESS' if $badflag;
@@ -2023,9 +2020,6 @@ EOF
         my $sizeof = $ptype ? "sizeof($ptype)" : '0';
         <<EOF;
 static pdl_datatypes ${vname}_gentypes[] = { $gentypes_txt };
-static char ${vname}_flags[] = {
-  $join_flags
-};
 static PDL_Indx ${vname}_realdims[] = { $realdims };
 static char *${vname}_parnames[] = { $parnames };
 static short ${vname}_parflags[] = {
@@ -2036,7 +2030,7 @@ static PDL_Indx ${vname}_realdims_starts[] = { $realdim_ind_start };
 static PDL_Indx ${vname}_realdims_ind_ids[] = { $realdim_inds };
 static char *${vname}_indnames[] = { $indnames };
 pdl_transvtable $vname = {
-  $op_flags, $iflags, ${vname}_gentypes, $nparents, $npdls, ${vname}_flags,
+  $op_flags, $iflags, ${vname}_gentypes, $nparents, $npdls, NULL /*CORE21*/,
   ${vname}_realdims, ${vname}_parnames,
   ${vname}_parflags, ${vname}_partypes,
   ${vname}_realdims_starts, ${vname}_realdims_ind_ids, @{[scalar @rd_inds]},

@@ -87,9 +87,7 @@ pdl_error pdl_affine_free(pdl_trans *trans, char destroy) {
 }
 
 static pdl_datatypes pdl_affine_vtable_gentypes[] = PDL_ALL_GENTYPES;
-static char pdl_affine_vtable_flags[] = {
-  PDL_TPDL_VAFFINE_OK, PDL_TPDL_VAFFINE_OK
-};
+static char pdl_affine_vtable_flags[] = { 0, 0 }; /*CORE21*/
 static PDL_Indx pdl_affine_vtable_realdims[] = { 0, 0 };
 static char *pdl_affine_vtable_parnames[] = { "PARENT","CHILD" };
 static short pdl_affine_vtable_parflags[] = {
@@ -101,7 +99,7 @@ static PDL_Indx pdl_affine_vtable_realdims_starts[] = { 0, 0 };
 static PDL_Indx pdl_affine_vtable_realdims_ind_ids[] = { 0 };
 static char *pdl_affine_vtable_indnames[] = { "" };
 pdl_transvtable pdl_affine_vtable = {
-  0, PDL_ITRANS_ISAFFINE|PDL_ITRANS_TWOWAY|PDL_ITRANS_DO_DATAFLOW_ANY, pdl_affine_vtable_gentypes, 1, 2, pdl_affine_vtable_flags,
+  0, PDL_ITRANS_ISAFFINE|PDL_ITRANS_TWOWAY|PDL_ITRANS_DO_DATAFLOW_ANY, pdl_affine_vtable_gentypes, 1, 2, pdl_affine_vtable_flags /*CORE21*/,
   pdl_affine_vtable_realdims, pdl_affine_vtable_parnames,
   pdl_affine_vtable_parflags, pdl_affine_vtable_partypes,
   pdl_affine_vtable_realdims_starts, pdl_affine_vtable_realdims_ind_ids, 0,
@@ -191,10 +189,10 @@ pdl_error pdl_converttypei_readdata(pdl_trans *trans) {
   int fromtype = trans->__datatype, totype = params->totype;
   PDLDEBUG_f(printf("pdl_converttypei_readdata %s=%p from parent to type=%d: ", trans->vtable->name, trans, totype); pdl_dump(trans->pdls[0]));
 #define X_OUTER(datatype_child, ctype_child, ppsym_child, ...) \
-  PDL_DECLARE_PARAMETER_BADVAL(ctype_child, (trans->vtable->per_pdl_flags[1]), CHILD, (trans->pdls[1]), 1, ppsym_child) \
+  PDL_DECLARE_PARAMETER_BADVAL(ctype_child, CHILD, (trans->pdls[1]), 1, ppsym_child) \
   PDL_GENERICSWITCH2(PDL_TYPELIST2_ALL_, fromtype, X_INNER, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", fromtype))
 #define X_INNER(datatype_parent, ctype_parent, ppsym_parent, ...) \
-  PDL_DECLARE_PARAMETER_BADVAL(ctype_parent, (trans->vtable->per_pdl_flags[0]), PARENT, (trans->pdls[0]), 1, ppsym_parent) \
+  PDL_DECLARE_PARAMETER_BADVAL(ctype_parent, PARENT, (trans->pdls[0]), 1, ppsym_parent) \
   COPYCONVERT(PARENT, CHILD, ppsym_parent)
   PDL_GENERICSWITCH(PDL_TYPELIST2_ALL, totype, X_OUTER, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", totype))
 #undef X_INNER
@@ -208,10 +206,10 @@ pdl_error pdl_converttypei_writebackdata(pdl_trans *trans) {
   int fromtype = params->totype, totype = trans->__datatype;
   PDLDEBUG_f(printf("pdl_converttypei_writebackdata %s=%p from child to type=%d: ", trans->vtable->name, trans, totype); pdl_dump(trans->pdls[1]));
 #define X_OUTER(datatype_parent, ctype_parent, ppsym_parent, ...) \
-  PDL_DECLARE_PARAMETER_BADVAL(ctype_parent, (trans->vtable->per_pdl_flags[0]), PARENT, (trans->pdls[0]), 1, ppsym_parent) \
+  PDL_DECLARE_PARAMETER_BADVAL(ctype_parent, PARENT, (trans->pdls[0]), 1, ppsym_parent) \
   PDL_GENERICSWITCH2(PDL_TYPELIST2_ALL_, fromtype, X_INNER, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", fromtype))
 #define X_INNER(datatype_child, ctype_child, ppsym_child, ...) \
-  PDL_DECLARE_PARAMETER_BADVAL(ctype_child, (trans->vtable->per_pdl_flags[1]), CHILD, (trans->pdls[1]), 1, ppsym_child) \
+  PDL_DECLARE_PARAMETER_BADVAL(ctype_child, CHILD, (trans->pdls[1]), 1, ppsym_child) \
   COPYCONVERT(CHILD, PARENT, ppsym_child)
   PDL_GENERICSWITCH(PDL_TYPELIST2_ALL, totype, X_OUTER, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", totype))
 #undef X_INNER
@@ -220,9 +218,7 @@ pdl_error pdl_converttypei_writebackdata(pdl_trans *trans) {
 }
 
 static pdl_datatypes pdl_converttypei_vtable_gentypes[] = PDL_ALL_GENTYPES;
-static char pdl_converttypei_vtable_flags[] = {
-  0, 0
-};
+static char pdl_converttypei_vtable_flags[] = { 0, 0 }; /*CORE21*/
 static PDL_Indx pdl_converttypei_vtable_realdims[] = { 0, 0 };
 static char *pdl_converttypei_vtable_parnames[] = { "PARENT","CHILD" };
 static short pdl_converttypei_vtable_parflags[] = {
@@ -234,7 +230,7 @@ static PDL_Indx pdl_converttypei_vtable_realdims_starts[] = { 0, 0 };
 static PDL_Indx pdl_converttypei_vtable_realdims_ind_ids[] = { 0 };
 static char *pdl_converttypei_vtable_indnames[] = { "" };
 pdl_transvtable pdl_converttypei_vtable = {
-  PDL_TRANS_BADPROCESS, PDL_ITRANS_TWOWAY|PDL_ITRANS_DO_DATAFLOW_ANY, pdl_converttypei_vtable_gentypes, 1, 2, pdl_converttypei_vtable_flags,
+  PDL_TRANS_BADPROCESS, PDL_ITRANS_TWOWAY|PDL_ITRANS_DO_DATAFLOW_ANY, pdl_converttypei_vtable_gentypes, 1, 2, pdl_converttypei_vtable_flags /*CORE21*/,
   pdl_converttypei_vtable_realdims, pdl_converttypei_vtable_parnames,
   pdl_converttypei_vtable_parflags, pdl_converttypei_vtable_partypes,
   pdl_converttypei_vtable_realdims_starts, pdl_converttypei_vtable_realdims_ind_ids, 0,
