@@ -73,33 +73,32 @@ pdl_error pdl__make_physvaffine_recprotect(pdl *it, int recurse_count);
 /* Make sure transformation is done */
 pdl_error pdl__ensure_trans(pdl_trans *trans, int what, char inputs_only, int recurse_count)
 {
-	pdl_error PDL_err = {0, NULL, 0};
-	PDLDEBUG_f(printf("pdl__ensure_trans %p what=", trans); pdl_dump_flags_fixspace(what, 0, PDL_FLAGS_PDL));
-	PDL_TR_CHKMAGIC(trans);
-	pdl_transvtable *vtable = trans->vtable;
-	PDL_Indx j, flag=what, par_pvaf=0, j_end = inputs_only ? vtable->nparents : vtable->npdls;
-/* Make all pdls physvaffine */
-	for (j=0; j<j_end; j++) {
-		if (vtable->par_flags[j] & PDL_PARAM_ISPHYS)
-			PDL_RETERROR(PDL_err, pdl__make_physical_recprotect(trans->pdls[j], recurse_count+1));
-		else {
-			PDL_RETERROR(PDL_err, pdl__make_physvaffine_recprotect(trans->pdls[j], recurse_count+1));
-			if (!(trans->pdls[j]->state & PDL_ALLOCATED) && PDL_VAFFOK(trans->pdls[j])) par_pvaf++;
-		}
-	}
-	for (j=vtable->nparents; j<vtable->npdls; j++)
-		flag |= trans->pdls[j]->state & PDL_ANYCHANGED;
-	PDLDEBUG_f(printf("pdl__ensure_trans after accum, par_pvaf=%"IND_FLAG" flag=", par_pvaf); pdl_dump_flags_fixspace(flag, 0, PDL_FLAGS_PDL));
-	if (par_pvaf || flag & PDL_PARENTDIMSCHANGED)
-		REDODIMS(PDL_RETERROR, trans);
-	if (par_pvaf && (trans->flags & PDL_ITRANS_ISAFFINE)) {
-		if (!(vtable->nparents == 1 && vtable->npdls == 2))
-		  return pdl_make_error_simple(PDL_EUSERERROR, "Affine trans other than 1 input 1 output");
-		trans->pdls[1]->state |= PDL_PARENTDATACHANGED;
-		PDL_RETERROR(PDL_err, pdl__make_physvaffine_recprotect(trans->pdls[1], recurse_count+1));
-	} else if (flag & PDL_ANYCHANGED)
-		READDATA(trans);
-	return PDL_err;
+  pdl_error PDL_err = {0, NULL, 0};
+  PDLDEBUG_f(printf("pdl__ensure_trans %p what=", trans); pdl_dump_flags_fixspace(what, 0, PDL_FLAGS_PDL));
+  PDL_TR_CHKMAGIC(trans);
+  pdl_transvtable *vtable = trans->vtable;
+  if (trans->flags & PDL_ITRANS_ISAFFINE) {
+    if (!(vtable->nparents == 1 && vtable->npdls == 2))
+      return pdl_make_error_simple(PDL_EUSERERROR, "Affine trans other than 1 input 1 output");
+    return pdl__make_physical_recprotect(trans->pdls[1], recurse_count+1);
+  }
+  PDL_Indx j, flag=what, par_pvaf=0, j_end = inputs_only ? vtable->nparents : vtable->npdls;
+  for (j=0; j<j_end; j++) {
+    if (vtable->par_flags[j] & PDL_PARAM_ISPHYS)
+      PDL_RETERROR(PDL_err, pdl__make_physical_recprotect(trans->pdls[j], recurse_count+1));
+    else {
+      PDL_RETERROR(PDL_err, pdl__make_physvaffine_recprotect(trans->pdls[j], recurse_count+1));
+      if (!(trans->pdls[j]->state & PDL_ALLOCATED) && PDL_VAFFOK(trans->pdls[j])) par_pvaf++;
+    }
+  }
+  for (j=vtable->nparents; j<vtable->npdls; j++)
+    flag |= trans->pdls[j]->state & PDL_ANYCHANGED;
+  PDLDEBUG_f(printf("pdl__ensure_trans after accum, par_pvaf=%"IND_FLAG" flag=", par_pvaf); pdl_dump_flags_fixspace(flag, 0, PDL_FLAGS_PDL));
+  if (par_pvaf || flag & PDL_PARENTDIMSCHANGED)
+    REDODIMS(PDL_RETERROR, trans);
+  if (flag & PDL_ANYCHANGED)
+    READDATA(trans);
+  return PDL_err;
 }
 
 pdl *pdl_null() {
