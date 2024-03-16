@@ -1899,8 +1899,18 @@ Use explicit broadcasting over specified dimensions (see also L<PDL::Indexing>)
 
  $x = zeroes 3,4,5;
  $y = $x->broadcast(2,0);
+ print $y->info; # PDL: Double D [4] T1 [5,3]
+ $pb = zeroes(3,3);
+ print $pb->broadcast(0,1)->info; # PDL: Double D [] T1 [3,3]
+ print $pb->broadcast(0)->info; #  'PDL: Double D [3] T1 [3]
+ print zeroes(4,7,2,8)->broadcast(2)->info; # PDL: Double D [4,7,8] T1 [2]
+ print zeroes(4,7,2,8)->broadcast(2,1)->info; # PDL: Double D [4,8] T1 [2,7]
+ print zeroes(4,7,2,8,5,6)->broadcast(2,4)->info; # PDL: Double D [4,7,8,6] T1 [2,5]
+ print zeroes(4,7,2,8,5,6)->broadcast1(2)->broadcast2(3)->info; # PDL: Double D [4,7,8,6] T1 [2] T2 [5]
 
 Same as L</broadcast1>, i.e. uses broadcast id 1.
+To use broadcast id 2, use L</broadcast2>, or L<PDL::Slices/broadcastI>
+directly.
 
 =cut
 
@@ -2040,11 +2050,11 @@ sub dimstr {
 
   my @dims = $this->dims;
   my @ids  = $this->broadcastids;
-  my ($nids,$i) = ($#ids - 1,0);
+  my ($nids,$i) = ($#ids,0);
   my $dstr = 'D ['. join(',',@dims[0..($ids[0]-1)]) .']';
   if ($nids > 0) {
     for $i (1..$nids) {
-      $dstr .= " T$i [". join(',',@dims[$ids[$i]..$ids[$i+1]-1]) .']';
+      $dstr .= " T$i [". join(',',@dims[$ids[$i-1]..$ids[$i]-1]) .']';
     }
   }
   return $dstr;

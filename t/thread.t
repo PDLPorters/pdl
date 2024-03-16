@@ -319,6 +319,12 @@ END
 my $pa = pdl [[0,1,2],[3,4,5],[6,7,8]],[[10,11,12],[13,14,15],[16,17,18]];
 my $pb = zeroes(3,3);
 my $pc = $pb->broadcast(0,1);
+is $pc->info, 'PDL: Double D [] T1 [3,3]', 'info right for explicit broadcasting 1 dim';
+is $pb->broadcast(0)->info, 'PDL: Double D [3] T1 [3]', 'info right for explicit broadcasting 2 dims';
+is zeroes(4,7,2,8)->broadcast(2)->info, 'PDL: Double D [4,7,8] T1 [2]', 'info right for higher-dim explicit broadcasting 1 dims';
+is zeroes(4,7,2,8)->broadcast(2,1)->info, 'PDL: Double D [4,8] T1 [2,7]', 'info right for higher-dim explicit broadcasting 2 dims';
+is zeroes(4,7,2,8,5,6)->broadcast(2,4)->info, 'PDL: Double D [4,7,8,6] T1 [2,5]', 'info right for higher-dim explicit broadcasting 2 dims';
+is zeroes(4,7,2,8,5,6)->broadcast1(2)->broadcast2(3)->info, 'PDL: Double D [4,7,8,6] T1 [2] T2 [5]', 'info right for higher-dim explicit broadcasting 2 sets of dims';
 $pb->make_physical();
 $pc->make_physical();
 maximum($pa->broadcast(0,1),$pc);
