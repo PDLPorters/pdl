@@ -392,9 +392,12 @@ sub invert {
 
 +======EOD_invert======
 
-pp_addhdr(<<'+==EOD_map_auxiliary==');
-
-
+pp_add_exported('map');
+pp_def('map',
+        Pars=>'k0()',  # Dummy to set type (should match the type of "in").
+        OtherPars=>'pdl *in; pdl *out; pdl *map; SV *boundary; SV *method;
+                    long big; double blur; double sv_min; char flux; SV *bv',
+        CHeader => <<'+==EOD_map_auxiliary==',
 /*
  * Singular-value decomposition code is borrowed from
  * MatrixOps -- cut-and-pasted here because of linker trouble.
@@ -588,14 +591,7 @@ static inline PDL_Double PDL_xform_aux ( pdl *map, PDL_Indx *coords, PDL_Double 
  *jptr = det;
   return max_sv;
 }
-
 +==EOD_map_auxiliary==
-
-pp_add_exported('map');
-pp_def('map',
-        Pars=>'k0()',  # Dummy to set type (should match the type of "in").
-        OtherPars=>'pdl *in; pdl *out; pdl *map; SV *boundary; SV *method;
-                    long big; double blur; double sv_min; char flux; SV *bv',
         Code => <<'+==EOD_map_c_code==',
 
 /*

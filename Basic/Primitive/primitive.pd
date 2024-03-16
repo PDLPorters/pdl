@@ -541,10 +541,6 @@ Broadcasting example:
 
 # 1D convolution
 # useful for broadcasted 1D filters
-pp_addhdr('
-/* Fast Modulus with proper negative behaviour */
-#define REALMOD(a,b) while ((a)>=(b)) (a) -= (b); while ((a)<0) (a) += (b);
-');
 pp_def('conv1d',
        Doc => << 'EOD',
 
@@ -618,6 +614,10 @@ sub PDL::conv1d {
    return $c;
 }
 EOPM
+        CHeader => '
+/* Fast Modulus with proper negative behaviour */
+#define REALMOD(a,b) while ((a)>=(b)) (a) -= (b); while ((a)<0) (a) += (b);
+',
         Code => '
 int reflect = $COMP(reflect);
 PDL_Indx m_size = $SIZE(m), p_size = $SIZE(p);

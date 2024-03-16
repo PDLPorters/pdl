@@ -1192,12 +1192,6 @@ sub defpdl {
         );
 }
 
-###### Read ASCII Function ##########
-pp_addhdr(<<'EOH');
-int getfloat(PerlIO *fp, PDL_Float *fz);
-int getdouble(PerlIO *fp, PDL_Double *fz);
-EOH
-
 pp_add_exported('', 'rasc rcube');
 pp_addpm(<<'EOPM');
 
@@ -1315,6 +1309,10 @@ pp_def('_rasc',
        Pars => '[o] nums(n); int [o] ierr(n)',
        OtherPars => 'int num => n; PerlIO *fp',
        GenericTypes => ['F','D'],
+       CHeader => <<'EOH', ###### Read ASCII Function ##########
+int getfloat(PerlIO *fp, PDL_Float *fz);
+int getdouble(PerlIO *fp, PDL_Double *fz);
+EOH
        Code => q@ 
                  int ns, i, j;
                  ns = $SIZE(n);

@@ -315,15 +315,13 @@ C<im> follows I<strictly> the type of C<type>).
 '
 );
 
-pp_addhdr(<<'EOH');
-#include "get.h"
-EOH
 
 pp_def( 'pnminascii',
 	Pars => 'type(); byte+ [o] im(m,n)',
 	OtherPars => 'int ms => m; int ns => n;
 			int format; PerlIO *fp',
 	GenericTypes => [qw(B U S L)],
+	CHeader => qq{#include "get.h"\n},
 	Code => q?
 		 int ms, ns, s, i;
 		 ms = $SIZE(m); ns = $SIZE(n);

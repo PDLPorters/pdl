@@ -72,14 +72,6 @@ EOD
 
 # $::PP_VERBOSE=1;
 
-pp_addhdr(<<'EOH');
-
-#ifdef _MSC_VER
-#define strtoll _strtoi64
-#endif
-
-EOH
-
 my $doc = <<'EOD';
 =for ref
 
@@ -1604,17 +1596,17 @@ sub PDL::reorder {
 
 EOD
 
-pp_addhdr(<<'EOF');
-#define EQUIVDIM(dima,dimb,cdim,inc) \
-  ((cdim < PDLMIN(dima,dimb) || cdim > PDLMAX(dima,dimb)) ? \
-    cdim : ((cdim == dimb) ? dima : cdim + inc))
-EOF
 pp_def(
         'mv',
         OtherPars => 'PDL_Indx n1; PDL_Indx n2;',
         TwoWay => 1,
         P2Child => 1,
         AffinePriv => 1,
+        CHeader => <<'EOF',
+#define EQUIVDIM(dima,dimb,cdim,inc) \
+  ((cdim < PDLMIN(dima,dimb) || cdim > PDLMAX(dima,dimb)) ? \
+    cdim : ((cdim == dimb) ? dima : cdim + inc))
+EOF
         EquivDimCheck =>pp_line_numbers(__LINE__, <<'EOF'),
           if ($COMP(n1) <0)
               $COMP(n1) += $PDL(PARENT)->broadcastids[0];
@@ -1653,10 +1645,6 @@ Negative dimension indices count from the end.
 =cut
 EOD
 );
-
-pp_addhdr <<'EOH';
-#define sign(x) ( (x) < 0 ? -1 : 1)
-EOH
 
 pp_addpm(<<'EOD'
 
