@@ -125,18 +125,15 @@ it runs faster and handles a variety of boundary conditions.
 EOD
         Pars => 'a(m); b(n); indx adims(p); indx bdims(q); [o]c(m);',
         PMCode => '
-
-# Custom Perl wrapper
-
-sub PDL::convolve{
+sub PDL::convolve {
     my($x,$y,$c) = @_;
     barf("Usage: convolve(a(*), b(*), [o]c(*)") if $#_<1 || $#_>2;
     $c = PDL->null if $#_<2;
-    &PDL::_convolve_int( $x->flat, $y->flat,
+    PDL::_convolve_int( $x->flat, $y->flat,
        $x->shape, $y->shape,
        $c->isnull ? $c : $c->flat,
-     );
-     $c->setdims([$x->dims]);
+    );
+    $c->setdims([$x->dims]);
 
     if($x->is_inplace) {
       $x .= $c;
@@ -145,7 +142,6 @@ sub PDL::convolve{
     }
     return $c;
 }
-
 ',
         Code => '
    PDL_Indx *dimsa = $P(adims);
@@ -171,15 +167,13 @@ sub PDL::convolve{
 
    /* Find middle pixel in b */
    i=0; nrow = dimsb[0];
-   while(i<bnvals) {
+   while (i<bnvals) {
       for (j=0; j<nrow; j++) { /* For each row */
-           pos[0]=j;
-
-           for(k=0;k<bndims;k++) {       /* Is centre? */
-               if (pos[k] != dimsb[k]/2)
-                   goto getout_$GENERIC();
-           }
-           ncen = i;
+         pos[0]=j;
+         for (k=0; k < bndims; k++) {       /* Is centre? */
+            if (pos[k] != dimsb[k]/2) goto getout_$GENERIC();
+         }
+         ncen = i;
 getout_$GENERIC():    i++;
       }
       pos[0]=0;
@@ -727,7 +721,7 @@ Code => <<'EOD'
  *
  */
 
-  PDL_Indx i,j;
+  PDL_Indx i;
   pdl *k = $COMP(k), *a = $COMP(a), *aa = $COMP(aa);
   PDL_RETERROR(PDL_err, PDL->make_physical(aa));
   PDL_RETERROR(PDL_err, PDL->make_physical(a));
@@ -745,25 +739,22 @@ Code => <<'EOD'
   /* Fill up the koffs & kvals arrays */
   /* koffs gets relative offsets into aa for each kernel value; */
   /* kvals gets the kernel values in the same order (flattened) */
-  for(i=0;i<ndims;ivec[i++] = 0) ; 
   PDL_Indx *koff = koffs;
   $GENERIC() *kval = kvals;
-  j    = 0;                      /* j gets current aa data offset */
   $GENERIC() *aptr = ($GENERIC() *)k->data + k->nvals - 1;
 
+  for (i=0; i < ndims; i++) ivec[i] = 0;
+  PDL_Indx npdls = 2, incs[npdls*ndims], offs[npdls];
+  for (i=0; i < npdls; i++) offs[i] = 0;
+  for (i=0; i < ndims; i++) {
+    incs[i*npdls + 0] = k->dimincs[i];
+    incs[i*npdls + 1] = aa->dimincs[i];
+  }
   do {
-	*(kval++) = *aptr;     /* Copy kernel value into kernel list */
-	*(koff++) = j;	       /* Copy current aa offset into koffs list */
-	/* Advance k-vector */
-	for (i=0; i < ndims; i++) {
-	  aptr -=  k->dimincs[i];
-	  j    += aa->dimincs[i];
-	  if (++ivec[i] < k->dims[i]) break; /* Actual carry test */
-	  ivec[i] = 0;
-	  aptr +=  k->dimincs[i] *  k->dims[i];
-	  j    -= aa->dimincs[i] *  k->dims[i];
-	}
-  } while(i<ndims);
+    *kval++ = aptr[-offs[0]]; /* Copy kernel value into kernel list */
+    *koff++ = offs[1];	  /* Copy current aa offset into koffs list */
+    if (!pdl_broadcast_nd_step(npdls, offs, 0, ndims, incs, k->dims, ivec)) break;
+  } while (1);
 
   /******************************/
   /* Now do the actual convolution: for each vector in a,   */
@@ -771,26 +762,19 @@ Code => <<'EOD'
   for (i=0; i < ndims; i++) ivec[i] = 0;
   aptr  = a->data;
   $GENERIC() *aaptr = aa->data;
+  for (i=0; i < npdls; i++) offs[i] = 0;
+  for (i=0; i < ndims; i++) incs[i*npdls + 0] = a->dimincs[i]; /* got aa already */
   do {
-	$GENERIC() acc = 0;
-	koff = koffs;
-	kval = kvals;
-	for (i=0;i<k->nvals;i++)
-	  acc += aaptr[*(koff++)] * (*(kval++));
-	*aptr = acc;
-
-	/* Advance a-vector and aa-vector */
-	for (i=0; i < ndims; i++) {
-	  aptr  +=  a->dimincs[i];
-	  aaptr += aa->dimincs[i];
-	  if (++ivec[i] < a->dims[i]) break; /* Actual carry test */
-	  ivec[i] = 0;
-	  aptr  -=  a->dimincs[i] * ( a->dims[i]);
-	  aaptr -= aa->dimincs[i] * ( a->dims[i]); /* sic */
-	}
-  } while(i<ndims);
+    $GENERIC() acc = 0;
+    koff = koffs;
+    kval = kvals;
+    for (i=0;i<k->nvals;i++)
+      acc += aaptr[offs[1] + *koff++] * (*kval++);
+    aptr[offs[0]] = acc;
+    if (!pdl_broadcast_nd_step(npdls, offs, 0, ndims, incs, a->dims, ivec)) break;
+  } while (1);
 
 EOD
-);	  
+);
 
 pp_done();

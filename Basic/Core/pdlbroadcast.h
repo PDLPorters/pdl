@@ -69,6 +69,20 @@ typedef struct pdl_broadcast {
     PDL_BRC_OFFSET(thr, broadcast) * PDL_BRC_INC(broadcast->incs, broadcast->npdls, j, broadcast->mag_nth) \
   ))
 
+static inline int pdl_broadcast_nd_step(
+  PDL_Indx npdls, PDL_Indx *offsp,
+  PDL_Indx nth, PDL_Indx ndims, PDL_Indx *incs, PDL_Indx *dims, PDL_Indx *inds
+) {
+  PDL_Indx i,j;
+  for (i=nth; i < ndims; i++) {
+    for (j=0; j < npdls; j++) offsp[j] += incs[i*npdls + j];
+    if (++inds[i] < dims[i]) return 1; /* Actual carry test */
+    inds[i] = 0;
+    for (j=0; j < npdls; j++) offsp[j] -= incs[i*npdls + j] * dims[i];
+  }
+  return 0;
+}
+
 /* Broadcast per pdl flags */
 #define		PDL_BROADCAST_TEMP 	0x02
 

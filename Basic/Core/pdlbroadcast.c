@@ -52,7 +52,7 @@ PDL_Indx *pdl_get_threadoffsp(pdl_broadcast *broadcast)
             Pointer to pthread-specific dims array (dims Pointer supplied and modified by function)
 	    Pthread index for the current pthread   ( thr supplied and modified by function)
 */
-PDL_Indx* pdl_get_threadoffsp_int(pdl_broadcast *broadcast, int *pthr, PDL_Indx **inds, PDL_Indx **dims)
+static inline PDL_Indx* pdl_get_threadoffsp_int(pdl_broadcast *broadcast, int *pthr, PDL_Indx **inds, PDL_Indx **dims)
 {
   if (broadcast->gflags & PDL_BROADCAST_MAGICKED) {
 	int thr = pdl_magic_get_thread(broadcast->pdls[broadcast->mag_nthpdl]);
@@ -564,17 +564,9 @@ int pdl_startbroadcastloop(pdl_broadcast *broadcast,pdl_error (*func)(pdl_trans 
 /* nth is how many dims are done inside the broadcastloop itself */
 /* inds is how far along each non-broadcastloop dim we are */
 int pdl_iterbroadcastloop(pdl_broadcast *broadcast,PDL_Indx nth) {
-  PDL_Indx i,j;
-  PDL_Indx *offsp; int thr;
-  PDL_Indx *inds, *dims;
-  PDL_Indx npdls = broadcast->npdls;
-  offsp = pdl_get_threadoffsp_int(broadcast,&thr, &inds, &dims);
+  int thr;
+  PDL_Indx *inds, *dims, npdls = broadcast->npdls;
+  PDL_Indx *offsp = pdl_get_threadoffsp_int(broadcast, &thr, &inds, &dims);
   if (!offsp) return -1;
-  for (i=nth; i < broadcast->ndims; i++) {
-    for (j=0; j < npdls; j++) offsp[j] += PDL_BRC_INC(broadcast->incs, npdls, j, i);
-    if (++inds[i] < dims[i]) return 1; /* Actual carry test */
-    inds[i] = 0;
-    for (j=0; j < npdls; j++) offsp[j] -= PDL_BRC_INC(broadcast->incs, npdls, j, i) * dims[i];
-  }
-  return 0;
+  return pdl_broadcast_nd_step(npdls, offsp, nth, broadcast->ndims, broadcast->incs, dims, inds);
 }
