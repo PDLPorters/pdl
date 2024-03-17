@@ -3,7 +3,7 @@
 - random/randsym only produce real data
 - fix dataflow when vaffine ndarray is between modified and downstream (#461) - thanks @vadim-160102 for continued reporting
 - revert the use of ArgOrder for PDL::Ops so op($a,$b,$c,$swap) works again as pre 2.082_01
-- error on inflating output ndarrays over dims sized 1 or implicit as undefined
+- error on inflating output ndarrays over dims sized 1 or implicit (promoted) or dummy, as is undefined behaviour
 - make HdrCode and FtrCode run when PMCode supplied (#463) - thanks @jo-37 for suggestion
 - PP add CHeader key
 - OtherPars can now be incomplete arrays of char*

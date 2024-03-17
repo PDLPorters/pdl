@@ -173,6 +173,10 @@ subtest 'dim compatibility' => sub {
     [\&append, [zeroes(1,2), zeroes(1), zeroes(2,1)], 2, qr/implicit dim/, 'output=[2,1]; required [2,2]. output too small in broadcast dim'],
     [\&append, [zeroes(1,2), zeroes(1), zeroes(2)], 2, qr/implicit dim/, 'output=[2,1]; required [2,2]. output too small in broadcast implicit dim'],
     [\&append, [zeroes(1,2), zeroes(1,2), zeroes(2,1)], 2, qr/implicit dim/, 'output=[2,1]; required [2,2]. output too small in broadcast dim'],
+    [\&append, [zeroes(1,2), zeroes(1,2), zeroes(2)->dummy(1,2)], 2, qr/implicit dim/, 'output=[2,*2]; required [2,2]. output into dummy implicit dim'],
+    [\&append, [zeroes(1,2), zeroes(1,2), zeroes(2)->dummy(1,2)->make_physical], 2, qr/implicit dim/, 'output=[2,*2](phys); required [2,2]. output into dummy implicit dim'],
+    [\&append, [zeroes(1,2), zeroes(1,2), zeroes(2)->dummy(0,2)], 2, qr/over dummy dim/, 'output=[*2,2]; required [2,2]. output into dummy active dim'],
+    [\&append, [zeroes(1,2), zeroes(1,2), zeroes(2)->dummy(0,2)->make_physical], 2, qr/over dummy dim/, 'output=[*2,2](phys); required [2,2]. output into dummy active dim'],
     # phys params
     [\&polyroots, [ones(2), zeroes(2), zeroes(1), zeroes(1)], 2, [-1], '[phys] output=[1]'],
     [\&polyroots, [ones(2), zeroes(1), zeroes(), zeroes(1)], 2, qr/dim has size 1/, '[phys] output=[2] mismatch'],

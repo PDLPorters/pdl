@@ -239,6 +239,11 @@ pdl_error pdl_dim_checks(
           "Error in %s: parameter '%s' index '%s' size %"IND_FLAG", can't broadcast over output ndarray with size > 1\n",
           vtable->name, vtable->par_names[i], vtable->ind_names[ind_id], ind_sz
         );
+      if (isoutput && ind_sz != 1 && pdl->vafftrans && pdl->vafftrans->incs[j] == 0)
+        return pdl_make_error(PDL_EUSERERROR,
+          "Error in %s: output parameter '%s' index '%s' size %"IND_FLAG", can't broadcast over dummy dim with size > 1\n",
+          vtable->name, vtable->par_names[i], vtable->ind_names[ind_id], ind_sz
+        );
       if (j < ndims && ind_sz != dims[j] && (isoutput || dims[j] != 1))
         return pdl_make_error(PDL_EUSERERROR,
           "Error in %s: parameter '%s' index '%s' size %"IND_FLAG", but ndarray dim has size %"IND_FLAG"\n",
@@ -288,6 +293,11 @@ static pdl_error pdl_broadcast_dim_checks(
           "Error in %s: output parameter '%s' implicit dim %"IND_FLAG" size %"IND_FLAG", but dim has size %"IND_FLAG"\n",
           vtable->name, vtable->par_names[j], nth, broadcast->dims[nth],
           cur_pdl_dim
+        );
+      if (isoutput && cur_pdl_dim != 1 && pdls[j]->vafftrans && pdls[j]->vafftrans->incs[nth+realdims[j]] == 0)
+        return pdl_make_error(PDL_EUSERERROR,
+          "Error in %s: output parameter '%s' implicit dim %"IND_FLAG" size %"IND_FLAG", but dim is dummy\n",
+          vtable->name, vtable->par_names[j], nth, broadcast->dims[nth]
         );
       if (cur_pdl_dim != 1) { // If the current dim in the current PDL is not 1,
         if (broadcast->dims[nth] != 1) {            //   ... and the current planned size isn't 1,

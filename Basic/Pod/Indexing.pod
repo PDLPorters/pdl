@@ -668,8 +668,7 @@ an assignment like this:
  $y .= yvals(3,4);
 
 can produce unexpected results and the results are explicitly
-B<undefined>, partly because with PDL's parallel computing
-features, this can get very unpredictable.
+B<undefined>, and will (as of 2.086) throw an error.
 
 From the point of view of dataflow the introduction of
 greater-size-than-one dummy dimensions is regarded as an irreversible
