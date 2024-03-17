@@ -277,6 +277,15 @@ nelem_nophys(x)
 
 # only returns list, not context-aware
 void
+dimincs_nophys(x)
+  pdl *x
+  PPCODE:
+    EXTEND(sp, x->ndims);
+    PDL_Indx i;
+    for(i=0; i<x->ndims; i++) mPUSHi(PDL_REPRINC(x,i));
+
+# only returns list, not context-aware
+void
 dims_nophys(x)
   pdl *x
   PPCODE:

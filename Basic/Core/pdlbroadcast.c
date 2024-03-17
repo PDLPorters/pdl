@@ -223,6 +223,7 @@ pdl_error pdl_dim_checks(
     short flags = vtable->par_flags[i];
     if (!load_only && creating[i]) continue;
     PDL_Indx *dims = pdl->dims;
+    char isoutput = (i >= vtable->nparents);
     for (j=0; j<ninds; j++) {
       PDL_Indx ind_id = PDL_IND_ID(vtable, i, j), ind_sz = ind_sizes[ind_id];
       if (j >= ndims && ind_sz == -1)
@@ -233,15 +234,12 @@ pdl_error pdl_dim_checks(
         ind_sizes[ind_id] = dims[j];
         continue;
       }
-      if (j >= ndims && i >= vtable->nparents && ind_sz != 1)
+      if (j >= ndims && isoutput && ind_sz != 1)
         return pdl_make_error(PDL_EUSERERROR,
           "Error in %s: parameter '%s' index '%s' size %"IND_FLAG", can't broadcast over output ndarray with size > 1\n",
           vtable->name, vtable->par_names[i], vtable->ind_names[ind_id], ind_sz
         );
-      if (j < ndims && ind_sz != dims[j] && (
-        (i >= vtable->nparents) ||
-        dims[j] != 1
-      ))
+      if (j < ndims && ind_sz != dims[j] && (isoutput || dims[j] != 1))
         return pdl_make_error(PDL_EUSERERROR,
           "Error in %s: parameter '%s' index '%s' size %"IND_FLAG", but ndarray dim has size %"IND_FLAG"\n",
           vtable->name, vtable->par_names[i], vtable->ind_names[ind_id],
@@ -275,8 +273,9 @@ static pdl_error pdl_broadcast_dim_checks(
   for (nth=0; nth<nimpl; nth++) {                // Loop over number of implicit broadcast dims
     for (j=0; j<npdls; j++) {                    // Now loop over the PDLs to be merged
       if (creating[j]) continue;                 // If jth PDL is null, don't bother trying to match
+      char isoutput = (vtable && j >= vtable->nparents);
       if (nth >= pdls[j]->broadcastids[0]-realdims[j]) { /* off end of current PDLs dimlist */
-        if (vtable && j >= vtable->nparents && broadcast->dims[nth] != 1)
+        if (isoutput && broadcast->dims[nth] != 1)
           return pdl_make_error(PDL_EUSERERROR,
             "Error in %s: output parameter '%s' implicit dim %"IND_FLAG" size %"IND_FLAG", can't broadcast over output ndarray with size > 1\n",
             vtable->name, vtable->par_names[j], nth, broadcast->dims[nth]
@@ -284,7 +283,7 @@ static pdl_error pdl_broadcast_dim_checks(
         continue;
       }
       PDL_Indx cur_pdl_dim = pdls[j]->dims[nth+realdims[j]];
-      if (vtable && j >= vtable->nparents && cur_pdl_dim == 1 && cur_pdl_dim != broadcast->dims[nth])
+      if (isoutput && cur_pdl_dim == 1 && cur_pdl_dim != broadcast->dims[nth])
         return pdl_make_error(PDL_EUSERERROR,
           "Error in %s: output parameter '%s' implicit dim %"IND_FLAG" size %"IND_FLAG", but dim has size %"IND_FLAG"\n",
           vtable->name, vtable->par_names[j], nth, broadcast->dims[nth],
