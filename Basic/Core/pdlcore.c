@@ -48,76 +48,71 @@ pdl* pdl_SvPDLV ( SV* sv ) {
     * (i.e. it is a ref).
     */
 
-   if (sv_derived_from(sv, "Math::Complex")) {
-      dSP;
-      int i;
-      double vals[2];
-      char *meths[] = { "Re", "Im" };
-      PDL_Anyval data;
-      ENTER; SAVETMPS;
-      for (i = 0; i < 2; i++) {
-        PUSHMARK(sp); XPUSHs(sv); PUTBACK;
-        int count = perl_call_method(meths[i], G_SCALAR);
-        SPAGAIN;
-        if (count != 1) croak("Failed Math::Complex method '%s'", meths[i]);
-        NV retval = POPn;
-        vals[i] = (double)retval;
-        PUTBACK;
-      }
-      FREETMPS; LEAVE;
-      data.type = PDL_CD;
-      data.value.C = (PDL_CDouble)(vals[0] + I * vals[1]);
-      return pdl_scalar(data);
-   }
-
    if(SvTYPE(SvRV(sv)) == SVt_PVHV) {
-        HV *hash = (HV*)SvRV(sv);
-        SV **svp = hv_fetchs(hash,"PDL",0);
-        if(svp == NULL) {
-                croak("Hash given as a pdl (%s) - but not {PDL} key!", sv_reftype(SvRV(sv), TRUE));
+      HV *hash = (HV*)SvRV(sv);
+      SV **svp = hv_fetchs(hash,"PDL",0);
+      if(svp == NULL) {
+        if (sv_derived_from(sv, "Math::Complex")) { /* relies on M:C using hash */
+          dSP;
+          int i;
+          double vals[2];
+          char *meths[] = { "Re", "Im" };
+          ENTER; SAVETMPS;
+          for (i = 0; i < 2; i++) {
+            PUSHMARK(sp); XPUSHs(sv); PUTBACK;
+            int count = perl_call_method(meths[i], G_SCALAR);
+            SPAGAIN;
+            if (count != 1) croak("Failed Math::Complex method '%s'", meths[i]);
+            vals[i] = (double)POPn;
+            PUTBACK;
+          }
+          FREETMPS; LEAVE;
+          PDL_Anyval data;
+          data.type = PDL_CD;
+          data.value.C = (PDL_CDouble)(vals[0] + I * vals[1]);
+          return pdl_scalar(data);
         }
-        if(*svp == NULL) {
-                croak("Hash given as a pdl (%s) - but not {PDL} key (*svp)!", sv_reftype(SvRV(sv), TRUE));
-        }
+        croak("Hash given as a pdl (%s) - but not {PDL} key!", sv_reftype(SvRV(sv), TRUE));
+      }
 
-        /* This is the magic hook which checks to see if {PDL}
-        is a code ref, and if so executes it. It should
-        return a standard ndarray. This allows
-        all kinds of funky objects to be derived from PDL,
-        and allow normal PDL functions to still work so long
-        as the {PDL} code returns a standard ndarray on
-        demand - KGB */
+      /* This is the magic hook which checks to see if {PDL}
+      is a code ref, and if so executes it. It should
+      return a standard ndarray. This allows
+      all kinds of funky objects to be derived from PDL,
+      and allow normal PDL functions to still work so long
+      as the {PDL} code returns a standard ndarray on
+      demand - KGB */
 
-        if (SvROK(*svp) && SvTYPE(SvRV(*svp)) == SVt_PVCV) {
-           dSP;
-           ENTER ;
-           SAVETMPS ;
-           PUSHMARK(sp) ;
+      if (SvROK(*svp) && SvTYPE(SvRV(*svp)) == SVt_PVCV) {
+         dSP;
+         ENTER ;
+         SAVETMPS ;
+         PUSHMARK(sp) ;
 
-           int count = perl_call_sv(*svp, G_SCALAR|G_NOARGS);
+         int count = perl_call_sv(*svp, G_SCALAR|G_NOARGS);
 
-           SPAGAIN ;
+         SPAGAIN ;
 
-           if (count != 1)
-              croak("Execution of PDL structure failed to return one value\n") ;
+         if (count != 1)
+            croak("Execution of PDL structure failed to return one value\n") ;
 
-           sv=newSVsv(POPs);
+         sv=newSVsv(POPs);
 
-           PUTBACK ;
-           FREETMPS ;
-           LEAVE ;
-        }
-        else {
-           sv = *svp;
-        }
+         PUTBACK ;
+         FREETMPS ;
+         LEAVE ;
+      }
+      else {
+         sv = *svp;
+      }
 
-        if(SvGMAGICAL(sv)) {
-                mg_get(sv);
-        }
+      if(SvGMAGICAL(sv)) {
+              mg_get(sv);
+      }
 
-        if ( !SvROK(sv) ) {   /* Got something from a hash but not a ref */
-                croak("Hash given as pdl - but PDL key is not a ref!");
-        }
+      if ( !SvROK(sv) ) {   /* Got something from a hash but not a ref */
+              croak("Hash given as pdl - but PDL key is not a ref!");
+      }
     }
 
     if(SvTYPE(SvRV(sv)) == SVt_PVAV) {
