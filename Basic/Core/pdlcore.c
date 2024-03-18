@@ -34,12 +34,9 @@ pdl* pdl_SvPDLV ( SV* sv ) {
    pdl* ret;
    SV *sv2;
 
-   if(sv_derived_from(sv, "PDL") && !SvROK(sv)) {
-      /* object method called as class method */
-      pdl_pdl_barf("called object method on 'PDL' or similar");
-   }
-
    if ( !SvROK(sv) ) {
+      if (sv_derived_from(sv, "PDL")) /* object method called as class method */
+         pdl_pdl_barf("called object method on 'PDL' or similar");
       /* The scalar is not a ref, so we can use direct conversion. */
       PDL_Anyval data;
       ANYVAL_FROM_SV(data, sv, TRUE, -1);
@@ -47,10 +44,13 @@ pdl* pdl_SvPDLV ( SV* sv ) {
       return pdl_scalar(data);
    } /* End of scalar case */
 
-   if(sv_derived_from(sv, "Math::Complex")) {
+   /* If execution reaches here, then sv is NOT a scalar
+    * (i.e. it is a ref).
+    */
+
+   if (sv_derived_from(sv, "Math::Complex")) {
       dSP;
       int i;
-      NV retval;
       double vals[2];
       char *meths[] = { "Re", "Im" };
       PDL_Anyval data;
@@ -60,7 +60,7 @@ pdl* pdl_SvPDLV ( SV* sv ) {
         int count = perl_call_method(meths[i], G_SCALAR);
         SPAGAIN;
         if (count != 1) croak("Failed Math::Complex method '%s'", meths[i]);
-        retval = POPn;
+        NV retval = POPn;
         vals[i] = (double)retval;
         PUTBACK;
       }
@@ -69,10 +69,6 @@ pdl* pdl_SvPDLV ( SV* sv ) {
       data.value.C = (PDL_CDouble)(vals[0] + I * vals[1]);
       return pdl_scalar(data);
    }
-
-   /* If execution reaches here, then sv is NOT a scalar
-    * (i.e. it is a ref).
-    */
 
    if(SvTYPE(SvRV(sv)) == SVt_PVHV) {
         HV *hash = (HV*)SvRV(sv);
@@ -123,21 +119,21 @@ pdl* pdl_SvPDLV ( SV* sv ) {
                 croak("Hash given as pdl - but PDL key is not a ref!");
         }
     }
-      
+
     if(SvTYPE(SvRV(sv)) == SVt_PVAV) {
-        /* This is similar to pdl_avref in Core.xs.PL -- we do the same steps here. */
+        /* This is similar to pdl_avref in Core.xs -- we do the same steps here. */
         int datalevel = -1;
         AV *av = (AV *)SvRV(sv);
         AV *dims = (AV *)sv_2mortal((SV *)newAV());
         av_store(dims,0,newSViv( (IV) av_len(av)+1 ) );
-        
+
         /* Pull sizes using av_ndcheck */
         av_ndcheck(av,dims,0,&datalevel);
 
         return pdl_from_array(av, dims, -1, NULL); /* -1 means pdltype autodetection */
 
     } /* end of AV code */
-    
+
     if (SvTYPE(SvRV(sv)) != SVt_PVMG)
       croak("Error - tried to use an unknown data structure as a PDL");
     else if( !( sv_derived_from( sv, "PDL") ) )
@@ -288,7 +284,7 @@ GEN_PDL_BARF_OR_WARN_I_STDARG(warn, 1)
  * which is designed to build a PDL out of basically anything thrown at it.
  *
  * They are all called by pdl_avref in Core.xs, which in turn is called by the constructors
- * in Core.pm.PL.  The main entry point is pdl_from_array(), which calls 
+ * in Core.pm.  The main entry point is pdl_from_array(), which calls
  * av_ndcheck() to identify the necessary size of the output PDL, and then dispatches
  * the copy into pdl_setav_<type> according to the type of the output PDL.
  *
@@ -309,14 +305,14 @@ GEN_PDL_BARF_OR_WARN_I_STDARG(warn, 1)
  *  omitted values will be set to zero or the undefval in the resulting ndarray,
  *  i.e. we can make ndarrays from 'sparse' array refs.
  *
- *  Empty PDLs are treated like any other dimension -- i.e. their 
- *  0-length dimensions are thrown into the mix just like nonzero 
+ *  Empty PDLs are treated like any other dimension -- i.e. their
+ *  0-length dimensions are thrown into the mix just like nonzero
  *  dimensions would be.
  *
  *  The possible presence of empty PDLs forces us to pad out dimensions
  *  to unity explicitly in cases like
  *         [ Empty[2x0x2], 5 ]
- *  where simple parsing would yield a dimlist of 
+ *  where simple parsing would yield a dimlist of
  *         [ 2,0,2,2 ]
  *  which is still Empty.
  */
@@ -340,17 +336,17 @@ PDL_Indx av_ndcheck(AV* av, AV* dims, int level, int *datalevel)
 
   len = av_len(av);                         /* Loop over elements of the AV */
   for (i=0; i<= len; i++) {
-    
+
     newdepth = 0;                           /* Each element - find depth */
     elp = av_fetch(av,i,0);
-    
+
     el = elp ? *elp : 0;                    /* Get the ith element */
     if (el && SvROK(el)) {                  /* It is a reference */
       if (SvTYPE(SvRV(el)) == SVt_PVAV) {   /* It is an array reference */
-        
+
         /* Recurse to find depth inside the array reference */
         newdepth = 1 + av_ndcheck((AV *) SvRV(el), dims, level+1, datalevel);
-        
+
       } else if ( (dest_pdl = pdl_SvPDLV(el)) ) {
         /* It is a PDL - walk down its dimension list, exactly as if it
          * were a bunch of nested array refs.  We pull the ndims and dims
@@ -364,20 +360,20 @@ PDL_Indx av_ndcheck(AV* av, AV* dims, int level, int *datalevel)
         dest_dims = dest_pdl->dims;
         for(j=0;j<pndims;j++) {
           int jl = pndims-j+level;
-          
+
           PDL_Indx siz = dest_dims[j];
-          
+
           if(  av_len(dims) >= jl &&
                av_fetch(dims,jl,0) != NULL &&
                SvIOK(*(av_fetch(dims,jl,0)))) {
-            
-            /* We have already found something that specifies this dimension -- so */ 
+
+            /* We have already found something that specifies this dimension -- so */
             /* we keep the size if possible, or enlarge if necessary.              */
             oldlen=(PDL_Indx)SvIV(*(av_fetch(dims,jl,0)));
             if(siz > oldlen) {
               sv_setiv(*(av_fetch(dims,jl,0)),(IV)(dest_dims[j]));
             }
-            
+
           } else {
             /* Breaking new dimensional ground here -- if this is the first element */
             /* in the arg list, then we can keep zero elements -- but if it is not  */
@@ -386,11 +382,11 @@ PDL_Indx av_ndcheck(AV* av, AV* dims, int level, int *datalevel)
             av_store(dims, jl, newSViv((IV)(siz?siz:(i?1:0))));
           }
         }
-        
+
         /* We have specified all the dims in this PDL.  Now pad out the implicit */
         /* dims of size unity, to wipe out any dims of size zero we have already */
         /* marked. */
-        
+
         for(j=pndims+1; j <= av_len(dims); j++) {
           SV **svp = av_fetch(dims,j,0);
 
@@ -400,14 +396,14 @@ PDL_Indx av_ndcheck(AV* av, AV* dims, int level, int *datalevel)
             sv_setiv(*svp, (IV)1);
           }
         }
-        
+
         newdepth= pndims;
-        
+
       } else {
         croak("av_ndcheck: non-array, non-PDL ref in structure\n\t(this is usually a problem with a pdl() call)");
       }
 
-    } else { 
+    } else {
       /* got a scalar (not a ref) */
       n_scalars++;
 
@@ -416,19 +412,19 @@ PDL_Indx av_ndcheck(AV* av, AV* dims, int level, int *datalevel)
       if (newdepth > depth)
         depth = newdepth;
   }
-  
+
   len++; // convert from funky av_len return value to real count
-  
+
     if (av_len(dims) >= level && av_fetch(dims, level, 0) != NULL
       && SvIOK(*(av_fetch(dims, level, 0)))) {
     oldlen = (PDL_Indx) SvIV(*(av_fetch(dims, level, 0)));
-    
+
     if (len > oldlen)
       sv_setiv(*(av_fetch(dims, level, 0)), (IV) len);
     }
     else
       av_store(dims,level,newSViv((IV) len));
-  
+
   /* We found at least one element -- so pad dims to unity at levels earlier than this one */
   if(n_scalars) {
     for(i=0;i<level;i++) {
@@ -439,7 +435,7 @@ PDL_Indx av_ndcheck(AV* av, AV* dims, int level, int *datalevel)
         sv_setiv(*svp, (IV)1);
       }
     }
-    
+
     for(i=level+1; i <= av_len(dims); i++) {
       SV **svp = av_fetch(dims, i, 0);
       if(!svp) {
@@ -483,7 +479,7 @@ static int _detect_datatype(AV *av) {
 
 /**********************************************************************
  * pdl_from_array - dispatcher gets called only by pdl_avref (defined in
- * Core.xs) - it breaks out to pdl_setav_<type>, below, based on the 
+ * Core.xs) - it breaks out to pdl_setav_<type>, below, based on the
  * type of the destination PDL.
  */
 pdl* pdl_from_array(AV* av, AV* dims, int dtype, pdl* dest_pdl)
@@ -568,7 +564,7 @@ pdl_error pdl_set( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims, PDL_Ind
 /*
  * pdl_kludge_copy_<type>  - copy a PDL into a part of a being-formed PDL.
  * It is only used by pdl_setav_<type>, to handle the case where a PDL is part
- * of the argument list. 
+ * of the argument list.
  *
  * kludge_copy recursively walks down the dim list of both the source and dest
  * pdls, copying values in as we go.  It differs from PP copy in that it operates
@@ -593,7 +589,7 @@ pdl_error pdl_set( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims, PDL_Ind
  *   It is offset to account for the difference in dimensionality between the input and
  *   output PDLs. It is allowed to be negative (which is equivalent to the "permissive
  *   slicing" that treats missing dimensions as present and having size 1), but should
- *   not match or exceed pdl->ndims. 
+ *   not match or exceed pdl->ndims.
  * source_data is the current offset data pointer into pdl->data.
  *
  * Kludge-copy works backward through the dim lists, so that padding is simpler:  if undefval
