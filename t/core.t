@@ -27,6 +27,9 @@ $p->reshape(3); # small enough now
 $p->upd_data;
 }
 
+eval {PDL->inplace};
+like $@, qr/called object method/, 'error on PDL->obj_method';
+
 {
 my $p = sequence(3);
 my $p2 = sequence(2);
