@@ -17,7 +17,6 @@ typedef struct pdl_magic_vtable {
 } pdl_magic_vtable;
 
 #define PDL_MAGIC_MARKCHANGED 0x0001
-#define PDL_MAGIC_MUTATEDPARENT 0x0002
 #define PDL_MAGIC_THREADING 0x0004
 #define PDL_MAGIC_DELETEDATA 0x0008
 
@@ -45,11 +44,6 @@ typedef struct pdl_magic_perlfunc {
 	PDL_MAGICSTART;
 	SV *sv;         	/* sub{} or subname (perl_call_sv) */
 } pdl_magic_perlfunc;
-
-typedef struct pdl_magic_fammut {
-	PDL_MAGICSTART;
-	pdl_trans *ftr;
-} pdl_magic_fammut;
 
 typedef struct pdl_magic_changetrans {
 	PDL_MAGICSTART;
@@ -115,8 +109,6 @@ pdl_magic *pdl_add_svmagic(pdl *,SV *);
 
 void pdl_add_delayed_magic(pdl_magic *);
 void pdl_run_delayed_magic();
-
-pdl_trans *pdl_find_mutatedtrans(pdl *it);
 
 /* Threading magic */
 
