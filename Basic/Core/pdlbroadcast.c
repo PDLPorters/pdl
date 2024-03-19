@@ -307,7 +307,7 @@ static pdl_error pdl_broadcast_dim_checks(
             pdl_broadcast_mismatch_msg(
               buf0, pdls, broadcast, nth, j, nimpl, realdims, creating
             );
-            return pdl_croak_param(vtable,j,"%s\n..",buf0);
+            return pdl_croak_param(vtable,j,"%s",buf0);
           }
           /* If we're still here, they're the same -- OK! */
         } else {                                // current planned size is 1 -- mod it to match this PDL
@@ -445,7 +445,7 @@ pdl_error pdl_initbroadcaststruct(int nobl,
           broadcast->dims[nth] = mydim;
         } else {
           if (broadcast->dims[nth] != mydim)
-            return pdl_croak_param(vtable,j,"Mismatched Implicit broadcast dimension %d: should be %d, is %d",
+            return pdl_croak_param(vtable,j,"Mismatched implicit broadcast dimension %"IND_FLAG": should be %"IND_FLAG", is %"IND_FLAG"",
               i,
               broadcast->dims[nth],
               pdl->dims[i+realdims[j]]);
