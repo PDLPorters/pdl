@@ -115,7 +115,7 @@ pdl* pdl_SvPDLV ( SV* sv ) {
       }
     }
 
-    if(SvTYPE(SvRV(sv)) == SVt_PVAV) {
+    if (SvTYPE(SvRV(sv)) == SVt_PVAV) {
         /* This is similar to pdl_avref in Core.xs -- we do the same steps here. */
         int datalevel = -1;
         AV *av = (AV *)SvRV(sv);
@@ -126,12 +126,11 @@ pdl* pdl_SvPDLV ( SV* sv ) {
         av_ndcheck(av,dims,0,&datalevel);
 
         return pdl_from_array(av, dims, -1, NULL); /* -1 means pdltype autodetection */
-
     } /* end of AV code */
 
     if (SvTYPE(SvRV(sv)) != SVt_PVMG)
       croak("Error - tried to use an unknown data structure as a PDL");
-    else if( !( sv_derived_from( sv, "PDL") ) )
+    if (!sv_derived_from( sv, "PDL"))
       croak("Error - tried to use an unknown Perl object type as a PDL");
 
     sv2 = (SV*) SvRV(sv);
@@ -141,12 +140,11 @@ pdl* pdl_SvPDLV ( SV* sv ) {
     if (!ret) croak("Fatal error: ndarray address is NULL");
 
     /* Final check -- make sure it has the right magic number */
-    if(ret->magicno != PDL_MAGICNO) {
+    if (ret->magicno != PDL_MAGICNO)
         croak("Fatal error: argument is probably not an ndarray, or\
  magic no overwritten. You're in trouble, guv: %p %p %lu\n",sv2,ret,ret->magicno);
-   }
 
-   return ret;
+    return ret;
 }
 
 /* Pack dims array - returns dims[] (pdl_smalloced) and ndims */

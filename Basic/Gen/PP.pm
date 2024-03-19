@@ -1413,10 +1413,10 @@ EOD
         my ($good) = @_;
         $good =~ s/
           \$EQUIVCPOFFS\(([^()]+),([^()]+)\)
-        /do { PDL_IF_BAD(if( \$PISBAD(PARENT,[$2]) ) { \$PSETBAD(CHILD,[$1]); } else,) { \$P(CHILD)[$1] = \$P(PARENT)[$2]; } } while (0)/gx;
+        /do { PDL_IF_BAD(if (\$PISBAD(PARENT,[$2]) ) { \$PSETBAD(CHILD,[$1]); } else,) { \$P(CHILD)[$1] = \$P(PARENT)[$2]; } } while (0)/gx;
         $good =~ s/
           \$EQUIVCPTRUNC\(([^()]+),([^()]+),([^()]+)\)
-        /do { if( ($3) PDL_IF_BAD(|| \$PISBAD(PARENT,[$2]),) ) { PDL_IF_BAD(\$PSETBAD(CHILD,[$1]),\$P(CHILD)[$1] = 0); } else {\$P(CHILD)[$1] = \$P(PARENT)[$2]; } } while (0)/gx;
+        /do { if (($3) PDL_IF_BAD(|| \$PISBAD(PARENT,[$2]),) ) { PDL_IF_BAD(\$PSETBAD(CHILD,[$1]),\$P(CHILD)[$1] = 0); } else {\$P(CHILD)[$1] = \$P(PARENT)[$2]; } } while (0)/gx;
         $good;
       }),
 
@@ -1441,7 +1441,7 @@ EOD
         /do { PDL_IF_BAD(if( \$PISBAD(CHILD,[$1]) ) { \$PSETBAD(PARENT,[$2]); } else,) { \$P(PARENT)[$2] = \$P(CHILD)[$1]; } } while (0)/gx;
         $good =~ s/
           \$EQUIVCPTRUNC\(([^()]+),([^()]+),([^()]+)\)
-        /do { if(!($3)) { PDL_IF_BAD(if( \$PISBAD(CHILD,[$1]) ) { \$PSETBAD(PARENT,[$2]); } else,) { \$P(PARENT)[$2] = \$P(CHILD)[$1]; } } } while (0)/gx;
+        /do { if (!($3)) { PDL_IF_BAD(if (\$PISBAD(CHILD,[$1]) ) { \$PSETBAD(PARENT,[$2]); } else,) { \$P(PARENT)[$2] = \$P(CHILD)[$1]; } } } while (0)/gx;
         $good;
       }),
 
