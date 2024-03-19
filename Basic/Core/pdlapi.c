@@ -616,27 +616,24 @@ pdl_error pdl__addchildtrans(pdl *it,pdl_trans *trans)
 }
 
 pdl_error pdl_make_physdims(pdl *it) {
-	pdl_error PDL_err = {0, NULL, 0};
-	if (!it) return pdl_make_error_simple(PDL_EFATAL, "make_physdims called with NULL");
-	PDL_Indx i;
-	int c = (it->state & PDL_PARENTDIMSCHANGED);
-	PDLDEBUG_f(printf("make_physdims %p (dimschanged=%X)\n",(void*)it, c));
-        PDL_CHKMAGIC(it);
-	if(!c) {
-	  PDLDEBUG_f(printf("make_physdims exit (NOP) %p\n",(void*)it));
-	  return PDL_err;
-	}
-	pdl_trans *trans = it->trans_parent;
-	PDLDEBUG_f(printf("make_physdims %p TRANS:\n",it);
-	    pdl_dump_trans_fixspace(trans,3));
-	for(i=0; i<trans->vtable->nparents; i++) {
-		PDL_RETERROR(PDL_err, pdl_make_physdims(trans->pdls[i]));
-	}
-	PDLDEBUG_f(printf("make_physdims: calling redodims %p on %p\n",
-			  trans,it));
-	REDODIMS(PDL_RETERROR, trans);
-	PDLDEBUG_f(printf("make_physdims exit %p\n",(void*)it));
-	return PDL_err;
+  pdl_error PDL_err = {0, NULL, 0};
+  if (!it) return pdl_make_error_simple(PDL_EFATAL, "make_physdims called with NULL");
+  PDLDEBUG_f(printf("make_physdims %p state=", it);pdl_dump_flags_fixspace(it->state, 0, PDL_FLAGS_PDL));
+  PDL_CHKMAGIC(it);
+  if (!(it->state & PDL_PARENTDIMSCHANGED)) {
+    PDLDEBUG_f(printf("make_physdims exit (NOP) %p\n", it));
+    return PDL_err;
+  }
+  pdl_trans *trans = it->trans_parent;
+  PDLDEBUG_f(printf("make_physdims %p TRANS: ",it);pdl_dump_trans_fixspace(trans,3));
+  PDL_Indx i;
+  for (i=0; i<trans->vtable->nparents; i++)
+    if (trans->pdls[i]->state & PDL_PARENTDIMSCHANGED)
+      PDL_RETERROR(PDL_err, pdl_make_physdims(trans->pdls[i]));
+  PDLDEBUG_f(printf("make_physdims: calling redodims trans=%p on pdl=%p\n", trans, it));
+  REDODIMS(PDL_RETERROR, trans);
+  PDLDEBUG_f(printf("make_physdims exit pdl=%p\n", it));
+  return PDL_err;
 }
 
 static inline pdl_error pdl_trans_flow_null_checks(pdl_trans *trans, int *ret) {
