@@ -4,21 +4,12 @@ use Test::More;
 use PDL::LiteF;
 
 {
-	# 1. Test that changes do flow
-	my $pa = pdl 2,3,4;
-	$pa->doflow;
-	my $pb = $pa + $pa;
-	is($pb->at(0), 4);
-	is($pb->at(1), 6);
-	$pa->set(0,50);
-	is($pb->at(0), 100);
-	is($pb->at(1), 6);
-
-	# exercise that set_datatype destroys trans
-	# XXX if set datatype of $pa, $pb gets a corrupted value of 64.0000158399343
-	$pb->set_datatype(PDL::float()->enum);
-	$pa->set(0,60);
-	is($pb->at(0), 100);
+  my $pa = pdl 2,3,4;
+  $pa->doflow;
+  my $pb = $pa + $pa;
+  is "$pb", '[4 6 8]';
+  $pa->set(0,50);
+  is "$pb", '[100 6 8]';
 }
 
 {

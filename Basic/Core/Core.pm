@@ -663,7 +663,7 @@ below for usage).
 
 Sets the ndarray's data type to the given value (the integer identifier
 for the type, see L<PDL::Types/enum>). See L</get_datatype>. Internal
-function.
+function. Errors if ndarray has child transforms. Severs if has a parent.
 
 =head2 get_datatype
 

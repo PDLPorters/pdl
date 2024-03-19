@@ -27,6 +27,20 @@ $p->reshape(3); # small enough now
 $p->upd_data;
 }
 
+{
+  my $pa = pdl 2,3,4;
+  $pa->doflow;
+  my $pb = $pa + $pa;
+  is "$pb", '[4 6 8]';
+  $pa->set(0,50);
+  is "$pb", '[100 6 8]';
+  eval {$pa->set_datatype(PDL::float()->enum)};
+  like $@, qr/ndarray has child/, 'set_datatype if has child dies';
+  $pb->set_datatype(PDL::float()->enum);
+  $pa->set(0,60);
+  is "$pb", '[100 6 8]', 'dataflow broken by set_datatype';
+}
+
 eval {PDL->inplace};
 like $@, qr/called object method/, 'error on PDL->obj_method';
 
