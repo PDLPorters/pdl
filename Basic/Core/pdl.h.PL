@@ -116,12 +116,18 @@ extern PDL_Indx pdl_autopthread_dim;
 EOF
 print OUT "$mymalloc\n";
 
+print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  __FILE__;
 print OUT <<'EOF';
-#define PDL_GENERICSWITCH_CASE(X, symbol, ...) \
-  case symbol: { X(symbol, __VA_ARGS__) } break;
-#define PDL_GENERICSWITCH(LISTER, typevar, X, dflt) \
+#define PDL_EMPTY()
+#define PDL_DEFER(id) id PDL_EMPTY()
+#define PDL_OBSTRUCT(...) __VA_ARGS__ PDL_DEFER(PDL_EMPTY)()
+#define PDL_EXPAND(...) PDL_EXPAND2(PDL_EXPAND2(PDL_EXPAND2(__VA_ARGS__)))
+#define PDL_EXPAND2(...) __VA_ARGS__
+#define PDL_GENERICSWITCH_CASE(X, extraargs, symbol, ...) \
+  case symbol: { PDL_EXPAND(PDL_OBSTRUCT(X)(PDL_EXPAND extraargs symbol, __VA_ARGS__)) } break;
+#define PDL_GENERICSWITCH(LISTER, typevar, X, dflt, ...) \
   switch (typevar) { \
-    LISTER(PDL_GENERICSWITCH_CASE, X,) \
+    LISTER(PDL_GENERICSWITCH_CASE, X, (__VA_ARGS__),) \
     default: dflt; \
   }
 #define PDL_GENERICSWITCH_CASEout(Xout, LISTERin, typevarin, Xin, dflt, symbol, ...) \
@@ -134,6 +140,14 @@ print OUT <<'EOF';
     LISTERout(PDL_GENERICSWITCH_CASEout, Xout, LISTERin, typevarin, Xin, dflt,) \
     default: dflt; \
   }
+
+#define ANYVAL_FROM_CTYPE_X(outany, inval, datatype, ctype, ppsym, ...) \
+  (outany).type = datatype; (outany).value.ppsym = (inval);
+#define ANYVAL_FROM_CTYPE(outany,avtype,inval) do { \
+  PDL_GENERICSWITCH(PDL_TYPELIST_ALL, avtype, ANYVAL_FROM_CTYPE_X, \
+    outany.type = -1; outany.value.B = 0, \
+    outany, inval, \
+  ) } while (0)
 EOF
 
 for my $type (PDL::Types::types()) {
@@ -143,18 +157,6 @@ for my $type (PDL::Types::types()) {
   my $expr2 = !$type->usenan ? 1 : $type->isfinite('x') . '?1:0';
   print OUT "#define PDL_ISFINITE_$ppsym(x) ($expr2)\n";
 }
-
-print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  __FILE__;
-print OUT <<'EOF';
-#define ANYVAL_FROM_CTYPE(outany,avtype,inval) do { switch (avtype) { \
-EOF
-print OUT "case @{[$_->sym]}: outany.type = avtype; outany.value.@{[$_->ppsym]} = (@{[$_->ctype]})(inval); break; \\\n"
-  for PDL::Types::types();
-print OUT <<'EOF';
-   default:      outany.type = -1;     outany.value.B = 0; \
-  } \
- } while (0)
-EOF
 
 print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  __FILE__;
 print OUT <<'EOF';
@@ -614,7 +616,6 @@ typedef struct pdl_slice_args {
         qsort_ ## ppsym(xx,i,b); \
   }
 
-#define PDL_EXPAND(...) __VA_ARGS__
 #define PDL_BROADCASTLOOP_START(funcName, brc, vtable, ptrStep1, ptrStep2, ptrStep3) \
   __brcloopval = PDL->startbroadcastloop(&(brc),(vtable)->funcName, __privtrans, &PDL_err); \
   if (PDL_err.error) return PDL_err; \
