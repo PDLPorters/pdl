@@ -188,14 +188,16 @@ pdl_error pdl_converttypei_readdata(pdl_trans *trans) {
   pdl_params_converttypei *params = trans->params;
   int fromtype = trans->__datatype, totype = params->totype;
   PDLDEBUG_f(printf("pdl_converttypei_readdata %s=%p from parent to type=%d: ", trans->vtable->name, trans, totype); pdl_dump(trans->pdls[0]));
-#define X_OUTER(datatype_child, ctype_child, ppsym_child, ...) \
-  PDL_DECLARE_PARAMETER_BADVAL(ctype_child, CHILD, (trans->pdls[1]), 1, ppsym_child)
-#define X_INNER(datatype_parent, ctype_parent, ppsym_parent, ...) \
-  PDL_DECLARE_PARAMETER_BADVAL(ctype_parent, PARENT, (trans->pdls[0]), 1, ppsym_parent) \
-  COPYCONVERT(PARENT, CHILD, ppsym_parent)
+#define FROMpdl_indx 0
+#define TOpdl_indx 1
+#define X_OUTER(datatype_to, ctype_to, ppsym_to, ...) \
+  PDL_DECLARE_PARAMETER_BADVAL(ctype_to, TOpdl, (trans->pdls[TOpdl_indx]), 1, ppsym_to)
+#define X_INNER(datatype_from, ctype_from, ppsym_from, ...) \
+  PDL_DECLARE_PARAMETER_BADVAL(ctype_from, FROMpdl, (trans->pdls[FROMpdl_indx]), 1, ppsym_from) \
+  COPYCONVERT(FROMpdl, TOpdl, ppsym_from)
   PDL_GENERICSWITCH2(PDL_TYPELIST_ALL, totype, X_OUTER, PDL_TYPELIST_ALL_, fromtype, X_INNER, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", totype))
-#undef X_INNER
-#undef X_OUTER
+#undef FROMpdl_indx
+#undef TOpdl_indx
   return PDL_err;
 }
 
@@ -204,14 +206,13 @@ pdl_error pdl_converttypei_writebackdata(pdl_trans *trans) {
   pdl_params_converttypei *params = trans->params;
   int fromtype = params->totype, totype = trans->__datatype;
   PDLDEBUG_f(printf("pdl_converttypei_writebackdata %s=%p from child to type=%d: ", trans->vtable->name, trans, totype); pdl_dump(trans->pdls[1]));
-#define X_OUTER(datatype_parent, ctype_parent, ppsym_parent, ...) \
-  PDL_DECLARE_PARAMETER_BADVAL(ctype_parent, PARENT, (trans->pdls[0]), 1, ppsym_parent)
-#define X_INNER(datatype_child, ctype_child, ppsym_child, ...) \
-  PDL_DECLARE_PARAMETER_BADVAL(ctype_child, CHILD, (trans->pdls[1]), 1, ppsym_child) \
-  COPYCONVERT(CHILD, PARENT, ppsym_child)
+#define FROMpdl_indx 1
+#define TOpdl_indx 0
   PDL_GENERICSWITCH2(PDL_TYPELIST_ALL, totype, X_OUTER, PDL_TYPELIST_ALL_, fromtype, X_INNER, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", totype))
 #undef X_INNER
 #undef X_OUTER
+#undef FROMpdl_indx
+#undef TOpdl_indx
   return PDL_err;
 }
 
