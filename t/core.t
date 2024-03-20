@@ -472,6 +472,7 @@ ok($empty->nelem==0,"you can make an empty PDL with zeroes(0)");
 ok("$empty" =~ m/Empty/, "an empty PDL prints 'Empty'");
 
 my $null = null;
+is $null->nbytes, 0, 'a null has 0 nbytes';
 is $null->info, 'PDL->null', "null ndarray's info is 'PDL->null'";
 my $mt_info = $empty->info;
 $mt_info =~m/\[([\d,]+)\]/;
