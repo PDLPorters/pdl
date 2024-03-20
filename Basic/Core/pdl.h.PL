@@ -119,18 +119,19 @@ print OUT "$mymalloc\n";
 print OUT <<'EOF';
 #define PDL_GENERICSWITCH_CASE(X, symbol, ...) \
   case symbol: { X(symbol, __VA_ARGS__) } break;
-#define PDL_GENERICSWITCH(LISTER, typevar, X2, dflt) \
+#define PDL_GENERICSWITCH(LISTER, typevar, X, dflt) \
   switch (typevar) { \
-    LISTER(PDL_GENERICSWITCH_CASE, X2,) \
+    LISTER(PDL_GENERICSWITCH_CASE, X,) \
     default: dflt; \
   }
-/* extra as first one gets painted blue */
-#define PDL_GENERICSWITCH_CASE2(X, symbol, ...) \
-  case symbol: { X(symbol, __VA_ARGS__) } break;
-/* for use in inner loops avoiding extreme lambda-calculus stuff */
-#define PDL_GENERICSWITCH2(LISTER, typevar, X2, dflt) \
-  switch (typevar) { \
-    LISTER(PDL_GENERICSWITCH_CASE2, X2,) \
+#define PDL_GENERICSWITCH_CASEout(Xout, LISTERin, typevarin, Xin, dflt, symbol, ...) \
+  case symbol: { Xout(symbol, __VA_ARGS__) \
+    PDL_GENERICSWITCH(LISTERin, typevarin, Xin, dflt) \
+  } break;
+/* two-level */
+#define PDL_GENERICSWITCH2(LISTERout, typevarout, Xout, LISTERin, typevarin, Xin, dflt) \
+  switch (typevarout) { \
+    LISTERout(PDL_GENERICSWITCH_CASEout, Xout, LISTERin, typevarin, Xin, dflt,) \
     default: dflt; \
   }
 EOF
@@ -197,11 +198,10 @@ static inline int _anyval_isnan(PDL_Anyval x) {
 #define ANYVAL_EQ_ANYVAL(x,y) (_anyval_eq_anyval(x,y))
 static inline int _anyval_eq_anyval(PDL_Anyval x, PDL_Anyval y) {
 #define X_OUTER(datatype_x, ctype_x, ppsym_x, ...) \
-  ctype_x cvalue_x = x.value.ppsym_x; \
-  PDL_GENERICSWITCH2(PDL_TYPELIST_ALL_, y.type, X_INNER, return -1)
+  ctype_x cvalue_x = x.value.ppsym_x;
 #define X_INNER(datatype_y, ctype_y, ppsym_y, ...) \
   return (cvalue_x == y.value.ppsym_y) ? 1 : 0;
-  PDL_GENERICSWITCH(PDL_TYPELIST_ALL, x.type, X_OUTER, return -1)
+  PDL_GENERICSWITCH2(PDL_TYPELIST_ALL, x.type, X_OUTER, PDL_TYPELIST_ALL_, y.type, X_INNER, return -1)
 #undef X_INNER
 #undef X_OUTER
 }

@@ -71,8 +71,7 @@ pdl_error pdl_converttype( pdl* a, int targtype ) {
     PDL_Indx i = a->nvals; \
     ctype_from *data_from_typed = (ctype_from *) data_from_void; \
     ctype_from from_badval = pdl_get_pdl_badvalue(a).value.ppsym_from; \
-    char from_badval_isnan = PDL_ISNAN_##ppsym_from(from_badval); \
-    PDL_GENERICSWITCH2(PDL_TYPELIST_ALL_, targtype, X_INNER, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", targtype))
+    char from_badval_isnan = PDL_ISNAN_##ppsym_from(from_badval);
 #define X_INNER(datatype_to, ctype_to, ppsym_to, shortctype_to, defbval_to, ...) \
     ctype_to *data_to_typed = (ctype_to *) data_to_void; \
     data_to_typed += i-1; data_from_typed += i-1; \
@@ -87,7 +86,7 @@ pdl_error pdl_converttype( pdl* a, int targtype ) {
     } else \
       while (i--) \
         *data_to_typed-- = (ctype_to) *data_from_typed--;
-    PDL_GENERICSWITCH(PDL_TYPELIST_ALL, intype, X_OUTER, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", intype))
+    PDL_GENERICSWITCH2(PDL_TYPELIST_ALL, intype, X_OUTER, PDL_TYPELIST_ALL_, targtype, X_INNER, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", intype))
 #undef X_INNER
 #undef X_OUTER
 #undef THIS_ISBAD
