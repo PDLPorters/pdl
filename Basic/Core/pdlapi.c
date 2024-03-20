@@ -350,9 +350,10 @@ pdl_error pdl_destroytransform(pdl_trans *trans, int ensure, int recurse_count)
   if (!vtable)
     return pdl_make_error(PDL_EFATAL, "ZERO VTABLE DESTTRAN 0x%p %d\n",trans,ensure);
   char ismutual = (trans->flags & PDL_ITRANS_DO_DATAFLOW_ANY);
-  if (!ismutual) for(j=0; j<vtable->nparents; j++)
-    if (!trans->pdls[j]) return pdl_make_error(PDL_EFATAL, "NULL pdls[%td] in %s", j, vtable->name); else
+  if (!ismutual) for(j=0; j<vtable->nparents; j++) {
+    if (!trans->pdls[j]) return pdl_make_error(PDL_EFATAL, "NULL pdls[%td] in %s", j, vtable->name);
     if (trans->pdls[j]->state & PDL_DATAFLOW_ANY) { ismutual=1; break; }
+  }
   PDLDEBUG_f(printf("pdl_destroytransform %s=%p (ensure=%d ismutual=%d)\n",
     vtable->name,trans,ensure,(int)ismutual));
   if (ensure)
@@ -1007,7 +1008,7 @@ PDL_Anyval pdl_get_badvalue( int datatype ) {
     PDL_Anyval retval = { PDL_INVALID, {0} };
 #define X(datatype, ctype, ppsym, shortctype, ...) \
     retval.type = datatype; retval.value.ppsym = PDL.bvals.shortctype;
-    PDL_GENERICSWITCH(PDL_TYPELIST2_ALL, datatype, X, return retval)
+    PDL_GENERICSWITCH(PDL_TYPELIST_ALL, datatype, X, return retval)
 #undef X
     return retval;
 }

@@ -243,7 +243,7 @@ for (i = 0; i < $COMP(ins_count); i++) {
     if ($PRIV(bvalflag) && PDL_ISBAD2(in_datap[j], in_badval, ppsym_in, in_badval_isnan)) continue; \
     $out() += in_datap[j]; \
   }
-  PDL_GENERICSWITCH(PDL_TYPELIST2_ALL, in->datatype, X_CAT_INNER, $CROAK("Not a known data type code=%d", in->datatype))
+  PDL_GENERICSWITCH(PDL_TYPELIST_ALL, in->datatype, X_CAT_INNER, $CROAK("Not a known data type code=%d", in->datatype))
 #undef X_CAT_INNER
 }
 EOC

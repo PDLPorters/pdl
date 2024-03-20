@@ -492,12 +492,12 @@ void pdl_dump_anyval(PDL_Anyval v) {
   if (v.type < PDL_CF) {
 #define X(datatype, ctype, ppsym, ...) \
     printf("%Lg", (long double)v.value.ppsym);
-    PDL_GENERICSWITCH(PDL_TYPELIST2_REAL, v.type, X, printf("(UNKNOWN PDL_Anyval type=%d)", v.type))
+    PDL_GENERICSWITCH(PDL_TYPELIST_REAL, v.type, X, printf("(UNKNOWN PDL_Anyval type=%d)", v.type))
 #undef X
   } else {
 #define X(datatype, ctype, ppsym, ...) \
     printf("%Lg%+Lgi", creall((complex long double)v.value.ppsym), cimagl((complex long double)v.value.ppsym));
-    PDL_GENERICSWITCH(PDL_TYPELIST2_COMPLEX, v.type, X, printf("(UNKNOWN PDL_Anyval type=%d)", v.type))
+    PDL_GENERICSWITCH(PDL_TYPELIST_COMPLEX, v.type, X, printf("(UNKNOWN PDL_Anyval type=%d)", v.type))
 #undef X
   }
 }

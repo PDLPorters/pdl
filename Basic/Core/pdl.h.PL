@@ -44,25 +44,19 @@ EOF
 my @methods = qw(symbol ctype ppsym shortctype defbval realctype);
 sub makeg { map { my $t = $_; [map $t->$_, @methods] } grep $_[0]->($_), PDL::Types::types() }
 sub makelister {
-  my ($name, $is2, $underscore, @list) = @_;
-  my $suff = $is2 ? '2' : '';
-  my $arg1 = $is2 ? 'X, X2' : 'X';
-  my $arg2 = $is2 ? 'X2, ' : '';
+  my ($name, $underscore, @list) = @_;
   $underscore = $underscore ? '_' : '';
-  ("#define PDL_TYPELIST${suff}_$name$underscore($arg1) \\\n",
-    (map " X($arg2".join(',', @$_).")\\\n", @list), "\n\n");
+  ("#define PDL_TYPELIST_$name$underscore(X, ...) \\\n",
+    (map " X(__VA_ARGS__ ".join(',', @$_).")\\\n", @list), "\n\n");
 }
 my @generics = makeg(sub {1});
 my @generics_real = makeg(sub {$_[0]->real});
 my @generics_complex = makeg(sub {!$_[0]->real});
-print OUT makelister('ALL', 0, 0, @generics);
-print OUT makelister('ALL', 1, 0, @generics);
+print OUT makelister('ALL', 0, @generics);
 # extra as macro gets expanded twice, gets painted blue
-print OUT makelister('ALL', 1, 1, @generics);
-print OUT makelister('REAL', 0, 0, @generics_real);
-print OUT makelister('REAL', 1, 0, @generics_real);
-print OUT makelister('COMPLEX', 0, 0, @generics_complex);
-print OUT makelister('COMPLEX', 1, 0, @generics_complex);
+print OUT makelister('ALL', 1, @generics);
+print OUT makelister('REAL', 0, @generics_real);
+print OUT makelister('COMPLEX', 0, @generics_complex);
 
 print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  __FILE__;
 print OUT <<'EOF';
@@ -125,18 +119,18 @@ print OUT "$mymalloc\n";
 print OUT <<'EOF';
 #define PDL_GENERICSWITCH_CASE(X, symbol, ...) \
   case symbol: { X(symbol, __VA_ARGS__) } break;
-#define PDL_GENERICSWITCH(LISTER2, typevar, X2, dflt) \
+#define PDL_GENERICSWITCH(LISTER, typevar, X2, dflt) \
   switch (typevar) { \
-    LISTER2(PDL_GENERICSWITCH_CASE, X2) \
+    LISTER(PDL_GENERICSWITCH_CASE, X2,) \
     default: dflt; \
   }
 /* extra as first one gets painted blue */
 #define PDL_GENERICSWITCH_CASE2(X, symbol, ...) \
   case symbol: { X(symbol, __VA_ARGS__) } break;
 /* for use in inner loops avoiding extreme lambda-calculus stuff */
-#define PDL_GENERICSWITCH2(LISTER2, typevar, X2, dflt) \
+#define PDL_GENERICSWITCH2(LISTER, typevar, X2, dflt) \
   switch (typevar) { \
-    LISTER2(PDL_GENERICSWITCH_CASE2, X2) \
+    LISTER(PDL_GENERICSWITCH_CASE2, X2,) \
     default: dflt; \
   }
 EOF
@@ -190,13 +184,13 @@ print OUT <<'!NO!SUBS!';
 #define ANYVAL_TO_CTYPE_OFFSET_X(datatype, ctype, ...) \
     ANYVAL_TO_CTYPE(((ctype *)x)[ioff], ctype, value);
 #define ANYVAL_TO_CTYPE_OFFSET(x,ioff,datatype,value) \
-    PDL_GENERICSWITCH(PDL_TYPELIST2_ALL, datatype, ANYVAL_TO_CTYPE_OFFSET_X, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", datatype))
+    PDL_GENERICSWITCH(PDL_TYPELIST_ALL, datatype, ANYVAL_TO_CTYPE_OFFSET_X, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", datatype))
 
 #define ANYVAL_ISNAN(x) _anyval_isnan(x)
 static inline int _anyval_isnan(PDL_Anyval x) {
 #define X(datatype, ctype, ppsym, ...) \
   return PDL_ISNAN_ ## ppsym(x.value.ppsym);
-  PDL_GENERICSWITCH(PDL_TYPELIST2_ALL, x.type, X, return -1)
+  PDL_GENERICSWITCH(PDL_TYPELIST_ALL, x.type, X, return -1)
 #undef X
 }
 
@@ -204,10 +198,10 @@ static inline int _anyval_isnan(PDL_Anyval x) {
 static inline int _anyval_eq_anyval(PDL_Anyval x, PDL_Anyval y) {
 #define X_OUTER(datatype_x, ctype_x, ppsym_x, ...) \
   ctype_x cvalue_x = x.value.ppsym_x; \
-  PDL_GENERICSWITCH2(PDL_TYPELIST2_ALL_, y.type, X_INNER, return -1)
+  PDL_GENERICSWITCH2(PDL_TYPELIST_ALL_, y.type, X_INNER, return -1)
 #define X_INNER(datatype_y, ctype_y, ppsym_y, ...) \
   return (cvalue_x == y.value.ppsym_y) ? 1 : 0;
-  PDL_GENERICSWITCH(PDL_TYPELIST2_ALL, x.type, X_OUTER, return -1)
+  PDL_GENERICSWITCH(PDL_TYPELIST_ALL, x.type, X_OUTER, return -1)
 #undef X_INNER
 #undef X_OUTER
 }
