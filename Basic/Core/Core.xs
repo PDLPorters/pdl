@@ -625,7 +625,10 @@ at_bad_c(x,pos)
    CODE:
     pdl_barf_if_error(pdl_make_physvaffine( x ));
     if (pos == NULL || pos_count < x->ndims)
-       barf("Invalid position with pos=%p, count=%"IND_FLAG" for ndarray with %"IND_FLAG" dims", pos, pos_count, x->ndims);
+      barf("Invalid position with pos=%p, count=%"IND_FLAG" for ndarray with %"IND_FLAG" dims", pos, pos_count, x->ndims);
+    for (ipos=0; ipos < x->ndims; ipos++)
+      if (pos[ipos] + ((pos[ipos] < 0) ? x->dims[ipos] : 0) >= x->dims[ipos])
+        barf("Position %"IND_FLAG" at dimension %"IND_FLAG" out of range", pos[ipos], ipos);
     /*  allow additional trailing indices
      *  which must be all zero, i.e. a
      *  [3,1,5] ndarray is treated as an [3,1,5,1,1,1,....]
@@ -633,11 +636,11 @@ at_bad_c(x,pos)
      */
     for (ipos=x->ndims; ipos<pos_count; ipos++)
       if (pos[ipos] != 0)
-         barf("Invalid position %"IND_FLAG" at dimension %"IND_FLAG, pos[ipos], ipos);
+        barf("Invalid position %"IND_FLAG" at dimension %"IND_FLAG, pos[ipos], ipos);
     result=pdl_at(PDL_REPRP(x), x->datatype, pos, x->dims,
         PDL_REPRINCS(x), PDL_REPROFFS(x),
 	x->ndims);
-    if (result.type < 0) barf("Position %"IND_FLAG" out of range", pos);
+    if (result.type < 0) barf("Position out of range");
    badflag = (x->state & PDL_BADVAL) > 0;
    if (badflag) {
      volatile PDL_Anyval badval = pdl_get_pdl_badvalue(x);

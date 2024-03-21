@@ -496,13 +496,15 @@ eval { $y->reshape(4); };
 ok( $@ !~ m/Can\'t/, "reshape doesn't fail on a PDL with a parent" );
 
 {
-my $pb = double ones(2,3);
-my $ind = 1;
+my $pb = sequence(2,3);
 is(($pb->dims)[0], 2);
 is(($pb->dims)[1], 3);
 note $pb;
-is($pb->at(1,1), 1);
-is($pb->at(1,2), 1);
+is $pb->at(1,1), 3;
+is $pb->at(1,2), 5;
+eval {$pb->at(2,1)};
+like $@, qr/Position 2 at dimension 0 out of range/;
+is $pb->at(-1,2), 5;
 }
 
 my $array = [
