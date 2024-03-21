@@ -5,7 +5,7 @@
 
 void pdl_SetSV_PDL ( SV *sv, pdl *it ) {
         SV *newref;
-        if(!it->sv) {
+        if (!it->sv) {
                 newref = newRV_noinc(it->sv = newSViv(PTR2IV(it)));
                 (void)sv_bless(newref,gv_stashpv("PDL",TRUE));
         } else {
@@ -48,10 +48,10 @@ pdl* pdl_SvPDLV ( SV* sv ) {
     * (i.e. it is a ref).
     */
 
-   if(SvTYPE(SvRV(sv)) == SVt_PVHV) {
+   if (SvTYPE(SvRV(sv)) == SVt_PVHV) {
       HV *hash = (HV*)SvRV(sv);
       SV **svp = hv_fetchs(hash,"PDL",0);
-      if(svp == NULL) {
+      if (svp == NULL) {
         if (sv_derived_from(sv, "Math::Complex")) { /* relies on M:C using hash */
           dSP;
           int i;
@@ -106,7 +106,7 @@ pdl* pdl_SvPDLV ( SV* sv ) {
          sv = *svp;
       }
 
-      if(SvGMAGICAL(sv)) {
+      if (SvGMAGICAL(sv)) {
               mg_get(sv);
       }
 
@@ -156,7 +156,7 @@ PDL_Indx* pdl_packdims ( SV* sv, PDL_Indx *ndims ) {
    PDL_Indx *dims = (PDL_Indx *) pdl_smalloc( (*ndims) * sizeof(*dims) ); /* Array space */
    if (dims == NULL) return NULL;
    PDL_Indx i;
-   for(i=0; i<(*ndims); i++) {
+   for (i=0; i<(*ndims); i++) {
       dims[i] = (PDL_Indx) SvIV(*(av_fetch( array, i, 0 )));
    }
    return dims;
@@ -178,7 +178,7 @@ pdl ** pdl_packpdls( SV* sv, PDL_Indx *npdls ) {
   pdl **pdls = (pdl **) pdl_smalloc( (*npdls) * sizeof(*pdls) );
   if (!pdls) pdl_pdl_barf("Failed to allocate memory for pointers to PDLs");
   PDL_Indx i;
-  for(i=0; i<(*npdls); i++) {
+  for (i=0; i<(*npdls); i++) {
     SV **s = av_fetch( array, i, 0 );
     if (!s) pdl_pdl_barf("Failed to fetch SV #%"IND_FLAG, i);
     pdls[i] = pdl_SvPDLV(*s);
@@ -192,7 +192,7 @@ SV* pdl_unpackpdls( pdl **pdls, PDL_Indx npdls ) {
    if (!array) return NULL;
    av_extend(array, npdls + 1);
    PDL_Indx i;
-   for(i=0; i<npdls; i++) {
+   for (i=0; i<npdls; i++) {
       SV *sv = newSV(0);
       pdl_SetSV_PDL(sv, pdls[i]);
       av_push(array, sv);
@@ -236,7 +236,7 @@ void* pdl_smalloc ( STRLEN nbytes ) {
     /* If we're in a worker thread, we queue the \
      * barf/warn for later, and exit the thread ... \
      */ \
-    if( pdl_pthread_barf_or_warn(pat, iswarn, &args) ) \
+    if ( pdl_pthread_barf_or_warn(pat, iswarn, &args) ) \
       return; \
     /* ... otherwise we fall through and barf by calling \
      * the perl-level PDL::barf() or PDL::cluck() \
@@ -318,12 +318,12 @@ PDL_Indx av_ndcheck(AV* av, AV* dims, int level, int *datalevel)
   SV *el, **elp;
   pdl *dest_pdl;           /* Stores PDL argument */
 
-  if(dims==NULL) {
+  if (dims==NULL) {
     pdl_pdl_barf("av_ndcheck - got a null dim array! This is a bug in PDL.");
   }
 
   /* Start with a clean slate */
-   if(level==0) {
+   if (level==0) {
     av_clear(dims);
   }
 
@@ -351,19 +351,19 @@ PDL_Indx av_ndcheck(AV* av, AV* dims, int level, int *datalevel)
         pdl_barf_if_error(pdl_make_physdims(dest_pdl));
         pndims = dest_pdl->ndims;
         dest_dims = dest_pdl->dims;
-        for(j=0;j<pndims;j++) {
+        for (j=0;j<pndims;j++) {
           int jl = pndims-j+level;
 
           PDL_Indx siz = dest_dims[j];
 
-          if(  av_len(dims) >= jl &&
+          if ( av_len(dims) >= jl &&
                av_fetch(dims,jl,0) != NULL &&
                SvIOK(*(av_fetch(dims,jl,0)))) {
 
             /* We have already found something that specifies this dimension -- so */
             /* we keep the size if possible, or enlarge if necessary.              */
             oldlen=(PDL_Indx)SvIV(*(av_fetch(dims,jl,0)));
-            if(siz > oldlen) {
+            if (siz > oldlen) {
               sv_setiv(*(av_fetch(dims,jl,0)),(IV)(dest_dims[j]));
             }
 
@@ -380,12 +380,12 @@ PDL_Indx av_ndcheck(AV* av, AV* dims, int level, int *datalevel)
         /* dims of size unity, to wipe out any dims of size zero we have already */
         /* marked. */
 
-        for(j=pndims+1; j <= av_len(dims); j++) {
+        for (j=pndims+1; j <= av_len(dims); j++) {
           SV **svp = av_fetch(dims,j,0);
 
-          if(!svp){
+          if (!svp){
             av_store(dims, j, newSViv((IV)1));
-          } else if( (int)SvIV(*svp) == 0 ) {
+          } else if ( (int)SvIV(*svp) == 0 ) {
             sv_setiv(*svp, (IV)1);
           }
         }
@@ -419,21 +419,21 @@ PDL_Indx av_ndcheck(AV* av, AV* dims, int level, int *datalevel)
       av_store(dims,level,newSViv((IV) len));
 
   /* We found at least one element -- so pad dims to unity at levels earlier than this one */
-  if(n_scalars) {
-    for(i=0;i<level;i++) {
+  if (n_scalars) {
+    for (i=0;i<level;i++) {
       SV **svp = av_fetch(dims, i, 0);
-      if(!svp) {
+      if (!svp) {
         av_store(dims, i, newSViv((IV)1));
-      } else if( (PDL_Indx)SvIV(*svp) == 0) {
+      } else if ( (PDL_Indx)SvIV(*svp) == 0) {
         sv_setiv(*svp, (IV)1);
       }
     }
 
-    for(i=level+1; i <= av_len(dims); i++) {
+    for (i=level+1; i <= av_len(dims); i++) {
       SV **svp = av_fetch(dims, i, 0);
-      if(!svp) {
+      if (!svp) {
         av_store(dims, i, newSViv((IV)1));
-      } else if( (PDL_Indx)SvIV(*svp) == 0) {
+      } else if ( (PDL_Indx)SvIV(*svp) == 0) {
         sv_setiv(*svp, (IV)1);
       }
     }
@@ -516,8 +516,8 @@ pdl* pdl_from_array(AV* av, AV* dims, int dtype, pdl* dest_pdl)
 PDL_Indx pdl_get_offset(PDL_Indx* pos, PDL_Indx* dims, PDL_Indx *incs, PDL_Indx offset, PDL_Indx ndims) {
    PDL_Indx i;
    PDL_Indx result;
-   for(i=0; i<ndims; i++) { /* Check */
-      if(pos[i]<-dims[i] || pos[i]>=dims[i])
+   for (i=0; i<ndims; i++) { /* Check */
+      if (pos[i]<-dims[i] || pos[i]>=dims[i])
          return -1;
    }
    result = offset;
@@ -593,12 +593,12 @@ pdl_error pdl_set( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims, PDL_Ind
 #define INNERLOOP_X(datatype, ctype, ppsym, ...) \
       /* copy data (unless the source pointer is null) */ \
       i=0; \
-      if(source_data && dest_data && pdlsiz) { \
-        found_bad = 0; \
-        for(; i<pdlsiz; i++) { \
-          if(source_pdl->has_badvalue || (source_pdl->state & PDL_BADVAL)) { \
+      if (source_data && dest_data && pdlsiz) { \
+        char found_bad = 0; \
+        for (; i<pdlsiz; i++) { \
+          if (source_pdl->has_badvalue || (source_pdl->state & PDL_BADVAL)) { \
               /* Retrieve directly from .value.* instead of using ANYVAL_EQ_ANYVAL */ \
-              if( ((ctype *)source_data)[i] == source_badval.value.ppsym || PDL_ISNAN_ ## ppsym(((ctype *)source_data)[i]) ) { \
+              if ( ((ctype *)source_data)[i] == source_badval.value.ppsym || PDL_ISNAN_ ## ppsym(((ctype *)source_data)[i]) ) { \
                   /* bad value in source PDL -- use our own type's bad value instead */ \
                   ANYVAL_TO_CTYPE(dest_data[i], ctype, dest_badval); \
                   found_bad = 1; \
@@ -612,13 +612,13 @@ pdl_error pdl_set( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims, PDL_Ind
         if (found_bad) dest_pdl->state |= PDL_BADVAL; /* just once */ \
       } else {  \
         /* source_data or dest_data or pdlsiz are 0 */ \
-        if(dest_data) \
+        if (dest_data) \
           dest_data[i] = undefval; \
       } \
         /* pad out, in the innermost dimension */ \
-      if( !oob ) { \
+      if ( !oob ) { \
         undef_count += dest_dims[0]-dest_off-i; \
-        for(; i< dest_dims[0]-dest_off; i++) dest_data[i] = undefval; \
+        for (; i< dest_dims[0]-dest_off; i++) dest_data[i] = undefval; \
       }
 
 #define PDL_KLUDGE_COPY_X(X, datatype_out, ctype_out, ppsym_out, ...) \
@@ -637,11 +637,11 @@ PDL_Indx pdl_kludge_copy_ ## ppsym_out(PDL_Indx dest_off, /* Offset into the des
   PDL_Indx i; \
   PDL_Indx undef_count = 0; \
   /* Can't copy into a level deeper than the number of dims in the output PDL */ \
-  if(level > ndims ) { \
+  if (level > ndims ) { \
     fprintf(stderr,"pdl_kludge_copy: level=%"IND_FLAG"; ndims=%"IND_FLAG"\n",level,ndims); \
     croak("Internal error - please submit a bug report at https://github.com/PDLPorters/pdl/issues:\n  pdl_kludge_copy: Assertion failed; ndims-1-level (%"IND_FLAG") < 0!.",ndims-1-level); \
   } \
-  if(level >= ndims - 1) { \
+  if (level >= ndims - 1) { \
     /* We are in as far as we can go in the destination PDL, so direct copying is in order. */ \
     PDL_Indx pdldim = source_pdl->ndims - 1 - plevel;  /* which dim are we working in the source PDL? */ \
     PDL_Indx pdlsiz; \
@@ -651,7 +651,7 @@ PDL_Indx pdl_kludge_copy_ ## ppsym_out(PDL_Indx dest_off, /* Offset into the des
      * source to fully account for the output dimlist); if we wander off the beginning, we \
      * are doing dimensional padding.  In either case, we just iterate once. \
      */ \
-    if(pdldim < 0 || pdldim >= source_pdl->ndims) { \
+    if (pdldim < 0 || pdldim >= source_pdl->ndims) { \
       pdldim = (pdldim < 0) ? (0) : (source_pdl->ndims - 1); \
       pdlsiz = 1; \
     } else { \
@@ -662,7 +662,6 @@ PDL_Indx pdl_kludge_copy_ ## ppsym_out(PDL_Indx dest_off, /* Offset into the des
     if (source_badval.type < 0) barf("Error getting badvalue, type=%d", source_badval.type); \
     PDL_Anyval dest_badval = pdl_get_pdl_badvalue(dest_pdl); \
     if (dest_badval.type < 0) barf("Error getting badvalue, type=%d", dest_badval.type); \
-    char found_bad = 0; \
     PDL_GENERICSWITCH(PDL_TYPELIST_ALL_, source_pdl->datatype, X, croak("Not a known data type code=%d", source_pdl->datatype)) \
     return undef_count; \
   } \
@@ -678,7 +677,7 @@ PDL_Indx pdl_kludge_copy_ ## ppsym_out(PDL_Indx dest_off, /* Offset into the des
     ) \
     ? (source_pdl->dims[ source_pdl->ndims-1-plevel ]) \
     : 1; \
-  for(i=0; i < limit ; i++) \
+  for (i=0; i < limit ; i++) \
     undef_count += pdl_kludge_copy_ ## ppsym_out(0, dest_data + stride * i, \
       dest_dims, \
       ndims, \
@@ -690,7 +689,7 @@ PDL_Indx pdl_kludge_copy_ ## ppsym_out(PDL_Indx dest_off, /* Offset into the des
       undefval, \
       dest_pdl \
     ); \
-  if(i >= dest_dims[ndims - 1 - level]) return undef_count; \
+  if (i >= dest_dims[ndims - 1 - level]) return undef_count; \
   /* pad the rest of this dim to zero if there are not enough elements in the source PDL... */ \
   PDL_Indx cursor, target; \
   cursor = i * stride; \
@@ -738,10 +737,10 @@ PDL_Indx pdl_setav_ ## ppsym_out(ctype_out* dest_data, AV* av, \
       /* If the element was an AV ref, recurse to walk through that AV, one dim lower */ \
       undef_count += pdl_setav_ ## ppsym_out(dest_data, (AV *) SvRV(el), dest_dims, ndims, level+1, undefval, dest_pdl); \
  \
-    } else if( el && SvROK(el) ) { \
+    } else if ( el && SvROK(el) ) { \
       /* If the element was a ref but not an AV, then it should be a PDL */ \
       pdl *pdl; \
-      if( !(pdl = pdl_SvPDLV(el)) ) { \
+      if ( !(pdl = pdl_SvPDLV(el)) ) { \
         /* The element is a non-PDL, non-AV ref.  Not allowed. */ \
         croak("Non-array, non-PDL element in list"); \
       } \
@@ -749,36 +748,36 @@ PDL_Indx pdl_setav_ ## ppsym_out(ctype_out* dest_data, AV* av, \
       pdl_barf_if_error(pdl_make_physical(pdl)); \
       PDL_Indx pddex = ndims - 2 - level; \
       PDL_Indx pd = (pddex >= 0 && pddex < ndims ? dest_dims[ pddex ] : 0); \
-      if(!pd) \
+      if (!pd) \
           pd = 1; \
       undef_count += pdl_kludge_copy_ ## ppsym_out(0, dest_data,dest_dims,ndims, level+1, stride / pd , pdl, 0, pdl->data, undefval, dest_pdl); \
     } else { /* el==0 || SvROK(el)==0: this is a scalar or undef element */ \
-      if( PDL_SV_IS_UNDEF(el) ) {  /* undef case */ \
+      if ( PDL_SV_IS_UNDEF(el) ) {  /* undef case */ \
         *dest_data = (ctype_out) undefval; \
         undef_count++; \
       } else {              /* scalar case */ \
         *dest_data = SvIOK(el) ? (ctype_out) SvIV(el) : (ctype_out) SvNV(el); \
       } \
       /* Pad dim if we are not deep enough */ \
-      if(level < ndims-1) { \
+      if (level < ndims-1) { \
         ctype_out *cursor = dest_data; \
         ctype_out *target = dest_data + stride; \
         undef_count += stride; \
-        for( cursor++;  cursor < target; cursor++ ) \
+        for ( cursor++;  cursor < target; cursor++ ) \
           *cursor = (ctype_out)undefval; \
       } \
     } \
   } /* end of element loop through the supplied AV */ \
   /* in case this dim is incomplete set any remaining elements to the undefval */ \
-  if(len < cursz-1 ) { \
+  if (len < cursz-1 ) { \
     ctype_out *target = dest_data + stride * (cursz - 1 - len); \
     undef_count += target - dest_data; \
-    for( ; dest_data < target; dest_data++ ) \
+    for ( ; dest_data < target; dest_data++ ) \
       *dest_data = (ctype_out) undefval; \
   } \
   /* If the Perl scalar PDL::debug is set, announce padding */ \
-  if(level==0 && undef_count) { \
-    if(SvTRUE(get_sv("PDL::debug",0))) { \
+  if (level==0 && undef_count) { \
+    if (SvTRUE(get_sv("PDL::debug",0))) { \
       fflush(stdout); \
       fprintf(stderr,"Warning: pdl_setav_" #ppsym_out " converted undef to $PDL::undefval (%g) %"IND_FLAG" time%s\\n",(double)undefval,undef_count,undef_count==1?"":"s"); \
       fflush(stderr); \
@@ -901,14 +900,14 @@ pdl_error pdl_slice_args_parse_string(char* s, pdl_slice_args *retvalp) {
   pdl_slice_args this_arg = {0,-1,0}; /* start,end,inc 0=do in RedoDims */
   PDL_Indx i = 0;
   while(*s) {
-    if( isspace( *s ) ) {
+    if ( isspace( *s ) ) {
       s++;  /* ignore and loop again */
       continue;
     }
     /* not whitespace */
     switch(*(s++)) {
       case '*':
-        if(flagged || subargno)
+        if (flagged || subargno)
           return pdl_make_error(PDL_EUSERERROR, "slice: Erroneous '*' (arg %d)",i);
         dummy_flag = flagged = 1;
         this_arg.start = 1;  /* default this number to 1 (size 1); '*0' yields an empty */
@@ -916,14 +915,14 @@ pdl_error pdl_slice_args_parse_string(char* s, pdl_slice_args *retvalp) {
         this_arg.inc = -1; /* -1 so we count down to end from start */
         break;
       case '(':
-        if(flagged || subargno)
+        if (flagged || subargno)
           return pdl_make_error(PDL_EUSERERROR, "slice: Erroneous '(' (arg %d)",i);
         squish_flag = flagged = 1;
         break;
       case 'X': case 'x':
-        if(flagged || subargno > 1)
+        if (flagged || subargno > 1)
           return pdl_make_error(PDL_EUSERERROR, "slice: Erroneous 'X' (arg %d)",i);
-        if(subargno==0) {
+        if (subargno==0) {
           flagged = 1;
         } else /* subargno is 1 - squish */ {
           squish_flag = squish_closed = flagged = 1;
@@ -935,7 +934,7 @@ pdl_error pdl_slice_args_parse_string(char* s, pdl_slice_args *retvalp) {
         switch(subargno) {
           case 0: /* first arg - change default to 1 element */
             this_arg.end = this_arg.start = strtoll(--s, &s, 10);
-            if(dummy_flag)
+            if (dummy_flag)
               this_arg.start = 1;
             break;
           case 1: /* second arg - parse and keep end */
@@ -952,16 +951,16 @@ pdl_error pdl_slice_args_parse_string(char* s, pdl_slice_args *retvalp) {
         }
         break;
       case ')':
-        if( squish_closed || !squish_flag || subargno > 0)
+        if ( squish_closed || !squish_flag || subargno > 0)
           return pdl_make_error(PDL_EUSERERROR, "slice: erroneous ')' (arg %d)",i);
         squish_closed = 1;
         break;
       case ':':
-        if(squish_flag && !squish_closed)
+        if (squish_flag && !squish_closed)
           return pdl_make_error(PDL_EUSERERROR, "slice: must close squishing parens (arg %d)",i);
-        if( subargno == 0 )
+        if ( subargno == 0 )
           this_arg.end = -1;   /* Set "<n>:" default to get the rest of the range */
-        if( subargno > 1 )
+        if ( subargno > 1 )
           return pdl_make_error(PDL_EUSERERROR, "slice: too many ':'s in scalar slice specifier %d",i);
         subargno++;
         break;
@@ -983,7 +982,7 @@ pdl_error pdl_slice_args_parse_string(char* s, pdl_slice_args *retvalp) {
 
 pdl_slice_args* pdl_slice_args_parse_sv(SV* sv) {
   /*** Make sure we got an array ref as input and extract its corresponding AV ***/
-  if(!(sv && SvROK(sv) && SvTYPE(SvRV(sv))==SVt_PVAV))
+  if (!(sv && SvROK(sv) && SvTYPE(SvRV(sv))==SVt_PVAV))
     barf("slice requires an ARRAY ref containing zero or more arguments");
   pdl_slice_args* retval = NULL, *this_arg_ptr = NULL;
   AV *arglist = (AV *)(SvRV(sv));
@@ -992,19 +991,19 @@ pdl_slice_args* pdl_slice_args_parse_sv(SV* sv) {
   if (av_len(arglist) == 0) {
     /***   single-element list: pull first element ***/
     SV **svp = av_fetch(arglist, 0, 0);
-    if(svp && *svp && *svp != &PL_sv_undef && SvPOKp(*svp)) {
+    if (svp && *svp && *svp != &PL_sv_undef && SvPOKp(*svp)) {
       /*** The element exists and is not undef and has a cached string value ***/
       char *s,*ss;
       s = ss = SvPVbyte_nolen(*svp);
-      for(;  *ss && *ss != ',';  ss++) {}
-      if(*ss == ',') {
+      for (;  *ss && *ss != ',';  ss++) {}
+      if (*ss == ',') {
         char *s1;
         /* the string contains at least one comma.  ATTACK!      */
         /* We make a temporary array and populate it with        */
         /* SVs containing substrings -- basically split(/\,/)... */
         AV *al = (AV *)sv_2mortal((SV *)(newAV()));
         do {
-          for(s1=s; *s1 && *s1 != ','; s1++);
+          for (s1=s; *s1 && *s1 != ','; s1++);
           av_push(al, newSVpvn(s, s1-s));
           s = (*s1==',') ? ++s1 : s1;
         } while(*s);
@@ -1017,32 +1016,32 @@ pdl_slice_args* pdl_slice_args_parse_sv(SV* sv) {
   /**** Loop over the elements of the AV input and parse into values ****/
   /**** in the start/inc/end array                                   ****/
   PDL_Indx i;
-  for(i=0; i<nargs; i++) {
+  for (i=0; i<nargs; i++) {
     char all_flag = 0;
     pdl_slice_args this_arg = {0,-1,0}; /* start,end,inc 0=do in RedoDims */
     SV **thisp = av_fetch( arglist, i, 0 );
     SV *this = (thisp  ?  *thisp  : 0 );
     /** Keep the whole dimension if the element is undefined or missing **/
     all_flag = (  (!this)   ||   (this==&PL_sv_undef)  );
-    if(!all_flag) {
+    if (!all_flag) {
       /* Main branch -- this element is not an empty string */
-      if(SvROK(this)) {
+      if (SvROK(this)) {
         /*** It's a reference - it better be an array ref. ***/
-        if( SvTYPE(SvRV(this)) != SVt_PVAV )
+        if ( SvTYPE(SvRV(this)) != SVt_PVAV )
           barf("slice: non-ARRAY ref in the argument list!");
         /*** It *is* an array ref!  Expand it into an AV so we can read it. ***/
         AV *sublist = (AV *)(SvRV(this));
         int nelem = !sublist ? 0 : av_len(sublist) + 1;
-        if(nelem > 3) barf("slice: array refs can have at most 3 elements!");
-        if(nelem==0) {      /* No elements - keep it all */
+        if (nelem > 3) barf("slice: array refs can have at most 3 elements!");
+        if (nelem==0) {      /* No elements - keep it all */
           all_flag = 1;
         } else /* Got at least one element */{
           /* Load the first into start and check for dummy or all-clear */
           /* (if element is missing use the default value already in start) */
           SV **svp = av_fetch(sublist, 0, 0);
-          if(svp && *svp && *svp != &PL_sv_undef) {
+          if (svp && *svp && *svp != &PL_sv_undef) {
             /* There is a first element.  Check if it's a string, then an IV */
-            if( SvPOKp(*svp)) {
+            if ( SvPOKp(*svp)) {
               char *str = SvPVbyte_nolen(*svp);
               switch(*str) {
                 case 'X':
@@ -1062,13 +1061,13 @@ pdl_slice_args* pdl_slice_args_parse_sv(SV* sv) {
             }
           } /* end of defined check.  if it's undef, leave the n's at their default value. */
           /* Read the second element into end and check for alternate squish syntax */
-          if( (nelem > 1) && (!all_flag) ) {
+          if ( (nelem > 1) && (!all_flag) ) {
             svp = av_fetch(sublist, 1, 0);
-            if( svp && *svp && *svp != &PL_sv_undef ) {
-              if( SvPOKp(*svp) ) {
+            if ( svp && *svp && *svp != &PL_sv_undef ) {
+              if ( SvPOKp(*svp) ) {
                 /* Second element has a string - make sure it's not 'X'. */
                 char *str = SvPVbyte_nolen(*svp);
-                if(*str == 'X') {
+                if (*str == 'X') {
                   this_arg.squish = 1;
                   this_arg.end = this_arg.start;
                 } else {
@@ -1086,9 +1085,9 @@ pdl_slice_args* pdl_slice_args_parse_sv(SV* sv) {
             if ( svp && *svp && *svp != &PL_sv_undef ) {
               STRLEN len;
               SvPV( *svp, len );
-              if(len>0) {           /* nonzero length -> actual value given */
+              if (len>0) {           /* nonzero length -> actual value given */
                 this_arg.inc = SvIV(*svp);    /* if the step is passed in as 0, it is a squish */
-                if(this_arg.inc==0) {
+                if (this_arg.inc==0) {
                   this_arg.end = this_arg.start;
                   this_arg.squish = 1;
                 }
@@ -1097,7 +1096,7 @@ pdl_slice_args* pdl_slice_args_parse_sv(SV* sv) {
           } /* end of third-element parsing  */
         } /* end of nontrivial sublist parsing */
       } else /* this argument is not an ARRAY ref - parse as a scalar */ {
-        if(SvPOKp(this)) {
+        if (SvPOKp(this)) {
           /* this argument has a cached string */
           STRLEN len;
           char *s = SvPVbyte(this, len);
@@ -1111,10 +1110,10 @@ pdl_slice_args* pdl_slice_args_parse_sv(SV* sv) {
         }
       } /* end of scalar handling */
     } /* end of defined-element handling (!all_flag) */
-    if( (!all_flag) + (!this_arg.squish) + (!this_arg.dummy) < 2 )
+    if ( (!all_flag) + (!this_arg.squish) + (!this_arg.dummy) < 2 )
       barf("Looks like you triggered a bug in  slice.  two flags set in dim %d",i);
     /* Force all_flag case to be a "normal" slice */
-    if(all_flag) {
+    if (all_flag) {
       this_arg.start = 0;
       this_arg.end = -1;
       this_arg.inc = 1;
@@ -1161,7 +1160,7 @@ char ** pdl_packstrings ( SV* sv, PDL_Indx *nstrings ) {
    char **strings = pdl_smalloc( (*nstrings) * sizeof(*strings) ); /* Array space */
    if (strings == NULL) return NULL;
    PDL_Indx i;
-   for(i=0; i<(*nstrings); i++) {
+   for (i=0; i<(*nstrings); i++) {
       strings[i] = SvPV_nolen(*(av_fetch( array, i, 0 )));
    }
    return strings;
