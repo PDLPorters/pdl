@@ -701,6 +701,7 @@ PDL_Indx pdl_kludge_copy_ ## ppsym_out(PDL_Indx dest_off, /* Offset into the des
 }
 PDL_TYPELIST_ALL(PDL_KLUDGE_COPY_X, INNERLOOP_X,)
 #undef PDL_KLUDGE_COPY_X
+#undef INNERLOOP_X
 
 /*
  * pdl_setav_<type> loads a new PDL with values from a Perl AV, another PDL, or
@@ -718,7 +719,7 @@ PDL_TYPELIST_ALL(PDL_KLUDGE_COPY_X, INNERLOOP_X,)
  *   -  ndims is the size of the dimlist
  *   -  level is the recursion level, which is also the dimension that we are filling
  */
-#define PDL_SETAV_X(X, datatype_out, ctype_out, ppsym_out, ...) \
+#define PDL_SETAV_X(datatype_out, ctype_out, ppsym_out, ...) \
 PDL_Indx pdl_setav_ ## ppsym_out(ctype_out* dest_data, AV* av, \
                      PDL_Indx* dest_dims, PDL_Indx ndims, PDL_Indx level, ctype_out undefval, pdl *dest_pdl) \
 { \
@@ -786,9 +787,8 @@ PDL_Indx pdl_setav_ ## ppsym_out(ctype_out* dest_data, AV* av, \
   return undef_count; \
 }
 
-PDL_TYPELIST_ALL(PDL_SETAV_X, INNERLOOP_X,)
+PDL_TYPELIST_ALL(PDL_SETAV_X,)
 #undef PDL_SETAV_X
-#undef INNERLOOP_X
 
 SV *pdl_hdr_copy(SV *hdrp) {
   /* call the perl routine _hdr_copy */
