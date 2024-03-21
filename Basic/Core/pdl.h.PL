@@ -143,11 +143,11 @@ print OUT <<'EOF';
 
 #define ANYVAL_FROM_CTYPE_X(outany, inval, datatype, ctype, ppsym, ...) \
   (outany).type = datatype; (outany).value.ppsym = (inval);
-#define ANYVAL_FROM_CTYPE(outany,avtype,inval) do { \
+#define ANYVAL_FROM_CTYPE(outany,avtype,inval) \
   PDL_GENERICSWITCH(PDL_TYPELIST_ALL, avtype, ANYVAL_FROM_CTYPE_X, \
     outany.type = -1; outany.value.B = 0, \
     outany, inval, \
-  ) } while (0)
+  )
 EOF
 
 for my $type (PDL::Types::types()) {
