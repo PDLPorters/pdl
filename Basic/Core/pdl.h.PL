@@ -123,6 +123,8 @@ print OUT <<'EOF';
 #define PDL_OBSTRUCT(...) __VA_ARGS__ PDL_DEFER(PDL_EMPTY)()
 #define PDL_EXPAND(...) PDL_EXPAND2(PDL_EXPAND2(PDL_EXPAND2(__VA_ARGS__)))
 #define PDL_EXPAND2(...) __VA_ARGS__
+#define PDL_EXPAND_(...) PDL_EXPAND2_(PDL_EXPAND2_(PDL_EXPAND2_(__VA_ARGS__)))
+#define PDL_EXPAND2_(...) __VA_ARGS__
 #define PDL_GENERICSWITCH_CASE(X, extraargs, symbol, ...) \
   case symbol: { PDL_EXPAND(PDL_OBSTRUCT(X)(PDL_EXPAND extraargs symbol, __VA_ARGS__)) } break;
 #define PDL_GENERICSWITCH(LISTER, typevar, X, dflt, ...) \
@@ -130,15 +132,15 @@ print OUT <<'EOF';
     LISTER(PDL_GENERICSWITCH_CASE, X, (__VA_ARGS__),) \
     default: dflt; \
   }
-#define PDL_GENERICSWITCH_CASEout(Xout, LISTERin, typevarin, Xin, dflt, symbol, ...) \
-  case symbol: { Xout(symbol, __VA_ARGS__) \
-    PDL_GENERICSWITCH(LISTERin, typevarin, Xin, dflt) \
+#define PDL_GENERICSWITCH_CASEout(Xout, extraargs, LISTERin, typevarin, Xin, dfltin, symbol, ...) \
+  case symbol: { PDL_EXPAND_(PDL_OBSTRUCT(Xout)(PDL_EXPAND_ extraargs symbol, __VA_ARGS__)) \
+    PDL_EXPAND_(PDL_OBSTRUCT(PDL_GENERICSWITCH)(LISTERin, typevarin, Xin, dfltin, PDL_EXPAND_ extraargs)) \
   } break;
 /* two-level */
-#define PDL_GENERICSWITCH2(LISTERout, typevarout, Xout, LISTERin, typevarin, Xin, dflt) \
+#define PDL_GENERICSWITCH2(LISTERout, typevarout, Xout, dfltout, LISTERin, typevarin, Xin, dfltin, ...) \
   switch (typevarout) { \
-    LISTERout(PDL_GENERICSWITCH_CASEout, Xout, LISTERin, typevarin, Xin, dflt,) \
-    default: dflt; \
+    LISTERout(PDL_GENERICSWITCH_CASEout, Xout, (__VA_ARGS__), LISTERin, typevarin, Xin, dfltin,) \
+    default: dfltout; \
   }
 
 #define ANYVAL_FROM_CTYPE_X(outany, inval, datatype, ctype, ppsym, ...) \
@@ -203,7 +205,7 @@ static inline int _anyval_eq_anyval(PDL_Anyval x, PDL_Anyval y) {
   ctype_x cvalue_x = x.value.ppsym_x;
 #define X_INNER(datatype_y, ctype_y, ppsym_y, ...) \
   return (cvalue_x == y.value.ppsym_y) ? 1 : 0;
-  PDL_GENERICSWITCH2(PDL_TYPELIST_ALL, x.type, X_OUTER, PDL_TYPELIST_ALL_, y.type, X_INNER, return -1)
+  PDL_GENERICSWITCH2(PDL_TYPELIST_ALL, x.type, X_OUTER, return -1, PDL_TYPELIST_ALL_, y.type, X_INNER, return -1)
 #undef X_INNER
 #undef X_OUTER
 }

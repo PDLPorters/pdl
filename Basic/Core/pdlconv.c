@@ -86,7 +86,9 @@ pdl_error pdl_converttype( pdl* a, int targtype ) {
     } else \
       while (i--) \
         *data_to_typed-- = (ctype_to) *data_from_typed--;
-    PDL_GENERICSWITCH2(PDL_TYPELIST_ALL, intype, X_OUTER, PDL_TYPELIST_ALL_, targtype, X_INNER, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", intype))
+    PDL_GENERICSWITCH2(
+      PDL_TYPELIST_ALL, intype, X_OUTER, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", intype),
+      PDL_TYPELIST_ALL_, targtype, X_INNER, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", targtype))
 #undef X_INNER
 #undef X_OUTER
 #undef THIS_ISBAD
