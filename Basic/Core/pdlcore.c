@@ -479,13 +479,11 @@ pdl* pdl_from_array(AV* av, AV* dims, int dtype, pdl* dest_pdl)
 {
   int ndims, i, level=0;
   PDL_Anyval undefval = { PDL_INVALID, {0} };
-
   ndims = av_len(dims)+1;
   PDL_Indx dest_dims[ndims];
   for (i=0; i<ndims; i++) {
      dest_dims[i] = SvIV(*(av_fetch(dims, ndims-1-i, 0))); /* reverse order */
   }
-
   if (dest_pdl == NULL)
      dest_pdl = pdl_pdlnew();
   if (!dest_pdl) return dest_pdl;
@@ -499,14 +497,13 @@ pdl* pdl_from_array(AV* av, AV* dims, int dtype, pdl* dest_pdl)
   if (err.error) return NULL;
   err = pdl_make_physical(dest_pdl);
   if (err.error) return NULL;
-
   /******
    * Copy the undefval to fill empty spots in the ndarray...
    */
   PDLDEBUG_f(printf("pdl_from_array type: %d\n", dtype));
   ANYVAL_FROM_SV(undefval, NULL, TRUE, dtype);
-#define X(dtype, ctype, ppsym, ...) \
-    pdl_setav_ ## ppsym(dest_pdl->data,av,dest_dims,ndims,level, undefval.value.ppsym, dest_pdl);
+#define X(dtype_dest, ctype_dest, ppsym_dest, ...) \
+    pdl_setav_ ## ppsym_dest(dest_pdl->data,av,dest_dims,ndims,level, undefval.value.ppsym_dest, dest_pdl);
   PDL_GENERICSWITCH(PDL_TYPELIST_ALL, dtype, X, return NULL)
 #undef X
   return dest_pdl;
@@ -590,7 +587,7 @@ pdl_error pdl_set( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims, PDL_Ind
  * block of memory.
  */
 
-#define INNERLOOP_X(datatype, ctype, ppsym, ...) \
+#define INNERLOOP_X(datatype, ctype_src, ppsym_src, ...) \
       /* copy data (unless the source pointer is null) */ \
       i=0; \
       if (source_data && dest_data && pdlsiz) { \
@@ -598,15 +595,15 @@ pdl_error pdl_set( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims, PDL_Ind
         for (; i<pdlsiz; i++) { \
           if (source_pdl->has_badvalue || (source_pdl->state & PDL_BADVAL)) { \
               /* Retrieve directly from .value.* instead of using ANYVAL_EQ_ANYVAL */ \
-              if ( ((ctype *)source_data)[i] == source_badval.value.ppsym || PDL_ISNAN_ ## ppsym(((ctype *)source_data)[i]) ) { \
+              if ( ((ctype_src *)source_data)[i] == source_badval.value.ppsym_src || PDL_ISNAN_ ## ppsym_src(((ctype_src *)source_data)[i]) ) { \
                   /* bad value in source PDL -- use our own type's bad value instead */ \
-                  ANYVAL_TO_CTYPE(dest_data[i], ctype, dest_badval); \
+                  ANYVAL_TO_CTYPE(dest_data[i], ctype_src, dest_badval); \
                   found_bad = 1; \
               } else { \
-                  dest_data[i] = ((ctype *)source_data)[i]; \
+                  dest_data[i] = ((ctype_src *)source_data)[i]; \
               } \
           } else { \
-            dest_data[i] = ((ctype *)source_data)[i]; \
+            dest_data[i] = ((ctype_src *)source_data)[i]; \
           } \
         } /* end of loop over pdlsiz */ \
         if (found_bad) dest_pdl->state |= PDL_BADVAL; /* just once */ \
@@ -621,9 +618,9 @@ pdl_error pdl_set( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims, PDL_Ind
         for (; i< dest_dims[0]-dest_off; i++) dest_data[i] = undefval; \
       }
 
-#define PDL_KLUDGE_COPY_X(X, datatype_out, ctype_out, ppsym_out, ...) \
-PDL_Indx pdl_kludge_copy_ ## ppsym_out(PDL_Indx dest_off, /* Offset into the dest data array */ \
-  ctype_out* dest_data,  /* Data pointer in the dest data array */ \
+#define PDL_KLUDGE_COPY_X(X, datatype_dest, ctype_dest, ppsym_dest, ...) \
+PDL_Indx pdl_kludge_copy_ ## ppsym_dest(PDL_Indx dest_off, /* Offset into the dest data array */ \
+  ctype_dest* dest_data,  /* Data pointer in the dest data array */ \
   PDL_Indx* dest_dims,/* Pointer to the dimlist for the dest pdl */ \
   PDL_Indx ndims,    /* Number of dimensions in the dest pdl */ \
   PDL_Indx level,    /* Recursion level */ \
@@ -631,7 +628,7 @@ PDL_Indx pdl_kludge_copy_ ## ppsym_out(PDL_Indx dest_off, /* Offset into the des
   pdl* source_pdl,   /* pointer to the source pdl */ \
   PDL_Indx plevel,   /* level within the source pdl */ \
   void* source_data, /* Data pointer in the source pdl */ \
-  ctype_out undefval,/* undefval for the dest pdl */ \
+  ctype_dest undefval,/* undefval for the dest pdl */ \
   pdl* dest_pdl      /* pointer to the dest pdl */ \
 ) { \
   PDL_Indx i; \
@@ -678,7 +675,7 @@ PDL_Indx pdl_kludge_copy_ ## ppsym_out(PDL_Indx dest_off, /* Offset into the des
     ? (source_pdl->dims[ source_pdl->ndims-1-plevel ]) \
     : 1; \
   for (i=0; i < limit ; i++) \
-    undef_count += pdl_kludge_copy_ ## ppsym_out(0, dest_data + stride * i, \
+    undef_count += pdl_kludge_copy_ ## ppsym_dest(0, dest_data + stride * i, \
       dest_dims, \
       ndims, \
       level+1, \
@@ -718,9 +715,9 @@ PDL_TYPELIST_ALL(PDL_KLUDGE_COPY_X, INNERLOOP_X,)
  *   -  ndims is the size of the dimlist
  *   -  level is the recursion level, which is also the dimension that we are filling
  */
-#define PDL_SETAV_X(datatype_out, ctype_out, ppsym_out, ...) \
-PDL_Indx pdl_setav_ ## ppsym_out(ctype_out* dest_data, AV* av, \
-                     PDL_Indx* dest_dims, PDL_Indx ndims, PDL_Indx level, ctype_out undefval, pdl *dest_pdl) \
+#define PDL_SETAV_X(datatype_dest, ctype_dest, ppsym_dest, ...) \
+PDL_Indx pdl_setav_ ## ppsym_dest(ctype_dest* dest_data, AV* av, \
+                     PDL_Indx* dest_dims, PDL_Indx ndims, PDL_Indx level, ctype_dest undefval, pdl *dest_pdl) \
 { \
   PDL_Indx cursz = dest_dims[ndims-1-level]; /* we go from the highest dim inward */ \
   PDL_Indx len = av_len(av); \
@@ -735,7 +732,7 @@ PDL_Indx pdl_setav_ ## ppsym_out(ctype_out* dest_data, AV* av, \
     SV *el = (elp ? *elp : 0); \
     if ( el && SVavref(el) ) { \
       /* If the element was an AV ref, recurse to walk through that AV, one dim lower */ \
-      undef_count += pdl_setav_ ## ppsym_out(dest_data, (AV *) SvRV(el), dest_dims, ndims, level+1, undefval, dest_pdl); \
+      undef_count += pdl_setav_ ## ppsym_dest(dest_data, (AV *) SvRV(el), dest_dims, ndims, level+1, undefval, dest_pdl); \
  \
     } else if ( el && SvROK(el) ) { \
       /* If the element was a ref but not an AV, then it should be a PDL */ \
@@ -750,36 +747,36 @@ PDL_Indx pdl_setav_ ## ppsym_out(ctype_out* dest_data, AV* av, \
       PDL_Indx pd = (pddex >= 0 && pddex < ndims ? dest_dims[ pddex ] : 0); \
       if (!pd) \
           pd = 1; \
-      undef_count += pdl_kludge_copy_ ## ppsym_out(0, dest_data,dest_dims,ndims, level+1, stride / pd , pdl, 0, pdl->data, undefval, dest_pdl); \
+      undef_count += pdl_kludge_copy_ ## ppsym_dest(0, dest_data,dest_dims,ndims, level+1, stride / pd , pdl, 0, pdl->data, undefval, dest_pdl); \
     } else { /* el==0 || SvROK(el)==0: this is a scalar or undef element */ \
       if ( PDL_SV_IS_UNDEF(el) ) {  /* undef case */ \
-        *dest_data = (ctype_out) undefval; \
+        *dest_data = (ctype_dest) undefval; \
         undef_count++; \
       } else {              /* scalar case */ \
-        *dest_data = SvIOK(el) ? (ctype_out) SvIV(el) : (ctype_out) SvNV(el); \
+        *dest_data = SvIOK(el) ? (ctype_dest) SvIV(el) : (ctype_dest) SvNV(el); \
       } \
       /* Pad dim if we are not deep enough */ \
       if (level < ndims-1) { \
-        ctype_out *cursor = dest_data; \
-        ctype_out *target = dest_data + stride; \
+        ctype_dest *cursor = dest_data; \
+        ctype_dest *target = dest_data + stride; \
         undef_count += stride; \
         for ( cursor++;  cursor < target; cursor++ ) \
-          *cursor = (ctype_out)undefval; \
+          *cursor = (ctype_dest)undefval; \
       } \
     } \
   } /* end of element loop through the supplied AV */ \
   /* in case this dim is incomplete set any remaining elements to the undefval */ \
   if (len < cursz-1 ) { \
-    ctype_out *target = dest_data + stride * (cursz - 1 - len); \
+    ctype_dest *target = dest_data + stride * (cursz - 1 - len); \
     undef_count += target - dest_data; \
     for ( ; dest_data < target; dest_data++ ) \
-      *dest_data = (ctype_out) undefval; \
+      *dest_data = (ctype_dest) undefval; \
   } \
   /* If the Perl scalar PDL::debug is set, announce padding */ \
   if (level==0 && undef_count) { \
     if (SvTRUE(get_sv("PDL::debug",0))) { \
       fflush(stdout); \
-      fprintf(stderr,"Warning: pdl_setav_" #ppsym_out " converted undef to $PDL::undefval (%g) %"IND_FLAG" time%s\\n",(double)undefval,undef_count,undef_count==1?"":"s"); \
+      fprintf(stderr,"Warning: pdl_setav_" #ppsym_dest " converted undef to $PDL::undefval (%g) %"IND_FLAG" time%s\\n",(double)undefval,undef_count,undef_count==1?"":"s"); \
       fflush(stderr); \
     } \
   } \
