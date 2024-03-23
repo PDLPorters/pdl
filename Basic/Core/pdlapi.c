@@ -1014,6 +1014,8 @@ PDL_Anyval pdl_get_badvalue( int datatype ) {
 }
 
 PDL_Anyval pdl_get_pdl_badvalue( pdl *it ) {
+  if (it->has_badvalue && it->badvalue.type != it->datatype)
+    return (PDL_Anyval){ PDL_INVALID, {0} };
   return it->has_badvalue ? it->badvalue : pdl_get_badvalue( it->datatype );
 }
 

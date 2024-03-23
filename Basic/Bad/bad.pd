@@ -289,7 +289,10 @@ _badvalue_per_pdl_int(pdl_val, val, type)
     int type
   CODE:
     if ( val.type != -1) {
-       pdl_val->badvalue = val;
+       PDL_Anyval typedval;
+       ANYVAL_TO_ANYVAL_NEWTYPE(val, typedval, pdl_val->datatype);
+       if (typedval.type < 0) PDL->pdl_barf("Error making typedval");
+       pdl_val->badvalue = typedval;
        pdl_val->has_badvalue = 1;
        PDL->propagate_badvalue( pdl_val );
     }

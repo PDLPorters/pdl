@@ -114,5 +114,7 @@ pdl_error pdl_converttype( pdl* a, int targtype ) {
 
     a->datatype = targtype;
     PDLDEBUG_f(printf("pdl_converttype after: "); pdl_dump(a));
+    if (a->has_badvalue && a->badvalue.type != a->datatype)
+      return pdl_make_error(PDL_EUSERERROR, "Badvalue has type=%d != pdltype=%d", a->badvalue.type, a->datatype);
     return PDL_err;
 }

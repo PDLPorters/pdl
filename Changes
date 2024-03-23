@@ -18,6 +18,7 @@
 - lvalue {un,}broadcast
 - set_datatype now errors if has trans_children, as trans-es have a datatype
 - add ANYVAL_TO_ANYVAL_NEWTYPE
+- per-ndarray badvalues (which are PDL_Anyval) now constrained to be same type as ndarray
 
 2.085_01 2024-02-10
 - test, document PDL::string, make more consistent (#459) - thanks @vadim-160102 for report

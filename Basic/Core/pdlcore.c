@@ -144,6 +144,8 @@ pdl* pdl_SvPDLV ( SV* sv ) {
         croak("Fatal error: argument is probably not an ndarray, or\
  magic no overwritten. You're in trouble, guv: %p %p %lu\n",sv2,ret,ret->magicno);
 
+    if (ret->has_badvalue && ret->badvalue.type != ret->datatype)
+      barf("Badvalue has type=%d != pdltype=%d", ret->badvalue.type, ret->datatype);
     return ret;
 }
 
@@ -506,6 +508,8 @@ pdl* pdl_from_array(AV* av, AV* dims, int dtype, pdl* dest_pdl)
     pdl_setav_ ## ppsym_dest(dest_pdl->data,av,dest_dims,ndims,level, undefval.value.ppsym_dest, dest_pdl);
   PDL_GENERICSWITCH(PDL_TYPELIST_ALL, dtype, X, return NULL)
 #undef X
+  if (dest_pdl->has_badvalue && dest_pdl->badvalue.type != dtype)
+    barf("Badvalue has type=%d != pdltype=%d", dest_pdl->badvalue.type, dtype);
   return dest_pdl;
 }
 
@@ -659,6 +663,8 @@ PDL_Indx pdl_kludge_copy_ ## ppsym_dest(PDL_Indx dest_off, /* Offset into the de
     if (source_badval.type < 0) barf("Error getting badvalue, type=%d", source_badval.type); \
     PDL_Anyval dest_badval = pdl_get_pdl_badvalue(dest_pdl); \
     if (dest_badval.type < 0) barf("Error getting badvalue, type=%d", dest_badval.type); \
+    if (dest_badval.type != datatype_dest) \
+      barf("Badvalue has type=%d != pdltype=%d", dest_badval.type, datatype_dest); \
     PDL_GENERICSWITCH(PDL_TYPELIST_ALL_, source_pdl->datatype, X, croak("Not a known data type code=%d", source_pdl->datatype)) \
     return undef_count; \
   } \

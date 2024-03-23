@@ -198,8 +198,11 @@ pdl_error pdl_converttypei_readdata(pdl_trans *trans) {
   PDL_GENERICSWITCH2(
     PDL_TYPELIST_ALL, totype, X_OUTER, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", totype),
     PDL_TYPELIST_ALL_, fromtype, X_INNER, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", fromtype))
+  pdl *TOpdl = trans->pdls[TOpdl_indx];
 #undef FROMpdl_indx
 #undef TOpdl_indx
+  if (TOpdl->has_badvalue && TOpdl->badvalue.type != TOpdl->datatype)
+    return pdl_make_error(PDL_EUSERERROR, "Badvalue has type=%d != pdltype=%d", TOpdl->badvalue.type, TOpdl->datatype);
   return PDL_err;
 }
 
@@ -215,8 +218,11 @@ pdl_error pdl_converttypei_writebackdata(pdl_trans *trans) {
     PDL_TYPELIST_ALL_, fromtype, X_INNER, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", fromtype))
 #undef X_INNER
 #undef X_OUTER
+  pdl *TOpdl = trans->pdls[TOpdl_indx];
 #undef FROMpdl_indx
 #undef TOpdl_indx
+  if (TOpdl->has_badvalue && TOpdl->badvalue.type != TOpdl->datatype)
+    return pdl_make_error(PDL_EUSERERROR, "Badvalue has type=%d != pdltype=%d", TOpdl->badvalue.type, TOpdl->datatype);
   return PDL_err;
 }
 

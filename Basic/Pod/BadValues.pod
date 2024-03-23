@@ -185,6 +185,12 @@ or not. This value is set if any of the input ndarrays have their C<PDL_BADVAL>
 flag set (although this code can be replaced by setting C<FindBadStateCode> in
 pp_def).
 
+The per-ndarray badvalue is a C<PDL_Anyval>, a struct with an
+integer-valued type (like an ndarray), and a union-value that can
+hold one of any value that PDL can handle. As of 2.086, this value
+must always have the same type as the ndarray, and this is enforced
+in the PDL core.
+
 =head2 Default bad values
 
 The default bad values
