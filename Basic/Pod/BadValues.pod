@@ -6,21 +6,21 @@ PDL::BadValues - Discussion of bad value support in PDL
 
 =head2 What are bad values and why should I bother with them?
 
-Sometimes it's useful to be able to specify a certain value is 'bad' or 
+Sometimes it's useful to be able to specify a certain value is 'bad' or
 'missing'; for example CCDs used in astronomy produce 2D images which are not
 perfect since certain areas contain invalid data due to imperfections in the
 detector.  Whilst PDL's powerful index
-routines and all the complicated business with dataflow, slices, etc etc mean 
+routines and all the complicated business with dataflow, slices, etc etc mean
 that these regions can be ignored in processing, it's awkward to do. It would
-be much easier to be able to say C<$c = $x + $y> and leave all the hassle to 
+be much easier to be able to say C<$c = $x + $y> and leave all the hassle to
 the computer.
 
-If you're not interested in this, then you may (rightly) be concerned 
+If you're not interested in this, then you may (rightly) be concerned
 with how this affects the speed of PDL, since the overhead of checking for a
-bad value at each operation can be large. 
+bad value at each operation can be large.
 Because of this, the code has been written to be as fast as possible -
 particularly when operating on ndarrays which do not contain bad values.
-In fact, you should notice essentially no speed difference when working 
+In fact, you should notice essentially no speed difference when working
 with ndarrays which do not contain bad values.
 
 You may also ask 'well, my computer supports IEEE NaN, so I already have this'.
@@ -71,7 +71,7 @@ including complex.
 C<demo bad>
 within L<perldl|PDL::perldl> or L<pdl2|PDL::Perldl2> gives a demonstration of some of the things
 possible with bad values.  These are also available on PDL's web-site,
-at F<http://pdl.perl.org/demos/>.  See L<PDL::Bad> for useful routines for working 
+at F<http://pdl.perl.org/demos/>.  See L<PDL::Bad> for useful routines for working
 with bad values and F<t/bad.t> to see them in action.
 
 To find out if a routine supports bad values, use the C<badinfo> command in
@@ -84,23 +84,23 @@ whether there's any bad data present:
 
 =item *
 
-If B<false/0>, which means there's no bad data here, the code supplied by the 
+If B<false/0>, which means there's no bad data here, the code supplied by the
 C<Code> option to C<pp_def()> is executed.
 
 =item *
 
 If B<true/1>, then this says there I<MAY> be bad data in the ndarray, so use the
-code in the C<BadCode> option (assuming that the C<pp_def()> for this routine 
-has been updated to have a BadCode key). 
+code in the C<BadCode> option (assuming that the C<pp_def()> for this routine
+has been updated to have a BadCode key).
 You get all the advantages of broadcasting, as with the C<Code> option,
 but it will run slower since you are going to have to handle the presence of bad values.
 
 =back
 
-If you create an ndarray, it will have its bad-value flag set to 0. To change 
+If you create an ndarray, it will have its bad-value flag set to 0. To change
 this, use C<< $pdl->badflag($new_bad_status) >>, where C<$new_bad_status> can be 0 or 1.
 When a routine creates an ndarray, its bad-value flag will depend on the input
-ndarrays: unless over-ridden (see the C<CopyBadStatusCode> option to C<pp_def>), the 
+ndarrays: unless over-ridden (see the C<CopyBadStatusCode> option to C<pp_def>), the
 bad-value flag will be set true if any of the input ndarrays contain bad values.
 To check that an ndarray really contains bad data, use the C<check_badflag> method.
 
@@ -132,7 +132,7 @@ these propagate to children/parents (yes) or whether you should only be
 able to change the badvalue at the 'top' level - i.e. those ndarrays which do
 not have parents.
 
-The C<orig_badvalue()> method returns the compile-time value for a given 
+The C<orig_badvalue()> method returns the compile-time value for a given
 datatype. It works on ndarrays, PDL::Type objects, and numbers - eg
 
   $pdl->orig_badvalue(), byte->orig_badvalue(), and orig_badvalue(4).
@@ -142,7 +142,7 @@ syntax as C<orig_badvalue()>.
 
 To change the current bad value, supply the new number to badvalue - eg
 
-  $pdl->badvalue(2.3), byte->badvalue(2), badvalue(5,-3e34). 
+  $pdl->badvalue(2.3), byte->badvalue(2), badvalue(5,-3e34).
 
 I<Note>: the value is silently converted to the correct C type, and
 returned - i.e. C<< byte->badvalue(-26) >> returns 230 on my Linux machine.
@@ -154,7 +154,7 @@ See discussion below.
 
 =head2 Bad values and boolean operators
 
-For those boolean operators in L<PDL::Ops>, evaluation 
+For those boolean operators in L<PDL::Ops>, evaluation
 on a bad value returns the bad value. This:
 
  $mask = $img > $thresh;
@@ -166,8 +166,8 @@ return a bad value if there are no good ones:
 
 As of 2.077, a bad value used as a boolean will throw an exception.
 
-When using one of the 'projection' functions in L<PDL::Ufunc> - such as 
-L<orover|PDL::Ufunc/orover> - 
+When using one of the 'projection' functions in L<PDL::Ufunc> - such as
+L<orover|PDL::Ufunc/orover> -
 bad values are skipped over (see the documentation of these
 functions for the current handling of the case when
 all elements are bad).
@@ -175,14 +175,14 @@ all elements are bad).
 =head1 IMPLEMENTATION DETAILS
 
 A new flag has been added to the state of an ndarray - C<PDL_BADVAL>. If unset, then
-the ndarray does not contain bad values, and so all the support code can be 
+the ndarray does not contain bad values, and so all the support code can be
 ignored. If set, it does not guarantee that bad values are present, just that
 they should be checked for.
 
 The C<pdl_trans> structure has been extended to include an integer value,
 C<bvalflag>, which acts as a switch to tell the code whether to handle bad values
-or not. This value is set if any of the input ndarrays have their C<PDL_BADVAL> 
-flag set (although this code can be replaced by setting C<FindBadStateCode> in 
+or not. This value is set if any of the input ndarrays have their C<PDL_BADVAL>
+flag set (although this code can be replaced by setting C<FindBadStateCode> in
 pp_def).
 
 =head2 Default bad values
@@ -207,7 +207,7 @@ at the routines in F<bad.pd> (or F<ops.pd>)
 which use the C<in-place> option to see how the
 bad flag is propagated to children using the C<xxxBadStatusCode> options.
 I decided not to automate this as rules would be a
-little complex, since not every in-place op will need to propagate the 
+little complex, since not every in-place op will need to propagate the
 badflag (eg unary functions).
 
 This all means that you can change (as of 2.073)
@@ -237,7 +237,7 @@ PDL::PP::PDLCode will then create code something like
 
 One of the strengths of PDL is its on-line documentation. The aim is to use
 this system to provide information on how/if a routine supports bad values:
-in many cases C<pp_def()> contains all the information anyway, so the 
+in many cases C<pp_def()> contains all the information anyway, so the
 function-writer doesn't need to do anything at all! For the cases when this is
 not sufficient, there's the C<BadDoc> option. For code written at
 the Perl level - i.e. in a .pm file - use the C<=for bad> pod directive.

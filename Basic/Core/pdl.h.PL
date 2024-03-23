@@ -185,6 +185,16 @@ EOF
 
 print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  __FILE__;
 print OUT <<'!NO!SUBS!';
+#define ANYVAL_TO_ANYVAL_NEWTYPE_X_OUTER(from_val, to_val, newtype, datatype_from, ctype_from, ppsym_from, ...) \
+  ctype_from cvalue_from = from_val.value.ppsym_from;
+#define ANYVAL_TO_ANYVAL_NEWTYPE_X_INNER(from_val, to_val, newtype, datatype_to, ctype_to, ppsym_to, ...) \
+  to_val.value.ppsym_to = cvalue_from; to_val.type = newtype;
+#define ANYVAL_TO_ANYVAL_NEWTYPE(from_val, to_val, newtype) \
+  PDL_GENERICSWITCH2( \
+    PDL_TYPELIST_ALL, from_val.type, ANYVAL_TO_ANYVAL_NEWTYPE_X_OUTER, to_val.type = PDL_INVALID, \
+    PDL_TYPELIST_ALL_, newtype, ANYVAL_TO_ANYVAL_NEWTYPE_X_INNER, to_val.type = PDL_INVALID, \
+    from_val, to_val, newtype,)
+
 /* input vars have to be called exactly these as not expanded */
 #define ANYVAL_TO_CTYPE_OFFSET_X(datatype, ctype, ...) \
     ANYVAL_TO_CTYPE(((ctype *)x)[ioff], ctype, value);
