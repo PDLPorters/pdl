@@ -37,7 +37,6 @@ required steps.
      $pdl->set_datatype($PDL_B);
      $pdl->setdims([1,3,4]);
      my $dref = $pdl->get_dataref();
-
      # read data directly from file
      open my $file, '<data.dat' or die "couldn't open data.dat";
      my $len = $pdl->nelems*PDL::Core::howbig($pdl->get_datatype);
@@ -45,7 +44,6 @@ required steps.
        read( $file, $$dref, $len) != $len;
      close $file;
      $pdl->upd_data();
-
      return $pdl;
    }
 

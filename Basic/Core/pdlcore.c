@@ -323,7 +323,7 @@ PDL_Indx av_ndcheck(AV* av, AV* dims, int level, int *datalevel)
   }
 
   /* Start with a clean slate */
-   if (level==0) {
+  if (level==0) {
     av_clear(dims);
   }
 

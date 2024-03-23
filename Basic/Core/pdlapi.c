@@ -1014,7 +1014,7 @@ PDL_Anyval pdl_get_badvalue( int datatype ) {
 }
 
 PDL_Anyval pdl_get_pdl_badvalue( pdl *it ) {
-    return it->has_badvalue ? it->badvalue : pdl_get_badvalue( it->datatype );
+  return it->has_badvalue ? it->badvalue : pdl_get_badvalue( it->datatype );
 }
 
 pdl_trans *pdl_create_trans(pdl_transvtable *vtable) {
