@@ -161,29 +161,6 @@ for my $type (PDL::Types::types()) {
 }
 
 print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  __FILE__;
-print OUT <<'EOF';
-#define ANYVAL_TO_CTYPE(outval,ctype,inany) do { switch (inany.type) { \
-EOF
-print OUT "case @{[$_->sym]}: outval = (ctype)(inany.value.@{[$_->ppsym]}); break; \\\n"
-  for PDL::Types::types();
-print OUT <<'EOF';
-default:      outval = 0; \
-            } \
-        } while (0)
-EOF
-
-print OUT <<'EOF';
-#define ANYVAL_FROM_CTYPE_OFFSET(outany,avtype,indata,ioff) do { switch (avtype) { \
-EOF
-print OUT "case @{[$_->sym]}: outany.type = avtype; outany.value.@{[$_->ppsym]} = (@{[$_->ctype]})((@{[$_->ctype]} *)indata)[ioff]; break; \\\n"
-  for PDL::Types::types();
-print OUT <<'EOF';
-   default:      outany.type = -1;     outany.value.B = 0; \
-  } \
- } while (0)
-EOF
-
-print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  __FILE__;
 print OUT <<'!NO!SUBS!';
 #define ANYVAL_TO_ANYVAL_NEWTYPE_X_OUTER(from_val, to_val, newtype, datatype_from, ctype_from, ppsym_from, ...) \
   ctype_from cvalue_from = from_val.value.ppsym_from;
@@ -195,12 +172,27 @@ print OUT <<'!NO!SUBS!';
     PDL_TYPELIST_ALL_, newtype, ANYVAL_TO_ANYVAL_NEWTYPE_X_INNER, to_val.type = PDL_INVALID, \
     from_val, to_val, newtype,)
 
+#define ANYVAL_TO_CTYPE_X(outval, inany, datatype, ctype, ppsym, ...) \
+  outval = (ctype)(inany.value.ppsym);
+#define ANYVAL_TO_CTYPE(outval,ctype,inany) \
+  PDL_GENERICSWITCH(PDL_TYPELIST_ALL_, inany.type, ANYVAL_TO_CTYPE_X, \
+    outval = 0, \
+    outval, inany, \
+  )
+
 #define ANYVAL_TO_CTYPE_OFFSET_X(x, ioff, inany, datatype, ctype, ppsym, ...) \
   ((ctype *)(x))[ioff] = (inany).value.ppsym;
 #define ANYVAL_TO_CTYPE_OFFSET(x,ioff,datatype,value) \
   PDL_GENERICSWITCH(PDL_TYPELIST_ALL, datatype, ANYVAL_TO_CTYPE_OFFSET_X, \
     return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", datatype), \
     x, ioff, value,)
+
+#define ANYVAL_FROM_CTYPE_OFFSET_X(indata, ioff, outany, datatype, ctype, ppsym, ...) \
+  (outany).type = datatype; (outany).value.ppsym = ((ctype *)(indata))[ioff];
+#define ANYVAL_FROM_CTYPE_OFFSET(outany,avtype,indata,ioff) \
+  PDL_GENERICSWITCH(PDL_TYPELIST_ALL, avtype, ANYVAL_FROM_CTYPE_OFFSET_X, \
+    (outany).type = -1; outany.value.B = 0;, \
+    indata, ioff, outany,)
 
 #define ANYVAL_ISNAN(x) _anyval_isnan(x)
 static inline int _anyval_isnan(PDL_Anyval x) {
