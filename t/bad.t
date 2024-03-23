@@ -416,6 +416,9 @@ $x->badflag(1);
 $y = $x->slice('2:3');
 is( $y->badvalue, 3, "can propagate per-ndarray bad value");
 is( $y->sum, 2, "and the propagated value is recognised as bad");
+$x->badvalue(2);
+is "$x", '[0 1 BAD 3]', 'change badvalue, badness right in orig';
+is( $y->badvalue, 2, "per-ndarray bad value propagated after change");
 $x = sequence(4);
 is ($x->badvalue, double->orig_badvalue, "no long-term effects of per-ndarray changes [1]");
 

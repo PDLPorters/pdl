@@ -2493,7 +2493,7 @@ If C<$self> is a PDL, then calls C<slice> with all but the last
 argument, otherwise C<< $self->($_[-1]) >> is called where C<$_[-1]> is the
 original argument string found during PDL::NiceSlice filtering.
 
-DEVELOPER'S NOTE: this routine is found in Core.pm.PL but would be
+DEVELOPER'S NOTE: this routine is found in Core.pm but would be
 better placed in Slices/slices.pd.  It is likely to be moved there
 and/or changed to "slice_if_pdl" for PDL 3.0.
 
