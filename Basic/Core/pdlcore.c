@@ -595,21 +595,19 @@ pdl_error pdl_set( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims, PDL_Ind
       /* copy data (unless the source pointer is null) */ \
       i=0; \
       if (source_data && dest_data && pdlsiz) { \
+        ctype_src *src_data_typed = source_data; \
+        ctype_src src_badval_c = source_badval.value.ppsym_src; \
+        char src_badval_isnan = PDL_ISNAN_##ppsym_src(src_badval_c); \
         char found_bad = 0; \
-        for (; i<pdlsiz; i++) { \
-          if (source_pdl->has_badvalue || (source_pdl->state & PDL_BADVAL)) { \
-              /* Retrieve directly from .value.* instead of using ANYVAL_EQ_ANYVAL */ \
-              if ( ((ctype_src *)source_data)[i] == source_badval.value.ppsym_src || PDL_ISNAN_ ## ppsym_src(((ctype_src *)source_data)[i]) ) { \
-                  /* bad value in source PDL -- use our own type's bad value instead */ \
-                  ANYVAL_TO_CTYPE(dest_data[i], ctype_src, dest_badval); \
-                  found_bad = 1; \
-              } else { \
-                  dest_data[i] = ((ctype_src *)source_data)[i]; \
-              } \
-          } else { \
-            dest_data[i] = ((ctype_src *)source_data)[i]; \
-          } \
-        } /* end of loop over pdlsiz */ \
+        if (source_pdl->state & PDL_BADVAL) { \
+          for (; i<pdlsiz; i++) \
+            if (PDL_ISBAD2(src_data_typed[i], src_badval_c, ppsym_src, src_badval_isnan)) { \
+              dest_data[i] = dest_badval_c; \
+              found_bad = 1; \
+            } else \
+              dest_data[i] = src_data_typed[i]; \
+        } else \
+          for (; i<pdlsiz; i++) dest_data[i] = src_data_typed[i]; \
         if (found_bad) dest_pdl->state |= PDL_BADVAL; /* just once */ \
       } else {  \
         /* source_data or dest_data or pdlsiz are 0 */ \
@@ -665,6 +663,7 @@ PDL_Indx pdl_kludge_copy_ ## ppsym_dest(PDL_Indx dest_off, /* Offset into the de
     if (dest_badval.type < 0) barf("Error getting badvalue, type=%d", dest_badval.type); \
     if (dest_badval.type != datatype_dest) \
       barf("Badvalue has type=%d != pdltype=%d", dest_badval.type, datatype_dest); \
+    ctype_dest dest_badval_c = dest_badval.value.ppsym_dest; \
     PDL_GENERICSWITCH(PDL_TYPELIST_ALL_, source_pdl->datatype, X, croak("Not a known data type code=%d", source_pdl->datatype)) \
     return undef_count; \
   } \
