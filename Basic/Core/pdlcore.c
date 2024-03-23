@@ -547,12 +547,17 @@ PDL_Anyval pdl_at( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims,
 }
 
 /* Set value at position (x,y,z...) */
-pdl_error pdl_set( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims, PDL_Indx* incs, PDL_Indx offs, PDL_Indx ndims, PDL_Anyval value){
-   pdl_error PDL_err = {0, NULL, 0};
-   PDL_Indx ioff = pdl_get_offset(pos, dims, incs, offs, ndims);
-   if (ioff < 0) return pdl_make_error_simple(PDL_EUSERERROR, "Position out of range");
-   ANYVAL_TO_CTYPE_OFFSET(x, ioff, datatype, value);
-   return PDL_err;
+pdl_error pdl_set( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims, PDL_Indx* incs, PDL_Indx offs, PDL_Indx ndims, PDL_Anyval value) {
+  pdl_error PDL_err = {0, NULL, 0};
+  PDL_Indx ioff = pdl_get_offset(pos, dims, incs, offs, ndims);
+  if (ioff < 0)
+    return pdl_make_error_simple(PDL_EUSERERROR, "Position out of range");
+  PDL_Anyval typedval;
+  ANYVAL_TO_ANYVAL_NEWTYPE(value, typedval, datatype);
+  if (typedval.type < 0)
+    return pdl_make_error_simple(PDL_EUSERERROR, "Error making typedval");
+  ANYVAL_TO_CTYPE_OFFSET(x, ioff, datatype, typedval);
+  return PDL_err;
 }
 
 /*

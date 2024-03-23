@@ -195,11 +195,12 @@ print OUT <<'!NO!SUBS!';
     PDL_TYPELIST_ALL_, newtype, ANYVAL_TO_ANYVAL_NEWTYPE_X_INNER, to_val.type = PDL_INVALID, \
     from_val, to_val, newtype,)
 
-/* input vars have to be called exactly these as not expanded */
-#define ANYVAL_TO_CTYPE_OFFSET_X(datatype, ctype, ...) \
-    ANYVAL_TO_CTYPE(((ctype *)x)[ioff], ctype, value);
+#define ANYVAL_TO_CTYPE_OFFSET_X(x, ioff, inany, datatype, ctype, ppsym, ...) \
+  ((ctype *)(x))[ioff] = (inany).value.ppsym;
 #define ANYVAL_TO_CTYPE_OFFSET(x,ioff,datatype,value) \
-    PDL_GENERICSWITCH(PDL_TYPELIST_ALL, datatype, ANYVAL_TO_CTYPE_OFFSET_X, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", datatype))
+  PDL_GENERICSWITCH(PDL_TYPELIST_ALL, datatype, ANYVAL_TO_CTYPE_OFFSET_X, \
+    return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", datatype), \
+    x, ioff, value,)
 
 #define ANYVAL_ISNAN(x) _anyval_isnan(x)
 static inline int _anyval_isnan(PDL_Anyval x) {
