@@ -5,7 +5,7 @@ sub info {('pgplot', 'PGPLOT graphics output')}
 
 sub init {'
 $ENV{PGPLOT_XW_WIDTH}=0.3;
-$ENV{PGPLOT_DEV}=$^O =~ /MSWin32/ ? "/GW" : "/XSERVE";
+$ENV{PGPLOT_DEV}=$^O =~ /MSWin32/ ? "/GW" : "/XW";
 use PDL::Graphics::PGPLOT;
 '}
 my @demo = (
@@ -31,12 +31,12 @@ my @demo = (
 |],
 
 [act => q|
-    # ensure the module is loaded (required for PDL versions >= 2.004)
+    # ensure the module is loaded
     use PDL::Graphics::PGPLOT;
     # The size of the window can be specified
     $ENV{PGPLOT_XW_WIDTH}=0.3;
     # You can set your device explicitly
-    $id=dev($^O =~ /MSWin32/ ? '/GW' : '/XSERVE');
+    $id=dev($ENV{PGPLOT_DEV}); # '/XW' on X, '/GW' on Win32
 |],
 
 [act => q|
@@ -202,8 +202,12 @@ my @demo = (
   $c =  czip(zeroes(300)->xlinvals(0,12), zeroes(300)->xlinvals(2,10));
   $sin = sin $c;
   line $sin->im, $sin->re;   # look at the result in the complex plane
+|],
+
+[act => q|
   #close the window--we're done!
   close_window($id); 
+  print "On X Windows, you need to close the 'PGPLOT Server' window.\n";
 |],
 );
 
