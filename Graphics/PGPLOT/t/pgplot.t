@@ -23,13 +23,7 @@ sub get_answer () {
     return $answer !~ m/n/i;
 }
 
-sub interactive ($$) {
-    my $flag = shift;
-    my $num  = shift;
-    return unless $flag; # ie not interactive
-
-    if (1 == $num) {
-    print STDERR <<'EOD';
+my $tick_txt = <<'EOD';
 PGPLOT X device... you should see a 6 inch (153 mm) x 4 inch (102 mm)
 X window with four plots in it.  All four images should have tick marks
 on the outside of the axes.
@@ -43,8 +37,7 @@ on the outside of the axes.
   ``shrinkwrapped'' ]
 
 EOD
-    } elsif (2 == $num) {
-    print STDERR <<'EOD';
+my $pitch_txt = <<'EOD';
 ==============================================================
 
 You should see four plots demonstrating pitch setting, justification,
@@ -61,8 +54,7 @@ to upper right corner of rect. plot      and height 1.25 inch, shrinkwrapped
 box and cropped at the bottom.     ]     and placed at upper right of plot rgn]
 
 EOD
-    } elsif (3 == $num) {
-    print STDERR <<'EOD';
+my $fib_txt = <<'EOD';
 ==============================================================
 
 You should see two windows:
@@ -71,18 +63,28 @@ One with two graphs, left with Fibonacci curve
 One with one graph
 
 EOD
-    } else {
-      die "Internal error: unknown test number $num for interactive()!\n";
-    }
-    return get_answer();
+
+sub interactive ($$) {
+  my $flag = shift;
+  return unless $flag; # ie not interactive
+  my $num  = shift;
+  if (1 == $num) {
+    print STDERR $tick_txt;
+  } elsif (2 == $num) {
+    print STDERR $pitch_txt;
+  } elsif (3 == $num) {
+    print STDERR $fib_txt;
+  } else {
+    die "Internal error: unknown test number $num for interactive()!\n";
+  }
+  return get_answer();
 }
 
 my $interactive = exists($ENV{'PDL_INT'});
 my $skip_interactive_msg = "no interactive tests as env var PDL_INT not set";
 my $interactive_ctr = 0;
 
-my $dev = $ENV{'PGPLOT_DEV'} ? $ENV{'PGPLOT_DEV'} : "/xw";
-
+my $dev = $ENV{'PGPLOT_DEV'} || "/xw";
 $dev = '/null' if exists $ENV{HARNESS_ACTIVE} and not $interactive;
 
 my $w = PDL::Graphics::PGPLOT::Window->new(
@@ -166,5 +168,7 @@ for my $win ($rate_win, $area_win) {
    is $@, '', "close window";
    isnt $result, 0, 'returned true';
 }
+
+diag 'On X you need to close the X window to continue' if $interactive;
 
 done_testing;
