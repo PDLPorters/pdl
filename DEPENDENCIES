@@ -128,20 +128,6 @@ PDL::Graphics::TriD
                                           perldl.conf and set WITH_3D => 0.
 
 
-PDL::Graphics::PGPLOT
-                  Requires both the PGPLOT perl module **and**
-                  the PGPLOT fortran library.  See
-                  http://astro.caltech.edu/~tjp/pgplot for the
-                  library and http://metacpan.org/pod/PGPLOT
-                  for the perl module (on CPAN).
-
-                  NOTE: These are two separate items to be installed.
-
-                                          PDL::Graphics::PGPLOT Module
-                                          builds ok without PGPLOT module
-                                          and library.
-
-
 PDL::Graphics::IIS
                   To be useful an application that supports
                   the 'IIS' protocol must be installed, e.g.

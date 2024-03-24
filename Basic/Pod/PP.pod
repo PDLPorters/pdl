@@ -1927,8 +1927,6 @@ generated B<pm>-file. This is easily achieved with the C<pp_addpm> command:
 
    =cut
 
-   use PGPLOT;
-
    =head2 use_myfunc
 	this function applies the myfunc operation to all the
 	elements of the input pdl regardless of dimensions

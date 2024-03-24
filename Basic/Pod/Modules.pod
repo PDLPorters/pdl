@@ -116,19 +116,6 @@ Interpolation-related functions.
 
 =head1 GRAPHICS
 
-=over 5
-
-=item L<PDL::Graphics::PGPLOT>
-
-PGPLOT library.
-
-=item L<PDL::Graphics::PLplot>
-
-PLplot library.
-
-=back
-
-
 =head2 3D Graphics
 
 =over 5

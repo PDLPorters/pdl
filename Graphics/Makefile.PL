@@ -2,7 +2,7 @@ use strict;
 use warnings;
 use ExtUtils::MakeMaker;
 
-my @subdirs = qw(PGPLOT LUT IIS Limits);
+my @subdirs = qw(LUT IIS Limits);
 
 if (eval {
     require OpenGL; OpenGL->VERSION(0.70); 1;

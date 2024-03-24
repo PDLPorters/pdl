@@ -749,16 +749,13 @@ PDL has three main plotting modules:
 
 =over 5
 
-=item L<PDL::Graphics::PGPLOT>
+=item L<PDL::Graphics::Simple>
 
 B<Best for>: Plotting 2D functions and data sets.
 
-This is an interface to the venerable PGPLOT library. PGPLOT has
-been widely used in the academic and scientific communities for
-many years. In part because of its age, PGPLOT has some limitations
-compared to newer packages such as PLplot (e.g. no RGB graphics).
-But it has many features that still make it popular in the scientific
-community.
+Provides a simple library for line graphics
+and image display, giving a uniform plotting interface to PGPLOT, PLplot,
+Gnuplot, and Prima.
 
 =item L<PDL::Graphics::PLplot>
 

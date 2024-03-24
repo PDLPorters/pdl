@@ -173,8 +173,6 @@ Example/InlinePdlpp/inlppminimal.pl
 Example/InlinePdlpp/Module/Makefile.PL
 Example/InlinePdlpp/Module/MyInlineMod.pm
 Example/InlinePdlpp/Module/t/myinlinemod.t
-Example/PGPLOT/pgplot.pl
-Example/PGPLOT/std_pgplot.pl
 Example/Simplex/tsimp2.pl
 Example/Simplex/tsimp_needs_pgplot.pl
 Example/TriD/3dtest.pl
@@ -256,16 +254,6 @@ Graphics/LUT/tables/stairs8.fits
 Graphics/LUT/tables/stairs9.fits
 Graphics/LUT/tables/standard.fits
 Graphics/Makefile.PL
-Graphics/PGPLOT/Demo.pm
-Graphics/PGPLOT/Makefile.PL
-Graphics/PGPLOT/PGPLOT.pm
-Graphics/PGPLOT/PGPLOTOptions.pm
-Graphics/PGPLOT/t/pgplot.t
-Graphics/PGPLOT/Window/Demo.pm
-Graphics/PGPLOT/Window/Makefile.PL
-Graphics/PGPLOT/Window/typemap
-Graphics/PGPLOT/Window/Window.pm
-Graphics/PGPLOT/Window/Window.xs
 Graphics/State.pm
 Graphics/TriD/Makefile.PL
 Graphics/TriD/OpenGLQ/Makefile.PL

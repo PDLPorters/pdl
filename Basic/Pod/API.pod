@@ -109,7 +109,6 @@ The following script demonstrates a simple example:
 
    use PDL::LiteF;
    use PDL::Core::Dev;
-   use PDL::Graphics::PGPLOT;
 
    $y = mkndarray();
 

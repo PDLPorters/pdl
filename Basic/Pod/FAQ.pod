@@ -1226,6 +1226,8 @@ Note that case matters with C<help> but not with C<apropos> .
 
 =head2 Q: 6.22   PGPLOT does not write out PNG files.
 
+B<NOTE> As of 2.086, PDL's PGPLOT-using modules are now all supplied
+with the L<PGPLOT> module itself. This note is now only historical.
 
 There are a few sources of trouble with PGPLOT and PNG files. First,
 when compiling the pgplot libraries, make sure you uncomment the PNG

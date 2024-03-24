@@ -180,14 +180,6 @@ L<PDL::Demos> - PDL demo infrastructure
 
 =item *
 
-L<PDL::Demos::PGPLOT> - demonstrate PDL::Graphics::PGPLOT capabilities
-
-=item *
-
-L<PDL::Demos::PGPLOT_OO> - demonstrate PDL::Graphics::PGPLOT OO capabilities
-
-=item *
-
 L<PDL::DiskCache> - Non-memory-resident array object
 
 =item *
@@ -405,18 +397,6 @@ L<PDL::Graphics::OpenGL::Perl::OpenGL> - PDL TriD OpenGL interface using POGL
 =item *
 
 L<PDL::Graphics::OpenGLQ> - quick routines to plot lots of stuff from ndarrays.
-
-=item *
-
-L<PDL::Graphics::PGPLOT> - PGPLOT enhanced interface for PDL
-
-=item *
-
-L<PDL::Graphics::PGPLOT::Window> - A OO interface to PGPLOT windows
-
-=item *
-
-L<PDL::Graphics::PGPLOTOptions> - Setting PGPLOT options
 
 =item *
 

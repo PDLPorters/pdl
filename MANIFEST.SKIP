@@ -81,8 +81,6 @@ RCS
 ^Doc/pdlfunc\.pod
 ^Doc/pdlhead2item$
 ^Graphics/IIS/IIS\..*
-^Graphics/PGPLOT/PGPLOT.c
-^Graphics/PGPLOT/Window/Window.c
 ^Graphics/TriD/OpenGLQ/OpenGLQ\.*
 ^Graphics/TriD/OpenGLQ/blib
 ^Graphics/TriD/OpenGLQ/oglq-expand.pl$
