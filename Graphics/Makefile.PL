@@ -2,29 +2,12 @@ use strict;
 use warnings;
 use ExtUtils::MakeMaker;
 
-my @subdirs = qw(LUT IIS Limits);
-
-if (eval {
-    require OpenGL; OpenGL->VERSION(0.70); 1;
-    }) {
-    if (eval {
-	require OpenGL::GLUT; OpenGL::GLUT->VERSION(0.72); 1;
-	}) {
-	unshift @subdirs, "TriD";
-    } else {
-	print "Will not build TriD graphics, need OpenGL::GLUT >=0.72\n";
-    }
-} else {
-    print "Will not build TriD graphics, need OpenGL >=0.70 and OpenGL::GLUT >=0.72\n";
-}
-
 my @pm_names = qw (Graphics2D.pm State.pm);
 WriteMakefile(
   NAME => 'PDL',
   VERSION_FROM => '../Basic/PDL.pm',
   PM => { map {
     my $h = '$(INST_LIBDIR)/';
-    $h .= 'PDL/' if $_ !~ /PDL.pm$/;
     $h .= 'Graphics/' if $_ =~ /State.pm$/;
     ( $_, $h . $_ );
   } @pm_names },
@@ -33,6 +16,5 @@ WriteMakefile(
     $h .= 'PDL::' if $_ !~ /PDL.pm$/;
     ( $_, $h . substr($_,0,length($_)-3) . '.$(MAN3EXT)' );
   } @pm_names },
-  DIR => \@subdirs,
   NO_MYMETA => 1,
 );
