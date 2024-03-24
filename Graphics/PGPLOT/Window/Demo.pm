@@ -3,14 +3,26 @@ package PDL::Demos::PGPLOT_OO;
 # show how to use the new OO PGPLOT interface
 
 use PDL::Graphics::PGPLOT::Window;
+require File::Spec;
+use Carp;
 
 $ENV{PGPLOT_XW_WIDTH}=0.3;
-$ENV{PGPLOT_DEV}=$^O =~ /MSWin32/ ? '/GW' : "/XSERVE";
+$ENV{PGPLOT_DEV}=$^O =~ /MSWin32/ ? '/GW' : "/XW";
 
 sub info {('pgplotOO', 'PGPLOT OO interface')}
 sub init {'
 use PDL::Graphics::PGPLOT::Window;
 '}
+
+# try and find m51.fits
+my @f = qw(PDL Demos m51.fits);
+our $m51file = undef;
+foreach my $path ( @INC ) {
+    my $file = File::Spec->catfile( $path, @f );
+    if ( -f $file ) { $m51file = $file; last; }
+}
+confess "Unable to find m51.fits within the perl libraries.\n"
+    unless defined $m51file;
 
 my @demo = (
 [comment => q|
@@ -29,7 +41,7 @@ my @demo = (
     use PDL::Graphics::PGPLOT::Window;
 
     # create a window "object"
-    $dev = $^O =~ /MSWin32/ ? '/GW' : '/XSERVE';
+    $dev = $ENV{PGPLOT_DEV}; # '/XW' on X, '/GW' on Win32
     $win = PDL::Graphics::PGPLOT::Window->new( { Dev => $dev } );
 |],
 
@@ -107,13 +119,40 @@ my @demo = (
 |],
 
 [act => q|
+  # Read in an image ($m51file has been set up by this demo to
+  # contain the location of the file).
+  $m51 = rfits($|.__PACKAGE__.q|::m51file);
+  $win3 = PDL::Graphics::PGPLOT::Window->new(Dev => $dev, Size=> [6,4],
+    NX=>2, NY=>2, Ch=>2.5, HardCH=>2.5);
+  $win3->imag($m51,{Title=>"\$win3->imag(\$m51);"} );
+  $win3->fits_imag($m51,{Title=>"\$win3->fits_imag(\$m51);"});
+  $win3->imag($m51,{J=>1,Title=>"\$win3->imag(\$m51,{J=>1});"});
+  $win3->fits_imag($m51,{J=>1,Title=>"\$win3->fits_imag(\$m51,{J=>1});"});
+
+  # You should see a 6 inch (153 mm) x 4 inch (102 mm) X window with four
+  # plots in it. All four images should have tick marks on the outside of
+  # the axes.
+
+  # [ Scaled image of m51; scale   [Scaled image of m51 with scale from
+  #   in pixels on both axes ]      X=[-1.8, 2.0],Y=[-1.9, 1.9] arcmin,
+  #                                 with cal. wedge, centered in rect. frame]
+
+  # [ Square image of m51; scale   [Square image of m51 with scale as above,
+  #   in pixels on both axes;       ``shrink-wrapped'']
+  #   ``shrinkwrapped'' ]
+|],
+
+[act => q|
   # free up the windows, after finding their names
 
-  print "You've been watching " . $win->name();
-  print " and " . $win2->name() . "\n";
+  print "You've been watching ", $win->name, ", ", $win2->name, "\n";
+  print " and ", $win3->name, "\n";
 
-  $win->close();
-  $win2->close();
+  $win->close; undef $win;
+  $win2->close; undef $win2;
+  $win3->release; $win3->close; undef $win3;
+
+  print "On X Windows, you need to close the 'PGPLOT Server' window.\n";
 |],
 );
 

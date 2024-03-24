@@ -281,7 +281,9 @@ Close a PGPLOT output device
 
 =for usage
 
- Usage: close_window($id)
+ $id = dev($ENV{PGPLOT_DEV});
+ points $x, $y; # etc
+ close_window($id);
 
 This function closes a PGPLOT output device created with C<dev> or
 C<new_window>. It requires the id of the window to close. If C<$id> is
@@ -290,6 +292,10 @@ transferred to the lowest numbered window in existence. If many windows
 have been created and deleted this might not be what you expect, so
 it is recommended to make an explicit call to L</focus_window> after
 any call to C<close_window>.
+
+The C<$id> will probably need to have been passed through L</dev>
+(see usage). On X Windows, for C</XSERVE>, the window won't get closed,
+but it will with C</XWINDOW>.
 
 =cut
 

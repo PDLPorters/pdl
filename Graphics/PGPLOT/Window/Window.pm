@@ -888,7 +888,8 @@ Close a plot window
 
 Close the current window. This does not necessarily mean that the
 window is removed from your screen, but it does ensure that the
-device is closed.
+device is closed. E.g., on X Windows with C</XSERVE>, the window won't
+get closed, but it will with C</XWINDOW>.
 
 A message will be printed to STDOUT giving the name of the
 file created if the plot was made to a hardcopy device and
