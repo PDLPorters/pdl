@@ -95,7 +95,16 @@ my $w = PDL::Graphics::PGPLOT::Window->new(
 );
 isa_ok($w, "PDL::Graphics::PGPLOT::Window");
 
-my $x = rfits('../../m51.fits');
+# try and find m51.fits
+my @f = qw(PDL Demos m51.fits);
+our $m51file = undef;
+foreach my $path ( @INC ) {
+    my $file = File::Spec->catfile( $path, @f );
+    if ( -f $file ) { $m51file = $file; last; }
+}
+die "Unable to find m51.fits within the perl libraries.\n"
+    unless defined $m51file;
+my $x = rfits($m51file);
 
 ##############################
 # Page 1
