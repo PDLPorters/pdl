@@ -5209,8 +5209,8 @@ PDL::broadcast_define('_tpoints(a(n);b(n);ind()), NOtherPars => 2',
                 }
 
                 if(defined($miss)) {
-                    my $mpt = defined $miss ? $miss->slice("$pos:$top") : undef;
-                    pggapline($x0->nelem,$miss->slice("$pos:$top"),$x0->get_dataref, $y0->get_dataref);
+                    my $mpt = $miss->slice("$pos:$top");
+                    pggapline($x0->nelem,$mpt,$x0->get_dataref, $y0->get_dataref);
                 } else {
                     pgline($x0->nelem,$x0->get_dataref,$y0->get_dataref,);
                 }

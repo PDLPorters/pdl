@@ -63,6 +63,12 @@ my @demo = (
 |],
 
 [act => q|
+    # A ::Window-only feature: gaps in lines with MISSING option
+    #   (the value is for the $y):
+    $win->line( $x, $y, {MISSING => 8} );
+|],
+
+[act => q|
     # You can do all the things you did before ...
 
     $win->points( $x, $y, {Symbol=>4} );
