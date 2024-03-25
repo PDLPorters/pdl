@@ -16,7 +16,7 @@ jobs:
       - uses: actions/checkout@v2
         with:
           repository: PDLPorters/devops
-          ref: master
+          ref: pgplot-downstream
           path: .github/devops
       - run: make -C .github/devops/docker -f Makefile.docker docker.pdl PATH_TO_PDL=$(pwd)
       - run: docker save pdl:latest --output pdl-latest.tar
@@ -45,7 +45,7 @@ jobs:
       - uses: actions/checkout@v2
         with:
           repository: PDLPorters/devops
-          ref: master
+          ref: pgplot-downstream
           path: .github/devops
       - uses: perl-actions/install-with-cpanm@v1
       - run: |
