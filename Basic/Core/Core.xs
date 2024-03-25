@@ -450,17 +450,17 @@ get_autopthread_dim()
 void
 _ci(...)
  PPCODE:
-  PDL_XS_SCALAR(PDL_CD, 0 + 1I)
+  PDL_XS_SCALAR(PDL_CD, C, 0 + 1I)
 
 void
 _nan(...)
  PPCODE:
-  PDL_XS_SCALAR(PDL_D, (PDL_Double)NAN)
+  PDL_XS_SCALAR(PDL_D, D, NAN)
 
 void
 _inf(...)
  PPCODE:
-  PDL_XS_SCALAR(PDL_D, INFINITY)
+  PDL_XS_SCALAR(PDL_D, D, INFINITY)
 
 MODULE = PDL::Core     PACKAGE = PDL::Trans
 
