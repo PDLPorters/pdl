@@ -19,7 +19,8 @@ print OUT <<'EOF';
 #define __PDLPERL_H
 
 #define PDL_XS_SCALAR(type, ppsym, val) \
-  PDL_Anyval av = {type, {.ppsym=val}}; \
+  PDL_Anyval av = {PDL_CLD, {.H=0 + 1I}}; /* guarantee all bits set */ \
+  av = (PDL_Anyval){type, {.ppsym=val}}; \
   pdl *b = pdl_scalar(av); \
   if (!b) XSRETURN_UNDEF; \
   SV *b_SV = sv_newmortal(); \
