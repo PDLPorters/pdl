@@ -28,7 +28,9 @@ $im->badflag(1);
 sub pdl_cmp {
   my ($g, $e, $l) = @_;
   local $Test::Builder::Level = $Test::Builder::Level + 1;
-  ok all(approx($g, pdl($e), 1.1)), $l or diag "got:\n$g\nexpected:\n$e";
+  my $res = all(approx($g, pdl($e), 1.1));
+  fail("$l: result was BAD value"), return if $res->isbad;
+  ok $res, $l or diag "got:\n$g\nexpected:\n$e";
 }
 
 SKIP: {
