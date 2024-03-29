@@ -47,16 +47,26 @@ my @d = qw(PDL Demos);
 sub list {
   return @found if $searched;
   $searched = 1;
+  my %found_already;
   foreach my $path ( @INC ) {
     next if !-d (my $dir = File::Spec->catdir( $path, @d ));
-    my @c = do { opendir my $dirfh, $dir or die "$dir: $!"; readdir $dirfh };
-    my @files = grep /\.pm$/ && -f File::Spec->catfile( $dir, $_ ), @c;
-    s/\.pm//, push(@found, "PDL::Demos::$_") for @files;
-    for my $subd (grep !/^\./ && -d File::Spec->catdir( $dir, $_ ), @c) {
+    my @c = do { opendir my $dirfh, $dir or die "$dir: $!"; grep !/^\./, readdir $dirfh };
+    for my $f (grep /\.pm$/ && -f File::Spec->catfile( $dir, $_ ), @c) {
+      $f =~ s/\.pm//;
+      my $found_mod = join "::", @d, $f;
+      next if $found_already{$found_mod}++;
+      push @found, $found_mod;
+    }
+    for my $t (grep -d $_->[1], map [$_, File::Spec->catdir( $dir, $_ )], @c) {
+      my ($subname, $subd) = @$t;
       # one extra level
-      my @c = do { open my $dirfh, $dir or die "$dir: $!"; readdir $dirfh };
-      my @files = grep /\.pm$/ && -f File::Spec->catfile( $dir, $_ ), @c;
-      s/\.pm//, push(@found, "PDL::Demos::$subd\::$_") for @files;
+      my @c = do { opendir my $dirfh, $subd or die "$subd: $!"; grep !/^\./, readdir $dirfh };
+      for my $f (grep /\.pm$/ && -f File::Spec->catfile( $subd, $_ ), @c) {
+        $f =~ s/\.pm//;
+        my $found_mod = join "::", @d, $subname, $f;
+        next if $found_already{$found_mod}++;
+        push @found, $found_mod;
+      }
     }
   }
   @found;
