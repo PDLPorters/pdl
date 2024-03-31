@@ -47,7 +47,7 @@ Define a new contour plot for TriD.
 where $d is a 2D pdl of data to be contoured. [$x,$y,$z] define a 3D
 map of $d into the visualization space [$r,$g,$b] is an optional [3,1]
 ndarray specifying the contour color and $options is a hash reference to
-a list of options documented below.  Contours can also be colored by
+a list of options documented below.  Contours can also be coloured by
 value using the set_color_table function.
 
 =for opt
