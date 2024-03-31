@@ -73,7 +73,6 @@ RCS
 ^Basic/Ufunc/Ufunc\.c
 ^Basic/Ufunc/Ufunc\.pm
 ^Basic/Ufunc/Ufunc\.xs
-^Demos/TkTriD_demo.pm$
 ^Doc/Doc/Config.pm$
 ^Doc/Pod/pod2usage$
 ^Doc/Pod/podselect$

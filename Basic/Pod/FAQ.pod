@@ -1171,40 +1171,13 @@ appropriate slices of the 3D ndarray C<$cube> .
 
 =head2 Q: 6.20   Where are test files for the graphics modules?  
 
-
-This answer applies mainly to PDL::Graphics::TriD (PDL's device
-independent 3D graphics model) which is the trickiest one in this
-respect. You find some test scripts in Demos/TriD in the distribution.
-There are also F<3dtest.pl> and F<line3d.pl> in the PDL/Example/TriD
-directory.  After you have built PDL you can do:
-
-    perl -Mblib Example/TriD/3dtest.pl
-
-    perl -Mblib Example/TriD/line3d.pl
-
-to try the two TriD test programs.  They only exercise one TriD function
-each but their simplicity makes it easy to debug if needed with the
-Perl debugger, see L<perldebug>.
-
-The programs in the Demo directory can be run most easily from the
+The demo programs can be run most easily from the
 C<perldl> or C<pdl2> interactive shell:
 
     perl -Mblib perldl  or  perl -Mblib Perldl2/pdl2
 
 followed by C<demo 3d> or C<demo 3d2> at the prompt.
 C<demo> by itself will give you a list of the available PDL demos.
-
-You can run the test scripts in the Demos/TriD directory manually
-by changing to that directory and running
-
-    perl -Mblib <testfile>
-
-
-where C<< testfile >> ; should match the pattern C<test[3-9].p>
-and watch the results. Some of the tests should bring up a window
-where you can control (twiddle) the 3D objects with the mouse. Try using
-mouse button 1 for turning the objects in 3D space, mouse button 3
-to zoom in and out, and 'q' to advance to the next stage of the test.
 
 
 =head2 Q: 6.21   What is TriD or PDL::TriD or PDL::Graphics::TriD?  

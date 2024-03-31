@@ -14,4 +14,11 @@ WriteMakefile (
   NAME         => "PDL::Graphics::TriD",
   VERSION_FROM => '../../Basic/PDL.pm',
   NO_MYMETA => 1,
+  PM => {
+    'TriD.pm' => '$(INST_LIBDIR)/TriD.pm',
+    (map +($_ => '$(INST_LIBDIR)/'.$_), glob 'TriD/*.pm'),
+    'DemoTriD1.pm' => '$(INST_LIB)/PDL/Demos/TriD1.pm',
+    'DemoTriD2.pm' => '$(INST_LIB)/PDL/Demos/TriD2.pm',
+    'DemoTriDGallery.pm' => '$(INST_LIB)/PDL/Demos/TriDGallery.pm',
+  },
 );
