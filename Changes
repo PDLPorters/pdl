@@ -1,4 +1,5 @@
 - fix 64-bit problem in Minuit revealed by LTO (#468) - thanks @eli-schwartz for report
+- add pdl.ntrans_children to speed up destroying ndarrays (#421,#451)
 
 2.085_02 2024-03-25
 - PP add loop(n=value) idiom to start not at 0

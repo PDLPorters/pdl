@@ -193,6 +193,7 @@ pdl* pdl_pdlnew() {
      PDL_Indx i;
      for(i=0; i<PDL_NCHILDREN; i++) {it->trans_children.trans[i]=NULL;}
      it->trans_children.next = NULL;
+     it->ntrans_children = 0;
      it->magic = 0;
      it->hdrsv = 0;
      PDLDEBUG_f(printf("pdl_pdlnew %p (size=%zu)\n",(void*)it,sizeof(pdl)));
@@ -303,6 +304,7 @@ void pdl__removetrans_children(pdl *it,pdl_trans *trans)
 		if (PDL_CHILDLOOP_THISCHILD(it) != trans) continue;
 		PDL_CHILDLOOP_THISCHILD(it) = NULL;
 		flag = 1;
+		it->ntrans_children--;
 		/* Can't return; might be many times (e.g. $x+$x) */
 	PDL_END_CHILDLOOP(it)
 	/* this might be due to a croak when performing the trans; so
@@ -602,6 +604,7 @@ pdl_error pdl__addchildtrans(pdl *it,pdl_trans *trans)
 	    if (c->next) { c=c->next; continue; } else {
 		for(i=0; i<PDL_NCHILDREN; i++)
 		    if(! c->trans[i]) {
+			it->ntrans_children++;
 			c->trans[i] = trans; return PDL_err;
 		    }
 		break;
@@ -610,6 +613,7 @@ pdl_error pdl__addchildtrans(pdl *it,pdl_trans *trans)
 	c = c->next = malloc(sizeof(pdl_trans_children));
 	if (!c) return pdl_make_error_simple(PDL_EFATAL, "Out of Memory\n");
 	c->trans[0] = trans;
+	it->ntrans_children++;
 	for(i=1; i<PDL_NCHILDREN; i++)
 		c->trans[i] = 0;
 	c->next = 0;

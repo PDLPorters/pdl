@@ -549,6 +549,7 @@ struct pdl {
 
    void *hdrsv; /* "header", settable from Perl */
    PDL_Value value; /* to store at least one value */
+   PDL_Indx ntrans_children; /* CORE21 put next to other trans-tracking stuff */
 };
 
 typedef struct pdl_slice_args {
@@ -563,20 +564,22 @@ typedef struct pdl_slice_args {
  * Some macros for looping over the trans_children of a given PDL
  */
 #define PDL_DECL_CHILDLOOP(p) \
-                int p##__i; pdl_trans_children *p##__c;
+  int p##__i; pdl_trans_children *p##__c; PDL_Indx p##__unfound;
 #define PDL_START_CHILDLOOP(p) \
-                p##__c = &p->trans_children; \
-                do { \
-                        for(p##__i=0; p##__i<PDL_NCHILDREN; p##__i++) { \
-                                if(p##__c->trans[p##__i]) {
+  p##__c = &p->trans_children; p##__unfound = p->ntrans_children; \
+  do { \
+    if (p##__unfound <= 0) break; \
+    for (p##__i=0; p##__i<PDL_NCHILDREN; p##__i++) { \
+      if (p##__c->trans[p##__i]) { \
+        p##__unfound--;
 #define PDL_CHILDLOOP_THISCHILD(p) p##__c->trans[p##__i]
 #define PDL_END_CHILDLOOP(p) \
-                                } \
-                        } \
-                        if(!p##__c) break; \
-                        if(!p##__c->next) break; \
-                        p##__c=p##__c->next; \
-                } while(1);
+      } \
+    } \
+    if (!p##__c) break; \
+    if (!p##__c->next) break; \
+    p##__c=p##__c->next; \
+  } while (1);
 
 #define PDL_USESTRUCTVALUE(it) \
         (it->nbytes <= sizeof(it->value))
