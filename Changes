@@ -1,3 +1,5 @@
+- fix 64-bit problem in Minuit revealed by LTO (#468) - thanks @eli-schwartz for report
+
 2.085_02 2024-03-25
 - PP add loop(n=value) idiom to start not at 0
 - add whichover, inspired by https://stackoverflow.com/questions/77551179/perl-pdl-indexing-and-which

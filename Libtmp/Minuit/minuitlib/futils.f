@@ -1,6 +1,6 @@
       subroutine abre(n,nombre,mode)
 
-      integer n
+      integer*8 n
       character*(*) nombre
       character*(*) mode
 
@@ -10,7 +10,7 @@
 
       subroutine cierra(n)
 
-      integer n
+      integer*8 n
       
       close(n)
 
