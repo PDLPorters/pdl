@@ -2174,6 +2174,8 @@ EOF
 Seed random-number generator with a 64-bit int. Will generate seed data
 for a number of threads equal to the return-value of
 L<PDL::Core/online_cpus>.
+As of 2.062, the generator changed from Perl's generator to xoshiro256++
+(see L<https://prng.di.unimi.it/>).
 
 =for usage
 
@@ -2218,6 +2220,8 @@ a template.
 
 You can use the PDL function L</srand> to seed the random generator.
 If it has not been called yet, it will be with the current time.
+As of 2.062, the generator changed from Perl's generator to xoshiro256++
+(see L<https://prng.di.unimi.it/>).
 EOF
 	PMCode=>pp_line_numbers(__LINE__, <<'EOD'),
 sub random { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? $_[0]->random : PDL->random(@_) }
