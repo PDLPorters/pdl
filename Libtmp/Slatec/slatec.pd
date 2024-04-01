@@ -45,10 +45,10 @@ another application.
 These routines are cryptically named (blame FORTRAN), 
 beginning with 'ch', and accept either float or double ndarrays. 
 
-Most of the routines require an integer parameter called C<check>;
-if set to 0, then no checks on the validity of the input data are
+Most of the routines require an integer parameter called C<skip>;
+if set to 1, then no checks on the validity of the input data are
 made, otherwise these checks are made.
-The value of C<check> can be set to 0 if a routine
+The value of C<skip> can be set to 1 if a routine
 such as L</chim> has already been successfully called.
 
 =over 4
@@ -1085,7 +1085,7 @@ defslatec(
            Mat          f       (n);
            Mat          d       (n);
            Incfd        incfd;
-           IntCopy      check   ();
+           IntCopy      skip    ();
            Dim          ne;
            Mat          xe      (ne);
            Mat     [o]  fe      (ne);
@@ -1096,7 +1096,7 @@ defslatec(
 L</chim> - evaluate the function (C<$fe>) and 
 derivative (C<$de>) at a set of points (C<$xe>).
 If function values alone are required, use L</chfe>.
-Set C<check> to 0 to skip checks on the input data.
+Set C<skip> to 0 to skip checks on the input data.
 
 Error status returned by C<$ierr>:
 
@@ -1143,7 +1143,7 @@ defslatec(
            Mat          f       (n);
            Mat          d       (n);
            Incfd        incfd;
-           IntCopy      check    ();
+           IntCopy      skip    ();
            Dim          ne;
            Mat          xe      (ne);
            Mat     [o]  fe      (ne);
@@ -1153,7 +1153,7 @@ defslatec(
 L</chim> - evaluate the function (C<$fe>) at
 a set of points (C<$xe>).
 If derivative values are also required, use L</chfd>.
-Set C<check> to 0 to skip checks on the input data.
+Set C<skip> to 0 to skip checks on the input data.
 
 Error status returned by C<$ierr>:
 
@@ -1195,7 +1195,7 @@ defslatec(
            Mat          f       (n);
            Mat          d       (n);
            Incfd        incfd;
-           IntCopy      check    ();
+           IntCopy      skip    ();
            Mat          la    ();
            Mat          lb    ();
            FuncRet [o]  ans     ();
@@ -1206,7 +1206,7 @@ cubic Hermite function over an arbitrary interval,
 given by C<[$la,$lb]>. C<$d> should contain the derivative values, computed by L</chim>.
 See L</chid> if the integration limits are
 data points.
-Set C<check> to 0 to skip checks on the input data.
+Set C<skip> to 0 to skip checks on the input data.
 
 The values of C<$la> and C<$lb> do not have
 to lie within C<$x>, although the resulting integral
@@ -1260,7 +1260,7 @@ defslatec(
            Mat          f       (n);
            Mat          d       (n);
            Incfd        incfd;
-           IntCopy      check    ();
+           IntCopy      skip    ();
            FortranIndex ia      ();
            FortranIndex ib      ();
            FuncRet [o]  ans     ();
@@ -1276,7 +1276,7 @@ limits.
 Although using a fortran routine, the values of
 C<$ia> and C<$ib> are zero offset.
 C<$d> should contain the derivative values, computed by L</chim>.
-Set C<check> to 0 to skip checks on the input data.
+Set C<skip> to 0 to skip checks on the input data.
 
 Error status returned by C<$ierr>:
 
@@ -1313,13 +1313,13 @@ defslatec(
            Mat          f       (n);
            Mat          d       (n);
            Incfd        incfd;
-           IntCopy      check    ();
+           IntCopy      skip    ();
            Integer [o]  ismon   (n);
            Integer [o]  ierr    ();
           ',
 'The outout ndarray C<$ismon> indicates over
 which intervals the function is monotonic.
-Set C<check> to 0 to skip checks on the input data.
+Set C<skip> to 0 to skip checks on the input data.
 
 For the data interval C<[x(i),x(i+1)]>, the
 values of C<ismon(i)> can be:
