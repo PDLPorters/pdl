@@ -248,11 +248,17 @@ my $got = $A x $x;
 ok tapprox $got, $B or diag "got: $got";
 
 {
-my $pa = pdl(float,1,-1,1,-1);
+my $pa = pdl(float,1,-1,1,-1); # even number
 my ($az, $x, $y) = PDL::Slatec::fft($pa);
 ok all approx $az, 0;
 ok all approx $x, pdl "[0 1 0 0]";
 ok all approx $y, pdl "[0 0 0 0]";
+ok all approx PDL::Slatec::rfft($az, $x, $y), $pa;
+$pa = pdl(float,1,-1,1,-1,1); # odd number
+($az, $x, $y) = PDL::Slatec::fft($pa);
+ok all approx $az, 0.2;
+ok all approx $x, pdl "[0.4 0.4 0 0 0]";
+ok all approx $y, pdl "[-0.2906170 -1.231073 0 0 0]";
 ok all approx PDL::Slatec::rfft($az, $x, $y), $pa;
 }
 
