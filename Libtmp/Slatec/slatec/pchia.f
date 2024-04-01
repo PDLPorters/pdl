@@ -114,7 +114,7 @@ C
       implicit integer*8(i-n)
       INTEGER*8  N, INCFD, IERR
       REAL  X(*), F(INCFD,*), D(INCFD,*), A, B
-      LOGICAL  SKIP
+      INTEGER*4  SKIP
 C
 C  DECLARE LOCAL VARIABLES.
 C
@@ -131,7 +131,7 @@ C***FIRST EXECUTABLE STATEMENT  PCHIA
 C
 C  VALIDITY-CHECK ARGUMENTS.
 C
-      IF (SKIP)  GO TO 5
+      IF (SKIP.NE.0)  GO TO 5
 C
       IF ( N.LT.2 )  GO TO 5001
       IF ( INCFD.LT.1 )  GO TO 5002
