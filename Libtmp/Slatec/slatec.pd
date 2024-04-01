@@ -364,10 +364,17 @@ sub defslatec {
     my $funcargs = join ',', map $KIND2I{$_->[0]}[1]->($_, \%lds), @args2;
 
     my @protos = map $KIND2I{$_->[0]}[2], @args2;
+    my @cheaders;
     foreach my $t ( @talts ) {
-	pp_addhdr((defined $fpar ? "$prototype{$t->[0]} " : "PDL_LongLong ")
-	  . "PDL_FORTRAN($t->[1])(" .
-	  join(',', map $_->($t->[0]), @protos) . ");\n");
+        my @decl_args;
+        for my $ind (0..$#protos) {
+          my $arg = $protos[$ind];
+          next unless my @ret = $arg->($t->[0]);
+          push @decl_args, "$ret[0]$args2[$ind][2]";
+        }
+        push @cheaders, (defined $fpar ? $prototype{$t->[0]} : "void")
+          . " PDL_FORTRAN($t->[1])(" .
+          join(',', @decl_args) . ");";
     }
 
     # add on the function reference, if supplied, to the start of
@@ -387,6 +394,7 @@ sub defslatec {
 pp_def('$pname',
   Pars => '$pars',
   Code => '$code',
+  CHeader => '@cheaders',
   GenericTypes => [@{[join ", ", map $_->[0], @talts]}],
   Doc => '$docstring',
 );
@@ -394,6 +402,7 @@ ENDDBG
     pp_def($pname,
       Pars => $pars,
       Code => $code,
+      CHeader => join("\n", @cheaders),
       GenericTypes => [map $_->[0], @talts],
       Doc => $docstring,
     );
