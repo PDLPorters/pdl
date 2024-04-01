@@ -1502,6 +1502,10 @@ pp_def('polfit',
   GenericTypes => ['F','D'],
   HandleBad => 1,
   NoBadifNaN => 1,
+  CHeader => <<'EOF',
+void PDL_FORTRAN(dpcoef)(PDL_LongLong *l,PDL_Double *c,PDL_Double *tc,PDL_Double *a);
+void PDL_FORTRAN(pcoef)(PDL_LongLong *l,PDL_Float *c,PDL_Float *tc,PDL_Float *a);
+EOF
   Code => 'PDL_LongLong howmany = PDL_IF_BAD(0,$SIZE(n)), i;
               if($SIZE(n)<$maxdeg())
                 $CROAK("Must have at least <n> points to fit <n> coefficients");
