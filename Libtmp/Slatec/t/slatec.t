@@ -210,14 +210,14 @@ $f = $x * $x;
 ( $d, $err ) = chim($x, $f);
 
 $ans = pdl( 9.0**3, (8.0**3-1.0**3) ) / 3.0;
-( my $int, $err ) = chia($x, $f, $d, 1, pdl(0.0,1.0), pdl(9.0,8.0));
+( my $int, $err ) = chia($x, $f, $d, my $skip=zeroes(2), pdl(0.0,1.0), pdl(9.0,8.0));
 ok(all($err == 0));
 ok(all( abs($int-$ans) < 0.04 ) );
 
 my $hi = pdl( $x->at(9), $x->at(7) );
 my $lo = pdl( $x->at(0), $x->at(1) );
 $ans = ($hi**3 - $lo**3) / 3;
-( $int, $err ) = chid( $x, $f, $d, 1, pdl(0,1), pdl(9,7) );
+( $int, $err ) = chid( $x, $f, $d, $skip=zeroes(2), pdl(0,1), pdl(9,7) );
 ok(all($err == 0));
 ok(all( abs($int-$ans) < 0.06 ) );
 ## print STDERR "int=$int; ans=$ans; int-ans=".($int-$ans)."\n";

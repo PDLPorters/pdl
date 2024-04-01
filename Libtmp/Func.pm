@@ -738,7 +738,13 @@ sub _interp_hermite {
     # get gradient
     my $g = $self->_get_value( 'g' );
 
-    my ( $yi, $ierr ) = chfe( $x, $y, $g, 0, $xi );
+    my @highest_dims;
+    for my $param ($x,$y,$g,$xi) {
+      my @this_dims = $param->dims;
+      @highest_dims = @this_dims if @this_dims > @highest_dims;
+    }
+    shift @highest_dims; # don't care about bottom one
+    my ( $yi, $ierr ) = chfe( $x, $y, $g, PDL->ones(PDL::long(),@highest_dims), $xi );
     $self->{flags}{routine} = "chfe";
     $self->_set_value( err => $ierr );
 

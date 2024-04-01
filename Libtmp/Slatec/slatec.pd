@@ -295,11 +295,8 @@ sub intcopy {
 #       (this allows the PCHIP routines to use 2D data, but as it's
 #        done in FORTRAN array order, and PDL has a much richer way
 #        of accessing parts of an array we force the data to be 1D).
-#   IntCopy
-#     - the PCHIP routines may change the value from 0 to 1 if an
-#       error occurs but the checks were successful. As this complicates
-#       things we copy the user value to a temporary variable,
-#       so that the sent in value is not changed.
+#   Logical
+#     - A Fortran Boolean, defined as same size as REAL/INTEGER so 'long'
 #   FortranIndex
 #     - pchid()/dpchid() require FORTRAN array indices, so 
 #       this type flags that we should add 1 onto the input values
@@ -319,7 +316,7 @@ my %KIND2I = (
     # convert from C to F77 index so add 1
   FortranIndex => ['longlong ', intcopy(sub {$_[0][2]}, sub {"\$$_[0][2]() + 1"})],
   Integer => ['longlong ', sub{"\$P($_[0][2])"}, sub {"PDL_LongLong *"}],
-  IntCopy => ['longlong ', intcopy(sub {$_[0][2]}, sub {"\$$_[0][2]()"})],
+  Logical => ['int ', sub{"\$P($_[0][2])"}, sub {"PDL_Long *"}],
   Dim => [undef, intcopy(sub {"dim_$_[0][2]"}, sub {"\$SIZE($_[0][2])"})],
   MDim => [undef, intcopy(sub {$_[0][2]}, sub {$_[1]{$_[0][2]}})],
   Incfd => [undef, intcopy(sub {$_[0][2]}, sub {1})],
@@ -1085,7 +1082,7 @@ defslatec(
            Mat          f       (n);
            Mat          d       (n);
            Incfd        incfd;
-           IntCopy      skip    ();
+           Logical [io] skip    ();
            Dim          ne;
            Mat          xe      (ne);
            Mat     [o]  fe      (ne);
@@ -1143,7 +1140,7 @@ defslatec(
            Mat          f       (n);
            Mat          d       (n);
            Incfd        incfd;
-           IntCopy      skip    ();
+           Logical [io] skip    ();
            Dim          ne;
            Mat          xe      (ne);
            Mat     [o]  fe      (ne);
@@ -1195,7 +1192,7 @@ defslatec(
            Mat          f       (n);
            Mat          d       (n);
            Incfd        incfd;
-           IntCopy      skip    ();
+           Logical [io] skip    ();
            Mat          la    ();
            Mat          lb    ();
            FuncRet [o]  ans     ();
@@ -1260,7 +1257,7 @@ defslatec(
            Mat          f       (n);
            Mat          d       (n);
            Incfd        incfd;
-           IntCopy      skip    ();
+           Logical [io] skip    ();
            FortranIndex ia      ();
            FortranIndex ib      ();
            FuncRet [o]  ans     ();
@@ -1313,7 +1310,7 @@ defslatec(
            Mat          f       (n);
            Mat          d       (n);
            Incfd        incfd;
-           IntCopy      skip    ();
+           Logical [io] skip    ();
            Integer [o]  ismon   (n);
            Integer [o]  ierr    ();
           ',

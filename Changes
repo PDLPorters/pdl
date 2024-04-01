@@ -1,3 +1,5 @@
+- Slatec PCHIP routines now have idiomatic [io] `skip` Pars, with doc fixed to match SLATEC code (#468)
+
 2.086 2024-03-31
 - fix 64-bit problem in Minuit revealed by LTO (#468) - thanks @eli-schwartz for report
 - add pdl.ntrans_children to speed up destroying ndarrays (#421,#451)
