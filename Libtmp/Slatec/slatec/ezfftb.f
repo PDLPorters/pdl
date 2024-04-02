@@ -31,7 +31,7 @@ C
 C          If N is even, N/2    locations are required.
 C          If N is odd, (N-1)/2 locations are required
 C
-C  WSAVE   a work array which must be dimensioned at least 3*N+15
+C  WSAVE   a work array which must be dimensioned at least 3*N+30
 C          in the program that calls EZFFTB.  The WSAVE array must be
 C          initialized by calling subroutine EZFFTI(N,WSAVE), and a
 C          different WSAVE array must be used for each different

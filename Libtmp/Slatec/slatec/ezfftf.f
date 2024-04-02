@@ -24,7 +24,7 @@ C  R       a real array of length N which contains the sequence
 C          to be transformed.  R is not destroyed.
 C
 C
-C  WSAVE   a work array which must be dimensioned at least 3*N+15
+C  WSAVE   a work array which must be dimensioned at least 3*N+30
 C          in the program that calls EZFFTF.  The WSAVE array must be
 C          initialized by calling subroutine EZFFTI(N,WSAVE), and a
 C          different WSAVE array must be used for each different

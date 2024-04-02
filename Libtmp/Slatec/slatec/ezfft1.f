@@ -25,7 +25,6 @@ C   891214  Prologue converted to Version 4.0 format.  (BAB)
 C   900402  Added TYPE section.  (WRB)
 C***END PROLOGUE  EZFFT1
       implicit integer*8(i-n)
-      integer*4 IFAC
       DIMENSION WA(*), IFAC(*), NTRYH(4)
       SAVE NTRYH
       DATA NTRYH(1),NTRYH(2),NTRYH(3),NTRYH(4)/4,2,3,5/

@@ -20,7 +20,7 @@ C  N       the length of the sequence to be transformed.
 C
 C  Output Parameter
 C
-C  WSAVE   a work array which must be dimensioned at least 3*N+15.
+C  WSAVE   a work array which must be dimensioned at least 3*N+30.
 C          The same work array can be used for both EZFFTF and EZFFTB
 C          as long as N remains unchanged.  Different WSAVE arrays
 C          are required for different values of N.
