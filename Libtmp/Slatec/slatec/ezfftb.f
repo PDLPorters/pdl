@@ -1,5 +1,5 @@
 *DECK EZFFTB
-      SUBROUTINE EZFFTB (N, R, AZERO, A, B, WSAVE)
+      SUBROUTINE EZFFTB (N, R, AZERO, A, B, WSAVE, IFAC)
 C***BEGIN PROLOGUE  EZFFTB
 C***PURPOSE  A simplified real, periodic, backward fast Fourier
 C            transform.
@@ -31,14 +31,16 @@ C
 C          If N is even, N/2    locations are required.
 C          If N is odd, (N-1)/2 locations are required
 C
-C  WSAVE   a work array which must be dimensioned at least 3*N+30
+C  WSAVE   a work array which must be dimensioned at least 3*N
 C          in the program that calls EZFFTB.  The WSAVE array must be
-C          initialized by calling subroutine EZFFTI(N,WSAVE), and a
+C          initialized by calling subroutine EZFFTI(N,WSAVE,IFAC), and a
 C          different WSAVE array must be used for each different
 C          value of N.  This initialization does not have to be
 C          repeated so long as N remains unchanged.  Thus subsequent
 C          transforms can be obtained faster than the first.
 C          The same WSAVE array can be used by EZFFTF and EZFFTB.
+C
+C  IFAC    integer array which must be dimensioned at least 15
 C
 C  Output Parameters
 C
@@ -100,7 +102,7 @@ C   891214  Prologue converted to Version 4.0 format.  (BAB)
 C   920501  Reformatted the REFERENCES section.  (WRB)
 C***END PROLOGUE  EZFFTB
       implicit integer*8(i-n)
-      DIMENSION R(*), A(*), B(*), WSAVE(*)
+      DIMENSION R(*), A(*), B(*), WSAVE(*), IFAC(*)
 C***FIRST EXECUTABLE STATEMENT  EZFFTB
       IF (N-2) 101,102,103
   101 R(1) = AZERO
@@ -115,6 +117,6 @@ C***FIRST EXECUTABLE STATEMENT  EZFFTB
   104 CONTINUE
       R(1) = AZERO
       IF (MOD(N,2) .EQ. 0) R(N) = A(NS2+1)
-      CALL RFFTB (N,R,WSAVE(N+1))
+      CALL RFFTB1 (N,R,WSAVE,WSAVE(N+1),IFAC)
       RETURN
       END

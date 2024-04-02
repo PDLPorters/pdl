@@ -1,5 +1,5 @@
 *DECK EZFFTI
-      SUBROUTINE EZFFTI (N, WSAVE)
+      SUBROUTINE EZFFTI (N, WSAVE, IFAC)
 C***BEGIN PROLOGUE  EZFFTI
 C***PURPOSE  Initialize a work array for EZFFTF and EZFFTB.
 C***LIBRARY   SLATEC (FFTPACK)
@@ -20,10 +20,12 @@ C  N       the length of the sequence to be transformed.
 C
 C  Output Parameter
 C
-C  WSAVE   a work array which must be dimensioned at least 3*N+30.
+C  WSAVE   a work array which must be dimensioned at least 3*N.
 C          The same work array can be used for both EZFFTF and EZFFTB
 C          as long as N remains unchanged.  Different WSAVE arrays
 C          are required for different values of N.
+C
+C  IFAC    integer array which must be dimensioned at least 15
 C
 C***REFERENCES  P. N. Swarztrauber, Vectorizing the FFTs, in Parallel
 C                 Computations (G. Rodrigue, ed.), Academic Press,
@@ -40,9 +42,9 @@ C   891214  Prologue converted to Version 4.0 format.  (BAB)
 C   920501  Reformatted the REFERENCES section.  (WRB)
 C***END PROLOGUE  EZFFTI
       implicit integer*8(i-n)
-      DIMENSION WSAVE(*)
+      DIMENSION WSAVE(*), IFAC(*)
 C***FIRST EXECUTABLE STATEMENT  EZFFTI
       IF (N .EQ. 1) RETURN
-      CALL EZFFT1 (N,WSAVE(2*N+1),WSAVE(3*N+1))
+      CALL EZFFT1 (N,WSAVE(2*N+1),IFAC)
       RETURN
       END

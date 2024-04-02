@@ -1,5 +1,5 @@
 *DECK EZFFTF
-      SUBROUTINE EZFFTF (N, R, AZERO, A, B, WSAVE)
+      SUBROUTINE EZFFTF (N, R, AZERO, A, B, WSAVE, IFAC)
 C***BEGIN PROLOGUE  EZFFTF
 C***PURPOSE  Compute a simplified real, periodic, fast Fourier forward
 C            transform.
@@ -24,14 +24,16 @@ C  R       a real array of length N which contains the sequence
 C          to be transformed.  R is not destroyed.
 C
 C
-C  WSAVE   a work array which must be dimensioned at least 3*N+30
+C  WSAVE   a work array which must be dimensioned at least 3*N
 C          in the program that calls EZFFTF.  The WSAVE array must be
-C          initialized by calling subroutine EZFFTI(N,WSAVE), and a
+C          initialized by calling subroutine EZFFTI(N,WSAVE,IFAC), and a
 C          different WSAVE array must be used for each different
 C          value of N.  This initialization does not have to be
 C          repeated so long as N remains unchanged.  Thus subsequent
 C          transforms can be obtained faster than the first.
 C          The same WSAVE array can be used by EZFFTF and EZFFTB.
+C
+C  IFAC    integer array which must be dimensioned at least 15
 C
 C  Output Parameters
 C
@@ -71,7 +73,7 @@ C   891214  Prologue converted to Version 4.0 format.  (BAB)
 C   920501  Reformatted the REFERENCES section.  (WRB)
 C***END PROLOGUE  EZFFTF
       implicit integer*8(i-n)
-      DIMENSION R(*), A(*), B(*), WSAVE(*)
+      DIMENSION R(*), A(*), B(*), WSAVE(*), IFAC(*)
 C***FIRST EXECUTABLE STATEMENT  EZFFTF
       IF (N-2) 101,102,103
   101 AZERO = R(1)
@@ -82,7 +84,7 @@ C***FIRST EXECUTABLE STATEMENT  EZFFTF
   103 DO 104 I=1,N
          WSAVE(I) = R(I)
   104 CONTINUE
-      CALL RFFTF (N,WSAVE,WSAVE(N+1))
+      CALL RFFTF1 (N,WSAVE,WSAVE(N+1),WSAVE(2*N+1),IFAC)
       CF = 2./N
       CFM = -CF
       AZERO = .5*CF*WSAVE(1)

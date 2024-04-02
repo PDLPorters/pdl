@@ -484,29 +484,20 @@ sub PDL::detslatec {
 	return $det->slice('(0)')*10**$det->slice('(1)');
 }
 
-
 sub prepfft {
 	my($n) = @_;
-	my $tmp = PDL->zeroes(float(),$n*3+30);
-	$n = pdl $n;
-	ezffti($n,$tmp);
-	return $tmp;
+	my $ifac = ezffti($n,my $wsave = PDL->zeroes(float(),$n*3));
+	return ($wsave, $ifac);
 }
 
 sub fft (;@) {
-	my($v) = @_;
-	my $ws = prepfft($v->getdim(0));
-	ezfftf($v,(my $az = PDL->null), (my $x = PDL->null),
-		  (my $y = PDL->null), $ws);
-	return ($az,$x,$y);
+	my ($v) = @_;
+	ezfftf($v, prepfft($v->getdim(0)));
 }
 
 sub rfft {
-	my($az,$x,$y) = @_;
-	my $ws = prepfft($x->getdim(0));
-	my $v = $x->copy();
-	ezfftb($v,$az,$x,$y,$ws);
-	return $v;
+	my ($az,$x,$y) = @_;
+	ezfftb($az,$x,$y,prepfft($x->getdim(0)));
 }
 
 # polynomial fitting routines
@@ -704,15 +695,16 @@ of a REAL SYMMETRIC matrix.'
 
 );
 
-# XXX wsave : at least 3n+30
+# XXX wsave : at least 3n
 defslatec(
 	'ezffti', {S => 'ezffti'},
 	'Integer	n	();
-	 Mat [o]	wsave(foo);
+	 Mat [io]	wsave(foo);
+	 Integer [o]	ifac(ni=15);
 	',
-'Subroutine ezffti initializes the work array C<wsave()>
-which is used in both L</ezfftf> and 
-L</ezfftb>.  
+'Subroutine ezffti initializes the work array C<wsave(3n or more)>
+and C<ifac()>
+which is used in both L</ezfftf> and L</ezfftb>.
 The prime factorization
 of C<n> together with a tabulation of the trigonometric functions
 are computed and stored in C<wsave()>.'
@@ -727,6 +719,7 @@ defslatec(
 	 Mat [o]	a(n);
 	 Mat [o]	b(n);
 	 Mat 		wsave(foo);
+	 Integer    	ifac(ni=15);
 	'
 );
 
@@ -738,6 +731,7 @@ defslatec(
 	 Mat		a(n);
 	 Mat 		b(n);
 	 Mat 		wsave(foo);
+	 Integer    	ifac(ni=15);
 	'
 );
 
