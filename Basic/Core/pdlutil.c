@@ -463,6 +463,10 @@ void pdl_dump_fixspace(pdl *it,int nspac)
 			spaces,(void*)(it->vafftrans->from),it->vafftrans->offs);
 		pdl_print_iarr(PDL_REPRINCS(it), it->vafftrans->ndims);
 	}
+	if (it->state & PDL_BADVAL) {
+		printf("\n%s   Badvalue (%s): ",spaces, it->has_badvalue ? "bespoke" : "orig");
+		pdl_dump_anyval(pdl_get_pdl_badvalue(it));
+	}
 	if (it->state & PDL_ALLOCATED) {
 		printf("\n%s   First values: (",spaces);
 		for (i=0; i<it->nvals && i<10; i++) {

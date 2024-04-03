@@ -1017,7 +1017,7 @@ sub PDL::Core::new_pdl_from_string {
    $value =~ s/\s+//g;
 
    # Croak on operations with bad values. It might be nice to simply replace
-   # these with bad values, but that is more difficult that I like, so I'm just
+   # these with bad values, but that is more difficult than I like, so I'm just
    # going to disallow that here:
    croak("PDL::Core::new_pdl_from_string: Operations with bad values are not supported")
       if($value =~ /EE[+\-]|[+\-]EE/);
@@ -2206,6 +2206,9 @@ sub pdump {
     "BroadcastIds: (@{[$pdl->broadcastids_nophys]})",
   );
   push @lines, sprintf "Vaffine: 0x%x (parent)", $pdl->vaffine_from if $pdl->has_vafftrans;
+  push @lines, !$pdl->badflag ? () : (
+    "Badvalue (".($pdl->has_badvalue ? 'bespoke' : 'orig')."): " . $pdl->badvalue
+    );
   push @lines, !$pdl->allocated ? '(not allocated)' : join "\n  ",
     sprintf("data: 0x%x, nbytes: %d, nvals: %d", $pdl->address_data, $pdl->nbytes, $pdl->nelem_nophys),
     "First values: (@{[$pdl->firstvals_nophys]})",

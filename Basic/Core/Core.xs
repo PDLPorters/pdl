@@ -227,6 +227,14 @@ has_vafftrans(self)
 	OUTPUT:
 	RETVAL
 
+int
+has_badvalue(self)
+	pdl *self;
+	CODE:
+	RETVAL = !!self->has_badvalue;
+	OUTPUT:
+	RETVAL
+
 # Return the transformation object or an undef otherwise.
 pdl_trans *
 trans_parent(self)

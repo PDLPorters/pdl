@@ -528,7 +528,7 @@ struct pdl {
    void *datasv;        /* Pointer to SV containing data. We own one inc of refcnt */
    void *data;            /* Pointer to actual data (in SV), or NULL if we have no data      */
    PDL_Anyval badvalue; /* BAD value is stored as a PDL_Anyval for portability */
-   int has_badvalue;     /* whether this pdl has non-default badval */
+   int has_badvalue;     /* whether this pdl has non-default badval CORE21 make into state flag */
    PDL_Indx nvals; /* Real number of elements (not quite nelem in case of dummy) */
    PDL_Indx nbytes; /* number of bytes allocated in data */
    pdl_datatypes datatype; /* One of the usual suspects (PDL_L, PDL_D, etc.) */

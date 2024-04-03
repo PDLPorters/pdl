@@ -1,5 +1,6 @@
 - Slatec PCHIP routines now have idiomatic [io] `skip` Pars, with doc fixed to match SLATEC code (#468)
 - Slatec ezfft* routines take IFAC to avoid treating part of float array as integer (#468)
+- add has_badvalue method for whether ndarray has per-pdl badvalue (#469)
 
 2.086 2024-03-31
 - fix 64-bit problem in Minuit revealed by LTO (#468) - thanks @eli-schwartz for report
