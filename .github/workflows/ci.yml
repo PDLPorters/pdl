@@ -43,7 +43,7 @@ jobs:
           - perl-version: '5.30'
             os: macos-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: 'ci-dist: target-setup-perl'
         uses: PDLPorters/devops/github-actions/ci-dist@master
         with:
@@ -124,7 +124,7 @@ jobs:
           git config --global core.autocrlf false
           git config --global core.eol lf
         shell: powershell
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Cache Cygwin
         uses: actions/cache@v1
         with:
@@ -217,7 +217,7 @@ jobs:
     runs-on: ubuntu-latest
     continue-on-error: true
     if: ${{ always() }}
-    needs: [ 'ci', 'cygwin', 'weird-perls' ] # , 'ci-ubuntu-containers'
+    needs: [ 'ci', 'cygwin', 'weird-perls' ]
     steps:
       - uses: PDLPorters/devops/github-actions/irc-notifications@master
         with:
