@@ -30,8 +30,11 @@ $mat = pdl [2,3],[4,5];
 
 my $inv = matinv($mat);
 
-inner($mat->dummy(2), $inv->transpose->dummy(1), my $uni=null);
-ok(tapprox($uni,pdl[1,0],[0,1]));
+my $uni=scalar $mat x $inv;
+ok(tapprox($uni,identity(2)));
+
+eval {matinv(identity(2)->dummy(-1,2))};
+is $@, '', 'matinv can broadcast';
 
 my $det = $mat->det;
 my $deti = $inv->det;

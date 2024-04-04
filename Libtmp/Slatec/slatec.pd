@@ -464,11 +464,11 @@ sub PDL::matinv {
 		unless( @dims >= 2 && $dims[0] == $dims[1] );
   
 	$m = $m->copy(); # Make sure we don't overwrite :(
-	gefa($m,(my $ipvt=null),(my $info=null));
+	my ($ipvt,$info) = gefa($m);
 	if(sum($info) > 0) {
 		barf("Uninvertible matrix given to inv: $m\n");
 	}
-	gedi($m,$ipvt,pdl(0,0),null,1);
+	gedi($m,$ipvt,1);
 	$m;
 }
 
@@ -480,7 +480,7 @@ sub PDL::detslatec {
 	if(sum($info) > 0) {
 		barf("Uninvertible matrix given to inv: $m\n");
 	}
-	gedi($m,$ipvt,my $det=null,null,10);
+	my ($det) = gedi($m,$ipvt,10);
 	return $det->slice('(0)')*10**$det->slice('(1)');
 }
 
@@ -587,7 +587,7 @@ defslatec(
 	 MDim 		ldu;
 	 Mat 	[o] 	v	(p,p);
 	 MDim 		ldv;
-	 Mat 	[o] 	work	(n);
+	 Mat 	[t] 	work	(n);
 	 Integer   	job	();
 	 Integer [o]	info	();
 	',
@@ -596,11 +596,11 @@ defslatec(
 
 defslatec(
 	'poco',{S => 'spoco', D => 'dpoco'},
-	'Mat		a	(n,n);
+	'Mat [io]	a	(n,n);
 	 MDim		lda;
 	 Dim		n;
-	 Mat 		rcond	();
-	 Mat	[o]	z	(n);
+	 Mat [o]	rcond	();
+	 Mat [o]	z	(n);
 	 Integer [o]	info	();
 	',
 'Factor a real symmetric positive definite matrix
@@ -622,7 +622,7 @@ the condition number of the matrix.'
 
 defslatec(
 	'gefa',{S => 'sgefa', D => 'dgefa'},
-	'Mat		a	(n,n);
+	'Mat [io]	a	(n,n);
 	 MDim		lda;
 	 Dim		n;
 	 Integer [o]	ipvt	(n);
@@ -631,13 +631,11 @@ defslatec(
 'Factor a matrix using Gaussian elimination.'
 );
 
-# XXX Ensure two == 2!!
-#
 # pofa and sqrdc aren't (yet?) implemented
 #
 defslatec(
 	'podi',{S => 'spodi', D => 'dpodi'},
-	'Mat		a	(n,n);
+	'Mat [io]	a	(n,n);
 	 MDim		lda;
 	 Dim		n;
 	 Mat	[o]	det	(two=2);
@@ -650,18 +648,17 @@ computed by L</poco>.'
 
 defslatec(
 	'gedi',{S => 'sgedi', D => 'dgedi'},
-	'Mat		a	(n,n);
+	'Mat [io]	a	(n,n);
 	 MDim		lda;
 	 Dim		n;
-	 Integer [o]	ipvt	(n);
+	 Integer	ipvt	(n);
 	 Mat	 [o]	det	(two=2);
-	 Mat	 [o]	work	(n);
+	 Mat	 [t]	work	(n);
 	 Integer	job	();
 	',
 'Compute the determinant and inverse of a matrix using the
 factors computed by L</geco> or L</gefa>.'
 );
-	
 
 defslatec(
 	'gesl',{S => 'sgesl', D => 'dgesl'},
@@ -669,7 +666,7 @@ defslatec(
 	 MDim		lda;
 	 Dim		n;
 	 Integer	ipvt	(n);
-	 Mat		b	(n);
+	 Mat [io]	b	(n);
 	 Integer	job	();
 	',
 'Solve the real system C<A*X=B> or C<TRANS(A)*X=B> using the
