@@ -65,7 +65,7 @@ print OUT <<'EOF';
             break; \
         } \
     } \
-    if (sv_derived_from(sv2, "PDL")) { \
+    if (SvROK(sv2) && sv_derived_from(sv2, "PDL")) { \
         pdl *it = PDL_CORE_(SvPDLV)(sv2); \
         outany = PDL_CORE_(at0)(it); \
         if (outany.type < 0) croak("Position out of range"); \
@@ -75,7 +75,7 @@ print OUT <<'EOF';
         ANYVAL_FROM_CTYPE(outany, datatype, tmp_NV); \
     } else { /* Perl Int (e.g. 2) */ \
         IV tmp_IV = SvIV(sv2); \
-        int datatype = forced_type >=0 ? forced_type : _pdl_whichdatatype(tmp_IV); \
+        int datatype = forced_type >=0 ? forced_type : _pdl_whichdatatype_int(tmp_IV); \
         ANYVAL_FROM_CTYPE(outany, datatype, tmp_IV); \
     } \
 } while (0)
@@ -103,20 +103,18 @@ print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  __FILE__;
 print OUT <<'EOF';
 /* Check minimum datatype required to represent number */
 #define PDL_TESTTYPE(sym, ctype, v) {ctype foo = v; if (v == foo) return sym;}
-static inline int _pdl_whichdatatype (IV iv) {
-#define X(sym, ctype, ...) \
-  PDL_TESTTYPE(sym, ctype, iv)
-   PDL_TYPELIST_ALL(X)
+static inline int _pdl_whichdatatype_int(IV iv) {
+#define X(sym, ctype, ...) PDL_TESTTYPE(sym, ctype, iv)
+  PDL_TYPELIST_ALL(X)
 #undef X
-        croak("Something's gone wrong: %lld cannot be converted by whichdatatype", (long long)iv);
+  croak("Something's gone wrong: %lld cannot be converted by whichdatatype", (long long)iv);
 }
 /* Check minimum, at least double, datatype required to represent number */
-static inline int _pdl_whichdatatype_double (NV nv) {
-        PDL_TESTTYPE(PDL_D,PDL_Double, nv)
-        PDL_TESTTYPE(PDL_D,PDL_LDouble, nv)
+static inline int _pdl_whichdatatype_double(NV nv) {
+  PDL_TESTTYPE(PDL_D,PDL_Double, nv)
+  PDL_TESTTYPE(PDL_D,PDL_LDouble, nv)
 #undef PDL_TESTTYPE
-        /* Default return type PDL_Double */
-        return PDL_D;
+  return PDL_D; /* handles NaN */
 }
 
 /* __PDLPERL_H */

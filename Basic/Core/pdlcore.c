@@ -410,15 +410,15 @@ PDL_Indx av_ndcheck(AV* av, AV* dims, int level, int *datalevel)
 
   len++; // convert from funky av_len return value to real count
 
-    if (av_len(dims) >= level && av_fetch(dims, level, 0) != NULL
-      && SvIOK(*(av_fetch(dims, level, 0)))) {
-    oldlen = (PDL_Indx) SvIV(*(av_fetch(dims, level, 0)));
+  if (av_len(dims) >= level && av_fetch(dims, level, 0) != NULL
+    && SvIOK(*(av_fetch(dims, level, 0)))) {
+  oldlen = (PDL_Indx) SvIV(*(av_fetch(dims, level, 0)));
 
-    if (len > oldlen)
-      sv_setiv(*(av_fetch(dims, level, 0)), (IV) len);
-    }
-    else
-      av_store(dims,level,newSViv((IV) len));
+  if (len > oldlen)
+    sv_setiv(*(av_fetch(dims, level, 0)), (IV) len);
+  }
+  else
+    av_store(dims,level,newSViv((IV) len));
 
   /* We found at least one element -- so pad dims to unity at levels earlier than this one */
   if (n_scalars) {

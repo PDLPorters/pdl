@@ -1441,7 +1441,7 @@ Highlights:
  * Fix for sf.net bug #390: scalar PDL with badvalue
    always compares BAD with perl scalars.  Now a warning
    is given if the badvalue could conflict with the
-   results of a logical or comparision operation.
+   results of a logical or comparison operation.
  
  * Fixed a makefile construct which was ambiguous and
    caused build failures on Solaris using their make.

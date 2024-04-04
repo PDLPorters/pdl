@@ -501,7 +501,7 @@ subtest "Issue example code" => sub {
 	ok scalar(@warnings), 'bad gave warnings';
 };
 
-subtest "Badvalue set on 0-dim PDL + comparision operators" => sub {
+subtest "Badvalue set on 0-dim PDL + comparison operators" => sub {
 	my $val = 2;
 	my $badval_sclr = 5;
 	my $p_val = pdl($val);
