@@ -9,6 +9,25 @@ on:
   create:
 jobs:
 
+  ci-32bit:
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'push' || github.event_name == 'pull_request' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        container: ['i386/perl:5.38']
+    steps:
+      - uses: actions/checkout@v4
+      - name: 32-bit CI
+        env:
+          HARNESS_OPTIONS: j4
+        run: |
+          docker run --rm -v "$(pwd):/pdl" -w /pdl ${{ matrix.container }} \
+            sh -c 'uname -a; perl -V; \
+              export HARNESS_OPTIONS=j4 MAKEFLAGS=--jobs=4
+              (cpanm -n ExtUtils::MakeMaker Devel::CheckLib File::Which && cpanm -n --installdeps .) || ( cat ~/.cpanm/build.log && false ) && \
+              perl Makefile.PL && make --jobs=4 test'
+
   ci:
     runs-on: ${{ matrix.os }}
     if: ${{ github.event_name == 'push' || github.event_name == 'pull_request' }}
