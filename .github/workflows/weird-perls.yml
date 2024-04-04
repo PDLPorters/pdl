@@ -1,0 +1,29 @@
+on: [push, pull_request]
+name: Weird perls
+jobs:
+  build:
+    runs-on: "ubuntu-latest"
+    strategy:
+      matrix:
+        weirdness: [ 'uselongdouble', 'usequadmath' ]
+    name: Perl with ${{ matrix.weirdness }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build perl ...
+        run: |
+            curl -L https://install.perlbrew.pl | bash
+            source ~/perl5/perlbrew/etc/bashrc
+            perlbrew install --notest -D ${{ matrix.weirdness }} perl-5.32.0 --as perl-5.32.0-${{ matrix.weirdness }}
+      - name: run tests
+        env:
+          PERL_USE_UNSAFE_INC: 0
+          HARNESS_OPTIONS: j4
+        run: |
+            source ~/perl5/perlbrew/etc/bashrc
+            perlbrew switch perl-5.32.0-${{ matrix.weirdness }}
+            perlbrew install-cpanm
+            perl -V|grep archname
+            (cpanm -n ExtUtils::MakeMaker Devel::CheckLib File::Which && cpanm -n --installdeps .) || ( cat ~/.cpanm/build.log && false )
+            perl Makefile.PL
+            make coretest
+            make test
