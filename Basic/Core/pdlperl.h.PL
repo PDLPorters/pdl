@@ -105,7 +105,8 @@ print OUT <<'EOF';
 #define PDL_TESTTYPE(sym, ctype, v) {ctype foo = v; if (v == foo) return sym;}
 static inline int _pdl_whichdatatype_int(IV iv) {
 #define X(sym, ctype, ...) PDL_TESTTYPE(sym, ctype, iv)
-  PDL_TYPELIST_ALL(X)
+  PDL_TYPELIST_SIGNED(X) /* try all signed first */
+  PDL_TYPELIST_UNSIGNED(X) /* only gets here if positive and too big */
 #undef X
   croak("Something's gone wrong: %lld cannot be converted by whichdatatype", (long long)iv);
 }

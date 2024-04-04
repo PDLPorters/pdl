@@ -109,7 +109,7 @@ my $bigArray = $x->cat($y);
 my $sum = $bigArray->sum;
 my $cz = czip(8, -2);
 my $abs = abs($sum + $cz);
-ok(all($abs < .0001), 'check cat for complex') or diag "got:$abs";
+ok(all($abs < .0001), 'check cat for complex') or diag "got:$abs from cat(x=$x y=$y): $bigArray";
 }
 
 if (PDL::Core::Dev::got_complex_version('pow', 2)) {
