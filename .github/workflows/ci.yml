@@ -19,7 +19,6 @@ jobs:
   ci:
     runs-on: ${{ matrix.os }}
     if: ${{ github.event_name == 'push' || github.event_name == 'pull_request' }}
-    needs: notify
     strategy:
       fail-fast: false
       matrix:
@@ -126,7 +125,6 @@ jobs:
   ci-ubuntu-containers:
     runs-on: ubuntu-latest
     if: ${{ github.event_name == 'push' || github.event_name == 'pull_request' }}
-    needs: notify
     container: ${{ matrix.container }}
     strategy:
       fail-fast: false
@@ -156,7 +154,6 @@ jobs:
     runs-on: windows-latest
     # only run on tag because cygwin is slow
     if: ${{ github.event_name == 'create' && github.event.ref_type == 'tag' }}
-    needs: notify
     strategy:
       fail-fast: false
     defaults:
@@ -223,11 +220,41 @@ jobs:
         if: ${{ failure() }}
         run: |
           cat ~/.cpanm/latest-build/build.log
+
+  weird-perls:
+    runs-on: "ubuntu-latest"
+    if: ${{ github.event_name == 'push' || github.event_name == 'pull_request' }}
+    strategy:
+      matrix:
+        weirdness: [ 'uselongdouble', 'usequadmath' ]
+    name: Perl with ${{ matrix.weirdness }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build perl ...
+        run: |
+            curl -L https://install.perlbrew.pl | bash
+            source ~/perl5/perlbrew/etc/bashrc
+            perlbrew install --notest -D ${{ matrix.weirdness }} perl-5.32.0 --as perl-5.32.0-${{ matrix.weirdness }}
+      - name: run tests
+        env:
+          PERL_USE_UNSAFE_INC: 0
+          HARNESS_OPTIONS: j4
+          MAKEFLAGS: --jobs=4
+        run: |
+            source ~/perl5/perlbrew/etc/bashrc
+            perlbrew switch perl-5.32.0-${{ matrix.weirdness }}
+            perlbrew install-cpanm
+            perl -V|grep archname
+            (cpanm -n ExtUtils::MakeMaker Devel::CheckLib File::Which && cpanm -n --installdeps .) || ( cat ~/.cpanm/build.log && false )
+            perl Makefile.PL
+            make coretest
+            make test
+
   build-status:
     runs-on: ubuntu-latest
     continue-on-error: true
     if: ${{ always() }}
-    needs: [ 'ci', 'ci-ubuntu-containers', 'cygwin' ]
+    needs: [ 'ci', 'ci-ubuntu-containers', 'cygwin', 'weird-perls' ]
     steps:
       - uses: PDLPorters/devops/github-actions/irc-notifications@master
         with:
