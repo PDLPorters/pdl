@@ -519,6 +519,14 @@ my $pdl = pdl $array;
 is_deeply( unpdl($pdl), $array, "back convert 3d");
 SKIP: {
   skip("your perl hasn't 64bit int support", 6) if $Config{ivsize} < 8;
+  {
+  my $neg = -684394069604;
+  my $straight_pdl = pdl($neg);
+  my $multed = pdl(1) * $neg;
+  ok $straight_pdl == $multed, 'upgrade of large negative SV to ndarray'
+    or diag "straight=$straight_pdl mult=$multed\n",
+      "straight:", $straight_pdl->info, " mult:", $multed->info;
+  }
   my $input = [
       -9223372036854775808, #min int64
       -9000000000000000001,
