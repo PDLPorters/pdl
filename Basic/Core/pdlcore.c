@@ -53,23 +53,8 @@ pdl* pdl_SvPDLV ( SV* sv ) {
       SV **svp = hv_fetchs(hash,"PDL",0);
       if (svp == NULL) {
         if (sv_derived_from(sv, "Math::Complex")) { /* relies on M:C using hash */
-          dSP;
-          int i;
-          double vals[2];
-          char *meths[] = { "Re", "Im" };
-          ENTER; SAVETMPS;
-          for (i = 0; i < 2; i++) {
-            PUSHMARK(sp); XPUSHs(sv); PUTBACK;
-            int count = perl_call_method(meths[i], G_SCALAR);
-            SPAGAIN;
-            if (count != 1) croak("Failed Math::Complex method '%s'", meths[i]);
-            vals[i] = (double)POPn;
-            PUTBACK;
-          }
-          FREETMPS; LEAVE;
           PDL_Anyval data;
-          data.type = PDL_CD;
-          data.value.C = (PDL_CDouble)(vals[0] + I * vals[1]);
+          ANYVAL_FROM_MCOMPLEX(data, sv);
           return pdl_scalar(data);
         }
         croak("Hash given as a pdl (%s) - but not {PDL} key!", sv_reftype(SvRV(sv), TRUE));

@@ -65,10 +65,18 @@ print OUT <<'EOF';
             break; \
         } \
     } \
-    if (SvROK(sv2) && sv_derived_from(sv2, "PDL")) { \
-        pdl *it = PDL_CORE_(SvPDLV)(sv2); \
-        outany = PDL_CORE_(at0)(it); \
-        if (outany.type < 0) croak("Position out of range"); \
+    if (SvROK(sv2)) { \
+        if (sv_derived_from(sv2, "PDL")) { \
+            pdl *it = PDL_CORE_(SvPDLV)(sv2); \
+            outany = PDL_CORE_(at0)(it); \
+            if (outany.type < 0) PDL_CORE_(pdl_barf)("Position out of range"); \
+            break; \
+        } \
+        if (sv_derived_from(sv2, "Math::Complex")) { \
+            ANYVAL_FROM_MCOMPLEX(outany, sv2); \
+            break; \
+        } \
+        PDL_CORE_(pdl_barf)("Can't convert ref '%s' to Anyval", sv_reftype(SvRV(sv2), 1)); \
     } else if (!SvIOK(sv2)) { /* Perl Double (e.g. 2.0) */ \
         NV tmp_NV = SvNV(sv2); \
         int datatype = forced_type >=0 ? forced_type : _pdl_whichdatatype_double(tmp_NV); \
@@ -79,6 +87,26 @@ print OUT <<'EOF';
         ANYVAL_FROM_CTYPE(outany, datatype, tmp_IV); \
     } \
 } while (0)
+
+/* only to CD, same as whichdatatype_double only D. only if know is M:C */
+#define ANYVAL_FROM_MCOMPLEX(outany,insv) do { \
+    dSP; \
+    int i; \
+    double vals[2]; \
+    char *meths[] = { "Re", "Im" }; \
+    ENTER; SAVETMPS; \
+    for (i = 0; i < 2; i++) { \
+      PUSHMARK(sp); XPUSHs(insv); PUTBACK; \
+      int count = perl_call_method(meths[i], G_SCALAR); \
+      SPAGAIN; \
+      if (count != 1) PDL_CORE_(pdl_barf)("Failed Math::Complex method '%s'", meths[i]); \
+      vals[i] = (double)POPn; \
+      PUTBACK; \
+    } \
+    FREETMPS; LEAVE; \
+    outany.type = PDL_CD; \
+    outany.value.C = (PDL_CDouble)(vals[0] + I * vals[1]); \
+  } while (0)
 
 #define ANYVAL_TO_SV(outsv,inany) do { switch (inany.type) { \
 EOF

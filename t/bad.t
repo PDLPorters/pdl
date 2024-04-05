@@ -702,4 +702,14 @@ subtest "locf" => sub {
   is $locf."", '[0 1 1 3 3 5]', 'locf worked';
 };
 
+subtest "badvalues for native complex" => sub {
+  my $pdl = pdl '1+i';
+  $pdl->badflag(1);
+  $pdl->badvalue($pdl);
+  is "$pdl", "BAD", 'set badvalue with complex ndarray';
+  $pdl->badvalue($pdl->sclr);
+  is "$pdl", "BAD", 'set badvalue with complex Perl scalar'
+    or diag "badvalue:", $pdl->badvalue->info, "=", $pdl->badvalue;
+};
+
 done_testing;

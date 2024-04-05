@@ -3,6 +3,7 @@
 - add has_badvalue method for whether ndarray has per-pdl badvalue (#469)
 - fix Slatec breaking PDL::Stats (https://github.com/PDLPorters/PDL-Stats/issues/31) - thanks @sebastic for report
 - fix long-standing mistyping of large negative IVs on 32-bit (#469) - thanks @sebastic for report
+- can now set badvalues that are Math::Complex objects (#469)
 
 2.086 2024-03-31
 - fix 64-bit problem in Minuit revealed by LTO (#468) - thanks @eli-schwartz for report
