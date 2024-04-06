@@ -157,15 +157,13 @@ ok(($err->getndims==0) & ($err->sum == 0));
 ok(all( slice( abs(($d - $answer)/$answer), '1:-2' ) < 0.05 ) );
 
 # compare the results of chic
-my $wk = $f->zeroes( 2 * $f->nelem );
 my $d2 = $f->zeroes;
-chic( pdl([0, 0]), pdl([0, 0]), 1, $x, $f, $d2, $wk, my $err2=null );
+chic( pdl([0, 0]), pdl([0, 0]), 1, $x, $f, $d2, my $err2=null );
 ok(($err2->getndims==0) & ($err2->sum == 0));
 ok(all( abs($d2 - $d) < 0.02 ) );
 
 ## Test: chsp
-#
-chsp( pdl([0, 0]), pdl([0, 0]), $x, $f, my $d3=null, $wk, my $err3=null );
+chsp( pdl([0, 0]), pdl([0, 0]), $x, $f, my $d3=null, my $err3=null );
 ok(($err3->getndims==0) & ($err3->sum == 0));
 ok(all( abs($d3 - $d) < 2 ) );
 

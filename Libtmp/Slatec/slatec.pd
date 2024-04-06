@@ -267,7 +267,7 @@ END
 use strict;
 
 sub firstpar {
-	$_[0] =~ /^\(([^),]+)[),]/ or die "Can't find first par from $_[0]";
+	$_[0] =~ /^\(([^),]+)[),]/ or die "Can't find first par from '$_[0]'";
 	$1
 }
 sub intcopy {
@@ -324,17 +324,30 @@ my %KIND2I = (
 my %ignore_ppar = map +($_=>1), qw(Incfd Dim MDim);
 my %prototype = ( F => "float", D => "double" );
 my %ftypes = (S => 'F', D => 'D');
+my $calc_re = qr{
+  (\w+)\s*=\s*      # paren group 1 (dim name) - from perlre/PARNO
+  CALC
+  (                 # paren group 2 (parens)
+    \(
+      (             # paren group 3 (contents of parens)
+      (?:
+       (?> [^()]+ ) # Non-parens without backtracking
+      |
+       (?2)         # Recurse to start of paren group 2
+      )*
+      )
+    \)
+  )
+}xo;
+our $debug = 0;  # print out calls to pp_def; use "local $debug=1" before func
 sub defslatec {
-
-    my $debug = 0;  # print out calls to pp_def
-
-    my($pname,$fnames,$argstr,$docstring,$funcref) = @_;
+    my ($pname,$fnames,$argstr,$docstring,$funcref) = @_;
     my @args = grep /\S/, split ';', $argstr;
     my @args2 = map {
 		/^\s*([a-zA-Z]+)\s+ 	# "Type name"
 		  ((?:\[[^]]*\])?)\s* 	# Options
 		  ([a-zA-Z]+)\s*      	# Par name
-		  ((?:\([^)]*\))?)\s*$	# Dims
+		  ((?:\(.*\))?)\s*$	# Dims
 		 /x or die("Invalid slatec par $_");
 		[$1,$2,$3,$4]} @args;
 
@@ -343,6 +356,12 @@ sub defslatec {
     die "Only one FuncRet allowed in pars list.\n"
       if (my @funcret = grep $_->[0] eq "FuncRet", @args2) > 1;
     my $fpar = @funcret ? "\$$funcret[0]->[2]()" : undef;
+
+    my @redodims;
+    for my $arg2 (@args2) {
+      push @redodims, [$1, $3] while $arg2->[3] =~ s#$calc_re#$1#;
+    }
+    my $redodimscode = join '', map "\$SIZE($_->[0]) = $_->[1];\n", @redodims;
 
     my $pars = join ';', map
       +($KIND2I{$_->[0]}[0] // die "Invalid ppars ",join(',',@$_),"\n") . join('', @$_[1..3]),
@@ -390,6 +409,7 @@ sub defslatec {
     print <<"ENDDBG" if $debug;
 pp_def('$pname',
   Pars => '$pars',
+  RedoDimsCode => '$redodimscode',
   Code => '$code',
   CHeader => '@cheaders',
   GenericTypes => [@{[join ", ", map $_->[0], @talts]}],
@@ -398,6 +418,7 @@ pp_def('$pname',
 ENDDBG
     pp_def($pname,
       Pars => $pars,
+      $redodimscode ? (RedoDimsCode => $redodimscode) : (),
       Code => $code,
       CHeader => join("\n", @cheaders),
       GenericTypes => [map $_->[0], @talts],
@@ -818,14 +839,7 @@ monotonicity (data still valid).
 'Calculate the derivatives of (x,f(x)) using cubic Hermite interpolation.'
 );	  
 
-# switch has become mflag, since `switch' is a reserved word in
-# C.
-#
-# can not say (nwk=2*n) --- the rhs has to equal a number
-# -> could Basic/Gen/PP/Dims.pm be hacked to allow this?
-#
-# I didn't have much success with preceding wk by [t] 
-#
+# switch has become mflag, since `switch' is a reserved word in C.
 defslatec('chic',
 	  {S => 'pchic', D => 'dpchic'},
 	  'Integer      ic      (two=2);
@@ -836,7 +850,7 @@ defslatec('chic',
            Mat          f       (n);
            Mat     [o]  d       (n);
            Incfd        incfd;
-           Mat          wk      (nwk);
+           Mat [t]      wk      (nwk=CALC(2*$SIZE(n)));
            Dim          nwk;
            Integer [o]  ierr    ();
           ',
@@ -957,7 +971,6 @@ for monotonicity.
 'Calculate the derivatives of (x,f(x)) using cubic Hermite interpolation.'
 );	  
 
-# as above, have made wk an actual ndarray, rather than a [t]
 defslatec('chsp',
 	  {S => 'pchsp', D => 'dpchsp'},
 	  'Integer      ic      (two=2);
@@ -967,7 +980,7 @@ defslatec('chsp',
            Mat          f       (n);
            Mat     [o]  d       (n);
            Incfd        incfd;
-           Mat          wk      (nwk);
+           Mat [t]      wk      (nwk=CALC(2*$SIZE(n)));
            Dim          nwk;
            Integer [o]  ierr    ();
           ',
