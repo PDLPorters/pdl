@@ -1385,20 +1385,6 @@ Error status returned by C<$ierr>:
 'Check the given piecewise cubic Hermite function for monotonicity.'
 );	  
 
-=pod
-
-ignore function for now although code is in slatec/ directory
-
-=cut
-
-# XXX tsize = 2*n+4
-#     bsize = 2*n
-#
-# ndim gets set to 2*n
-#
-# Changed by routine:
-#   nknots
-#   t
 defslatec('chbs',
 	  {S => 'pchbs', D => 'dpchbs'},
 	  'Dim          n;
@@ -1407,9 +1393,9 @@ defslatec('chbs',
            Mat          d       (n);
            Incfd        incfd;
            Integer      knotyp  ();
-           Integer      nknots  ();
-           Mat          t       (tsize);
-           Mat     [o]  bcoef   (bsize);
+           Integer [io] nknots  ();
+           Mat     [io] t       (tsize=CALC(2*$SIZE(n)+4));
+           Mat     [o]  bcoef   (bsize=CALC(2*$SIZE(n)));
            Integer [o]  ndim    ();
            Integer [o]  kord    ();
            Integer [o]  ierr    ();

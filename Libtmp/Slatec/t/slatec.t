@@ -224,20 +224,15 @@ ok(all( abs($int-$ans) < 0.06 ) );
 ## print STDERR "int=$int; ans=$ans; int-ans=".($int-$ans)."\n";
 ## print STDERR "ref ans=".(ref $ans)."\n";
 
-=pod ignore as have commented out chbs interface
-
 ## Test: chbs - note, only tests that it runs successfully
-#
 my $nknots = 0;
-my $t = zeroes( float, 2*$x->nelem+4 );
-my $bcoef  = zeroes( float, 2*$x->nelem );
+my $t = zeroes( float, 2*$x->dim(0)+4 );
+my $bcoef  = zeroes( float, 2*$x->dim(0) );
 my $ndim = PDL->null;
 my $kord = PDL->null;
 $err = PDL->null;
-echbs( $x, $f, $d, 0, $nknots, $t, $bcoef, $ndim, $kord, $err );
+chbs( $x, $f, $d, 0, $nknots, $t, $bcoef, $ndim, $kord, $err );
 ok(all($err == 0));
-exit(0);
-=cut
 
 my $A = identity(4) + ones(4, 4);
 $A->slice('2,0') .= 0; # break symmetry to see if need transpose
