@@ -289,12 +289,9 @@ sub intcopy {
 #     - specifies that this is a function, not a subroutine, and
 #       that the output of the function should be stored in this
 #       variable
-#   Incfd
-#     - used in the PCHIP functions to specify the INCFD argument
-#       that we force to be 1, so the user never has to specify it
-#       (this allows the PCHIP routines to use 2D data, but as it's
-#        done in FORTRAN array order, and PDL has a much richer way
-#        of accessing parts of an array we force the data to be 1D).
+#   IntVal
+#     - used for passing in a value to func, either calculated or a constant,
+#       but not a caller-supplied arg
 #   Logical
 #     - A Fortran Boolean, defined as same size as REAL/INTEGER so 'long'
 #   FortranIndex
@@ -319,9 +316,9 @@ my %KIND2I = (
   Logical => ['int ', sub{"\$P($_[0][2])"}, sub {"PDL_Long *"}],
   Dim => [undef, intcopy(sub {"dim_$_[0][2]"}, sub {"\$SIZE($_[0][2])"})],
   MDim => [undef, intcopy(sub {$_[0][2]}, sub {$_[1]{$_[0][2]}})],
-  Incfd => [undef, intcopy(sub {$_[0][2]}, sub {1})],
+  IntVal => [undef, intcopy(sub {$_[0][2]}, sub {$_[0][4]})],
 );
-my %ignore_ppar = map +($_=>1), qw(Incfd Dim MDim);
+my %ignore_ppar = map +($_=>1), qw(IntVal Dim MDim);
 my %prototype = ( F => "float", D => "double" );
 my %ftypes = (S => 'F', D => 'D');
 my $calc_re = qr{
@@ -347,9 +344,13 @@ sub defslatec {
 		/^\s*([a-zA-Z]+)\s+ 	# "Type name"
 		  ((?:\[[^]]*\])?)\s* 	# Options
 		  ([a-zA-Z]+)\s*      	# Par name
-		  ((?:\(.*\))?)\s*$	# Dims
+		  (?:
+		    ((?:\(.*\))?)\s*$	# Dims
+		    |
+		    =\s*((?:.*?)?)\s*$	# value for IntVal
+		  )
 		 /x or die("Invalid slatec par $_");
-		[$1,$2,$3,$4]} @args;
+		[$1,$2,$3,$4,$5]} @args;
 
     # is this for a function (Type name eq "FuncRet")
     # or a subroutine?
@@ -358,7 +359,7 @@ sub defslatec {
     my $fpar = @funcret ? "\$$funcret[0]->[2]()" : undef;
 
     my @redodims;
-    for my $arg2 (@args2) {
+    for my $arg2 (grep $_->[3], @args2) {
       push @redodims, [$1, $3] while $arg2->[3] =~ s#$calc_re#$1#;
     }
     my $redodimscode = join '', map "\$SIZE($_->[0]) = $_->[1];\n", @redodims;
@@ -401,11 +402,9 @@ sub defslatec {
       $docstring = '';
     }
 
-    # _incfd     = 1 makes sure PCHIP code treats ndarray as 1D
-    # _checkflag - copy input data to a temporary variable, in case
-    #              the PCHIP routine decides to change it
-    my @ifincode = map +($KIND2I{$_->[0]}[3]||sub{})->($_, \%lds), @args2;
-    my $code = join("\n", @ifincode, "$func($funcargs);");
+    # IntVals
+    my @intcopy_code = map +($KIND2I{$_->[0]}[3]||sub{})->($_, \%lds), @args2;
+    my $code = join("\n", @intcopy_code, "$func($funcargs);");
     print <<"ENDDBG" if $debug;
 pp_def('$pname',
   Pars => '$pars',
@@ -795,7 +794,7 @@ defslatec('chim',
            Mat          x       (n);
            Mat          f       (n);
            Mat     [o]  d       (n);
-           Incfd        incfd;
+           IntVal       incfd=1;
            Integer [o]  ierr    ();
           ',
 'Calculate the derivatives at the given set of points (C<$x,$f>,
@@ -849,7 +848,7 @@ defslatec('chic',
            Mat          x       (n);
            Mat          f       (n);
            Mat     [o]  d       (n);
-           Incfd        incfd;
+           IntVal       incfd=1;
            Mat [t]      wk      (nwk=CALC(2*$SIZE(n)));
            Dim          nwk;
            Integer [o]  ierr    ();
@@ -979,7 +978,7 @@ defslatec('chsp',
            Mat          x       (n);
            Mat          f       (n);
            Mat     [o]  d       (n);
-           Incfd        incfd;
+           IntVal       incfd=1;
            Mat [t]      wk      (nwk=CALC(2*$SIZE(n)));
            Dim          nwk;
            Integer [o]  ierr    ();
@@ -1084,7 +1083,7 @@ defslatec('chfd',
            Mat          x       (n);
            Mat          f       (n);
            Mat          d       (n);
-           Incfd        incfd;
+           IntVal       incfd=1;
            Logical [io] skip    ();
            Dim          ne;
            Mat          xe      (ne);
@@ -1142,7 +1141,7 @@ defslatec('chfe',
            Mat          x       (n);
            Mat          f       (n);
            Mat          d       (n);
-           Incfd        incfd;
+           IntVal       incfd=1;
            Logical [io] skip    ();
            Dim          ne;
            Mat          xe      (ne);
@@ -1194,7 +1193,7 @@ defslatec('chia',
            Mat          x       (n);
            Mat          f       (n);
            Mat          d       (n);
-           Incfd        incfd;
+           IntVal       incfd=1;
            Logical [io] skip    ();
            Mat          la    ();
            Mat          lb    ();
@@ -1259,7 +1258,7 @@ defslatec('chid',
            Mat          x       (n);
            Mat          f       (n);
            Mat          d       (n);
-           Incfd        incfd;
+           IntVal       incfd=1;
            Logical [io] skip    ();
            FortranIndex ia      ();
            FortranIndex ib      ();
@@ -1312,7 +1311,7 @@ defslatec('chcm',
            Mat          x       (n);
            Mat          f       (n);
            Mat          d       (n);
-           Incfd        incfd;
+           IntVal       incfd=1;
            Logical [io] skip    ();
            Integer [o]  ismon   (n);
            Integer [o]  ierr    ();
@@ -1391,7 +1390,7 @@ defslatec('chbs',
            Mat          x       (n);
            Mat          f       (n);
            Mat          d       (n);
-           Incfd        incfd;
+           IntVal       incfd=1;
            Integer      knotyp  ();
            Integer [io] nknots  ();
            Mat     [io] t       (tsize=CALC(2*$SIZE(n)+4));
@@ -1473,7 +1472,7 @@ Error status returned by C<$ierr>:
 
 ',
 'Piecewise Cubic Hermite function to B-Spline converter.'
-);	  
+);
 
 ##################################################################
 ##################################################################
