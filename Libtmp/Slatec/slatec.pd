@@ -575,8 +575,8 @@ sub PDL::polyvalue {
                                                                               
 END
 
-defslatec(
-	'svdc',{S => 'ssvdc'},
+defslatec('svdc',
+	{S => 'ssvdc'},
 	'Mat 		x	(n,p);
 	 MDim 		ldx;
 	 Dim 		n;
@@ -594,8 +594,8 @@ defslatec(
 'singular value decomposition of a matrix'
 );
 
-defslatec(
-	'poco',{S => 'spoco', D => 'dpoco'},
+defslatec('poco',
+	{S => 'spoco', D => 'dpoco'},
 	'Mat [io]	a	(n,n);
 	 MDim		lda;
 	 Dim		n;
@@ -607,8 +607,8 @@ defslatec(
 and estimate the condition number of the matrix.'
 );
 
-defslatec(
-	'geco',{S => 'sgeco', D => 'dgeco'},
+defslatec('geco',
+	{S => 'sgeco', D => 'dgeco'},
 	'Mat		a	(n,n);
 	 MDim		lda;
 	 Dim		n;
@@ -620,8 +620,8 @@ defslatec(
 the condition number of the matrix.'
 );
 
-defslatec(
-	'gefa',{S => 'sgefa', D => 'dgefa'},
+defslatec('gefa',
+	{S => 'sgefa', D => 'dgefa'},
 	'Mat [io]	a	(n,n);
 	 MDim		lda;
 	 Dim		n;
@@ -633,8 +633,8 @@ defslatec(
 
 # pofa and sqrdc aren't (yet?) implemented
 #
-defslatec(
-	'podi',{S => 'spodi', D => 'dpodi'},
+defslatec('podi',
+	{S => 'spodi', D => 'dpodi'},
 	'Mat [io]	a	(n,n);
 	 MDim		lda;
 	 Dim		n;
@@ -646,8 +646,8 @@ symmetric positive definite matrix using the factors
 computed by L</poco>.'
 );
 
-defslatec(
-	'gedi',{S => 'sgedi', D => 'dgedi'},
+defslatec('gedi',
+	{S => 'sgedi', D => 'dgedi'},
 	'Mat [io]	a	(n,n);
 	 MDim		lda;
 	 Dim		n;
@@ -660,8 +660,8 @@ defslatec(
 factors computed by L</geco> or L</gefa>.'
 );
 
-defslatec(
-	'gesl',{S => 'sgesl', D => 'dgesl'},
+defslatec('gesl',
+	{S => 'sgesl', D => 'dgesl'},
 	'Mat		a	(lda,n);
 	 MDim		lda;
 	 Dim		n;
@@ -673,8 +673,8 @@ defslatec(
 factors computed by L</geco> or L</gefa>.'
 );
 
-defslatec(
-	'rs', {S => 'rsfoo'},
+defslatec('rs',
+	 {S => 'rsfoo'},
 	'MDim		lda;
 	 Dim		n;
 	 Mat		a	(n,n);
@@ -693,8 +693,8 @@ of a REAL SYMMETRIC matrix.'
 );
 
 # XXX wsave : at least 3n
-defslatec(
-	'ezffti', {S => 'ezffti'},
+defslatec('ezffti',
+	{S => 'ezffti'},
 	'Integer	n	();
 	 Mat [io]	wsave(foo);
 	 Integer [o]	ifac(ni=15);
@@ -708,8 +708,8 @@ are computed and stored in C<wsave()>.'
 );
 
 # XXX Correct for azero, a and b
-defslatec(
-	'ezfftf', {S => 'ezfftf'},
+defslatec('ezfftf',
+	{S => 'ezfftf'},
 	'Dim		n;
 	 Mat		r(n);
 	 Mat [o]	azero();
@@ -720,8 +720,8 @@ defslatec(
 	'
 );
 
-defslatec(
-	'ezfftb', {S => 'ezfftb'},
+defslatec('ezfftb',
+	{S => 'ezfftb'},
 	'Dim		n;
 	 Mat  [o]	r(n);
 	 Mat  		azero();
@@ -735,8 +735,8 @@ defslatec(
 ##################################################################
 ##################################################################
 
-defslatec(
-      'pcoef', {S => 'pcoef', D => 'dpcoef'},
+defslatec('pcoef',
+      {S => 'pcoef', D => 'dpcoef'},
       '
       Integer   l ();
       Mat      c ();
@@ -747,8 +747,8 @@ defslatec(
 C<c> and C<a()> must be of the same type.'
 );                                                                            
 
-defslatec(
-      'pvalue', {S => 'pvalue', D => 'dp1vlu'},
+defslatec('pvalue',
+      {S => 'pvalue', D => 'dp1vlu'},
       '
       Integer  l ();
       Dim      nder;
@@ -768,8 +768,8 @@ same type.'
 #
 # PCHIP library
 #
-defslatec(
-	  'chim', {S => 'pchim', D => 'dpchim'},
+defslatec('chim',
+	  {S => 'pchim', D => 'dpchim'},
 	  'Dim          n;
            Mat          x       (n);
            Mat          f       (n);
@@ -826,8 +826,8 @@ monotonicity (data still valid).
 #
 # I didn't have much success with preceding wk by [t] 
 #
-defslatec(
-	  'chic', {S => 'pchic', D => 'dpchic'},
+defslatec('chic',
+	  {S => 'pchic', D => 'dpchic'},
 	  'Integer      ic      (two=2);
            Mat          vc      (two=2);
            Mat          mflag   ();
@@ -958,8 +958,8 @@ for monotonicity.
 );	  
 
 # as above, have made wk an actual ndarray, rather than a [t]
-defslatec(
-	  'chsp', {S => 'pchsp', D => 'dpchsp'},
+defslatec('chsp',
+	  {S => 'pchsp', D => 'dpchsp'},
 	  'Integer      ic      (two=2);
            Mat          vc      (two=2);
            Dim          n;
@@ -1065,8 +1065,8 @@ for the interior derivative values.
 'Calculate the derivatives of (x,f(x)) using cubic spline interpolation.'
 );	  
 
-defslatec(
-	  'chfd', {S => 'pchfd', D => 'dpchfd'},
+defslatec('chfd',
+	  {S => 'pchfd', D => 'dpchfd'},
 	  'Dim          n;
            Mat          x       (n);
            Mat          f       (n);
@@ -1123,8 +1123,8 @@ which should never happen.
 'Interpolate function and derivative values.'
 );	  
 
-defslatec(
-	  'chfe', {S => 'pchfe', D => 'dpchfe'},
+defslatec('chfe',
+	  {S => 'pchfe', D => 'dpchfe'},
 	  'Dim          n;
            Mat          x       (n);
            Mat          f       (n);
@@ -1175,8 +1175,8 @@ E<gt>0 if extrapolation was performed at C<ierr> points
 'Interpolate function values.'
 );	  
 
-defslatec(
-	  'chia', {S => 'pchia', D => 'dpchia'},
+defslatec('chia',
+	  {S => 'pchia', D => 'dpchia'},
 	  'Dim          n;
            Mat          x       (n);
            Mat          f       (n);
@@ -1240,8 +1240,8 @@ which should never happen.
 'Integrate (x,f(x)) over arbitrary limits.'
 );
 
-defslatec(
-	  'chid', {S => 'pchid', D => 'dpchid'},
+defslatec('chid',
+	  {S => 'pchid', D => 'dpchid'},
 	  'Dim          n;
            Mat          x       (n);
            Mat          f       (n);
@@ -1293,8 +1293,8 @@ Error status returned by C<$ierr>:
 'Integrate (x,f(x)) between data points.'
 );
 
-defslatec(
-	  'chcm', {S => 'pchcm', D => 'dpchcm'},
+defslatec('chcm',
+	  {S => 'pchcm', D => 'dpchcm'},
 	  'Dim          n;
            Mat          x       (n);
            Mat          f       (n);
@@ -1386,8 +1386,8 @@ ignore function for now although code is in slatec/ directory
 # Changed by routine:
 #   nknots
 #   t
-defslatec(
-	  'chbs', {S => 'pchbs', D => 'dpchbs'},
+defslatec('chbs',
+	  {S => 'pchbs', D => 'dpchbs'},
 	  'Dim          n;
            Mat          x       (n);
            Mat          f       (n);
