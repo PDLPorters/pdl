@@ -1401,8 +1401,7 @@ defslatec('chbs',
           ',
 'The resulting B-spline representation of the data
 (i.e. C<nknots>, C<t>, C<bcoeff>, C<ndim>, and
-C<kord>) can be evaluated by C<bvalu> (which is 
-currently not available).
+C<kord>) can be evaluated by L</bvalu>.
 
 Array sizes: C<tsize = 2*n + 4>, C<bsize = 2*n>,
 and C<ndim = 2*n>.
@@ -1472,6 +1471,61 @@ Error status returned by C<$ierr>:
 
 ',
 'Piecewise Cubic Hermite function to B-Spline converter.'
+);
+
+defslatec('bvalu',
+	  {S => 'bvalu', D => 'dbvalu'},
+	  'Mat          t       (nplusk);
+           Mat          a       (n);
+           Dim          n;
+           IntVal       k=$SIZE(nplusk)-$SIZE(n);
+           Integer      ideriv  ();
+           Mat          x       ();
+           Mat     [io] inbv    ();
+           Mat     [t]  work    (k3=CALC(3*($SIZE(nplusk)-$SIZE(n))));
+           FuncRet [o]  ans     ();
+          ',
+'Evaluates the B-representation C<(T,A,N,K)> of a B-spline
+at C<X> for the function value on C<IDERIV = 0> or any of its
+derivatives on C<IDERIV = 1,2,...,K-1>.  Right limiting values
+(right derivatives) are returned except at the right end
+point C<X=T(N+1)> where left limiting values are computed.  The
+spline is defined on C<T(K) .LE. X .LE. T(N+1)>.  BVALU returns
+a fatal error message when C<X> is outside of this interval.
+
+To compute left derivatives or left limiting values at a
+knot C<T(I)>, replace C<N> by C<I-1> and set C<X=T(I)>, C<I=K+1,N+1>.
+
+=head3 Description of Arguments
+
+=head4 Input
+
+     T       - knot vector of length N+K
+     A       - B-spline coefficient vector of length N
+     N       - number of B-spline coefficients
+               N = sum of knot multiplicities-K
+     K       - order of the B-spline, K .GE. 1
+     IDERIV  - order of the derivative, 0 .LE. IDERIV .LE. K-1
+               IDERIV=0 returns the B-spline value
+     X       - argument, T(K) .LE. X .LE. T(N+1)
+     INBV    - an initialization parameter which must be set
+               to 1 the first time BVALU is called.
+
+=head4 Output
+
+     INBV    - INBV contains information for efficient process-
+               ing after the initial call and INBV must not
+               be changed by the user.  Distinct splines require
+               distinct INBV parameters.
+     WORK    - work vector of length 3*K.
+     BVALU   - value of the IDERIV-th derivative at X
+
+=head4 Error Conditions
+
+An improper input is a fatal error
+',
+'Evaluate the B-representation of a B-spline at X for the
+function value or any of its derivatives.'
 );
 
 ##################################################################

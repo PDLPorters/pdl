@@ -1,4 +1,5 @@
 - Slatec::ch{ic,sp} work arrays now [t]
+- add Slatec::bvalu
 - defslatec dims can calculate from others with =CALC(expr)
 
 2.087 2024-04-05
