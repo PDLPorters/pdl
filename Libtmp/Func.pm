@@ -1,4 +1,4 @@
-=encoding iso-8859-1
+=encoding utf8
 
 =head1 NAME
 
@@ -14,7 +14,7 @@ PDL::Func - interpolation, integration, & gradient estimation (differentiation) 
  # (and the library lets you)
  #
  my $obj = PDL::Func->init( Interpolate => "Hermite" );
- # 
+ #
  my $x = pdl( 0 .. 45 ) * 4 * 3.14159 / 180;
  my $y = cat( sin($x), cos($x) );
  $obj->set( x => $x, y => $y, bc => "simple" );
@@ -34,17 +34,13 @@ PDL::Func - interpolation, integration, & gradient estimation (differentiation) 
 
 =head1 DESCRIPTION
 
-This module aims to contain useful functions. Honest.
-
-=head1 INTERPOLATION AND MORE
-
-This module aims to provide a relatively-uniform interface
+This module aims to provide a uniform interface
 to the various interpolation methods available to PDL.
 The idea is that a different interpolation scheme
 can be used just by changing an attribute of a C<PDL::Func>
 object.
 Some interpolation schemes (as exemplified by the SLATEC
-library) also provide additional functionality, such as 
+library) also provide additional functionality, such as
 integration and gradient estimation.
 
 Throughout this documentation, C<$x> and C<$y> refer to the function
@@ -55,9 +51,7 @@ Also given are the valid attributes for each scheme: the flag value
 indicates whether it can be set (s), got (g), and if it is
 required (r) for the method to work.
 
-=over 4
-
-=item Interpolate => Linear
+=head2 Interpolate => Linear
 
 An extravagent way of calling the linear interpolation routine
 L<PDL::Primitive::interpolate|PDL::Primitive/interpolate>.
@@ -69,9 +63,9 @@ The valid attributes are:
  y            sgr   function values at x positions
  err          g     error flag
 
-=item Interpolate => Hermite
+=head2 Interpolate => Hermite
 
-Use the piecewice cubic Hermite interpolation routines
+Use the piecewise cubic Hermite interpolation routines
 from the SLATEC library.
 Only available if L<PDL::Slatec> is installed.
 
@@ -85,19 +79,17 @@ The valid attributes are:
  err          g     error flag
 
 Given the initial set of points C<(x,y)>, an estimate of the
-gradient is made at these points, using the given boundary 
+gradient is made at these points, using the given boundary
 conditions. The gradients are stored in the C<g> attribute,
 accessible via:
 
  $gradient = $obj->get( 'g' );
 
 However, as this gradient is only calculated 'at the last moment',
-C<g> will only contain data I<after> one of 
+C<g> will only contain data I<after> one of
 C<interpolate>, C<gradient>, or C<integrate> is used.
 
-=back
-
-=head2 Boundary conditions for the Hermite routines
+=head3 Boundary conditions for the Hermite routines
 
 If your data is monotonic, and you are not too bothered about
 edge effects, then the default value of C<bc> of C<simple> is for you.
@@ -110,10 +102,10 @@ for the C<bc> attribute, with the following keys:
 =item monotonic
 
 0 if the interpolant is to be monotonic in each interval (so
-the gradient will be 0 at each switch point), 
+the gradient will be 0 at each switch point),
 otherwise the gradient is calculated using a 3-point difference
-formula at switch points. 
-If E<gt> 0 then the interpolant is forced to lie close to the 
+formula at switch points.
+If E<gt> 0 then the interpolant is forced to lie close to the
 data, if E<lt> 0 no such control is imposed.
 Default = B<0>.
 
@@ -122,7 +114,7 @@ Default = B<0>.
 A perl list of one or two elements. The first element defines how the
 boundary condition for the start of the array is to be calculated;
 it has a range of C<-5 .. 5>, as given for the C<ic> parameter
-of L<chic|PDL::Slatec/chic>. 
+of L<chic|PDL::Slatec/chic>.
 The second element, only used if options 2, 1, -1, or 2
 are chosen, contains the value of the C<vc> parameter.
 Default = B<[ 0 ]>.
@@ -137,17 +129,16 @@ An example would be
 
  $obj->set( bc => { start => [ 1, 0 ], end => [ 1, -1 ] } )
 
-which sets the first derivative at the first point to 0, 
+which sets the first derivative at the first point to 0,
 and at the last point to -1.
 
 =head2 Errors
 
 The C<status> method provides a simple mechanism to check if
-the previous method was successful. 
+the previous method was successful.
 If the function returns an error flag, then it is stored
 in the C<err> attribute.
-To find out which routine was used, use the
-C<routine> method.
+To find out which routine was used, use the L</routine> method.
 
 =cut
 
@@ -156,6 +147,9 @@ package PDL::Func;
 use strict;
 use warnings;
 use Carp;
+use parent qw(PDL::Exporter);
+our @EXPORT_OK = qw(pchip);
+our %EXPORT_TAGS = (Func=>[@EXPORT_OK]);
 
 ####################################################################
 #
@@ -168,7 +162,6 @@ BEGIN {
 }
 
 ####################################################################
- 
 ## Public routines:
 
 =head1 FUNCTIONS
@@ -185,7 +178,7 @@ BEGIN {
 Create a PDL::Func object, which can interpolate, and possibly
 integrate and calculate gradients of a dataset.
 
-If not specified, the value of Interpolate is taken to be 
+If not specified, the value of Interpolate is taken to be
 C<Linear>, which means the interpolation is performed by
 L<PDL::Primitive::interpolate|PDL::Primitive/interpolate>.
 A value of C<Hermite> uses piecewise cubic Hermite functions,
@@ -206,9 +199,9 @@ example.
 # do we really need gettable? Not currently, that's for sure,
 # as everything is gettable
 
-my %attr = 
+my %attr =
     (
-     Default => { 
+     Default => {
 	 x   => { required => 1, settable => 1, gettable => 1 },
 	 y   => { required => 1, settable => 1, gettable => 1 },
 	 err => { gettable => 1 },
@@ -232,15 +225,14 @@ sub init {
 
     # set up default attributes
     #
-    my ( %opt ) = @_; 
+    my ( %opt ) = @_;
     $opt{Interpolate} = "Linear" unless exists $opt{Interpolate};
 
     # set variables
     $self->set( %opt );
- 
+
     # return the object
     return $self;
-                                                                                
 } # sub: init()
 
 #####################################################################
@@ -305,7 +297,7 @@ sub _init_attr {
 		if exists $self->{types}{$type};
 	}
 	# set value to default value/undef
-	$self->{values}{$attr} = 
+	$self->{values}{$attr} =
 	    exists $ref->{$attr}{default} ? $ref->{$attr}{default} : undef;
     }
 } # sub: _init_attr()
@@ -313,7 +305,7 @@ sub _init_attr {
 ####################################################################
 
 # call this at the start of each method that needs data
-# stored in the object. This function ensures that all required 
+# stored in the object. This function ensures that all required
 # attributes exist and, if necessary, re-initialises the object
 # - ie if the data has changed.
 #
@@ -328,11 +320,11 @@ sub _check_attr {
 	}
     }
     croak "ERROR - the following attributes must be supplied:\n [ @emsg ]\n"
-	unless $#emsg == -1;
-    
+	if @emsg;
+
     $self->{flags}{routine} = "none";
     $self->{flags}{status} = 1;
-    
+
     $self->_initialise;
     $self->{flags}{changed} = 0;
 
@@ -345,17 +337,15 @@ sub _check_attr {
 # It's done here.
 #
 # Due to lazy evaluation we try to do this as late as possible -
-# _initialise() should only be called by _check_attr() 
+# _initialise() should only be called by _check_attr()
 #   [ at least at the moment ]
 #
 sub _initialise {
     my $self = shift;
-
     my $iflag = $self->scheme();
     if ( $iflag eq "Hermite" ) {
 	_init_hermite( $self );
     }
-    
 } # sub: _initialise()
 
 # something has changed, so we need to recalculate the gradient
@@ -439,7 +429,7 @@ sub _init_hermite {
 sub _set_value {
     my $self = shift;
     my %attrs = ( @_ );
-    
+
     foreach my $attr ( keys %attrs ) {
 	if ( exists($self->{values}{$attr}) ) {
 	    $self->{values}{$attr} = $attrs{$attr};
@@ -484,23 +474,23 @@ sub _get_value {
 Set attributes for a PDL::Func object.
 
 The return value gives the number of the supplied attributes
-which were actually set. 
+which were actually set.
 
 =cut
 
 sub set {
     my $self = shift;
-    return if $#_ == -1;
+    return if !@_;
 
     my $vref;
-    if ( $#_ == 0 and ref($_[0]) eq "HASH" ) {
+    if ( @_ == 1 and ref($_[0]) eq "HASH" ) {
 	$vref = shift;
     } else {
-	my %vals = ( @_ ); 
+	my %vals = ( @_ );
 	$vref = \%vals;
     }
 
-    # initialise attributes IFF Interpolate 
+    # initialise attributes IFF Interpolate
     # is specified
     #
     $self->_init_attr( $vref->{Interpolate} )
@@ -588,10 +578,10 @@ sub scheme { return $_[0]->{flags}{scheme}; }
 
 Returns the status of a PDL::Func object.
 
-This method provides a high-level indication of 
+This method provides a high-level indication of
 the success of the last method called
 (except for C<get> which is ignored).
-Returns B<1> if everything is okay, B<0> if 
+Returns B<1> if everything is okay, B<0> if
 there has been a serious error,
 and B<-1> if there
 was a problem which was not serious.
@@ -629,7 +619,7 @@ sub routine { return $_[0]->{flags}{routine}; }
 
 =for ref
 
-Print out the flags for the attributes of a PDL::Func object. 
+Print out the flags for the attributes of a PDL::Func object.
 
 Useful in case the documentation is just too opaque!
 
@@ -654,7 +644,7 @@ Useful in case the documentation is just too opaque!
 # It would have been useful if I'd stuck to sub-classes
 # for different schemes
 #
-sub attributes { 
+sub attributes {
     my $self = shift;
 
     # ugh
@@ -666,7 +656,7 @@ sub attributes {
 	$flag .= "S" if $hashref->{settable};
 	$flag .= "G" if $hashref->{gettable};
 	$flag .= "R" if $hashref->{required};
-	
+
 	printf " %-3s    %s\n", $flag, $attr;
     }
     return;
@@ -685,8 +675,8 @@ sub attributes {
 Returns the interpolated function at a given set of points
 (PDL::Func).
 
-A status value of -1, as returned by the C<status> method, 
-means that some of the C<$xi> points lay outside the 
+A status value of -1, as returned by the C<status> method,
+means that some of the C<$xi> points lay outside the
 range of the data. The values for these points
 were calculated by extrapolation (the details depend on the
 scheme being used).
@@ -754,7 +744,7 @@ sub _interp_hermite {
 	# a problem
 	$self->{flags}{status} = 0;
     }
-	
+
     return $yi;
 } # sub: _interp_linear()
 
@@ -768,7 +758,7 @@ sub _interp_hermite {
 =for ref
 
 Returns the derivative and, optionally,
-the interpolated function for the C<Hermite>
+the interpolated function for other than the C<Linear>
 scheme (PDL::Func).
 
 =cut
@@ -781,7 +771,7 @@ sub gradient {
 	unless defined $xi;
 
     croak 'Error: can not call gradient for Interpolate => "Linear".' ."\n"
-	unless $self->scheme eq "Hermite";
+	if $self->scheme eq "Linear";
 
     # check everything is fine
     $self->_check_attr();
@@ -803,7 +793,7 @@ sub gradient {
 	# a problem
 	$self->{flags}{status} = 0;
     }
-	
+
     # note order of values
     return wantarray ? ( $yi, $gi ) : $gi;
 
@@ -851,9 +841,9 @@ sub integrate {
     my $self = shift;
 
     croak 'Usage: $obj->integrate( $type => $limits )' . "\n"
-	unless $#_ == 1;
+	unless @_ == 2;
 
-    croak 'Error: can not call integrate for Interpolate => "Linear".' ."\n"
+    croak 'Error: can not call integrate except for Interpolate => "Hermite".' ."\n"
 	unless $self->{flags}{scheme} eq "Hermite";
 
     # check everything is fine
@@ -916,6 +906,27 @@ sub integrate {
 
 ####################################################################
 
+=head2 pchip
+
+=for ref
+
+Convenience function to interpolate using C<Hermite> method. Exportable.
+
+=for usage
+
+  use PDL::Func qw(pchip);
+  $yi = pchip($x, $y, $xi);
+
+=cut
+
+sub pchip {
+  my ($x, $y, $xi) = @_;
+  my $obj = PDL::Func->init( Interpolate => "Hermite", x => $x, y => $y );
+  my $yi = $obj->interpolate( $xi );
+  croak "interpolate gave an error: ", $obj->get( 'err' ) if $obj->status != 1;
+  $yi;
+}
+
 =head1 TODO
 
 It should be relatively easy to provide an interface to other
@@ -933,13 +944,13 @@ Amalgamated C<PDL::Interpolate> and C<PDL::Interpolate::Slatec>
 to form C<PDL::Func>. Comments greatly appreciated on the
 current implementation, as it is not too sensible.
 
-Thanks to Robin Williams, Halldór Olafsson, and Vince McIntyre.
+Thanks to Robin Williams, HalldÃ³r Olafsson, and Vince McIntyre.
 
 =head1 AUTHOR
 
 Copyright (C) 2000,2001 Doug Burke (dburke@cfa.harvard.edu).
-All rights reserved. There is no warranty. 
-You are allowed to redistribute this software / documentation as 
+All rights reserved. There is no warranty.
+You are allowed to redistribute this software / documentation as
 described in the file COPYING in the PDL distribution.
 
 =cut

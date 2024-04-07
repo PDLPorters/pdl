@@ -69,7 +69,8 @@ L</chfd>; L</chfe>; L</chia>; L</chid>.
 =item * 
 
 If desired, you can check the monotonicity of your
-data using L</chcm>. 
+data using L</chcm>, or use L</chbs> to convert a PCH function into
+B-representation for use with the B-spline routines of SLATEC.
 
 =back
  
@@ -77,13 +78,6 @@ data using L</chcm>.
 
 EOD
 # ' un-confuse emacs
-
-# if define chbs, then add something like the following to point 3:
-#
-# or use L</chbs> to convert a PCH function into B-representation 
-# for use with the B-spline routines of slatec 
-# (although no interface to them currently exist).
-#
 
 # add function definitions after finishing the first pp_addpm(), since this
 # adds a '=head1 FUNCTIONS' line at the end of the text

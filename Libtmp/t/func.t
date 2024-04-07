@@ -9,9 +9,10 @@ use PDL::LiteF;
 my $slatec;
 BEGIN { eval "use PDL::Slatec"; $slatec = ($@ ? 0 : 1); }
 
-use PDL::Func;
+use PDL::Func qw(pchip);
 
-##########################################################
+eval {PDL::Func->import};
+is $@, '', 'check got exporting right';
 
 my $x = float( 1, 2, 3, 4, 5, 6, 8, 10 );
 my $y = ($x * 3) * ($x - 2);
@@ -77,15 +78,18 @@ is( $obj->status , 1, 'broadcasting: status==1 after set');
 $yi = $obj->interpolate( $xi );
 is( $obj->status, 1 ,'broadcasting: status==1 after interpolate');
 ok( ( (dims($yi) == 2) & ($yi->getdim(0) == $xi->getdim(0))) & ($yi->getdim(1) == 2), 'broadcasting dimension check' );
-
 $ans = cat( $xi*$xi+43.3, $xi*$xi*$xi-23 );
 $d   = abs( $ans - $yi );
 ok( all($d <= 6), 'broadcasting: correct answer' );
 
 # non-simple boundary conditions
 $obj->set( bc => {} );
-my $yi2 = $obj->interpolate( $xi );
+$yi = $obj->interpolate( $xi );
 $d   = abs( $ans - $yi );
 ok( all($d <= 6), 'broadcasting non-simple: correct answer' );
+
+$yi = pchip( $x, $y, $xi );
+$d   = abs( $ans - $yi );
+ok( all($d <= 6), 'pchip(): correct answer' );
 
 done_testing;

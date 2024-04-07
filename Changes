@@ -1,6 +1,7 @@
 - Slatec::ch{ic,sp} work arrays now [t]
 - add Slatec::bvalu
 - defslatec dims can calculate from others with =CALC(expr)
+- add Func::pchip
 
 2.087 2024-04-05
 - Slatec PCHIP routines now have idiomatic [io] `skip` Pars, with doc fixed to match SLATEC code (#468)
