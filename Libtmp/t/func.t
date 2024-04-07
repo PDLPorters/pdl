@@ -82,4 +82,10 @@ $ans = cat( $xi*$xi+43.3, $xi*$xi*$xi-23 );
 $d   = abs( $ans - $yi );
 ok( all($d <= 6), 'broadcasting: correct answer' );
 
+# non-simple boundary conditions
+$obj->set( bc => {} );
+my $yi2 = $obj->interpolate( $xi );
+$d   = abs( $ans - $yi );
+ok( all($d <= 6), 'broadcasting non-simple: correct answer' );
+
 done_testing;

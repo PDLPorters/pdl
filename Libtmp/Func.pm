@@ -373,7 +373,7 @@ sub _init_hermite {
     # get values in one go
     my ( $x, $y, $bc ) = $self->_get_value( qw( x y bc ) );
 
-    # check 1st dimention of x and y are the same
+    # check 1st dimension of x and y are the same
     #  ie allow the possibility of broadcasting
     my $xdim = $x->getdim( 0 );
     my $ydim = $y->getdim( 0 );
@@ -382,20 +382,16 @@ sub _init_hermite {
 
     my ( $g, $ierr );
     if ( ref($bc) eq "HASH" ) {
+	croak "ERROR: Hermite interpolation is not available without PDL::Slatec.\n"
+	  if !$modules{slatec};
 	my $monotonic = $bc->{monotonic} || 0;
 	my $start     = $bc->{start}     || [ 0 ];
 	my $end       = $bc->{end}       || [ 0 ];
 
-	my $ic = $x->short( $start->[0], $end->[0] );
-	my $vc = $x->float( 0, 0 );
+	my $ic = [$start->[0], $end->[0]];
+	my $vc = [@$start == 2 ? $start->[1] : 0, @$end == 2 ? $end->[1] : 0];
 
-	if ( $#$start == 1 ) { $vc->set( 0, $start->[1] ); }
-	if ( $#$end   == 1 ) { $vc->set( 1, $end->[1] ); }
-
-	my $wk = $x->zeroes( $x->float, 2*$xdim );
-	croak "ERROR: Hermite interpolation is not available without PDL::Slatec.\n"
-	  if $modules{slatec} == 0;
-	( $g, $ierr ) = chic( $ic, $vc, $monotonic, $x, $y, $wk );
+	( $g, $ierr ) = chic( $ic, $vc, $monotonic, $x, $y );
 
 	$self->{flags}{routine} = "chic";
 
@@ -951,4 +947,3 @@ described in the file COPYING in the PDL distribution.
 ####################################################################
 # End with a true
 1;
-
