@@ -236,7 +236,7 @@ ok(all($err == 0));
 
 ## Test: bvalu - note, only tests that it runs successfully
 my $x_slice = $x->slice('0:-2'); # because calling with last value is out of range
-my ($val) = bvalu($t, $bcoef, 0, $x_slice, $x_slice->ones);
+my ($val) = bvalu($t, $bcoef, 0, $x_slice);
 
 my $A = identity(4) + ones(4, 4);
 $A->slice('2,0') .= 0; # break symmetry to see if need transpose

@@ -1473,7 +1473,7 @@ defslatec('bvalu',
            IntVal       k=$SIZE(nplusk)-$SIZE(n);
            Integer      ideriv  ();
            Mat          x       ();
-           Mat     [io] inbv    ();
+           IntVal       inbv=1;
            Mat     [t]  work    (k3=CALC(3*($SIZE(nplusk)-$SIZE(n))));
            FuncRet [o]  ans     ();
           ',
@@ -1501,14 +1501,14 @@ knot C<T(I)>, replace C<N> by C<I-1> and set C<X=T(I)>, C<I=K+1,N+1>.
                IDERIV=0 returns the B-spline value
      X       - argument, T(K) .LE. X .LE. T(N+1)
      INBV    - an initialization parameter which must be set
-               to 1 the first time BVALU is called.
+               to 1 the first time BVALU is called. (PDL sets to 1 for you)
 
 =head4 Output
 
      INBV    - INBV contains information for efficient process-
                ing after the initial call and INBV must not
                be changed by the user.  Distinct splines require
-               distinct INBV parameters.
+               distinct INBV parameters. (unavailable in PDL)
      WORK    - work vector of length 3*K.
      BVALU   - value of the IDERIV-th derivative at X
 
