@@ -391,6 +391,7 @@ Libtmp/Fit/Makefile.PL
 Libtmp/Fit/Polynomial.pm
 Libtmp/Fit/t/poly.t
 Libtmp/Func.pm
+Libtmp/Func_demo.pm
 Libtmp/GIS/Makefile.PL
 Libtmp/GIS/Proj/Makefile.PL
 Libtmp/GIS/Proj/Proj.pd
