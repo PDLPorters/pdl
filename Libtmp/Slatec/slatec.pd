@@ -116,7 +116,7 @@ Separates supplied arguments and return values.
 Fit discrete data in a least squares sense by polynomials
 in one variable.  Handles broadcasting correctly--one can pass in a 2D PDL (as C<$y>)
 and it will pass back a 2D PDL, the rows of which are the polynomial regression
-results (in C<$r> corresponding to the rows of $y.
+results (in C<$r>) corresponding to the rows of $y.
 
 =for usage
 
@@ -566,25 +566,14 @@ sub PDL::polycoef {
 sub PDL::polyvalue {
   barf 'Usage: polyvalue($l, $nder, $x, $c);'
     unless @_ == 4;
-
   # Two output arrays
   my $yfit = PDL->null;
-
   # This one must be preallocated and must take into account
   # the size of $x if greater than 1
-  my $yp;
-  if ($_[2]->getdim(0) == 1) {
-    $yp = $_[2]->zeroes($_[1]);
-  } else {
-    $yp = $_[2]->zeroes($_[1], $_[2]->getdim(0));
-  }
-
-  # Run the slatec function
+  my $yp = $_[2]->zeroes($_[1], $_[2]->getdim(0) == 1 ? () : $_[2]->getdim(0));
   pvalue($_[0], $_[2], $yfit, $yp, $_[3]);
-
   # Returns
   return ($yfit, $yp);
-
 }
                                                                               
 END

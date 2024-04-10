@@ -631,9 +631,11 @@ at_bad_c(x,pos)
     int badflag;
     volatile PDL_Anyval result = { PDL_INVALID, {0} };
    CODE:
+    if (pos == NULL)
+      barf("Invalid NULL position given");
     pdl_barf_if_error(pdl_make_physvaffine( x ));
-    if (pos == NULL || pos_count < x->ndims)
-      barf("Invalid position with pos=%p, count=%"IND_FLAG" for ndarray with %"IND_FLAG" dims", pos, pos_count, x->ndims);
+    if (pos_count < x->ndims)
+      barf("Invalid position: %"IND_FLAG" coordinate%s given for ndarray with %"IND_FLAG" dim%s", pos_count, pos_count == 1 ? "" : "s", x->ndims, x->ndims == 1 ? "" : "s");
     for (ipos=0; ipos < x->ndims; ipos++)
       if (pos[ipos] + ((pos[ipos] < 0) ? x->dims[ipos] : 0) >= x->dims[ipos])
         barf("Position %"IND_FLAG" at dimension %"IND_FLAG" out of range", pos[ipos], ipos);
