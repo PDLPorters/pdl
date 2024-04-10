@@ -120,12 +120,11 @@ foreach my $xpos ($x->list) {
 }
 
 # Try polyvalue with a single x pos
-my $xx = pdl([4]);
+my $xx = pdl(4);
 my $nder = 3;
 
 my ($yfit, $yp) = polyvalue($ndeg, $nder, $xx, $a1);
 
-## print STDERR "At $xx, $yfit and $yp\n";
 ok(int($yp->at(0)) == 8);
 
 # Test polyvalue
