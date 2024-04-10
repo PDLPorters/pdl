@@ -233,6 +233,39 @@ as it will not contain any bad values.',
 
 } # foreach: $func
 
+pp_def('diff2',
+  HandleBad => 1,
+  Pars => 'a(n); [o]o(nminus1)',
+  RedoDimsCode => '$SIZE(nminus1) = $SIZE(n) - 1;',
+  GenericTypes => [ppdefs_all],
+  Code => <<'EOF',
+$GENERIC() lastval = PDL_IF_BAD($ISBAD($a(n=>0)) ? 0 :,) $a(n=>0);
+loop(n=1) %{
+  PDL_IF_BAD(if ($ISBAD($a()))
+    $SETBAD(o(nminus1=>n-1));
+  else,)
+    $o(nminus1=>n-1) = $a() - lastval;
+  PDL_IF_BAD(if ($ISGOOD($a())),) lastval = $a();
+%}
+EOF
+  Doc => <<'EOF',
+=for ref
+
+Numerically differentiates a vector along 0th dimension.
+
+By using L<PDL::Slices/xchg> etc. it is possible to use I<any> dimension.
+
+=for usage
+
+  print pdl(q[3 4 2 3 2 3 1])->diff2;
+  # [1 -2 1 -1 1 -2]
+EOF
+  BadDoc => <<'EOF',
+On bad value, output value is set bad. On next good value, output value
+is difference between that and last good value.
+EOF
+);
+
 # this would need a lot of work to support bad values
 # plus it gives me a chance to check out HandleBad => 0 ;)
 #
@@ -282,24 +315,24 @@ pp_def(
           %}
       }
       ',
-       Doc => projectdocs('integral','intover',
-q~Notes:
+       Doc => projectdocs('integral','intover', <<'EOF'),
+Notes:
 
-C<intover> uses a point spacing of one (i.e., delta-h==1).  You will
-need to scale the result to correct for the true point delta).
+C<intover> uses a point spacing of one (i.e., delta-h==1). You will
+need to scale the result to correct for the true point delta.
 
 For C<n E<gt> 3>, these are all C<O(h^4)> (like Simpson's rule), but are
 integrals between the end points assuming the pdl gives values just at
 these centres: for such `functions', sumover is correct to C<O(h)>, but
 is the natural (and correct) choice for binned data, of course.
-~)
+EOF
 ); # intover
 
 sub synonym {
     my ($name, $synonym) = @_;
     pp_add_exported('', $synonym);
     pp_addpm(
-"=head2 $synonym\n\n=for ref\n\n  Synonym for $name.\n\n=cut\n
+"=head2 $synonym\n\n=for ref\n\nSynonym for L</$name>.\n\n=cut\n
 *PDL::$synonym = *$synonym = \\&PDL::$name;"
     );
 }

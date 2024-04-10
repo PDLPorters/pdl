@@ -265,4 +265,27 @@ subtest 'minimum_n_ind' => sub {
     }
 };
 
+subtest diff2 => sub {
+  my $got = pdl('[BAD 2 3 4]')->diff2;
+  is "$got", "[2 1 1]", 'first bad';
+  $got = pdl('[BAD BAD 3 4]')->diff2;
+  is "$got", "[BAD 3 1]", 'first 2 bad';
+  $got = pdl('[2 BAD 3 4]')->diff2;
+  is "$got", "[BAD 1 1]", 'second bad';
+  $got = pdl('[2 3 BAD 4]')->diff2;
+  is "$got", "[1 BAD 1]", 'third bad';
+  $got = pdl('[2 BAD BAD 4]')->diff2;
+  is "$got", "[BAD BAD 2]", 'middle 2 bad';
+  $got = pdl('[2 3 4 BAD]')->diff2;
+  is "$got", "[1 1 BAD]", 'last bad';
+  $got = pdl('[BAD BAD 4]')->diff2;
+  is "$got", "[BAD 4]", 'only 1 good';
+  $got = pdl('[BAD BAD]')->diff2;
+  is "$got", "[BAD]", 'none good';
+  eval {empty()->diff2};
+  like $@, qr/Tried to allocdata with -1 values/, 'empty';
+  $got = pdl(1)->diff2;
+  is "$got", "Empty[0]", 'single-element gives empty';
+};
+
 done_testing;
