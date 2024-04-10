@@ -16,23 +16,24 @@ my @demo = (
   # PDL::Func objects encapsulate data to interpolate, integrate,
   # and get gradients of (differentiate).
 
-  use PDL::Func qw(pchip); # load, and import a convenience function
+  use PDL::Func qw(pchip spline); # load, and import convenience functions
+  $w = pgswin(); # PDL::Graphics::Simple window
+|],
 
+[act => q|
   # set up a step function, similar to
   # https://uk.mathworks.com/help/matlab/ref/pchip.html
   $x = sequence(7) - 3;
   $y = pdl q[-1 -1 -1 0 1 1 1];
-|],
-
-[act => q|
   # The convenience function "pchip" uses SLATEC's PCHIP with all
   # the default settings
   $xi = zeroes(100)->xlinvals(-3,3);
   $yi = pchip($x, $y, $xi);
-  points $x, $y;
-  hold;
-  line $xi, $yi;
-  release;
+  $yi_s = spline($x, $y, $xi);
+  $w->plot(with => 'line', key => 'spline', $xi, $yi_s,
+    with => 'line', key => 'pchip', $xi, $yi,
+    with => 'points', $x, $y,
+    {legend=>'tl'});
 |],
 
 [act => q|
@@ -41,10 +42,11 @@ my @demo = (
   $y2 = bessj1($x2);
   $xi2 = zeroes(100)->xlinvals(0,15);
   $yi2 = pchip($x2, $y2, $xi2);
-  points $x2, $y2;
-  hold;
-  line $xi2, $yi2;
-  release;
+  $yi2_s = spline($x2, $y2, $xi2);
+  $w->plot(with => 'line', key => 'spline', $xi2, $yi2_s,
+    with => 'line', key => 'pchip', $xi2, $yi2,
+    with => 'points', $x2, $y2,
+    {legend=>'tr'});
 |],
 
 [act => q|
@@ -54,10 +56,10 @@ my @demo = (
   # even though PDL::Graphics::Simple can't (yet)
   my @y3d = $y3->dog;
   my @yi3d = $yi3->dog;
-  points $x2, $y3d[0]; hold;
-  points $x2, $y3d[1];
-  line $xi2, $yi3d[0];
-  line $xi2, $yi3d[1]; release;
+  $w->plot(with => 'points', $x2, $y3d[0],
+    with => 'points', $x2, $y3d[1],
+    with => 'line', $xi2, $yi3d[0],
+    with => 'line', $xi2, $yi3d[1]);
 |],
 
 [comment => q|
@@ -70,7 +72,7 @@ my @demo = (
 
 sub demo { @demo }
 sub done {'
-  erase;
+  undef $w;
 '}
 
 1;

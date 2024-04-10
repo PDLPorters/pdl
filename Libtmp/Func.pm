@@ -132,6 +132,32 @@ An example would be
 which sets the first derivative at the first point to 0,
 and at the last point to -1.
 
+=head2 Interpolate => CSpline
+
+Use the cubic spline interpolation routines
+from the SLATEC library's PCHIP package.
+Only available if L<PDL::Slatec> is installed.
+
+The valid attributes are:
+
+ Attribute    Flag  Description
+ x            sgr   x positions of data
+ y            sgr   function values at x positions
+ bc           sgr   boundary conditions (see Hermite but no "simple" or monotonic)
+ g            g     estimated gradient at x positions
+ err          g     error flag
+
+Given the initial set of points C<(x,y)>, an estimate of the
+gradient is made at these points, using the given parameters.
+The gradients are stored in the C<g> attribute,
+accessible via:
+
+ $gradient = $obj->get( 'g' );
+
+However, as this gradient is only calculated 'at the last moment',
+C<g> will only contain data I<after> one of
+C<interpolate>, C<gradient>, or C<integrate> is used.
+
 =head2 Errors
 
 The C<status> method provides a simple mechanism to check if
@@ -148,7 +174,7 @@ use strict;
 use warnings;
 use Carp;
 use parent qw(PDL::Exporter);
-our @EXPORT_OK = qw(pchip);
+our @EXPORT_OK = qw(pchip spline);
 our %EXPORT_TAGS = (Func=>[@EXPORT_OK]);
 
 ####################################################################
@@ -210,6 +236,12 @@ my %attr =
      Hermite => {
 	 bc  => { settable => 1, gettable => 1, required => 1, default => "simple" },
 	 g   => { gettable => 1 },
+     },
+     CSpline => {
+	 bc  => { settable => 1, gettable => 1, required => 1, default => {} },
+	 g   => { gettable => 1 },
+	 t   => { gettable => 1 },
+	 a   => { gettable => 1 },
      },
      );
 
@@ -343,8 +375,11 @@ sub _check_attr {
 sub _initialise {
     my $self = shift;
     my $iflag = $self->scheme();
-    if ( $iflag eq "Hermite" ) {
+    if ( $iflag eq "Hermite") {
 	_init_hermite( $self );
+    }
+    if ( $iflag eq "CSpline" ) {
+	_init_cspline( $self );
     }
 } # sub: _initialise()
 
@@ -411,8 +446,39 @@ sub _init_hermite {
 	# there were switches in monotonicity
 	$self->{flags}{status} = -1;
     }
+}
 
-
+sub _init_cspline {
+    croak "ERROR: CSpline interpolation is not available without PDL::Slatec\n"
+      if !$modules{slatec};
+    my $self = shift;
+    # set up error flags
+    $self->{flags}{status} = 0;
+    $self->{flags}{routine} = "none";
+    my ( $x, $y, $bc ) = $self->_get_value( qw( x y bc ) );
+    # check 1st dimension of x and y are the same
+    #  ie allow the possibility of broadcasting
+    my $xdim = $x->getdim( 0 );
+    my $ydim = $y->getdim( 0 );
+    croak "ERROR: x and y ndarrays must have the same first dimension.\n"
+	unless $xdim == $ydim;
+    my ( $g, $ierr );
+    if ( ref($bc) eq "HASH" ) {
+	my $start     = $bc->{start}     || [ 0 ];
+	my $end       = $bc->{end}       || [ 0 ];
+	my $ic = [$start->[0], $end->[0]];
+	my $vc = [@$start == 2 ? $start->[1] : 0, @$end == 2 ? $end->[1] : 0];
+	( $g, $ierr ) = chsp( $ic, $vc, $x, $y );
+	$self->{flags}{routine} = "chsp";
+    }
+    $self->_set_value( g => $g, err => $ierr );
+    if ( all $ierr == 0 ) {
+	# everything okay
+	$self->{flags}{status} = 1;
+    } elsif ( any $ierr < 0 ) {
+	# a problem
+	$self->{flags}{status} = 0;
+    }
 }
 
 ####################################################################
@@ -429,14 +495,12 @@ sub _init_hermite {
 sub _set_value {
     my $self = shift;
     my %attrs = ( @_ );
-
     foreach my $attr ( keys %attrs ) {
 	if ( exists($self->{values}{$attr}) ) {
 	    $self->{values}{$attr} = $attrs{$attr};
 	    $self->{flags}{changed} = 1;
 	}
     }
-
 } # sub: _set_value()
 
 # a version of get that ignores the gettable flag
@@ -562,7 +626,7 @@ sub get {
 
 Return the type of interpolation of a PDL::Func object.
 
-Returns either C<Linear> or C<Hermite>.
+Returns either C<Linear>, C<Hermite>, or C<CSpline>.
 
 =cut
 
@@ -700,7 +764,7 @@ sub interpolate {
     my $iflag = $self->scheme;
     if ( $iflag eq "Linear" ) {
 	return _interp_linear( $self, $xi, $x, $y );
-    } elsif ( $iflag eq "Hermite" ) {
+    } elsif ( $iflag eq "Hermite" or $iflag eq "CSpline" ) {
 	return _interp_hermite( $self, $xi, $x, $y );
     }
 
@@ -719,11 +783,9 @@ sub _interp_linear {
 } # sub: _interp_linear()
 
 sub _interp_hermite {
-    my ( $self, $xi, $x, $y ) = ( @_ );
-
+    my ( $self, $xi, $x, $y ) = @_;
     # get gradient
     my $g = $self->_get_value( 'g' );
-
     my @highest_dims;
     for my $param ($x,$y,$g,$xi) {
       my @this_dims = $param->dims;
@@ -733,7 +795,6 @@ sub _interp_hermite {
     my ( $yi, $ierr ) = chfe( $x, $y, $g, PDL->ones(PDL::long(),@highest_dims), $xi );
     $self->{flags}{routine} = "chfe";
     $self->_set_value( err => $ierr );
-
     if ( all $ierr == 0 ) {
 	# everything okay
 	$self->{flags}{status} = 1;
@@ -744,7 +805,6 @@ sub _interp_hermite {
 	# a problem
 	$self->{flags}{status} = 0;
     }
-
     return $yi;
 } # sub: _interp_linear()
 
@@ -922,6 +982,27 @@ Convenience function to interpolate using C<Hermite> method. Exportable.
 sub pchip {
   my ($x, $y, $xi) = @_;
   my $obj = PDL::Func->init( Interpolate => "Hermite", x => $x, y => $y );
+  my $yi = $obj->interpolate( $xi );
+  croak "interpolate gave an error: ", $obj->get( 'err' ) if $obj->status != 1;
+  $yi;
+}
+
+=head2 spline
+
+=for ref
+
+Convenience function to interpolate using C<CSpline> method. Exportable.
+
+=for usage
+
+  use PDL::Func qw(spline);
+  $yi = spline($x, $y, $xi);
+
+=cut
+
+sub spline {
+  my ($x, $y, $xi) = @_;
+  my $obj = PDL::Func->init( Interpolate => "CSpline", x => $x, y => $y );
   my $yi = $obj->interpolate( $xi );
   croak "interpolate gave an error: ", $obj->get( 'err' ) if $obj->status != 1;
   $yi;

@@ -9,7 +9,7 @@ use PDL::LiteF;
 my $slatec;
 BEGIN { eval "use PDL::Slatec"; $slatec = ($@ ? 0 : 1); }
 
-use PDL::Func qw(pchip);
+use PDL::Func qw(pchip spline);
 
 eval {PDL::Func->import};
 is $@, '', 'check got exporting right';
@@ -43,15 +43,12 @@ unless ($slatec) {
 
 $x = sequence(float,10);
 $y = $x*$x + 0.5;
-#$obj->set( Interpolate => "Hermite", x => $x, y => $y, bc => "simple" );
 $obj->set( Interpolate => 'Hermite', x => $x, y => $y );
 
 #print "bc for Hermite interpolation: " . $obj->get('bc') . "\n";
 is( $obj->scheme() , 'Hermite' , 'scheme is Hermite'); 
 is( $obj->get('bc'), 'simple' , 'boundary condition is simple'); 
 is( $obj->status, 1 , 'no errors');
-
-my $gi;
 
 $xi = sequence(float,5) + 2.3;
 $yi = $obj->interpolate( $xi );
@@ -61,7 +58,7 @@ $ans = $xi*$xi + 0.5;
 $d   = abs( $ans - $yi );
 ok( all($d <= 0.03), 'interpolate correct answer');
 
-$gi = $obj->gradient( $xi );
+my $gi = $obj->gradient( $xi );
 is( $obj->status, 1, 'status==1 after gradient');
 
 $ans = 2*$xi;
@@ -91,5 +88,9 @@ ok( all($d <= 6), 'broadcasting non-simple: correct answer' );
 $yi = pchip( $x, $y, $xi );
 $d   = abs( $ans - $yi );
 ok( all($d <= 6), 'pchip(): correct answer' );
+
+$yi = spline( $x, $y, $xi );
+$d   = abs( $ans - $yi );
+ok( all($d <= 6), 'spline(): correct answer' );
 
 done_testing;
