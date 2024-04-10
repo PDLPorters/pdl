@@ -181,15 +181,15 @@ precision."
 %over = 
     (
      zcover   => { def=>'char tmp', txt => '== 0', init => 1, alltypes => 1,
-		   otype => 'int+', op => 'tmp &= ($a() == 0);', check => '!tmp' },
+		   otype => 'int+', op => 'tmp &= ($a() == 0);', leftzero => '!tmp' },
      andover  => { def=>'char tmp', txt => 'and', init => 1, alltypes => 1, 
-		   otype => 'int+', op => 'tmp &=  ($a() != 0);', check => '!tmp' },
+		   otype => 'int+', op => 'tmp &=  ($a() != 0);', leftzero => '!tmp' },
      bandover => { def=>'$GENERIC() tmp', txt => 'bitwise and', init => '~0', 
-		   otype => '', op => 'tmp &= $a();', check => '!tmp' },
+		   otype => '', op => 'tmp &= $a();', leftzero => '!tmp' },
      orover   => { def=>'char tmp', txt => 'or', init => 0, alltypes => 1, 
-		   otype => 'int+', op => 'tmp |= ($a() != 0);', check => 'tmp' },
+		   otype => 'int+', op => 'tmp |= ($a() != 0);', leftzero => 'tmp' },
      borover  => { def=>'$GENERIC() tmp', txt => 'bitwise or', init => 0, 
-		   otype => '', op => 'tmp |= $a() ;', check => '!~tmp' },
+		   otype => '', op => 'tmp |= $a() ;', leftzero => '!~tmp' },
 
      );
 
@@ -200,7 +200,7 @@ foreach my $func ( sort keys %over ) {
     my $init  = $over{$func}{init};
     my $otype = $over{$func}{otype};
     my $op    = $over{$func}{op};
-    my $check = $over{$func}{check};
+    my $leftzero = $over{$func}{leftzero};
 
     my %extra;
     unless ( $over{$func}{alltypes} ) {
@@ -218,7 +218,7 @@ foreach my $func ( sort keys %over ) {
             loop(n) %{
             PDL_IF_BAD(if ( \$ISGOOD(a()) ) { flag = 1;,)
               $op
-              if ( $check ) break;
+              if ( $leftzero ) break;
             PDL_IF_BAD(},)
             %}
             PDL_IF_BAD(if ( !flag ) { \$SETBAD(b()); \$PDLSTATESETBAD(b); } else,)
