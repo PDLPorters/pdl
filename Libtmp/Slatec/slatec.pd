@@ -292,7 +292,6 @@ sub intcopy {
 #     - pchid()/dpchid() require FORTRAN array indices, so 
 #       this type flags that we should add 1 onto the input values
 #       before sending to the slatec function
-# for MDim, ld[str] is interpreted as "leading dimension of ..."
 #
 # $docstring gives the text to be used as the function documentation
 #
@@ -309,10 +308,9 @@ my %KIND2I = (
   Integer => ['longlong ', sub{"\$P($_[0][2])"}, sub {"PDL_LongLong *"}],
   Logical => ['int ', sub{"\$P($_[0][2])"}, sub {"PDL_Long *"}],
   Dim => [undef, intcopy(sub {"dim_$_[0][2]"}, sub {"\$SIZE($_[0][2])"})],
-  MDim => [undef, intcopy(sub {$_[0][2]}, sub {$_[1]{$_[0][2]}})],
   IntVal => [undef, intcopy(sub {$_[0][2]}, sub {$_[0][4]})],
 );
-my %ignore_ppar = map +($_=>1), qw(IntVal Dim MDim);
+my %ignore_ppar = map +($_=>1), qw(IntVal Dim);
 my %prototype = ( F => "float", D => "double" );
 my %ftypes = (S => 'F', D => 'D');
 my $calc_re = qr{
@@ -335,9 +333,9 @@ sub defslatec {
     my ($pname,$fnames,$argstr,$docstring,$funcref) = @_;
     my @args = grep /\S/, split ';', $argstr;
     my @args2 = map {
-		/^\s*([a-zA-Z]+)\s+ 	# "Type name"
-		  ((?:\[[^]]*\])?)\s* 	# Options
-		  ([a-zA-Z]+)\s*      	# Par name
+		/^\s*([a-zA-Z]+)\s+	# "Type name"
+		  ((?:\[[^]]*\])?)\s*	# Options
+		  ([a-zA-Z]+)\s*	# Par name
 		  (?:
 		    ((?:\(.*\))?)\s*$	# Dims
 		    |
@@ -370,9 +368,7 @@ sub defslatec {
       join(',',map qq{$_->[1]}, @talts)."))";
     if ( defined $fpar ) { $func = "$fpar = $func"; }
 
-    my %lds = map +("ld".$_->[2] => "\$SIZE(".firstpar($_->[3]).")"),
-      grep $_->[0] eq "Mat" && $_->[3] ne "()", @args2;
-    my $funcargs = join ',', map $KIND2I{$_->[0]}[1]->($_, \%lds), @args2;
+    my $funcargs = join ',', map $KIND2I{$_->[0]}[1]->($_), @args2;
 
     my @protos = map $KIND2I{$_->[0]}[2], @args2;
     my @cheaders;
@@ -397,7 +393,7 @@ sub defslatec {
     }
 
     # IntVals
-    my @intcopy_code = map +($KIND2I{$_->[0]}[3]||sub{})->($_, \%lds), @args2;
+    my @intcopy_code = map +($KIND2I{$_->[0]}[3]||sub{})->($_), @args2;
     my $code = join("\n", @intcopy_code, "$func($funcargs);");
     print <<"ENDDBG" if $debug;
 pp_def('$pname',
@@ -580,18 +576,18 @@ END
 
 defslatec('svdc',
 	{S => 'ssvdc'},
-	'Mat 		x	(n,p);
-	 MDim 		ldx;
-	 Dim 		n;
-	 Dim 		p;
-	 Mat 	[o]	s	(p);
-	 Mat 	[o]	e	(p);
-	 Mat 	[o] 	u	(n,p);
-	 MDim 		ldu;
-	 Mat 	[o] 	v	(p,p);
-	 MDim 		ldv;
-	 Mat 	[t] 	work	(n);
-	 Integer   	job	();
+	'Mat		x	(n,p);
+	 IntVal		ldx=$SIZE(n);
+	 Dim		n;
+	 Dim		p;
+	 Mat	[o]	s	(p);
+	 Mat	[o]	e	(p);
+	 Mat	[o]	u	(n,p);
+	 IntVal		ldu=$SIZE(n);
+	 Mat	[o]	v	(p,p);
+	 IntVal		ldv=$SIZE(p);
+	 Mat	[t]	work	(n);
+	 Integer	job	();
 	 Integer [o]	info	();
 	',
 'singular value decomposition of a matrix'
@@ -600,7 +596,7 @@ defslatec('svdc',
 defslatec('poco',
 	{S => 'spoco', D => 'dpoco'},
 	'Mat [io]	a	(n,n);
-	 MDim		lda;
+	 IntVal		lda=$SIZE(n);
 	 Dim		n;
 	 Mat [o]	rcond	();
 	 Mat [o]	z	(n);
@@ -613,7 +609,7 @@ and estimate the condition number of the matrix.'
 defslatec('geco',
 	{S => 'sgeco', D => 'dgeco'},
 	'Mat		a	(n,n);
-	 MDim		lda;
+	 IntVal		lda=$SIZE(n);
 	 Dim		n;
 	 Integer [o]	ipvt	(n);
 	 Mat	 [o]	rcond	();
@@ -626,7 +622,7 @@ the condition number of the matrix.'
 defslatec('gefa',
 	{S => 'sgefa', D => 'dgefa'},
 	'Mat [io]	a	(n,n);
-	 MDim		lda;
+	 IntVal		lda=$SIZE(n);
 	 Dim		n;
 	 Integer [o]	ipvt	(n);
 	 Integer [o]	info	();
@@ -639,7 +635,7 @@ defslatec('gefa',
 defslatec('podi',
 	{S => 'spodi', D => 'dpodi'},
 	'Mat [io]	a	(n,n);
-	 MDim		lda;
+	 IntVal		lda=$SIZE(n);
 	 Dim		n;
 	 Mat	[o]	det	(two=2);
 	 Integer	job	();
@@ -652,7 +648,7 @@ computed by L</poco>.'
 defslatec('gedi',
 	{S => 'sgedi', D => 'dgedi'},
 	'Mat [io]	a	(n,n);
-	 MDim		lda;
+	 IntVal		lda=$SIZE(n);
 	 Dim		n;
 	 Integer	ipvt	(n);
 	 Mat	 [o]	det	(two=2);
@@ -666,7 +662,7 @@ factors computed by L</geco> or L</gefa>.'
 defslatec('gesl',
 	{S => 'sgesl', D => 'dgesl'},
 	'Mat		a	(lda,n);
-	 MDim		lda;
+	 Dim		lda;
 	 Dim		n;
 	 Integer	ipvt	(n);
 	 Mat [io]	b	(n);
@@ -678,7 +674,7 @@ factors computed by L</geco> or L</gefa>.'
 
 defslatec('rs',
 	 {S => 'rsfoo'},
-	'MDim		lda;
+	'IntVal		lda=$SIZE(n);
 	 Dim		n;
 	 Mat		a	(n,n);
 	 Mat	[o]	w	(n);
@@ -718,8 +714,8 @@ defslatec('ezfftf',
 	 Mat [o]	azero();
 	 Mat [o]	a(n);
 	 Mat [o]	b(n);
-	 Mat 		wsave(foo);
-	 Integer    	ifac(ni=15);
+	 Mat		wsave(foo);
+	 Integer	ifac(ni=15);
 	'
 );
 
@@ -727,11 +723,11 @@ defslatec('ezfftb',
 	{S => 'ezfftb'},
 	'Dim		n;
 	 Mat  [o]	r(n);
-	 Mat  		azero();
+	 Mat		azero();
 	 Mat		a(n);
-	 Mat 		b(n);
-	 Mat 		wsave(foo);
-	 Integer    	ifac(ni=15);
+	 Mat		b(n);
+	 Mat		wsave(foo);
+	 Integer	ifac(ni=15);
 	'
 );
 
