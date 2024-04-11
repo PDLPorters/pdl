@@ -378,7 +378,7 @@ sub dosubst_private {
       PP => sub { (my $o = ($sig->objs->{$_[0]}//confess "Can't get PP for unknown ndarray '$_[0]'"))->{FlagPhys} = 1; $o->do_pointeraccess; },
       P => sub { (my $o = ($sig->objs->{$_[0]}//confess "Can't get P for unknown ndarray '$_[0]'"))->{FlagPhys} = 1; $o->do_pointeraccess; },
       PDL => sub { ($sig->objs->{$_[0]}//confess "Can't get PDL for unknown ndarray '$_[0]'")->do_pdlaccess },
-      SIZE => sub { ($sig->ind_obj($_[0])//confess "Can't get SIZE of unknown dim '$_[0]'")->get_size },
+      SIZE => sub { ($sig->dims_obj->ind_obj($_[0])//confess "Can't get SIZE of unknown dim '$_[0]'")->get_size },
       SETNDIMS => sub {"PDL_RETERROR(PDL_err, PDL->reallocdims(__it,$_[0]));"},
       SETDIMS => sub {"PDL_RETERROR(PDL_err, PDL->setdims_careful(__it));"},
       SETDELTABROADCASTIDS => sub {PDL::PP::pp_line_numbers(__LINE__, <<EOF)},
@@ -2015,7 +2015,7 @@ EOF
         my $realdim_ind_start = join(", ", @starts) || '0';
         my @rd_inds = map $_->get_index, map @{$_->{IndObjs}}, @$pobjs{@$pnames};
         my $realdim_inds = join(", ", @rd_inds) || '0';
-        my @indnames = $sig->ind_names_sorted;
+        my @indnames = sort $sig->dims_obj->ind_names;
         my $indnames = join(",", map qq|"$_"|, @indnames) || '""';
         my $sizeof = $ptype ? "sizeof($ptype)" : '0';
         <<EOF;

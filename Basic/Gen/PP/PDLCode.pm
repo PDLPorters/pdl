@@ -434,32 +434,30 @@ package PDL::PP::Loop;
 our @ISA = "PDL::PP::Block";
 
 sub new { my($type,$args,$sizeprivs,$parent) = @_;
-	my $this = bless [$args],$type;
-	for(@{$this->[0]}) {
-		print "SIZP $sizeprivs, $_\n" if $::PP_VERBOSE;
-		my $i = $parent->make_loopind($_);
-		my $i_size = $parent->sig->ind_obj($i->[0])->get_size;
-		$sizeprivs->{$i->[0]} =
-		  "register PDL_Indx __$i->[0]_size = $i_size;\n";
-		print "SP :",(join ',',%$sizeprivs),"\n" if $::PP_VERBOSE;
-	}
-	return $this;
+  my $this = bless [$args],$type;
+  for (@$args) {
+    print "SIZP $sizeprivs, $_\n" if $::PP_VERBOSE;
+    my $i = $parent->make_loopind($_);
+    my $i_size = $parent->sig->dims_obj->ind_obj($i->[0])->get_size;
+    $sizeprivs->{$i->[0]} = "register PDL_Indx __$i->[0]_size = $i_size;\n";
+    print "SP :",(join ',',%$sizeprivs),"\n" if $::PP_VERBOSE;
+  }
+  return $this;
 }
 
 sub myoffs { return 1; }
 sub myprelude { my($this,$parent,$context) = @_;
-	my $text = "";
-	push @$context, map {
-		my $i = $parent->make_loopind($_);
-# Used to be $PRIV(.._size) but now we have it in a register.
-		$text .= "{PDL_COMMENT(\"Open $_\") register PDL_Indx $i->[1]; for($i->[1]=$i->[2]; $i->[1]<(__$i->[0]_size); $i->[1]++) {";
-		$i;
-	} @{$this->[0]};
-	$text;
+  my $text = "";
+  push @$context, map {
+    my $i = $parent->make_loopind($_);
+    $text .= "{PDL_COMMENT(\"Open $_\") register PDL_Indx $i->[1]; for($i->[1]=$i->[2]; $i->[1]<(__$i->[0]_size); $i->[1]++) {";
+    $i;
+  } @{$this->[0]};
+  $text;
 }
 sub mypostlude { my($this,$parent,$context) = @_;
-	splice @$context, - ($#{$this->[0]}+1);
-	return join '', map "}} PDL_COMMENT(\"Close $_\")", @{$this->[0]};
+  splice @$context, - ($#{$this->[0]}+1);
+  return join '', map "}} PDL_COMMENT(\"Close $_\")", @{$this->[0]};
 }
 
 package PDL::PP::GenericSwitch;
@@ -471,10 +469,10 @@ use PDL::Types ':All';
 my %type2canonical = map +($_->ppsym=>$_,$_->identifier=>$_), types();
 my @typetable = map [$_->ppsym, $_], types();
 sub get_generictyperecs { my($types) = @_;
-    my @bad = grep !$type2canonical{$_}, @$types;
-    confess "Invalid GenericType (@bad)!" if @bad;
-    my %wanted; @wanted{map $type2canonical{$_}->ppsym, @$types} = ();
-    [ map $_->[1], grep exists $wanted{$_->[0]}, @typetable ];
+  my @bad = grep !$type2canonical{$_}, @$types;
+  confess "Invalid GenericType (@bad)!" if @bad;
+  my %wanted; @wanted{map $type2canonical{$_}->ppsym, @$types} = ();
+  [ map $_->[1], grep exists $wanted{$_->[0]}, @typetable ];
 }
 
 # Types: BSULFD

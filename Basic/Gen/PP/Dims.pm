@@ -17,6 +17,9 @@ sub get_indobj_make {
   return $indobj;
 }
 
+sub ind_obj {$_[0]{$_[1]}}
+sub ind_names {keys %{$_[0]}}
+
 #####################################################################
 #
 # Encapsulate one index.

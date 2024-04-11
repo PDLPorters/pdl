@@ -34,20 +34,8 @@ sub new {
   $this->{NamesSorted} = [ map $_->name, @objects_sorted ];
   $this->{DimsObj} = my $dimsobj = PDL::PP::PdlDimsObj->new;
   $_->add_inds($dimsobj) for @objects;
-  my (%ind2use, %ind2obj);
-  for my $o (@objects) {
-    for my $io (@{$o->{IndObjs}}) {
-      push @{$ind2use{$io->name}}, $o;
-      $ind2obj{$io->name} = $io;
-    }
-  }
-  $this->{Ind2Use} = \%ind2use;
-  $this->{Ind2Obj} = \%ind2obj;
   @$this{qw(OtherNames OtherObjs OtherAnyOut OtherFlags)} = $this->_otherPars_nft($otherpars||'');
-  $this->{IndNamesSorted} = [ sort keys %ind2obj ];
-  my $i=0; my %ind2index = map +($_=>$i++), @{$this->{IndNamesSorted}};
-  $this->{Ind2Index} = \%ind2index;
-  $ind2obj{$_}->set_index($ind2index{$_}) for sort keys %ind2index;
+  my $i=0; $dimsobj->ind_obj($_)->set_index($i++) for sort $dimsobj->ind_names;
   $this;
 }
 
@@ -69,7 +57,7 @@ sub _otherPars_nft {
 	    my ($ctype,$dim) = ($1,$2);
 	    print "OtherPars: setting dim '$dim' from '$ctype'\n" if $::PP_VERBOSE;
 	    $type = PDL::PP::CType->new($ctype);
-	    ($sig->{Ind2Obj}{$dim} ||= $dimobjs->get_indobj_make($dim))->set_from($type);
+	    $dimobjs->get_indobj_make($dim)->set_from($type);
 	} else {
 	    $type = PDL::PP::CType->new($_);
 	}
@@ -113,11 +101,6 @@ sub names_tmp { my $o=$_[0]->objs; grep $o->{$_}{FlagTemp}, @{$_[0]{Names}} }
 sub dims_obj { $_[0]->{DimsObj} }
 sub dims_count { scalar keys %{$_[0]{DimsObj}} }
 sub dims_values { values %{$_[0]{DimsObj}} }
-
-sub ind_used { $_[0]{Ind2Use}{$_[1]} }
-sub ind_obj { $_[0]{Ind2Obj}{$_[1]} }
-sub ind_names_sorted { @{$_[0]{IndNamesSorted}} }
-sub ind_index { $_[0]{Ind2Index}{$_[1]} }
 
 sub othernames {
   my ($self, $omit_count, $with_xs, $except) = @_;

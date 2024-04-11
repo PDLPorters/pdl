@@ -79,7 +79,7 @@ sub cflags {
   map $flag2c{$_}, grep $this->{$_}, sort keys %flag2c;
 }
 
-sub name {return (shift)->{Name}}
+sub name {$_[0]{Name}}
 
 sub add_inds {
 	my($this,$dimsobj) = @_;
