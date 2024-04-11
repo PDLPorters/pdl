@@ -2179,8 +2179,18 @@ As of 2.062, the generator changed from Perl's generator to xoshiro256++
 
 =for usage
 
+From within pdl:
+
  srand(); # uses current time
  srand(5); # fixed number e.g. for testing
+
+Since srand is a class function and is not exported, it does not ovewrite
+Perl's builtin srand. Hence the code above will not seed PDL's generator
+when invoked from within a Perl application. Being a class method means 
+that PDL->srand() will generate an error too. Do this instead:
+
+ PDL::srand::srand(); # uses current time
+ PDL::srand::srand(5); # fixed number e.g. for testing
 
 EOF
 	PMCode=>pp_line_numbers(__LINE__, <<'EOD'),
