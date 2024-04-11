@@ -286,11 +286,10 @@ my %KIND2I = (
   FortranIndex => ['longlong ', intcopy(sub {$_[0][2]}, sub {"\$$_[0][2]() + 1"})],
   Integer => ['longlong ', sub{"\$P($_[0][2])"}, sub {"PDL_LongLong *"}],
   Logical => ['int ', sub{"\$P($_[0][2])"}, sub {"PDL_Long *"}],
-  Dim => [undef, intcopy(sub {"dim_$_[0][2]"}, sub {"\$SIZE($_[0][2])"})],
   OtherParDim => [\'PDL_LongLong ', intcopy(sub {"dim_$_[0][2]"}, sub {"\$SIZE($_[0][2])"})],
   IntVal => [undef, intcopy(sub {$_[0][2]}, sub {$_[0][4]})],
 );
-my %ignore_ppar = map +($_=>1), qw(IntVal Dim OtherParDim);
+my %ignore_ppar = map +($_=>1), qw(IntVal OtherParDim);
 my %prototype = ( F => "float", D => "double" );
 my %ftypes = (S => 'F', D => 'D');
 my $calc_re = qr{
@@ -557,8 +556,8 @@ defslatec('svdc',
 	{S => 'ssvdc'},
 	'Mat		x	(n,p);
 	 IntVal		ldx=$SIZE(n);
-	 Dim		n;
-	 Dim		p;
+	 IntVal		n=$SIZE(n);
+	 IntVal		p=$SIZE(p);
 	 Mat	[o]	s	(p);
 	 Mat	[o]	e	(p);
 	 Mat	[o]	u	(n,p);
@@ -576,7 +575,7 @@ defslatec('poco',
 	{S => 'spoco', D => 'dpoco'},
 	'Mat [io]	a	(n,n);
 	 IntVal		lda=$SIZE(n);
-	 Dim		n;
+	 IntVal		n=$SIZE(n);
 	 Mat [o]	rcond	();
 	 Mat [o]	z	(n);
 	 Integer [o]	info	();
@@ -589,7 +588,7 @@ defslatec('geco',
 	{S => 'sgeco', D => 'dgeco'},
 	'Mat		a	(n,n);
 	 IntVal		lda=$SIZE(n);
-	 Dim		n;
+	 IntVal		n=$SIZE(n);
 	 Integer [o]	ipvt	(n);
 	 Mat	 [o]	rcond	();
 	 Mat	 [o]	z	(n);
@@ -602,7 +601,7 @@ defslatec('gefa',
 	{S => 'sgefa', D => 'dgefa'},
 	'Mat [io]	a	(n,n);
 	 IntVal		lda=$SIZE(n);
-	 Dim		n;
+	 IntVal		n=$SIZE(n);
 	 Integer [o]	ipvt	(n);
 	 Integer [o]	info	();
 	',
@@ -615,7 +614,7 @@ defslatec('podi',
 	{S => 'spodi', D => 'dpodi'},
 	'Mat [io]	a	(n,n);
 	 IntVal		lda=$SIZE(n);
-	 Dim		n;
+	 IntVal		n=$SIZE(n);
 	 Mat	[o]	det	(two=2);
 	 Integer	job	();
 	',
@@ -628,7 +627,7 @@ defslatec('gedi',
 	{S => 'sgedi', D => 'dgedi'},
 	'Mat [io]	a	(n,n);
 	 IntVal		lda=$SIZE(n);
-	 Dim		n;
+	 IntVal		n=$SIZE(n);
 	 Integer	ipvt	(n);
 	 Mat	 [o]	det	(two=2);
 	 Mat	 [t]	work	(n);
@@ -641,8 +640,8 @@ factors computed by L</geco> or L</gefa>.'
 defslatec('gesl',
 	{S => 'sgesl', D => 'dgesl'},
 	'Mat		a	(lda,n);
-	 Dim		lda;
-	 Dim		n;
+	 IntVal		lda=$SIZE(lda);
+	 IntVal		n=$SIZE(n);
 	 Integer	ipvt	(n);
 	 Mat [io]	b	(n);
 	 Integer	job	();
@@ -654,7 +653,7 @@ factors computed by L</geco> or L</gefa>.'
 defslatec('rs',
 	 {S => 'rsfoo'},
 	'IntVal		lda=$SIZE(n);
-	 Dim		n;
+	 IntVal		n=$SIZE(n);
 	 Mat		a	(n,n);
 	 Mat	[o]	w	(n);
 	 Integer	matz	();
@@ -688,7 +687,7 @@ are computed and stored in C<wsave()>.'
 # XXX Correct for azero, a and b
 defslatec('ezfftf',
 	{S => 'ezfftf'},
-	'Dim		n;
+	'IntVal		n=$SIZE(n);
 	 Mat		r(n);
 	 Mat [o]	azero();
 	 Mat [o]	a(n);
@@ -700,7 +699,7 @@ defslatec('ezfftf',
 
 defslatec('ezfftb',
 	{S => 'ezfftb'},
-	'Dim		n;
+	'IntVal		n=$SIZE(n);
 	 Mat  [o]	r(n);
 	 Mat		azero();
 	 Mat		a(n);
@@ -755,7 +754,7 @@ EOF
 #
 defslatec('chim',
 	  {S => 'pchim', D => 'dpchim'},
-	  'Dim          n;
+	  'IntVal	n=$SIZE(n);
            Mat          x       (n);
            Mat          f       (n);
            Mat     [o]  d       (n);
@@ -809,13 +808,13 @@ defslatec('chic',
 	  'Integer      ic      (two=2);
            Mat          vc      (two=2);
            Mat          mflag   ();
-           Dim          n;
+           IntVal       n=$SIZE(n);
            Mat          x       (n);
            Mat          f       (n);
            Mat     [o]  d       (n);
            IntVal       incfd=1;
            Mat [t]      wk      (nwk=CALC(2*$SIZE(n)));
-           Dim          nwk;
+           IntVal       nwk=$SIZE(nwk);
            Integer [o]  ierr    ();
           ',
 'Calculate the derivatives at the given points (C<$x,$f>,
@@ -935,13 +934,13 @@ defslatec('chsp',
 	  {S => 'pchsp', D => 'dpchsp'},
 	  'Integer      ic      (two=2);
            Mat          vc      (two=2);
-           Dim          n;
+           IntVal       n=$SIZE(n);
            Mat          x       (n);
            Mat          f       (n);
            Mat     [o]  d       (n);
            IntVal       incfd=1;
            Mat [t]      wk      (nwk=CALC(2*$SIZE(n)));
-           Dim          nwk;
+           IntVal       nwk=$SIZE(nwk);
            Integer [o]  ierr    ();
           ',
 'Calculate the derivatives, using cubic spline interpolation,
@@ -1036,13 +1035,13 @@ for the interior derivative values.
 
 defslatec('chfd',
 	  {S => 'pchfd', D => 'dpchfd'},
-	  'Dim          n;
+	  'IntVal	n=$SIZE(n);
            Mat          x       (n);
            Mat          f       (n);
            Mat          d       (n);
            IntVal       incfd=1;
            Logical [io] skip    ();
-           Dim          ne;
+           IntVal       ne=$SIZE(ne);
            Mat          xe      (ne);
            Mat     [o]  fe      (ne);
            Mat     [o]  de      (ne);
@@ -1090,17 +1089,17 @@ which should never happen.
 
 ',
 'Interpolate function and derivative values.'
-);	  
+);
 
 defslatec('chfe',
 	  {S => 'pchfe', D => 'dpchfe'},
-	  'Dim          n;
+	  'IntVal	n=$SIZE(n);
            Mat          x       (n);
            Mat          f       (n);
            Mat          d       (n);
            IntVal       incfd=1;
            Logical [io] skip    ();
-           Dim          ne;
+           IntVal       ne=$SIZE(ne);
            Mat          xe      (ne);
            Mat     [o]  fe      (ne);
            Integer [o]  ierr    ();
@@ -1146,7 +1145,7 @@ E<gt>0 if extrapolation was performed at C<ierr> points
 
 defslatec('chia',
 	  {S => 'pchia', D => 'dpchia'},
-	  'Dim          n;
+	  'IntVal	n=$SIZE(n);
            Mat          x       (n);
            Mat          f       (n);
            Mat          d       (n);
@@ -1211,7 +1210,7 @@ which should never happen.
 
 defslatec('chid',
 	  {S => 'pchid', D => 'dpchid'},
-	  'Dim          n;
+	  'IntVal	n=$SIZE(n);
            Mat          x       (n);
            Mat          f       (n);
            Mat          d       (n);
@@ -1264,7 +1263,7 @@ Error status returned by C<$ierr>:
 
 defslatec('chcm',
 	  {S => 'pchcm', D => 'dpchcm'},
-	  'Dim          n;
+	  'IntVal	n=$SIZE(n);
            Mat          x       (n);
            Mat          f       (n);
            Mat          d       (n);
@@ -1343,7 +1342,7 @@ Error status returned by C<$ierr>:
 
 defslatec('chbs',
 	  {S => 'pchbs', D => 'dpchbs'},
-	  'Dim          n;
+	  'IntVal	n=$SIZE(n);
            Mat          x       (n);
            Mat          f       (n);
            Mat          d       (n);
@@ -1434,7 +1433,7 @@ defslatec('bvalu',
 	  {S => 'bvalu', D => 'dbvalu'},
 	  'Mat          t       (nplusk);
            Mat          a       (n);
-           Dim          n;
+           IntVal       n=$SIZE(n);
            IntVal       k=$SIZE(nplusk)-$SIZE(n);
            Integer      ideriv  ();
            Mat          x       ();
