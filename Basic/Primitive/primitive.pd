@@ -2191,6 +2191,33 @@ that PDL->srand() will generate an error too. Do this instead:
 
  PDL::srand::srand(); # uses current time
  PDL::srand::srand(5); # fixed number e.g. for testing
+ 
+See why keeping the srand's straight is important:
+
+ srand(3);
+ say PDL->random(3);
+ [0.0675697331360393 0.599075396409301 0.857557628839386] # output PDL1
+ 
+ print "(";print "$_" for map { rand() } 1 .. 3 ; print ")\n";
+ (0.783234962103055 0.86367337321596 0.31170834325361)      # output Perl1
+
+
+ srand(3);
+ say PDL->random(5); 
+ [0.924203795779931 0.333781400627343 0.831579265248175] # != output PDL1
+
+ print "(";print "$_" for map { rand() } 1 .. 3 ; print ")\n";
+ (0.783234962103055 0.86367337321596 0.31170834325361) # same as output Perl1
+ 
+Contrast to 
+
+ PDL::srand(3);
+ say PDL->random(3);
+ [0.18631707882894 0.0349571597540506 0.614691270370328]
+ 
+ PDL::srand(3);
+ say PDL->random(3);
+ [0.18631707882894 0.0349571597540506 0.614691270370328] # reproduces!
 
 EOF
 	PMCode=>pp_line_numbers(__LINE__, <<'EOD'),
