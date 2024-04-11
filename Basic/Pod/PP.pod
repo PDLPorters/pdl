@@ -646,8 +646,9 @@ syntax in the Pars section to specify the size of the dimension:
 
 As expected, extra dimensions required by broadcasting will be
 created if necessary. If you need to assign a named dimension according
-to a more complicated formula (than a constant) you must use the 
-C<RedoDimsCode> key described below.
+to a more complicated formula (than a constant) you can use the
+C<RedoDimsCode> key described below, or the new (as of 2.088) mechanism
+of C<dimname=CALC(1+2+3)> etc.
 
 =head2 Type conversions and the signature
 
@@ -1529,15 +1530,15 @@ argument. Two input data arrays that are passed are C<p(m)>
 and C<x(n)>. The output data array is C<y(n)>. The routine
 requires a workspace array with a length of n+m*m, and you'd
 like the storage created automatically just like it would be
-for any ndarray flagged with [t] or [o].  What you'd like is to
+for any ndarray flagged with [t] or [o]. As of 2.088, you can
 say something like
 
  pp_def( "myexternalfunc",
-  Pars => "p(m); x(n); [o] y; [t] work(n+m*m)",
+  Pars => "p(m); x(n); [o] y; [t] work(wn=CALC($SIZE(n)+$SIZE(m)*$SIZE(m)))",
   ...
 
-but that won't work, because PP can't interpret expressions with arithmetic
-in the signature. Instead you write
+If you need to do something more complicated, there is the C<RedoDimsCode>
+mechanism:
 
   pp_def(
       "myexternalfunc",
@@ -1548,6 +1549,8 @@ in the signature. Instead you write
       '
   );
 
+Note that you can use I<both> C<=CALC> and C<RedoDimsCode>; they don't
+conflict.
 As of 2.075, you can use the dimensions of passed-in ndarrays as they
 are available when the C<RedoDimsCode> is run.
 Before the code in the Code section is executed PP
@@ -1567,8 +1570,7 @@ were computed from the signature according to the usual
 rules. Here is an example from PDL::Math
 
  pp_def("polyroots",
-      Pars => 'cr(n); ci(n); [o]rr(m); [o]ri(m);',
-      RedoDimsCode => '$SIZE(m) = $SIZE(n)-1;',
+      Pars => 'cr(n); ci(n); [o]rr(m=CALC($SIZE(n)-1)); [o]ri(m);',
 
 The input ndarrays are the real and imaginary parts of
 complex coefficients of a polynomial. The output ndarrays are

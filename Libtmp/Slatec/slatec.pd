@@ -292,21 +292,6 @@ my %KIND2I = (
 my %ignore_ppar = map +($_=>1), qw(IntVal OtherParDim);
 my %prototype = ( F => "float", D => "double" );
 my %ftypes = (S => 'F', D => 'D');
-my $calc_re = qr{
-  (\w+)\s*=\s*      # paren group 1 (dim name) - from perlre/PARNO
-  CALC
-  (                 # paren group 2 (parens)
-    \(
-      (             # paren group 3 (contents of parens)
-      (?:
-       (?> [^()]+ ) # Non-parens without backtracking
-      |
-       (?2)         # Recurse to start of paren group 2
-      )*
-      )
-    \)
-  )
-}xo;
 our $debug = 0;  # print out calls to pp_def; use "local $debug=1" before func
 sub defslatec {
     my ($pname,$fnames,$argstr,$docstring,$funcref) = @_;
@@ -328,12 +313,6 @@ sub defslatec {
     die "Only one FuncRet allowed in pars list.\n"
       if (my @funcret = grep $_->[0] eq "FuncRet", @args2) > 1;
     my $fpar = @funcret ? "\$$funcret[0][2]()" : undef;
-
-    my @redodims;
-    for my $arg2 (grep $_->[3], @args2) {
-      push @redodims, [$1, $3] while $arg2->[3] =~ s#$calc_re#$1#;
-    }
-    my $redodimscode = join '', map "\$SIZE($_->[0]) = $_->[1];\n", @redodims;
 
     my $pars = join ';', map
       +($KIND2I{$_->[0]}[0] // die "Invalid ppars ",join(',',@$_),"\n") . join('', @$_[1..3]),
@@ -389,7 +368,6 @@ pp_def('$pname',
   Pars => '$pars',
   OtherPars => '$otherpars',
   ArgOrder => [qw(@$argorder)],
-  RedoDimsCode => '$redodimscode',
   Code => '$code',
   CHeader => '@cheaders',
   GenericTypes => [@{[join ", ", map $_->[0], @talts]}],
@@ -399,7 +377,6 @@ ENDDBG
     pp_def($pname,
       Pars => $pars,
       ($otherpars ? (OtherPars => $otherpars) : ()),
-      $redodimscode ? (RedoDimsCode => $redodimscode) : (),
       $argorder ? (ArgOrder => $argorder) : (),
       Code => $code,
       CHeader => join("\n", @cheaders),
@@ -1494,9 +1471,8 @@ function value or any of its derivatives.'
 #  foo runs across wacky Slatec buffer size;
 #  bar runs across polynomial coefficients.
 pp_def('polfit',
-  Pars => 'x(n); y(n); w(n); longlong maxdeg(); longlong [o]ndeg(); [io]eps(); [o]r(n); longlong [o]ierr(); [o]a(foo); [o]coeffs(bar);[t]xtmp(n);[t]ytmp(n);[t]wtmp(n);[t]rtmp(n)',
+  Pars => 'x(n); y(n); w(n); longlong maxdeg(); longlong [o]ndeg(); [io]eps(); [o]r(n); longlong [o]ierr(); [o]a(foo=CALC(3*($SIZE(n) + $SIZE(bar)))); [o]coeffs(bar);[t]xtmp(n);[t]ytmp(n);[t]wtmp(n);[t]rtmp(n)',
   OtherPars => 'IV max_maxdeg_plus1 => bar',
-  RedoDimsCode => '$SIZE(foo) = 3*($SIZE(n) + $SIZE(bar));',
   GenericTypes => ['F','D'],
   HandleBad => 1,
   NoBadifNaN => 1,

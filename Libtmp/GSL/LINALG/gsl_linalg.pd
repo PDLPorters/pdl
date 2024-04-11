@@ -85,8 +85,7 @@ pp_addhdr('
 
 pp_def('LU_decomp',
         HandleBad => 0,
-        RedoDimsCode => '$SIZE(p) =  $PDL(A)->ndims > 1 ? PDLMIN($PDL(A)->dims[0], $PDL(A)->dims[1]) : 1;',
-        Pars => '[io,phys]A(n,m); indx [o,phys]ipiv(p); int [o,phys]signum()',
+        Pars => '[io,phys]A(n,m); indx [o,phys]ipiv(p=CALC($PDL(A)->ndims > 1 ? PDLMIN($PDL(A)->dims[0], $PDL(A)->dims[1]) : 1)); int [o,phys]signum()',
         GenericTypes => [qw(C D)],
         Code => <<'EOF',
 /* make sure the PDL data types match */

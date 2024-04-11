@@ -233,11 +233,7 @@ EOD
        BadDoc =>
 'Unlike the FFT routines, conv2d is able to process bad values.',
        HandleBad => 1,
-        Pars => 'a(m,n); kern(p,q); [o]b(m,n); indx [t]mapi(isize); indx [t]mapj(jsize)',
-        RedoDimsCode => '
-          $SIZE(isize) = $SIZE(p) + $SIZE(m);
-          $SIZE(jsize) = $SIZE(q) + $SIZE(n);
-        ',
+        Pars => 'a(m,n); kern(p,q); [o]b(m,n); indx [t]mapi(isize=CALC($SIZE(p) + $SIZE(m))); indx [t]mapj(jsize=CALC($SIZE(q) + $SIZE(n)))',
         OtherPars => 'int opt;',
         PMCode => '
 sub PDL::conv2d {
@@ -321,7 +317,7 @@ EOD
 'Bad values are ignored in the calculation. If all elements within the
 kernel are bad, the output is set bad.',
        HandleBad => 1,
-        Pars => 'a(m,n); kern(p,q); [o]b(m,n); double+ [t]tmp(pq); indx [t]mapi(isize); indx [t]mapj(jsize)',
+        Pars => 'a(m,n); kern(p,q); [o]b(m,n); double+ [t]tmp(pq=CALC($SIZE(p)*$SIZE(q))); indx [t]mapi(isize=CALC($SIZE(p) + $SIZE(m))); indx [t]mapj(jsize=CALC($SIZE(q) + $SIZE(n)))',
         OtherPars => 'int opt;',
         PMCode => <<'EOF',
 sub PDL::med2d {
@@ -338,11 +334,6 @@ sub PDL::med2d {
    return $c;
 }
 EOF
-        RedoDimsCode => '
-          $SIZE(pq) = $SIZE(p)*$SIZE(q);
-          $SIZE(isize) = $SIZE(p) + $SIZE(m);
-          $SIZE(jsize) = $SIZE(q) + $SIZE(n);
-        ',
         Code =>
            init_vars() .
            init_map("i") .
@@ -415,12 +406,8 @@ Note: this routine does the median over all points in a rectangular
 =cut
 
 EOD
-        Pars => 'a(m,n); [o]b(m,n); indx [t]mapi(isize); indx [t]mapj(jsize)',
+        Pars => 'a(m,n); [o]b(m,n); indx [t]mapi(isize=CALC($SIZE(p) + $SIZE(m))); indx [t]mapj(jsize=CALC($SIZE(q) + $SIZE(n)))',
         OtherPars => 'int p_size=>p; int q_size=>q; int opt;',
-        RedoDimsCode => '
-          $SIZE(isize) = $SIZE(p) + $SIZE(m);
-          $SIZE(jsize) = $SIZE(q) + $SIZE(n);
-        ',
         PMCode => <<'EOF',
 sub PDL::med2df {
    my $opt; $opt = pop @_ if ref($_[$#_]) eq 'HASH';

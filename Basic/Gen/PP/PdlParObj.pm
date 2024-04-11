@@ -16,7 +16,7 @@ our $pars_re = qr/^
 	\s*(?:($complex_regex|$typeregex)\b([+]*)|)\s*	# $1,2: first option then plus
 	(?:$sqbr_re)?\s*	# $3: The initial [option] part
 	(\w+)			# $4: The name
-	\(([^)]*)\)		# $5: The indices
+	\((.*)\)		# $5: The indices
 	\s*\Z			# that's all
 /x;
 my %flag2info = (
@@ -42,6 +42,21 @@ my %flag2c = qw(
   FlagPhys PDL_PARAM_ISPHYS
   FlagIgnore PDL_PARAM_ISIGNORE
 );
+my $calc_re = qr{
+  (\w+)\s*=\s*      # paren group 1 (dim name) - from perlre/PARNO
+  CALC
+  (                 # paren group 2 (parens)
+    \(
+      (             # paren group 3 (contents of parens)
+      (?:
+       (?> [^()]+ ) # Non-parens without backtracking
+      |
+       (?2)         # Recurse to start of paren group 2
+      )*
+      )
+    \)
+  )
+}xo;
 sub new {
   my ($type,$string,$badflag,$sig) = @_;
   $badflag ||= 0;
@@ -62,6 +77,8 @@ sub new {
   }
   $this->{FlagTplus} = 1 if $this->{FlagTyped} && $opt_plus;
   $this->{Type} &&= PDL::Type->new($this->{Type});
+  $this->{Ind2Calc} = \my %ind2calc;
+  $ind2calc{$1} = $3 while $inds =~ s#$calc_re#$1#;
   $this->{RawInds} = [map{
     s/\s//g; 		# Remove spaces
     $_;
@@ -78,7 +95,7 @@ sub name {$_[0]{Name}}
 
 sub add_inds {
 	my($this,$dimsobj) = @_;
-	$this->{IndObjs} = [my @objs = map $dimsobj->get_indobj_make($_), @{$this->{RawInds}}];
+	$this->{IndObjs} = [my @objs = map $dimsobj->get_indobj_make($_, $this->{Ind2Calc}{$_}), @{$this->{RawInds}}];
 	my %indcount;
 	$this->{IndCounts} = [ map 0+($indcount{$_->name}++), @objs ];
 	$this->{IndTotCounts} = [ map $indcount{$_->name}, @objs ];

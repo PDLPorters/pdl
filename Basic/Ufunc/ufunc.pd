@@ -235,8 +235,7 @@ as it will not contain any bad values.',
 
 pp_def('diff2',
   HandleBad => 1,
-  Pars => 'a(n); [o]o(nminus1)',
-  RedoDimsCode => '$SIZE(nminus1) = $SIZE(n) - 1;',
+  Pars => 'a(n); [o]o(nminus1=CALC($SIZE(n) - 1))',
   GenericTypes => [ppdefs_all],
   Code => <<'EOF',
 $GENERIC() lastval = PDL_IF_BAD($ISBAD($a(n=>0)) ? 0 :,) $a(n=>0);

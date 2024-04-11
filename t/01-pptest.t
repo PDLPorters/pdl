@@ -82,8 +82,7 @@ pp_def(
 );
 
 pp_def("gelsd",
-        Pars => '[io,phys]A(m,n); [io,phys]B(p,q); [phys]rcond(); [o,phys]s(r); int [o,phys]rank();int [o,phys]info()',
-        RedoDimsCode => '$SIZE(r) = PDLMIN($SIZE(m),$SIZE(n));',
+        Pars => '[io,phys]A(m,n); [io,phys]B(p,q); [phys]rcond(); [o,phys]s(r=CALC(PDLMIN($SIZE(m),$SIZE(n)))); int [o,phys]rank();int [o,phys]info()',
         GenericTypes => ['F'],
         Code => '$CROAK("croaking");'
 );

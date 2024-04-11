@@ -1077,8 +1077,7 @@ EOD
 pp_def(
         'rle',
         GenericTypes => [ppdefs_all],
-        Pars=>'c(n); indx [o]a(m); [o]b(m);',
-        RedoDimsCode=>'$SIZE(m)=$SIZE(n);',
+        Pars=>'c(n); indx [o]a(m=CALC($SIZE(n))); [o]b(m);',
         PMCode =>pp_line_numbers(__LINE__, <<'EOC'),
 sub PDL::rle {
   my $c = shift;

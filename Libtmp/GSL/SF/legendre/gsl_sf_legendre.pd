@@ -79,11 +79,7 @@ if (defined($v) && version->parse($v)>=version->parse(2.0)){
     pp_def('gsl_sf_legendre_array',
 	   GenericTypes => ['D'],
 	   OtherPars => 'char norm;  int lmax; int csphase',
-	   Pars => 'double x(); double [o]y(n); double [t]work(wn)',
-	   RedoDimsCode => '
-$SIZE(wn)=gsl_sf_legendre_array_n($COMP(lmax));
-$SIZE(n)=$COMP(lmax)*($COMP(lmax)+1)/2+$COMP(lmax)+1;
-',
+	   Pars => 'double x(); double [o]y(n=CALC($COMP(lmax)*($COMP(lmax)+1)/2+$COMP(lmax)+1)); double [t]work(wn=CALC(gsl_sf_legendre_array_n($COMP(lmax))))',
 	   HandleBad => 1,
 	   Code => <<'EOBC',
 	   PDL_IF_BAD(if ( $ISBAD( x() ) ) {
@@ -135,8 +131,7 @@ EOD
 
     pp_def('gsl_sf_legendre_array_index',
 	   OtherPars => 'int lmax',
-	   Pars => 'int [o]l(n); int [o]m(n)',
-	   RedoDimsCode => '$SIZE(n)=$COMP(lmax)*($COMP(lmax)+1)/2+$COMP(lmax)+1;',
+	   Pars => 'int [o]l(n=CALC($COMP(lmax)*($COMP(lmax)+1)/2+$COMP(lmax)+1)); int [o]m(n)',
 	   Code => q/
            int ell, em, index;
 	   for (ell=0; ell<=$COMP(lmax); ell++){

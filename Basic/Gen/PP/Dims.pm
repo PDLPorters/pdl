@@ -10,8 +10,11 @@ sub new {
 }
 
 sub get_indobj_make {
-  my($this,$expr) = @_;
+  my ($this,$expr,$calc) = @_;
   my ($name, $val) = $expr =~ /^([a-zA-Z0-9]+)(?:=([0-9]+))?$/ or confess "Invalid index expr '$expr'\n";
+  confess "Error: both simple value '$val' and CALC '$calc'"
+    if $calc && defined $val;
+  $val //= $calc;
   my $indobj = $this->{$name} //= PDL::PP::Ind->new($name);
   $indobj->add_value($val) if defined $val;
   return $indobj;
@@ -38,7 +41,7 @@ sub new {
 sub add_value {
 	my($this,$val) = @_;
 	croak("index values for $this->{Name} must be positive")
-	  unless $val > 0;
+	  if $val =~ /^\d+$/ and $val <= 0;
 	return $this->{Value} = $val if
 		!defined $this->{Value} or
 		$this->{Value} == -1 or

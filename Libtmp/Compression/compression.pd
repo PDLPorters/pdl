@@ -78,7 +78,7 @@ EOD
 pp_def(
 	"rice_compress",
 	HandleBad => 0,
-	Pars => 'in(n); [o]out(m); int[o]len()',
+	Pars => 'in(n); [o]out(m=CALC($SIZE(n))); int[o]len()',
 	OtherPars => "int blocksize", # in OtherPars to avoid autopromotion
 	GenericTypes =>['B','S','US','L'],
 	Doc => <<'EOD',
@@ -147,7 +147,6 @@ sub PDL::rice_compress {
     return wantarray ? ($out, $in->dim(0), $blocksize, $len) : $out;
 }
 EOD
-	RedoDimsCode => '$SIZE(m) = $SIZE(n);', # output same size; truncate after
 	CHeader => qq{#include "ricecomp.h"\n},
 	Code => <<'EOD',
 int len;

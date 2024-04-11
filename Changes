@@ -4,6 +4,7 @@
 - add Func::{pchip,spline}, and a demo
 - add Ufunc::diff2
 - extra ) on end of Pars now an error
+- PP dim sizes can be =CALC(...) instead of explicit RedoDimsCode
 
 2.087 2024-04-05
 - Slatec PCHIP routines now have idiomatic [io] `skip` Pars, with doc fixed to match SLATEC code (#468)

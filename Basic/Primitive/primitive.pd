@@ -1462,7 +1462,7 @@ EOD
 ');
 
 pp_def('append',
-	Pars => 'a(n); b(m); [o] c(mn)',
+	Pars => 'a(n); b(m); [o] c(mn=CALC($SIZE(n)+$SIZE(m)))',
         GenericTypes => [ppdefs_all],
         PMCode => pp_line_numbers(__LINE__-1, '
 sub PDL::append {
@@ -1480,7 +1480,6 @@ sub PDL::append {
   $o;
 }
         '),
-        RedoDimsCode => '$SIZE(mn) = $SIZE(n)+$SIZE(m);',
         Code => 'PDL_Indx ns = $SIZE(n);
                  broadcastloop %{
                        loop(n) %{ $c(mn => n) = $a(); %}
@@ -1779,8 +1778,7 @@ EOD
 );
 
 pp_def('unionvec',
-   Pars => 'a(M,NA); b(M,NB); [o]c(M,NC); indx [o]nc()',
-   RedoDimsCode => '$SIZE(NC) = $SIZE(NA) + $SIZE(NB);',
+   Pars => 'a(M,NA); b(M,NB); [o]c(M,NC=CALC($SIZE(NA) + $SIZE(NB))); indx [o]nc()',
    PMCode=>pp_line_numbers(__LINE__, <<'EOD'),
  sub PDL::unionvec {
    my ($a,$b,$c,$nc) = @_;
@@ -1839,8 +1837,7 @@ EOD
 );
 
 pp_def('intersectvec',
-   Pars => 'a(M,NA); b(M,NB); [o]c(M,NC); indx [o]nc()',
-   RedoDimsCode => '$SIZE(NC) = PDLMIN($SIZE(NA),$SIZE(NB));',
+   Pars => 'a(M,NA); b(M,NB); [o]c(M,NC=CALC(PDLMIN($SIZE(NA),$SIZE(NB)))); indx [o]nc()',
    PMCode=>pp_line_numbers(__LINE__, <<'EOD'),
  sub PDL::intersectvec {
    my ($a,$b,$c,$nc) = @_;
@@ -1895,8 +1892,7 @@ EOD
 );
 
 pp_def('setdiffvec',
-   Pars => 'a(M,NA); b(M,NB); [o]c(M,NC); indx [o]nc()',
-   RedoDimsCode => '$SIZE(NC) = $SIZE(NA);',
+   Pars => 'a(M,NA); b(M,NB); [o]c(M,NC=CALC($SIZE(NA))); indx [o]nc()',
    PMCode=>pp_line_numbers(__LINE__, <<'EOD'),
  sub PDL::setdiffvec {
   my ($a,$b,$c,$nc) = @_;
@@ -1962,8 +1958,7 @@ pp_add_macros(
 );
 
 pp_def('union_sorted',
-   Pars => 'a(NA); b(NB); [o]c(NC); indx [o]nc()',
-   RedoDimsCode => '$SIZE(NC) = $SIZE(NA) + $SIZE(NB);',
+   Pars => 'a(NA); b(NB); [o]c(NC=CALC($SIZE(NA) + $SIZE(NB))); indx [o]nc()',
    PMCode=>pp_line_numbers(__LINE__, <<'EOD'),
  sub PDL::union_sorted {
    my ($a,$b,$c,$nc) = @_;
@@ -2022,8 +2017,7 @@ EOD
 );
 
 pp_def('intersect_sorted',
-   Pars => 'a(NA); b(NB); [o]c(NC); indx [o]nc()',
-   RedoDimsCode => '$SIZE(NC) = PDLMIN($SIZE(NA),$SIZE(NB));',
+   Pars => 'a(NA); b(NB); [o]c(NC=CALC(PDLMIN($SIZE(NA),$SIZE(NB)))); indx [o]nc()',
    PMCode=>pp_line_numbers(__LINE__, <<'EOD'),
  sub PDL::intersect_sorted {
    my ($a,$b,$c,$nc) = @_;
@@ -2079,8 +2073,7 @@ EOD
 );
 
 pp_def('setdiff_sorted',
-   Pars => 'a(NA); b(NB); [o]c(NC); indx [o]nc()',
-   RedoDimsCode => '$SIZE(NC) = $SIZE(NA);',
+   Pars => 'a(NA); b(NB); [o]c(NC=CALC($SIZE(NA))); indx [o]nc()',
    PMCode=>pp_line_numbers(__LINE__, <<'EOD'),
  sub PDL::setdiff_sorted {
    my ($a,$b,$c,$nc) = @_;
