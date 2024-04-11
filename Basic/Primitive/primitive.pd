@@ -2184,15 +2184,14 @@ From within pdl:
  srand(); # uses current time
  srand(5); # fixed number e.g. for testing
 
-Since srand is a class function and is not exported, it does not ovewrite
-Perl's builtin srand. Hence the code above will not seed PDL's generator
-when invoked from within a Perl application. Being a class method means 
-that PDL->srand() will generate an error too. Do this instead:
+This  code above will not seed PDL's generator, but Perl's rand in Perl.  
+So if you want to seed PDL's generator, you will have to do something like this
+in the Perl interpreter:
 
- PDL::srand::srand(); # uses current time
- PDL::srand::srand(5); # fixed number e.g. for testing
+ PDL::srand(); # uses current time
+ PDL::srand(5); # fixed number e.g. for testing
  
-See why keeping the srand's straight is important:
+See why keeping the srands straight is important (try those within Perl):
 
  srand(3);
  say PDL->random(3);
