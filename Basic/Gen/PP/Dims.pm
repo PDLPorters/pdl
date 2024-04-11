@@ -19,6 +19,8 @@ sub get_indobj_make {
 
 sub ind_obj {$_[0]{$_[1]}}
 sub ind_names {keys %{$_[0]}}
+sub ind_fromcomp {grep defined $_->{From}, values %{$_[0]}}
+sub ind_notfromcomp {grep !defined $_->{From}, values %{$_[0]}}
 
 #####################################################################
 #

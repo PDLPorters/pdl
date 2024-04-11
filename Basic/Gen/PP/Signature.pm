@@ -99,8 +99,12 @@ sub names_out_nca { my $o=$_[0]->objs; grep $o->{$_}{FlagOut} && !$o->{$_}{FlagC
 sub names_tmp { my $o=$_[0]->objs; grep $o->{$_}{FlagTemp}, @{$_[0]{Names}} }
 
 sub dims_obj { $_[0]->{DimsObj} }
-sub dims_count { scalar keys %{$_[0]{DimsObj}} }
-sub dims_values { values %{$_[0]{DimsObj}} }
+sub dims_init {
+  my ($self) = @_;
+  join "\n",
+    (sort map $_->get_initdim, $self->{DimsObj}->ind_fromcomp),
+    (sort map $_->get_initdim, $self->{DimsObj}->ind_notfromcomp);
+}
 
 sub othernames {
   my ($self, $omit_count, $with_xs, $except) = @_;

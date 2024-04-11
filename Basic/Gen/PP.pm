@@ -1479,7 +1479,7 @@ EOD
    PDL::PP::Rule->new("CallCopy", ["SignatureObj", "Name"],
       sub {
 	  my ($sig, $Name, $hasp2c) = @_;
-	  my $noDimmedArgs = $sig->dims_count;
+	  my $noDimmedArgs = $sig->dims_obj->ind_names;
 	  my $noArgs = @{$sig->names};
 	  # Check for 2-arg function with 0-dim signatures
 	  return 0 if !($noDimmedArgs == 0 and $noArgs == 2);
@@ -1855,7 +1855,7 @@ sub make_vfn_args {
       sub { "PDL_RETERROR(PDL_err, PDL->redodims_default($_[0]));\n" }),
    PDL::PP::Rule->new("DimsSetters",
       ["SignatureObj"],
-      sub { join "\n", sort map $_->get_initdim, $_[0]->dims_values }),
+      sub { $_[0]->dims_init }),
    PDL::PP::Rule->new("RedoDimsFuncName", [qw(Name RedoDims? RedoDimsCode? DimsSetters)],
       sub { (scalar grep $_ && /\S/, @_[1..$#_]) ? "pdl_$_[0]_redodims" : 'NULL'}),
    PDL::PP::Rule::Returns->new("RedoDimsCode", [],
