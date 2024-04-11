@@ -17,6 +17,7 @@ our $pars_re = qr/^
 	(?:$sqbr_re)?\s*	# $3: The initial [option] part
 	(\w+)			# $4: The name
 	\(([^)]*)\)		# $5: The indices
+	\s*\Z			# that's all
 /x;
 my %flag2info = (
   io => [[qw(FlagW)]],
@@ -42,36 +43,30 @@ my %flag2c = qw(
   FlagIgnore PDL_PARAM_ISIGNORE
 );
 sub new {
-	my($type,$string,$badflag,$sig) = @_;
-	$badflag ||= 0;
-	my $this = bless {Number => "PDL_UNDEF_NUMBER", BadFlag => $badflag, Sig => $sig},$type;
-	# Parse the parameter string. Note that the regexes for this match were
-	# originally defined here, but were moved to PDL::PP for FullDoc parsing.
-	$string =~ $pars_re
-		 or confess "Invalid pdl def $string (regex $pars_re)\n";
-	my($opt1,$opt_plus,$sqbr_opt,$name,$inds) = map $_ // '', $1,$2,$3,$4,$5;
-	print "PDL: '$opt1$opt_plus', '$sqbr_opt', '$name', '$inds'\n"
-		  if $::PP_VERBOSE;
-	croak "Invalid Pars name: $name"
-	  if $INVALID_PAR{$name};
+  my ($type,$string,$badflag,$sig) = @_;
+  $badflag ||= 0;
+  my $this = bless {Number => "PDL_UNDEF_NUMBER", BadFlag => $badflag, Sig => $sig},$type;
+  $string =~ $pars_re or confess "Invalid pdl def $string (regex $pars_re)\n";
+  my($opt1,$opt_plus,$sqbr_opt,$name,$inds) = map $_ // '', $1,$2,$3,$4,$5;
+  print "PDL: '$opt1$opt_plus', '$sqbr_opt', '$name', '$inds'\n"
+    if $::PP_VERBOSE;
+  croak "Invalid Pars name: $name" if $INVALID_PAR{$name};
 # Set my internal variables
-	$this->{Name} = $name;
-	$this->{Flags} = [(split ',',$sqbr_opt),($opt1?$opt1:())];
-	for(@{$this->{Flags}}) {
-		confess("Invalid flag $_ given for $string\n")
-			unless my ($set, $store) = @{ $flag2info{$_} || [] };
-		$this->{$store} = $_ if $store;
-		$this->{$_} = 1 for @$set;
-	}
-	if ($this->{FlagTyped} && $opt_plus) {
-	  $this->{FlagTplus} = 1;
-	}
-	$this->{Type} &&= PDL::Type->new($this->{Type});
-	$this->{RawInds} = [map{
-		s/\s//g; 		# Remove spaces
-		$_;
-	} split ',', $inds];
-	return $this;
+  $this->{Name} = $name;
+  $this->{Flags} = [(split ',',$sqbr_opt),($opt1?$opt1:())];
+  for(@{$this->{Flags}}) {
+    confess("Invalid flag $_ given for $string\n")
+      unless my ($set, $store) = @{ $flag2info{$_} || [] };
+    $this->{$store} = $_ if $store;
+    $this->{$_} = 1 for @$set;
+  }
+  $this->{FlagTplus} = 1 if $this->{FlagTyped} && $opt_plus;
+  $this->{Type} &&= PDL::Type->new($this->{Type});
+  $this->{RawInds} = [map{
+    s/\s//g; 		# Remove spaces
+    $_;
+  } split ',', $inds];
+  return $this;
 }
 
 sub cflags {

@@ -1533,14 +1533,15 @@ for any ndarray flagged with [t] or [o].  What you'd like is to
 say something like
 
  pp_def( "myexternalfunc",
-  Pars => " p(m);  x(n);  [o] y; [t] work(n+m*m); ", ...
+  Pars => "p(m); x(n); [o] y; [t] work(n+m*m)",
+  ...
 
 but that won't work, because PP can't interpret expressions with arithmetic
 in the signature. Instead you write
 
   pp_def(
       "myexternalfunc",
-      Pars         => ' p(m);  x(n);  [o] y(); [t] work(wn); ',
+      Pars         => 'p(m); x(n); [o] y(); [t] work(wn);',
       RedoDimsCode => '$SIZE(wn) = $SIZE(n) + $SIZE(m) * $SIZE(m);',
       Code => '
         externalfunc( $P(p), $P(x), $SIZE(m), $SIZE(n), $P(work) );

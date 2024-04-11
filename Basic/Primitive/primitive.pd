@@ -362,7 +362,7 @@ Equivalent to
 
 pp_def('inner2t',
        HandleBad => 1,
-       Pars => 'a(j,n); b(n,m); c(m,k); [t]tmp(n,k); [o]d(j,k));',
+       Pars => 'a(j,n); b(n,m); c(m,k); [t]tmp(n,k); [o]d(j,k);',
        GenericTypes => [ppdefs_all],
        Code =>
        'loop(n,k) %{
