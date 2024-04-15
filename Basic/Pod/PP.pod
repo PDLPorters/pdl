@@ -327,6 +327,17 @@ for the future). In any case, the bottom line is that your unchanged code
 should still expand to working XS code even if the internals of PDL
 changed.
 
+As of 2.086, you can also use C<loop> with a starting value other than 0:
+
+  pp_def('polyval',
+    Code => '
+      $GENERIC(y) vc = $c(n=>0), sc = $x();
+      loop(n=1) %{ vc = vc*sc + $c(); %}
+      $y() = vc;
+    ',
+    ...
+  );
+
 Also, because you are generating the code in an actual Perl script,
 there are many fun things that you can do. Let's say that you need
 to write both sumit (as above) and multit. With a little bit of creativity,

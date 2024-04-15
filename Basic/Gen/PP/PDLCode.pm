@@ -205,14 +205,14 @@ sub sig {$_[0]->{Sig}}
 # This sub determines the index name for this index.
 # For example, a(x,y) and x0 becomes [x,x0]
 sub make_loopind { my($this,$ind) = @_;
-	($ind, my $initval) = split /\s*=\s*/, $ind;
-	my $orig = $ind;
-	while(!$this->{IndObjs}{$ind}) {
-		if(!((chop $ind) =~ /[0-9]/)) {
-			confess("Index not found for $_ ($ind)!\n");
-		}
-		}
-	return [$ind,$orig,$initval//0];
+  ($ind, my $initval) = split /\s*=\s*/, $ind;
+  my $orig = $ind;
+  while(!$this->{IndObjs}{$ind}) {
+    if(!((chop $ind) =~ /[0-9]/)) {
+      confess("Index not found for $_ ($ind)!\n");
+    }
+  }
+  [$ind,$orig,$initval//0];
 }
 
 my %access2class = (
