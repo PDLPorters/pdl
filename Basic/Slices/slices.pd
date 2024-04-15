@@ -1090,8 +1090,7 @@ sub PDL::rle {
 EOC
         Code =>pp_line_numbers(__LINE__, <<'EOF'),
           PDL_Indx j=0;
-          $GENERIC(c) cv, clv;
-          clv = $c(n=>0);
+          $GENERIC(c) cv, clv = $c(n=>0);
           $b(m=>0) = clv;
           $a(m=>0) = 0;
           loop (n) %{
@@ -1104,10 +1103,10 @@ EOC
               $a(m=>j) = 1;
             }
           %}
-          for (j++;j<$SIZE(m);j++) {
-            $a(m=>j) = 0;
-            $b(m=>j) = 0;
-          }
+          loop (m=j+1) %{
+            $a() = 0;
+            $b() = 0;
+          %}
 EOF
         Doc => <<'EOD'
 =for ref
@@ -1155,13 +1154,13 @@ EOD
 pp_def('rlevec',
        Pars => "c(M,N); indx [o]a(N); [o]b(M,N)",
        Code =>pp_line_numbers(__LINE__, <<'EOC'),
-  PDL_Indx cn,bn=0, sn=$SIZE(N), matches;
+  PDL_Indx bn=0;
   loop (M) %{ $b(N=>0)=$c(N=>0); %}
   $a(N=>0) = 1;
-  for (cn=1; cn<sn; cn++) {
-     matches=1;
+  loop (N=1) %{
+     char matches=1;
      loop (M) %{
-       if ($c(N=>cn) != $b(N=>bn)) {
+       if ($c() != $b(N=>bn)) {
          matches=0;
          break;
        }
@@ -1170,14 +1169,14 @@ pp_def('rlevec',
        $a(N=>bn)++;
      } else {
        bn++;
-       loop (M) %{ $b(N=>bn) = $c(N=>cn); %}
+       loop (M) %{ $b(N=>bn) = $c(); %}
        $a(N=>bn) = 1;
      }
-   }
-   for (bn++; bn<sn; bn++) {
-     $a(N=>bn) = 0;
-     loop (M) %{ $b(N=>bn) = 0; %}
-   }
+   %}
+   loop (N=bn+1) %{
+     $a() = 0;
+     loop (M) %{ $b() = 0; %}
+   %}
 EOC
        Doc =><<'EOD',
 =for ref
@@ -1240,7 +1239,7 @@ EOD
 pp_def('rleseq',
        Pars => "c(N); indx [o]a(N); [o]b(N)",
        Code =>pp_line_numbers(__LINE__, <<'EOC'),
-  PDL_Indx j=0, sizeN=$SIZE(N);
+  PDL_Indx j=0;
   $GENERIC(c) coff;
   coff     = $c(N=>0);
   $b(N=>0) = coff;
@@ -1254,10 +1253,10 @@ pp_def('rleseq',
       $a(N=>j) = 1;
     }
   %}
-  for (j++; j<sizeN; j++) {
-    $a(N=>j) = 0;
-    $b(N=>j) = 0;
-  }
+  loop (N=j+1) %{
+    $a() = 0;
+    $b() = 0;
+  %}
 EOC
        Doc =><<'EOD',
 =for ref
@@ -1816,16 +1815,10 @@ EOF
 );
 
 my $rotate_code = pp_line_numbers(__LINE__, <<'EOF');
-        PDL_Indx i,j;
-        PDL_Indx n_size = $SIZE(n);
-        if (n_size == 0)
-          $CROAK("can not shift zero size ndarray (n_size is zero)");
-        j = ($shift()) % n_size;
-        if (j < 0)
-                j += n_size;
-        for(i=0; i<n_size; i++,j++) {
-            if (j == n_size)
-               j = 0;
+        PDL_Indx n_size = $SIZE(n), j = $shift() % n_size;
+        if (j < 0) j += n_size;
+        loop (n) %{
+            if (j == n_size) j = 0;
 EOF
 pp_def('rotate',
         GenericTypes => [ppdefs_all],
@@ -1838,12 +1831,13 @@ EOD
         Pars=>'x(n); indx shift(); [oca]y(n)',
         DefaultFlow => 1,
         TwoWay => 1,
+        RedoDimsCode=>'if ($SIZE(n) == 0) $CROAK("can not shift zero size ndarray");',
         Code=>$rotate_code.'
-            $y(n=>j) = $x(n=>i);
-        }',
+            $y(n=>j++) = $x();
+        %}',
         BackCode=>$rotate_code.'
-            $x(n=>i) = $y(n=>j);
-        }
+            $x() = $y(n=>j++);
+        %}
         '
 );
 
