@@ -213,51 +213,50 @@ sub PDL::matmult {
 }
 EOPM
 	Code => <<'EOC',
-	PDL_Indx ih, iw, it, ow, oh, ot, wlim, hlim, tlim;
-	PDL_Indx tsiz = 8 * sizeof(double) / sizeof($GENERIC());
+PDL_Indx ih, iw, it, ow, oh, ot, wlim, hlim, tlim;
+PDL_Indx tsiz = 8 * sizeof(double) / sizeof($GENERIC());
 
-	// Cache the dimincs to avoid constant lookups
-	PDL_Indx atdi = PDL_REPRINCS($PDL(a))[0];
-	PDL_Indx btdi = PDL_REPRINCS($PDL(b))[1];
+// Cache the dimincs to avoid constant lookups
+PDL_Indx atdi = PDL_REPRINCS($PDL(a))[0];
+PDL_Indx btdi = PDL_REPRINCS($PDL(b))[1];
 
-	// Loop over tiles
-	for(   oh=0;   oh < $SIZE(h);   oh += tsiz   ) {
-	   hlim = PDLMIN(oh + tsiz, $SIZE(h));
+broadcastloop %{
+// Loop over tiles
+for(   oh=0;   oh < $SIZE(h);   oh += tsiz   ) {
+  hlim = PDLMIN(oh + tsiz, $SIZE(h));
 
-	   for(   ow=0;   ow < $SIZE(w);   ow += tsiz   ) {
-	      wlim = PDLMIN(ow + tsiz, $SIZE(w));
+  for(  ow=0;  ow < $SIZE(w);  ow += tsiz  ) {
+    wlim = PDLMIN(ow + tsiz, $SIZE(w));
 
-	      // Zero the output for this tile
-	      for(  ih=oh; ih<hlim; ih++  )
-		 for(  iw=ow; iw<wlim; iw++  )
-		    $c(w=>iw, h=>ih) = 0;
+    // Zero the output for this tile
+    for(  ih=oh; ih<hlim; ih++  )
+      for(  iw=ow; iw<wlim; iw++  )
+        $c(w=>iw, h=>ih) = 0;
 
-	      for(   ot=0;   ot < $SIZE(t);  ot += tsiz   ) {
-	         tlim = PDLMIN(ot + tsiz, $SIZE(t));
+    for(  ot=0;  ot < $SIZE(t);  ot += tsiz  ) {
+      tlim = PDLMIN(ot + tsiz, $SIZE(t));
 
-	         for(  ih=oh; ih<hlim; ih++  ) {
-		    for(  iw=ow; iw<wlim; iw++  ) {
-		       // Cache the accumulated value for the output
-		       $GENERIC() cc = $c(w=>iw, h=>ih);
-
-		       // Cache data pointers before 't' run through tile
-		       $GENERIC() *ad = &($a(t=>ot, h=>ih));
-		       $GENERIC() *bd = &($b(w=>iw, t=>ot));
-
-		       // Hotspot - run the 't' summation
-		       for( it=ot; it<tlim; it++  ) {
-			    cc += *ad * *bd;
-			    ad += atdi;
-			    bd += btdi;
-		       }
-
-		       // put the output back to be further accumulated later
-		       $c(w=>iw, h=>ih) = cc;
-		    }
-		 }
-	      }
-	   }
-	}
+      for(  ih=oh; ih<hlim; ih++  ) {
+        for(  iw=ow; iw<wlim; iw++  ) {
+          // Cache the accumulated value for the output
+          $GENERIC() cc = $c(w=>iw, h=>ih);
+          // Cache data pointers before 't' run through tile
+          $GENERIC() *ad = &($a(t=>ot, h=>ih));
+          $GENERIC() *bd = &($b(w=>iw, t=>ot));
+          // Hotspot - run the 't' summation
+          for( it=ot; it<tlim; it++  ) {
+            cc += *ad * *bd;
+            ad += atdi;
+            bd += btdi;
+          }
+          // put the output back to be further accumulated later
+          $c(w=>iw, h=>ih) = cc;
+        }
+      }
+    }
+  }
+}
+%}
 EOC
 	Doc => <<'EOD'
 =for ref
