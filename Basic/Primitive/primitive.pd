@@ -1655,18 +1655,18 @@ Compare two vectors, returning 1 if equal, 0 if not equal.
 pp_def('enumvec',
        Pars => 'v(M,N); indx [o]k(N)',
        Code => pp_line_numbers(__LINE__, <<'EOC'),
-  PDL_Indx vn, kn=0, sn=$SIZE(N), matches;
-  for (vn=0; vn<sn; vn=kn) {
-     for (kn=vn, matches=1; matches && kn<sn; ) {
-       $k(N=>kn) = kn-vn;
-       ++kn;
-       loop (M) %{
-         if ($v(N=>vn) == $v(N=>kn)) continue;
-         matches=0;
-         break;
-       %}
-     }
-   }
+loop (N) %{
+  PDL_Indx vn = N; /* preserve value of N into inner N loop */
+  loop (N=vn) %{
+    $k() = N-vn;
+    loop (M) %{
+       if ($v(N=>vn) == $v(N=>N+1)) continue;
+       vn = N; /* and back out */
+       goto NOMATCH_$GENERIC();
+    %}
+  %}
+  NOMATCH_$GENERIC(): N = vn; /* skip forward */
+%}
 EOC
        Doc =><<'EOD',
 =for ref
@@ -1789,33 +1789,33 @@ pp_def('unionvec',
  }
 EOD
    Code => q(
- PDL_Indx nai=0, nbi=0, nci=0, sizeNA=$SIZE(NA), sizeNB=$SIZE(NB), sizeNC=$SIZE(NC);
+ PDL_Indx nai=0, nbi=0, nci=$SIZE(NC), sizeNA=$SIZE(NA), sizeNB=$SIZE(NB);
  int cmpval;
- for ( ; nci < sizeNC; nci++) {
+ loop (NC) %{
    if (nai < sizeNA && nbi < sizeNB) {
      $CMPVEC($a(NA=>nai),$b(NB=>nbi),M,cmpval);
    }
    else if (nai < sizeNA) { cmpval = -1; }
    else if (nbi < sizeNB) { cmpval =  1; }
-   else                   { break; }
+   else                   { nci=NC; break; }
    //
    if (cmpval < 0) {
      //-- CASE: a < b
-     loop (M) %{ $c(NC=>nci) = $a(NA=>nai); %}
+     loop (M) %{ $c() = $a(NA=>nai); %}
      nai++;
    }
    else if (cmpval > 0) {
      //-- CASE: a > b
-     loop (M) %{ $c(NC=>nci) = $b(NB=>nbi); %}
+     loop (M) %{ $c() = $b(NB=>nbi); %}
      nbi++;
    }
    else {
      //-- CASE: a == b
-     loop (M) %{ $c(NC=>nci) = $a(NA=>nai); %}
+     loop (M) %{ $c() = $a(NA=>nai); %}
      nai++;
      nbi++;
    }
- }
+ %}
  $nc() = nci;
  //-- zero unpopulated outputs
  loop(NC=nci,M) %{ $c() = 0; %}
@@ -1969,38 +1969,38 @@ pp_def('union_sorted',
  }
 EOD
    Code => q(
- PDL_Indx nai=0, nbi=0, nci=0, sizeNA=$SIZE(NA), sizeNB=$SIZE(NB), sizeNC=$SIZE(NC);
+ PDL_Indx nai=0, nbi=0, nci=$SIZE(NC), sizeNA=$SIZE(NA), sizeNB=$SIZE(NB);
  int cmpval;
- for ( ; nci < sizeNC; nci++) {
+ loop (NC) %{
    if (nai < sizeNA && nbi < sizeNB) {
      cmpval = $CMPVAL($a(NA=>nai), $b(NB=>nbi));
    }
    else if (nai < sizeNA) { cmpval = -1; }
    else if (nbi < sizeNB) { cmpval =  1; }
-   else                   { break; }
+   else                   { nci = NC; break; }
    //
    if (cmpval < 0) {
      //-- CASE: a < b
-     $c(NC=>nci) = $a(NA=>nai);
+     $c() = $a(NA=>nai);
      nai++;
    }
    else if (cmpval > 0) {
      //-- CASE: a > b
-     $c(NC=>nci) = $b(NB=>nbi);
+     $c() = $b(NB=>nbi);
      nbi++;
    }
    else {
      //-- CASE: a == b
-     $c(NC=>nci) = $a(NA=>nai);
+     $c() = $a(NA=>nai);
      nai++;
      nbi++;
    }
- }
+ %}
  $nc() = nci;
- for ( ; nci < sizeNC; nci++) {
+ loop (NC=nci) %{
   //-- zero unpopulated outputs
-  $c(NC=>nci) = 0;
- }
+  $c() = 0;
+ %}
 ),
    Doc=><<'EOD'
 =for ref
