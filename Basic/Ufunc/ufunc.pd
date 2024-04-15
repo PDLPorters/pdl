@@ -445,9 +445,9 @@ sub PDL::${name}_n_ind {
   \$set_out ? \$_[1] = \$c : \$c;
 }
 EOF
+	    RedoDimsCode => 'if($SIZE(m) > $SIZE(n)) $CROAK("m_size > n_size");',
 	    Code =>
 	    '$GENERIC() cur = 0; PDL_Indx curind; register PDL_Indx ns = $SIZE(n);
-	     if($SIZE(m) > $SIZE(n)) $CROAK("m_size > n_size");
 	     $PDLSTATESETGOOD(c);
 	     loop(m) %{
 		 curind = ns;

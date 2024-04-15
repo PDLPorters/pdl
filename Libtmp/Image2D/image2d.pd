@@ -476,18 +476,20 @@ pp_def('box2d',
 
 		broadcastloop %{
 		  first = 1;
-		  for (y=0;y<ys;y++)
+		  loop (m) %{
 		    for (xx=0; xx<nx; xx++) {
 			ind1 = xs-1-xx;  /* rightmost strip */
-			$b(n=>xx,m=>y) = EZ($a(n=>xx,m=>y));
-			$b(n=>ind1,m=>y) = EZ($a(n=>ind1,m=>y));
-		  }
-		  for (xx=0;xx<xs;xx++)
+			$b(n=>xx) = EZ($a(n=>xx));
+			$b(n=>ind1) = EZ($a(n=>ind1));
+                    }
+                  %}
+		  loop (n) %{
 		    for (y=0; y<ny; y++) {
 			ind1 = ys-1-y;  /* topmost strip */
-			$b(n=>xx,m=>y) = EZ($a(n=>xx,m=>y));
-			$b(n=>xx,m=>ind1) = EZ($a(n=>xx,m=>ind1));
-		  }
+			$b(m=>y) = EZ($a(m=>y));
+			$b(m=>ind1) = EZ($a(m=>ind1));
+                    }
+		  %}
        		  for (y=ny;y<ys-ny;y++) {
 		    if (first) {
 		       first = 0;
@@ -571,45 +573,29 @@ EOD
         Pars => 'a(m,n); int bad(m,n); [o]b(m,n);',
         GenericTypes => $A,
         Code =>
-        'PDL_Indx m_size, n_size,  i,j, i1,j1, i2,j2, norm;
+        'PDL_Indx i1,j1, i2,j2, norm;
          PDL_CLDouble tmp;
-
-         m_size = $SIZE(m); n_size = $SIZE(n);
-
       broadcastloop %{
-
-         for(j=0; j<n_size; j++) {
-            for(i=0; i<m_size; i++) {
-
-               $b(m=>i,n=>j) = $a(m=>i,n=>j);
-
-               if ( $bad(m=>i,n=>j)==1 ) {
-                  tmp = 0; norm=0;
-                  for(j1=-1; j1<=1; j1++) {
-		     j2 = j+j1;
-		     if ( j2>=0 && j2<n_size ) {
-                        for(i1=-1; i1<=1; i1++) {
-                           /* ignore central pixel, which we know is bad */
-			   if ( i1!=0 || j1!=0 ) {
-                              i2 = i+i1;
-                              if ( i2>=0 && i2<m_size && $bad(m=>i2,n=>j2)!=1 ) {
-                                 tmp += $a(m=>i2,n=>j2);
-                                 norm++;
-			      }
-			   } /* if: i1!=0 || j1!=0 */
-		        } /* for: i1 */
-		     }
-		  } /* for: j1 */
-
-                  if (norm>0) {  /* Patch */
-                     $b(m=>i,n=>j) = tmp/norm;
-		  }
-
-               } /* if: bad() */
-
-	    } /* for: i */
-         } /* for: j */
-
+         loop (n,m) %{
+           $b() = $a();
+           if (!$bad()) continue;
+           tmp = 0; norm=0;
+           for(j1=-1; j1<=1; j1++) {
+              j2 = n+j1;
+              if ( j2<0 || j2>=$SIZE(n) ) continue;
+              for(i1=-1; i1<=1; i1++) {
+                 /* ignore central pixel, which we know is bad */
+                 if ( i1==0 && j1==0 ) continue;
+                 i2 = m+i1;
+                 if ( i2<0 || i2>=$SIZE(m) || $bad(m=>i2,n=>j2) ) continue;
+                 tmp += $a(m=>i2,n=>j2);
+                 norm++;
+              } /* for: i1 */
+           } /* for: j1 */
+           if (norm>0) {  /* Patch */
+              $b() = tmp/norm;
+           }
+         %}
       %} /* broadcastloop */
          ', # Code
 );
@@ -880,21 +866,19 @@ where the second parameter specifies the connectivity (4 or 8) of the labeling.
         CHeader => qq{void AddEquiv(PDL_Long* equiv, PDL_Long i, PDL_Long j);\n},
         Code => '
 
-      PDL_Long i,j,k;
+      PDL_Long i,k;
       PDL_Long newlabel;
       PDL_Long neighbour[4];
       PDL_Long nfound;
       PDL_Long pass,count,next,this;
       PDL_Long *equiv;
       PDL_Long i1,j1,i2;
-      PDL_Long nx = $SIZE(m);
-      PDL_Long ny = $SIZE(n);
 
       if ($COMP(con)!=4 && $COMP(con)!=8)
          $CROAK("In ccNcompt, connectivity must be 4 or 8, you gave %d",$COMP(con));
-      loop(n) %{ loop(m) %{ /* Copy */
+      loop(n,m) %{ /* Copy */
          $b() = $a();
-      %} %}
+      %}
 
       /* 1st pass counts max possible compts, 2nd records equivalences */
 
@@ -910,31 +894,30 @@ where the second parameter specifies the connectivity (4 or 8) of the labeling.
 
       newlabel = 1; /* Running label */
 
-      for(j=0; j<ny; j++) { for(i=0; i<nx; i++) { /* Loop over image pixels */
-
+      loop (n,m) %{ /* Loop over image pixels */
             nfound = 0; /* Number of neighbour >0 */
 
-            i1 = i-1; j1 = j-1; i2 = i+1; /*West x, North y, East x*/
+            i1 = m-1; j1 = n-1; i2 = m+1; /*West x, North y, East x*/
 
-            if ($b(m=>i, n=>j) > 0) { /* Check 4 neighbour already seen */
+            if ($b() > 0) { /* Check 4 neighbour already seen */
 
-               if (i>0 && $b(m=>i1, n=>j)>0) /*West*/
-                   neighbour[nfound++] = $b(m=>i1, n=>j); /* Store label of it */
-               if (j>0 && $b(m=>i, n=>j1)>0) /*North*/
-                   neighbour[nfound++] = $b(m=>i, n=>j1);
-               if (j>0 && i>0  && $b(m=>i1, n=>j1)>0 && $COMP(con) == 8) /*North-West*/
+               if (m>0 && $b(m=>i1)>0) /*West*/
+                   neighbour[nfound++] = $b(m=>i1); /* Store label of it */
+               if (n>0 && $b(n=>j1)>0) /*North*/
+                   neighbour[nfound++] = $b(n=>j1);
+               if (n>0 && m>0  && $b(m=>i1, n=>j1)>0 && $COMP(con) == 8) /*North-West*/
                    neighbour[nfound++] = $b(m=>i1, n=>j1);
-               if (j>0 && i<(nx-1) && $b(m=>i2, n=>j1)>0 && $COMP(con) == 8) /*North-East*/
+               if (n>0 && m<($SIZE(m)-1) && $b(m=>i2, n=>j1)>0 && $COMP(con) == 8) /*North-East*/
                    neighbour[nfound++] = $b(m=>i2, n=>j1);
 
                if (nfound==0)  { /* Assign new label */
-                  $b(m=>i, n=>j) = newlabel++;
+                  $b() = newlabel++;
                }
                else {
-                  $b(m=>i, n=>j) =  neighbour[0];
+                  $b() =  neighbour[0];
                   if (nfound>1 && pass == 1) {  /* Assign equivalents */
                       for(k=1; k<nfound; k++)
-                         AddEquiv( equiv, (PDL_Long)$b(m=>i, n=>j),
+                         AddEquiv( equiv, (PDL_Long)$b(),
                             neighbour[k] );
                   }
                }
@@ -942,10 +925,10 @@ where the second parameter specifies the connectivity (4 or 8) of the labeling.
 
             else {  /* No label */
 
-               $b(m=>i, n=>j) = 0;
+               $b() = 0;
             }
 
-      }} /* End of image loop */
+      %} /* End of image loop */
 
       } /* Passes */
 
@@ -967,9 +950,9 @@ where the second parameter specifies the connectivity (4 or 8) of the labeling.
 
       /* Now remove equivalences */
 
-      for(j=0; j<ny; j++) { for(i=0; i<nx; i++) { /* Loop over image pixels */
-           $b(m=>i, n=>j)   = equiv[ (PDL_Long) $b(m=>i, n=>j)  ] ;
-      }}
+      loop (n,m) %{ /* Loop over image pixels */
+           $b()   = equiv[ (PDL_Long) $b()  ] ;
+      %}
 
       free(equiv); /* Tidy */
 ');
@@ -1257,33 +1240,35 @@ interpolated values are actually added to the second
 ndarray which is supposed to be larger than the first one.
 EOD
     GenericTypes => $A,
+    RedoDimsCode =>'
+     if ($SIZE(q)<$SIZE(n) || $SIZE(p)<$SIZE(m))
+       $CROAK("the second matrix must be greater than first!");
+    ',
     Code =>'
-  PDL_Indx i,j,ii,jj,ii1,jj1,num;
-  PDL_CLDouble x,y,dx,dy,y1,y2,y3,y4,t,u,sum;
-
-  if ($SIZE(q)<$SIZE(n) || $SIZE(p)<$SIZE(m))
-    $CROAK("the second matrix must be greater than first! (bilin2d)");
-
+  PDL_CLDouble dx = ((PDL_CLDouble) ($SIZE(n)-1)) / ($SIZE(q)-1);
+  PDL_CLDouble dy = ((PDL_CLDouble) ($SIZE(m)-1)) / ($SIZE(p)-1);
   broadcastloop %{
-    dx = ((double) ($SIZE(n)-1)) / ($SIZE(q)-1);
-    dy = ((double) ($SIZE(m)-1)) / ($SIZE(p)-1);
-    for(i=0,x=0;i<$SIZE(q);i++,x+=dx) {
-      for(j=0,y=0;j<$SIZE(p);j++,y+=dy) {
-        ii = (int) floor(x);
+    PDL_CLDouble x=0;
+    loop (q) %{
+      PDL_CLDouble y = 0;
+      loop (p) %{
+        PDL_Indx ii = floor(x);
         if (ii>=($SIZE(n)-1)) ii = $SIZE(n)-2;
-        jj = (int) floor(y);
+        PDL_Indx jj = floor(y);
         if (jj>=($SIZE(m)-1)) jj = $SIZE(m)-2;
-        ii1 = ii+1;
-        jj1 = jj+1;
-        y1 = $Int(n=>ii,m=>jj);
-        y2 = $Int(n=>ii1,m=>jj);
-        y3 = $Int(n=>ii1,m=>jj1);
-        y4 = $Int(n=>ii,m=>jj1);
-        t = x-ii;
-        u = y-jj;
-        $O(q=>i,p=>j) += (1-t)*(1-u)*y1 + t*(1-u)*y2 + t*u*y3 + (1-t)*u*y4;
-      }
-    }
+        PDL_Indx ii1 = ii+1;
+        PDL_Indx jj1 = jj+1;
+        PDL_CLDouble y1 = $Int(n=>ii,m=>jj);
+        PDL_CLDouble y2 = $Int(n=>ii1,m=>jj);
+        PDL_CLDouble y3 = $Int(n=>ii1,m=>jj1);
+        PDL_CLDouble y4 = $Int(n=>ii,m=>jj1);
+        PDL_CLDouble t = x-ii;
+        PDL_CLDouble u = y-jj;
+        $O() += (1-t)*(1-u)*y1 + t*(1-u)*y2 + t*u*y3 + (1-t)*u*y4;
+        y+=dy;
+      %}
+      x+=dx;
+    %}
   %}
 ');
 
@@ -1304,112 +1289,101 @@ rescale2d.
 EOD
     GenericTypes => $A,
     Code =>'
-PDL_Indx ix,iy,ox,oy,i,j,lx,ly,cx,cy,xx,yy,num;
+PDL_Indx lx,ly,cx,cy,xx,yy,num;
 PDL_CLDouble kx,ky,temp;
 
-ix = $SIZE(m);
-iy = $SIZE(n);
-ox = $SIZE(p);
-oy = $SIZE(q);
-
-if(ox >= ix && oy >= iy) {
-  kx = ((PDL_CLDouble) (ox)) / (ix);
-  ky = ((PDL_CLDouble) (oy)) / (iy);
+if($SIZE(p) >= $SIZE(m) && $SIZE(q) >= $SIZE(n)) {
+  kx = ((PDL_CLDouble) ($SIZE(p))) / ($SIZE(m));
+  ky = ((PDL_CLDouble) ($SIZE(q))) / ($SIZE(n));
   broadcastloop %{
     lx = 0;
-    for(i=0;i<ix;i++) {
+    loop (m) %{
       ly = 0;
-      for(j=0;j<iy;j++) {
-	cx = rint((i+1)*kx)-1;
-	cy = rint((j+1)*ky)-1;
+      loop (n) %{
+	cx = rint((m+1)*kx)-1;
+	cy = rint((n+1)*ky)-1;
 	for(xx=lx;xx<=cx;xx++)
 	  for(yy=ly;yy<=cy;yy++) {
-/*	    fprintf(stderr,"i: %d, j: %d, xx: %d, yy: %d\n",i,j,xx,yy); */
-	    $O(p=>xx,q=>yy) += $Int(m=>i,n=>j);
+	    $O(p=>xx,q=>yy) += $Int();
 	  }
 	ly = cy + 1;
-      }
+      %}
       lx = cx + 1;
-    }
+    %}
   %}
 }
-else if(ox < ix && oy < iy) {
-  kx = ((PDL_CLDouble) (ix)) / (ox);
-  ky = ((PDL_CLDouble) (iy)) / (oy);
+else if($SIZE(p) < $SIZE(m) && $SIZE(q) < $SIZE(n)) {
+  kx = ((PDL_CLDouble) ($SIZE(m))) / ($SIZE(p));
+  ky = ((PDL_CLDouble) ($SIZE(n))) / ($SIZE(q));
   broadcastloop %{
     lx = 0;
-    for(i=0;i<ox;i++) {
+    loop (p) %{
       ly = 0;
-      for(j=0;j<oy;j++) {
-	cx = rint((i+1)*kx)-1;
-	cy = rint((j+1)*ky)-1;
+      loop (q) %{
+	cx = rint((p+1)*kx)-1;
+	cy = rint((q+1)*ky)-1;
 	temp = 0.0;
 	num = 0;
 	for(xx=lx;xx<=cx;xx++)
 	  for(yy=ly;yy<=cy;yy++) {
-/*	    fprintf(stderr,"i: %d, j: %d, xx: %d, yy: %d\n",i,j,xx,yy); */
 	    temp += $Int(n=>yy,m=>xx);
 	    num++;
 	  }
-	$O(p=>i,q=>j) += temp/num;
+	$O() += temp/num;
 	ly = cy + 1;
-      }
+      %}
       lx = cx + 1;
-    }
+    %}
   %}
 }
-else if(ox >= ix && oy < iy) {
-  kx = ((PDL_CLDouble) (ox)) / (ix);
-  ky = ((PDL_CLDouble) (iy)) / (oy);
+else if($SIZE(p) >= $SIZE(m) && $SIZE(q) < $SIZE(n)) {
+  kx = ((PDL_CLDouble) ($SIZE(p))) / ($SIZE(m));
+  ky = ((PDL_CLDouble) ($SIZE(n))) / ($SIZE(q));
   broadcastloop %{
     lx = 0;
-    for(i=0;i<ix;i++) {
+    loop (m) %{
       ly = 0;
-      for(j=0;j<oy;j++) {
-	cx = rint((i+1)*kx)-1;
-	cy = rint((j+1)*ky)-1;
+      loop (q) %{
+	cx = rint((m+1)*kx)-1;
+	cy = rint((q+1)*ky)-1;
 	temp = 0.0;
 	num = 0;
 	for(yy=ly;yy<=cy;yy++) {
-/*	  fprintf(stderr,"1 i: %d, j: %d, xx: %d, yy: %d\n",i,j,xx,yy); */
-	    temp += $Int(n=>yy,m=>i);
+	  temp += $Int(n=>yy);
 	  num++;
 	}
 	for(xx=lx;xx<=cx;xx++) {
-/*	  fprintf(stderr,"2 i: %d, j: %d, xx: %d, yy: %d\n",i,j,xx,yy); */
-	  $O(p=>xx,q=>j) += temp/num;
+	  $O(p=>xx) += temp/num;
 	}
 	ly = cy + 1;
-      }
+      %}
       lx = cx + 1;
-    }
+    %}
   %}
 }
-else if(ox < ix && oy >= iy) {
-  kx = ((PDL_CLDouble) (ix)) / (ox);
-  ky = ((PDL_CLDouble) (oy)) / (iy);
+else if($SIZE(p) < $SIZE(m) && $SIZE(q) >= $SIZE(n)) {
+  kx = ((PDL_CLDouble) ($SIZE(m))) / ($SIZE(p));
+  ky = ((PDL_CLDouble) ($SIZE(q))) / ($SIZE(n));
   broadcastloop %{
     lx = 0;
-    for(i=0;i<ox;i++) {
+    loop (p) %{
       ly = 0;
-      for(j=0;j<iy;j++) {
-	cx = rint((i+1)*kx)-1;
-	cy = rint((j+1)*ky)-1;
+      loop (n) %{
+	cx = rint((p+1)*kx)-1;
+	cy = rint((n+1)*ky)-1;
 	temp = 0.0;
 	num = 0;
 	for(xx=lx;xx<=cx;xx++) {
-/*	  fprintf(stderr,"1 i: %d, j: %d, xx: %d, yy: %d\n",i,j,xx,yy); */
-	    temp += $Int(n=>j,m=>xx);
+	    temp += $Int(m=>xx);
 	  num++;
 	}
 	for(yy=ly;yy<=cy;yy++) {
-/*	  fprintf(stderr,"2 i: %d, j: %d, xx: %d, yy: %d\n",i,j,xx,yy); */
-	  $O(p=>i,q=>yy) += temp/num;
+	  $O(q=>yy) += temp/num;
 	}
 	ly = cy + 1;
-      }
+      %}
       lx = cx + 1;
-    }
+    %}
   %}
 }
 else $CROAK("I am not supposed to be here, please report the bug to <chri@infis.univ.ts.it>");
