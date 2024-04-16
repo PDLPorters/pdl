@@ -273,10 +273,8 @@ pp_def(
        HandleBad => 0,
        Pars => 'a(n); float+ [o]b();',
        Code =>
-       '$GENERIC(b) tmp = 0;
-       PDL_Indx ns = $SIZE(n), nn;
-       /* Integration formulae from Press et al 2nd Ed S 4.1 */
-       switch (ns) {
+       '/* Integration formulae from Press et al 2nd Ed S 4.1 */
+       switch ($SIZE(n)) {
       case 1:
           broadcastloop %{
           $b() = 0.; /* not a(n=>0); as interval has zero width */
@@ -306,10 +304,11 @@ pp_def(
           break;
       default:
           broadcastloop %{
-        for (nn=3,tmp=0;nn<ns-3;nn++) { tmp += $a(n=>nn); }
-        tmp += (23./24.)*($a(n=>2)+$a(n=>nn));nn++;
-        tmp += (7./6.)  *($a(n=>1)+$a(n=>nn));nn++;
-        tmp += 0.375    *($a(n=>0)+$a(n=>nn));
+        $GENERIC(b) tmp = 0;
+        loop (n=3:-3) %{ tmp += $a(); %}
+        loop (n=-3:-2) %{ tmp += (23./24.)*($a(n=>2)+$a()); %}
+        loop (n=-2:-1) %{ tmp += (7./6.)  *($a(n=>1)+$a()); %}
+        loop (n=-1:)   %{ tmp += (3./8.)  *($a(n=>0)+$a()); %}
         $b() = tmp;
           %}
       }
@@ -452,10 +451,10 @@ EOF
 	     loop(m) %{
 		 curind = ns;
 		 loop(n) %{
-			PDL_Indx nm; int flag=0;
-			for(nm=0; nm<m; nm++) {
-				if($c(m=>nm) == n) {flag=1; break;}
-			}
+			PDL_Indx outer_m = m; int flag=0;
+			loop (m=:outer_m) %{
+				if ($c() == n) {flag=1; break;}
+			%}
 			if(!flag &&
 			   PDL_IF_BAD($ISGOOD(a()) &&,)
 			   ((curind == ns) || $a() '.$op.' cur || PDL_ISNAN_$PPSYM()(cur)))

@@ -205,14 +205,15 @@ sub sig {$_[0]->{Sig}}
 # This sub determines the index name for this index.
 # For example, a(x,y) and x0 becomes [x,x0]
 sub make_loopind { my($this,$ind) = @_;
-  ($ind, my $initval) = split /\s*=\s*/, $ind;
+  ($ind, my $cntrlval) = split /\s*=\s*/, $ind;
   my $orig = $ind;
   while(!$this->{IndObjs}{$ind}) {
     if(!((chop $ind) =~ /[0-9]/)) {
       confess("Index not found for $_ ($ind)!\n");
     }
   }
-  [$ind,$orig,$initval//0];
+  my ($initval, $endval) = split /\s*:\s*/, $cntrlval//'';
+  [$ind,$orig,$initval,$endval];
 }
 
 my %access2class = (
@@ -450,7 +451,16 @@ sub myprelude { my($this,$parent,$context) = @_;
   my $text = "";
   push @$context, map {
     my $i = $parent->make_loopind($_);
-    $text .= "{PDL_COMMENT(\"Open $_\") register PDL_Indx $i->[1]; for($i->[1]=$i->[2]; $i->[1]<(__$i->[0]_size); $i->[1]++) {";
+    my ($loopdim, $loopvar, $loopstart, $loopend, $loopinc) = @$i;
+    my $loopstopvar = "__${loopvar}_stop";
+    $loopstart = !$loopstart ? 0 :
+      $loopstart =~ /^-/ ? "PDLMAX((__${loopdim}_size$loopstart),0)" :
+      "PDLMAX(($loopstart),0)";
+    $loopend = !$loopend ? "(__${loopdim}_size)" :
+      $loopend =~ /^-/ ? "(__${loopdim}_size$loopend)" :
+      "PDLMIN($loopend, (__${loopdim}_size))";
+    $loopinc ||= 1;
+    $text .= "{PDL_COMMENT(\"Open $_\") PDL_EXPAND2(register PDL_Indx $loopvar=$loopstart, $loopstopvar=$loopend); for(; $loopvar<$loopstopvar; $loopvar+=$loopinc) {";
     $i;
   } @{$this->[0]};
   $text;

@@ -213,7 +213,7 @@ sub PDL::matmult {
 }
 EOPM
 	Code => <<'EOC',
-PDL_Indx ih, iw, it, ow, oh, ot, wlim, hlim, tlim;
+PDL_Indx ow, oh, ot;
 PDL_Indx tsiz = 8 * sizeof(double) / sizeof($GENERIC());
 
 // Cache the dimincs to avoid constant lookups
@@ -223,36 +223,26 @@ PDL_Indx btdi = PDL_REPRINCS($PDL(b))[1];
 broadcastloop %{
 // Loop over tiles
 for(   oh=0;   oh < $SIZE(h);   oh += tsiz   ) {
-  hlim = PDLMIN(oh + tsiz, $SIZE(h));
-
   for(  ow=0;  ow < $SIZE(w);  ow += tsiz  ) {
-    wlim = PDLMIN(ow + tsiz, $SIZE(w));
-
     // Zero the output for this tile
-    for(  ih=oh; ih<hlim; ih++  )
-      for(  iw=ow; iw<wlim; iw++  )
-        $c(w=>iw, h=>ih) = 0;
+    loop (h=oh:oh+tsiz,w=ow:ow+tsiz) %{ $c() = 0; %}
 
     for(  ot=0;  ot < $SIZE(t);  ot += tsiz  ) {
-      tlim = PDLMIN(ot + tsiz, $SIZE(t));
-
-      for(  ih=oh; ih<hlim; ih++  ) {
-        for(  iw=ow; iw<wlim; iw++  ) {
-          // Cache the accumulated value for the output
-          $GENERIC() cc = $c(w=>iw, h=>ih);
-          // Cache data pointers before 't' run through tile
-          $GENERIC() *ad = &($a(t=>ot, h=>ih));
-          $GENERIC() *bd = &($b(w=>iw, t=>ot));
-          // Hotspot - run the 't' summation
-          for( it=ot; it<tlim; it++  ) {
-            cc += *ad * *bd;
-            ad += atdi;
-            bd += btdi;
-          }
-          // put the output back to be further accumulated later
-          $c(w=>iw, h=>ih) = cc;
-        }
-      }
+      loop (h=oh:oh+tsiz,w=ow:ow+tsiz) %{
+        // Cache the accumulated value for the output
+        $GENERIC() cc = $c();
+        // Cache data pointers before 't' run through tile
+        $GENERIC() *ad = &($a(t=>ot));
+        $GENERIC() *bd = &($b(t=>ot));
+        // Hotspot - run the 't' summation
+        loop (t=ot:ot+tsiz) %{
+           cc += *ad * *bd;
+           ad += atdi;
+           bd += btdi;
+        %}
+        // put the output back to be further accumulated later
+        $c() = cc;
+      %}
     }
   }
 }
@@ -2940,39 +2930,31 @@ pp_def('interpolate',
 		}
 EOD
 	Code => '
-		 $GENERIC() d;
-		 PDL_Indx n  = $SIZE(n);
-		 PDL_Indx n1 = n-1;
-		 int up = ($x(n => n1) > $x(n => 0));
-                 PDL_Indx jl, jh, m;
-                 int carp;
-
-                 broadcastloop %{
-                   jl = -1;
-                   jh = n;
-                   carp = 0;
-  		   while (jh-jl > 1)  /* binary search */
-    			{
-      				m = (jh+jl) >> 1;
-				if (($xi() > $x(n => m)) == up)
-					jl = m;
-      				else
-					jh = m;
-    			}
-		   if (jl == -1) {
-			if ($xi() != $x(n => 0)) carp = 1;
-			jl = 0;
-                   } else if (jh == n) {
-			if ($xi() != $x(n => n1)) carp = 1;
-			jl = n1-1;
-		   }
-		   jh = jl+1;
-		   if ((d = $x(n => jh)-$x(n => jl)) == 0)
-			$CROAK("identical abscissas");
-		   d = ($x(n => jh)-$xi())/d;
-		   $yi() = d*$y(n => jl) + (1-d)*$y(n => jh);
-                   $err() = carp;
-		%}
+PDL_Indx n = $SIZE(n), n1 = n-1;
+broadcastloop %{
+  PDL_Indx jl = -1, jh = n;
+  int carp = 0, up = ($x(n => n1) > $x(n => 0));
+  while (jh-jl > 1) { /* binary search */
+    PDL_Indx m = (jh+jl) >> 1;
+    if (($xi() > $x(n => m)) == up)
+      jl = m;
+    else
+      jh = m;
+  }
+  if (jl == -1) {
+    if ($xi() != $x(n => 0)) carp = 1;
+    jl = 0;
+  } else if (jh == n) {
+    if ($xi() != $x(n => n1)) carp = 1;
+    jl = n1-1;
+  }
+  jh = jl+1;
+  $GENERIC() d = $x(n=>jh) - $x(n=>jl);
+  if (d == 0) $CROAK("identical abscissas");
+  d = ($x(n=>jh) - $xi())/d;
+  $yi() = d*$y(n => jl) + (1-d)*$y(n => jh);
+  $err() = carp;
+%}
 ', Doc=><<'EOD');
 
 =for ref

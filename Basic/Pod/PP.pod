@@ -327,13 +327,48 @@ for the future). In any case, the bottom line is that your unchanged code
 should still expand to working XS code even if the internals of PDL
 changed.
 
-As of 2.086, you can also use C<loop> with a starting value other than 0:
+As of 2.086, you can also use C<loop> with a starting value other than 0
+(if you leave the start blank it defaults to 0) - as of 2.088 this
+is lower-bounded at 0:
 
   pp_def('polyval',
     Code => '
       $GENERIC(y) vc = $c(n=>0), sc = $x();
       loop(n=1) %{ vc = vc*sc + $c(); %}
       $y() = vc;
+    ',
+    ...
+  );
+
+As of 2.088, you can also specify an end other than (if left blank
+or not enough C<:>s) C<$SIZE(dimname)>, which (because you've told
+PDL it's connected to a dimension-size) will be capped at the length
+of that dimension:
+
+  pp_def('matmult',
+    Code => '
+      ...
+      loop (h=oh:oh+tsiz,w=ow:ow+tsiz) %{
+        // Cache the accumulated value for the output
+        $GENERIC() cc = $c();
+        ...
+      %}
+      ...
+    ',
+    ...
+  );
+
+If the start or end given are negative, that will be added to the
+dimension size (with bounds-check):
+
+  pp_def('intover',
+    Code => '
+      ...
+      loop (n=3:-3) %{ tmp += $a(); %}
+      loop (n=-3:-2) %{ tmp += (23./24.)*($a(n=>2)+$a()); %}
+      loop (n=-2:-1) %{ tmp += (7./6.)  *($a(n=>1)+$a()); %}
+      loop (n=-1:)   %{ tmp += (3./8.)  *($a(n=>0)+$a()); %}
+      ...
     ',
     ...
   );
