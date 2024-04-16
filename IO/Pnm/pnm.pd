@@ -281,31 +281,27 @@ pp_def('pnminraw',
 	RedoDimsCode => '
 	  $SIZE(llen) = $COMP(isbin) ? ($SIZE(m)+7) / 8 : $SIZE(m) * sizeof($GENERIC());
 	',
-	Code => 'int i,k,bit;
-		 PDL_Byte *buf = $P(buf), *bp;
-		 PDL_Indx ns = $SIZE(n), llen = $SIZE(llen);
-		 broadcastloop %{  /* with top to bottom inversion */
-			for (i=ns-1; i>= 0; i--) {
-			   if (PerlIO_read($COMP(fp),buf,llen) != llen)
-				$CROAK("Error reading pnm file");
-			   if ($COMP(isbin)) { /* unpack buffer */
-				bp=buf,bit=0;
-				loop (m) %{
-					bit &= 7;
-					if (!bit) k= *bp++;
-					/* here we do the inversion */
-					$im(n=>i) = (k&0x80) ? 0 : 1;
-					k = k << 1;
-					bit++;
-				%}
-			   } else {
-				$GENERIC() *gbp = ($GENERIC()*)buf;
-				loop(m) %{
-					$im(n=>i) = *(gbp++);
-				%}
-			   }
-			}
-		 %}', Doc => '
+	Code => '
+/* with top to bottom inversion */
+loop (n=::-1) %{
+  if (PerlIO_read($COMP(fp),$P(buf),$SIZE(llen)) != $SIZE(llen))
+    $CROAK("Error reading pnm file");
+  if ($COMP(isbin)) { /* unpack buffer */
+    PDL_Byte *bp=$P(buf); int k=0, bit=0;
+    loop (m) %{
+      bit &= 7;
+      if (!bit) k = *bp++;
+      /* here we do the inversion */
+      $im() = (k&0x80) ? 0 : 1;
+      k = k << 1;
+      bit++;
+    %}
+  } else {
+    $GENERIC() *gbp = ($GENERIC()*)$P(buf);
+    loop(m) %{ $im() = *gbp++; %}
+  }
+%}
+', Doc => '
 =for ref
 
 Read in a raw pnm file.

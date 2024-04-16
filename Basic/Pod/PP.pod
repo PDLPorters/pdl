@@ -374,8 +374,8 @@ dimension size (with bounds-check):
   );
 
 Also as of 2.088, you can give an increment (analogous to
-L<PDL::Slices/slice>) other than 1 (which in the loop logic is
-assumed to be positive):
+L<PDL::Slices/slice>) other than 1, which in the loop logic is
+assumed to be positive B<unless it starts with "-">:
 
   # a very concise way to express fully-working tiled processing
   pp_def('matmult',
@@ -392,6 +392,20 @@ assumed to be positive):
     ',
     ...
   );
+
+While a loop increment is assumed to be positive generally, if it
+starts with C<-> (which includes literal negative numbers) it will
+be understood to intend counting downwards (still with safe upper
+and lower bounds for the dimension), and the defaults are switched
+from the positive-counting case:
+
+  # could also say: loop (n=-1:0:-1) %{
+  pp_def('pnminraw',
+    ...
+    Code => '
+      ...
+      loop (n=::-1) %{
+    ...
 
 Also, because you are generating the code in an actual Perl script,
 there are many fun things that you can do. Let's say that you need

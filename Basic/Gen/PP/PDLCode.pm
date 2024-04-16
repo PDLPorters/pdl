@@ -453,14 +453,26 @@ sub myprelude { my($this,$parent,$context) = @_;
     my $i = $parent->make_loopind($_);
     my ($loopdim, $loopvar, $loopstart, $loopend, $loopinc) = @$i;
     my $loopstopvar = "__${loopvar}_stop";
-    $loopstart = !$loopstart ? 0 :
-      $loopstart =~ /^-/ ? "PDLMAX((__${loopdim}_size$loopstart),0)" :
-      "PDLMAX(($loopstart),0)";
-    $loopend = !$loopend ? "(__${loopdim}_size)" :
-      $loopend =~ /^-/ ? "(__${loopdim}_size$loopend)" :
-      "PDLMIN($loopend, (__${loopdim}_size))";
-    $loopinc ||= 1;
-    $text .= "{PDL_COMMENT(\"Open $_\") PDL_EXPAND2(register PDL_Indx $loopvar=$loopstart, $loopstopvar=$loopend); for(; $loopvar<$loopstopvar; $loopvar+=$loopinc) {";
+    $loopinc ||= 1; my $cmp;
+    if ($loopinc =~ /^-/) {
+      $loopstart = !(defined $loopstart && length $loopstart) ? "(__${loopdim}_size-1)" :
+        $loopstart =~ /^-/ ? "PDLMIN((__${loopdim}_size$loopstart), (__${loopdim}_size-1))" :
+        "PDLMIN($loopstart, (__${loopdim}_size-1))";
+      $cmp = ">=";
+      $loopend = !$loopend ? 0 :
+        $loopend =~ /^-/ ? "PDLMAX((__${loopdim}_size$loopend),0)" :
+        "PDLMAX(($loopend),0)";
+    } else {
+      # count upwards
+      $loopstart = !$loopstart ? 0 :
+        $loopstart =~ /^-/ ? "PDLMAX((__${loopdim}_size$loopstart),0)" :
+        "PDLMAX(($loopstart),0)";
+      $cmp = "<";
+      $loopend = !(defined $loopend && length $loopend) ? "(__${loopdim}_size)" :
+        $loopend =~ /^-/ ? "(__${loopdim}_size$loopend)" :
+        "PDLMIN($loopend, (__${loopdim}_size))";
+    }
+    $text .= "{PDL_COMMENT(\"Open $_\") PDL_EXPAND2(register PDL_Indx $loopvar=$loopstart, $loopstopvar=$loopend); for(; $loopvar$cmp$loopstopvar; $loopvar+=$loopinc) {";
     $i;
   } @{$this->[0]};
   $text;
