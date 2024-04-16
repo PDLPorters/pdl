@@ -253,11 +253,10 @@ EOD
 # b is the output image and c the output lut
 pp_def(
 	'cquant_c',Doc=>undef,
-	Pars => 'a(m,n,o); [o]b(n,o); [o]c(m,p);',
+	Pars => 'a(m=3,n,o); [o]b(n,o); [o]c(m,p);',
 	GenericTypes => ['B'],
 	OtherPars => 'int psz => p',
 	Code => 'int status;
-		 if ($SIZE(m) != 3) $CROAK("need RGB data (3,x,...)");
 	         status = ppm_quant($P(a), NULL, NULL, $SIZE(n),
 				$SIZE(o),$P(b), NULL, $P(c), 0,
 				$SIZE(p), 1);
