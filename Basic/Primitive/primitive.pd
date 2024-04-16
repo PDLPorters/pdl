@@ -213,7 +213,6 @@ sub PDL::matmult {
 }
 EOPM
 	Code => <<'EOC',
-PDL_Indx ow, oh, ot;
 PDL_Indx tsiz = 8 * sizeof(double) / sizeof($GENERIC());
 
 // Cache the dimincs to avoid constant lookups
@@ -222,30 +221,27 @@ PDL_Indx btdi = PDL_REPRINCS($PDL(b))[1];
 
 broadcastloop %{
 // Loop over tiles
-for(   oh=0;   oh < $SIZE(h);   oh += tsiz   ) {
-  for(  ow=0;  ow < $SIZE(w);  ow += tsiz  ) {
-    // Zero the output for this tile
-    loop (h=oh:oh+tsiz,w=ow:ow+tsiz) %{ $c() = 0; %}
-
-    for(  ot=0;  ot < $SIZE(t);  ot += tsiz  ) {
-      loop (h=oh:oh+tsiz,w=ow:ow+tsiz) %{
-        // Cache the accumulated value for the output
-        $GENERIC() cc = $c();
-        // Cache data pointers before 't' run through tile
-        $GENERIC() *ad = &($a(t=>ot));
-        $GENERIC() *bd = &($b(t=>ot));
-        // Hotspot - run the 't' summation
-        loop (t=ot:ot+tsiz) %{
-           cc += *ad * *bd;
-           ad += atdi;
-           bd += btdi;
-        %}
-        // put the output back to be further accumulated later
-        $c() = cc;
-      %}
-    }
-  }
-}
+loop (h=::tsiz,w=::tsiz) %{
+  PDL_Indx h_outer = h, w_outer = w;
+  // Zero the output for this tile
+  loop (h=h_outer:h_outer+tsiz,w=w_outer:w_outer+tsiz) %{ $c() = 0; %}
+  loop (t=::tsiz,h=h_outer:h_outer+tsiz,w=w_outer:w_outer+tsiz) %{
+    // Cache the accumulated value for the output
+    $GENERIC() cc = $c();
+    // Cache data pointers before 't' run through tile
+    $GENERIC() *ad = &($a());
+    $GENERIC() *bd = &($b());
+    // Hotspot - run the 't' summation
+    PDL_Indx t_outer = t;
+    loop (t=t_outer:t_outer+tsiz) %{
+      cc += *ad * *bd;
+      ad += atdi;
+      bd += btdi;
+    %}
+    // put the output back to be further accumulated later
+    $c() = cc;
+  %}
+%}
 %}
 EOC
 	Doc => <<'EOD'

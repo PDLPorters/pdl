@@ -5,7 +5,7 @@
 - add Ufunc::diff2
 - extra ) on end of Pars now an error
 - PP dim sizes can be =CALC(...) instead of explicit RedoDimsCode
-- PP add loop(n=start:end) idiom to stop not at end
+- PP add loop(n=start:end:inc) idiom to stop not at end and have non-1 inc
 
 2.087 2024-04-05
 - Slatec PCHIP routines now have idiomatic [io] `skip` Pars, with doc fixed to match SLATEC code (#468)

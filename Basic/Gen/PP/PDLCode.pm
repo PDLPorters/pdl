@@ -212,8 +212,8 @@ sub make_loopind { my($this,$ind) = @_;
       confess("Index not found for $_ ($ind)!\n");
     }
   }
-  my ($initval, $endval) = split /\s*:\s*/, $cntrlval//'';
-  [$ind,$orig,$initval,$endval];
+  my ($initval, $endval, $inc) = split /\s*:\s*/, $cntrlval//'';
+  [$ind,$orig,$initval,$endval,$inc];
 }
 
 my %access2class = (

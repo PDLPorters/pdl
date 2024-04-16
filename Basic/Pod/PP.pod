@@ -373,6 +373,26 @@ dimension size (with bounds-check):
     ...
   );
 
+Also as of 2.088, you can give an increment (analogous to
+L<PDL::Slices/slice>) other than 1 (which in the loop logic is
+assumed to be positive):
+
+  # a very concise way to express fully-working tiled processing
+  pp_def('matmult',
+    Code => '
+      ...
+      loop (h=::tsiz,w=::tsiz) %{
+        PDL_Indx h_outer = h, w_outer = w;
+        // Zero the output for this tile
+        loop (h=h_outer:h_outer+tsiz,w=w_outer:w_outer+tsiz) %{ $c() = 0; %}
+        loop (t=::tsiz,h=h_outer:h_outer+tsiz,w=w_outer:w_outer+tsiz) %{
+          // Cache the accumulated value for the output
+          $GENERIC() cc = $c();
+        ...
+    ',
+    ...
+  );
+
 Also, because you are generating the code in an actual Perl script,
 there are many fun things that you can do. Let's say that you need
 to write both sumit (as above) and multit. With a little bit of creativity,
