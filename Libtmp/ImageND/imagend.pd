@@ -143,6 +143,14 @@ sub PDL::convolve {
     return $c;
 }
 ',
+        RedoDimsCode => '
+   if ($SIZE(p) != $SIZE(q))
+     $CROAK("Arguments do not have the same dimensionality");
+   PDL_Indx i, *dimsa = $P(adims), *dimsb = $P(bdims);
+   for(i=0; i<$SIZE(p); i++)
+     if (dimsb[i]>=dimsa[i])
+       $CROAK("Second argument must be smaller in all dimensions that first");
+        ',
         Code => '
    PDL_Indx *dimsa = $P(adims);
    PDL_Indx *dimsb = $P(bdims);
@@ -153,13 +161,6 @@ sub PDL::convolve {
    double cc;
 
    PDL_Indx i,i2,j,k,n,offcen=0,ncen=0,nrow;
-
-   if (andims != bndims)
-      $CROAK("Arguments do not have the same dimensionality");
-   for(i=0; i<andims; i++)
-         if (dimsb[i]>dimsa[i])
-             $CROAK("Second argument must be smaller in all dimensions that first"
-);
 
    PDL_Indx pos[andims];
    for (i=0; i<andims; i++) /* Zero */
