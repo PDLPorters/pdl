@@ -1275,19 +1275,13 @@ pp_def($_->{Name},
        HandleBad => 1,
        RedoDimsCode => 'if ($SIZE(m) == 0) $CROAK("called with m dim of 0");',
        Code => pp_line_numbers(__LINE__-1, '
-register int j;
-register int maxj = $SIZE(m)-1;
-register double min  = $COMP(min);
-register double step = $COMP(step);
+register double min = $COMP(min), step = $COMP(step);
 broadcastloop %{
-   loop(m) %{ $hist() = 0; %}
-%}
-broadcastloop %{
+  loop(m) %{ $hist() = 0; %}
   loop(n) %{
     PDL_IF_BAD(if ( !$ISGOOD(in()) ) continue;,)
-    j = (int) (($in()-min)/step);
-    if (j<0) j=0;
-    if (j > maxj) j = maxj;
+    PDL_Indx j = ($in()-min)/step;
+    j = PDLMIN(PDLMAX(j, 0), $SIZE(m)-1);
     ($hist(m => j))'.$_->{HistOp}.';
   %}
 %}'),
@@ -1389,25 +1383,15 @@ pp_def($_->{Name},
         if ($SIZE(mb) == 0) $CROAK("called with mb dim of 0");
        ',
        Code => pp_line_numbers(__LINE__-1, '
-register int ja,jb;
-register int maxja = $SIZE(ma)-1;
-register int maxjb = $SIZE(mb)-1;
-register double mina = $COMP(mina);
-register double minb = $COMP(minb);
-register double stepa = $COMP(stepa);
-register double stepb = $COMP(stepb);
+register double mina = $COMP(mina), minb = $COMP(minb), stepa = $COMP(stepa), stepb = $COMP(stepb);
 broadcastloop %{
   loop(ma,mb) %{ $hist() = 0; %}
-%}
-broadcastloop %{
   loop(n) %{
     PDL_IF_BAD(if (!( $ISGOOD(ina()) && $ISGOOD(inb()) )) continue;,)
-    ja = (int) (($ina()-mina)/stepa);
-    jb = (int) (($inb()-minb)/stepb);
-    if (ja<0) ja=0;
-    if (ja > maxja) ja = maxja;
-    if (jb<0) jb=0;
-    if (jb > maxjb) jb = maxjb;
+    PDL_Indx ja = ($ina()-mina)/stepa;
+    PDL_Indx jb = ($inb()-minb)/stepb;
+    ja = PDLMIN(PDLMAX(ja, 0), $SIZE(ma)-1);
+    jb = PDLMIN(PDLMAX(jb, 0), $SIZE(mb)-1);
     ($hist(ma => ja,mb => jb))'.$_->{HistOp}.';
   %}
 %}'),
