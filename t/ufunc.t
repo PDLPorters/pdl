@@ -288,4 +288,12 @@ subtest diff2 => sub {
   is "$got", "Empty[0]", 'single-element gives empty';
 };
 
+subtest intover => sub {
+  for ([1,0], [2,0.5], [3,2], [4,4.5], [5,8], [6,12.5], [7,18]) {
+    my ($size, $exp, $got) = @$_;
+    ok approx($got=sequence($size)->intover, $exp), "intover $size"
+      or diag "got=$got\nexp=$exp";
+  }
+};
+
 done_testing;

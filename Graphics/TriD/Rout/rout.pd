@@ -274,25 +274,19 @@ sub PDL::Graphics::TriD::Contours::contour_segments {
 EOD
 
 pp_def('contour_segments_internal',
-	Pars => 'c(); 
-            data(m,n); 
-            points(d,m,n); 
+	Pars => 'c();
+            data(m,n);
+            points(d=3,m,n);
             float [o]segs(d,q);
 				int [o] cnt();',
 	GenericTypes => ['F'],
 	Code => '
-		int ds, ms, ns;
+		int ms, ns;
 		float dist;
       float a_int[3];
       int i, j, m1, n1, mr, ml, p, found, p1, a;
-   
-		ds = $SIZE(d);
 		ms = $SIZE(m);
 		ns = $SIZE(n);
-
-		if(ds != 3){
-			$CROAK("Bad first dimension in contour_segments");
-		}	
 		p=0;
 		p1=1;
 		loop(m) %{
