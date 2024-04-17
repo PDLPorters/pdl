@@ -680,7 +680,7 @@ Perldl2/Profile/Perldl2.pm
 Perldl2/README
 Perldl2/Script.pm
 Perldl2/TODO
-README
+README.md
 t/00-report-prereqs.t
 t/01-pptest.t
 t/autoload.t
