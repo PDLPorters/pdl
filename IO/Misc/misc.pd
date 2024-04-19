@@ -1058,14 +1058,14 @@ sub PDL::swcols{
   the appropriate badvalue and the column is marked as bad.
 
   DEFTYPE: Sets the default type of the columns - see the documentation for
-   L</rcols()>
+   L</rcols>
 
   TYPES:   A reference to a Perl array with types for each column - see
-  the documentation for L</rcols()>
+  the documentation for L</rcols>
 
   BUFFERSIZE: The number of lines to extend the ndarray by. It might speed
   up the reading a little bit by setting this to the number of lines in the
-  file, but in general L</rasc()> is a better choice
+  file, but in general L</rasc> is a better choice
 
 Usage
 
@@ -1191,58 +1191,8 @@ sub defpdl {
         );
 }
 
-pp_add_exported('', 'rasc rcube');
+pp_add_exported('', 'rcube');
 pp_addpm(<<'EOPM');
-
-
-=head2 rasc
-
-=for ref
-
-  Simple function to slurp in ASCII numbers quite quickly,
-  although error handling is marginal (to nonexistent).
-
-=for usage
-
-  $pdl->rasc("filename"|FILEHANDLE [,$noElements]);
-
-      Where:
-        filename is the name of the ASCII file to read or open file handle
-        $noElements is the optional number of elements in the file to read.
-            (If not present, all of the file will be read to fill up $pdl).
-        $pdl can be of type float or double (for more precision).
-
-=for example
-
-  #  (test.num is an ascii file with 20 numbers. One number per line.)
-  $in = PDL->null;
-  $num = 20;
-  $in->rasc('test.num',20);
-  $imm = zeroes(float,20,2);
-  $imm->rasc('test.num');
-
-=cut
-
-sub rasc {PDL->rasc(@_)}
-sub PDL::rasc {
-  my ($pdl, $file, $num) = @_;
-  $num = -1 unless defined $num;
-  my $is_openhandle = defined fileno $file;
-  my $fi;
-  if ($is_openhandle) {
-    $fi = $file;
-  } else {
-    barf 'usage: rasc $pdl, "filename"|FILEHANDLE, [$num_to_read]'
-       if !defined $file || ref $file;
-    open $fi, "<", $file or barf "Can't open $file";
-  }
-  $pdl->_rasc(my $ierr=null,$num,$fi);
-  close $fi unless $is_openhandle;
-  return all $ierr > 0;
-}
-
-# ----------------------------------------------------------
-
 =head2 rcube
 
 =for ref
@@ -1302,9 +1252,29 @@ sub rcube {
 
 EOPM
 
-pp_def('_rasc',
+pp_def('rasc',
        Pars => '[o] nums(n); int [o] ierr(n)',
-       OtherPars => 'int num => n; PerlIO *fp',
+       OtherPars => 'PerlIO *fp; int num => n',
+       PMFunc => '',
+       PMCode => <<'EOF',
+sub rasc {PDL->rasc(@_)}
+sub PDL::rasc {
+  my ($pdl, $file, $num) = @_;
+  $num = -1 unless defined $num;
+  my $is_openhandle = defined fileno $file;
+  my $fi;
+  if ($is_openhandle) {
+    $fi = $file;
+  } else {
+    barf 'usage: rasc $pdl, "filename"|FILEHANDLE, [$num_to_read]'
+       if !defined $file || ref $file;
+    open $fi, "<", $file or barf "Can't open $file";
+  }
+  $pdl->_rasc_int(my $ierr=null,$fi,$num);
+  close $fi unless $is_openhandle;
+  return all $ierr > 0;
+}
+EOF
        GenericTypes => ['F','D'],
        CHeader => <<'EOH', ###### Read ASCII Function ##########
 #define SWALLOWLINE(fp) while ((s = PerlIO_getc(fp)) != '\n' && s != EOF)
@@ -1385,8 +1355,31 @@ endread_$GENERIC(nums):
       $ierr(n=>j) = $ierr(n=>i); /* inherit error flags */
 %}
 EOF
-#       Doc => 'Internal Function used by rasc. '
-        Doc => undef,
+        Doc => <<'EOF',
+=for ref
+
+  Simple function to slurp in ASCII numbers quite quickly,
+  although error handling is marginal (to nonexistent).
+
+=for usage
+
+  $pdl->rasc("filename"|FILEHANDLE [,$noElements]);
+
+      Where:
+        filename is the name of the ASCII file to read or open file handle
+        $noElements is the optional number of elements in the file to read.
+            (If not present, all of the file will be read to fill up $pdl).
+        $pdl can be of type float or double (for more precision).
+
+=for example
+
+  #  (test.num is an ascii file with 20 numbers. One number per line.)
+  $in = PDL->null;
+  $num = 20;
+  $in->rasc('test.num',20);
+  $imm = zeroes(float,20,2);
+  $imm->rasc('test.num');
+EOF
 );
 
 pp_done();
