@@ -341,7 +341,6 @@ IO/IDL/t/basic.t
 IO/IDL/t/test.sav
 IO/IO.pod
 IO/Makefile.PL
-IO/Misc/get.c
 IO/Misc/Makefile.PL
 IO/Misc/misc.pd
 IO/Misc/t/misc.t
