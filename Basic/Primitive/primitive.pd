@@ -2179,14 +2179,12 @@ As of 2.062, the generator changed from Perl's generator to xoshiro256++
 
 =for usage
 
-From within pdl:
+From within C<perldl>:
 
  srand(); # uses current time
  srand(5); # fixed number e.g. for testing
 
-This  code above will not seed PDL's generator, but Perl's rand in Perl.  
-So if you want to seed PDL's generator, you will have to do something like this
-in the Perl interpreter:
+But, from within the Perl interpreter, you will have to do something like this:
 
  PDL::srand(); # uses current time
  PDL::srand(5); # fixed number e.g. for testing
