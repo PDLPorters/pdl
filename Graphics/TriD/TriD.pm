@@ -166,7 +166,7 @@ will do exactly the same.
 
 Let's begin by thinking about how you might make a 2d data plot.
 If you sampled your data at regular intervals, you would have
-a time serires y(t) = (y0, y1, y2, ...).  You could plot y vs t
+a time series y(t) = (y0, y1, y2, ...).  You could plot y vs t
 by computing t0 = 0, t1 = dt, t2 = 2 * dt, and then plotting
 (t0, y0), (t1, y1), etc.
 
