@@ -1081,8 +1081,9 @@ sub callPerlInit {
 sub callTypemap {
   my ($x, $ptype, $pname) = @_;
   my ($setter, $type) = typemap($ptype, 'get_inputmap');
+  (my $ntype = $type) =~ s:\s+::g; $ntype =~ s:\*:Ptr:g;
   my $ret = typemap_eval($setter, {var=>$x, type=>$type, arg=>("${x}_SV"),
-      pname=>$pname});
+      pname=>$pname, ntype=>$ntype});
   $ret =~ s/^\s*(.*?)\s*$/$1/g;
   $ret =~ s/\s*\n\s*/ /g;
   $ret;
