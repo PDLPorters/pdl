@@ -1,6 +1,6 @@
+2.088 2024-04-22
 - Slatec::ch{ic,sp} work arrays now [t]
 - add Slatec::bvalu
-- defslatec dims can calculate from others with =CALC(expr)
 - add Func::{pchip,spline}, and a demo
 - add Ufunc::diff2
 - extra ) on end of Pars now an error
