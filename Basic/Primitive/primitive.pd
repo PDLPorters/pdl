@@ -1093,7 +1093,7 @@ with C<N> being the number of elements in x
 
 =item * the population RMS deviation from the mean:
 
-  PRMS = sqrt( sum( (x-mean(x))^2 )/(N-1)
+  PRMS = sqrt( sum( (x-mean(x))^2 )/(N-1) )
 
 The population deviation is the best-estimate of the deviation
 of the population from which a sample is drawn.
