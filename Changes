@@ -1,3 +1,5 @@
+- fix numerical misbehaviour in histogram etc on i686 (#474) - thanks @sebastic for report
+
 2.088 2024-04-22
 - Slatec::ch{ic,sp} work arrays now [t]
 - add Slatec::bvalu

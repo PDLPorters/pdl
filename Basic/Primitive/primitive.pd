@@ -1276,7 +1276,7 @@ broadcastloop %{
   loop(m) %{ $hist() = 0; %}
   loop(n) %{
     PDL_IF_BAD(if ( !$ISGOOD(in()) ) continue;,)
-    PDL_Indx j = ($in()-min)/step;
+    PDL_Indx j = round((($in()-min)/step)-0.5);
     j = PDLMIN(PDLMAX(j, 0), $SIZE(m)-1);
     ($hist(m => j))'.$_->{HistOp}.';
   %}
@@ -1384,8 +1384,8 @@ broadcastloop %{
   loop(ma,mb) %{ $hist() = 0; %}
   loop(n) %{
     PDL_IF_BAD(if (!( $ISGOOD(ina()) && $ISGOOD(inb()) )) continue;,)
-    PDL_Indx ja = ($ina()-mina)/stepa;
-    PDL_Indx jb = ($inb()-minb)/stepb;
+    PDL_Indx ja = round((($ina()-mina)/stepa)-0.5);
+    PDL_Indx jb = round((($inb()-minb)/stepb)-0.5);
     ja = PDLMIN(PDLMAX(ja, 0), $SIZE(ma)-1);
     jb = PDLMIN(PDLMAX(jb, 0), $SIZE(mb)-1);
     ($hist(ma => ja,mb => jb))'.$_->{HistOp}.';
