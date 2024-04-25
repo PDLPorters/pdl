@@ -517,7 +517,7 @@ Speed-optimized convolution with selectable boundary conditions
 
   $new = convolveND($x, $kernel, [ {options} ]);
 
-Conolve an array with a kernel, both of which are N-dimensional.
+Convolve an array with a kernel, both of which are N-dimensional.
 
 If the kernel has fewer dimensions than the array, then the extra array
 dimensions are broadcasted over.  There are options that control the boundary

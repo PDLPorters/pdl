@@ -1021,8 +1021,8 @@ and vectorized for PDL by Karl Glazebrook.
   # $tri is 0 everywhere except for points in polygon interior
   $tri = $img->pnpoly($ps);
 
-  With the second form, the x and y coordinates must also be specified.
-  B< I<THIS IS MAINTAINED FOR BACKWARD COMPATIBILITY ONLY> >.
+With the second form, the x and y coordinates must also be specified.
+B< I<THIS IS MAINTAINED FOR BACKWARD COMPATIBILITY ONLY> >.
 
   $px = pdl( 3, 20, 34 );
   $py = pdl( 3, 20,  3 );

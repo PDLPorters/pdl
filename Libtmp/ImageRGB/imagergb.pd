@@ -70,7 +70,7 @@ quantize and reduce colours in 8-bit images
 This function does color reduction for <=8bit displays and accepts 8bit RGB
 and 8bit palette images. It does this through an interface to the ppm_quant
 routine from the pbmplus package that implements the median cut routine which
-intellegently selects the 'best' colors to represent your image on a <= 8bit
+intelligently selects the 'best' colors to represent your image on a <= 8bit
 display (based on the median cut algorithm). Optional args: $ncols sets the
 maximum nunmber of colours used for the output image (defaults to 256).
 There are images where a different color
