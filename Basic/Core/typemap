@@ -17,7 +17,7 @@ T_PDL
   $var = PDL_CORE_(SvPDLV)($arg)
 
 T_PDL_ANYVAL
-  ANYVAL_FROM_SV($var, $arg, FALSE, -1)
+  ANYVAL_FROM_SV($var, $arg, FALSE, -1, TRUE)
 
 T_PDLTRANS
   if (!sv_isa($arg,\"PDL::Trans\"))

@@ -521,7 +521,7 @@ them within, ndarrays.
 
 As of PDL 2.048, in F<pdlperl.h> there are:
 
- ANYVAL_FROM_SV(out_anyval, in_SV, use_undefval, forced_type)
+ ANYVAL_FROM_SV(out_anyval, in_SV, use_undefval, forced_type, warn_undef)
  ANYVAL_TO_SV(out_SV, in_anyval)
 
 Because these are used in the PDL F<typemap>, you will need to

@@ -39,7 +39,7 @@ pdl* pdl_SvPDLV ( SV* sv ) {
          pdl_pdl_barf("called object method on 'PDL' or similar");
       /* The scalar is not a ref, so we can use direct conversion. */
       PDL_Anyval data;
-      ANYVAL_FROM_SV(data, sv, TRUE, -1);
+      ANYVAL_FROM_SV(data, sv, TRUE, -1, TRUE);
       PDLDEBUG_f(printf("pdl_SvPDLV type: %d\n", data.type));
       return pdl_scalar(data);
    } /* End of scalar case */
@@ -488,7 +488,7 @@ pdl* pdl_from_array(AV* av, AV* dims, int dtype, pdl* dest_pdl)
    * Copy the undefval to fill empty spots in the ndarray...
    */
   PDLDEBUG_f(printf("pdl_from_array type: %d\n", dtype));
-  ANYVAL_FROM_SV(undefval, NULL, TRUE, dtype);
+  ANYVAL_FROM_SV(undefval, NULL, TRUE, dtype, FALSE);
 #define X(dtype_dest, ctype_dest, ppsym_dest, ...) \
     pdl_setav_ ## ppsym_dest(dest_pdl->data,av,dest_dims,ndims,level, undefval.value.ppsym_dest, dest_pdl);
   PDL_GENERICSWITCH(PDL_TYPELIST_ALL, dtype, X, return NULL)

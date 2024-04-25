@@ -48,7 +48,7 @@ print OUT <<'EOF';
  */
 #define PDL_SV_IS_UNDEF(sv)  ( (!(sv) || ((sv)==&PL_sv_undef)) || !(SvNIOK(sv) || (SvTYPE(sv)==SVt_PVMG) || SvPOK(sv) || SvROK(sv)))
 
-#define ANYVAL_FROM_SV(outany,insv,use_undefval,forced_type) do { \
+#define ANYVAL_FROM_SV(outany,insv,use_undefval,forced_type,warn_undef) do { \
     SV *sv2 = insv; \
     if (PDL_SV_IS_UNDEF(sv2)) { \
         if (!use_undefval) { \
@@ -57,7 +57,7 @@ print OUT <<'EOF';
             break; \
         } \
         sv2 = get_sv("PDL::undefval",1); \
-        if(SvIV(get_sv("PDL::debug",1))) \
+        if ((warn_undef) && SvIV(get_sv("PDL::debug",1))) \
             fprintf(stderr,"Warning: SvPDLV converted undef to $PDL::undefval (%"NVgf").\n",SvNV(sv2)); \
         if (PDL_SV_IS_UNDEF(sv2)) { \
             outany.type = forced_type >=0 ? forced_type : PDL_B; \
