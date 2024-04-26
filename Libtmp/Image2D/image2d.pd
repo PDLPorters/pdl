@@ -182,7 +182,7 @@ sub init_map {
 sub init_vars {
     my $sizevars = shift || [qw(m n p q)];
     my $compvars = shift || [];
-    my $str = "int i,j, i1,j1, i2,j2, poff, qoff;";
+    my $str = "int i,j, i2,j2, poff, qoff;";
     $str .=
 	'int opt = $COMP(opt);
 	' . join("\n", map "int ${_}_size = \$SIZE(${_});", @$sizevars) . '
@@ -250,31 +250,29 @@ sub PDL::conv2d {
            init_map("i") .
            init_map("j") .
 '
-           PDL_CLDouble tmp; int flag;
-           broadcastloop %{
-           loop(n) %{
-              loop(m) %{
-                 tmp = 0;
-                 for(j1=0; j1<q_size; j1++) {
-                    j2 = mapj[n-j1];
-                    if (j2 >= 0) {
-                       for(i1=0; i1<p_size; i1++) {
-                          i2 = mapi[m-i1];
-                          if (i2 >= 0) {
-			     PDL_IF_BAD(if ( $ISGOOD(a(m=>i2,n=>j2)) && $ISGOOD(kern(p=>i1,q=>j1)) ),) {
-                                tmp += $a(m=>i2,n=>j2) * $kern(p=>i1,q=>j1);
-                                flag = 1;
-			     } /* if: good */
-                          } /* if: i2 >= 0 */
-		       } /* for: i1 */
-		    } /* if: j2 >= 0 */
-		 } /* for: j1 */
-		 PDL_IF_BAD(if ( !flag ) { $SETBAD(b()); }
-		 else,)                  { $b() = tmp; }
-	      %}
-           %}
-           %}
-	   ',
+broadcastloop %{
+loop(n,m) %{
+  int flag = 0;
+  PDL_CLDouble tmp = 0;
+  loop (q) %{
+     j2 = mapj[n-q];
+     if (j2 >= 0) {
+        loop (p) %{
+           i2 = mapi[m-p];
+           if (i2 >= 0) {
+              PDL_IF_BAD(if ( $ISGOOD(a(m=>i2,n=>j2)) && $ISGOOD(kern()) ),) {
+                 tmp += $a(m=>i2,n=>j2) * $kern();
+                 flag = 1;
+              } /* if: good */
+           } /* if: i2 >= 0 */
+        %}
+     } /* if: j2 >= 0 */
+  %}
+  PDL_IF_BAD(if ( !flag ) { $SETBAD(b()); }
+  else,)                  { $b() = tmp; }
+%}
+%}
+',
 ); # pp_def: conv2d
 
 pp_addhdr(<<'EOF');
@@ -335,38 +333,33 @@ EOF
            init_map("i") .
            init_map("j") .
 '
-           int flag;
-           PDL_LDouble kk, aa;
            broadcastloop %{
-           for(j=0; j<n_size; j++) {
-              for(i=0; i<m_size; i++) {
-                 PDL_Indx count = 0;
-                 flag = 0;
-                 for(j1=0; j1<q_size; j1++) {
-                    j2 = mapj[j-j1];
-                    if (j2 >= 0)
-                       for(i1=0; i1<p_size; i1++) {
-                          i2 = mapi[i-i1];
-                          if (i2 >= 0) {
-                             kk = $kern(p=>i1,q=>j1);
-                             aa = $a(m=>i2,n=>j2);
-                             PDL_IF_BAD(if ( $ISGOODVAR(kk,kern) && $ISGOODVAR(aa,a) ),) {
-				flag = 1;
-                                if ( kk > 0 ) {
-                                   $tmp(pq=>count++) = aa * kk;
-			        }
+           loop (n,m) %{
+              PDL_Indx count = 0;
+              int flag = 0;
+              loop (q) %{
+                 j2 = mapj[n-q];
+                 if (j2 >= 0)
+                    loop (p) %{
+                       i2 = mapi[m-p];
+                       if (i2 >= 0) {
+                          PDL_LDouble kk = $kern(), aa = $a(m=>i2,n=>j2);
+                          PDL_IF_BAD(if ( $ISGOODVAR(kk,kern) && $ISGOODVAR(aa,a) ),) {
+                             flag = 1;
+                             if ( kk > 0 ) {
+                                $tmp(pq=>count++) = aa * kk;
                              }
-                          } /* if: i2 >= 0 */
-		       } /* for: i1 */
-		 } /* for: j1 */
-		 PDL_IF_BAD(if ( flag == 0 ) {
-		    $SETBAD(b(m=>i,n=>j));
-                 } else,) {
-                    qsort_$PPSYM(tmp)( $P(tmp), 0, count-1 );
-                    $b(m=>i,n=>j) = $tmp(pq=>(count-1)/2);
-		 }
-              } /* for: i */
-           } /* for: j */
+                          }
+                       } /* if: i2 >= 0 */
+                    %}
+              %}
+              PDL_IF_BAD(if ( flag == 0 ) {
+                 $SETBAD(b());
+              } else,) {
+                 qsort_$PPSYM(tmp)( $P(tmp), 0, count-1 );
+                 $b() = $tmp(pq=>(count-1)/2);
+              }
+           %}
            %}
 '
 
@@ -424,30 +417,20 @@ EOF
            init_map("i") .
            init_map("j") .
 '
-           int count;
-           $GENERIC() kk, tmp[p_size*q_size];
-           broadcastloop %{
-           for(j=0; j<n_size; j++) {
-              for(i=0; i<m_size; i++) {
-                 count = 0;
-                 for(j1=0; j1<q_size; j1++) {
-                    j2 = mapj[j-j1];
-
-                    if (j2 >= 0)
-                       for(i1=0; i1<p_size; i1++) {
-                          i2 = mapi[i-i1];
-                          if (i2 >= 0) {
-                                tmp[count++] = $a(m=>i2,n=>j2);
-                          } /* if: i2 >= 0 */
-		       } /* for: i1 */
-		 } /* for: j1 */
-
-                 $b(m=>i,n=>j) =
-                        quick_select_$PPSYM() (tmp, count );
-
-              } /* for: i */
-           } /* for: j */
-           %}
+  $GENERIC() tmp[p_size*q_size];
+  broadcastloop %{
+  loop (n,m) %{
+     int count = 0;
+     loop (q) %{
+        if ((j2 = mapj[n-q]) < 0) continue;
+        loop (p) %{
+           if ((i2 = mapi[m-p]) < 0) continue;
+           tmp[count++] = $a(m=>i2,n=>j2);
+        %}
+     %}
+     $b() = quick_select_$PPSYM() (tmp, count );
+  %}
+  %}
 ',
 
 ); # pp_def: med2df
