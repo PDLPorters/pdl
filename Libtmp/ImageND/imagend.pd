@@ -778,4 +778,170 @@ Code => <<'EOD'
 EOD
 );
 
+pp_def('contour_segments',
+	Pars => 'c();
+            data(m,n);
+            points(d=3,m,n);
+            float [o]segs(d,q=CALC(($SIZE(m)-1)*($SIZE(n)-1)*4));
+            int [o] cnt();',
+	GenericTypes => ['F'],
+	Code => '
+int p=0, p1=1;
+loop (n=:-1,m=:-1) %{
+  PDL_Indx m1=m+1, n1=n+1;
+  int found=0, right_break_cval=($data() < $c() && $data(m=>m1) >= $c());
+  if (right_break_cval || ($data() >= $c() && $data(m=>m1) < $c())) {
+    /* circle the high if there is a choice of direction */
+    PDL_Indx ml = right_break_cval ? m1 : m;
+    /* found an x intersect */
+    float dist = ($c()-$data())/($data(m=>m1)-$data()), a_int[3];
+    loop(d) %{
+      a_int[d]=$points()+dist*($points(m=>m1)-$points());
+    %}
+    /* now look for the connecting point */
+    /* First down and to the left (right) */
+    if(($data(m=>ml) < $c() && $data(m=>ml,n=>n1) >= $c()) ||
+       ($data(m=>ml) >= $c() && $data(m=>ml,n=>n1) < $c())) {
+      found=(m==ml)? 1:-1;
+      dist = ($c()-$data(m=>ml))/($data(m=>ml,n=>n1)-$data(m=>ml));
+      loop(d) %{
+        $segs(q=>p1)=$points(m=>ml)+dist*($points(m=>ml,n=>n1)-$points(m=>ml));
+        $segs(q=>p) = a_int[d];
+      %}
+      p+=2;
+      p1=p+1;
+    } else {
+      /* down and to the right (left)*/
+      PDL_Indx mr = right_break_cval ? m : m1;
+      if (($data(m=>mr) < $c() && $data(m=>mr,n=>n1) >= $c()) ||
+          ($data(m=>mr) >= $c() && $data(m=>mr,n=>n1) < $c())) {
+        dist = ($c()-$data(m=>mr))/($data(m=>mr,n=>n1)-$data(m=>mr));
+        found=(m==mr)? 1:-1;
+        loop(d) %{
+          $segs(q=>p1)=$points(m=>mr)+dist*($points(m=>mr,n=>n1)-$points(m=>mr));
+          $segs(q=>p) = a_int[d];
+        %}
+        p+=2;
+        p1=p+1;
+      } else {
+        /* straight down */
+        found=2;
+        if (($data(n=>n1) < $c() && $data(m=>m1,n=>n1) >= $c()) ||
+            ($data(n=>n1) >= $c() && $data(m=>m1,n=>n1) < $c())) {
+          dist = ($c()-$data(n=>n1))/($data(m=>m1,n=>n1)-$data(n=>n1));
+          loop(d) %{
+            $segs(q=>p1)=$points(n=>n1)+dist*($points(m=>m1,n=>n1)-$points(n=>n1));
+            $segs(q=>p) = a_int[d];
+          %}
+          p+=2;
+          p1=p+1;
+        } /* straight down */
+      }	/* down and to the right */
+    }	/* First down and to the left */
+  }	/* found an x intersect */
+  if (found<=0) { /* need to check the y-pnt */
+    if (($data() < $c() && $data(n=>n1) >= $c()) ||
+        ($data() >= $c() && $data(n=>n1) < $c())) {
+      float dist = ($c()-$data())/($data(n=>n1)-$data()), a_int[3];
+      loop(d) %{
+        a_int[d]=$points()+dist*($points(n=>n1)-$points());
+      %}
+      if(($data(n=>n1) < $c() && $data(m=>m1,n=>n1) >= $c()) ||
+         ($data(n=>n1)>= $c() && $data(m=>m1,n=>n1) <  $c())) {
+        dist = ($c()-$data(n=>n1))/($data(m=>m1,n=>n1)-$data(n=>n1));
+        loop(d) %{
+          $segs(q=>p1)=$points(n=>n1)+dist*($points(m=>m1,n=>n1)-$points(n=>n1));
+          $segs(q=>p) = a_int[d];
+        %}
+        p+=2;
+        p1=p+1;
+        found = (found==-1)?-3:3;
+      } else if (found==0) {
+        if (($data(m=>m1) < $c() && $data(m=>m1,n=>n1) >= $c()) ||
+            ($data(m=>m1) >= $c() && $data(m=>m1,n=>n1) < $c())) {
+          dist = ($c()-$data(m=>m1))/($data(m=>m1,n=>n1)-$data(m=>m1));
+          loop(d) %{
+            $segs(q=>p1) = $points(m=>m1)+dist*($points(m=>m1,n=>n1)-$points(m=>m1));
+            $segs(q=>p) = a_int[d];
+          %}
+          p+=2;
+          p1=p+1;
+          found = 4;
+        }
+      }
+    }
+  } /* need to check the y-pnt */
+
+  if (found!=0 && found!=1 && found != 3) continue;
+  if (($data(m=>m1) >= $c() || $data(m=>m1,n=>n1) < $c()) &&
+      ($data(m=>m1) < $c() || $data(m=>m1,n=>n1) >= $c())) continue;
+  if (($data(n=>n1) >= $c() || $data(m=>m1,n=>n1) < $c()) &&
+      ($data(n=>n1) < $c() || $data(m=>m1,n=>n1) >= $c())) continue;
+  float dist = ($c()-$data(m=>m1))/($data(m=>m1,n=>n1)-$data(m=>m1));
+  float dist2 = ($c()-$data(n=>n1))/($data(m=>m1,n=>n1)-$data(n=>n1));
+  loop(d) %{
+    $segs(q=>p) = $points(m=>m1)+dist*($points(m=>m1,n=>n1)-$points(m=>m1));
+    $segs(q=>p1)=$points(n=>n1)+dist2*($points(m=>m1,n=>n1)-$points(n=>n1));
+  %}
+  found=5;
+  p+=2;
+  p1=p+1;
+%}
+$cnt()=p-1;'
+,
+       Doc => <<'EOF',
+=for ref
+
+Finds a contour in given data. Takes 3 ndarrays as input:
+
+C<$c> is the contour value (broadcast with this)
+
+C<$data> is an [m,n] array of values at each point
+
+C<$points> is a list of [3,m,n] points. It should be a grid monotonically
+increasing with m and n.
+
+Returns C<$segs>, and C<$cnt> which is the highest 2nd-dim index in C<$segs>
+that's defined.
+
+=head3 Algorithm
+
+The data array represents samples of some field observed on the surface
+described by points.
+
+=over 4
+
+=item *
+
+For each contour value we look for intersections on the line segments
+joining points of the data.
+
+=item *
+
+When an intersection is found we look to the adjoining line segments
+for the other end(s) of the line segment(s).  So suppose we find an
+intersection on an x-segment.
+
+=item *
+
+We first look down to the left y-segment, then to the
+right y-segment and finally across to the next x-segment.
+
+=item *
+
+Once we find one in a
+box (two on a point) we can quit because there can only be one.
+
+=item *
+
+After we are done with a given x-segment, we look to the leftover
+possibilities for the adjoining y-segment.
+
+=back
+
+Thus the contours are built as a collection of line segments rather than
+a set of closed polygons.
+EOF
+);
+
 pp_done();

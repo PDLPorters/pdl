@@ -93,4 +93,17 @@ my $expected = pdl('[[1 1][1 3]]');
 ok all approx($got, $expected, 1e-3) or diag "got: $got\nexp: $expected";
 }
 
+{
+# cut down from demo 3d
+my $size = 5;
+my $x = xvals($size+1,$size+1) / $size;
+my $y = yvals($size+1,$size+1) / $size;
+my $z = 0.5 + 0.5 * (sin($x*6.3) * sin($y*6.3)) ** 3;
+my $cvals = pdl q[0.203 0.276];
+my $points = cat($x,$y,$z)->mv(-1,0);
+my ($segs, $cnt) = contour_segments($cvals, $z, $points);
+$segs = $segs->slice(',0:'.$cnt->max);
+ok all(approx $cnt, pdl(15,15), 2), 'contour_segments' or diag $segs, $cnt;
+}
+
 done_testing;

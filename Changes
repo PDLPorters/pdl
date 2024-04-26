@@ -1,5 +1,6 @@
 - fix numerical misbehaviour in histogram etc on i686 (#474) - thanks @sebastic for report
 - add ANYVAL_FROM_SV parameter to control "undefval" warning
+- move contour_segments from Graphics::TriD::Rout to ImageND
 
 2.088 2024-04-22
 - Slatec::ch{ic,sp} work arrays now [t]

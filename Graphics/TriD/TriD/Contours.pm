@@ -24,6 +24,7 @@ package PDL::Graphics::TriD::Contours;
 use strict;
 use warnings;
 use PDL;
+use PDL::ImageND;
 use PDL::Graphics::TriD;
 use PDL::Graphics::TriD::Rout;
 use PDL::Graphics::TriD::Labels;
@@ -145,10 +146,18 @@ sub new{
     $this->{Options}{ContourMin}=$cvals->min->sclr;
   }
   $this->{Options}{ContourVals} = $cvals;
-
   print "Cvals = $cvals\n" if($PDL::Graphics::TriD::verbose);  
-  
-  $this->contour_segments($cvals,$data,$grid);
+
+  my ($segs, $cnt) = contour_segments($cvals,$data,$grid);
+  $this->{Points} = PDL->null;
+  my $pcnt=0;
+  for (my $i=0; $i<$cvals->nelem; $i++) {
+    next if (my $ncnt = $cnt->slice("($i)"))==-1;
+    $this->{ContourSegCnt}[$i] = $pcnt = $pcnt+$ncnt;
+    $pcnt=$pcnt+1;
+    $this->{Points} = $this->{Points}->append($segs->slice(":,0:$ncnt,($i)")->transpose);
+  }
+  $this->{Points} = $this->{Points}->transpose;
 
   $this->addlabels($this->{Options}{Labels}) if(defined $this->{Options}{Labels});
 
