@@ -293,6 +293,32 @@ only go in one direction. If this is unclear try both!
 See module documentation for more information on
 contexts and options
 
+=head2 line3d_segs
+
+=for ref
+
+3D line plot of non-continuous segments, defined by a variety of contexts.
+
+Implemented by C<PDL::Graphics::TriD::Lines>. Handles pairs of vertices
+as produced by L<PDL::ImageND/contour_segments>.
+
+=for usage
+
+ line3d_segs ndarray(3,x), {OPTIONS}
+ line3d_segs [CONTEXT], {OPTIONS}
+
+=for example
+
+  use PDL::ImageND
+  $size = 5;
+  $x = xvals($size+1,$size+1) / $size;
+  $y = yvals($size+1,$size+1) / $size;
+  $z = 0.5 + 0.5 * (sin($x*6.3) * sin($y*6.3)) ** 3;
+  $points = cat($x,$y,$z)->mv(-1,0)
+  ($segs, $cnt) = contour_segments(pdl(0.203,0.276), $z, $points)
+  $segs = $segs->slice(',0:'.$cnt->max)
+  line3d_segs $segs
+
 =head2 imag3d
 
 =for ref
@@ -688,7 +714,7 @@ use PDL::Exporter;
 use PDL::Core '';  # barf
 our @ISA = qw/PDL::Exporter/;
 our @EXPORT_OK = qw/imag3d_ns imag3d line3d mesh3d lattice3d points3d
-  trigrid3d trigrid3d_ns
+  trigrid3d trigrid3d_ns line3d_segs
   contour3d spheres3d describe3d imagrgb imagrgb3d hold3d release3d
   keeptwiddling3d nokeeptwiddling3d close3d
   twiddle3d grabpic3d tridsettings/;
@@ -861,6 +887,14 @@ sub PDL::line3d {
     &checkargs;
     my $obj = PDL::Graphics::TriD::LineStrip->new(@_);
     print "line3d: object is $obj\n" if($PDL::Graphics::TriD::verbose);
+    graph_object($obj);
+}
+
+*line3d_segs=*line3d_segs=\&PDL::line3d_segs;
+sub PDL::line3d_segs {
+    &checkargs;
+    my $obj = PDL::Graphics::TriD::Lines->new(@_);
+    print "line3d_segs: object is $obj\n" if($PDL::Graphics::TriD::verbose);
     graph_object($obj);
 }
 
