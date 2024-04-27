@@ -781,7 +781,7 @@ EOD
 pp_def('contour_segments',
 	Pars => 'c();
             data(m,n);
-            points(d=3,m,n);
+            points(d,m,n);
             float [o]segs(d,q=CALC(($SIZE(m)-1)*($SIZE(n)-1)*4));
             int [o] cnt();',
 	GenericTypes => ['F'],
@@ -794,7 +794,7 @@ loop (n=:-1,m=:-1) %{
     /* circle the high if there is a choice of direction */
     PDL_Indx ml = right_break_cval ? m1 : m;
     /* found an x intersect */
-    float dist = ($c()-$data())/($data(m=>m1)-$data()), a_int[3];
+    float dist = ($c()-$data())/($data(m=>m1)-$data()), a_int[$SIZE(d)];
     loop(d) %{
       a_int[d]=$points()+dist*($points(m=>m1)-$points());
     %}
@@ -805,8 +805,8 @@ loop (n=:-1,m=:-1) %{
       found=(m==ml)? 1:-1;
       dist = ($c()-$data(m=>ml))/($data(m=>ml,n=>n1)-$data(m=>ml));
       loop(d) %{
-        $segs(q=>p1)=$points(m=>ml)+dist*($points(m=>ml,n=>n1)-$points(m=>ml));
         $segs(q=>p) = a_int[d];
+        $segs(q=>p1)=$points(m=>ml)+dist*($points(m=>ml,n=>n1)-$points(m=>ml));
       %}
       p+=2;
       p1=p+1;
@@ -818,8 +818,8 @@ loop (n=:-1,m=:-1) %{
         dist = ($c()-$data(m=>mr))/($data(m=>mr,n=>n1)-$data(m=>mr));
         found=(m==mr)? 1:-1;
         loop(d) %{
-          $segs(q=>p1)=$points(m=>mr)+dist*($points(m=>mr,n=>n1)-$points(m=>mr));
           $segs(q=>p) = a_int[d];
+          $segs(q=>p1)=$points(m=>mr)+dist*($points(m=>mr,n=>n1)-$points(m=>mr));
         %}
         p+=2;
         p1=p+1;
@@ -830,8 +830,8 @@ loop (n=:-1,m=:-1) %{
             ($data(n=>n1) >= $c() && $data(m=>m1,n=>n1) < $c())) {
           dist = ($c()-$data(n=>n1))/($data(m=>m1,n=>n1)-$data(n=>n1));
           loop(d) %{
-            $segs(q=>p1)=$points(n=>n1)+dist*($points(m=>m1,n=>n1)-$points(n=>n1));
             $segs(q=>p) = a_int[d];
+            $segs(q=>p1)=$points(n=>n1)+dist*($points(m=>m1,n=>n1)-$points(n=>n1));
           %}
           p+=2;
           p1=p+1;
@@ -842,7 +842,7 @@ loop (n=:-1,m=:-1) %{
   if (found<=0) { /* need to check the y-pnt */
     if (($data() < $c() && $data(n=>n1) >= $c()) ||
         ($data() >= $c() && $data(n=>n1) < $c())) {
-      float dist = ($c()-$data())/($data(n=>n1)-$data()), a_int[3];
+      float dist = ($c()-$data())/($data(n=>n1)-$data()), a_int[$SIZE(d)];
       loop(d) %{
         a_int[d]=$points()+dist*($points(n=>n1)-$points());
       %}
@@ -850,8 +850,8 @@ loop (n=:-1,m=:-1) %{
          ($data(n=>n1)>= $c() && $data(m=>m1,n=>n1) <  $c())) {
         dist = ($c()-$data(n=>n1))/($data(m=>m1,n=>n1)-$data(n=>n1));
         loop(d) %{
-          $segs(q=>p1)=$points(n=>n1)+dist*($points(m=>m1,n=>n1)-$points(n=>n1));
           $segs(q=>p) = a_int[d];
+          $segs(q=>p1)=$points(n=>n1)+dist*($points(m=>m1,n=>n1)-$points(n=>n1));
         %}
         p+=2;
         p1=p+1;
@@ -861,8 +861,8 @@ loop (n=:-1,m=:-1) %{
             ($data(m=>m1) >= $c() && $data(m=>m1,n=>n1) < $c())) {
           dist = ($c()-$data(m=>m1))/($data(m=>m1,n=>n1)-$data(m=>m1));
           loop(d) %{
-            $segs(q=>p1) = $points(m=>m1)+dist*($points(m=>m1,n=>n1)-$points(m=>m1));
             $segs(q=>p) = a_int[d];
+            $segs(q=>p1) = $points(m=>m1)+dist*($points(m=>m1,n=>n1)-$points(m=>m1));
           %}
           p+=2;
           p1=p+1;
@@ -880,7 +880,7 @@ loop (n=:-1,m=:-1) %{
   float dist = ($c()-$data(m=>m1))/($data(m=>m1,n=>n1)-$data(m=>m1));
   float dist2 = ($c()-$data(n=>n1))/($data(m=>m1,n=>n1)-$data(n=>n1));
   loop(d) %{
-    $segs(q=>p) = $points(m=>m1)+dist*($points(m=>m1,n=>n1)-$points(m=>m1));
+    $segs(q=>p) =$points(m=>m1)+dist *($points(m=>m1,n=>n1)-$points(m=>m1));
     $segs(q=>p1)=$points(n=>n1)+dist2*($points(m=>m1,n=>n1)-$points(n=>n1));
   %}
   found=5;
@@ -898,7 +898,7 @@ C<$c> is the contour value (broadcast with this)
 
 C<$data> is an [m,n] array of values at each point
 
-C<$points> is a list of [3,m,n] points. It should be a grid monotonically
+C<$points> is a list of [d,m,n] points. It should be a grid monotonically
 increasing with m and n.
 
 Returns C<$segs>, and C<$cnt> which is the highest 2nd-dim index in C<$segs>
