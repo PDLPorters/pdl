@@ -102,10 +102,6 @@ Minimum PDL module OO loader.
 
 Minimum PDL module function loader.
 
-=item L<PDL::Extended>
-
-Extended Mathematical Operators.
-
 =item L<PDL::Func>
 
 Interpolation-related functions.
@@ -128,9 +124,9 @@ Interpolation-related functions.
 
 Helper routines for 3D graphics.
 
-=item L<PDL::Graphics::TriD::Contours>
+=item L<PDL::Graphics::IIS>
 
-3D surface contours.
+Display images on IIS devices.
 
 =back
 
@@ -143,10 +139,6 @@ Helper routines for 3D graphics.
 =item L<PDL::Graphics::LUT>
 
 Look-up tables.
-
-=item L<PDL::Graphics::IIS>
-
-Display images on IIS devices.
 
 =item L<PDL::Graphics::Limits>
 
@@ -222,7 +214,7 @@ Cartographic projections.
 
 =item L<PDL::Transform::Proj4>
 
-PDL interface to the Proj4 projection library.
+PDL interface to the Proj (formerly known as Proj4) projection library.
 
 =back
 
@@ -248,13 +240,13 @@ Fast storage format (outdated).
 
 Flexible storage format.
 
-=item L<PDL::IO::Rout>
+=item L<PDL::IO::Misc>
 
 Misc IO routines.
 
-=item L<PDL::IO::Sortable>
+=item L<PDL::IO::Storable>
 
-Support for Perl's 'Storable' module.
+Support for Perl's L<Storable> module.
 
 =back
 
@@ -267,7 +259,7 @@ Support for Perl's 'Storable' module.
 
 PDL support for FITS images.
 
-=item L<PDL::IO::PNM>
+=item L<PDL::IO::Pnm>
 
 PDL support for PNM images.
 
@@ -277,16 +269,7 @@ PDL interface to the GD image library.
 
 =item L<PDL::IO::HDF>
 
-PDL interface to the HDH4 image library.
-
-=item L<PDL::IO::NetPBM>
-
-PDL interface to the NetPBM image library.
-
-=item L<PDL::IO::NDF>
-
-PDL interface to the Starlink image library. Available
-as a separate CPAN download.
+PDL interface to the HDF4 image library.
 
 =back
 

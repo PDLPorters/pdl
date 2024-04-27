@@ -26,7 +26,6 @@ use warnings;
 use PDL;
 use PDL::ImageND;
 use PDL::Graphics::TriD;
-use PDL::Graphics::TriD::Rout;
 use PDL::Graphics::TriD::Labels;
 use base qw/PDL::Graphics::TriD::GObject/;
 use fields qw/ContourSegCnt Labels LabelStrings/;
