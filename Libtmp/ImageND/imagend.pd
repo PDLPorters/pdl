@@ -787,106 +787,73 @@ pp_def('contour_segments',
 	GenericTypes => ['F'],
 	Code => '
 int p=0, p1=1;
+#define PDL_DCALC(vname,c,x1,y1,x2,y2) \
+  float vname = (c-$data(m=>x1,n=>y1))/($data(m=>x2,n=>y2)-$data(m=>x1,n=>y1))
+#define PDL_PCALC(dname,d,x1,y1,x2,y2) \
+  ($points(d=>d,m=>x1,n=>y1)+dname*($points(d=>d,m=>x2,n=>y2)-$points(d=>d,m=>x1,n=>y1)))
+#define PDL_LINESEG(x01,y01,x02,y02,x11,y11,x12,y12,c,p,p1) do { \
+  PDL_DCALC(dist1,c,x01,y01,x02,y02); \
+  PDL_DCALC(dist2,c,x11,y11,x12,y12); \
+  loop (d) %{ \
+    $segs(q=>p) =  PDL_PCALC(dist1,d,x01,y01,x02,y02); \
+    $segs(q=>p1) = PDL_PCALC(dist2,d,x11,y11,x12,y12); \
+  %} \
+  p+=2; \
+  p1=p+1; \
+  } while (0)
+#define PDL_CONTOUR_BREAK(x1,y1,x2,y2,c,upvar) \
+    (($data(m=>x1,n=>y1) <  c && $data(m=>x2,n=>y2) >= c && (upvar=1)) || \
+     ($data(m=>x1,n=>y1) >= c && $data(m=>x2,n=>y2) <  c && ((upvar=0)==0)))
 loop (n=:-1,m=:-1) %{
   PDL_Indx m1=m+1, n1=n+1;
-  int found=0, right_break_cval=($data() < $c() && $data(m=>m1) >= $c());
-  if (right_break_cval || ($data() >= $c() && $data(m=>m1) < $c())) {
+  int found = 0, upvar, right_break_upward;
+  if (PDL_CONTOUR_BREAK(m,n,m1,n,$c(),right_break_upward)) {
     /* circle the high if there is a choice of direction */
-    PDL_Indx ml = right_break_cval ? m1 : m;
+    PDL_Indx ml = right_break_upward ? m1 : m;
     /* found an x intersect */
-    float dist = ($c()-$data())/($data(m=>m1)-$data()), a_int[$SIZE(d)];
-    loop(d) %{
-      a_int[d]=$points()+dist*($points(m=>m1)-$points());
-    %}
     /* now look for the connecting point */
     /* First down and to the left (right) */
-    if(($data(m=>ml) < $c() && $data(m=>ml,n=>n1) >= $c()) ||
-       ($data(m=>ml) >= $c() && $data(m=>ml,n=>n1) < $c())) {
-      found=(m==ml)? 1:-1;
-      dist = ($c()-$data(m=>ml))/($data(m=>ml,n=>n1)-$data(m=>ml));
-      loop(d) %{
-        $segs(q=>p) = a_int[d];
-        $segs(q=>p1)=$points(m=>ml)+dist*($points(m=>ml,n=>n1)-$points(m=>ml));
-      %}
-      p+=2;
-      p1=p+1;
+    if (PDL_CONTOUR_BREAK(ml,n,ml,n1,$c(),upvar)) {
+      PDL_LINESEG(m,n,m1,n,ml,n,ml,n1,$c(),p,p1); /* from m,n right-if-slope-upward, stretched right/down */
+      found = right_break_upward ? -1 : 1;
     } else {
       /* down and to the right (left)*/
-      PDL_Indx mr = right_break_cval ? m : m1;
-      if (($data(m=>mr) < $c() && $data(m=>mr,n=>n1) >= $c()) ||
-          ($data(m=>mr) >= $c() && $data(m=>mr,n=>n1) < $c())) {
-        dist = ($c()-$data(m=>mr))/($data(m=>mr,n=>n1)-$data(m=>mr));
-        found=(m==mr)? 1:-1;
-        loop(d) %{
-          $segs(q=>p) = a_int[d];
-          $segs(q=>p1)=$points(m=>mr)+dist*($points(m=>mr,n=>n1)-$points(m=>mr));
-        %}
-        p+=2;
-        p1=p+1;
+      PDL_Indx mr = right_break_upward ? m : m1;
+      if (PDL_CONTOUR_BREAK(mr,n,mr,n1,$c(),upvar)) {
+        PDL_LINESEG(m,n,m1,n,mr,n,mr,n1,$c(),p,p1); /* from m,n right-if-slope-downward, stretched right/down */
+        found = right_break_upward ? 1 : -1;
       } else {
         /* straight down */
-        found=2;
-        if (($data(n=>n1) < $c() && $data(m=>m1,n=>n1) >= $c()) ||
-            ($data(n=>n1) >= $c() && $data(m=>m1,n=>n1) < $c())) {
-          dist = ($c()-$data(n=>n1))/($data(m=>m1,n=>n1)-$data(n=>n1));
-          loop(d) %{
-            $segs(q=>p) = a_int[d];
-            $segs(q=>p1)=$points(n=>n1)+dist*($points(m=>m1,n=>n1)-$points(n=>n1));
-          %}
-          p+=2;
-          p1=p+1;
+        found = 2;
+        if (PDL_CONTOUR_BREAK(m,n1,m1,n1,$c(),upvar)) {
+          PDL_LINESEG(m,n,m1,n,m,n1,m1,n1,$c(),p,p1); /* from m,n down, both stretched right */
         } /* straight down */
       }	/* down and to the right */
     }	/* First down and to the left */
   }	/* found an x intersect */
   if (found<=0) { /* need to check the y-pnt */
-    if (($data() < $c() && $data(n=>n1) >= $c()) ||
-        ($data() >= $c() && $data(n=>n1) < $c())) {
-      float dist = ($c()-$data())/($data(n=>n1)-$data()), a_int[$SIZE(d)];
-      loop(d) %{
-        a_int[d]=$points()+dist*($points(n=>n1)-$points());
-      %}
-      if(($data(n=>n1) < $c() && $data(m=>m1,n=>n1) >= $c()) ||
-         ($data(n=>n1)>= $c() && $data(m=>m1,n=>n1) <  $c())) {
-        dist = ($c()-$data(n=>n1))/($data(m=>m1,n=>n1)-$data(n=>n1));
-        loop(d) %{
-          $segs(q=>p) = a_int[d];
-          $segs(q=>p1)=$points(n=>n1)+dist*($points(m=>m1,n=>n1)-$points(n=>n1));
-        %}
-        p+=2;
-        p1=p+1;
+    if (PDL_CONTOUR_BREAK(m,n,m,n1,$c(),upvar)) {
+      if (PDL_CONTOUR_BREAK(m,n1,m1,n1,$c(),upvar)) {
+        PDL_LINESEG(m,n,m,n1,m,n1,m1,n1,$c(),p,p1); /* from m,n downward, stretched down/right */
         found = (found==-1)?-3:3;
       } else if (found==0) {
-        if (($data(m=>m1) < $c() && $data(m=>m1,n=>n1) >= $c()) ||
-            ($data(m=>m1) >= $c() && $data(m=>m1,n=>n1) < $c())) {
-          dist = ($c()-$data(m=>m1))/($data(m=>m1,n=>n1)-$data(m=>m1));
-          loop(d) %{
-            $segs(q=>p) = a_int[d];
-            $segs(q=>p1) = $points(m=>m1)+dist*($points(m=>m1,n=>n1)-$points(m=>m1));
-          %}
-          p+=2;
-          p1=p+1;
+        if (PDL_CONTOUR_BREAK(m1,n,m1,n1,$c(),upvar)) {
+          PDL_LINESEG(m,n,m,n1,m1,n,m1,n1,$c(),p,p1); /* from m,n rightward, both stretched downward */
           found = 4;
         }
       }
     }
   } /* need to check the y-pnt */
-
-  if (found!=0 && found!=1 && found != 3) continue;
-  if (($data(m=>m1) >= $c() || $data(m=>m1,n=>n1) < $c()) &&
-      ($data(m=>m1) < $c() || $data(m=>m1,n=>n1) >= $c())) continue;
-  if (($data(n=>n1) >= $c() || $data(m=>m1,n=>n1) < $c()) &&
-      ($data(n=>n1) < $c() || $data(m=>m1,n=>n1) >= $c())) continue;
-  float dist = ($c()-$data(m=>m1))/($data(m=>m1,n=>n1)-$data(m=>m1));
-  float dist2 = ($c()-$data(n=>n1))/($data(m=>m1,n=>n1)-$data(n=>n1));
-  loop(d) %{
-    $segs(q=>p) =$points(m=>m1)+dist *($points(m=>m1,n=>n1)-$points(m=>m1));
-    $segs(q=>p1)=$points(n=>n1)+dist2*($points(m=>m1,n=>n1)-$points(n=>n1));
-  %}
-  found=5;
-  p+=2;
-  p1=p+1;
+  if (found != 0 && found != 1 && found != 3) continue;
+  if (!PDL_CONTOUR_BREAK(m1,n,m1,n1,$c(),upvar)) continue;
+  if (!PDL_CONTOUR_BREAK(m,n1,m1,n1,$c(),upvar)) continue;
+  PDL_LINESEG(m1,n,m1,n1,m,n1,m1,n1,$c(),p,p1); /* from m1,n down/left, stretched down/left */
+  found = 5;
 %}
+#undef PDL_DCALC
+#undef PDL_PCALC
+#undef PDL_LINESEG
+#undef PDL_CONTOUR_BREAK
 $cnt()=p-1;'
 ,
        Doc => <<'EOF',
