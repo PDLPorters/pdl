@@ -104,6 +104,23 @@ my $points = cat($x,$y,$z)->mv(-1,0);
 my ($segs, $cnt) = contour_segments($cvals, $z, $points);
 $segs = $segs->slice(',0:'.$cnt->max);
 ok all(approx $cnt, pdl(15,15), 2), 'contour_segments' or diag $segs, $cnt;
+
+$z = pdl q[
+  0 0 0 0 0;
+  0 0 1 0 0;
+  0 1 0 1 0;
+  0 1 1 1 0;
+  0 0 0 0 0
+];
+(my $got, $cnt) = contour_segments(0.5, $z, pdl($z->xvals,$z->yvals)->mv(-1,0));
+$got = $got->slice(',0:'.$cnt->max)->uniqvec;
+my $exp = pdl q[
+ [0.5   2] [0.5   3] [  1 1.5] [  1 3.5]
+ [1.5   1] [1.5   2] [  2 0.5] [  2 1.5]
+ [  2 2.5] [  2 3.5] [2.5   1] [2.5   2]
+ [  3 1.5] [  3 3.5] [3.5   2] [3.5   3]
+];
+ok all(approx $got, $exp, 0.1), 'contour_segments' or diag $got, $exp;
 }
 
 done_testing;
