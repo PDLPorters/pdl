@@ -15,7 +15,6 @@ PDL::Slices -- Indexing, slicing, and dicing
   $y = $x->slice('-1:0,(1)');
   $c = $x->dummy(2);
 
-
 =head1 DESCRIPTION
 
 This package provides many of the powerful PerlDL core index
@@ -1645,12 +1644,11 @@ EOD
 );
 
 pp_addpm(<<'EOD'
-
 =head2 using
 
 =for ref
 
-Returns array of column numbers requested
+Returns list of columns requested
 
 =for usage
 
@@ -1675,10 +1673,39 @@ sub PDL::using {
   @ind;
 }
 
+=head2 meshgrid
+
+=for ref
+
+Returns list of given 1-D vectors, but each expanded to match dims using
+L<PDL::Core/dummy>.
+
+=for usage
+
+  meshgrid($vec1, $vec2, $vec3);
+
+=for example
+
+  print map $_->info, meshgrid(xvals(3), xvals(4), xvals(2));
+  # PDL: Double D [3,4,2] PDL: Double D [3,4,2] PDL: Double D [3,4,2]
+
+=cut
+
+*meshgrid = \&PDL::meshgrid;
+sub PDL::meshgrid {
+  barf "meshgrid: only 1-dimensional inputs" if grep $_->ndims != 1, @_;
+  return @_ if @_ == 1;
+  my @dims = map $_->dims, @_;
+  my @out;
+  for my $ind (0..$#_) {
+    push @out, $_[$ind]->slice(join ',', map $_==$ind ? '' : "*$dims[$_]", 0..$#_);
+  }
+  @out;
+}
 EOD
 );
 
-pp_add_exported('', 'using');
+pp_add_exported('', 'using meshgrid');
 
 pp_def(
         'lags',

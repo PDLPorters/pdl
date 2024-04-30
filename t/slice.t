@@ -485,4 +485,11 @@ is $off_got->type, $seqs->type, "rleseq():type";
 ok all(approx($len_got->where($len_got), $lens->where($lens))), "rleseq():lens";
 ok all(approx($off_got->where($len_got), $offs->where($lens))), "rleseq():offs";
 
+eval {meshgrid(sequence(2,2))};
+like $@, qr/1-dimensional/, 'meshgrid rejects >1-D';
+my @vecs = (xvals(3), xvals(4)+5, xvals(2)+10);
+my @mesh_got = meshgrid(@vecs);
+is_deeply [$_->dims], [3,4,2] for @mesh_got;
+ok all($mesh_got[$_]->mv($_,0)->slice(',(0),(0)')==$vecs[$_]), "meshgrid $_" for 0..$#vecs;
+
 done_testing;
