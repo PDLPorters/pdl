@@ -786,68 +786,65 @@ pp_def('contour_segments',
             int [o] cnt();',
 	GenericTypes => ['F'],
 	Code => '
-int p=0, p1=1;
+PDL_Indx p=0;
 #define PDL_DCALC(vname,c,x1,y1,x2,y2) \
   float vname = (c-$data(m=>x1,n=>y1))/($data(m=>x2,n=>y2)-$data(m=>x1,n=>y1))
 #define PDL_PCALC(dname,d,x1,y1,x2,y2) \
   ($points(d=>d,m=>x1,n=>y1)+dname*($points(d=>d,m=>x2,n=>y2)-$points(d=>d,m=>x1,n=>y1)))
-#define PDL_LINESEG(x01,y01,x02,y02,x11,y11,x12,y12,c,p,p1) do { \
+#define PDL_LINESEG(x01,y01,x02,y02,x11,y11,x12,y12,c,p) do { \
   PDL_DCALC(dist1,c,x01,y01,x02,y02); \
   PDL_DCALC(dist2,c,x11,y11,x12,y12); \
   loop (d) %{ \
-    $segs(q=>p) =  PDL_PCALC(dist1,d,x01,y01,x02,y02); \
-    $segs(q=>p1) = PDL_PCALC(dist2,d,x11,y11,x12,y12); \
+    $segs(q=>p) =   PDL_PCALC(dist1,d,x01,y01,x02,y02); \
+    $segs(q=>p+1) = PDL_PCALC(dist2,d,x11,y11,x12,y12); \
   %} \
   p+=2; \
-  p1=p+1; \
   } while (0)
-#define PDL_CONTOUR_BREAK(x1,y1,x2,y2,c,ifup,ifdown) \
+#define PDL_CONTOUR_BREAK(x1,y1,x2,y2,c,ifup) \
     (($data(m=>x1,n=>y1) <  c && $data(m=>x2,n=>y2) >= c ifup) || \
-     ($data(m=>x1,n=>y1) >= c && $data(m=>x2,n=>y2) <  c ifdown))
+     ($data(m=>x1,n=>y1) >= c && $data(m=>x2,n=>y2) <  c))
 loop (n=:-1,m=:-1) %{
   PDL_Indx m1=m+1, n1=n+1;
-  int found = 0, right_break_upward;
-  if (PDL_CONTOUR_BREAK(m,n,m1,n,$c(),&& (right_break_upward=1),&& !(right_break_upward=0))) {
-    /* circle the high if there is a choice of direction */
-    PDL_Indx ml = right_break_upward ? m1 : m;
-    /* found an x intersect */
-    /* now look for the connecting point */
-    /* First down and to the left (right) */
-    if (PDL_CONTOUR_BREAK(ml,n,ml,n1,$c(),,)) {
-      PDL_LINESEG(m,n,m1,n,ml,n,ml,n1,$c(),p,p1); /* from m,n right-if-slope-upward, stretched right/down */
-      found = right_break_upward ? -1 : 1;
-    } else {
-      /* down and to the right (left)*/
-      PDL_Indx mr = right_break_upward ? m : m1;
-      if (PDL_CONTOUR_BREAK(mr,n,mr,n1,$c(),,)) {
-        PDL_LINESEG(m,n,m1,n,mr,n,mr,n1,$c(),p,p1); /* from m,n right-if-slope-downward, stretched right/down */
-        found = right_break_upward ? 1 : -1;
-      } else {
-        if (PDL_CONTOUR_BREAK(m,n1,m1,n1,$c(),,)) {
-          PDL_LINESEG(m,n,m1,n,m,n1,m1,n1,$c(),p,p1); /* from m,n down, both stretched right */
-        } /* straight down */
-        continue;
-      }	/* down and to the right */
-    }	/* First down and to the left */
-  }	/* found an x intersect */
-  if (found<=0) { /* need to check the y-pnt */
-    if (PDL_CONTOUR_BREAK(m,n,m,n1,$c(),,)) {
-      if (PDL_CONTOUR_BREAK(m,n1,m1,n1,$c(),,)) {
-        PDL_LINESEG(m,n,m,n1,m,n1,m1,n1,$c(),p,p1); /* from m,n downward, stretched down/right */
-        if (found == -1) continue;
-        found = 3;
-      } else if (found==0) {
-        if (PDL_CONTOUR_BREAK(m1,n,m1,n1,$c(),,)) {
-          PDL_LINESEG(m,n,m,n1,m1,n,m1,n1,$c(),p,p1); /* from m,n rightward, both stretched downward */
-          continue;
-        }
-      }
-    }
-  } /* need to check the y-pnt */
+  int found = 0, right_break_upward = 0;
+  if (!PDL_CONTOUR_BREAK(m,n,m1,n,$c(),&& (right_break_upward=1)))
+    goto end_x_intersect_$PPSYM();
+  PDL_Indx ml = right_break_upward ? m1 : m;
+  if (PDL_CONTOUR_BREAK(ml,n,ml,n1,$c(),)) {
+    PDL_LINESEG(m,n,m1,n,ml,n,ml,n1,$c(),p); /* from m,n right-if-slope-upward, stretched right/down */
+    found = right_break_upward ? -1 : 1;
+    goto end_x_intersect_$PPSYM();
+  }
+  PDL_Indx mr = right_break_upward ? m : m1;
+  if (PDL_CONTOUR_BREAK(mr,n,mr,n1,$c(),)) {
+    PDL_LINESEG(m,n,m1,n,mr,n,mr,n1,$c(),p); /* from m,n right-if-slope-downward, stretched right/down */
+    found = right_break_upward ? 1 : -1;
+    goto end_x_intersect_$PPSYM();
+  }
+  if (PDL_CONTOUR_BREAK(m,n1,m1,n1,$c(),))
+    PDL_LINESEG(m,n,m1,n,m,n1,m1,n1,$c(),p); /* from m,n down, both stretched right */
+  continue;
+end_x_intersect_$PPSYM():
+  if (found > 0)
+    goto end_y_intersect_$PPSYM();
+  if (!PDL_CONTOUR_BREAK(m,n,m,n1,$c(),))
+    goto end_y_intersect_$PPSYM();
+  if (PDL_CONTOUR_BREAK(m,n1,m1,n1,$c(),)) {
+    PDL_LINESEG(m,n,m,n1,m,n1,m1,n1,$c(),p); /* from m,n downward, stretched down/right */
+    if (found == -1) continue;
+    found = 3;
+    goto end_y_intersect_$PPSYM();
+  }
+  if (found != 0)
+    goto end_y_intersect_$PPSYM();
+  if (PDL_CONTOUR_BREAK(m1,n,m1,n1,$c(),)) {
+    PDL_LINESEG(m,n,m,n1,m1,n,m1,n1,$c(),p); /* from m,n rightward, both stretched downward */
+    continue;
+  }
+end_y_intersect_$PPSYM():
   if (found != 0 && found != 1 && found != 3) continue;
-  if (!PDL_CONTOUR_BREAK(m1,n,m1,n1,$c(),,)) continue;
-  if (!PDL_CONTOUR_BREAK(m,n1,m1,n1,$c(),,)) continue;
-  PDL_LINESEG(m1,n,m1,n1,m,n1,m1,n1,$c(),p,p1); /* from m1,n down/left, stretched down/left */
+  if (!PDL_CONTOUR_BREAK(m1,n,m1,n1,$c(),)) continue;
+  if (!PDL_CONTOUR_BREAK(m,n1,m1,n1,$c(),)) continue;
+  PDL_LINESEG(m1,n,m1,n1,m,n1,m1,n1,$c(),p); /* from m1,n down/left, stretched down/left */
 %}
 #undef PDL_DCALC
 #undef PDL_PCALC
