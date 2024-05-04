@@ -446,7 +446,6 @@ pp_add_exported('','circ_mean circ_mean_p');
 
 
 pp_addpm(<<'EOPM');
-
 =head2 kernctr
 
 =for ref
@@ -980,5 +979,36 @@ The outputs are the indices into C<paths> ending each path. Past the last
 path, the indices are set to -1.
 EOF
 );
+
+pp_addpm(<<'EOPM');
+=head2 path_segs
+
+=for ref
+
+Divide a path into segments.
+
+=for usage
+
+  @segments = path_segs($pathindices, $paths);
+
+Returns a series of slices of the C<paths>, such as those created by
+L</path_join>, stopping at the first negative index. Currently does not
+broadcast.
+
+=cut
+
+*path_segs = \&PDL::path_segs;
+sub PDL::path_segs {
+  my ($pi, $p) = @_;
+  my ($startind, @out) = 0;
+  for ($pi->list) {
+    last if $_ < 0;
+    push @out, $p->slice("$startind:$_");
+    $startind = $_ + 1;
+  }
+  @out;
+}
+EOPM
+pp_add_exported('','path_segs');
 
 pp_done();

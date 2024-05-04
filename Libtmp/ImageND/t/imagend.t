@@ -130,10 +130,17 @@ for (
   [6, q[0 1; 1 2; 2 3; 3 1; 3 2; 4 5], '[4 6 8 -1 -1 -1]', '[0 1 2 3 1 2 3 4 5 -1 -1 -1]', 0],
   [6, q[0 1; 2 1; 2 3; 3 1; 3 2; 4 5], '[4 6 8 -1 -1 -1]', '[0 1 2 3 1 2 3 4 5 -1 -1 -1]', 0],
 ) {
-  my ($d, $e, $pexp, $pindsexp, $directed) = @$_;
-  my ($p, $pinds) = path_join(pdl($e), $d, $directed);
+  my ($d, $e, $pindsexp, $pexp, $directed) = @$_;
+  my ($pinds, $p) = path_join(pdl($e), $d, $directed);
   is "$p", $pexp;
   is "$pinds", $pindsexp;
+}
+
+{
+  my ($pi, $p) = map pdl($_), '[4 6 8 -1 -1 -1]', '[0 1 2 3 1 2 3 4 5 -1 -1 -1]';
+  my @segs = path_segs($pi, $p);
+  $_ = "$_" for @segs;
+  is_deeply \@segs, ['[0 1 2 3 1]', '[2 3]', '[4 5]'];
 }
 
 done_testing;
