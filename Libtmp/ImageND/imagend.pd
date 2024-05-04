@@ -10,9 +10,9 @@ PDL::ImageND - useful image processing in N dimensions
 =head1 DESCRIPTION
 
 These routines act on PDLs as N-dimensional objects, not as broadcasted
-sets of 0-D or 1-D objects.  The file is sort of a catch-all for 
+sets of 0-D or 1-D objects.  The file is sort of a catch-all for
 broadly functional routines, most of which could legitimately
-be filed elsewhere (and probably will, one day).  
+be filed elsewhere (and probably will, one day).
 
 ImageND is not a part of the PDL core (v2.4) and hence must be explicitly
 loaded.
@@ -23,7 +23,7 @@ loaded.
 
  $y = $x->convolveND($kernel,{bound=>'periodic'});
  $y = $x->rebin(50,30,10);
- 
+
 =cut
 
 use strict;
@@ -110,12 +110,12 @@ N-dimensional convolution (Deprecated; use convolveND)
 
   $new = convolve $x, $kernel
 
-Convolve an array with a kernel, both of which are N-dimensional.  This 
+Convolve an array with a kernel, both of which are N-dimensional.  This
 routine does direct convolution (by copying) but uses quasi-periodic
 boundary conditions: each dim "wraps around" to the next higher row in
-the next dim.  
+the next dim.
 
-This routine is kept for backwards compatibility with earlier scripts; 
+This routine is kept for backwards compatibility with earlier scripts;
 for most purposes you want L<convolveND|PDL::ImageND/convolveND> instead:
 it runs faster and handles a variety of boundary conditions.
 
@@ -239,7 +239,7 @@ an arbitrary grid distribution, need to find the grid-space point from
 the indexing scheme, then call C<ninterpol> -- this is far from
 trivial (and ill-defined in general).
 
-See also L<interpND|PDL::Primitive/interpND>, which includes boundary 
+See also L<interpND|PDL::Primitive/interpND>, which includes boundary
 conditions and allows you to switch the method of interpolation, but
 which runs somewhat slower.
 
@@ -550,17 +550,17 @@ Options are parsed by PDL::Options, so unique abbreviations are accepted.
 =item boundary (default: 'truncate')
 
 The boundary condition on the array, which affects any pixel closer
-to the edge than the half-width of the kernel.  
+to the edge than the half-width of the kernel.
 
 The boundary conditions are the same as those accepted by
 L<range|PDL::Slices/range>, because this option is passed directly
 into L<range|PDL::Slices/range>.  Useful options are 'truncate' (the
-default), 'extend', and 'periodic'.  You can select different boundary 
-conditions for different axes -- see L<range|PDL::Slices/range> for more 
+default), 'extend', and 'periodic'.  You can select different boundary
+conditions for different axes -- see L<range|PDL::Slices/range> for more
 detail.
 
 The (default) truncate option marks all the near-boundary pixels as BAD if
-you have bad values compiled into your PDL and the array's badflag is set. 
+you have bad values compiled into your PDL and the array's badflag is set.
 
 =item method (default: 'auto')
 
@@ -606,10 +606,8 @@ sub PDL::convolveND {
   my $inplace = $a0->is_inplace;
   my $x = $a0->new_or_inplace;
 
- 
   barf("convolveND: kernel (".join("x",$k->dims).") has more dims than source (".join("x",$x->dims).")\n")
     if($x->ndims < $k->ndims);
-  
 
   # Coerce stuff all into the same type.  Try to make sense.
   # The trivial conversion leaves dataflow intact (nontrivial conversions
@@ -624,7 +622,6 @@ sub PDL::convolveND {
   }
   $x = $x->convert($type);
   $k = $k->convert($type);
-	
 
   ## Handle options -- $def is a static variable so it only gets set up once.
   our $def;
@@ -640,13 +637,13 @@ sub PDL::convolveND {
 
   my $opt = $def->options(PDL::Options::ifhref($opt0));
 
-  ### 
+  ###
   # If the kernel has too few dimensions, we broadcast over the other
   # dims -- this is the same as supplying the kernel with dummy dims of
   # order 1, so, er, we do that.
   $k = $k->dummy($x->dims - 1, 1)
     if($x->ndims > $k->ndims);
-  my $kdims = pdl($k->dims); 
+  my $kdims = pdl($k->dims);
 
   ###
   # Decide whether to FFT or directly convolve: if we're in auto mode,
@@ -670,7 +667,7 @@ sub PDL::convolveND {
     print "convolveND: using FFT method\n" if($PDL::debug);
 
     # FFT works best on doubles; do our work there then cast back
-    # at the end.  
+    # at the end.
     $aa = double($aa);
     $_ = $aa->zeroes for my ($aai, $kk, $kki);
     my $tmp;  # work around new perl -d "feature"
@@ -690,7 +687,7 @@ sub PDL::convolveND {
   } else {
     print "convolveND: using direct method\n" if($PDL::debug);
 
-    ### The first argument is a dummy to set $GENERIC.	
+    ### The first argument is a dummy to set $GENERIC.
     &PDL::_convolveND_int( $k->flat->index(0), $k, $aa, $x );
 
   }
@@ -705,19 +702,19 @@ EOD
 
 Code => <<'EOD'
 /*
- * Direct convolution 
+ * Direct convolution
  *
  * Because the kernel is usually the smaller of the two arrays to be convolved,
  * we broadcast kernel-first to keep it in the processor's cache.  The strategy:
- * work on a padded copy of the original image, so that (even with boundary 
- * conditions) the geometry of the kernel is linearly related to the input 
+ * work on a padded copy of the original image, so that (even with boundary
+ * conditions) the geometry of the kernel is linearly related to the input
  * array.  Otherwise, follow the path blazed by Karl in convolve(): keep track
  * of the offsets for each kernel element in a flattened original PDL.
  *
  * The first (PP) argument is a dummy that's only used to set the GENERIC()
  * macro.  The other three arguments should all have the same type as the
- * first arguments, and are all passed in as SVs.  They are: the kernel, 
- * the padded copy of the input PDL, and a pre-allocated output PDL.  The 
+ * first arguments, and are all passed in as SVs.  They are: the kernel,
+ * the padded copy of the input PDL, and a pre-allocated output PDL.  The
  * input PDL should be padded by the dimensionality of the kernel.
  *
  */
@@ -880,6 +877,107 @@ possibilities for the adjoining y-segment.
 
 Thus the contours are built as a collection of line segments rather than
 a set of closed polygons.
+EOF
+);
+
+pp_def('path_join',
+  Pars => 'e(v=2,n);
+    indx [o] pathendindex(n); indx [o] paths(nout=CALC($SIZE(n)*2));
+    indx [t] highestoutedge(d); indx [t] outedges(d,d); byte [t] hasinward(d);
+    indx [t] sourceids(d);
+  ',
+  OtherPars => 'PDL_Indx d => d; int directed;',
+  OtherParsDefaults => { directed => 1 },
+  Code => <<'EOF',
+loop (d) %{ $highestoutedge() = -1; $hasinward() = 0; %}
+loop (n) %{ $pathendindex() = -1; %}
+loop (nout) %{ $paths() = -1; %}
+#define PDL_ADJ_ADD(idfrom,idto) \
+  do { \
+    if (idfrom >= $SIZE(d) || idfrom < 0) \
+      $CROAK("from index %"IND_FLAG"=%"IND_FLAG" out of bounds", n, idfrom); \
+    if (idto >= $SIZE(d) || idto < 0) \
+      $CROAK("to index %"IND_FLAG"=%"IND_FLAG" out of bounds", n, idto); \
+    PDL_Indx setind = ++$highestoutedge(d=>idfrom); \
+    if (setind >= $SIZE(d)) \
+      $CROAK("setind=%"IND_FLAG" exceeded d=%"IND_FLAG, setind, $SIZE(d)); \
+    $outedges(d0=>setind,d1=>idfrom) = idto; \
+    $hasinward(d=>idto) = 1; \
+  } while (0)
+loop (n) %{
+  PDL_Indx from = $e(v=>0), to = $e(v=>1);
+  PDL_ADJ_ADD(from,to);
+  if (!$COMP(directed)) PDL_ADJ_ADD(to,from);
+%}
+#undef PDL_ADJ_ADD
+PDL_Indx highest_no_inward = -1;
+loop (d) %{
+  if ($hasinward() || $highestoutedge() == -1) continue;
+  $sourceids(d=>++highest_no_inward) = d;
+%}
+PDL_Indx pind = 0, pcount = 0;
+while (1) {
+  PDL_Indx idthis = -1, idnext = -1;
+  if (highest_no_inward >= 0) {
+    idthis = $sourceids(d=>highest_no_inward);
+    if ($highestoutedge(d=>idthis) == 0) highest_no_inward--;
+  }
+  if (idthis == -1)
+    loop (d) %{
+      if ($highestoutedge() == -1) continue;
+      idthis = d; break;
+    %}
+  if (idthis == -1) break;
+  while (1) {
+    if (idthis == -1) break;
+    if (pind >= $SIZE(nout)) $CROAK("pind exceeded nout");
+    $paths(nout=>pind++) = idthis;
+    PDL_Indx edgehighest = $highestoutedge(d=>idthis), edgeidnext = -1;
+    if (edgehighest < 0) break;
+    idnext = -1;
+    loop (d0=edgehighest:0:-1) %{ /* look for non-sink */
+      PDL_Indx maybe_next = $outedges(d1=>idthis);
+      if ($highestoutedge(d=>maybe_next) <= 0) continue;
+      edgeidnext = d0;
+    %}
+    if (edgeidnext == -1) edgeidnext = edgehighest;
+    idnext = $outedges(d0=>edgeidnext,d1=>idthis);
+    if (edgeidnext != edgehighest)
+      loop (d0=edgeidnext:edgehighest) %{
+        $outedges(d1=>idthis) = $outedges(d0=>d0+1,d1=>idthis);
+      %}
+    $highestoutedge(d=>idthis) = edgehighest - 1;
+    if (!$COMP(directed)) { /* remove the edge in the other direction */
+      edgehighest = $highestoutedge(d=>idnext);
+      edgeidnext = -1;
+      loop (d0=edgehighest:0:-1) %{
+        PDL_Indx maybe_other = $outedges(d1=>idnext);
+        if (maybe_other != idthis) continue;
+        edgeidnext = d0;
+        break;
+      %}
+      if (edgeidnext == -1)
+        $CROAK("no other edge %"IND_FLAG"-%"IND_FLAG, idthis, idnext);
+      if (edgeidnext != edgehighest)
+        loop (d0=edgeidnext:edgehighest) %{
+          $outedges(d1=>idnext) = $outedges(d0=>d0+1,d1=>idnext);
+        %}
+      $highestoutedge(d=>idnext) = edgehighest - 1;
+    }
+    idthis = idnext;
+  }
+  if (pcount >= $SIZE(n)) $CROAK("pcount exceeded n");
+  $pathendindex(n=>pcount++) = pind - 1;
+  if (idthis == -1) break;
+}
+EOF
+  Doc => <<'EOF',
+=for ref
+
+Links a (by default directed) graph's edges into paths.
+
+The outputs are the indices into C<paths> ending each path. Past the last
+path, the indices are set to -1.
 EOF
 );
 
