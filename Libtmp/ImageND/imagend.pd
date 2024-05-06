@@ -794,8 +794,7 @@ PDL_Indx p=0;
   p+=2; \
   } while (0)
 #define PDL_CONTOUR_BREAK(x1,y1,x2,y2,c) \
-    (($data(m=>x1,n=>y1) <  c && $data(m=>x2,n=>y2) >= c) || \
-     ($data(m=>x1,n=>y1) >= c && $data(m=>x2,n=>y2) <  c))
+  (($data(m=>x1,n=>y1) < c) != ($data(m=>x2,n=>y2) < c))
 loop (n=:-1,m=:-1) %{
   PDL_Indx m1=m+1, n1=n+1;
   char brk_0010 = PDL_CONTOUR_BREAK(m,n,m1,n,$c()),
@@ -833,46 +832,13 @@ C<$data> is an [m,n] array of values at each point
 C<$points> is a list of [d,m,n] points. It should be a grid monotonically
 increasing with m and n.
 
-Returns C<$segs>, and C<$cnt> which is the highest 2nd-dim index in C<$segs>
-that's defined.
-
-=head3 Algorithm
+Returns C<$segs>, and C<$cnt> which is the highest 2nd-dim index in
+C<$segs> that's defined. The contours are a collection of disconnected
+line segments rather than a set of closed polygons.
 
 The data array represents samples of some field observed on the surface
-described by points.
-
-=over 4
-
-=item *
-
-For each contour value we look for intersections on the line segments
-joining points of the data.
-
-=item *
-
-When an intersection is found we look to the adjoining line segments
-for the other end(s) of the line segment(s).  So suppose we find an
-intersection on an x-segment.
-
-=item *
-
-We first look down to the left y-segment, then to the
-right y-segment and finally across to the next x-segment.
-
-=item *
-
-Once we find one in a
-box (two on a point) we can quit because there can only be one.
-
-=item *
-
-After we are done with a given x-segment, we look to the leftover
-possibilities for the adjoining y-segment.
-
-=back
-
-Thus the contours are built as a collection of line segments rather than
-a set of closed polygons.
+described by points. This uses a variant of the Marching Squares
+algorithm, though without being data-driven.
 EOF
 );
 
