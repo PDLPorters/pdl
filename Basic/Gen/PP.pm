@@ -1454,13 +1454,13 @@ EOD
    PDL::PP::Rule::Returns::One->new("HaveBroadcasting"),
 
    PDL::PP::Rule::Returns::EmptyString->new("Priv"),
-   PDL::PP::Rule->new("PrivObj", ["BadFlag","Priv"],
+   PDL::PP::Rule->new("PrivObj", [qw(Name BadFlag Priv)],
       sub { PDL::PP::Signature->new('', @_) }),
 
 # Parameters in the 'a(x,y); [o]b(y)' format, with
 # fixed nos of real, unbroadcast-over dims.
 # Also "Other pars", the parameters which are usually not pdls.
-   PDL::PP::Rule->new("SignatureObj", ["Pars","BadFlag","OtherPars"],
+   PDL::PP::Rule->new("SignatureObj", [qw(Pars Name BadFlag OtherPars)],
       sub { PDL::PP::Signature->new(@_) }),
 
 # Compiled representations i.e. what the RunFunc function leaves
@@ -1469,8 +1469,8 @@ EOD
 # by parsing the string in that function.
 # If the user wishes to specify their own MakeComp code and Comp content,
 # The next definitions allow this.
-   PDL::PP::Rule->new("CompObj", [qw(BadFlag OtherPars Comp?)],
-      sub { PDL::PP::Signature->new('', $_[0], join(';', grep defined() && /[^\s;]/, @_[1..$#_])) }),
+   PDL::PP::Rule->new("CompObj", [qw(Name BadFlag OtherPars Comp?)],
+      sub { PDL::PP::Signature->new('', @_[0,1], join(';', grep defined() && /[^\s;]/, @_[2..$#_])) }),
    PDL::PP::Rule->new("CompStruct", ["CompObj"], sub {$_[0]->getcomp}),
 
  # Set CallCopy flag for simple functions (2-arg with 0-dim signatures)

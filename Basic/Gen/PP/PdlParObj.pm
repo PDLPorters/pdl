@@ -61,16 +61,16 @@ sub new {
   my ($type,$string,$badflag,$sig) = @_;
   $badflag ||= 0;
   my $this = bless {Number => "PDL_UNDEF_NUMBER", BadFlag => $badflag, Sig => $sig},$type;
-  $string =~ $pars_re or confess "Invalid pdl def $string (regex $pars_re)\n";
+  $string =~ $pars_re or croak "pp_def($this->{Sig}{OpName}): Invalid pdl def $string (regex $pars_re)\n";
   my($opt1,$opt_plus,$sqbr_opt,$name,$inds) = map $_ // '', $1,$2,$3,$4,$5;
   print "PDL: '$opt1$opt_plus', '$sqbr_opt', '$name', '$inds'\n"
     if $::PP_VERBOSE;
-  croak "Invalid Pars name: $name" if $INVALID_PAR{$name};
+  croak "pp_def($this->{Sig}{OpName}): Invalid Pars name: $name" if $INVALID_PAR{$name};
 # Set my internal variables
   $this->{Name} = $name;
   $this->{Flags} = [(split ',',$sqbr_opt),($opt1?$opt1:())];
   for(@{$this->{Flags}}) {
-    confess("Invalid flag $_ given for $string\n")
+    croak("pp_def($this->{Sig}{OpName}): Invalid flag $_ given for $string\n")
       unless my ($set, $store) = @{ $flag2info{$_} || [] };
     $this->{$store} = $_ if $store;
     $this->{$_} = 1 for @$set;
@@ -136,7 +136,7 @@ sub finalcheck {
 sub getcreatedims {
   my $this = shift;
   return map
-    { croak "can't create: index size ".$_->name." not initialised"
+    { croak "pp_def($this->{Sig}{OpName}): can't create: index size ".$_->name." not initialised"
 	if !defined($_->{Value}) || $_->{Value} < 1;
       $_->{Value} } @{$this->{IndObjs}};
 }
@@ -163,9 +163,9 @@ sub get_substname {
 }
 
 sub get_incname {
-	my($this,$ind,$for_local) = @_;
-	return "inc_sizes[PDL_INC_ID(__privtrans->vtable,$this->{Number},$ind)]" if !$for_local;
-	"__inc_$this->{Name}_".$this->get_substname($ind);
+  my($this,$ind,$for_local) = @_;
+  return "inc_sizes[PDL_INC_ID(__privtrans->vtable,$this->{Number},$ind)]" if !$for_local;
+  "__inc_$this->{Name}_".$this->get_substname($ind);
 }
 
 sub get_incregisters {
@@ -180,22 +180,25 @@ sub get_incregisters {
 
 # Print an access part.
 sub do_access {
-	my($this,$inds,$context) = @_;
-	my $pdl = $this->{Name};
-# Parse substitutions into hash
-	my %subst = map
-	 {/^\s*(\w+)\s*=>\s*(\S*)\s*$/ or confess "Invalid subst $_ in ($inds) (no spaces in => value)\n"; ($1,$2)}
-		PDL::PP::Rule::Substitute::split_cpp($inds);
-# Generate the text
-	my $text = "(${pdl}_datap)[" . join('+','0', map
-		$this->do_indterm($pdl,$_,\%subst,$context),
-	0..$#{$this->{IndObjs}}) . "]";
-# If not all substitutions made, the user probably made a spelling
-# error. Barf.
-	if(scalar(keys %subst) != 0) {
-		confess("Substitutions left: ".(join ',',sort keys %subst)."\n");
-	}
-	$text;
+  my($this,$inds,$context) = @_;
+  my $pdl = $this->{Name};
+  my %subst = map {
+    if (!/^\s*(\w+)\s*=>\s*(\S*)\s*$/) {
+      my $msg = "Invalid subst '$_' in \$$pdl($inds):";
+      $msg .= " no '=>' seen" if !/=>/;
+      $msg .= " invalid dim name '$1'" if /^\s*([^\w]*?)\s*=>/;
+      $msg .= " (no spaces in => value)" if /=>\s*\S\s*\S/;
+      croak "pp_def($this->{Sig}{OpName}): $msg\n";
+    }
+    ($1,$2)
+  } PDL::PP::Rule::Substitute::split_cpp($inds);
+  my $text = "(${pdl}_datap)[" .
+    join('+','0', map $this->do_indterm($pdl,$_,\%subst,$context), 0..$#{$this->{IndObjs}})
+  . "]";
+  # If not all substitutions made, the user probably made a spelling error
+  croak "pp_def($this->{Sig}{OpName}): Substitutions left for \$$pdl($inds): ".(join ',',sort keys %subst)."\n"
+    if keys(%subst) != 0;
+  $text;
 }
 
 sub do_pdlaccess {
@@ -214,7 +217,7 @@ sub do_indterm { my($this,$pdl,$ind,$subst,$context) = @_;
   my $index = delete($subst->{$substname}) //
 # No => get the one from the nearest context.
     (grep $_ eq $substname, map $_->[1], reverse @$context)[0];
-  confess "Access Index not found: $pdl, $ind, @{[$this->{IndObjs}[$ind]->name]}
+  croak "pp_def($this->{Sig}{OpName}): Access Index not found: $pdl, $ind, @{[$this->{IndObjs}[$ind]->name]}
 	  On stack:".(join ' ',map {"($_->[0],$_->[1])"} @$context)."\n"
 	  if !defined $index;
   return "(".($this->get_incname($ind,1))."*($index))";

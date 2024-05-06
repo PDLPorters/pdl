@@ -23,9 +23,9 @@ Internal module to handle signatures
 sub nospacesplit {grep /\S/, split $_[0],$_[1]}
 
 sub new {
-  my ($type,$pars,$bvalflag,$otherpars) = @_;
+  my ($type,$pars,$opname,$bvalflag,$otherpars) = @_;
   $bvalflag ||= 0;
-  my $this = bless {}, $type;
+  my $this = bless {OpName=>$opname}, $type;
   my @objects = map PDL::PP::PdlParObj->new($_,$bvalflag, $this), nospacesplit ';',$pars;
   $this->{Names} = [ map $_->name, @objects ];
   $this->{Objects} = { map +($_->name => $_), @objects };
@@ -47,9 +47,9 @@ sub _otherPars_nft {
 	my (%flags);
 	if (s/^\s*$PDL::PP::PdlParObj::sqbr_re\s*//) {
 	  %flags = my %lflags = map +($_=>1), split /\s*,\s*/, my $opts = $1;
-	  confess "Can't have both [io] and [o]" if $lflags{o} && $lflags{io};
+	  croak "pp_def($sig->{OpName}): Can't have both [io] and [o]" if $lflags{o} && $lflags{io};
 	  my $this_out = delete($lflags{o}) || delete($lflags{io});
-	  confess "Invalid options '$opts' in '$_'" if keys %lflags;
+	  croak "pp_def($sig->{OpName}): Invalid options '$opts' in '$_'" if keys %lflags;
 	  $any_out ||= $this_out;
 	}
 	if (/^\s*([^=]+?)\s*=>\s*(\S+)\s*$/) {
@@ -62,7 +62,7 @@ sub _otherPars_nft {
 	    $type = PDL::PP::CType->new($_);
 	}
 	my $name = $type->protoname;
-	confess "Invalid OtherPars name: $name"
+	croak "pp_def($sig->{OpName}): Invalid OtherPars name: $name"
 	  if $PDL::PP::PdlParObj::INVALID_PAR{$name};
 	push @names,$name;
 	$types{$name} = $type;

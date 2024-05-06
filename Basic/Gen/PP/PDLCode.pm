@@ -26,7 +26,7 @@ sub new {
     my $parnames = $sig->names_sorted;
     $handlebad = !!$handlebad;
 
-    die "Error: missing name argument to PDL::PP::Code->new call!\n"
+    confess "Error: missing name argument to PDL::PP::Code->new call!\n"
       unless defined $name;
     confess "Error: empty or undefined GenericTypes!\n"
       unless @{$generictypes || []};
@@ -273,7 +273,7 @@ sub process {
 sub separate_code {
     my ( $this, $code ) = @_;
     # First check for standard code errors:
-    catch_code_errors($code);
+    $this->catch_code_errors($code);
     my @stack = my $coderef = PDL::PP::Block->new;
     my $broadcastloops = 0;
     my $sizeprivs = {};
@@ -313,23 +313,20 @@ sub expand {
 # This is essentially a collection of regexes that look for standard code
 # errors and croaks with an explanation if they are found.
 sub catch_code_errors {
-    my $code_string = shift;
-    # Look for constructs like
-    #   loop %{
-    # which is invalid - you need to specify the dimension over which it
-    # should loop
-    report_error('Expected dimension name after "loop" and before "%{"', $1)
-	    if $code_string =~ /(.*\bloop\s*%\{)/s;
+  my ($this, $code_string) = @_;
+  my $prefix = "pp_def($this->{Name}): ";
+  report_error("${prefix}Expected dimension name after 'loop' and before '%{'", $1)
+    if $code_string =~ /(.*\bloop\s*%\{)/s;
 }
 
 # Report an error as precisely as possible. If they have #line directives
 # in the code string, use that in the reporting; otherwise, use standard
 # Carp mechanisms
-my $line_re = qr/#\s*line\s+(\d+)\s+"([^"]*)"/;
+my $line_re = qr/(?:PDL_LINENO_START|#\s*line)\s+(\d+)\s+"([^"]*)"/;
 sub report_error {
     my ($message, $code) = @_;
     # Just croak if they didn't supply a #line directive:
-    confess($message) if $code !~ $line_re;
+    croak($message) if $code !~ $line_re;
     # Find the line at which the error occurred:
     my $line = 0;
     my $filename;
