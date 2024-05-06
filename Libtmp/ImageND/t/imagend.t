@@ -112,7 +112,7 @@ $z = pdl q[
   0 1 1 1 0;
   0 0 0 0 0
 ];
-(my $got, $cnt) = contour_segments(0.5, $z, pdl($z->xvals,$z->yvals)->mv(-1,0));
+(my $got, $cnt) = contour_segments(0.5, $z, $z->ndcoords);
 $got = $got->slice(',0:'.$cnt->max)->uniqvec;
 my $exp = pdl q[
  [0.5   2] [0.5   3] [  1 1.5] [  1 3.5]

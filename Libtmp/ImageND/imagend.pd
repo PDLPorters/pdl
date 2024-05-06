@@ -958,6 +958,33 @@ Returns a series of slices of the C<paths>, such as those created by
 L</path_join>, stopping at the first negative index. Currently does not
 broadcast.
 
+=for example
+
+  use PDL;
+  use PDL::ImageND;
+  use PDL::Graphics::Simple;
+  $SIZE = 500;
+  $vals = rvals($SIZE,$SIZE)->divide($SIZE/12.5)->sin;
+  @cntr_threshes = zeroes(9)->xlinvals($vals->minmax)->list;
+  $win = pgswin();
+  $xrange = [0,$vals->dim(0)-1]; $yrange = [0,$vals->dim(1)-1];
+  $win->plot(with=>'image', $vals, {xrange=>$xrange,yrange=>$yrange,j=>1},);
+  for $thresh (@cntr_threshes) {
+    my ($segs, $cnt) = contour_segments($thresh, $vals, $vals->ndcoords);
+    my $segscoords = $segs->slice(',0:'.$cnt->max)->clump(-1)->splitdim(0,4);
+    $linesegs = $segscoords->splitdim(0,2);
+    $uniqcoords = $linesegs->uniqvec;
+    next if $uniqcoords->dim(1) < 2;
+    $indexed = vsearchvec($linesegs, $uniqcoords)->uniqvec;
+    @paths = path_segs(path_join($indexed, $uniqcoords->dim(1), 0));
+    @paths = map $uniqcoords->dice_axis(1, $_), @paths;
+    $win->oplot(
+      (map +(with=>'lines', $_->mv(0,-1)->dog), @paths),
+      {xrange=>$xrange,yrange=>$yrange,j=>1},
+    );
+  }
+  print "ret> "; <>;
+
 =cut
 
 *path_segs = \&PDL::path_segs;
