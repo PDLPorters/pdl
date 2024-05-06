@@ -775,23 +775,20 @@ EOD
 );
 
 pp_def('contour_segments',
-	Pars => 'c();
-            data(m,n);
-            points(d,m,n);
-            float [o]segs(d,q=CALC(($SIZE(m)-1)*($SIZE(n)-1)*4));
-            int [o] cnt();',
-	GenericTypes => ['F'],
-	Code => '
+  Pars => 'c(); data(m,n); points(d,m,n);
+    [o]segs(d,q=CALC(($SIZE(m)-1)*($SIZE(n)-1)*4)); indx [o] cnt();',
+  GenericTypes => ['F'],
+  Code => <<'EOF',
 PDL_Indx p=0;
 #define PDL_DCALC(vname,c,x1,y1,x2,y2) \
-  float vname = (c-$data(m=>x1,n=>y1))/($data(m=>x2,n=>y2)-$data(m=>x1,n=>y1))
+  $GENERIC(points) vname = (c-$data(m=>x1,n=>y1))/($data(m=>x2,n=>y2)-$data(m=>x1,n=>y1))
 #define PDL_PCALC(dname,d,x1,y1,x2,y2) \
   ($points(d=>d,m=>x1,n=>y1)+dname*($points(d=>d,m=>x2,n=>y2)-$points(d=>d,m=>x1,n=>y1)))
 #define PDL_LINESEG(x01,y01,x02,y02,x11,y11,x12,y12,c,p) do { \
   PDL_DCALC(dist1,c,x01,y01,x02,y02); \
   PDL_DCALC(dist2,c,x11,y11,x12,y12); \
   loop (d) %{ \
-    $segs(q=>p) =   PDL_PCALC(dist1,d,x01,y01,x02,y02); \
+    $segs(q=>p)   = PDL_PCALC(dist1,d,x01,y01,x02,y02); \
     $segs(q=>p+1) = PDL_PCALC(dist2,d,x11,y11,x12,y12); \
   %} \
   p+=2; \
@@ -822,9 +819,9 @@ loop (n=:-1,m=:-1) %{
 #undef PDL_PCALC
 #undef PDL_LINESEG
 #undef PDL_CONTOUR_BREAK
-$cnt()=p-1;'
-,
-       Doc => <<'EOF',
+$cnt()=p-1;
+EOF
+  Doc => <<'EOF',
 =for ref
 
 Finds a contour in given data. Takes 3 ndarrays as input:
