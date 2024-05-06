@@ -3,7 +3,7 @@
 - move contour_segments from Graphics::TriD::Rout to ImageND
 - add TriD::line3d_segs
 - add Slices::meshgrid
-- add ImageND::path_{join,segs}
+- add ImageND::{path_{join,segs},contour_polylines}
 
 2.088 2024-04-22
 - Slatec::ch{ic,sp} work arrays now [t]

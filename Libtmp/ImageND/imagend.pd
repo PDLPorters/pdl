@@ -776,7 +776,7 @@ EOD
 
 pp_def('contour_segments',
   Pars => 'c(); data(m,n); points(d,m,n);
-    [o]segs(d,q=CALC(($SIZE(m)-1)*($SIZE(n)-1)*4)); indx [o] cnt();',
+    [o] segs(d,q=CALC(($SIZE(m)-1)*($SIZE(n)-1)*4)); indx [o] cnt();',
   GenericTypes => ['F'],
   Code => <<'EOF',
 PDL_Indx p=0;
@@ -839,6 +839,198 @@ line segments rather than a set of closed polygons.
 The data array represents samples of some field observed on the surface
 described by points. This uses a variant of the Marching Squares
 algorithm, though without being data-driven.
+EOF
+);
+
+pp_def('contour_polylines',
+  Pars => 'c(); data(m,n); points(d,m,n);
+    indx [o] pathendindex(q=CALC(($SIZE(m)-1)*($SIZE(n)-1)*5)); [o] paths(d,q);
+    byte [t] seenmap(m,n)',
+  GenericTypes => ['F'],
+  Code => <<'EOF',
+int dir2xy[4][2] = { /* 0 = east, 1 = south, 2 = west, 3 = north */
+  {1,0}, {0,1}, {-1,0}, {0,-1}
+};
+broadcastloop %{
+PDL_Indx polyind = 0, p = 0;
+loop (n,m) %{ $seenmap() = 0; %} /* & 1 = east, & 2 = south */
+loop (q) %{ $pathendindex() = -1; %}
+#define PDL_DCALC(vname,c,x1,y1,x2,y2) \
+  $GENERIC(points) vname = (c-$data(m=>x1,n=>y1))/($data(m=>x2,n=>y2)-$data(m=>x1,n=>y1))
+#define PDL_PCALC(dname,d,x1,y1,x2,y2) \
+  ($points(d=>d,m=>x1,n=>y1)+dname*($points(d=>d,m=>x2,n=>y2)-$points(d=>d,m=>x1,n=>y1)))
+#define PDL_LINEPOINT(x,y,dir,c,p) do { \
+  PDL_Indx x2 = x+dir2xy[dir][0], y2 = y+dir2xy[dir][1]; \
+  PDL_DCALC(dist,c,x,y,x2,y2); \
+  loop (d) %{ $paths(q=>p) = PDL_PCALC(dist,d,x,y,x2,y2); %} \
+  p++; \
+  } while (0)
+#define PDL_CONTOUR_BREAK(x,y,dir,c) \
+  (x >= 0 && x < $SIZE(m) && y >= 0 && y < $SIZE(n) && \
+   (x+dir2xy[dir][0]) >= 0 && (x+dir2xy[dir][0]) < $SIZE(m) && \
+   (y+dir2xy[dir][1]) >= 0 && (y+dir2xy[dir][1]) < $SIZE(n) && \
+   !((dir == 0 && ($seenmap(m=>x,n=>y) & (1<<dir))) || \
+     (dir == 1 && ($seenmap(m=>x,n=>y) & (1<<dir))) || \
+     (dir == 2 && ($seenmap(m=>x-1,n=>y) & (1<<(dir % 2)))) || \
+     (dir == 3 && ($seenmap(m=>x,n=>y-1) & (1<<(dir % 2)))) \
+   ) && \
+   (($data(m=>x,n=>y) < c) != ($data(m=>x+dir2xy[dir][0],n=>y+dir2xy[dir][1]) < c)))
+loop (n,m) %{
+  PDL_Indx m1=m+1, n1=n+1, linex=-1, liney=-1, linedir=-1;
+  /* linedir is same as dir, but outside linex/y and facing clockwise */
+  char brk_ab = PDL_CONTOUR_BREAK(m,n,0,$c()),
+       brk_ad = PDL_CONTOUR_BREAK(m,n,1,$c()),
+       brk_be = PDL_CONTOUR_BREAK(m1,n,1,$c()),
+       brk_cd = PDL_CONTOUR_BREAK(m,n1,2,$c()), /* actually dc */
+       brk_de = PDL_CONTOUR_BREAK(m,n1,0,$c());
+  if (brk_ab && (brk_ad || brk_de || brk_be))
+    linex = m, liney = n, linedir = 1;
+  else
+    $seenmap() |= 1;
+  if (linedir < 0 && brk_ad && brk_cd)
+    linex = m, liney = n, linedir = 2;
+  if (linedir < 0 && brk_ad && (brk_de || brk_be))
+    linex = m, liney = n1, linedir = 0;
+  if (linedir < 0) { $seenmap() |= 2; continue; }
+  PDL_Indx startlinex=linex, startliney=liney, startlinedir=linedir;
+  PDL_Float startmidx=linex+0.5*dir2xy[(linedir+3)%4][0], startmidy=liney+0.5*dir2xy[(linedir+3)%4][1]; /* of the line-segment */
+  PDL_Float startbackx=startmidx+0.5*dir2xy[(linedir+2)%4][0], startbacky=startmidy+0.5*dir2xy[(linedir+2)%4][1];
+  /* walk the line */
+  while (1) {
+    PDL_LINEPOINT(linex,liney,(linedir+3)%4,$c(),p);
+    switch (linedir) {
+      case 0: $seenmap(m=>linex,n=>liney-1) |= (1<<((linedir+1)%2)); break;
+      case 1: $seenmap(m=>linex,n=>liney)   |= (1<<((linedir+1)%2)); break;
+      case 2: $seenmap(m=>linex,n=>liney)   |= (1<<((linedir+1)%2)); break;
+      case 3: $seenmap(m=>linex-1,n=>liney) |= (1<<((linedir+1)%2)); break;
+      default: $CROAK("linedir had invalid value %"IND_FLAG, linedir);
+    }
+    char brk_right = PDL_CONTOUR_BREAK(linex,liney,linedir,$c()),
+         brk_straight = PDL_CONTOUR_BREAK(linex+dir2xy[linedir][0],liney+dir2xy[linedir][1],(linedir+3)%4,$c()),
+         brk_left = PDL_CONTOUR_BREAK(linex+dir2xy[(linedir+3)%4][0],liney+dir2xy[(linedir+3)%4][1],linedir,$c());
+    if (brk_right) {
+      linedir = (linedir+1)%4;
+      continue;
+    }
+    if (brk_straight) {
+      linex += dir2xy[linedir][0], liney += dir2xy[linedir][1];
+      continue;
+    }
+    if (brk_left) {
+      linex += dir2xy[linedir][0], liney += dir2xy[linedir][1]; /* step with */
+      linedir = (linedir+3)%4;
+      linex += dir2xy[linedir][0], liney += dir2xy[linedir][1]; /* and left */
+      continue;
+    }
+    break;
+  }
+  PDL_Float endmidx=linex+0.5*dir2xy[(linedir+3)%4][0], endmidy=liney+0.5*dir2xy[(linedir+3)%4][1];
+  PDL_Float endfrontx=endmidx+0.5*dir2xy[linedir][0], endfronty=endmidy+0.5*dir2xy[linedir][1];
+  if (endfrontx == startbackx && endfronty == startbacky) /* close polygon */
+    PDL_LINEPOINT(startlinex,startliney,(startlinedir+3)%4,$c(),p);
+  $pathendindex(q=>polyind++) = p - 1;
+%}
+%}
+#undef PDL_DCALC
+#undef PDL_PCALC
+#undef PDL_LINEPOINT
+#undef PDL_CONTOUR_BREAK
+EOF
+  Doc => <<'EOF',
+=for ref
+
+Finds polylines describing contours in given data. Takes 3 ndarrays as input:
+
+C<$c> is the contour value (broadcast with this)
+
+C<$data> is an [m,n] array of values at each point
+
+C<$points> is a list of [d,m,n] points. It should be a grid monotonically
+increasing with m and n.
+
+Returns C<$pathendindex>, and C<$paths>. Any C<$pathendindex> entries
+after the pointers to the ends of polylines are negative.
+
+=head3 Algorithm
+
+Has two modes: scanning, and line-walking. Scanning is done from the
+top left, along each row. Each point can be considered as, at C<a>:
+
+    a|b
+   +-+-
+  c|d|e
+
+Every potential boundary above, or to the left of (including the bottom
+boundaries), C<a> has been cleared (marked with a space above).
+
+=head4 Boundary detection
+
+This is done by first checking both points' coordinates are within
+bounds, then checking if the boundary is marked seen, then detecting
+whether the two cells' values cross the contour threshold.
+
+=head4 Scanning
+
+If detect boundary between C<a>-C<b>, and also C<a>-C<d>, C<d>-C<e>,
+or C<b>-C<e>, line-walking starts C<a>-C<b> facing south.
+
+If not, mark C<a>-C<b> seen.
+
+If detect boundary C<a>-C<d> and C<c>-C<d>, line-walking starts C<a>-C<d>
+facing west.
+
+If detect boundary C<a>-C<d> and also C<d>-C<e> or C<b>-C<e>, line-walking
+starts C<a>-C<d> facing east.
+
+If not, mark C<a>-C<d> seen, and continue scanning.
+
+=head4 Line-walking
+
+The conditions above guarantee that any line started will have at least
+two points, since two connected "points" (boundaries between two cells)
+have been detected. The coordinates of the back end of the starting
+"point" (boundary with direction) are recorded.
+
+At each, a line-point is emitted and that "point" is marked seen. The
+coordinates emitted are linearly interpolated between the coordinates
+of the two cells similarly to the Marching Squares algorithm.
+
+The next "point" is sought, looking in order right, straight ahead, then
+left. Each one not detected is marked seen. That order means the walked
+boundary will always turn as much right (go clockwise) as available,
+thereby guaranteeing enclosing the area, which deals with saddle points.
+
+If a next "point" is found, move to that and repeat.
+
+If not, then if the front of the ending "point" (boundary plus direction)
+is identical to the back of the starting point, a final point is emitted
+to close the shape. Then the polyline is closed by emitting the current
+point-counter into C<polyendindex>.
+
+=for usage
+
+  use PDL;
+  use PDL::ImageND;
+  use PDL::Graphics::Simple;
+  $SIZE = 500;
+  $vals = rvals($SIZE,$SIZE)->divide($SIZE/12.5)->sin;
+  @cntr_threshes = zeroes(9)->xlinvals($vals->minmax)->list;
+  $win = pgswin();
+  $xrange = [0,$vals->dim(0)-1]; $yrange = [0,$vals->dim(1)-1];
+  $win->plot(with=>'image', $vals, {xrange=>$xrange,yrange=>$yrange,j=>1},);
+  for $thresh (@cntr_threshes) {
+    ($pi, $p) = contour_polylines($thresh, $vals, $vals->ndcoords);
+    $pi_max = $pi->max;
+    next if $pi_max < 0;
+    $pi = $pi->where($pi > -1);
+    $p = $p->slice(',0:'.$pi_max);
+    @paths = path_segs($pi, $p->mv(0,-1));
+    $win->oplot(
+      (map +(with=>'lines', $_->dog), @paths),
+      {xrange=>$xrange,yrange=>$yrange,j=>1},
+    );
+  }
+  print "ret> "; <>;
 EOF
 );
 
@@ -977,9 +1169,9 @@ broadcast.
     next if $uniqcoords->dim(1) < 2;
     $indexed = vsearchvec($linesegs, $uniqcoords)->uniqvec;
     @paths = path_segs(path_join($indexed, $uniqcoords->dim(1), 0));
-    @paths = map $uniqcoords->dice_axis(1, $_), @paths;
+    @paths = map $uniqcoords->dice_axis(1, $_)->mv(0,-1), @paths;
     $win->oplot(
-      (map +(with=>'lines', $_->mv(0,-1)->dog), @paths),
+      (map +(with=>'lines', $_->dog), @paths),
       {xrange=>$xrange,yrange=>$yrange,j=>1},
     );
   }

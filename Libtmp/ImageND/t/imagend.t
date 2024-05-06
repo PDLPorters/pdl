@@ -112,7 +112,7 @@ $z = pdl q[
   0 1 1 1 0;
   0 0 0 0 0
 ];
-(my $got, $cnt) = contour_segments(0.5, $z, $z->ndcoords);
+(my $got, $cnt) = contour_segments(0.5, $z, my $coords = $z->ndcoords);
 $got = $got->slice(',0:'.$cnt->max)->uniqvec;
 my $exp = pdl q[
  [0.5   2] [0.5   3] [  1 1.5] [  1 3.5]
@@ -121,6 +121,12 @@ my $exp = pdl q[
  [  3 1.5] [  3 3.5] [3.5   2] [3.5   3]
 ];
 ok all(approx $got, $exp, 0.1), 'contour_segments' or diag $got, $exp;
+
+my ($pi, $p) = contour_polylines(0.5, $z, $coords);
+my $pi_max = $pi->max;
+$p = $p->slice(','.($pi_max < 0 ? '1:0:1' : "0:$pi_max"))->uniqvec;
+is $p->dim(1), $exp->dim(1), 'same size' or diag "got=$p\nexp=$exp";
+ok all(approx $p, $exp, 0.1), 'contour_polylines' or diag "got=$p";
 }
 
 for (
