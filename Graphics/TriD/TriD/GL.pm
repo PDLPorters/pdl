@@ -271,23 +271,27 @@ sub PDL::Graphics::TriD::GObject::_lattice_lines {
 }
 
 sub PDL::Graphics::TriD::Contours::gdraw {
-  my($this,$points) = @_;
+  my ($this,$points) = @_;
   glPushAttrib(GL_LIGHTING_BIT | GL_ENABLE_BIT);
   $this->glOptions;
   glDisable(GL_LIGHTING);
   eval {
-    my $pcnt=0;
-    my $i=0;
-    foreach (grep defined, @{$this->{ContourSegCnt}}){
-	  my $colors =  $this->{Colors};
-	  $colors = $colors->slice(":,($i)") if $colors->getndims==2;
-	  PDL::gl_lines_col($points->slice(":,$pcnt:$_"),$colors);
-	  $i++;
-	  $pcnt=$_+1;
+    my $pi = $this->{PathIndex};
+    my ($pcnt, $i, $thisind) = (0, 0, 0);
+    for my $ie (grep defined, @{$this->{ContourPathIndexEnd}}) {
+      my $colors = $this->{Colors};
+      $colors = $colors->slice(":,($i)") if $colors->getndims==2;
+      my $this_pi = $pi->slice("$pcnt:$ie");
+      for ($this_pi->list) {
+        PDL::gl_line_strip_col($points->slice(",$thisind:$_"), $colors);
+        $thisind = $_ + 1;
+      }
+      $i++;
+      $pcnt=$ie+1;
     }
-    if(defined $this->{Labels}){
+    if (defined $this->{Labels}){
 	   glColor3d(1,1,1);
-	   my $seg = sprintf(":,%d:%d",$this->{Labels}[0],$this->{Labels}[1]);
+	   my $seg = sprintf ":,%d:%d",$this->{Labels}[0],$this->{Labels}[1];
 	   PDL::Graphics::OpenGLQ::gl_texts($points->slice($seg),
 		   done_glutInit(), $this->{Options}{Font},
 		   $this->{LabelStrings});

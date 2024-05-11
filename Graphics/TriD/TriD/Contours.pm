@@ -18,7 +18,7 @@ PDL::Graphics::TriD::Contours - 3D Surface contours for TriD
                [$z->xvals/$size,$z->yvals/$size,0]);
     PDL::Graphics::TriD::graph_object($data)
 
-=cut 
+=cut
 
 package PDL::Graphics::TriD::Contours;
 use strict;
@@ -28,7 +28,7 @@ use PDL::ImageND;
 use PDL::Graphics::TriD;
 use PDL::Graphics::TriD::Labels;
 use base qw/PDL::Graphics::TriD::GObject/;
-use fields qw/ContourSegCnt Labels LabelStrings/;
+use fields qw/PathIndex ContourPathIndexEnd Labels LabelStrings/;
 
 $PDL::Graphics::TriD::verbose //= 0;
 
@@ -38,7 +38,7 @@ $PDL::Graphics::TriD::verbose //= 0;
 
 =for ref
 
-Define a new contour plot for TriD.  
+Define a new contour plot for TriD.
 
 =for example
 
@@ -56,7 +56,7 @@ value using the set_color_table function.
   ContourMin  => 0.0  # explicitly set a contour minimum
   ContourMax  => 10.0 # explicitly set a contour maximum
   ContourVals => $pdl # explicitly set all contour values
-  Label => [1,5,$myfont] # see addlabels below 
+  Label => [1,5,$myfont] # see addlabels below
   Font =>  $font      # explicitly set the font for contour labels
 
   If ContourVals is specified ContourInt, ContourMin, and ContourMax
@@ -82,35 +82,18 @@ sub new{
 
   my $this = $type->SUPER::new($points,$colors,$options);
 
-  my $grid = $this->{Points};
-
-  $this->{ContourSegCnt} = [];
-
-  my @lines;
-  my($xmin,$dx,$ymin,$dy);
-
-  my @dims = $data->dims();
-
-  my $d0 = $dims[0]-1;
-  my $d1 = $dims[1]-1;
-
-  my ($min,$max) = $data->minmax();
-
   my $fac=1;
+  my ($min,$max) = $data->minmax;
 
   unless(defined $this->{Options}{ContourMin}){
     while($fac*($max-$min)<10){
       $fac*=10;
     }
-    if(int($fac*$min) == $fac*$min){
-      $this->{Options}{ContourMin} = $min;
-    }else{      
-      $this->{Options}{ContourMin} = int($fac*$min+1)/$fac;
-      print "ContourMin =  ",$this->{Options}{ContourMin},"\n"
-		  if($PDL::Graphics::TriD::verbose);
-    }
+    $this->{Options}{ContourMin} = int($fac*$min) == $fac*$min ? $min : int($fac*$min+1)/$fac;
+    print "ContourMin =  ",$this->{Options}{ContourMin},"\n"
+                if $PDL::Graphics::TriD::verbose;
   }
-  unless(defined $this->{Options}{ContourMax} && 
+  unless(defined $this->{Options}{ContourMax} &&
 			$this->{Options}{ContourMax} > $this->{Options}{ContourMin} ){
     if(defined $this->{Options}{ContourInt}){
       $this->{Options}{ContourMax} = $this->{Options}{ContourMin};
@@ -118,14 +101,10 @@ sub new{
 	$this->{Options}{ContourMax}= $this->{Options}{ContourMax}+$this->{Options}{ContourInt};
       }
     }else{
-      if(int($fac*$max) == $fac*$max){
-	$this->{Options}{ContourMax} = $max;
-      }else{
-	$this->{Options}{ContourMax} = (int($fac*$max)-1)/$fac;
-      print "ContourMax =  ",$this->{Options}{ContourMax},"\n"
-		  if($PDL::Graphics::TriD::verbose);
-      }
+      $this->{Options}{ContourMax} = int($fac*$max) == $fac*$max ? $max : (int($fac*$max)-1)/$fac;
     }
+    print "ContourMax =  ",$this->{Options}{ContourMax},"\n"
+                if $PDL::Graphics::TriD::verbose;
   }
   unless(defined $this->{Options}{ContourInt} &&  $this->{Options}{ContourInt}>0){
     $this->{Options}{ContourInt} = int($fac*($this->{Options}{ContourMax}-$this->{Options}{ContourMin}))/(10*$fac);
@@ -136,37 +115,41 @@ sub new{
 # The user could also name cvals
 #
   my $cvals;
-  if( !defined($this->{Options}{ContourVals}) || $this->{Options}{ContourVals}->isempty){
+  if (!defined($this->{Options}{ContourVals}) || $this->{Options}{ContourVals}->isempty){
     $cvals=zeroes(int(($this->{Options}{ContourMax}-$this->{Options}{ContourMin})/$this->{Options}{ContourInt}+1));
-    $cvals = $cvals->xlinvals($this->{Options}{ContourMin},$this->{Options}{ContourMax});  
+    $cvals = $cvals->xlinvals($this->{Options}{ContourMin},$this->{Options}{ContourMax});
   }else{
     $cvals = $this->{Options}{ContourVals};
     $this->{Options}{ContourMax}=$cvals->max->sclr;
     $this->{Options}{ContourMin}=$cvals->min->sclr;
   }
   $this->{Options}{ContourVals} = $cvals;
-  print "Cvals = $cvals\n" if($PDL::Graphics::TriD::verbose);  
+  print "Cvals = $cvals\n" if $PDL::Graphics::TriD::verbose;
 
-  my ($segs, $cnt) = contour_segments($cvals,$data,$grid);
-  $this->{Points} = PDL->null;
-  my $pcnt=0;
+  my ($pi, $p) = contour_polylines($cvals,$data,$this->{Points});
+  $_ = PDL->null for @$this{qw(Points PathIndex)};
+  my ($pcnt, $pval) = (0,0);
   for (my $i=0; $i<$cvals->nelem; $i++) {
-    next if (my $ncnt = $cnt->slice("($i)"))==-1;
-    $this->{ContourSegCnt}[$i] = $pcnt = $pcnt+$ncnt;
-    $pcnt=$pcnt+1;
-    $this->{Points} = $this->{Points}->append($segs->slice(":,0:$ncnt,($i)")->transpose);
+    my $this_pi = $pi->slice(",($i)");
+    next if $this_pi->at(0) == -1;
+    my $thispi_maxind = $this_pi->maximum_ind->sclr;
+    $this_pi = $this_pi->slice("0:$thispi_maxind");
+    my $thispi_maxval = $this_pi->at($thispi_maxind);
+    $this->{PathIndex} = $this->{PathIndex}->append($this_pi+$pval);
+    $this->{Points} = $this->{Points}->glue(1,$p->slice(":,0:$thispi_maxval,($i)"));
+    $this->{ContourPathIndexEnd}[$i] = $pcnt = $pcnt+$thispi_maxind;
+    $pcnt += 1; $pval += $thispi_maxval + 1;
   }
-  $this->{Points} = $this->{Points}->transpose;
 
-  $this->addlabels($this->{Options}{Labels}) if(defined $this->{Options}{Labels});
+  $this->addlabels($this->{Options}{Labels}) if defined $this->{Options}{Labels};
 
   return $this;
-}      
+}
 
 sub get_valid_options{
-  return{ ContourInt => undef, 
-			 ContourMin => undef, 
-			 ContourMax=>  undef, 
+  return{ ContourInt => undef,
+			 ContourMin => undef,
+			 ContourMax=>  undef,
 			 ContourVals=> pdl->null,
 			 UseDefcols=>1,
 	                 Labels=> undef,
@@ -177,7 +160,7 @@ sub get_valid_options{
 
 =for ref
 
-Add labels to a contour plot 
+Add labels to a contour plot
 
 =for usage
 
@@ -188,7 +171,7 @@ have 8 contour levels and specify $labelint=3 addlabels will attempt
 to label the 1st, 4th, and 7th contours.  $labelint defaults to 1.
 
 $segint specifies the density of labels on a single contour
-level.  Each contour level consists of a number of connected 
+level.  Each contour level consists of a number of connected
 line segments, $segint defines how many of these segments get labels.
 $segint defaults to 5, that is every fifth line segment will be labeled.
 
@@ -213,7 +196,7 @@ sub addlabels{
     next unless defined $self->{ContourSegCnt}[$i];
     $cnt = $self->{ContourSegCnt}[$i];
     my $val = $self->{Options}{ContourVals}->slice("($i)");
-   
+
     my $leg =  $self->{Points}->slice(":,$pcnt:$cnt");
     $pcnt=$cnt+1;
 
@@ -224,17 +207,17 @@ sub addlabels{
 
 		my $j1=$j+1;
 
-      my $lp2 = $leg->slice(":,($j)") + 
-                $offset*($leg->slice(":,($j1)") -       
+      my $lp2 = $leg->slice(":,($j)") +
+                $offset*($leg->slice(":,($j1)") -
 					  $leg->slice(":,($j)"));
 
-		
+
 		$lp = $lp->append($lp2);
-# need a label string for each point    
+# need a label string for each point
 		push(@$strlist,$val);
 
 	 }
-	 
+
   }
   if($lp->nelem>0){
 	 $self->{Points} = $self->{Points}->transpose
@@ -252,7 +235,7 @@ sub addlabels{
 
 Sets contour level colors based on the color table.
 
-=for usage 
+=for usage
 
 $table is passed in as either an ndarray of [3,n] colors, where n is the
 number of contour levels, or as a reference to a function which
@@ -269,9 +252,9 @@ sub set_colortable{
   my $colors;
   if(ref($table) eq "CODE"){
 	 my $min = $self->{Options}{ContourMin};
-	 my $max = $self->{Options}{ContourMax};  
+	 my $max = $self->{Options}{ContourMax};
 	 my $int = $self->{Options}{ContourInt};
-	 my $ncolors=($max-$min)/$int+1;  
+	 my $ncolors=($max-$min)/$int+1;
 	 $colors= &$table($ncolors);
   }else{
 	 $colors = $table;
@@ -281,23 +264,23 @@ sub set_colortable{
     $colors->reshape(3,$colors->nelem/3);
   }
   print "Color info ",$self->{Colors}->info," ",$colors->info,"\n" if($PDL::Graphics::TriD::verbose);
- 
+
   $self->{Colors} = $colors;
 }
 
 =head2 coldhot_colortable()
 
-=for ref 
+=for ref
 
 A simple colortable function for use with the set_colortable function.
 
-=for usage 
+=for usage
 
 coldhot_colortable defines a blue red spectrum of colors where the
 smallest contour value is blue, the highest is red and the others are
 shades in between.
 
-=cut 
+=cut
 
 sub coldhot_colortable{
   my($ncolors) = @_;
@@ -313,21 +296,7 @@ sub coldhot_colortable{
       $colorpdl = $colorpdl->append($color);
     }
   }
-  return($colorpdl);  
+  return $colorpdl;
 }
-  
+
 1;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
