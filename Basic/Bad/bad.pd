@@ -4,6 +4,7 @@ use warnings;
 use PDL::Types qw(ppdefs_all types);
 my $A = [ppdefs_all()];
 my $AF = [map $_->ppsym, grep !$_->integer, types()]; # all including complex
+$AF = [(grep $_ ne 'D', @$AF), 'D']; # so defaults to D if non-float given
 
 #########################################################
 

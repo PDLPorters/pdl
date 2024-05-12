@@ -6,7 +6,9 @@ require PDL::Core::Dev;
 my $A = [ppdefs_all];
 my $C = [ppdefs_complex];
 my $F = [map $_->ppsym, grep $_->real && !$_->integer, types];
+$F = [(grep $_ ne 'D', @$F), 'D']; # so defaults to D if non-float given
 my $AF = [map $_->ppsym, grep !$_->integer, types];
+$AF = [(grep $_ ne 'D', @$AF), 'D']; # so defaults to D if non-float given
 my $T = [map $_->ppsym, grep $_->integer, types];
 my $U = [map $_->ppsym, grep $_->unsigned, types];
 my $S = [map $_->ppsym, grep $_->real && !$_->unsigned, types];
