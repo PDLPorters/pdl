@@ -397,6 +397,7 @@ Libtmp/GIS/Proj/Proj.pd
 Libtmp/GIS/Proj/README
 Libtmp/GIS/Proj/t/gis_proj.t
 Libtmp/GIS/Proj/TODO
+Libtmp/GSL/CDF/Demo.pm
 Libtmp/GSL/CDF/gsl_cdf.pd
 Libtmp/GSL/CDF/Makefile.PL
 Libtmp/GSL/CDF/t/cdf.t

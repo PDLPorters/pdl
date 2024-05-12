@@ -1,3 +1,5 @@
+- add demo of GSL::CDF
+
 2.089 2024-05-12
 - fix numerical misbehaviour in histogram etc on i686 (#474) - thanks @sebastic for report
 - add ANYVAL_FROM_SV parameter to control "undefval" warning
