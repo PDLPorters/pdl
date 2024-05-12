@@ -530,31 +530,29 @@ Algorithm from L<Wikipedia|http://en.wikipedia.org/wiki/Exponentiation_by_squari
 =cut
 
 },
-   Pars => 'a(); indx b(); [o] ans()',
+   Pars => 'a(); longlong b(); [o] ans()',
    GenericTypes => $AF,
    Code => pp_line_numbers(__LINE__, q{
-PDL_Indx n = $b();
+$GENERIC(b) n = $b();
+if (n == 0) {
+  $ans() = 1;
+  continue;
+}
 $GENERIC() y = 1;
 $GENERIC() x = $a();
 if (n < 0) {
-   x = 1 / x;
-   n = -n;
+  x = 1 / x;
+  n = -n;
 }
-if (n == 0) {
-   $ans() = 1;
-} else {
-    while (n > 1) {
-       if (n % 2 == 0) {
-          x = x * x;
-          n = n / 2;
-       } else {
-          y = x * y;
-          x = x * x;
-          n = (n - 1) / 2;
-       }
-   }
-   $ans() = x * y;
+while (n > 1) {
+  if (n % 2) {
+    y *= x;
+    n -= 1;
+  }
+  x *= x;
+  n /= 2;
 }
+$ans() = x * y;
 })
 );
 
