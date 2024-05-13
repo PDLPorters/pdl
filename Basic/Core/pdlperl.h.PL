@@ -30,17 +30,16 @@ print OUT <<'EOF';
   XSRETURN(1);
 
 #define PDL_MAKE_PERL_COMPLEX(output,r,i) { \
-        dSP; int count; double rval = r, ival = i; \
-        ENTER; SAVETMPS; PUSHMARK(sp); \
+        dSP; NV rval = r, ival = i; \
         perl_require_pv("PDL/Complex/Overloads.pm"); \
-        mXPUSHn(rval); \
-        mXPUSHn(ival); \
-        PUTBACK; \
-        count = perl_call_pv("PDL::Complex::Overloads::cplx", G_SCALAR); \
+        ENTER; SAVETMPS; \
+        PUSHMARK(SP); mXPUSHn(rval); mXPUSHn(ival); PUTBACK; \
+        int count = perl_call_pv("PDL::Complex::Overloads::cplx", G_SCALAR); \
         SPAGAIN; \
         if (count != 1) croak("Failed to create PDL::Complex::Overloads object (%.9g, %.9g)", rval, ival); \
         sv_setsv(output, POPs); \
-        PUTBACK; FREETMPS; LEAVE; \
+        PUTBACK; \
+        FREETMPS; LEAVE; \
 }
 
 /***************
@@ -96,7 +95,7 @@ print OUT <<'EOF';
     char *meths[] = { "Re", "Im" }; \
     ENTER; SAVETMPS; \
     for (i = 0; i < 2; i++) { \
-      PUSHMARK(sp); XPUSHs(insv); PUTBACK; \
+      PUSHMARK(SP); XPUSHs(insv); PUTBACK; \
       int count = perl_call_method(meths[i], G_SCALAR); \
       SPAGAIN; \
       if (count != 1) PDL_CORE_(pdl_barf)("Failed Math::Complex method '%s'", meths[i]); \

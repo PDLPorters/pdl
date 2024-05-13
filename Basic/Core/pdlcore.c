@@ -72,7 +72,7 @@ pdl* pdl_SvPDLV ( SV* sv ) {
          dSP;
          ENTER ;
          SAVETMPS ;
-         PUSHMARK(sp) ;
+         PUSHMARK(SP) ;
 
          int count = perl_call_sv(*svp, G_SCALAR|G_NOARGS);
 

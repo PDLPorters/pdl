@@ -169,7 +169,7 @@ void *svmagic_cast(pdl_magic *mag)
 	pdl_magic_perlfunc *magp = (pdl_magic_perlfunc *)mag;
 	dSP;
 	ENTER; SAVETMPS;
-	PUSHMARK(sp);
+	PUSHMARK(SP);
 	perl_call_sv(magp->sv, G_DISCARD | G_NOARGS);
 	FREETMPS; LEAVE;
 	return NULL;
