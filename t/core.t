@@ -714,6 +714,9 @@ isnt PDL::Core::pdumphash($slice), undef, 'pdumphash works with ndarray';
 isnt PDL::Core::pdumphash($tp), undef, 'pdumphash works with trans';
 my @pn = $vtable->par_names;
 is 0+@pn, 2, 'par_names returned 2 things';
+my $roots = pdl '[1 2i 3i 4i 5i]';
+eval {PDL::Core::pdump($roots)}; # gave "panic: attempt to copy freed scalar"
+is $@, '';
 
 my $notouch = sequence(4);
 $notouch->set_donttouchdata(4 * PDL::Core::howbig($notouch->get_datatype));

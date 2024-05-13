@@ -323,6 +323,7 @@ firstvals_nophys(x)
       SV *sv = sv_newmortal();
       ANYVAL_TO_SV(sv, anyval);
       PUSHs(sv);
+      PUTBACK;
     }
 
 IV
