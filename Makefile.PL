@@ -312,10 +312,11 @@ my $coretest = join ' ', map File::Spec->catfile('t', $_.'.t'), qw(
   pdlchar pp_croaking pp_line_numbers primitive-* pthread reduce
   slice subclass thread thread_def ufunc
 );
+use Config;
 $text .= <<EOF;
 
 coretest : core
-	prove -b $coretest
+	$Config{perlpath} $Config{bin}/prove -b $coretest
 EOF
 
 $text .= <<EOF;
