@@ -1,5 +1,6 @@
 - add demo of GSL::CDF
 - floating-point-only operations in Ops, Primitive, Bad now default to double, not cldouble
+- fix treating a large Perl UV as an IV so getting sign wrong (#469)
 
 2.089 2024-05-12
 - fix numerical misbehaviour in histogram etc on i686 (#474) - thanks @sebastic for report

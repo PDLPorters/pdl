@@ -527,6 +527,18 @@ SKIP: {
     or diag "straight=$straight_pdl mult=$multed\n",
       "straight:", $straight_pdl->info, " mult:", $multed->info;
   }
+  {
+  my $fromuv_r = pdl('10223372036854775507');
+  ok $fromuv_r > 0, 'UV real > 0';
+  my $fromuv_c = pdl('10223372036854775507i');
+  ok $fromuv_c->im > 0, 'UV complex->real > 0'
+    or diag "fromuv_c=$fromuv_c\nfromuv_c->im=", $fromuv_c->im,
+      "\nfromuv_r=$fromuv_r";
+  $fromuv_c = pdl('2+10223372036854775507i');
+  ok $fromuv_c->im > 0, 'UV complex->real > 0 with some real'
+    or diag "fromuv_c=$fromuv_c\nfromuv_c->im=", $fromuv_c->im,
+      "\nfromuv_r=$fromuv_r";
+  }
   my $input = [
       -9223372036854775808, #min int64
       -9000000000000000001,
