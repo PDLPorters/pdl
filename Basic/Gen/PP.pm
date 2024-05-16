@@ -375,7 +375,6 @@ sub dosubst_private {
       PDLSTATESETGOOD => sub { ($sig->objs->{$_[0]}->do_pdlaccess//confess "Can't get PDLSTATESETGOOD for unknown ndarray '$_[0]'")."->state &= ~PDL_BADVAL" },
       PDLSTATEISBAD => sub {badflag_isset(($sig->objs->{$_[0]}//confess "Can't get PDLSTATEISBAD for unknown ndarray '$_[0]'")->do_pdlaccess)},
       PDLSTATEISGOOD => sub {"!".badflag_isset(($sig->objs->{$_[0]}//confess "Can't get PDLSTATEISGOOD for unknown ndarray '$_[0]'")->do_pdlaccess)},
-      PP => sub { (my $o = ($sig->objs->{$_[0]}//confess "Can't get PP for unknown ndarray '$_[0]'"))->{FlagPhys} = 1; $o->do_pointeraccess; },
       P => sub { (my $o = ($sig->objs->{$_[0]}//confess "Can't get P for unknown ndarray '$_[0]'"))->{FlagPhys} = 1; $o->do_pointeraccess; },
       PDL => sub { ($sig->objs->{$_[0]}//confess "Can't get PDL for unknown ndarray '$_[0]'")->do_pdlaccess },
       SIZE => sub { ($sig->dims_obj->ind_obj($_[0])//confess "Can't get SIZE of unknown dim '$_[0]'")->get_size },
