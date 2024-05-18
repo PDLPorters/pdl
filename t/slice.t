@@ -472,6 +472,20 @@ my $v_nd = $p_nd->clump(2);
 my $k_nd = $v_nd->enumvec();
 ok all(approx($k_nd, pdl(long,[0,1,2,0,1,0,0]))), "enumvec():Nd";
 
+# from PDL::CCS tests revealing enumvec bug
+my $col = pdl("[5 5 4 4 4 3 3 3 3 2 2 2 1 1 0]")->transpose;
+$got = $col->enumvec;
+ok all(approx($got, pdl('[0 1 0 1 2 0 1 2 3 0 1 2 0 1 0]'))), 'enumvec'
+  or diag "got=$got";
+$col = pdl("[0 0 1 1 2 2 2 3 3 3 3 4 4 4 5 5]")->transpose;
+$got = $col->enumvec;
+ok all(approx($got, pdl('[0 1 0 1 0 1 2 0 1 2 3 0 1 2 0 1]'))), 'enumvec 2'
+  or diag "got=$got";
+$col = pdl("[0 0 1 1 2 2 2 3 3 3 3 4 4 4 5 5 6]")->transpose;
+$got = $col->enumvec;
+ok all(approx($got, pdl('[0 1 0 1 0 1 2 0 1 2 3 0 1 2 0 1 0]'))), 'enumvec 3'
+  or diag "got=$got";
+
 ## 13..17: test rldseq(), rleseq()
 my $lens = pdl(long,[qw(3 0 1 4 2)]);
 my $offs = (($lens->xvals+1)*100)->short;

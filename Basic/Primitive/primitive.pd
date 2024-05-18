@@ -1629,14 +1629,22 @@ pp_def('enumvec',
 loop (N) %{
   PDL_Indx vn = N; /* preserve value of N into inner N loop */
   loop (N=vn) %{
-    $k() = N-vn;
+    if (N == vn) { $k() = 0; continue; } /* no need to compare with self */
+    char matches = 1;
     loop (M) %{
-       if ($v(N=>vn) == $v(N=>N+1)) continue;
-       vn = N; /* and back out */
-       goto NOMATCH_$GENERIC();
+      if ($v(N=>vn) == $v()) continue;
+      matches = 0;
+      break;
     %}
+    if (matches) {
+      $k() = N-vn;
+      if (N == $SIZE(N)-1) vn = N; /* last one matched, so stop */
+    } else {
+      vn = N-1;
+      break;
+    }
   %}
-  NOMATCH_$GENERIC(): N = vn; /* skip forward */
+  N = vn; /* skip forward */
 %}
 EOC
        Doc =><<'EOD',
