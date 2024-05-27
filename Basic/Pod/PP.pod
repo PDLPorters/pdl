@@ -25,169 +25,28 @@ PDL::PP - Generate PDL routines from concise descriptions
 	pp_done();
 	# do not call exit() as some processing can be done in same process
 
-=head1 FUNCTIONS
-
-Here is a quick reference list of the functions provided by PDL::PP.
-
-=head2 pp_add_boot
-
-=for ref
-
-Add code to the BOOT section of generated XS file
-
-
-=head2 pp_add_exported
-
-=for ref
-
-Add functions to the list of exported functions
-
-
-=head2 pp_add_isa
-
-=for ref
-
-Add entries to the @ISA list
-
-
-=head2 pp_addbegin
-
-=for ref
-
-Sets code to be added at the top of the generate .pm file
-
-
-=head2 pp_addhdr
-
-=for ref
-
-Add code and includes to C section of the generated XS file.
-
-When used in a module that is "multi-C" (one F<.c> file per C<pp_def>ed
-function), you need to bear in mind that as each one is generated, all the
-C<pp_addhdr> so far will be included. Therefore, if you add C functions,
-make sure to make them C<static> to avoid clashes with later F<.c> files.
-But a better practice is make them be separate C files, with any necessary
-F<.h> to be included by them and the F<.pd> file. You can then add them
-to your F<Makefile.PL> (note this is the C<_int> version, see separate
-notes on how to "opt-in" for your own modules):
-
-  my @pack = (["pnm.pd", qw(Pnm PDL::IO::Pnm)]);
-  my %hash = pdlpp_stdargs_int(@pack);
-  $hash{OBJECT} .= ' get$(OBJ_EXT)';
-  sub MY::postamble { pdlpp_postamble_int(@pack); }
-  WriteMakefile(%hash);
-
-=head2 pp_addpm
-
-=for ref
-
-Add code to the generated .pm file
-
-=head2 pp_addxs
-
-=for ref
-
-Add extra XS code to the generated XS file
-
-=head2 pp_add_macros
-
-=for ref
-
-Add extra C<$MACRO()> definitions for these functions. Note these generate
-C code. As of 2.080, they will be passed the list of arguments they were
-called with, rather than a single string, split like the C pre-processor
-on commas except if in C<""> or C<()>, with leading and trailing
-whitespace removed.
-
-=for example
-
-  pp_add_macros(SUCC => sub { "($_[0] + 1)" });
-  # ...
-    Code => '$a() = $SUCC($b());',
-
-=head2 pp_add_typemaps
-
-=for ref
-
-Available from 2.082. Add an XS typemap for use as C<OtherPars> or from
-manually-added XS. Takes
-one named argument, either C<typemap> (an L<ExtUtils::Typemaps> object),
-C<string>, or C<file>.
-
-=for example
-
-  pp_add_typemaps(string=><<'EOT');
-  TYPEMAP
-  NV_ADD1 T_NV_ADD1
-
-  INPUT
-  T_NV_ADD1
-    $var = SvNV($arg) + 1;
-
-  OUTPUT
-  T_NV_ADD1
-    sv_setnv($arg, $var - 1);
-  EOT
-  # ...
-    OtherPars => '[o] NV_ADD1 v1',
-
-=head2 pp_beginwrap
-
-=for ref
-
-Add BEGIN-block wrapping to code for the generated .pm file
-
-
-=head2 pp_bless
-
-=for ref
-
-Sets the package to which the XS code is added (default is PDL)
-
-
-=head2 pp_core_importList
-
-=for ref
-
-Specify what is imported from PDL::Core
-
-
-=head2 pp_def
-
-=for ref
-
-Define a new PDL function
-
-
-=head2 pp_deprecate_module
-
-=for ref
-
-Add runtime and POD warnings about a module being deprecated
-
-
-=head2 pp_done
-
-=for ref
-
-Mark the end of PDL::PP definitions in the file
-
-
-=head2 pp_export_nothing
-
-=for ref
-
-Clear out the export list for your generated module
-
-
-=head2 pp_line_numbers
-
-=for ref
-
-Add line number information to simplify debugging of PDL::PP code
-
 =head1 OVERVIEW
+
+PDL::PP prepares Perl modules and the C sources ald allows to write
+software which can be called from Perl but executes with C speed -
+with ease.  These C sources need to be compiled before your code can be
+executed.  There are two modes of operation for this:
+
+=over
+
+=item Use Inline::Pdlpp
+
+With L<Inline::Pdlpp>, the C code will be compiled on the fly at
+runtime.  It is easier to get started with, but you pay the
+compilation overhead for every run.
+
+=item Write a Makefile.PL to compile in advance
+
+The section L</"MAKEFILES FOR PP FILES"> gives an example how to add
+directives to your F<Makefile.PL> so that your C code will be compiled
+when you build your module.
+
+=back
 
 For an alternate introduction to PDL::PP, see L<Practical Magick with
 C, PDL, and PDL::PP -- a guide to compiled add-ons for
@@ -505,6 +364,170 @@ and dataflow first).
 be a PDL developer (and even then it's not obligatory)
 
 =back
+
+=head1 FUNCTIONS
+
+Here is a quick reference list of the functions provided by PDL::PP.
+
+=head2 pp_add_boot
+
+=for ref
+
+Add code to the BOOT section of generated XS file
+
+
+=head2 pp_add_exported
+
+=for ref
+
+Add functions to the list of exported functions
+
+
+=head2 pp_add_isa
+
+=for ref
+
+Add entries to the @ISA list
+
+
+=head2 pp_addbegin
+
+=for ref
+
+Sets code to be added at the top of the generate .pm file
+
+
+=head2 pp_addhdr
+
+=for ref
+
+Add code and includes to C section of the generated XS file.
+
+When used in a module that is "multi-C" (one F<.c> file per C<pp_def>ed
+function), you need to bear in mind that as each one is generated, all the
+C<pp_addhdr> so far will be included. Therefore, if you add C functions,
+make sure to make them C<static> to avoid clashes with later F<.c> files.
+But a better practice is make them be separate C files, with any necessary
+F<.h> to be included by them and the F<.pd> file. You can then add them
+to your F<Makefile.PL> (note this is the C<_int> version, see separate
+notes on how to "opt-in" for your own modules):
+
+  my @pack = (["pnm.pd", qw(Pnm PDL::IO::Pnm)]);
+  my %hash = pdlpp_stdargs_int(@pack);
+  $hash{OBJECT} .= ' get$(OBJ_EXT)';
+  sub MY::postamble { pdlpp_postamble_int(@pack); }
+  WriteMakefile(%hash);
+
+=head2 pp_addpm
+
+=for ref
+
+Add code to the generated .pm file
+
+=head2 pp_addxs
+
+=for ref
+
+Add extra XS code to the generated XS file
+
+=head2 pp_add_macros
+
+=for ref
+
+Add extra C<$MACRO()> definitions for these functions. Note these generate
+C code. As of 2.080, they will be passed the list of arguments they were
+called with, rather than a single string, split like the C pre-processor
+on commas except if in C<""> or C<()>, with leading and trailing
+whitespace removed.
+
+=for example
+
+  pp_add_macros(SUCC => sub { "($_[0] + 1)" });
+  # ...
+    Code => '$a() = $SUCC($b());',
+
+=head2 pp_add_typemaps
+
+=for ref
+
+Available from 2.082. Add an XS typemap for use as C<OtherPars> or from
+manually-added XS. Takes
+one named argument, either C<typemap> (an L<ExtUtils::Typemaps> object),
+C<string>, or C<file>.
+
+=for example
+
+  pp_add_typemaps(string=><<'EOT');
+  TYPEMAP
+  NV_ADD1 T_NV_ADD1
+
+  INPUT
+  T_NV_ADD1
+    $var = SvNV($arg) + 1;
+
+  OUTPUT
+  T_NV_ADD1
+    sv_setnv($arg, $var - 1);
+  EOT
+  # ...
+    OtherPars => '[o] NV_ADD1 v1',
+
+=head2 pp_beginwrap
+
+=for ref
+
+Add BEGIN-block wrapping to code for the generated .pm file
+
+
+=head2 pp_bless
+
+=for ref
+
+Sets the package to which the XS code is added (default is PDL)
+
+
+=head2 pp_core_importList
+
+=for ref
+
+Specify what is imported from PDL::Core
+
+
+=head2 pp_def
+
+=for ref
+
+Define a new PDL function
+
+
+=head2 pp_deprecate_module
+
+=for ref
+
+Add runtime and POD warnings about a module being deprecated
+
+
+=head2 pp_done
+
+=for ref
+
+Mark the end of PDL::PP definitions in the file
+
+
+=head2 pp_export_nothing
+
+=for ref
+
+Clear out the export list for your generated module
+
+
+=head2 pp_line_numbers
+
+=for ref
+
+Add line number information to simplify debugging of PDL::PP code
+
+=head1 OVERVIEW
 
 =head1 WARNING
 
@@ -2290,16 +2313,18 @@ In most cases you can define your Makefile like
     for (i=0;i<len;i++) *dst++=*src++;
   }
 
-Here, the list in C<$package> is: first: PP source file name,
-then the prefix for the produced files, the whole package name, the
-package to add XS functions to (empty string to use the same as the
-PP functions), and a boolean to dictate whether to have PDL generate a
-separate C file for each PP function (for faster compilation).
-The last feature is opt-in as you have to avoid duplicate symbols when
-linking the library (so separate out C functions into their own file).
-You can modify the hash in whatever way you like but it would be reasonable
-to stay within some limits so that your package will continue to work
-with later versions of PDL.
+Here, the list in C<$package> is: first: PP source file name, then the
+prefix for the produced files.  You might want to exclude these files
+from version control.  This is also the basename of the Perl module
+you can C<use> in your application.  The next parameters are the whole
+package name and the package to add XS functions to (empty string to
+use the same as the PP functions), and a boolean to dictate whether to
+have PDL generate a separate C file for each PP function (for faster
+compilation).  The last feature is opt-in as you have to avoid
+duplicate symbols when linking the library (so separate out C
+functions into their own file).  You can modify the hash in whatever
+way you like but it would be reasonable to stay within some limits so
+that your package will continue to work with later versions of PDL.
 
 To make life even easier PDL::Core::Dev defines the function C<pdlpp_stdargs>
 that returns a hash with default values that can be passed (either
