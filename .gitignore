@@ -78,6 +78,7 @@ nytprof*
 
 .inlinepdlpp
 .inlinewith
+.pptest
 Basic/Bad/Bad.c
 Basic/Bad/Bad.pm
 Basic/Bad/Bad.xs

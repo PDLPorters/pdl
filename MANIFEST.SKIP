@@ -29,6 +29,7 @@ RCS
 \.bundle$
 \.inlinewith
 \.inlinepdlpp
+\.pptest
 \.lck$
 \.m$
 \.o$
