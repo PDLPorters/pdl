@@ -27,7 +27,7 @@ PDL::PP - Generate PDL routines from concise descriptions
 
 =head1 OVERVIEW
 
-PDL::PP prepares Perl modules and the C sources ald allows to write
+PDL::PP prepares Perl modules and the C sources and allows to write
 software which can be called from Perl but executes with C speed -
 with ease.  These C sources need to be compiled before your code can be
 executed.  There are two modes of operation for this:
@@ -36,9 +36,9 @@ executed.  There are two modes of operation for this:
 
 =item Use Inline::Pdlpp
 
-With L<Inline::Pdlpp>, the C code will be compiled on the fly at
-runtime.  It is easier to get started with, but you pay the
-compilation overhead for every run.
+With L<Inline::Pdlpp>, the C code will be created and compiled on the
+fly when run for the first time.  It is easier to get started with,
+but the modules using this method are very hard to make installable.
 
 =item Write a Makefile.PL to compile in advance
 
@@ -406,8 +406,11 @@ Add code and includes to C section of the generated XS file.
 When used in a module that is "multi-C" (one F<.c> file per C<pp_def>ed
 function), you need to bear in mind that as each one is generated, all the
 C<pp_addhdr> so far will be included. Therefore, if you add C functions,
-make sure to make them C<static> to avoid clashes with later F<.c> files.
-But a better practice is make them be separate C files, with any necessary
+make sure to make them C<static> to avoid clashes with later F<.c> files,
+or add the C functions to the C<CHeader> key (available as of version
+2.086) of L</pp_def>.
+
+Another alternative is to make them be separate C files, with any necessary
 F<.h> to be included by them and the F<.pd> file. You can then add them
 to your F<Makefile.PL> (note this is the C<_int> version, see separate
 notes on how to "opt-in" for your own modules):
