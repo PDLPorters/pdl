@@ -32,6 +32,8 @@ for (
 }
 }
 
+is ipow(10,2)->type, 'double', 'floating point op defaults to double';
+
 {
 my $pd = pdl 5,6;
 my $pe = $pd - 1;

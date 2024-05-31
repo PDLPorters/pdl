@@ -79,11 +79,7 @@ if (defined($v) && version->parse($v)>=version->parse(2.0)){
     pp_def('gsl_sf_legendre_array',
 	   GenericTypes => ['D'],
 	   OtherPars => 'char norm;  int lmax; int csphase',
-	   Pars => 'double x(); double [o]y(n); double [t]work(wn)',
-	   RedoDimsCode => '
-$SIZE(wn)=gsl_sf_legendre_array_n($COMP(lmax));
-$SIZE(n)=$COMP(lmax)*($COMP(lmax)+1)/2+$COMP(lmax)+1;
-',
+	   Pars => 'double x(); double [o]y(n=CALC($COMP(lmax)*($COMP(lmax)+1)/2+$COMP(lmax)+1)); double [t]work(wn=CALC(gsl_sf_legendre_array_n($COMP(lmax))))',
 	   HandleBad => 1,
 	   Code => <<'EOBC',
 	   PDL_IF_BAD(if ( $ISBAD( x() ) ) {
@@ -135,8 +131,7 @@ EOD
 
     pp_def('gsl_sf_legendre_array_index',
 	   OtherPars => 'int lmax',
-	   Pars => 'int [o]l(n); int [o]m(n)',
-	   RedoDimsCode => '$SIZE(n)=$COMP(lmax)*($COMP(lmax)+1)/2+$COMP(lmax)+1;',
+	   Pars => 'int [o]l(n=CALC($COMP(lmax)*($COMP(lmax)+1)/2+$COMP(lmax)+1)); int [o]m(n)',
 	   Code => q/
            int ell, em, index;
 	   for (ell=0; ell<=$COMP(lmax); ell++){
@@ -167,7 +162,7 @@ pp_def('gsl_sf_legendre_Plm_array',
 GSLERR(gsl_sf_legendre_Plm_array,($COMP(l)-2+$COMP(m),$COMP(m),$x(),$P(y)))
 ',
        Doc =>'P_lm(x) for l from 0 to n-2+m.
-gsl_sf_legendre_Plm_array has been deprecated in GSL version 2.0. It is included here for backwards compatability and may be removed in a future release.  New code should use L</gsl_sf_legendre_array> instead.'
+gsl_sf_legendre_Plm_array has been deprecated in GSL version 2.0. It is included here for backwards compatibility and may be removed in a future release.  New code should use L</gsl_sf_legendre_array> instead.'
       );
 
 pp_def('gsl_sf_legendre_sphPlm_array',
@@ -178,7 +173,7 @@ pp_def('gsl_sf_legendre_sphPlm_array',
 GSLERR(gsl_sf_legendre_sphPlm_array,($COMP(n)-2+$COMP(m),$COMP(m),$x(),$P(y)))
 ',
        Doc =>'P_lm(x), normalized properly for use in spherical harmonics for l from 0 to n-2+m.
-gsl_sf_legendre_sphPlm_array has been deprecated in GSL version 2.0. It is included here for backwards compatability and may be removed in a future release.  New code should use L</gsl_sf_legendre_array> instead.'
+gsl_sf_legendre_sphPlm_array has been deprecated in GSL version 2.0. It is included here for backwards compatibility and may be removed in a future release.  New code should use L</gsl_sf_legendre_array> instead.'
       );
 
 } else {

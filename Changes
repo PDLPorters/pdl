@@ -1,13 +1,62 @@
+- add demo of GSL::CDF
+- floating-point-only operations in Ops, Primitive, Bad now default to double, not cldouble
+- fix treating a large Perl UV as an IV so getting sign wrong (#469)
+- remove obsolete $PP()
+- pptest.t now uses build dir to avoid noexec mount problems
+
+2.089 2024-05-12
+- fix numerical misbehaviour in histogram etc on i686 (#474) - thanks @sebastic for report
+- add ANYVAL_FROM_SV parameter to control "undefval" warning
+- move contour_segments from Graphics::TriD::Rout to ImageND
+- add TriD::line3d_segs
+- add Slices::meshgrid
+- add ImageND::{path_{join,segs},contour_polylines}
+
+2.088 2024-04-22
+- Slatec::ch{ic,sp} work arrays now [t]
+- add Slatec::bvalu
+- add Func::{pchip,spline}, and a demo
+- add Ufunc::diff2
+- extra ) on end of Pars now an error
+- PP dim sizes can be =CALC(...) instead of explicit RedoDimsCode
+- PP add loop(n=start:end:inc) idiom to stop not at end and have non-1 inc
+- updated README.md - thanks @falsifian
+- support T_PTROBJ in typemap
+
+2.087 2024-04-05
+- Slatec PCHIP routines now have idiomatic [io] `skip` Pars, with doc fixed to match SLATEC code (#468)
+- Slatec ezfft* routines take IFAC to avoid treating part of float array as integer (#468)
+- add has_badvalue method for whether ndarray has per-pdl badvalue (#469)
+- fix Slatec breaking PDL::Stats (https://github.com/PDLPorters/PDL-Stats/issues/31) - thanks @sebastic for report
+- fix long-standing mistyping of large negative IVs on 32-bit (#469) - thanks @sebastic for report
+- can now set badvalues that are Math::Complex objects (#469)
+
+2.086 2024-03-31
+- fix 64-bit problem in Minuit revealed by LTO (#468) - thanks @eli-schwartz for report
+- add pdl.ntrans_children to speed up destroying ndarrays (#421,#451)
+
+2.085_02 2024-03-25
 - PP add loop(n=value) idiom to start not at 0
 - add whichover, inspired by https://stackoverflow.com/questions/77551179/perl-pdl-indexing-and-which
 - random/randsym only produce real data
 - fix dataflow when vaffine ndarray is between modified and downstream (#461) - thanks @vadim-160102 for continued reporting
 - revert the use of ArgOrder for PDL::Ops so op($a,$b,$c,$swap) works again as pre 2.082_01
-- error on inflating output ndarrays over dims sized 1 or implicit as undefined
+- error on inflating output ndarrays over dims sized 1 or implicit (promoted) or dummy, as is undefined behaviour
 - make HdrCode and FtrCode run when PMCode supplied (#463) - thanks @jo-37 for suggestion
 - PP add CHeader key
 - OtherPars can now be incomplete arrays of char*
 - make typemaps able to use more Perl ones like T_HVREF - thanks @jo-37
+- removed threadover_n alias since not used elsewhere and broadcastover{,_n} interface adjusted to move mandatory to start
+- add ccumu{prod,sum}over in complex double precision
+- setdims on ndarray with trans_parent (i.e. flowing) now an error
+- set(..., $multi_elt) now an error (#466) - thank @djerius for report
+- convert can work inplace (by using set_datatype)
+- flowing convert of ndarrays preserves badvalues that are NaN
+- PDL_ISBAD2 macro
+- lvalue {un,}broadcast
+- set_datatype now errors if has trans_children, as trans-es have a datatype
+- add ANYVAL_TO_ANYVAL_NEWTYPE
+- per-ndarray badvalues (which are PDL_Anyval) now constrained to be same type as ndarray
 
 2.085_01 2024-02-10
 - test, document PDL::string, make more consistent (#459) - thanks @vadim-160102 for report
@@ -1420,7 +1469,7 @@ Highlights:
  * Fix for sf.net bug #390: scalar PDL with badvalue
    always compares BAD with perl scalars.  Now a warning
    is given if the badvalue could conflict with the
-   results of a logical or comparision operation.
+   results of a logical or comparison operation.
  
  * Fixed a makefile construct which was ambiguous and
    caused build failures on Solaris using their make.
@@ -1956,7 +2005,7 @@ General Notes:
 Highlights:
 
  * This release should be a working PDL::IO::Storable that
-   is compatable with the new 64bit index support.
+   is compatible with the new 64bit index support.
  
  * PDL::IO::Storable now requires perl 5.10.x or greater
    although the overall distribution requirements are not
@@ -2869,7 +2918,7 @@ Highlights:
 
    Supports Term::ReadLine::Perl and Term::ReadLine::Gnu.
 
-   Upward compatable with the original PDL shell, perldl.
+   Upward compatible with the original PDL shell, perldl.
 
    Adds completion and command line editing support
    across all PDL platforms.

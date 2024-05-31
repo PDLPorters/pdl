@@ -100,9 +100,6 @@ use strict;
 use warnings;
 
 EOD
-pp_addhdr('
-#include "gauss.c"
-');
 
 for my $name ('fitgauss1d','fitgauss1dr') {
 pp_def($name,
@@ -111,6 +108,7 @@ pp_def($name,
 	         [o]background();int [o]err(); [o]datafit(n); 
 	         [t]sig(n);  [t]ytmp(n); [t]yytmp(n); [t]rtmp(n);',
 	GenericTypes => ['D'],
+	CHeader => qq{#include "gauss.c"\n},
 	Code => '
 	  int i, nb;
           double ymax, xmax, xmin, val, xval, xcenguess, bkg, par[NPAR], a[NPAR][NPAR];

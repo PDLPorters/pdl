@@ -392,9 +392,12 @@ sub invert {
 
 +======EOD_invert======
 
-pp_addhdr(<<'+==EOD_map_auxiliary==');
-
-
+pp_add_exported('map');
+pp_def('map',
+        Pars=>'k0()',  # Dummy to set type (should match the type of "in").
+        OtherPars=>'pdl *in; pdl *out; pdl *map; SV *boundary; SV *method;
+                    long big; double blur; double sv_min; char flux; SV *bv',
+        CHeader => <<'+==EOD_map_auxiliary==',
 /*
  * Singular-value decomposition code is borrowed from
  * MatrixOps -- cut-and-pasted here because of linker trouble.
@@ -588,14 +591,7 @@ static inline PDL_Double PDL_xform_aux ( pdl *map, PDL_Indx *coords, PDL_Double 
  *jptr = det;
   return max_sv;
 }
-
 +==EOD_map_auxiliary==
-
-pp_add_exported('map');
-pp_def('map',
-        Pars=>'k0()',  # Dummy to set type (should match the type of "in").
-        OtherPars=>'pdl *in; pdl *out; pdl *map; SV *boundary; SV *method;
-                    long big; double blur; double sv_min; char flux; SV *bv',
         Code => <<'+==EOD_map_c_code==',
 
 /*
@@ -632,8 +628,7 @@ pp_def('map',
  PDL_Double blur;           /* Scaling of filter                        */
  PDL_Double sv_min;         /* minimum singular value                   */
  char flux;                 /* Flag to indicate flux conservation       */
- PDL_Double *map_ptr;
- PDL_Long i, j;
+ PDL_Indx i, j;
  $GENERIC() badval = SvNV($COMP(bv));
  #define HANNING_LOOKUP_SIZE 2500
  static PDL_Double hanning_lookup[HANNING_LOOKUP_SIZE + 2];
@@ -768,8 +763,12 @@ pp_def('map',
  for(i=0;i<ndims;i++)
    ovec[i] = 0;
 
- map_ptr = (PDL_Double *)(map->data);
-
+ PDL_Double *map_ptr = (PDL_Double *)(map->data);
+ PDL_Indx npdls = 1, incs[npdls*ndims], offs[npdls];
+ for (i=0; i < npdls; i++) offs[i] = 0;
+ for (i=0; i < ndims; i++) {
+   incs[i*npdls + 0] = map->dimincs[i+1];
+ }
 
 /* Main pixel loop (iterates over pixels in the output plane) */
  do {
@@ -804,7 +803,7 @@ pp_def('map',
       * dvec gets the delta; ibvec gets the base.
       */
      {
-       PDL_Double *mp = map_ptr;
+       PDL_Double *mp = map_ptr + offs[0];
        for (i=0;i<ndims;i++) {
         dvec[i]  = *mp - ( ibvec[i] = (PDL_Long)(*mp + 0.5));   /* assignment */
         mp += map->dimincs[0];
@@ -1189,19 +1188,8 @@ pp_def('map',
    }
 
    /* Increment the pixel counter */
-   {
-     for(i=0;
-             (i<ndims) &&
-             (map_ptr += map->dimincs[i+1]) &&  /* Funky pre-test increment */
-             (++(ovec[i]) >= out->dims[i]);     /* Actual carry test */
-         i++) {
-        ovec[i] = 0;
-        map_ptr -= out->dims[i] * map->dimincs[i+1];
-     }
-    }
-  } while(i<ndims);
-
-
+   if (!pdl_broadcast_nd_step(npdls, offs, 0, ndims, incs, out->dims, ovec)) break;
+  } while (1);
 +==EOD_map_c_code==
 
         Doc=><<'+==EOD_map_doc==',

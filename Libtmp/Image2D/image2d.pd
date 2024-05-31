@@ -50,15 +50,11 @@ EOD
 #     BEGIN INTERNAL FUNCTION DECLARATIONS      #
 #################################################
 
-pp_addhdr('
-void polyfill(PDL_Long *image, int wx, int wy, float *ps, int n,
-	PDL_Long col, int *ierr);
-');
-
 pp_def('polyfill_pp',
     HandleBad => 0, # a marker
     Pars => '[io] im(m,n); float ps(two=2,np); int col()',
     GenericTypes => ['L'],
+    CHeader => qq{void polyfill(PDL_Long *image, int wx, int wy, float *ps, int n, PDL_Long col, int *ierr);\n},
     Code => 'int ierr = 0, nerr;
              broadcastloop %{
                polyfill($P(im), $SIZE(m), $SIZE(n), $P(ps), $SIZE(np), $col(), &nerr);
@@ -82,29 +78,25 @@ for my $name (sort keys %pnpolyFields) {
 		Doc => undef,
 		Pars => $pnpolyFields{$name}->{'pars'},
 		Code => '
-	        int i, j, c, nvert;
-	        nvert = $SIZE(l);
+#define VERTX(q) $ps(k=>0,l=>q)
+#define VERTY(q) $ps(k=>1,l=>q)
 
-	        #define VERTX(q) $ps(k=>0,l=>q)
-	        #define VERTY(q) $ps(k=>1,l=>q)
+broadcastloop %{
+  loop(n,m) %{
+    PDL_Indx j = $SIZE(l)-1, c = 0;
+    loop (l) %{
+      if ( ((VERTY(l)>n) != (VERTY(j)>n)) &&
+	(m < (VERTX(j)-VERTX(l)) * (n-VERTY(l)) / (VERTY(j)-VERTY(l)) + VERTX(l)) )
+	c = !c;
+      j = l;
+    %}
+    ' . $pnpolyFields{$name}{special} .'
+  %}
+%}
 
-			broadcastloop %{
-				loop(n) %{
-					loop(m) %{
-	                	c = 0;
-	                    for(i=0,j=nvert-1;i<nvert;j=i++) {
-	                        if( ((VERTY(i)>n) != (VERTY(j)>n)) &&
-	                            (m < (VERTX(j)-VERTX(i)) * (n-VERTY(i)) / (VERTY(j)-VERTY(i)) + VERTX(i)) )
-	                            c = !c;
-	                    }
-	                   ' . $pnpolyFields{$name}->{'special'} .'
-					%}
-				%}
-			%}
-
-	        #undef VERTX
-	        #undef VERTY
-	 '
+#undef VERTX
+#undef VERTY
+'
 	);
 }
 
@@ -190,7 +182,7 @@ sub init_map {
 sub init_vars {
     my $sizevars = shift || [qw(m n p q)];
     my $compvars = shift || [];
-    my $str = "int i,j, i1,j1, i2,j2, poff, qoff;";
+    my $str = "int i,j, i2,j2, poff, qoff;";
     $str .=
 	'int opt = $COMP(opt);
 	' . join("\n", map "int ${_}_size = \$SIZE(${_});", @$sizevars) . '
@@ -237,11 +229,7 @@ EOD
        BadDoc =>
 'Unlike the FFT routines, conv2d is able to process bad values.',
        HandleBad => 1,
-        Pars => 'a(m,n); kern(p,q); [o]b(m,n); indx [t]mapi(isize); indx [t]mapj(jsize)',
-        RedoDimsCode => '
-          $SIZE(isize) = $SIZE(p) + $SIZE(m);
-          $SIZE(jsize) = $SIZE(q) + $SIZE(n);
-        ',
+        Pars => 'a(m,n); kern(p,q); [o]b(m,n); indx [t]mapi(isize=CALC($SIZE(p) + $SIZE(m))); indx [t]mapj(jsize=CALC($SIZE(q) + $SIZE(n)))',
         OtherPars => 'int opt;',
         PMCode => '
 sub PDL::conv2d {
@@ -262,31 +250,29 @@ sub PDL::conv2d {
            init_map("i") .
            init_map("j") .
 '
-           PDL_CLDouble tmp; int flag;
-           broadcastloop %{
-           loop(n) %{
-              loop(m) %{
-                 tmp = 0;
-                 for(j1=0; j1<q_size; j1++) {
-                    j2 = mapj[n-j1];
-                    if (j2 >= 0) {
-                       for(i1=0; i1<p_size; i1++) {
-                          i2 = mapi[m-i1];
-                          if (i2 >= 0) {
-			     PDL_IF_BAD(if ( $ISGOOD(a(m=>i2,n=>j2)) && $ISGOOD(kern(p=>i1,q=>j1)) ),) {
-                                tmp += $a(m=>i2,n=>j2) * $kern(p=>i1,q=>j1);
-                                flag = 1;
-			     } /* if: good */
-                          } /* if: i2 >= 0 */
-		       } /* for: i1 */
-		    } /* if: j2 >= 0 */
-		 } /* for: j1 */
-		 PDL_IF_BAD(if ( !flag ) { $SETBAD(b()); }
-		 else,)                  { $b() = tmp; }
-	      %}
-           %}
-           %}
-	   ',
+broadcastloop %{
+loop(n,m) %{
+  int flag = 0;
+  PDL_CLDouble tmp = 0;
+  loop (q) %{
+     j2 = mapj[n-q];
+     if (j2 >= 0) {
+        loop (p) %{
+           i2 = mapi[m-p];
+           if (i2 >= 0) {
+              PDL_IF_BAD(if ( $ISGOOD(a(m=>i2,n=>j2)) && $ISGOOD(kern()) ),) {
+                 tmp += $a(m=>i2,n=>j2) * $kern();
+                 flag = 1;
+              } /* if: good */
+           } /* if: i2 >= 0 */
+        %}
+     } /* if: j2 >= 0 */
+  %}
+  PDL_IF_BAD(if ( !flag ) { $SETBAD(b()); }
+  else,)                  { $b() = tmp; }
+%}
+%}
+',
 ); # pp_def: conv2d
 
 pp_addhdr(<<'EOF');
@@ -325,7 +311,7 @@ EOD
 'Bad values are ignored in the calculation. If all elements within the
 kernel are bad, the output is set bad.',
        HandleBad => 1,
-        Pars => 'a(m,n); kern(p,q); [o]b(m,n); double+ [t]tmp(pq); indx [t]mapi(isize); indx [t]mapj(jsize)',
+        Pars => 'a(m,n); kern(p,q); [o]b(m,n); double+ [t]tmp(pq=CALC($SIZE(p)*$SIZE(q))); indx [t]mapi(isize=CALC($SIZE(p) + $SIZE(m))); indx [t]mapj(jsize=CALC($SIZE(q) + $SIZE(n)))',
         OtherPars => 'int opt;',
         PMCode => <<'EOF',
 sub PDL::med2d {
@@ -342,48 +328,38 @@ sub PDL::med2d {
    return $c;
 }
 EOF
-        RedoDimsCode => '
-          $SIZE(pq) = $SIZE(p)*$SIZE(q);
-          $SIZE(isize) = $SIZE(p) + $SIZE(m);
-          $SIZE(jsize) = $SIZE(q) + $SIZE(n);
-        ',
         Code =>
            init_vars() .
            init_map("i") .
            init_map("j") .
 '
-           int flag;
-           PDL_LDouble kk, aa;
            broadcastloop %{
-           for(j=0; j<n_size; j++) {
-              for(i=0; i<m_size; i++) {
-                 PDL_Indx count = 0;
-                 flag = 0;
-                 for(j1=0; j1<q_size; j1++) {
-                    j2 = mapj[j-j1];
-                    if (j2 >= 0)
-                       for(i1=0; i1<p_size; i1++) {
-                          i2 = mapi[i-i1];
-                          if (i2 >= 0) {
-                             kk = $kern(p=>i1,q=>j1);
-                             aa = $a(m=>i2,n=>j2);
-                             PDL_IF_BAD(if ( $ISGOODVAR(kk,kern) && $ISGOODVAR(aa,a) ),) {
-				flag = 1;
-                                if ( kk > 0 ) {
-                                   $tmp(pq=>count++) = aa * kk;
-			        }
+           loop (n,m) %{
+              PDL_Indx count = 0;
+              int flag = 0;
+              loop (q) %{
+                 j2 = mapj[n-q];
+                 if (j2 >= 0)
+                    loop (p) %{
+                       i2 = mapi[m-p];
+                       if (i2 >= 0) {
+                          PDL_LDouble kk = $kern(), aa = $a(m=>i2,n=>j2);
+                          PDL_IF_BAD(if ( $ISGOODVAR(kk,kern) && $ISGOODVAR(aa,a) ),) {
+                             flag = 1;
+                             if ( kk > 0 ) {
+                                $tmp(pq=>count++) = aa * kk;
                              }
-                          } /* if: i2 >= 0 */
-		       } /* for: i1 */
-		 } /* for: j1 */
-		 PDL_IF_BAD(if ( flag == 0 ) {
-		    $SETBAD(b(m=>i,n=>j));
-                 } else,) {
-                    qsort_$PPSYM(tmp)( $P(tmp), 0, count-1 );
-                    $b(m=>i,n=>j) = $tmp(pq=>(count-1)/2);
-		 }
-              } /* for: i */
-           } /* for: j */
+                          }
+                       } /* if: i2 >= 0 */
+                    %}
+              %}
+              PDL_IF_BAD(if ( flag == 0 ) {
+                 $SETBAD(b());
+              } else,) {
+                 qsort_$PPSYM(tmp)( $P(tmp), 0, count-1 );
+                 $b() = $tmp(pq=>(count-1)/2);
+              }
+           %}
            %}
 '
 
@@ -419,12 +395,8 @@ Note: this routine does the median over all points in a rectangular
 =cut
 
 EOD
-        Pars => 'a(m,n); [o]b(m,n); indx [t]mapi(isize); indx [t]mapj(jsize)',
+        Pars => 'a(m,n); [o]b(m,n); indx [t]mapi(isize=CALC($SIZE(p) + $SIZE(m))); indx [t]mapj(jsize=CALC($SIZE(q) + $SIZE(n)))',
         OtherPars => 'int p_size=>p; int q_size=>q; int opt;',
-        RedoDimsCode => '
-          $SIZE(isize) = $SIZE(p) + $SIZE(m);
-          $SIZE(jsize) = $SIZE(q) + $SIZE(n);
-        ',
         PMCode => <<'EOF',
 sub PDL::med2df {
    my $opt; $opt = pop @_ if ref($_[$#_]) eq 'HASH';
@@ -445,30 +417,20 @@ EOF
            init_map("i") .
            init_map("j") .
 '
-           int count;
-           $GENERIC() kk, tmp[p_size*q_size];
-           broadcastloop %{
-           for(j=0; j<n_size; j++) {
-              for(i=0; i<m_size; i++) {
-                 count = 0;
-                 for(j1=0; j1<q_size; j1++) {
-                    j2 = mapj[j-j1];
-
-                    if (j2 >= 0)
-                       for(i1=0; i1<p_size; i1++) {
-                          i2 = mapi[i-i1];
-                          if (i2 >= 0) {
-                                tmp[count++] = $a(m=>i2,n=>j2);
-                          } /* if: i2 >= 0 */
-		       } /* for: i1 */
-		 } /* for: j1 */
-
-                 $b(m=>i,n=>j) =
-                        quick_select_$PPSYM() (tmp, count );
-
-              } /* for: i */
-           } /* for: j */
-           %}
+  $GENERIC() tmp[p_size*q_size];
+  broadcastloop %{
+  loop (n,m) %{
+     int count = 0;
+     loop (q) %{
+        if ((j2 = mapj[n-q]) < 0) continue;
+        loop (p) %{
+           if ((i2 = mapi[m-p]) < 0) continue;
+           tmp[count++] = $a(m=>i2,n=>j2);
+        %}
+     %}
+     $b() = quick_select_$PPSYM() (tmp, count );
+  %}
+  %}
 ',
 
 ); # pp_def: med2df
@@ -483,58 +445,55 @@ pp_def('box2d',
        Code => '
                 register int nx = 0.5*$COMP(wx);
                 register int ny = 0.5*$COMP(wy);
-                register int xs = $SIZE(n);
-                register int ys = $SIZE(m);
 		register int ez = $COMP(edgezero);
                 PDL_CLDouble div, sum, lsum;
-                int xx,yy,y,ind1,ind2,first;
+                int ind1,ind2,first;
 
 		div = 1/((2.0*nx+1)*(2.0*ny+1));
 
 		broadcastloop %{
 		  first = 1;
-		  for (y=0;y<ys;y++)
-		    for (xx=0; xx<nx; xx++) {
-			ind1 = xs-1-xx;  /* rightmost strip */
-			$b(n=>xx,m=>y) = EZ($a(n=>xx,m=>y));
-			$b(n=>ind1,m=>y) = EZ($a(n=>ind1,m=>y));
-		  }
-		  for (xx=0;xx<xs;xx++)
-		    for (y=0; y<ny; y++) {
-			ind1 = ys-1-y;  /* topmost strip */
-			$b(n=>xx,m=>y) = EZ($a(n=>xx,m=>y));
-			$b(n=>xx,m=>ind1) = EZ($a(n=>xx,m=>ind1));
-		  }
-       		  for (y=ny;y<ys-ny;y++) {
+		  loop (m,n=:nx) %{
+		    ind1 = $SIZE(n)-1-n;  /* rightmost strip */
+		    $b() = EZ($a());
+		    $b(n=>ind1) = EZ($a(n=>ind1));
+                  %}
+		  loop (n,m=:ny) %{
+		    ind1 = $SIZE(m)-1-m;  /* topmost strip */
+		    $b() = EZ($a());
+		    $b(m=>ind1) = EZ($a(m=>ind1));
+		  %}
+		  loop (m=ny:-ny) %{
 		    if (first) {
 		       first = 0;
 		       lsum = 0;
-		       for (yy=y-ny;yy<=y+ny;yy++)   /* initialize sum */
-		          for (xx=0;xx<=2*nx;xx++)
-			    lsum += $a(n=>xx,m=>yy);
+		       PDL_Indx m_outer = m;
+		       loop (m=m_outer-ny:m_outer+ny+1,n=:2*nx+1) %{
+			 lsum += $a(); /* initialize sum */
+		       %}
 		    } else {
-			ind1 = y-ny-1;
-			ind2 = y+ny;
-			for (xx=0;xx<=2*nx;xx++) {
-			    lsum -= $a(n=>xx,m=>ind1); /* remove top pixels */
-			    lsum += $a(n=>xx,m=>ind2); /* add bottom pixels */
-			}
+			ind1 = m-ny-1;
+			ind2 = m+ny;
+			loop (n=:2*nx+1) %{
+			  lsum -= $a(m=>ind1); /* remove top pixels */
+			  lsum += $a(m=>ind2); /* add bottom pixels */
+			%}
 		    }
 		    sum = lsum;
-		    $b(n=>nx,m=>y) = div*sum;     /* and assign */
-		    for (xx=nx+1;xx<xs-nx;xx++) {     /* loop along line */
-		      ind1 = xx-nx-1;
-		      ind2 = xx+nx;
-		      for (yy=y-ny;yy<=y+ny;yy++) {
-			sum -= $a(n=>ind1,m=>yy); /* remove leftmost data */
-			sum += $a(n=>ind2,m=>yy); /* and add rightmost */
-		      }
-		      $b(n=>xx,m=>y) = div*sum;         /* and assign */
-		    }
-		  }
+		    $b(n=>nx) = div*sum;     /* and assign */
+		    loop (n=nx+1:-nx) %{ /* loop along line */
+		      ind1 = n-nx-1;
+		      ind2 = n+nx;
+		      PDL_Indx m_outer = m;
+		      loop (m=m_outer-ny:m_outer+ny+1) %{
+			sum -= $a(n=>ind1); /* remove leftmost data */
+			sum += $a(n=>ind2); /* and add rightmost */
+		      %}
+		      $b() = div*sum;         /* and assign */
+		    %}
+		  %}
 		%}',
        Doc => << 'EOD',
-
 =for ref
 
 fast 2D boxcar average
@@ -588,45 +547,29 @@ EOD
         Pars => 'a(m,n); int bad(m,n); [o]b(m,n);',
         GenericTypes => $A,
         Code =>
-        'PDL_Indx m_size, n_size,  i,j, i1,j1, i2,j2, norm;
+        'PDL_Indx i1,j1, i2,j2, norm;
          PDL_CLDouble tmp;
-
-         m_size = $SIZE(m); n_size = $SIZE(n);
-
       broadcastloop %{
-
-         for(j=0; j<n_size; j++) {
-            for(i=0; i<m_size; i++) {
-
-               $b(m=>i,n=>j) = $a(m=>i,n=>j);
-
-               if ( $bad(m=>i,n=>j)==1 ) {
-                  tmp = 0; norm=0;
-                  for(j1=-1; j1<=1; j1++) {
-		     j2 = j+j1;
-		     if ( j2>=0 && j2<n_size ) {
-                        for(i1=-1; i1<=1; i1++) {
-                           /* ignore central pixel, which we know is bad */
-			   if ( i1!=0 || j1!=0 ) {
-                              i2 = i+i1;
-                              if ( i2>=0 && i2<m_size && $bad(m=>i2,n=>j2)!=1 ) {
-                                 tmp += $a(m=>i2,n=>j2);
-                                 norm++;
-			      }
-			   } /* if: i1!=0 || j1!=0 */
-		        } /* for: i1 */
-		     }
-		  } /* for: j1 */
-
-                  if (norm>0) {  /* Patch */
-                     $b(m=>i,n=>j) = tmp/norm;
-		  }
-
-               } /* if: bad() */
-
-	    } /* for: i */
-         } /* for: j */
-
+         loop (n,m) %{
+           $b() = $a();
+           if (!$bad()) continue;
+           tmp = 0; norm=0;
+           for(j1=-1; j1<=1; j1++) {
+              j2 = n+j1;
+              if ( j2<0 || j2>=$SIZE(n) ) continue;
+              for(i1=-1; i1<=1; i1++) {
+                 /* ignore central pixel, which we know is bad */
+                 if ( i1==0 && j1==0 ) continue;
+                 i2 = m+i1;
+                 if ( i2<0 || i2>=$SIZE(m) || $bad(m=>i2,n=>j2) ) continue;
+                 tmp += $a(m=>i2,n=>j2);
+                 norm++;
+              } /* for: i1 */
+           } /* for: j1 */
+           if (norm>0) {  /* Patch */
+              $b() = tmp/norm;
+           }
+         %}
       %} /* broadcastloop */
          ', # Code
 );
@@ -654,42 +597,35 @@ bad values, depending on the pattern of bad values in the input ndarray.',
         GenericTypes => $A,
         Code =>
         'int i1,j1, flag = 0;
-         PDL_Indx m_size = $SIZE(m), n_size = $SIZE(n);
       broadcastloop %{
-         loop(n) %{
-            loop(m) %{
-	       $GENERIC(a) a_val = $a();
-               PDL_IF_BAD(if ( !$ISGOODVAR(a_val,a) ) {
-                  PDL_CLDouble tmp = 0; PDL_Indx norm=0;
-                  for(j1=-1; j1<=1; j1++) {
-		     PDL_Indx j2 = n+j1;
-		     if ( j2>=0 && j2<n_size ) {
-                        for(i1=-1; i1<=1; i1++) {
-                           /* ignore central pixel, which we know is bad */
-			   if ( i1!=0 || j1!=0 ) {
-                              PDL_Indx i2 = m+i1;
-                              if ( i2>=0 && i2<m_size ) {
-                                 a_val = $a(m=>i2,n=>j2);
-                                 if ( $ISGOODVAR(a_val,a) ) {
-                                    tmp += a_val;
-                                    norm++;
-				 }
-			      }
-			   } /* if: i1!=0 || j1!=0 */
-		        } /* for: i1 */
-		     }
-		  } /* for: j1 */
-                  /* Patch */
-                  if (norm>0) {
-                     $b() = tmp/norm;
-		  } else {
-		     $SETBAD(b());
-                     flag = 1;
-                  }
-	       } else,) {
-                  $b() = a_val;
-               } /* if: ISGOODVAR() */
-	    %}
+         loop(n,m) %{
+	    $GENERIC(a) a_val = $a();
+	    PDL_IF_BAD(if ( !$ISGOODVAR(a_val,a) ) {
+	       PDL_CLDouble tmp = 0; PDL_Indx norm=0;
+	       for(j1=-1; j1<=1; j1++) {
+		  PDL_Indx j2 = n+j1;
+		  if ( j2<0 || j2>=$SIZE(n) ) continue;
+		  for(i1=-1; i1<=1; i1++) {
+		     /* ignore central pixel, which we know is bad */
+		     if ( i1==0 && j1==0 ) continue;
+		     PDL_Indx i2 = m+i1;
+		     if ( i2<0 || i2>=$SIZE(m) ) continue;
+		     a_val = $a(m=>i2,n=>j2);
+		     if ( $ISBADVAR(a_val,a) ) continue;
+		     tmp += a_val;
+		     norm++;
+		  } /* for: i1 */
+	       } /* for: j1 */
+	       /* Patch */
+	       if (norm>0) {
+		  $b() = tmp/norm;
+	       } else {
+		  $SETBAD(b());
+		  flag = 1;
+	       }
+	    } else,) {
+	       $b() = a_val;
+	    } /* if: ISGOODVAR() */
          %}
       %} /* broadcastloop */
          /* handle bad flag */
@@ -722,12 +658,9 @@ EOD
         Code => '
         PDL_LDouble cur = 0;
         PDL_Indx curind1 = PDL_IF_BAD(-1,0), curind2 = PDL_IF_BAD(-1,0);
-        loop(m) %{
-           loop(n) %{
-           if( PDL_IF_BAD($ISGOOD(a()) &&,) ( (!n && !m) || $a() > cur || IsNaN(cur)) ) {
-                cur = $a(); curind1 = m; curind2 = n;
-              }
-           %}
+        loop(m,n) %{
+          if (!(PDL_IF_BAD($ISGOOD(a()) &&,) ( (!n && !m) || $a() > cur || IsNaN(cur)))) continue;
+          cur = $a(); curind1 = m; curind2 = n;
         %}
         PDL_IF_BAD(if ( curind1 < 0 ) {
           $SETBAD(val());
@@ -759,41 +692,32 @@ EOD
        HandleBad => 1,
 	Pars => 'im(m,n); x(); y(); box(); [o]xcen(); [o]ycen();',
 	Code => '
-   PDL_Indx i,j,i1,i2,j1,j2,m_size = $SIZE(m),n_size = $SIZE(n);
-   PDL_LDouble sum,data,sumx,sumy;
-   i1 = $x() - $box()/2; i1 = PDLMAX(i1, 0);
-   i2 = $x() + $box()/2; i2 = PDLMIN(i2, m_size-1);
-   j1 = $y() - $box()/2; j1 = PDLMAX(j1, 0);
-   j2 = $y() + $box()/2; j2 = PDLMIN(j2, n_size-1);
-   sum = sumx = sumy = 0;
-   for(j=j1; j<=j2; j++) {
-      for(i=i1; i<=i2; i++) {
-         data = $im(m=>i,n=>j);
-         PDL_IF_BAD(if ( $ISGOODVAR(data,im) ),) {
-            sum += data;
-            sumx += data*i;
-            sumy += data*j;
-	 }
-      }
-   }
-   /*
-    * if sum == 0 then we will flag as bad -- although it could just mean that
-    * there is negative values in the dataset.
-    * - should use a better check than != 0.0  ...
-    */
-   PDL_IF_BAD(if ( sum == 0.0 ) {
-      $SETBAD(xcen());
-      $SETBAD(ycen());
-   } else,) {
-      $xcen() = sumx/sum;
-      $ycen() = sumy/sum;
-  }
+PDL_LDouble sum = 0, sumx = 0, sumy = 0;
+PDL_Indx i1 = $x() - $box()/2;
+PDL_Indx i2 = $x() + $box()/2 + 1;
+PDL_Indx j1 = $y() - $box()/2;
+PDL_Indx j2 = $y() + $box()/2 + 1;
+loop (n=j1:j2,m=i1:i2) %{
+   PDL_LDouble data = $im();
+   PDL_IF_BAD(if ( $ISBADVAR(data,im) ) continue;,)
+   sum += data;
+   sumx += data*m;
+   sumy += data*n;
+%}
+/*
+ * if sum == 0 then we will flag as bad -- although it could just mean that
+ * there is negative values in the dataset.
+ * - should use a better check than != 0.0  ...
+ */
+PDL_IF_BAD(if ( sum == 0.0 ) {
+   $SETBAD(xcen());
+   $SETBAD(ycen());
+} else,) {
+   $xcen() = sumx/sum;
+   $ycen() = sumy/sum;
+}
 '
 );
-
-pp_addhdr('
-void AddEquiv ( PDL_Long* equiv, PDL_Long i, PDL_Long j);
-');
 
 pp_add_exported('', 'crop');
 pp_addpm(<<'EOPM');
@@ -898,23 +822,22 @@ where the second parameter specifies the connectivity (4 or 8) of the labeling.
        HandleBad => 0, # a marker
         Pars => 'a(m,n); int+ [o]b(m,n);',
         OtherPars => 'int con',
+        CHeader => qq{void AddEquiv(PDL_Long* equiv, PDL_Long i, PDL_Long j);\n},
         Code => '
 
-      PDL_Long i,j,k;
+      PDL_Long i,k;
       PDL_Long newlabel;
       PDL_Long neighbour[4];
       PDL_Long nfound;
       PDL_Long pass,count,next,this;
       PDL_Long *equiv;
       PDL_Long i1,j1,i2;
-      PDL_Long nx = $SIZE(m);
-      PDL_Long ny = $SIZE(n);
 
       if ($COMP(con)!=4 && $COMP(con)!=8)
          $CROAK("In ccNcompt, connectivity must be 4 or 8, you gave %d",$COMP(con));
-      loop(n) %{ loop(m) %{ /* Copy */
+      loop(n,m) %{ /* Copy */
          $b() = $a();
-      %} %}
+      %}
 
       /* 1st pass counts max possible compts, 2nd records equivalences */
 
@@ -930,31 +853,30 @@ where the second parameter specifies the connectivity (4 or 8) of the labeling.
 
       newlabel = 1; /* Running label */
 
-      for(j=0; j<ny; j++) { for(i=0; i<nx; i++) { /* Loop over image pixels */
-
+      loop (n,m) %{ /* Loop over image pixels */
             nfound = 0; /* Number of neighbour >0 */
 
-            i1 = i-1; j1 = j-1; i2 = i+1; /*West x, North y, East x*/
+            i1 = m-1; j1 = n-1; i2 = m+1; /*West x, North y, East x*/
 
-            if ($b(m=>i, n=>j) > 0) { /* Check 4 neighbour already seen */
+            if ($b() > 0) { /* Check 4 neighbour already seen */
 
-               if (i>0 && $b(m=>i1, n=>j)>0) /*West*/
-                   neighbour[nfound++] = $b(m=>i1, n=>j); /* Store label of it */
-               if (j>0 && $b(m=>i, n=>j1)>0) /*North*/
-                   neighbour[nfound++] = $b(m=>i, n=>j1);
-               if (j>0 && i>0  && $b(m=>i1, n=>j1)>0 && $COMP(con) == 8) /*North-West*/
+               if (m>0 && $b(m=>i1)>0) /*West*/
+                   neighbour[nfound++] = $b(m=>i1); /* Store label of it */
+               if (n>0 && $b(n=>j1)>0) /*North*/
+                   neighbour[nfound++] = $b(n=>j1);
+               if (n>0 && m>0  && $b(m=>i1, n=>j1)>0 && $COMP(con) == 8) /*North-West*/
                    neighbour[nfound++] = $b(m=>i1, n=>j1);
-               if (j>0 && i<(nx-1) && $b(m=>i2, n=>j1)>0 && $COMP(con) == 8) /*North-East*/
+               if (n>0 && m<($SIZE(m)-1) && $b(m=>i2, n=>j1)>0 && $COMP(con) == 8) /*North-East*/
                    neighbour[nfound++] = $b(m=>i2, n=>j1);
 
                if (nfound==0)  { /* Assign new label */
-                  $b(m=>i, n=>j) = newlabel++;
+                  $b() = newlabel++;
                }
                else {
-                  $b(m=>i, n=>j) =  neighbour[0];
+                  $b() =  neighbour[0];
                   if (nfound>1 && pass == 1) {  /* Assign equivalents */
                       for(k=1; k<nfound; k++)
-                         AddEquiv( equiv, (PDL_Long)$b(m=>i, n=>j),
+                         AddEquiv( equiv, (PDL_Long)$b(),
                             neighbour[k] );
                   }
                }
@@ -962,10 +884,10 @@ where the second parameter specifies the connectivity (4 or 8) of the labeling.
 
             else {  /* No label */
 
-               $b(m=>i, n=>j) = 0;
+               $b() = 0;
             }
 
-      }} /* End of image loop */
+      %} /* End of image loop */
 
       } /* Passes */
 
@@ -987,9 +909,9 @@ where the second parameter specifies the connectivity (4 or 8) of the labeling.
 
       /* Now remove equivalences */
 
-      for(j=0; j<ny; j++) { for(i=0; i<nx; i++) { /* Loop over image pixels */
-           $b(m=>i, n=>j)   = equiv[ (PDL_Long) $b(m=>i, n=>j)  ] ;
-      }}
+      loop (n,m) %{ /* Loop over image pixels */
+           $b()   = equiv[ (PDL_Long) $b()  ] ;
+      %}
 
       free(equiv); /* Tidy */
 ');
@@ -1082,8 +1004,8 @@ and vectorized for PDL by Karl Glazebrook.
   # $tri is 0 everywhere except for points in polygon interior
   $tri = $img->pnpoly($ps);
 
-  With the second form, the x and y coordinates must also be specified.
-  B< I<THIS IS MAINTAINED FOR BACKWARD COMPATIBILITY ONLY> >.
+With the second form, the x and y coordinates must also be specified.
+B< I<THIS IS MAINTAINED FOR BACKWARD COMPATIBILITY ONLY> >.
 
   $px = pdl( 3, 20, 34 );
   $py = pdl( 3, 20,  3 );
@@ -1110,10 +1032,10 @@ and vectorized for PDL by Karl Glazebrook.
 
 sub PDL::pnpoly {
 	barf('Usage: $mask = pnpoly($img, $ps);') unless(@_==2 || @_==4);
- 	my ($tx, $ty, $vertx, $verty) = @_;
+	my ($tx, $ty, $vertx, $verty) = @_;
 
- 	# if only two inputs, use the pure PP version
- 	unless( defined $vertx ) {
+	# if only two inputs, use the pure PP version
+	unless( defined $vertx ) {
 		barf("ps must contain pairwise points.\n") unless $ty->getdim(0) == 2;
 
 		# Input mapping:  $img => $tx, $ps => $ty
@@ -1277,33 +1199,35 @@ interpolated values are actually added to the second
 ndarray which is supposed to be larger than the first one.
 EOD
     GenericTypes => $A,
+    RedoDimsCode =>'
+     if ($SIZE(q)<$SIZE(n) || $SIZE(p)<$SIZE(m))
+       $CROAK("the second matrix must be greater than first!");
+    ',
     Code =>'
-  PDL_Indx i,j,ii,jj,ii1,jj1,num;
-  PDL_CLDouble x,y,dx,dy,y1,y2,y3,y4,t,u,sum;
-
-  if ($SIZE(q)<$SIZE(n) || $SIZE(p)<$SIZE(m))
-    $CROAK("the second matrix must be greater than first! (bilin2d)");
-
+  PDL_CLDouble dx = ((PDL_CLDouble) ($SIZE(n)-1)) / ($SIZE(q)-1);
+  PDL_CLDouble dy = ((PDL_CLDouble) ($SIZE(m)-1)) / ($SIZE(p)-1);
   broadcastloop %{
-    dx = ((double) ($SIZE(n)-1)) / ($SIZE(q)-1);
-    dy = ((double) ($SIZE(m)-1)) / ($SIZE(p)-1);
-    for(i=0,x=0;i<$SIZE(q);i++,x+=dx) {
-      for(j=0,y=0;j<$SIZE(p);j++,y+=dy) {
-        ii = (int) floor(x);
+    PDL_CLDouble x=0;
+    loop (q) %{
+      PDL_CLDouble y = 0;
+      loop (p) %{
+        PDL_Indx ii = floor(x);
         if (ii>=($SIZE(n)-1)) ii = $SIZE(n)-2;
-        jj = (int) floor(y);
+        PDL_Indx jj = floor(y);
         if (jj>=($SIZE(m)-1)) jj = $SIZE(m)-2;
-        ii1 = ii+1;
-        jj1 = jj+1;
-        y1 = $Int(n=>ii,m=>jj);
-        y2 = $Int(n=>ii1,m=>jj);
-        y3 = $Int(n=>ii1,m=>jj1);
-        y4 = $Int(n=>ii,m=>jj1);
-        t = x-ii;
-        u = y-jj;
-        $O(q=>i,p=>j) += (1-t)*(1-u)*y1 + t*(1-u)*y2 + t*u*y3 + (1-t)*u*y4;
-      }
-    }
+        PDL_Indx ii1 = ii+1;
+        PDL_Indx jj1 = jj+1;
+        PDL_CLDouble y1 = $Int(n=>ii,m=>jj);
+        PDL_CLDouble y2 = $Int(n=>ii1,m=>jj);
+        PDL_CLDouble y3 = $Int(n=>ii1,m=>jj1);
+        PDL_CLDouble y4 = $Int(n=>ii,m=>jj1);
+        PDL_CLDouble t = x-ii;
+        PDL_CLDouble u = y-jj;
+        $O() += (1-t)*(1-u)*y1 + t*(1-u)*y2 + t*u*y3 + (1-t)*u*y4;
+        y+=dy;
+      %}
+      x+=dx;
+    %}
   %}
 ');
 
@@ -1324,112 +1248,92 @@ rescale2d.
 EOD
     GenericTypes => $A,
     Code =>'
-PDL_Indx ix,iy,ox,oy,i,j,lx,ly,cx,cy,xx,yy,num;
-PDL_CLDouble kx,ky,temp;
-
-ix = $SIZE(m);
-iy = $SIZE(n);
-ox = $SIZE(p);
-oy = $SIZE(q);
-
-if(ox >= ix && oy >= iy) {
-  kx = ((PDL_CLDouble) (ox)) / (ix);
-  ky = ((PDL_CLDouble) (oy)) / (iy);
+if($SIZE(p) >= $SIZE(m) && $SIZE(q) >= $SIZE(n)) {
+  PDL_LDouble kx = ((PDL_LDouble) $SIZE(p)) / $SIZE(m);
+  PDL_LDouble ky = ((PDL_LDouble) $SIZE(q)) / $SIZE(n);
   broadcastloop %{
-    lx = 0;
-    for(i=0;i<ix;i++) {
-      ly = 0;
-      for(j=0;j<iy;j++) {
-	cx = rint((i+1)*kx)-1;
-	cy = rint((j+1)*ky)-1;
-	for(xx=lx;xx<=cx;xx++)
-	  for(yy=ly;yy<=cy;yy++) {
-/*	    fprintf(stderr,"i: %d, j: %d, xx: %d, yy: %d\n",i,j,xx,yy); */
-	    $O(p=>xx,q=>yy) += $Int(m=>i,n=>j);
-	  }
+    PDL_Indx lx = 0;
+    loop (m) %{
+      PDL_Indx ly = 0, cx = rint((m+1)*kx);
+      loop (n) %{
+	PDL_Indx cy = rint((n+1)*ky);
+	loop (p=lx:cx,q=ly:cy) %{
+	  $O() += $Int();
+	%}
 	ly = cy + 1;
-      }
+      %}
       lx = cx + 1;
-    }
+    %}
   %}
 }
-else if(ox < ix && oy < iy) {
-  kx = ((PDL_CLDouble) (ix)) / (ox);
-  ky = ((PDL_CLDouble) (iy)) / (oy);
+else if($SIZE(p) < $SIZE(m) && $SIZE(q) < $SIZE(n)) {
+  PDL_LDouble kx = ((PDL_LDouble) $SIZE(m)) / $SIZE(p);
+  PDL_LDouble ky = ((PDL_LDouble) $SIZE(n)) / $SIZE(q);
   broadcastloop %{
-    lx = 0;
-    for(i=0;i<ox;i++) {
-      ly = 0;
-      for(j=0;j<oy;j++) {
-	cx = rint((i+1)*kx)-1;
-	cy = rint((j+1)*ky)-1;
-	temp = 0.0;
-	num = 0;
-	for(xx=lx;xx<=cx;xx++)
-	  for(yy=ly;yy<=cy;yy++) {
-/*	    fprintf(stderr,"i: %d, j: %d, xx: %d, yy: %d\n",i,j,xx,yy); */
-	    temp += $Int(n=>yy,m=>xx);
-	    num++;
-	  }
-	$O(p=>i,q=>j) += temp/num;
-	ly = cy + 1;
-      }
-      lx = cx + 1;
-    }
-  %}
-}
-else if(ox >= ix && oy < iy) {
-  kx = ((PDL_CLDouble) (ox)) / (ix);
-  ky = ((PDL_CLDouble) (iy)) / (oy);
-  broadcastloop %{
-    lx = 0;
-    for(i=0;i<ix;i++) {
-      ly = 0;
-      for(j=0;j<oy;j++) {
-	cx = rint((i+1)*kx)-1;
-	cy = rint((j+1)*ky)-1;
-	temp = 0.0;
-	num = 0;
-	for(yy=ly;yy<=cy;yy++) {
-/*	  fprintf(stderr,"1 i: %d, j: %d, xx: %d, yy: %d\n",i,j,xx,yy); */
-	    temp += $Int(n=>yy,m=>i);
+    PDL_Indx lx = 0;
+    loop (p) %{
+      PDL_Indx ly = 0, cx = rint((p+1)*kx);
+      loop (q) %{
+	PDL_Indx cy = rint((q+1)*ky);
+	PDL_LDouble temp = 0.0;
+	PDL_Indx num = 0;
+	loop (m=lx:cx,n=ly:cy) %{
+	  temp += $Int();
 	  num++;
-	}
-	for(xx=lx;xx<=cx;xx++) {
-/*	  fprintf(stderr,"2 i: %d, j: %d, xx: %d, yy: %d\n",i,j,xx,yy); */
-	  $O(p=>xx,q=>j) += temp/num;
-	}
+	%}
+	$O() += temp/num;
 	ly = cy + 1;
-      }
+      %}
       lx = cx + 1;
-    }
+    %}
   %}
 }
-else if(ox < ix && oy >= iy) {
-  kx = ((PDL_CLDouble) (ix)) / (ox);
-  ky = ((PDL_CLDouble) (oy)) / (iy);
+else if($SIZE(p) >= $SIZE(m) && $SIZE(q) < $SIZE(n)) {
+  PDL_LDouble kx = ((PDL_LDouble) $SIZE(p)) / $SIZE(m);
+  PDL_LDouble ky = ((PDL_LDouble) $SIZE(n)) / $SIZE(q);
   broadcastloop %{
-    lx = 0;
-    for(i=0;i<ox;i++) {
-      ly = 0;
-      for(j=0;j<iy;j++) {
-	cx = rint((i+1)*kx)-1;
-	cy = rint((j+1)*ky)-1;
-	temp = 0.0;
-	num = 0;
-	for(xx=lx;xx<=cx;xx++) {
-/*	  fprintf(stderr,"1 i: %d, j: %d, xx: %d, yy: %d\n",i,j,xx,yy); */
-	    temp += $Int(n=>j,m=>xx);
+    PDL_Indx lx = 0;
+    loop (m) %{
+      PDL_Indx ly = 0, cx = rint((m+1)*kx);
+      loop (q) %{
+	PDL_Indx cy = rint((q+1)*ky);
+	PDL_LDouble temp = 0.0;
+	PDL_Indx num = 0;
+	loop (n=ly:cy) %{
+	  temp += $Int();
 	  num++;
-	}
-	for(yy=ly;yy<=cy;yy++) {
-/*	  fprintf(stderr,"2 i: %d, j: %d, xx: %d, yy: %d\n",i,j,xx,yy); */
-	  $O(p=>i,q=>yy) += temp/num;
-	}
+	%}
+	loop (p=lx:cx) %{
+	  $O() += temp/num;
+	%}
 	ly = cy + 1;
-      }
+      %}
       lx = cx + 1;
-    }
+    %}
+  %}
+}
+else if($SIZE(p) < $SIZE(m) && $SIZE(q) >= $SIZE(n)) {
+  PDL_LDouble kx = ((PDL_LDouble) $SIZE(m)) / $SIZE(p);
+  PDL_LDouble ky = ((PDL_LDouble) $SIZE(q)) / $SIZE(n);
+  broadcastloop %{
+    PDL_Indx lx = 0;
+    loop (p) %{
+      PDL_Indx ly = 0, cx = rint((p+1)*kx);
+      loop (n) %{
+	PDL_Indx cy = rint((n+1)*ky);
+	PDL_CLDouble temp = 0.0;
+	PDL_Indx num = 0;
+	loop (m=lx:cx) %{
+	  temp += $Int();
+	  num++;
+	%}
+	loop (q=ly:cy) %{
+	  $O() += temp/num;
+	%}
+	ly = cy + 1;
+      %}
+      lx = cx + 1;
+    %}
   %}
 }
 else $CROAK("I am not supposed to be here, please report the bug to <chri@infis.univ.ts.it>");
@@ -2008,7 +1912,7 @@ sub PDL::warp2d {
 }
 EOF
     Code => <<'EOF',
-    PDL_Indx ncoeff, lx_out, ly_out, i, j, k, lx_3, ly_3, px, py, tabx, taby;
+    PDL_Indx k, lx_3, ly_3, px, py, tabx, taby;
     PDL_Indx da[16], db[16] ;
     PDL_LDouble cur, neighbors[16], rsc[8], sumrs, x, y, *kernel = $P(kernel), *poly = $P(poly);
 
@@ -2017,11 +1921,8 @@ EOF
       $CROAK("Invalid kernel type '%s'", $COMP(kernel_type));
 
     /* Compute sizes  */
-    ncoeff = $SIZE(np);
-    lx_out = $SIZE(m);   /* is this right? */
-    ly_out = $SIZE(n);
-    lx_3 = lx_out - 3;
-    ly_3 = ly_out - 3;
+    lx_3 = $SIZE(m) - 3;
+    ly_3 = $SIZE(n) - 3;
 
     /* Pre compute leaps for 16 closest neighbors positions */
     da[0]  = -1;  db[0]  = -1;
@@ -2051,15 +1952,15 @@ EOF
 	loop(n) %{
 
 	    /* fill in poly array */
-	    for ( k = 1; k < ncoeff; k++ ) {
-		poly[k] = (PDL_LDouble) n * poly[k-1];
-            }
+	    loop (np=1) %{
+		poly[np] = (PDL_LDouble) n * poly[np-1];
+	    %}
 
 	    loop(m) %{
 
 		/* Compute the original source for this pixel   */
-                x = poly2d_compute( ncoeff, $P(px), (PDL_LDouble) m, poly );
-                y = poly2d_compute( ncoeff, $P(py), (PDL_LDouble) m, poly );
+                x = poly2d_compute( $SIZE(np), $P(px), m, poly );
+                y = poly2d_compute( $SIZE(np), $P(py), m, poly );
 
 		/* Which is the closest integer positioned neighbor? */
 		px = (int)x ;
@@ -2071,8 +1972,7 @@ EOF
 
 		    /* Now feed the positions for the closest 16 neighbors  */
 		    for (k=0 ; k<16 ; k++) {
-			i = px + da[k]; j = py + db[k];
-			neighbors[k] = (PDL_LDouble) $img( m => i, n => j );
+			neighbors[k] = (PDL_LDouble) $img( m => px+da[k], n => py+db[k] );
 		    }
 
 		    /* Which tabulated value index shall we use?    */

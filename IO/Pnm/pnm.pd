@@ -281,29 +281,27 @@ pp_def('pnminraw',
 	RedoDimsCode => '
 	  $SIZE(llen) = $COMP(isbin) ? ($SIZE(m)+7) / 8 : $SIZE(m) * sizeof($GENERIC());
 	',
-	Code => 'int ms, ns, i,j,k,bit,llen = $SIZE(llen);
-		 PDL_Byte *buf = $P(buf), *bp;
-		 ms = $SIZE(m); ns = $SIZE(n);
-		 broadcastloop %{  /* with top to bottom inversion */
-			for (i=ns-1; i>= 0; i--) {
-			   if (PerlIO_read($COMP(fp),buf,llen) != llen)
-				$CROAK("Error reading pnm file");
-			   if ($COMP(isbin))  /* unpack buffer */
-				for (j=0,bp=buf,bit=0; j<ms; j++, bit++) {
-					bit &= 7;
-					if (!bit) k= *bp++;
-					/* here we do the inversion */
-					$im(n=>i,m=>j) = (k&0x80) ? 0 : 1;
-					k = k << 1;
-      				}
-			   else {
-				$GENERIC() *gbp = ($GENERIC()*)buf;
-				loop(m) %{
-					$im(n=>i,m=>m) = *(gbp++);
-				%}
-			   }
-			}
-		 %}', Doc => '
+	Code => '
+/* with top to bottom inversion */
+loop (n=::-1) %{
+  if (PerlIO_read($COMP(fp),$P(buf),$SIZE(llen)) != $SIZE(llen))
+    $CROAK("Error reading pnm file");
+  if ($COMP(isbin)) { /* unpack buffer */
+    PDL_Byte *bp=$P(buf); int k=0, bit=0;
+    loop (m) %{
+      bit &= 7;
+      if (!bit) k = *bp++;
+      /* here we do the inversion */
+      $im() = (k&0x80) ? 0 : 1;
+      k = k << 1;
+      bit++;
+    %}
+  } else {
+    $GENERIC() *gbp = ($GENERIC()*)$P(buf);
+    loop(m) %{ $im() = *gbp++; %}
+  }
+%}
+', Doc => '
 =for ref
 
 Read in a raw pnm file.
@@ -315,19 +313,15 @@ C<im> follows I<strictly> the type of C<type>).
 '
 );
 
-pp_addhdr(<<'EOH');
-#include "get.h"
-EOH
 
 pp_def( 'pnminascii',
 	Pars => 'type(); byte+ [o] im(m,n)',
 	OtherPars => 'int ms => m; int ns => n;
 			int format; PerlIO *fp',
 	GenericTypes => [qw(B U S L)],
+	CHeader => qq{#include "get.h"\n},
 	Code => q?
-		 int ms, ns, s, i;
-		 ms = $SIZE(m); ns = $SIZE(n);
-
+		 int ns = $SIZE(n), s, i;
 		 switch ($COMP(format)) {
 		 case PBM:
 		   broadcastloop %{  /* with top to bottom inversion */
@@ -400,11 +394,11 @@ pp_def(	'pnmout',
 			  loop(m) %{
 			    k = (k << 1) | ($a() < 1);
 			    bit++;
-	  			if (bit==8) {
+				if (bit==8) {
 				  PerlIO_putc($COMP(fp),k);
 				  bit = k = 0;
-			        }
-		 	  %}
+				}
+			  %}
 			  if (bit) {
 			    k = k << (8-bit);
 			    PerlIO_putc($COMP(fp),k);
@@ -425,8 +419,8 @@ pp_def(	'pnmout',
 					($a() < 1) :$a());
 				len +=4;
 				if (len>58) { PerlIO_printf($COMP(fp),"\n"); len=0; }
-		 	%}
-                 	if (len<=58)
+			%}
+			if (len<=58)
 				PerlIO_printf($COMP(fp),"\n");
 		    %}
 		}

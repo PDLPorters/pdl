@@ -82,8 +82,7 @@ pp_def(
 );
 
 pp_def("gelsd",
-        Pars => '[io,phys]A(m,n); [io,phys]B(p,q); [phys]rcond(); [o,phys]s(r); int [o,phys]rank();int [o,phys]info()',
-        RedoDimsCode => '$SIZE(r) = PDLMIN($SIZE(m),$SIZE(n));',
+        Pars => '[io,phys]A(m,n); [io,phys]B(p,q); [phys]rcond(); [o,phys]s(r=CALC(PDLMIN($SIZE(m),$SIZE(n)))); int [o,phys]rank();int [o,phys]info()',
         GenericTypes => ['F'],
         Code => '$CROAK("croaking");'
 );
@@ -193,11 +192,13 @@ pp_def('incomp_dim',
 pp_addhdr('
 typedef NV NV_ADD1;
 typedef HV* NV_HR;
+typedef char thing;
 ');
 pp_add_typemaps(string=><<'EOT');
 TYPEMAP
 NV_ADD1 T_NV_ADD1
 NV_HR T_HVREF
+thing* T_PTROBJ
 
 INPUT
 T_NV_ADD1
@@ -210,7 +211,7 @@ EOT
 
 pp_def('typem',
   Pars => 'int [o] out()',
-  OtherPars => '[io] NV_ADD1 v1; NV_HR v2;',
+  OtherPars => '[io] NV_ADD1 v1; NV_HR v2; thing *ptr',
   Code => '$out() = $COMP(v1); $COMP(v1) = 8;',
 );
 
@@ -238,12 +239,12 @@ for (i = 0; i < $COMP(ins_count); i++) {
   pdl *in = ins[i];
   PDL_Indx j;
 #define X_CAT_INNER(datatype_in, ctype_in, ppsym_in, ...) \
-  PDL_DECLARE_PARAMETER_BADVAL(ctype_in, 0, in, (in), 1) \
+  PDL_DECLARE_PARAMETER_BADVAL(ctype_in, in, (in), 1, ppsym_in) \
   for(j=0; j<in->nvals; j++) { \
-    if ($PRIV(bvalflag) && PDL_ISBAD(in_datap[j], in_badval, ppsym_in)) continue; \
+    if ($PRIV(bvalflag) && PDL_ISBAD2(in_datap[j], in_badval, ppsym_in, in_badval_isnan)) continue; \
     $out() += in_datap[j]; \
   }
-  PDL_GENERICSWITCH(PDL_TYPELIST2_ALL, in->datatype, X_CAT_INNER, $CROAK("Not a known data type code=%d", in->datatype))
+  PDL_GENERICSWITCH(PDL_TYPELIST_ALL, in->datatype, X_CAT_INNER, $CROAK("Not a known data type code=%d", in->datatype))
 #undef X_CAT_INNER
 }
 EOC
@@ -268,7 +269,7 @@ for (i = 0; i < $COMP(outs_count); i++) {
   if (PDL_err.error) { for (; i >= 0; i--) PDL->destroy(outs[i]); free(outs); return PDL_err; }
   PDL_err = PDL->allocdata(o);
   if (PDL_err.error) { for (; i >= 0; i--) PDL->destroy(outs[i]); free(outs); return PDL_err; }
-  PDL_DECLARE_PARAMETER_BADVAL($GENERIC(in), 0, o, (o), 1)
+  PDL_DECLARE_PARAMETER_BADVAL($GENERIC(in), o, (o), 1, $PPSYM(in))
   loop(n) %{ o_datap[n] = $in(); %}
 }
 EOC
@@ -484,15 +485,16 @@ is "$o", 4;
 $o = incomp_dim([0..3]);
 is "$o", 4;
 
-$o = typem(my $oth = 3, {});
+my $ptrObj = bless \(my $thing), 'thingPtr';
+$o = typem(my $oth = 3, {}, $ptrObj);
 is "$o", 4;
 is "$oth", 7;
 
-typem($o = PDL->null, $oth = 3, {});
+typem($o = PDL->null, $oth = 3, {}, $ptrObj);
 is "$o", 4;
 is "$oth", 7;
 
-eval {typem($o = PDL->null, $oth = 3, []);};
+eval {typem($o = PDL->null, $oth = 3, [], $ptrObj);};
 like $@, qr/^typem:.*not a HASH reference/i;
 
 incomp_in($o = PDL->null, [sequence(3), sequence(byte, 4)]);
@@ -610,8 +612,8 @@ sub hash2files {
 
 sub in_dir {
     my $code = shift;
-    require File::Temp;
-    my $dir = shift || File::Temp::tempdir(TMPDIR => 1, CLEANUP => 1);
+    my $dir = shift || File::Spec->catdir(File::Spec->curdir, './.pptest');
+    mkpath $dir;
     # chdir to the new directory
     my $orig_dir = getcwd();
     chdir $dir or die "Can't chdir to $dir: $!";

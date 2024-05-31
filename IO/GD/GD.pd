@@ -105,16 +105,6 @@ my %gdi_from_pngfile = (
 my %gdi_from_args = (
   OtherPars => 'gdImagePtr im',
 );
-my %dims_from_gdi = (
-  RedoDimsCode => '
-    $SIZE(x) = gdImageSX($COMP(im));
-    $SIZE(y) = gdImageSY($COMP(im));
-  ',
-);
-my %gdi_dims_from_pngfile = (
-  %gdi_from_pngfile,
-  %dims_from_gdi,
-);
 my %lu_dim_check = (
   RedoDimsCode => <<'EOF',
 if ($SIZE(j) > 256)
@@ -318,35 +308,33 @@ EOPM
 pp_add_exported('', 'load_lut');
 
 pp_def( 'read_true_png',
-        Pars => '[o] img(x,y,z=3);',
+        Pars => '[o] img(x=CALC(gdImageSX($COMP(im))),y=CALC(gdImageSY($COMP(im))),z=3);',
         GenericTypes => ['B'],
-        %gdi_dims_from_pngfile,
+        %gdi_from_pngfile,
         Doc => "=for ref\n\nReads a true colour PNG image into a (new) PDL variable.\n",
         Code => $gdiTrue_to_img,
 );
 
 pp_def( 'read_png',
-        Pars => '[o] img(x,y);',
+        Pars => '[o] img(x=CALC(gdImageSX($COMP(im))),y=CALC(gdImageSY($COMP(im))));',
         GenericTypes => ['L'],
-        %gdi_dims_from_pngfile,
+        %gdi_from_pngfile,
         Doc => "=for ref\n\nReads a (palette) PNG image into a (new) PDL variable.\n",
         Code => $gdi_to_img,
 );
 
 pp_def( '_gd_image_to_pdl_true',
-        Pars => '[o] img(x,y,z=3);',
+        Pars => '[o] img(x=CALC(gdImageSX($COMP(im))),y=CALC(gdImageSY($COMP(im))),z=3);',
         GenericTypes => ['B'],
         %gdi_from_args,
-        %dims_from_gdi,
         Doc => undef,
         Code => $gdiTrue_to_img,
 );
 
 pp_def( '_gd_image_to_pdl',
-        Pars => '[o] img(x,y);',
+        Pars => '[o] img(x=CALC(gdImageSX($COMP(im))),y=CALC(gdImageSY($COMP(im))));',
         GenericTypes => ['L'],
         %gdi_from_args,
-        %dims_from_gdi,
         Doc => undef,
         Code => $gdi_to_img,
 );

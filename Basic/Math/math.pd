@@ -337,8 +337,7 @@ pp_def(
        );
 
 pp_def("polyroots",
-      Pars => 'cr(n); ci(n); [o]rr(m); [o]ri(m);',
-      RedoDimsCode => '$SIZE(m) = $SIZE(n)-1;',
+      Pars => 'cr(n); ci(n); [o]rr(m=CALC($SIZE(n)-1)); [o]ri(m);',
       GenericTypes => ['D'],
       Code => <<'EOF',
   char *fail = cpoly($P(cr), $P(ci), $SIZE(m), $P(rr), $P(ri));
@@ -370,9 +369,8 @@ As of 2.086, works with native-complex data.
 ',);
 
 pp_def("polyfromroots",
-      Pars => 'r(m); [o]c(n);',
+      Pars => 'r(m); [o]c(n=CALC($SIZE(m)+1));',
       GenericTypes => ['CD'],
-      RedoDimsCode => '$SIZE(n) = $SIZE(m)+1;',
       Code => <<'EOF',
 /*
 algorithm from octave poly.m, O(n^2)

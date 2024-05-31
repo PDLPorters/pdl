@@ -2,11 +2,6 @@ package PDL::Demos::BAD_demo;
 use Carp;
 require File::Spec;
 
-sub init {'
-$ENV{PGPLOT_XW_WIDTH}=0.6;
-$ENV{PGPLOT_DEV}=$^O =~ /MSWin32/ ? "/GW" : "/XSERVE";
-'}
-
 # try and find m51.fits
 my @f = qw(PDL Demos m51.fits);
 our $m51file = undef;
@@ -144,18 +139,19 @@ my @demos = (
     when you do 'help'), or the '-b' switch of pdldoc.
 |],
 
-(!eval { require PDL::Graphics::PGPLOT; PDL::Graphics::PGPLOT->import; 1 })
+(!eval { require PDL::Graphics::Simple; PDL::Graphics::Simple->import; 1 })
 ? [comment => q|
     The rest of this demo is just a bit of eye-candy to show bad values in
-    action, and requires PGPLOT support in PDL which is unavailable. Ending.
+    action, and requires PDL::Graphics::Simple support in PDL which is
+    unavailable. Ending.
 |]
 : (
 
 [comment => q|
     This demo is just a bit of eye-candy to show bad values in action,
-    and requires PGPLOT support in PDL. It makes use of the image of
-    M51 kindly provided by the Hubble Heritage group at the
-    Space Telescope Science Institute.
+    and requires PDL::Graphics::Simple support in PDL. It makes use of
+    the image of M51 kindly provided by the Hubble Heritage group at
+    the Space Telescope Science Institute.
 
     It also serves to demonstrate that you often don't need to change
     your code to handle bad values, as the routines may 'do it' for you.
@@ -209,14 +205,20 @@ my @demos = (
     imag $unsharp, $just;
     hold;
     cont $filtered;
-    rel;
+    release;
+|],
+
+[actnw => q|
+    # close the graphics window
+    erase;
 |],
 ) # end of graphics-only bit
 );
 $@ = ''; # reset
 
-sub info {('bad', 'Bad-value demo (Optional: PGPLOT)')}
+sub info {('bad', 'Bad-value demo (Optional: PDL::Graphics::Simple)')}
+
 sub demo { @demos }
-sub init { 'eval "use PDL::Graphics::PGPLOT";' }
+sub init { 'eval "use PDL::Graphics::Simple"' }
 
 1;

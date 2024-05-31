@@ -4,6 +4,7 @@ use warnings;
 use PDL::Types qw(ppdefs_all types);
 my $A = [ppdefs_all()];
 my $AF = [map $_->ppsym, grep !$_->integer, types()]; # all including complex
+$AF = [(grep $_ ne 'D', @$AF), 'D']; # so defaults to D if non-float given
 
 #########################################################
 
@@ -61,7 +62,6 @@ Set to 1 as of PDL 2.035 as always available.
 
 pp_addpm(<<'!NO!SUBS!');
 
-# really should be constants
 $PDL::Bad::Status = 1;
 $PDL::Bad::UseNaN = 0;
 $PDL::Bad::PerPdl = 1;
@@ -120,7 +120,7 @@ always returns a Perl scalar, so it never returns bad values.
 
 =for ref
 
-returns the value used to indicate a missing (or bad) element
+returns (or sets) the value used to indicate a missing (or bad) element
 for the given ndarray type. You can give it an ndarray,
 a PDL::Type object, or one of C<$PDL_B>, C<$PDL_S>, etc.
 
@@ -133,12 +133,16 @@ a PDL::Type object, or one of C<$PDL_B>, C<$PDL_S>, etc.
 
 This can act as a setter (e.g. C<< $x->badvalue(23) >>),
 including with the value C<NaN> for floating-point types.
-Note that this B<never touches the data in the ndarray>.
+Note that this B<doesn't change the data in the ndarray> for
+floating-point-typed ndarrays.
 That is, if C<$x> already has bad values, they will not
 be changed to use the given number and if any elements of
 C<$x> have that value, they will unceremoniously be marked
 as bad data. See L</setvaltobad>, L</setbadtoval>, and
 L</setbadif> for ways to actually modify the data in ndarrays
+
+It I<does> change data for integer-typed arrays, changing values that
+had the old bad value to have the new one.
 
 It is possible to change the bad value on a per-ndarray basis, so
 
@@ -155,6 +159,27 @@ C<[0 1 2 3 BAD 5 6 7 8 9]>.
 This method does not care if you call it on an input ndarray
 that has bad values. It always returns an ndarray
 with the current or new bad value.
+
+=cut
+
+sub PDL::badvalue {
+    my ( $self, $val ) = @_;
+    my $num;
+    if ( UNIVERSAL::isa($self,"PDL") ) {
+	$num = $self->get_datatype;
+	if ( $num < $PDL_F && defined($val) && $self->badflag ) {
+	    $self->inplace->setbadtoval( $val );
+	    $self->badflag(1);
+	}
+	return PDL::Bad::_badvalue_per_pdl_int($self, $val, $num);
+    } elsif ( UNIVERSAL::isa($self,"PDL::Type") ) {
+	$num = $self->enum;
+    } else {
+        # assume it's a number
+        $num = $self;
+    }
+    PDL::Bad::_badvalue_int( $val, $num );
+}
 
 =head2 orig_badvalue
 
@@ -180,6 +205,23 @@ It also has an I<awful> name.
 This method does not care if you call it on an input ndarray
 that has bad values. It always returns an ndarray
 with the original bad value for the associated type.
+
+=cut
+
+sub PDL::orig_badvalue {
+    no strict 'refs';
+    my $self = shift;
+    my $num;
+    if ( UNIVERSAL::isa($self,"PDL") ) {
+	$num = $self->get_datatype;
+    } elsif ( UNIVERSAL::isa($self,"PDL::Type") ) {
+	$num = $self->enum;
+    } else {
+        # assume it's a number
+        $num = $self;
+    }
+    PDL::Bad::_default_badvalue_int($num);
+}
 
 =head2 check_badflag
 
@@ -219,22 +261,25 @@ _badvalue_int(val, type)
     PDL_Anyval val
     int type
   CODE:
-   {
+    if ( val.type != -1 ) {
+#define X_OUTER(datatype, ctype, ppsym, ...) \
+      ctype cnewval = val.value.ppsym;
+#define X_INNER(datatype, ctype, ppsym, shortctype, ...) \
+      PDL->bvals.shortctype = cnewval;
+      PDL_GENERICSWITCH2(
+        PDL_TYPELIST_ALL, val.type, X_OUTER, croak("Not a known data type code=%d", val.type),
+        PDL_TYPELIST_ALL_, type, X_INNER, croak("Not a known data type code=%d", type))
+#undef X_OUTER
+#undef X_INNER
+    }
     PDL_Anyval newval = {type, {0}};
     pdl* p = PDL->scalar(newval);
     if (!p) PDL->pdl_barf("Error making new pdl");
-    if ( val.type != -1 ) {
-#define X(datatype, ctype, ppsym, shortctype, ...) \
-    ANYVAL_TO_CTYPE(PDL->bvals.shortctype, ctype, val);
-    PDL_GENERICSWITCH(PDL_TYPELIST2_ALL, type, X, croak("Not a known data type code=%d", type))
-#undef X
-    }
 #define X(datatype, ctype, ppsym, shortctype, ...) \
     *((ctype *)p->data) = PDL->bvals.shortctype;
-    PDL_GENERICSWITCH(PDL_TYPELIST2_ALL, type, X, croak("Not a known data type code=%d", type))
+    PDL_GENERICSWITCH(PDL_TYPELIST_ALL, type, X, croak("Not a known data type code=%d", type))
 #undef X
     RETVAL = p;
-   }
   OUTPUT:
     RETVAL
 
@@ -244,28 +289,34 @@ _badvalue_per_pdl_int(pdl_val, val, type)
     PDL_Anyval val
     int type
   CODE:
-   {
-    PDL_Anyval newval = {type, {0}};
-    pdl* p = PDL->scalar(newval);
-    if (!p) PDL->pdl_barf("Error making new pdl");
     if ( val.type != -1) {
-       pdl_val->badvalue = val;
+       PDL_Anyval typedval;
+       ANYVAL_TO_ANYVAL_NEWTYPE(val, typedval, pdl_val->datatype);
+       if (typedval.type < 0) PDL->pdl_barf("Error making typedval");
+       pdl_val->badvalue = typedval;
        pdl_val->has_badvalue = 1;
        PDL->propagate_badvalue( pdl_val );
     }
+    PDL_Anyval newval = {type, {0}};
+    pdl* p = PDL->scalar(newval);
+    if (!p) PDL->pdl_barf("Error making new pdl");
     if (pdl_val->has_badvalue == 0) {
 #define X(datatype, ctype, ppsym, shortctype, ...) \
        *((ctype *)p->data) = PDL->bvals.shortctype;
-       PDL_GENERICSWITCH(PDL_TYPELIST2_ALL, type, X, croak("Not a known data type code=%d", type))
+       PDL_GENERICSWITCH(PDL_TYPELIST_ALL, type, X, croak("Not a known data type code=%d", type))
 #undef X
     } else {
-#define X(datatype, ctype, ...) \
-       ANYVAL_TO_CTYPE(*((ctype *)p->data), ctype, pdl_val->badvalue);
-       PDL_GENERICSWITCH(PDL_TYPELIST2_ALL, type, X, croak("Not a known data type code=%d", type))
-#undef X
+#define X_OUTER(datatype, ctype, ...) \
+      ctype *coutvalp = p->data;
+#define X_INNER(datatype, ctype, ppsym, ...) \
+      *coutvalp = pdl_val->badvalue.value.ppsym;
+      PDL_GENERICSWITCH2(
+        PDL_TYPELIST_ALL, type, X_OUTER, croak("Not a known data type code=%d", type),
+        PDL_TYPELIST_ALL_, pdl_val->badvalue.type, X_INNER, croak("Not a known data type code=%d", pdl_val->badvalue.type))
+#undef X_OUTER
+#undef X_INNER
     }
     RETVAL = p;
-   }
   OUTPUT:
     RETVAL
 
@@ -278,63 +329,12 @@ _default_badvalue_int(type)
     if (!p) PDL->pdl_barf("Error making new pdl");
 #define X(datatype, ctype, ppsym, shortctype, defbval, ...) \
     *((ctype *)p->data) = defbval;
-    PDL_GENERICSWITCH(PDL_TYPELIST2_ALL, type, X, croak("Not a known data type code=%d", type))
+    PDL_GENERICSWITCH(PDL_TYPELIST_ALL, type, X, croak("Not a known data type code=%d", type))
 #undef X
     RETVAL = p;
   OUTPUT:
     RETVAL
 EOF
-
-pp_addpm(<<'!NO!SUBS!');
-
-# note:
-#  if sent an ndarray, we have to change its bad values
-#  (but only if it contains bad values)
-#  - there's a slight overhead in that the badflag is
-#    cleared and then set (hence propagating to all
-#    children) but we'll ignore that)
-#  - we can ignore this for float/double types
-#    since we can't change the bad value
-#
-sub PDL::badvalue {
-    no strict 'refs';
-    my ( $self, $val ) = @_;
-    my $num;
-    if ( UNIVERSAL::isa($self,"PDL") ) {
-	$num = $self->get_datatype;
-	if ( $num < $PDL_F && defined($val) && $self->badflag ) {
-	    $self->inplace->setbadtoval( $val );
-	    $self->badflag(1);
-	}
-	return PDL::Bad::_badvalue_per_pdl_int($self, $val, $num);
-    } elsif ( UNIVERSAL::isa($self,"PDL::Type") ) {
-	$num = $self->enum;
-    } else {
-        # assume it's a number
-        $num = $self;
-    }
-    PDL::Bad::_badvalue_int( $val, $num );
-}
-
-sub PDL::orig_badvalue {
-    no strict 'refs';
-    my $self = shift;
-    my $num;
-    if ( UNIVERSAL::isa($self,"PDL") ) {
-	$num = $self->get_datatype;
-    } elsif ( UNIVERSAL::isa($self,"PDL::Type") ) {
-	$num = $self->enum;
-    } else {
-        # assume it's a number
-        $num = $self;
-    }
-    PDL::Bad::_default_badvalue_int($num);
-}
-
-############################################################
-############################################################
-
-!NO!SUBS!
 
 pp_def('isbad' . <<'=cut',
 

@@ -787,6 +787,12 @@ PDL has three main plotting modules:
 
 =over 5
 
+=item L<PDL::Graphics::Simple>
+
+B<Best for>: Plotting 2D functions and data sets.
+
+Provides a uniform interface to PGPLOT, PLplot, Gnuplot, and Prima.
+
 =item L<PDL::Graphics::PGPLOT>
 
 B<Best for>: Plotting 2D functions and data sets.

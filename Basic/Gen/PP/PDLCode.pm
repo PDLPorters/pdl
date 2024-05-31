@@ -26,7 +26,7 @@ sub new {
     my $parnames = $sig->names_sorted;
     $handlebad = !!$handlebad;
 
-    die "Error: missing name argument to PDL::PP::Code->new call!\n"
+    confess "Error: missing name argument to PDL::PP::Code->new call!\n"
       unless defined $name;
     confess "Error: empty or undefined GenericTypes!\n"
       unless @{$generictypes || []};
@@ -156,9 +156,9 @@ sub params_declare {
     my ($this) = @_;
     my ($ord,$pdls) = $this->get_pdls;
     my %istyped = map +($_=>1), grep $pdls->{$_}{FlagTypeOverride}, @$ord;
-    my @decls = map $_->get_xsdatapdecl($istyped{$_->name} ? "PDL_TYPE_PARAM_".$_->name : "PDL_TYPE_OP", $this->{NullDataCheck}),
+    my @decls = map $_->get_xsdatapdecl($istyped{$_->name} ? "PDL_TYPE_PARAM_".$_->name : "PDL_TYPE_OP", $this->{NullDataCheck}, $istyped{$_->name} ? "PDL_PPSYM_PARAM_".$_->name : "PDL_PPSYM_OP"),
       map $pdls->{$_}, @$ord;
-    my @param_names = ("PDL_TYPE_OP", map "PDL_TYPE_PARAM_$_", grep $istyped{$_}, @$ord);
+    my @param_names = ("PDL_TYPE_OP", "PDL_PPSYM_OP", map +("PDL_TYPE_PARAM_$_","PDL_PPSYM_PARAM_$_"), grep $istyped{$_}, @$ord);
     <<EOF;
 #ifndef PDL_DECLARE_PARAMS_$this->{Name}_$this->{NullDataCheck}
 #define PDL_DECLARE_PARAMS_$this->{Name}_$this->{NullDataCheck}(@{[join ',', @param_names]}) \\
@@ -205,14 +205,15 @@ sub sig {$_[0]->{Sig}}
 # This sub determines the index name for this index.
 # For example, a(x,y) and x0 becomes [x,x0]
 sub make_loopind { my($this,$ind) = @_;
-	($ind, my $initval) = split /\s*=\s*/, $ind;
-	my $orig = $ind;
-	while(!$this->{IndObjs}{$ind}) {
-		if(!((chop $ind) =~ /[0-9]/)) {
-			confess("Index not found for $_ ($ind)!\n");
-		}
-		}
-	return [$ind,$orig,$initval//0];
+  ($ind, my $cntrlval) = split /\s*=\s*/, $ind;
+  my $orig = $ind;
+  while(!$this->{IndObjs}{$ind}) {
+    if(!((chop $ind) =~ /[0-9]/)) {
+      confess("Index not found for $_ ($ind)!\n");
+    }
+  }
+  my ($initval, $endval, $inc) = split /\s*:\s*/, $cntrlval//'';
+  [$ind,$orig,$initval,$endval,$inc];
 }
 
 my %access2class = (
@@ -272,7 +273,7 @@ sub process {
 sub separate_code {
     my ( $this, $code ) = @_;
     # First check for standard code errors:
-    catch_code_errors($code);
+    $this->catch_code_errors($code);
     my @stack = my $coderef = PDL::PP::Block->new;
     my $broadcastloops = 0;
     my $sizeprivs = {};
@@ -312,23 +313,20 @@ sub expand {
 # This is essentially a collection of regexes that look for standard code
 # errors and croaks with an explanation if they are found.
 sub catch_code_errors {
-    my $code_string = shift;
-    # Look for constructs like
-    #   loop %{
-    # which is invalid - you need to specify the dimension over which it
-    # should loop
-    report_error('Expected dimension name after "loop" and before "%{"', $1)
-	    if $code_string =~ /(.*\bloop\s*%\{)/s;
+  my ($this, $code_string) = @_;
+  my $prefix = "pp_def($this->{Name}): ";
+  report_error("${prefix}Expected dimension name after 'loop' and before '%{'", $1)
+    if $code_string =~ /(.*\bloop\s*%\{)/s;
 }
 
 # Report an error as precisely as possible. If they have #line directives
 # in the code string, use that in the reporting; otherwise, use standard
 # Carp mechanisms
-my $line_re = qr/#\s*line\s+(\d+)\s+"([^"]*)"/;
+my $line_re = qr/(?:PDL_LINENO_START|#\s*line)\s+(\d+)\s+"([^"]*)"/;
 sub report_error {
     my ($message, $code) = @_;
     # Just croak if they didn't supply a #line directive:
-    confess($message) if $code !~ $line_re;
+    croak($message) if $code !~ $line_re;
     # Find the line at which the error occurred:
     my $line = 0;
     my $filename;
@@ -434,32 +432,51 @@ package PDL::PP::Loop;
 our @ISA = "PDL::PP::Block";
 
 sub new { my($type,$args,$sizeprivs,$parent) = @_;
-	my $this = bless [$args],$type;
-	for(@{$this->[0]}) {
-		print "SIZP $sizeprivs, $_\n" if $::PP_VERBOSE;
-		my $i = $parent->make_loopind($_);
-		my $i_size = $parent->sig->ind_obj($i->[0])->get_size;
-		$sizeprivs->{$i->[0]} =
-		  "register PDL_Indx __$i->[0]_size = $i_size;\n";
-		print "SP :",(join ',',%$sizeprivs),"\n" if $::PP_VERBOSE;
-	}
-	return $this;
+  my $this = bless [$args],$type;
+  for (@$args) {
+    print "SIZP $sizeprivs, $_\n" if $::PP_VERBOSE;
+    my $i = $parent->make_loopind($_);
+    my $i_size = $parent->sig->dims_obj->ind_obj($i->[0])->get_size;
+    $sizeprivs->{$i->[0]} = "register PDL_Indx __$i->[0]_size = $i_size;\n";
+    print "SP :",(join ',',%$sizeprivs),"\n" if $::PP_VERBOSE;
+  }
+  return $this;
 }
 
 sub myoffs { return 1; }
 sub myprelude { my($this,$parent,$context) = @_;
-	my $text = "";
-	push @$context, map {
-		my $i = $parent->make_loopind($_);
-# Used to be $PRIV(.._size) but now we have it in a register.
-		$text .= "{PDL_COMMENT(\"Open $_\") register PDL_Indx $i->[1]; for($i->[1]=$i->[2]; $i->[1]<(__$i->[0]_size); $i->[1]++) {";
-		$i;
-	} @{$this->[0]};
-	$text;
+  my $text = "";
+  push @$context, map {
+    my $i = $parent->make_loopind($_);
+    my ($loopdim, $loopvar, $loopstart, $loopend, $loopinc) = @$i;
+    my $loopstopvar = "__${loopvar}_stop";
+    $loopinc ||= 1; my $cmp;
+    if ($loopinc =~ /^-/) {
+      $loopstart = !(defined $loopstart && length $loopstart) ? "(__${loopdim}_size-1)" :
+        $loopstart =~ /^-/ ? "PDLMIN((__${loopdim}_size$loopstart), (__${loopdim}_size-1))" :
+        "PDLMIN($loopstart, (__${loopdim}_size-1))";
+      $cmp = ">=";
+      $loopend = !$loopend ? 0 :
+        $loopend =~ /^-/ ? "PDLMAX((__${loopdim}_size$loopend),0)" :
+        "PDLMAX(($loopend),0)";
+    } else {
+      # count upwards
+      $loopstart = !$loopstart ? 0 :
+        $loopstart =~ /^-/ ? "PDLMAX((__${loopdim}_size$loopstart),0)" :
+        "PDLMAX(($loopstart),0)";
+      $cmp = "<";
+      $loopend = !(defined $loopend && length $loopend) ? "(__${loopdim}_size)" :
+        $loopend =~ /^-/ ? "(__${loopdim}_size$loopend)" :
+        "PDLMIN($loopend, (__${loopdim}_size))";
+    }
+    $text .= "{PDL_COMMENT(\"Open $_\") PDL_EXPAND2(register PDL_Indx $loopvar=$loopstart, $loopstopvar=$loopend); for(; $loopvar$cmp$loopstopvar; $loopvar+=$loopinc) {";
+    $i;
+  } @{$this->[0]};
+  $text;
 }
 sub mypostlude { my($this,$parent,$context) = @_;
-	splice @$context, - ($#{$this->[0]}+1);
-	return join '', map "}} PDL_COMMENT(\"Close $_\")", @{$this->[0]};
+  splice @$context, - ($#{$this->[0]}+1);
+  return join '', map "}} PDL_COMMENT(\"Close $_\")", @{$this->[0]};
 }
 
 package PDL::PP::GenericSwitch;
@@ -471,10 +488,10 @@ use PDL::Types ':All';
 my %type2canonical = map +($_->ppsym=>$_,$_->identifier=>$_), types();
 my @typetable = map [$_->ppsym, $_], types();
 sub get_generictyperecs { my($types) = @_;
-    my @bad = grep !$type2canonical{$_}, @$types;
-    confess "Invalid GenericType (@bad)!" if @bad;
-    my %wanted; @wanted{map $type2canonical{$_}->ppsym, @$types} = ();
-    [ map $_->[1], grep exists $wanted{$_->[0]}, @typetable ];
+  my @bad = grep !$type2canonical{$_}, @$types;
+  confess "Invalid GenericType (@bad)!" if @bad;
+  my %wanted; @wanted{map $type2canonical{$_}->ppsym, @$types} = ();
+  [ map $_->[1], grep exists $wanted{$_->[0]}, @typetable ];
 }
 
 # Types: BSULFD
@@ -503,10 +520,13 @@ sub myitemstart {
     @$parent{qw(ftypes_type ftypes_vars)} = ($item, $this->[2]) if defined $this->[1];
     my ($ord,$pdls) = $parent->get_pdls;
     my %istyped = map +($_=>1), grep $pdls->{$_}{FlagTypeOverride}, @$ord;
-    my @param_ctypes = ($item->ctype, map $pdls->{$_}->adjusted_type($item)->ctype, grep $istyped{$_}, @$ord);
+    my @param_ctypes = ($item->ctype, $item->ppsym,
+      map +($pdls->{$_}->adjusted_type($item)->ctype,
+        $pdls->{$_}->adjusted_type($item)->ppsym),
+      grep $istyped{$_}, @$ord);
     my $decls = keys %{$this->[2]} == @$ord
       ? "PDL_DECLARE_PARAMS_$parent->{Name}_$parent->{NullDataCheck}(@{[join ',', @param_ctypes]})\n"
-      : join '', map $_->get_xsdatapdecl($_->adjusted_type($item)->ctype, $parent->{NullDataCheck}),
+      : join '', map $_->get_xsdatapdecl($_->adjusted_type($item)->ctype, $parent->{NullDataCheck}, $_->adjusted_type($item)->ppsym),
           map $parent->{ParObjs}{$_}, sort keys %{$this->[2]};
     my @gentype_decls = !$this->[4] ? () : map "#define PDL_IF_GENTYPE_".uc($_)."(t,f) ".
 	($item->$_ ? 't' : 'f')."\n",
@@ -630,7 +650,7 @@ sub new {
     bless [$opcode, $get, $name, $inds], $type;
 }
 
-sub _isbad { "PDL_ISBAD($_[0],$_[1],$_[2])" }
+sub _isbad { "PDL_ISBAD2($_[0],$_[1],$_[2],$_[3])" }
 our %ops = (
     ISBAD => \&_isbad,
     ISGOOD => sub {'!'.&_isbad},
@@ -658,7 +678,7 @@ sub get_str {
     my $type = exists $parent->{ftypes_vars}{$name}
 	? $parent->{ftypes_type}
 	: $obj->adjusted_type($parent->{Gencurtype}[-1]);
-    $op->($lhs, $rhs, $type->ppsym);
+    $op->($lhs, $rhs, $type->ppsym, $rhs."_isnan");
 }
 
 

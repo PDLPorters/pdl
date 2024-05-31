@@ -56,40 +56,31 @@ ok(tapprox($x->mslice('X',[6,7]),
 	       ])));
 
 my $lut = pdl [[1,0],[0,1]];
-$im = pdl [1];
+$im = pdl indx, [1];
 my $in = $lut->transpose->index($im->dummy(0));
-
-is("$in", "
-[
- [0 1]
-]
-");
-
+is("$in", "\n[\n [0 1]\n]\n");
 $in .= pdl 1;
-
-is("$in", "
-[
- [1 1]
-]
-");
-ok(tapprox($lut,pdl([[1,0],[1,1]])));
+is("$in", "\n[\n [1 1]\n]\n");
+my $expected = pdl([[1,0],[1,1]]);
+ok(tapprox($lut, $expected)) or diag "lut=$lut exp=$expected";
 
 # Test of dice and dice_axis
 $x = sequence(10,4);
 is($x->dice([1,2],[0,3])->sum, 66, "dice");
 is($x->dice([0,1],'X')->sum, 124, "dice 'X'");
 
-# Test of dice clump compatability
+my $got;
+# Test of dice clump compatibility
 my $xxx = PDL->new([[[0,0]],[[1,1]],[[2,2]]]);
 is_deeply($xxx->where($xxx == 0)->unpdl,[0,0],"dice clump base zero");
 my $dice = $xxx->dice("X","X",[1,0]);
-is_deeply($dice->clump(-1)->unpdl,[1,1,0,0],"dice clump correct");
+is_deeply($got=$dice->clump(-1)->unpdl,[1,1,0,0],"dice clump correct") or diag "got=", explain $got;
 is_deeply($dice->where($dice == 0)->unpdl,[0,0],"dice clump where zero");
 
 $x = sequence(5,3,2);
 my @newDimOrder = (2,1,0);
 $y = $x->reorder(@newDimOrder);
-my $got = [$y->dims];
+$got = [$y->dims];
 is_deeply($got, [2,3,5], "Test of reorder") or diag explain $got;
 
 $x = zeroes(3,4);
@@ -233,13 +224,14 @@ for (
   $_ = $src->copy for $src, my $src_copy;
   my $y = eval { $src->range(@$args) };
   is $@, '', "$label works";
+  fail("$label got undef back from range"), next if !defined $y;
   is_deeply([$y->dims], $exp_dims, "$label dims right") or diag explain [$y->dims];
   eval { $y->make_physical };
   like($@, $exp, "$label right error"), next if ref($exp) eq 'Regexp';
   is $@, '', "$label works 2";
   $y = $exp_mod->($y) if $exp_mod;
   is $y->nelem, $exp->nelem, "$label nelem right";
-  ok tapprox($y, $exp), "$label right data";
+  ok tapprox($y, $exp), "$label right data" or diag "got=$y\nexp=$exp";
   ok tapprox($src, $src_copy), "$label source not mutated";
   next if !$mutate;
   $mutate->($y);
@@ -251,7 +243,9 @@ for (4..6) {
   my @dims = (5) x $_;
   my $src = sequence @dims;
   my $idx = ndcoords indx, $src;
-  (my $out = $src->range($idx, 2, 't'))->make_physdims;
+  my $out = eval {$src->range($idx, 2, 't')};
+  is $@, '', "range(@dims) got no error" or next;
+  $out->make_physdims;
   my $expected = [@dims, (2) x $_];
   is_deeply [$out->dims], $expected or diag explain [$out->dims];
 }
@@ -298,14 +292,18 @@ for my $start (0, 4, -4, 20, -20) {
 }
 
 {
-my @METHODS = qw(datachgd allocated vaffine);
+my @METHODS = qw(datachgd allocated has_vafftrans vaffine);
 sub vafftest {
-  my ($all, $exp, $elabel) = @_[0..2];
+  my ($addr2label, $all, $exp, $elabel) = @_;
   local $Test::Builder::Level = $Test::Builder::Level + 1;
   for (0..$#$all) {
     my ($x, $name, $xexp) = (@{$all->[$_]}[0,1], $exp->[$_]);
-    is $x->${\$METHODS[$_]}, $xexp->[$_], "$elabel: $name $METHODS[$_]"
-      for 0..$#METHODS;
+    for my $m (0..$#METHODS) {
+      is $x->${\$METHODS[$m]}, $xexp->[$m], "$elabel: $name $METHODS[$m]";
+    }
+    next if !(my $from = $xexp->[$#METHODS+1]);
+    eval {is $addr2label->{$x->vaffine_from}, $from, "$elabel: $name vaffine_from"};
+    is $@, '', "$elabel: $name vaffine_from no error";
   }
 }
 # Test vaffine optimisation
@@ -314,45 +312,46 @@ my $vaff = $root->slice('10:90,10:90');
 my $vaff2 = $vaff->slice('5:8,5:8');
 my $clumped = $vaff2->clump(-1);
 my $all = [[$vaff,'vaff'], [$vaff2,'vaff2'], [$clumped,'clumped']];
-vafftest($all, [[0,0,0],[0,0,0],[1,0,0]], "start");
+my %addr2label = map +($_->[0]->address=>$_->[1]), @$all, [$root,'root'];
+vafftest(\%addr2label, $all, [[0,0,0,0],[0,0,0,0],[1,0,0,0]], "start");
 $vaff++;
-vafftest($all, [[0,0,1],[0,0,0],[1,0,0]], "vaff mutated");
+vafftest(\%addr2label, $all, [[0,0,1,1,'root'],[0,0,0,0],[1,0,0,0]], "vaff mutated");
 $vaff2->make_physvaffine;
-vafftest($all, [[0,0,1],[0,0,1],[1,0,0]], "vaff2 vaffed");
+vafftest(\%addr2label, $all, [[0,0,1,1,'root'],[0,0,1,1,'root'],[1,0,0,0]], "vaff2 vaffed");
 $vaff->make_physical;
-vafftest($all, [[0,1,1],[0,0,1],[1,0,0]], "vaff physicalised");
+vafftest(\%addr2label, $all, [[0,1,1,0,'root'],[0,0,0,0],[1,0,0,0]], "vaff physicalised");
 $vaff2 += 1;
-vafftest($all, [[1,1,1],[0,0,1],[1,0,0]], "vaff2 mutated");
+vafftest(\%addr2label, $all, [[1,1,1,0,'root'],[0,0,1,1,'vaff'],[1,0,0,0]], "vaff2 mutated");
 $vaff->make_physvaffine;
-vafftest($all, [[0,1,1],[0,0,1],[1,0,0]], "vaff physvaffined");
+vafftest(\%addr2label, $all, [[0,1,1,0,'root'],[0,0,1,1,'vaff'],[1,0,0,0]], "vaff physvaffined");
 $clumped++;
-vafftest($all, [[1,1,1],[1,1,1],[1,1,0]], "clumped mutated");
+vafftest(\%addr2label, $all, [[1,1,1,0,'root'],[1,1,1,0,'vaff'],[1,1,0,0]], "clumped mutated");
 $root->set(0,0,7);
-vafftest($all, [[1,1,1],[1,1,1],[1,1,0]], "root set()ed");
+vafftest(\%addr2label, $all, [[1,1,1,0,'root'],[1,1,1,0,'vaff'],[1,1,0,0]], "root set()ed");
 $vaff->make_physvaffine;
-vafftest($all, [[0,1,1],[1,1,1],[1,1,0]], "vaff physvaffined");
+vafftest(\%addr2label, $all, [[0,1,1,0,'root'],[1,1,1,0,'vaff'],[1,1,0,0]], "vaff physvaffined2");
 $vaff2->make_physvaffine;
-vafftest($all, [[0,1,1],[0,1,1],[1,1,0]], "vaff2 physvaffined");
+vafftest(\%addr2label, $all, [[0,1,1,0,'root'],[0,1,1,0,'vaff'],[1,1,0,0]], "vaff2 physvaffined");
 $clumped->make_physvaffine;
-vafftest($all, [[0,1,1],[0,1,1],[0,1,0]], "clumped physvaffined");
+vafftest(\%addr2label, $all, [[0,1,1,0,'root'],[0,1,1,0,'vaff'],[0,1,0,0]], "clumped physvaffined");
 push @$all, [my $latevaff=$vaff2->slice(''), 'latevaff'];
-vafftest($all, [[0,1,1],[0,1,1],[0,1,0],[0,0,0]], "latevaff created");
+vafftest(\%addr2label, $all, [[0,1,1,0,'root'],[0,1,1,0,'vaff'],[0,1,0,0],[0,0,0,0]], "latevaff created");
 $latevaff->make_physvaffine;
-vafftest($all, [[0,1,1],[0,1,1],[0,1,0],[0,0,1]], "latevaff physvaffined");
-is $latevaff->vaffine_from, $root->address, 'latevaff vaffine_from root';
+vafftest(\%addr2label, $all, [[0,1,1,0,'root'],[0,1,1,0,'vaff'],[0,1,0,0],[0,0,1,1,'vaff2']], "latevaff physvaffined");
 
 # capturing GH#461
 $root = zeroes 2,2,2;
 my $clumped1 = $root->clump( 0,1 );
 my $clumped2 = $clumped1->clump( 0,1 );
 $all = [[$root,'root'], [$clumped1,'clumped1'], [$clumped2,'clumped2']];
-vafftest($all, [[0,1,0],[1,0,0],[1,0,0]], "start");
+%addr2label = map +($_->[0]->address=>$_->[1]), @$all;
+vafftest(\%addr2label, $all, [[0,1,0,0],[1,0,0,0],[1,0,0,0]], "start");
 $clumped2->make_physvaffine;
-vafftest($all, [[0,1,0],[0,1,0],[0,1,0]], "clumped2 physvaff 1");
+vafftest(\%addr2label, $all, [[0,1,0,0],[0,1,0,0],[0,1,0,0]], "clumped2 physvaff 1");
 $root .= 3;
-vafftest($all, [[0,1,0],[1,1,0],[1,1,0]], "root assigned to");
+vafftest(\%addr2label, $all, [[0,1,0,0],[1,1,0,0],[1,1,0,0]], "root assigned to");
 $clumped2->make_physvaffine;
-vafftest($all, [[0,1,0],[0,1,0],[0,1,0]], "clumped2 physvaff 2");
+vafftest(\%addr2label, $all, [[0,1,0,0],[0,1,0,0],[0,1,0,0]], "clumped2 physvaff 2");
 is "@{$clumped2->unpdl}", "3 3 3 3 3 3 3 3";
 
 # Make sure that vaffining is properly working:
@@ -384,8 +383,14 @@ my $sl22 = $sl2->slice('');
 my $roots = pdl '[1 -2396-2796i -778800+5024412i 2652376792-1643494392i -684394069604-217389559200i]'; # gives 4 roots of 599+699i
 PDL::polyroots($roots->re, $roots->im, $sl11, $sl22);
 my $got;
-ok all(approx $got=$xx->slice('(0)'), 599), "col=0" or diag "got=$got";
+ok all(approx $got=$xx->slice('(0)'), 599), "col=0"
+  or diag "roots=$roots\n",
+  "roots:", PDL::Core::pdump($roots),
+  "got=$got\n", "return=", PDL::polyroots($roots->re, $roots->im);
 ok all(approx $got=$xx->slice('(1)'), 699), "col=1" or diag "got=$got";
+
+eval {(my $y = zeroes(3,6)) += sequence(6,6)->mv(1,0)->slice("1:-1:2")};
+is $@, '', 'can += an mv->slice';
 }
 
 # captured from https://www.perlmonks.org/?node_id=11153348
@@ -407,9 +412,15 @@ my $pa = zeroes(7, 7); $pa->set(3, 4, 1);
 my $indices = $pa->which->dummy(0,$pa->getndims)->make_physical;
 my $s = $indices->index(0);
 $s %= 7;
-is $indices.'', <<EOF, 'mutate indexed slice affects only right column';
-\n[\n [ 3 31]\n]
-EOF
+is $indices.'', "\n[\n [ 3 31]\n]\n", 'mutate indexed slice affects only right column';
+
+{ # captures behaviour in GH#467
+my $x = sequence(1000);
+my $idx = random( $x->nelem) * $x->nelem;
+$x .= $x->index($idx);
+eval {$x->min};
+is $@, '', 'no error assigning $x->index(..) to $x';
+}
 
 ## rlevec(), rldvec(): 2d ONLY
 my $p = pdl([[1,2],[1,2],[1,2],[3,4],[3,4],[5,6]]);
@@ -461,6 +472,20 @@ my $v_nd = $p_nd->clump(2);
 my $k_nd = $v_nd->enumvec();
 ok all(approx($k_nd, pdl(long,[0,1,2,0,1,0,0]))), "enumvec():Nd";
 
+# from PDL::CCS tests revealing enumvec bug
+my $col = pdl("[5 5 4 4 4 3 3 3 3 2 2 2 1 1 0]")->transpose;
+$got = $col->enumvec;
+ok all(approx($got, pdl('[0 1 0 1 2 0 1 2 3 0 1 2 0 1 0]'))), 'enumvec'
+  or diag "got=$got";
+$col = pdl("[0 0 1 1 2 2 2 3 3 3 3 4 4 4 5 5]")->transpose;
+$got = $col->enumvec;
+ok all(approx($got, pdl('[0 1 0 1 0 1 2 0 1 2 3 0 1 2 0 1]'))), 'enumvec 2'
+  or diag "got=$got";
+$col = pdl("[0 0 1 1 2 2 2 3 3 3 3 4 4 4 5 5 6]")->transpose;
+$got = $col->enumvec;
+ok all(approx($got, pdl('[0 1 0 1 0 1 2 0 1 2 3 0 1 2 0 1 0]'))), 'enumvec 3'
+  or diag "got=$got";
+
 ## 13..17: test rldseq(), rleseq()
 my $lens = pdl(long,[qw(3 0 1 4 2)]);
 my $offs = (($lens->xvals+1)*100)->short;
@@ -476,5 +501,12 @@ my ($len_got,$off_got) = $seqs->rleseq();
 is $off_got->type, $seqs->type, "rleseq():type";
 ok all(approx($len_got->where($len_got), $lens->where($lens))), "rleseq():lens";
 ok all(approx($off_got->where($len_got), $offs->where($lens))), "rleseq():offs";
+
+eval {meshgrid(sequence(2,2))};
+like $@, qr/1-dimensional/, 'meshgrid rejects >1-D';
+my @vecs = (xvals(3), xvals(4)+5, xvals(2)+10);
+my @mesh_got = meshgrid(@vecs);
+is_deeply [$_->dims], [3,4,2] for @mesh_got;
+ok all($mesh_got[$_]->mv($_,0)->slice(',(0),(0)')==$vecs[$_]), "meshgrid $_" for 0..$#vecs;
 
 done_testing;

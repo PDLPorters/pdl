@@ -3,6 +3,7 @@ pdl *	T_PDL
 pdl_trans * T_PDLTRANS
 pdl_transvtable * T_PDLTRANSVTABLE
 PDL_Indx  T_IV
+PDL_LongLong  T_IV
 float	T_NV
 PDL_Anyval  T_PDL_ANYVAL
 pdl_slice_args * T_PDL_SLICEARGS
@@ -16,7 +17,7 @@ T_PDL
   $var = PDL_CORE_(SvPDLV)($arg)
 
 T_PDL_ANYVAL
-  ANYVAL_FROM_SV($var, $arg, FALSE, -1)
+  ANYVAL_FROM_SV($var, $arg, FALSE, -1, TRUE)
 
 T_PDLTRANS
   if (!sv_isa($arg,\"PDL::Trans\"))

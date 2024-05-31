@@ -116,35 +116,28 @@ EOD
 my %over = 
     (
      sumover  => { name => 'sum',     op => '+=', init => 0, },
-     prodover => { name => 'product', op => '*=', init => 1, },
+     prodover => { name => 'product', op => '*=', init => 1, leftzero => 'tmp == 0' },
      );
 
 foreach my $func ( sort keys %over ) {
-
-    # creates $func and cumu$func functions
-    # and d$func and dcumu$func functions, which
-    # perform the calculations in double precision
-    
-    my $name = $over{$func}{name};
-    my $op   = $over{$func}{op};
-    my $init = $over{$func}{init};
-
+    my ($name, $op, $init, $leftzero) = @{$over{$func}}{qw(name op init leftzero)};
     pp_def(
 	   $_->[0].$func,
 	   HandleBad => 1,
 	   Pars => "a(n); $_->[1] [o]b();",
 	   $_->[2] ? (GenericTypes=>$_->[2]) : (),
-           Code => qq{
+           Code => <<EOF,
             \$GENERIC(b) tmp = $init;
             PDL_IF_BAD(int flag = 0;,)
             loop(n) %{
-            PDL_IF_BAD(if ( \$ISGOOD(a()) ) { flag = 1;,)
+            PDL_IF_BAD(if ( \$ISGOOD(a()) ) { flag = 1;,{)
               tmp $op \$a();
-            PDL_IF_BAD(},)
+            }
+            @{[$leftzero ? "if ($leftzero) break;" : '']}
             %}
             PDL_IF_BAD(if ( !flag ) \$SETBAD(b()); else,)
             \$b() = tmp;
-           },
+EOF
 	   Doc => projectdocs( $name, $_->[0].$func, $_->[3] ),
 	   ) for (
       ['', 'int+', $A, ''],
@@ -166,15 +159,19 @@ precision."
            Code => qq{
             \$GENERIC(b) tmp = $init;
             loop(n) %{
-              PDL_IF_BAD(if ( \$ISBAD(a()) ) { \$SETBAD(b()); } else {,)
+              PDL_IF_BAD(if ( \$ISBAD(a()) ) { \$SETBAD(b()); } else,) {
                 tmp $op \$a();
                 \$b() = tmp;
-              PDL_IF_BAD(},)
+              }
             %}
            },
 	   Doc => cumuprojectdocs( $name, $_->[0].$cfunc, $_->[3] ),
 	   ) for (
       ['', 'int+', $A, ''],
+      ['c', 'cdouble', $C,
+"Unlike L</$cfunc>, the calculations are performed in complex double
+precision."
+      ],
       ['d', 'double', undef,
 "Unlike L</$cfunc>, the calculations are performed in double precision."
       ],
@@ -184,15 +181,15 @@ precision."
 %over = 
     (
      zcover   => { def=>'char tmp', txt => '== 0', init => 1, alltypes => 1,
-		   otype => 'int+', op => 'tmp &= ($a() == 0);', check => '!tmp' },
+		   otype => 'int+', op => 'tmp &= ($a() == 0);', leftzero => '!tmp' },
      andover  => { def=>'char tmp', txt => 'and', init => 1, alltypes => 1, 
-		   otype => 'int+', op => 'tmp &=  ($a() != 0);', check => '!tmp' },
+		   otype => 'int+', op => 'tmp &=  ($a() != 0);', leftzero => '!tmp' },
      bandover => { def=>'$GENERIC() tmp', txt => 'bitwise and', init => '~0', 
-		   otype => '', op => 'tmp &= $a();', check => '!tmp' },
+		   otype => '', op => 'tmp &= $a();', leftzero => '!tmp' },
      orover   => { def=>'char tmp', txt => 'or', init => 0, alltypes => 1, 
-		   otype => 'int+', op => 'tmp |= ($a() != 0);', check => 'tmp' },
+		   otype => 'int+', op => 'tmp |= ($a() != 0);', leftzero => 'tmp' },
      borover  => { def=>'$GENERIC() tmp', txt => 'bitwise or', init => 0, 
-		   otype => '', op => 'tmp |= $a() ;', check => '!~tmp' },
+		   otype => '', op => 'tmp |= $a() ;', leftzero => '!~tmp' },
 
      );
 
@@ -203,7 +200,7 @@ foreach my $func ( sort keys %over ) {
     my $init  = $over{$func}{init};
     my $otype = $over{$func}{otype};
     my $op    = $over{$func}{op};
-    my $check = $over{$func}{check};
+    my $leftzero = $over{$func}{leftzero};
 
     my %extra;
     unless ( $over{$func}{alltypes} ) {
@@ -221,7 +218,7 @@ foreach my $func ( sort keys %over ) {
             loop(n) %{
             PDL_IF_BAD(if ( \$ISGOOD(a()) ) { flag = 1;,)
               $op
-              if ( $check ) break;
+              if ( $leftzero ) break;
             PDL_IF_BAD(},)
             %}
             PDL_IF_BAD(if ( !flag ) { \$SETBAD(b()); \$PDLSTATESETBAD(b); } else,)
@@ -236,6 +233,38 @@ as it will not contain any bad values.',
 
 } # foreach: $func
 
+pp_def('diff2',
+  HandleBad => 1,
+  Pars => 'a(n); [o]o(nminus1=CALC($SIZE(n) - 1))',
+  GenericTypes => [ppdefs_all],
+  Code => <<'EOF',
+$GENERIC() lastval = PDL_IF_BAD($ISBAD($a(n=>0)) ? 0 :,) $a(n=>0);
+loop(n=1) %{
+  PDL_IF_BAD(if ($ISBAD($a()))
+    $SETBAD(o(nminus1=>n-1));
+  else,)
+    $o(nminus1=>n-1) = $a() - lastval;
+  PDL_IF_BAD(if ($ISGOOD($a())),) lastval = $a();
+%}
+EOF
+  Doc => <<'EOF',
+=for ref
+
+Numerically differentiates a vector along 0th dimension.
+
+By using L<PDL::Slices/xchg> etc. it is possible to use I<any> dimension.
+
+=for usage
+
+  print pdl(q[3 4 2 3 2 3 1])->diff2;
+  # [1 -2 1 -1 1 -2]
+EOF
+  BadDoc => <<'EOF',
+On bad value, output value is set bad. On next good value, output value
+is difference between that and last good value.
+EOF
+);
+
 # this would need a lot of work to support bad values
 # plus it gives me a chance to check out HandleBad => 0 ;)
 #
@@ -244,10 +273,8 @@ pp_def(
        HandleBad => 0,
        Pars => 'a(n); float+ [o]b();',
        Code =>
-       '$GENERIC(b) tmp = 0;
-       PDL_Indx ns = $SIZE(n), nn;
-       /* Integration formulae from Press et al 2nd Ed S 4.1 */
-       switch (ns) {
+       '/* Integration formulae from Press et al 2nd Ed S 4.1 */
+       switch ($SIZE(n)) {
       case 1:
           broadcastloop %{
           $b() = 0.; /* not a(n=>0); as interval has zero width */
@@ -277,32 +304,33 @@ pp_def(
           break;
       default:
           broadcastloop %{
-        for (nn=3,tmp=0;nn<ns-3;nn++) { tmp += $a(n=>nn); }
-        tmp += (23./24.)*($a(n=>2)+$a(n=>nn));nn++;
-        tmp += (7./6.)  *($a(n=>1)+$a(n=>nn));nn++;
-        tmp += 0.375    *($a(n=>0)+$a(n=>nn));
+        $GENERIC(b) tmp = 0;
+        loop (n=3:-3) %{ tmp += $a(); %}
+        loop (n=-3:-2) %{ tmp += (23./24.)*($a(n=>2)+$a()); %}
+        loop (n=-2:-1) %{ tmp += (7./6.)  *($a(n=>1)+$a()); %}
+        loop (n=-1:)   %{ tmp += (3./8.)  *($a(n=>0)+$a()); %}
         $b() = tmp;
           %}
       }
       ',
-       Doc => projectdocs('integral','intover',
-q~Notes:
+       Doc => projectdocs('integral','intover', <<'EOF'),
+Notes:
 
-C<intover> uses a point spacing of one (i.e., delta-h==1).  You will
-need to scale the result to correct for the true point delta).
+C<intover> uses a point spacing of one (i.e., delta-h==1). You will
+need to scale the result to correct for the true point delta.
 
 For C<n E<gt> 3>, these are all C<O(h^4)> (like Simpson's rule), but are
 integrals between the end points assuming the pdl gives values just at
 these centres: for such `functions', sumover is correct to C<O(h)>, but
 is the natural (and correct) choice for binned data, of course.
-~)
+EOF
 ); # intover
 
 sub synonym {
     my ($name, $synonym) = @_;
     pp_add_exported('', $synonym);
     pp_addpm(
-"=head2 $synonym\n\n=for ref\n\n  Synonym for $name.\n\n=cut\n
+"=head2 $synonym\n\n=for ref\n\nSynonym for L</$name>.\n\n=cut\n
 *PDL::$synonym = *$synonym = \\&PDL::$name;"
     );
 }
@@ -416,17 +444,17 @@ sub PDL::${name}_n_ind {
   \$set_out ? \$_[1] = \$c : \$c;
 }
 EOF
+	    RedoDimsCode => 'if($SIZE(m) > $SIZE(n)) $CROAK("m_size > n_size");',
 	    Code =>
 	    '$GENERIC() cur = 0; PDL_Indx curind; register PDL_Indx ns = $SIZE(n);
-	     if($SIZE(m) > $SIZE(n)) $CROAK("m_size > n_size");
 	     $PDLSTATESETGOOD(c);
 	     loop(m) %{
 		 curind = ns;
 		 loop(n) %{
-			PDL_Indx nm; int flag=0;
-			for(nm=0; nm<m; nm++) {
-				if($c(m=>nm) == n) {flag=1; break;}
-			}
+			PDL_Indx outer_m = m; int flag=0;
+			loop (m=:outer_m) %{
+				if ($c() == n) {flag=1; break;}
+			%}
 			if(!flag &&
 			   PDL_IF_BAD($ISGOOD(a()) &&,)
 			   ((curind == ns) || $a() '.$op.' cur || PDL_ISNAN_$PPSYM()(cur)))
@@ -640,11 +668,7 @@ and therefore ignore whether the values are bad.
 =cut
 
 *minmax = \&PDL::minmax;
-sub PDL::minmax {
-  my ($x)=@_; my $tmp;
-  my @arr = $x->flat->minmaximum;
-  map $_->sclr, @arr[0,1]; # as scalars !
-}
+sub PDL::minmax { map $_->sclr, ($_[0]->flat->minmaximum)[0,1] }
 
 EOPM
 

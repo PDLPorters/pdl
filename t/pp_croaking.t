@@ -12,18 +12,14 @@ $PDL::PP::done = 1;
 eval {pp_addpm({At=>'Mid'}, "blah")};
 like $@, qr/Middle/, 'pp_addpm says valid options';
 
-# Check the loop malformed call:
-eval {
-	pp_def(test1 =>
-		Pars => 'a(n)',
-		Code => q{
-			loop %{
-				$a()++;
-			%}
-		}
-	);
-};
+# Check loop malformed call:
+eval {pp_def(test1 => Pars => 'a(n)', Code => 'loop %{ $a()++; %}')};
 like $@, qr/Expected.*loop.*%\{/, 'loop without dim name should explain error';
+
+# Check what looks like malformed var access in a string works:
+eval {pp_def(test1 => Pars => 'a(n)', Code => '$CROAK("$iisframe must be in range");')};
+is $@, '', '$var without brackets in a string is not error';
+#like $@, qr/Expected brackets/, 'var access without ()';
 
 eval {
   pp_def(test1 =>
@@ -147,15 +143,25 @@ eval { pp_def( "func", Code => ';',
 ) };
 like $@, qr/INVALID/, 'invalid GenericTypes caught';
 
+eval { pp_def( "func", Code => '$a(n);',
+  Pars => "a(n=2); [o] b(m=3);",
+) };
+like $@, qr/no '=>' seen/, 'useful error when no "=>" in ndarray access';
+
+eval { pp_def( "func", Code => '$a(n=>1 + 2);',
+  Pars => "a(n=2); [o] b(m=3);",
+) };
+like $@, qr/func\).*no spaces/, 'useful error when no "=>" in ndarray access';
+
 my $got = [PDL::PP::reorder_args(my $sig = PDL::PP::Signature->new(
-   "a(n=2); [o] b(m=3);", 1, "int x; char *y"
+   "a(n=2); [o] b(m=3);", 'name', 1, "int x; char *y"
 ), {})];
 is_deeply $got, [qw(a x y b)], 'right reorder no defaults' or diag explain $got;
 is_deeply $got = [PDL::PP::reorder_args($sig, {x=>1})], [qw(a y x b)],
   'right reorder with default'
   or diag explain $got;
 is_deeply $got = [PDL::PP::reorder_args($sig = PDL::PP::Signature->new(
-   "a(n=2); [o] b(m=3);", 1, "[o] int x; char *y; double z"
+   "a(n=2); [o] b(m=3);", 'name', 1, "[o] int x; char *y; double z"
 ), {})], [qw(a y z b x)], 'right reorder, output other, no defaults'
   or diag explain $got;
 is_deeply $got = [PDL::PP::reorder_args($sig, {y=>'""'})], [qw(a z y b x)],

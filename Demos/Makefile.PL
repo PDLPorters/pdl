@@ -11,9 +11,6 @@ WriteMakefile(
   PM => {
     'General.pm'  => '$(INST_LIBDIR)/Demos/General.pm',
     'Demos.pm'    => '$(INST_LIBDIR)/Demos.pm',
-    'TriD1.pm'    => '$(INST_LIBDIR)/Demos/TriD1.pm',
-    'TriD2.pm'    => '$(INST_LIBDIR)/Demos/TriD2.pm',
-    'TriDGallery.pm'    => '$(INST_LIBDIR)/Demos/TriDGallery.pm',
     'BAD_demo.pm'       => '$(INST_LIBDIR)/Demos/BAD_demo.pm',
     'Sound.pm'          => '$(INST_LIBDIR)/Demos/Sound.pm',
     'Transform_demo.pm' => '$(INST_LIBDIR)/Demos/Transform_demo.pm',

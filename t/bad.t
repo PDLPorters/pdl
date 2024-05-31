@@ -86,19 +86,23 @@ $y = $x->copy;
 $y->badvalue('nan');
 $y->setbadat(2);
 is $y."", "[1 2 BAD 4 5]", "y correct bad before set_datatype with badval=nan";
+my $z = $y->convert(ushort);
+is( PDL::Core::string($z), "[1 2 BAD 4 5]", "non-inplace converting NaN-badvalued pdl preserves badvals" );
 $y->set_datatype(ushort->enum);
 is $y."", "[1 2 BAD 4 5]", "y correct bad after set_datatype with badval=nan";
 
 # now check that badvalue() changes the ndarray
 # (only for integer types)
 $x = convert($x,ushort);
+is( PDL::Core::string($x), "[1 2 BAD 4 5]", "before change badvalue" );
 my $badval = $x->badvalue;
 $x->badvalue(44);
 is( PDL::Core::string($x), "[1 2 BAD 4 5]", "changed badvalue" );
 $x->badflag(0);
 is( PDL::Core::string($x), "[1 2 44 4 5]", "can remove the badflag setting" );
 # restore the bad value
-$x->badvalue($badval);
+$x->badflag(1);
+is( PDL::Core::string($x), "[1 2 BAD 4 5]", "still 'bad' w/changed badvalue" );
 
 $x = byte(1,2,3);
 $y = byte(1,byte->badvalue,3);
@@ -412,6 +416,9 @@ $x->badflag(1);
 $y = $x->slice('2:3');
 is( $y->badvalue, 3, "can propagate per-ndarray bad value");
 is( $y->sum, 2, "and the propagated value is recognised as bad");
+$x->badvalue(2);
+is "$x", '[0 1 BAD 3]', 'change badvalue, badness right in orig';
+is( $y->badvalue, 2, "per-ndarray bad value propagated after change");
 $x = sequence(4);
 is ($x->badvalue, double->orig_badvalue, "no long-term effects of per-ndarray changes [1]");
 
@@ -494,7 +501,7 @@ subtest "Issue example code" => sub {
 	ok scalar(@warnings), 'bad gave warnings';
 };
 
-subtest "Badvalue set on 0-dim PDL + comparision operators" => sub {
+subtest "Badvalue set on 0-dim PDL + comparison operators" => sub {
 	my $val = 2;
 	my $badval_sclr = 5;
 	my $p_val = pdl($val);
@@ -693,6 +700,16 @@ subtest "locf" => sub {
   my $withbad = pdl '[BAD 1 BAD 3 BAD 5]';
   my $locf = $withbad->locf;
   is $locf."", '[0 1 1 3 3 5]', 'locf worked';
+};
+
+subtest "badvalues for native complex" => sub {
+  my $pdl = pdl '1+i';
+  $pdl->badflag(1);
+  $pdl->badvalue($pdl);
+  is "$pdl", "BAD", 'set badvalue with complex ndarray';
+  $pdl->badvalue($pdl->sclr);
+  is "$pdl", "BAD", 'set badvalue with complex Perl scalar'
+    or diag "badvalue:", $pdl->badvalue->info, "=", $pdl->badvalue;
 };
 
 done_testing;

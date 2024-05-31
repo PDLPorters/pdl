@@ -117,8 +117,8 @@ void pdl_print_iarr(PDL_Indx *iarr, int n) {
 }
 
 void pdl_dump_broadcast(pdl_broadcast *broadcast) {
-  int i, j, found=0, sz=0;
-  char spaces[] = "    ";
+  int i, j, found=0, sz=0, nspac=4;
+  SET_SPACE(spaces, nspac);
   int flagval[] = {
 #define X(f) f,
 PDL_LIST_FLAGS_PDLBROADCAST(X)
@@ -162,10 +162,11 @@ PDL_TYPELIST_ALL(X)
     psp; printf("Types: ");
     found=0; sz=0;
     for (i=0;vtable->gentypes[i]!=-1; i++) {
-      if (sz>PDL_MAXLIN) {sz=0; printf("\n");psp;psp;}
-      printf("%s%s",found ? ",":"",typechar[vtable->gentypes[i]]);
-      found = 1;
-      sz += strlen(typechar[vtable->gentypes[i]]);
+      char *this_str = typechar[vtable->gentypes[i]];
+      size_t thislen = strlen(this_str);
+      if ((sz+thislen)>PDL_MAXLIN) {sz=nspac*2; printf("\n%s%s",spaces,spaces);}
+      printf("%s%s",found ? ",":"",this_str); found = 1;
+      sz += thislen;
     }
     printf("\n");
     psp; printf("Parameters:\n");
@@ -189,10 +190,11 @@ PDL_TYPELIST_ALL(X)
       found=0; sz=0;
       for (j=0;paramflagval[j]!=0; j++)
         if (vtable->par_flags[i] & paramflagval[j]) {
-          if (sz>PDL_MAXLIN) {sz=0; printf("\n");psp;psp;psp;}
-          printf("%s",found ? "|":""); found = 1;
-          printf("%s",paramflagchar[j]);
-          sz += strlen(paramflagchar[j]);
+          char *this_str = paramflagchar[j];
+          size_t thislen = strlen(this_str);
+          if ((sz+thislen)>PDL_MAXLIN) {sz=nspac*3; printf("\n%s%s%s",spaces,spaces,spaces);}
+          printf("%s%s",found ? "|":"",this_str); found = 1;
+          sz += thislen;
         }
       if (!found) printf("(no flags set)");
       printf("\n");
@@ -201,16 +203,16 @@ PDL_TYPELIST_ALL(X)
     for (i=0;i<vtable->ninds;i++)
       printf("%s ",vtable->ind_names[i]);
     printf("\n");
-    psp; printf("Realdims: "); pdl_print_iarr(vtable->par_realdims,broadcast->npdls); printf("\n");
   }
   psp; printf("Flags: ");
   found=0; sz=0;
   for (i=0;flagval[i]!=0; i++)
     if (broadcast->gflags & flagval[i]) {
-      if (sz>PDL_MAXLIN) {sz=0; printf("\n");psp;}
-      printf("%s%s",found ? "|":"",flagchar[i]);
-      found = 1;
-      sz += strlen(flagchar[i]);
+      char *this_str = flagchar[i];
+      size_t thislen = strlen(this_str);
+      if ((sz+thislen)>PDL_MAXLIN) {sz=nspac; printf("\n%s",spaces);}
+      printf("%s%s",found ? "|":"",this_str); found = 1;
+      sz += thislen;
     }
   printf("\n");
   psp; printf("Ndims: %"IND_FLAG", Nimplicit: %"IND_FLAG", Npdls: %"IND_FLAG", Nextra: %"IND_FLAG"\n",
@@ -391,10 +393,11 @@ PDL_LIST_FLAGS_PDLVTABLE(X)
 	found = 0; sz = 0;
 	for (i=0;flagval[i]!=0; i++)
 	  if (flags & flagval[i]) {
-	    if (sz>PDL_MAXLIN) {sz=0; printf("\n       %s",spaces);}
-	    printf("%s%s",found ? "|":"",flagchar[i]);
-	    found = 1;
-	    sz += strlen(flagchar[i]);
+	    char *this_str = flagchar[i];
+	    size_t thislen = strlen(this_str);
+	    if ((sz+thislen)>PDL_MAXLIN) {sz=7+nspac; printf("\n       %s",spaces);}
+	    printf("%s%s",found ? "|":"",this_str); found = 1;
+	    sz += thislen;
 	  }
 	printf("\n");
 }
@@ -442,27 +445,31 @@ void pdl_dump_fixspace(pdl *it,int nspac)
 	pdl_dump_flags_fixspace(it->state,nspac+3,PDL_FLAGS_PDL);
 	printf("%s   transvtable: %p, trans: %p, sv: %p\n",spaces,
 		(void*)(it->trans_parent?it->trans_parent->vtable:0), (void*)(it->trans_parent), (void*)(it->sv));
-	if(it->datasv)
+	if (it->datasv)
 		printf("%s   datasv: %p, Svlen: %d, refcnt: %d\n", spaces,
 			(void*)it->datasv, (int)SvCUR((SV*)it->datasv), (int)SvREFCNT((SV*)it->datasv));
-	if(it->data)
+	if (it->data)
 		printf("%s   data: %p, nbytes: %"IND_FLAG", nvals: %"IND_FLAG"\n", spaces,
 			(void*)(it->data), it->nbytes, it->nvals);
-	if(it->hdrsv)
+	if (it->hdrsv)
 		printf("%s   hdrsv: %p, reftype %s\n", spaces,
 			(void*)it->hdrsv, sv_reftype((SV*)it->hdrsv, TRUE));
 	printf("%s   Dims: %p ",spaces,(void*)it->dims);
 	pdl_print_iarr(it->dims, it->ndims);
 	printf("\n%s   BroadcastIds: %p ",spaces,(void*)(it->broadcastids));
 	pdl_print_iarr(it->broadcastids, it->nbroadcastids);
-	if(PDL_VAFFOK(it)) {
-		printf("\n%s   Vaffine ok: %p (parent), o:%"IND_FLAG", i:",
+	if (it->vafftrans) {
+		printf("\n%s   Vafftrans: %p (parent), o:%"IND_FLAG", i:",
 			spaces,(void*)(it->vafftrans->from),it->vafftrans->offs);
 		pdl_print_iarr(PDL_REPRINCS(it), it->vafftrans->ndims);
 	}
-	if(it->state & PDL_ALLOCATED) {
+	if (it->state & PDL_BADVAL) {
+		printf("\n%s   Badvalue (%s): ",spaces, it->has_badvalue ? "bespoke" : "orig");
+		pdl_dump_anyval(pdl_get_pdl_badvalue(it));
+	}
+	if (it->state & PDL_ALLOCATED) {
 		printf("\n%s   First values: (",spaces);
-		for(i=0; i<it->nvals && i<10; i++) {
+		for (i=0; i<it->nvals && i<10; i++) {
                        if (i) printf(" ");
                        pdl_dump_anyval(pdl_get_offs(it,i));
 		}
@@ -470,7 +477,7 @@ void pdl_dump_fixspace(pdl *it,int nspac)
 		printf("\n%s   (not allocated",spaces);
 	}
 	printf(")\n");
-	if(it->trans_parent) {
+	if (it->trans_parent) {
 		pdl_dump_trans_fixspace(it->trans_parent,nspac+3);
 	}
 	printf("%s   CHILDREN:\n",spaces);
@@ -489,12 +496,12 @@ void pdl_dump_anyval(PDL_Anyval v) {
   if (v.type < PDL_CF) {
 #define X(datatype, ctype, ppsym, ...) \
     printf("%Lg", (long double)v.value.ppsym);
-    PDL_GENERICSWITCH(PDL_TYPELIST2_REAL, v.type, X, printf("(UNKNOWN PDL_Anyval type=%d)", v.type))
+    PDL_GENERICSWITCH(PDL_TYPELIST_REAL, v.type, X, printf("(UNKNOWN PDL_Anyval type=%d)", v.type))
 #undef X
   } else {
 #define X(datatype, ctype, ppsym, ...) \
     printf("%Lg%+Lgi", creall((complex long double)v.value.ppsym), cimagl((complex long double)v.value.ppsym));
-    PDL_GENERICSWITCH(PDL_TYPELIST2_COMPLEX, v.type, X, printf("(UNKNOWN PDL_Anyval type=%d)", v.type))
+    PDL_GENERICSWITCH(PDL_TYPELIST_COMPLEX, v.type, X, printf("(UNKNOWN PDL_Anyval type=%d)", v.type))
 #undef X
   }
 }

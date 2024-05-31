@@ -1,7 +1,3 @@
-pp_addhdr('
-#include "ricecomp.h"
-');
-
 pp_addpm({At=>'Top'},<<'EOD');
 
 =head1 NAME
@@ -82,7 +78,7 @@ EOD
 pp_def(
 	"rice_compress",
 	HandleBad => 0,
-	Pars => 'in(n); [o]out(m); int[o]len()',
+	Pars => 'in(n); [o]out(m=CALC($SIZE(n))); int[o]len()',
 	OtherPars => "int blocksize", # in OtherPars to avoid autopromotion
 	GenericTypes =>['B','S','US','L'],
 	Doc => <<'EOD',
@@ -151,7 +147,7 @@ sub PDL::rice_compress {
     return wantarray ? ($out, $in->dim(0), $blocksize, $len) : $out;
 }
 EOD
-	RedoDimsCode => '$SIZE(m) = $SIZE(n);', # output same size; truncate after
+	CHeader => qq{#include "ricecomp.h"\n},
 	Code => <<'EOD',
 int len;
 char *err = rcomp( $P(in),
@@ -184,6 +180,7 @@ Unsquishes a PDL that has been squished by rice_compress.
      ($out, $len, $blocksize, $dim0) = $pdl->rice_compress;
      $copy = $out->rice_expand($dim0, $blocksize);
 EOD
+	CHeader => qq{#include "ricecomp.h"\n},
 	Code=><<'EOD',
 char *err = rdecomp( (unsigned char *)($P(in)),
 	 $SIZE(n) * sizeof($GENERIC(in)),

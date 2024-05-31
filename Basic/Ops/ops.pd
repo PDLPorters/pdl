@@ -6,7 +6,9 @@ require PDL::Core::Dev;
 my $A = [ppdefs_all];
 my $C = [ppdefs_complex];
 my $F = [map $_->ppsym, grep $_->real && !$_->integer, types];
+$F = [(grep $_ ne 'D', @$F), 'D']; # so defaults to D if non-float given
 my $AF = [map $_->ppsym, grep !$_->integer, types];
+$AF = [(grep $_ ne 'D', @$AF), 'D']; # so defaults to D if non-float given
 my $T = [map $_->ppsym, grep $_->integer, types];
 my $U = [map $_->ppsym, grep $_->unsigned, types];
 my $S = [map $_->ppsym, grep $_->real && !$_->unsigned, types];
@@ -104,10 +106,8 @@ sub biop {
   }
 EOH
     # handle exceptions
-    my $badcode = '   ( $PDLSTATEISBAD(a) && $ISBAD(a()) )
-                   || ( $PDLSTATEISBAD(b) && $ISBAD(b()) )';
     if ( exists $extra{Exception} ) {
-	# NOTE This option is unused ($badcode is not set).
+# NOTE This option is unused.
 	#      See also `ufunc()`.
 	delete $extra{Exception};
     }
@@ -133,7 +133,8 @@ EOF
 	   Code => pp_line_numbers(__LINE__-1, <<EOF),
 PDL_IF_BAD(char anybad = 0;,)
 broadcastloop %{
-  PDL_IF_BAD(if ( $badcode ) { \$SETBAD(c()); anybad = 1; } else,)
+  PDL_IF_BAD(if ( ( \$PDLSTATEISBAD(a) && \$ISBAD(a()) )
+               || ( \$PDLSTATEISBAD(b) && \$ISBAD(b()) )) { \$SETBAD(c()); anybad = 1; } else,)
      \$c() = \$a() $op \$b();
 %}
 PDL_IF_BAD(if (anybad) \$PDLSTATESETBAD(c);,)
@@ -283,11 +284,9 @@ sub ufunc {
 	if !$got_complex and $extra{GenericTypes};
 
     # handle exceptions
-    my $badcode = '$ISBAD(a())';
     if ( exists $extra{Exception} ) {
-#	$badcode .= " || $extra{Exception}";
 #	print "Warning: ignored exception for $name\n";
-	# NOTE This option is unused ($badcode is commented out above).
+# NOTE This option is unused.
 	#      See also `biop()`.
 	delete $extra{Exception};
     }
@@ -310,7 +309,7 @@ sub ufunc {
 	   NoBadifNaN => 1,
 	   Inplace => 1,
 	   Code => pp_line_numbers(__LINE__-1, <<EOF),
-PDL_IF_BAD(if ( $badcode ) \$SETBAD(b()); else {,)
+PDL_IF_BAD(if ( \$ISBAD(a()) ) \$SETBAD(b()); else {,)
   $codestr
 PDL_IF_BAD(},)
 EOF
@@ -531,31 +530,29 @@ Algorithm from L<Wikipedia|http://en.wikipedia.org/wiki/Exponentiation_by_squari
 =cut
 
 },
-   Pars => 'a(); indx b(); [o] ans()',
+   Pars => 'a(); longlong b(); [o] ans()',
    GenericTypes => $AF,
    Code => pp_line_numbers(__LINE__, q{
-PDL_Indx n = $b();
+$GENERIC(b) n = $b();
+if (n == 0) {
+  $ans() = 1;
+  continue;
+}
 $GENERIC() y = 1;
 $GENERIC() x = $a();
 if (n < 0) {
-   x = 1 / x;
-   n = -n;
+  x = 1 / x;
+  n = -n;
 }
-if (n == 0) {
-   $ans() = 1;
-} else {
-    while (n > 1) {
-       if (n % 2 == 0) {
-          x = x * x;
-          n = n / 2;
-       } else {
-          y = x * y;
-          x = x * x;
-          n = (n - 1) / 2;
-       }
-   }
-   $ans() = x * y;
+while (n > 1) {
+  if (n % 2) {
+    y *= x;
+    n -= 1;
+  }
+  x *= x;
+  n /= 2;
 }
+$ans() = x * y;
 })
 );
 
@@ -638,8 +635,8 @@ sub warn_non_numeric_op_wrapper {
       PDL::Ops::assgn(@args);
       return $args[1];
     },
-    '++' => sub { $_[0] += 1 },
-    '--' => sub { $_[0] -= 1 },
+    '++' => sub { $_[0] += ($PDL::Core::pdl_ones[$_[0]->get_datatype]//barf "Couldn't find 'one' for type ", $_[0]->get_datatype) },
+    '--' => sub { $_[0] -= ($PDL::Core::pdl_ones[$_[0]->get_datatype]//barf "Couldn't find 'one' for type ", $_[0]->get_datatype) },
     ;
 }
 EOF

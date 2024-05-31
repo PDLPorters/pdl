@@ -364,14 +364,11 @@ latest PDL modules provide interfaces to OpenGL and VRML graphics!
 
 =over 4
 
-=item PDL::Graphics::PGPLOT
+=item PDL::Graphics::Simple
 
-PGPLOT provides a simple library for line graphics and image display.
-
-There is an easy interface to this in the internal module
-L<PDL::Graphics::PGPLOT>, which
-calls routines in the separately available
-PGPLOT top-level module.
+L<PDL::Graphics::Simple> provides a simple library for line graphics
+and image display, giving a uniform plotting interface to PGPLOT, PLplot,
+Gnuplot, and Prima.
 
 =item PDL::Graphics::PLplot
 
@@ -436,7 +433,7 @@ e.g.:
  Reading  589824  bytes
  BSCALE =  &&  BZERO = 
 
- pdl> use PDL::Graphics::PGPLOT;
+ pdl> use PDL::Graphics::Simple;
  pdl> imag $x
  Displaying 384 x 384 image from 40 to 761, using 84 colors (16-99)...
 

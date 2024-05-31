@@ -23,9 +23,9 @@ Internal module to handle signatures
 sub nospacesplit {grep /\S/, split $_[0],$_[1]}
 
 sub new {
-  my ($type,$pars,$bvalflag,$otherpars) = @_;
+  my ($type,$pars,$opname,$bvalflag,$otherpars) = @_;
   $bvalflag ||= 0;
-  my $this = bless {}, $type;
+  my $this = bless {OpName=>$opname}, $type;
   my @objects = map PDL::PP::PdlParObj->new($_,$bvalflag, $this), nospacesplit ';',$pars;
   $this->{Names} = [ map $_->name, @objects ];
   $this->{Objects} = { map +($_->name => $_), @objects };
@@ -34,20 +34,8 @@ sub new {
   $this->{NamesSorted} = [ map $_->name, @objects_sorted ];
   $this->{DimsObj} = my $dimsobj = PDL::PP::PdlDimsObj->new;
   $_->add_inds($dimsobj) for @objects;
-  my (%ind2use, %ind2obj);
-  for my $o (@objects) {
-    for my $io (@{$o->{IndObjs}}) {
-      push @{$ind2use{$io->name}}, $o;
-      $ind2obj{$io->name} = $io;
-    }
-  }
-  $this->{Ind2Use} = \%ind2use;
-  $this->{Ind2Obj} = \%ind2obj;
   @$this{qw(OtherNames OtherObjs OtherAnyOut OtherFlags)} = $this->_otherPars_nft($otherpars||'');
-  $this->{IndNamesSorted} = [ sort keys %ind2obj ];
-  my $i=0; my %ind2index = map +($_=>$i++), @{$this->{IndNamesSorted}};
-  $this->{Ind2Index} = \%ind2index;
-  $ind2obj{$_}->set_index($ind2index{$_}) for sort keys %ind2index;
+  my $i=0; $dimsobj->ind_obj($_)->set_index($i++) for sort $dimsobj->ind_names;
   $this;
 }
 
@@ -59,9 +47,9 @@ sub _otherPars_nft {
 	my (%flags);
 	if (s/^\s*$PDL::PP::PdlParObj::sqbr_re\s*//) {
 	  %flags = my %lflags = map +($_=>1), split /\s*,\s*/, my $opts = $1;
-	  confess "Can't have both [io] and [o]" if $lflags{o} && $lflags{io};
+	  croak "pp_def($sig->{OpName}): Can't have both [io] and [o]" if $lflags{o} && $lflags{io};
 	  my $this_out = delete($lflags{o}) || delete($lflags{io});
-	  confess "Invalid options '$opts' in '$_'" if keys %lflags;
+	  croak "pp_def($sig->{OpName}): Invalid options '$opts' in '$_'" if keys %lflags;
 	  $any_out ||= $this_out;
 	}
 	if (/^\s*([^=]+?)\s*=>\s*(\S+)\s*$/) {
@@ -69,12 +57,12 @@ sub _otherPars_nft {
 	    my ($ctype,$dim) = ($1,$2);
 	    print "OtherPars: setting dim '$dim' from '$ctype'\n" if $::PP_VERBOSE;
 	    $type = PDL::PP::CType->new($ctype);
-	    ($sig->{Ind2Obj}{$dim} ||= $dimobjs->get_indobj_make($dim))->set_from($type);
+	    $dimobjs->get_indobj_make($dim)->set_from($type);
 	} else {
 	    $type = PDL::PP::CType->new($_);
 	}
 	my $name = $type->protoname;
-	confess "Invalid OtherPars name: $name"
+	croak "pp_def($sig->{OpName}): Invalid OtherPars name: $name"
 	  if $PDL::PP::PdlParObj::INVALID_PAR{$name};
 	push @names,$name;
 	$types{$name} = $type;
@@ -111,13 +99,12 @@ sub names_out_nca { my $o=$_[0]->objs; grep $o->{$_}{FlagOut} && !$o->{$_}{FlagC
 sub names_tmp { my $o=$_[0]->objs; grep $o->{$_}{FlagTemp}, @{$_[0]{Names}} }
 
 sub dims_obj { $_[0]->{DimsObj} }
-sub dims_count { scalar keys %{$_[0]{DimsObj}} }
-sub dims_values { values %{$_[0]{DimsObj}} }
-
-sub ind_used { $_[0]{Ind2Use}{$_[1]} }
-sub ind_obj { $_[0]{Ind2Obj}{$_[1]} }
-sub ind_names_sorted { @{$_[0]{IndNamesSorted}} }
-sub ind_index { $_[0]{Ind2Index}{$_[1]} }
+sub dims_init {
+  my ($self) = @_;
+  join "\n",
+    (sort map $_->get_initdim, $self->{DimsObj}->ind_fromcomp),
+    (sort map $_->get_initdim, $self->{DimsObj}->ind_notfromcomp);
+}
 
 sub othernames {
   my ($self, $omit_count, $with_xs, $except) = @_;

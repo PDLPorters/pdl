@@ -117,8 +117,6 @@ pdl_magic *pdl__print_magic(pdl *it)
 	  printf("Magic %p\ttype: ",(void*)(*foo));
 		if((*foo)->what & PDL_MAGIC_MARKCHANGED)
 		  printf("PDL_MAGIC_MARKCHANGED");
-		else if ((*foo)->what & PDL_MAGIC_MUTATEDPARENT)
-		  printf("PDL_MAGIC_MUTATEDPARENT");
 		else if ((*foo)->what & PDL_MAGIC_THREADING)
 		  printf("PDL_MAGIC_THREADING");
 		else
@@ -166,13 +164,12 @@ void pdl_run_delayed_magic() {
  *
  * ->bind - magic
  */
-
 void *svmagic_cast(pdl_magic *mag)
 {
 	pdl_magic_perlfunc *magp = (pdl_magic_perlfunc *)mag;
 	dSP;
 	ENTER; SAVETMPS;
-	PUSHMARK(sp);
+	PUSHMARK(SP);
 	perl_call_sv(magp->sv, G_DISCARD | G_NOARGS);
 	FREETMPS; LEAVE;
 	return NULL;
@@ -200,42 +197,6 @@ pdl_magic *pdl_add_svmagic(pdl *it,SV *func)
 /* XXX Work this out not to memleak */
 	av = perl_get_av("PDL::disposable_svmagics",TRUE);
 	av_push(av,ptr->sv);
-	return (pdl_magic *)ptr;
-}
-
-
-/****************
- *
- * ->bind - magic
- */
-
-pdl_trans *pdl_find_mutatedtrans(pdl *it)
-{
-	if(!it->magic) return 0;
-	return pdl__call_magic(it,PDL_MAGIC_MUTATEDPARENT);
-}
-
-static void *fammutmagic_cast(pdl_magic *mag)
-{
-	pdl_magic_fammut *magp = (pdl_magic_fammut *)mag;
-	return magp->ftr;
-}
-
-struct pdl_magic_vtable familymutmagic_vtable = {
-	fammutmagic_cast,
-	NULL
-};
-
-pdl_magic *pdl_add_fammutmagic(pdl *it,pdl_trans *ft)
-{
-	pdl_magic_fammut *ptr = malloc(sizeof(pdl_magic_fammut));
-	if (!ptr) return NULL;
-	ptr->what = PDL_MAGIC_MUTATEDPARENT;
-	ptr->vtable = &familymutmagic_vtable;
-	ptr->ftr = ft;
-	ptr->pdl = it;
-	ptr->next = NULL;
-	pdl__magic_add(it,(pdl_magic *)ptr);
 	return (pdl_magic *)ptr;
 }
 
@@ -267,10 +228,10 @@ static void *pthread_perform(void *vp) {
 	return NULL;
 }
 
-int pdl_magic_thread_nthreads(pdl *it,PDL_Indx *nthdim) {
+int pdl_magic_thread_nthreads(pdl *it, PDL_Indx *nthdim) {
 	pdl_magic_pthread *ptr = (pdl_magic_pthread *)pdl__find_magic(it, PDL_MAGIC_THREADING);
 	if(!ptr) return 0;
-	*nthdim = ptr->nthdim;
+	if (nthdim) *nthdim = ptr->nthdim;
 	return ptr->nthreads;
 }
 

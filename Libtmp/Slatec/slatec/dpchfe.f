@@ -134,7 +134,7 @@ C
       implicit integer*8(i-n)
       INTEGER*8  N, INCFD, NE, IERR
       DOUBLE PRECISION  X(*), F(INCFD,*), D(INCFD,*), XE(*), FE(*)
-      LOGICAL  SKIP
+      INTEGER*4  SKIP
 C
 C  DECLARE LOCAL VARIABLES.
 C
@@ -143,7 +143,7 @@ C
 C  VALIDITY-CHECK ARGUMENTS.
 C
 C***FIRST EXECUTABLE STATEMENT  DPCHFE
-      IF (SKIP)  GO TO 5
+      IF (SKIP.NE.0)  GO TO 5
 C
       IF ( N.LT.2 )  GO TO 5001
       IF ( INCFD.LT.1 )  GO TO 5002

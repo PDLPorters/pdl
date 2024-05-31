@@ -30,8 +30,11 @@ $mat = pdl [2,3],[4,5];
 
 my $inv = matinv($mat);
 
-inner($mat->dummy(2), $inv->transpose->dummy(1), my $uni=null);
-ok(tapprox($uni,pdl[1,0],[0,1]));
+my $uni=scalar $mat x $inv;
+ok(tapprox($uni,identity(2)));
+
+eval {matinv(identity(2)->dummy(-1,2))};
+is $@, '', 'matinv can broadcast';
 
 my $det = $mat->det;
 my $deti = $inv->det;
@@ -81,8 +84,8 @@ $eps = pdl(0,0);
 ok((sum($ierr == 1) == 2));
 
 # Set up tests x, y and weight
-$y = pdl (1,4,9,16,25,36,49,64.35,32);
 $x = pdl ( 1,2,3,4,5,6,7,8,9);
+$y = pdl (1,4,9,16,25,36,49,64.35,32);
 $w = pdl ( 1,1,1,1,1,1,1,0.5,0.3);
 $maxdeg = 7;
 $eps = pdl(0);
@@ -117,12 +120,11 @@ foreach my $xpos ($x->list) {
 }
 
 # Try polyvalue with a single x pos
-my $xx = pdl([4]);
+my $xx = pdl(4);
 my $nder = 3;
 
 my ($yfit, $yp) = polyvalue($ndeg, $nder, $xx, $a1);
 
-## print STDERR "At $xx, $yfit and $yp\n";
 ok(int($yp->at(0)) == 8);
 
 # Test polyvalue
@@ -154,15 +156,13 @@ ok(($err->getndims==0) & ($err->sum == 0));
 ok(all( slice( abs(($d - $answer)/$answer), '1:-2' ) < 0.05 ) );
 
 # compare the results of chic
-my $wk = $f->zeroes( 2 * $f->nelem );
 my $d2 = $f->zeroes;
-chic( pdl([0, 0]), pdl([0, 0]), 1, $x, $f, $d2, $wk, my $err2=null );
+chic( pdl([0, 0]), pdl([0, 0]), 1, $x, $f, $d2, my $err2=null );
 ok(($err2->getndims==0) & ($err2->sum == 0));
 ok(all( abs($d2 - $d) < 0.02 ) );
 
 ## Test: chsp
-#
-chsp( pdl([0, 0]), pdl([0, 0]), $x, $f, my $d3=null, $wk, my $err3=null );
+chsp( pdl([0, 0]), pdl([0, 0]), $x, $f, my $d3=null, my $err3=null );
 ok(($err3->getndims==0) & ($err3->sum == 0));
 ok(all( abs($d3 - $d) < 2 ) );
 
@@ -210,33 +210,32 @@ $f = $x * $x;
 ( $d, $err ) = chim($x, $f);
 
 $ans = pdl( 9.0**3, (8.0**3-1.0**3) ) / 3.0;
-( my $int, $err ) = chia($x, $f, $d, 1, pdl(0.0,1.0), pdl(9.0,8.0));
+( my $int, $err ) = chia($x, $f, $d, my $skip=zeroes(2), pdl(0.0,1.0), pdl(9.0,8.0));
 ok(all($err == 0));
 ok(all( abs($int-$ans) < 0.04 ) );
 
 my $hi = pdl( $x->at(9), $x->at(7) );
 my $lo = pdl( $x->at(0), $x->at(1) );
 $ans = ($hi**3 - $lo**3) / 3;
-( $int, $err ) = chid( $x, $f, $d, 1, pdl(0,1), pdl(9,7) );
+( $int, $err ) = chid( $x, $f, $d, $skip=zeroes(2), pdl(0,1), pdl(9,7) );
 ok(all($err == 0));
 ok(all( abs($int-$ans) < 0.06 ) );
 ## print STDERR "int=$int; ans=$ans; int-ans=".($int-$ans)."\n";
 ## print STDERR "ref ans=".(ref $ans)."\n";
 
-=pod ignore as have commented out chbs interface
-
 ## Test: chbs - note, only tests that it runs successfully
-#
 my $nknots = 0;
-my $t = zeroes( float, 2*$x->nelem+4 );
-my $bcoef  = zeroes( float, 2*$x->nelem );
+my $t = zeroes( float, 2*$x->dim(0)+4 );
+my $bcoef  = zeroes( float, 2*$x->dim(0) );
 my $ndim = PDL->null;
 my $kord = PDL->null;
 $err = PDL->null;
-echbs( $x, $f, $d, 0, $nknots, $t, $bcoef, $ndim, $kord, $err );
+chbs( $x, $f, $d, 0, $nknots, $t, $bcoef, $ndim, $kord, $err );
 ok(all($err == 0));
-exit(0);
-=cut
+
+## Test: bvalu - note, only tests that it runs successfully
+my $x_slice = $x->slice('0:-2'); # because calling with last value is out of range
+my ($val) = bvalu($t, $bcoef, 0, $x_slice);
 
 my $A = identity(4) + ones(4, 4);
 $A->slice('2,0') .= 0; # break symmetry to see if need transpose
@@ -246,5 +245,20 @@ gesl($lu, $ipiv, $x=$B->transpose->copy, 1); # 1 = do transpose because Fortran
 $x = $x->inplace->transpose;
 my $got = $A x $x;
 ok tapprox $got, $B or diag "got: $got";
+
+{
+my $pa = pdl(float,1,-1,1,-1); # even number
+my ($az, $x, $y) = PDL::Slatec::fft($pa);
+ok all approx $az, 0;
+ok all approx $x, pdl "[0 1 0 0]";
+ok all approx $y, pdl "[0 0 0 0]";
+ok all approx PDL::Slatec::rfft($az, $x, $y), $pa;
+$pa = pdl(float,1,-1,1,-1,1); # odd number
+($az, $x, $y) = PDL::Slatec::fft($pa);
+ok all approx $az, 0.2;
+ok all approx $x, pdl "[0.4 0.4 0 0 0]";
+ok all approx $y, pdl "[-0.2906170 -1.231073 0 0 0]";
+ok all approx PDL::Slatec::rfft($az, $x, $y), $pa;
+}
 
 done_testing;

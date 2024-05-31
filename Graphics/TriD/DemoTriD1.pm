@@ -150,6 +150,12 @@ my @demo = (
 |],
 
 [actnw => q|
+	contour3d($z, [$x,$y,$z-1]);
+			# ...and draw contours on that
+	# [press 'q' in the graphics window when done]
+|],
+
+[actnw => q|
 	nokeeptwiddling3d(); # Don't wait for user while drawing
 	for(-2,-1,0,1,2) {
 		line3d [$cx,$cy,$cz+$_]; # ... and corkscrews...

@@ -330,12 +330,33 @@ sub with_time (&) {
 }
 
 sub gv {
-  my ($pdl, $file) = @_;
-  my $format = (split '.', $file)[-1];
-  my $g = PDL::Core::pdumpgraph(PDL::Core::pdumphash($pdl));
+  my ($input, $file) = @_;
+  my ($g, %opts, $format);
+  if (UNIVERSAL::isa($input, 'PDL')) {
+    $g = PDL::Core::pdumpgraphvizify(PDL::Core::pdumpgraph(PDL::Core::pdumphash($input)));
+  } elsif (UNIVERSAL::isa($input, 'Graph')) {
+    $g = $input;
+  } else {
+    die "gv: unknown input '$input': only know ndarray or Graph\n";
+  }
+  if (defined $file) {
+    $format = (split /\./, $file)[-1];
+    %opts = (output_file => $file);
+  } else {
+    $format = 'png';
+  }
   require GraphViz2;
-  my $gv = GraphViz2->from_graph(PDL::Core::pdumpgraphvizify($g));
-  $gv->run(format => $format, output_file => $file);
+  my $gv = GraphViz2->from_graph($g);
+  $gv->run(format => $format, %opts);
+  my $output = $gv->dot_output;
+  if (!defined $file) {
+    require PDL::IO::GD;
+    my $gd = PDL::IO::GD->new({ data => $output });
+    require PDL::Graphics::Simple;
+    PDL::Graphics::Simple->import('erase'); # else is surprising if no work
+    PDL::Graphics::Simple::imag($gd->to_pdl->slice(',-1:0'));
+  }
+  $output; # return just in case
 }
 
 sub page {

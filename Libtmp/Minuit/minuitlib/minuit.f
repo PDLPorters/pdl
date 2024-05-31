@@ -3564,7 +3564,7 @@ c                some starting values in common
       isw(5) = 1
 c         isw(6)=0 for batch jobs,  =1 for interactive jobs
       isw(6) = 0
-      if (intrac(dummy))  isw(6) = 1
+      if (intrac())  isw(6) = 1
 c        debug options set to default values
       do 10 idb= 0, maxdbg
    10 idbg(idb) = 0

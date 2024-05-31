@@ -59,12 +59,17 @@ $x = 1 - i();
 is(ref $x, 'PDL::Complex', 'type promotion real scalar - i');
 ok(tapprox($x->real,-$ref), 'value from real scalar - i');
 
-$x = pdl('[1+2i 3+4i]');
-$y = eval { PDL::Complex->from_native($x) };
+my $native = pdl('[1+2i 3+4i]');
+is $native.'', '[1+2i 3+4i]', 'immediate check of native and stringification'
+  or diag PDL::Core::pdump($native);
+my $fromn = eval { PDL::Complex->from_native($native) };
 $ref = pdl([1, 2], [3, 4]);
-ok(tapprox($y->real,$ref), 'from_native works') or diag "x=$x, from_native=", $x->real, "\nexpected: $ref";
-is $y->as_native.'', $x.'', 'as_native';
-is($y->as_native->type, 'cdouble', 'as_native right type');
+ok tapprox($fromn->real,$ref), 'from_native works'
+  or diag "fromn=$fromn, fromn->real=", $fromn->real, "\nexpected: $ref",
+    "native:", PDL::Core::pdump($native), "fromn:", PDL::Core::pdump($fromn);
+is $fromn->as_native.'', $native.'', 'as_native'
+  or diag "fromn:", PDL::Core::pdump($fromn), "native:", PDL::Core::pdump($native);
+is $fromn->as_native->type, 'cdouble', 'as_native right type';
 
 $ref = pdl([[-2,1],[-3,1]]);
 $x = i() - pdl(2,3);
@@ -315,7 +320,9 @@ ok(tapprox($y->prod->real, $y->prodover->real),
 {
 # Check stringification of complex ndarray
 my $c =  9.1234 + 4.1234*i();
-like($c->dummy(2,1).'', qr/9.123\S*4.123/, 'sf.net bug #1176614');
+my $dummy = $c->dummy(2,1);
+like $dummy.'', qr/9.123\S*4.123/, 'sf.net bug #1176614'
+  or diag "c:", PDL::Core::pdump($c), "dummy:", PDL::Core::pdump($dummy);
 $c = PDL->sequence(2, 3, 4)->complex;
 unlike $c.'', qr/\s\+/, 'stringified no space before +';
 }

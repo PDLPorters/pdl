@@ -78,6 +78,7 @@ nytprof*
 
 .inlinepdlpp
 .inlinewith
+.pptest
 Basic/Bad/Bad.c
 Basic/Bad/Bad.pm
 Basic/Bad/Bad.xs
@@ -115,7 +116,6 @@ Doc/Doc/Config.pm
 Graphics/IIS/IIS.c
 Graphics/IIS/IIS.pm
 Graphics/IIS/IIS.xs
-Graphics/PGPLOT/Window/Window.c
 Graphics/TriD/OpenGLQ/OpenGLQ.c
 Graphics/TriD/OpenGLQ/OpenGLQ.pm
 Graphics/TriD/OpenGLQ/OpenGLQ.xs

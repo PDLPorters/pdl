@@ -28,6 +28,30 @@ $p->upd_data;
 }
 
 {
+  my $pa = pdl 2,3,4;
+  $pa->doflow;
+  my $pb = $pa + $pa;
+  is "$pb", '[4 6 8]';
+  $pa->set(0,50);
+  is "$pb", '[100 6 8]';
+  eval {$pa->set_datatype(PDL::float()->enum)};
+  like $@, qr/ndarray has child/, 'set_datatype if has child dies';
+  $pb->set_datatype(PDL::float()->enum);
+  $pa->set(0,60);
+  is "$pb", '[100 6 8]', 'dataflow broken by set_datatype';
+}
+
+eval {PDL->inplace};
+like $@, qr/called object method/, 'error on PDL->obj_method';
+
+{
+my $p = sequence(3);
+my $p2 = sequence(2);
+eval {$p->set(1,$p2)};
+isnt $@, '', 'set(..., $multi_elt) should error';
+}
+
+{
 my $p = sequence(5);
 is Devel::Peek::SvREFCNT($p), 1, 'right refcnt blessed ref';
 is Devel::Peek::SvREFCNT($$p), 1, 'right refcnt pointer SV';
@@ -166,6 +190,10 @@ subtest 'dim compatibility' => sub {
     [\&append, [zeroes(1,2), zeroes(1), zeroes(2,1)], 2, qr/implicit dim/, 'output=[2,1]; required [2,2]. output too small in broadcast dim'],
     [\&append, [zeroes(1,2), zeroes(1), zeroes(2)], 2, qr/implicit dim/, 'output=[2,1]; required [2,2]. output too small in broadcast implicit dim'],
     [\&append, [zeroes(1,2), zeroes(1,2), zeroes(2,1)], 2, qr/implicit dim/, 'output=[2,1]; required [2,2]. output too small in broadcast dim'],
+    [\&append, [zeroes(1,2), zeroes(1,2), zeroes(2)->dummy(1,2)], 2, qr/implicit dim/, 'output=[2,*2]; required [2,2]. output into dummy implicit dim'],
+    [\&append, [zeroes(1,2), zeroes(1,2), zeroes(2)->dummy(1,2)->make_physical], 2, qr/implicit dim/, 'output=[2,*2](phys); required [2,2]. output into dummy implicit dim'],
+    [\&append, [zeroes(1,2), zeroes(1,2), zeroes(2)->dummy(0,2)], 2, qr/over dummy dim/, 'output=[*2,2]; required [2,2]. output into dummy active dim'],
+    [\&append, [zeroes(1,2), zeroes(1,2), zeroes(2)->dummy(0,2)->make_physical], 2, qr/over dummy dim/, 'output=[*2,2](phys); required [2,2]. output into dummy active dim'],
     # phys params
     [\&polyroots, [ones(2), zeroes(2), zeroes(1), zeroes(1)], 2, [-1], '[phys] output=[1]'],
     [\&polyroots, [ones(2), zeroes(1), zeroes(), zeroes(1)], 2, qr/dim has size 1/, '[phys] output=[2] mismatch'],
@@ -444,6 +472,7 @@ ok($empty->nelem==0,"you can make an empty PDL with zeroes(0)");
 ok("$empty" =~ m/Empty/, "an empty PDL prints 'Empty'");
 
 my $null = null;
+is $null->nbytes, 0, 'a null has 0 nbytes';
 is $null->info, 'PDL->null', "null ndarray's info is 'PDL->null'";
 my $mt_info = $empty->info;
 $mt_info =~m/\[([\d,]+)\]/;
@@ -467,13 +496,15 @@ eval { $y->reshape(4); };
 ok( $@ !~ m/Can\'t/, "reshape doesn't fail on a PDL with a parent" );
 
 {
-my $pb = double ones(2,3);
-my $ind = 1;
+my $pb = sequence(2,3);
 is(($pb->dims)[0], 2);
 is(($pb->dims)[1], 3);
 note $pb;
-is($pb->at(1,1), 1);
-is($pb->at(1,2), 1);
+is $pb->at(1,1), 3;
+is $pb->at(1,2), 5;
+eval {$pb->at(2,1)};
+like $@, qr/Position 2 at dimension 0 out of range/;
+is $pb->at(-1,2), 5;
 }
 
 my $array = [
@@ -488,6 +519,26 @@ my $pdl = pdl $array;
 is_deeply( unpdl($pdl), $array, "back convert 3d");
 SKIP: {
   skip("your perl hasn't 64bit int support", 6) if $Config{ivsize} < 8;
+  {
+  my $neg = -684394069604;
+  my $straight_pdl = pdl($neg);
+  my $multed = pdl(1) * $neg;
+  ok $straight_pdl == $multed, 'upgrade of large negative SV to ndarray'
+    or diag "straight=$straight_pdl mult=$multed\n",
+      "straight:", $straight_pdl->info, " mult:", $multed->info;
+  }
+  {
+  my $fromuv_r = pdl('10223372036854775507');
+  ok $fromuv_r > 0, 'UV real > 0';
+  my $fromuv_c = pdl('10223372036854775507i');
+  ok $fromuv_c->im > 0, 'UV complex->real > 0'
+    or diag "fromuv_c=$fromuv_c\nfromuv_c->im=", $fromuv_c->im,
+      "\nfromuv_r=$fromuv_r";
+  $fromuv_c = pdl('2+10223372036854775507i');
+  ok $fromuv_c->im > 0, 'UV complex->real > 0 with some real'
+    or diag "fromuv_c=$fromuv_c\nfromuv_c->im=", $fromuv_c->im,
+      "\nfromuv_r=$fromuv_r";
+  }
   my $input = [
       -9223372036854775808, #min int64
       -9000000000000000001,
@@ -602,17 +653,20 @@ note "F ($pb * string(-2.2)) is $pf";
 }
 
 {
-my @types = (
-	{ typefunc => *byte  , size => 1 },
-	{ typefunc => *short , size => 2 },
-	{ typefunc => *ushort, size => 2 },
-	{ typefunc => *long  , size => 4 },
-	{ typefunc => *float , size => 4 },
-	{ typefunc => *double, size => 8 },
-);
-for my $type (@types) {
-	my $pdl = $type->{typefunc}(42); # build a PDL with datatype $type->{type}
-	is( PDL::Core::howbig( $pdl->get_datatype ), $type->{size} );
+for my $type (
+  { typefunc => *byte  , size => 1 },
+  { typefunc => *short , size => 2 },
+  { typefunc => *ushort, size => 2 },
+  { typefunc => *long  , size => 4 },
+  { typefunc => *float , size => 4 },
+  { typefunc => *double, size => 8 },
+) {
+  my $pdl = $type->{typefunc}(42); # build a PDL with datatype $type->{type}
+  is( PDL::Core::howbig( $pdl->get_datatype ), $type->{size} );
+  is $pdl->type, $type->{typefunc}->().'', 'pdl has right type';
+  is $pdl->convert(longlong).'', 42, 'converted to longlong same value';
+  $pdl->inplace->convert(longlong);
+  is $pdl->type, 'longlong', 'pdl has new right type, inplace convert worked';
 }
 }
 
@@ -672,6 +726,9 @@ isnt PDL::Core::pdumphash($slice), undef, 'pdumphash works with ndarray';
 isnt PDL::Core::pdumphash($tp), undef, 'pdumphash works with trans';
 my @pn = $vtable->par_names;
 is 0+@pn, 2, 'par_names returned 2 things';
+my $roots = pdl '[1 2i 3i 4i 5i]';
+eval {PDL::Core::pdump($roots)}; # gave "panic: attempt to copy freed scalar"
+is $@, '';
 
 my $notouch = sequence(4);
 $notouch->set_donttouchdata(4 * PDL::Core::howbig($notouch->get_datatype));
@@ -679,6 +736,9 @@ eval { $notouch->setdims([2,2]); $notouch->make_physical; };
 is $@, '', 'setdims to same total size of set_donttouchdata should be fine';
 eval { $notouch->setdims([3,2]); $notouch->make_physical; };
 isnt $@, '', 'setdims/make_physical to different size of set_donttouchdata should fail';
+my $sliced = sequence(4)->slice('');
+eval { $sliced->setdims([3,2]) };
+like $@, qr/but has trans_parent/, 'setdims on pdl with trans_parent is error';
 
 eval { pdl(3)->getbroadcastid($_) }, isnt $@, '', "getbroadcastid($_) out of range gives error" for -2, 5;
 

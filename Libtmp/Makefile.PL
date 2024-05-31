@@ -8,6 +8,9 @@ undef &MY::postamble; # suppress warning
 WriteMakefile(
   NAME => 'PDL::Lib',
   VERSION_FROM => '../Basic/PDL.pm',
-  PM => { map +($_ => '$(INST_LIBDIR)/'.$_), <*.pm> },
+  PM => {
+    'Func_demo.pm' => '$(INST_LIB)/PDL/Demos/Func_demo.pm',
+    map +($_ => '$(INST_LIBDIR)/'.$_), qw(DiskCache.pm Func.pm),
+  },
   NO_MYMETA => 1,
 );

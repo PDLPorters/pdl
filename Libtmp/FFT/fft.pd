@@ -83,12 +83,10 @@ and so may not be installed.
 
 EOD
 
-pp_addhdr('
-#include "fftn.h"
-');
 pp_def('fft',
 	Pars => '[io]real(n); [io]imag(n);',
 	GenericTypes => $F,
+	CHeader => qq{#include "fftn.h"\n},
 	Code => 'fftn$TFDE(f,,l)($SIZE(n), NULL, $P(real), $P(imag), -1, 1.);',
 	Doc=><<'EOF',
 =for ref
@@ -136,6 +134,7 @@ EOF
 pp_def('ifft',
 	Pars => '[io]real(n); [io]imag(n);',
 	GenericTypes => $F,
+	CHeader => qq{#include "fftn.h"\n},
 	Code => 'fftn$TFDE(f,,l)($SIZE(n), NULL, $P(real), $P(imag), 1, -1.);',
 	Doc=><<'EOF',
 =for ref

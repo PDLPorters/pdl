@@ -375,10 +375,9 @@ sub dosubst_private {
       PDLSTATESETGOOD => sub { ($sig->objs->{$_[0]}->do_pdlaccess//confess "Can't get PDLSTATESETGOOD for unknown ndarray '$_[0]'")."->state &= ~PDL_BADVAL" },
       PDLSTATEISBAD => sub {badflag_isset(($sig->objs->{$_[0]}//confess "Can't get PDLSTATEISBAD for unknown ndarray '$_[0]'")->do_pdlaccess)},
       PDLSTATEISGOOD => sub {"!".badflag_isset(($sig->objs->{$_[0]}//confess "Can't get PDLSTATEISGOOD for unknown ndarray '$_[0]'")->do_pdlaccess)},
-      PP => sub { (my $o = ($sig->objs->{$_[0]}//confess "Can't get PP for unknown ndarray '$_[0]'"))->{FlagPhys} = 1; $o->do_pointeraccess; },
       P => sub { (my $o = ($sig->objs->{$_[0]}//confess "Can't get P for unknown ndarray '$_[0]'"))->{FlagPhys} = 1; $o->do_pointeraccess; },
       PDL => sub { ($sig->objs->{$_[0]}//confess "Can't get PDL for unknown ndarray '$_[0]'")->do_pdlaccess },
-      SIZE => sub { ($sig->ind_obj($_[0])//confess "Can't get SIZE of unknown dim '$_[0]'")->get_size },
+      SIZE => sub { ($sig->dims_obj->ind_obj($_[0])//confess "Can't get SIZE of unknown dim '$_[0]'")->get_size },
       SETNDIMS => sub {"PDL_RETERROR(PDL_err, PDL->reallocdims(__it,$_[0]));"},
       SETDIMS => sub {"PDL_RETERROR(PDL_err, PDL->setdims_careful(__it));"},
       SETDELTABROADCASTIDS => sub {PDL::PP::pp_line_numbers(__LINE__, <<EOF)},
@@ -1081,8 +1080,9 @@ sub callPerlInit {
 sub callTypemap {
   my ($x, $ptype, $pname) = @_;
   my ($setter, $type) = typemap($ptype, 'get_inputmap');
+  (my $ntype = $type) =~ s:\s+::g; $ntype =~ s:\*:Ptr:g;
   my $ret = typemap_eval($setter, {var=>$x, type=>$type, arg=>("${x}_SV"),
-      pname=>$pname});
+      pname=>$pname, ntype=>$ntype});
   $ret =~ s/^\s*(.*?)\s*$/$1/g;
   $ret =~ s/\s*\n\s*/ /g;
   $ret;
@@ -1413,10 +1413,10 @@ EOD
         my ($good) = @_;
         $good =~ s/
           \$EQUIVCPOFFS\(([^()]+),([^()]+)\)
-        /do { PDL_IF_BAD(if( \$PISBAD(PARENT,[$2]) ) { \$PSETBAD(CHILD,[$1]); } else,) { \$P(CHILD)[$1] = \$P(PARENT)[$2]; } } while (0)/gx;
+        /do { PDL_IF_BAD(if (\$PISBAD(PARENT,[$2]) ) { \$PSETBAD(CHILD,[$1]); } else,) { \$P(CHILD)[$1] = \$P(PARENT)[$2]; } } while (0)/gx;
         $good =~ s/
           \$EQUIVCPTRUNC\(([^()]+),([^()]+),([^()]+)\)
-        /do { if( ($3) PDL_IF_BAD(|| \$PISBAD(PARENT,[$2]),) ) { PDL_IF_BAD(\$PSETBAD(CHILD,[$1]),\$P(CHILD)[$1] = 0); } else {\$P(CHILD)[$1] = \$P(PARENT)[$2]; } } while (0)/gx;
+        /do { if (($3) PDL_IF_BAD(|| \$PISBAD(PARENT,[$2]),) ) { PDL_IF_BAD(\$PSETBAD(CHILD,[$1]),\$P(CHILD)[$1] = 0); } else {\$P(CHILD)[$1] = \$P(PARENT)[$2]; } } while (0)/gx;
         $good;
       }),
 
@@ -1441,7 +1441,7 @@ EOD
         /do { PDL_IF_BAD(if( \$PISBAD(CHILD,[$1]) ) { \$PSETBAD(PARENT,[$2]); } else,) { \$P(PARENT)[$2] = \$P(CHILD)[$1]; } } while (0)/gx;
         $good =~ s/
           \$EQUIVCPTRUNC\(([^()]+),([^()]+),([^()]+)\)
-        /do { if(!($3)) { PDL_IF_BAD(if( \$PISBAD(CHILD,[$1]) ) { \$PSETBAD(PARENT,[$2]); } else,) { \$P(PARENT)[$2] = \$P(CHILD)[$1]; } } } while (0)/gx;
+        /do { if (!($3)) { PDL_IF_BAD(if (\$PISBAD(CHILD,[$1]) ) { \$PSETBAD(PARENT,[$2]); } else,) { \$P(PARENT)[$2] = \$P(CHILD)[$1]; } } } while (0)/gx;
         $good;
       }),
 
@@ -1453,13 +1453,13 @@ EOD
    PDL::PP::Rule::Returns::One->new("HaveBroadcasting"),
 
    PDL::PP::Rule::Returns::EmptyString->new("Priv"),
-   PDL::PP::Rule->new("PrivObj", ["BadFlag","Priv"],
+   PDL::PP::Rule->new("PrivObj", [qw(Name BadFlag Priv)],
       sub { PDL::PP::Signature->new('', @_) }),
 
 # Parameters in the 'a(x,y); [o]b(y)' format, with
 # fixed nos of real, unbroadcast-over dims.
 # Also "Other pars", the parameters which are usually not pdls.
-   PDL::PP::Rule->new("SignatureObj", ["Pars","BadFlag","OtherPars"],
+   PDL::PP::Rule->new("SignatureObj", [qw(Pars Name BadFlag OtherPars)],
       sub { PDL::PP::Signature->new(@_) }),
 
 # Compiled representations i.e. what the RunFunc function leaves
@@ -1468,8 +1468,8 @@ EOD
 # by parsing the string in that function.
 # If the user wishes to specify their own MakeComp code and Comp content,
 # The next definitions allow this.
-   PDL::PP::Rule->new("CompObj", [qw(BadFlag OtherPars Comp?)],
-      sub { PDL::PP::Signature->new('', $_[0], join(';', grep defined() && /[^\s;]/, @_[1..$#_])) }),
+   PDL::PP::Rule->new("CompObj", [qw(Name BadFlag OtherPars Comp?)],
+      sub { PDL::PP::Signature->new('', @_[0,1], join(';', grep defined() && /[^\s;]/, @_[2..$#_])) }),
    PDL::PP::Rule->new("CompStruct", ["CompObj"], sub {$_[0]->getcomp}),
 
  # Set CallCopy flag for simple functions (2-arg with 0-dim signatures)
@@ -1479,7 +1479,7 @@ EOD
    PDL::PP::Rule->new("CallCopy", ["SignatureObj", "Name"],
       sub {
 	  my ($sig, $Name, $hasp2c) = @_;
-	  my $noDimmedArgs = $sig->dims_count;
+	  my $noDimmedArgs = $sig->dims_obj->ind_names;
 	  my $noArgs = @{$sig->names};
 	  # Check for 2-arg function with 0-dim signatures
 	  return 0 if !($noDimmedArgs == 0 and $noArgs == 2);
@@ -1855,7 +1855,7 @@ sub make_vfn_args {
       sub { "PDL_RETERROR(PDL_err, PDL->redodims_default($_[0]));\n" }),
    PDL::PP::Rule->new("DimsSetters",
       ["SignatureObj"],
-      sub { join "\n", sort map $_->get_initdim, $_[0]->dims_values }),
+      sub { $_[0]->dims_init }),
    PDL::PP::Rule->new("RedoDimsFuncName", [qw(Name RedoDims? RedoDimsCode? DimsSetters)],
       sub { (scalar grep $_ && /\S/, @_[1..$#_]) ? "pdl_$_[0]_redodims" : 'NULL'}),
    PDL::PP::Rule::Returns->new("RedoDimsCode", [],
@@ -1997,9 +1997,6 @@ EOF
         my ($pnames, $pobjs) = ($sig->names_sorted, $sig->objs);
         my $nparents = 0 + grep !$pobjs->{$_}->{FlagW}, @$pnames;
         my $npdls = scalar @$pnames;
-        my $join_flags = join(", ",
-          map !$pobjs->{$pnames->[$_]}->{FlagPhys}
-            ? "PDL_TPDL_VAFFINE_OK" : 0, 0..$npdls-1) || '0';
         my @op_flags;
         push @op_flags, 'PDL_TRANS_DO_BROADCAST' if $havebroadcasting;
         push @op_flags, 'PDL_TRANS_BADPROCESS' if $badflag;
@@ -2018,14 +2015,11 @@ EOF
         my $realdim_ind_start = join(", ", @starts) || '0';
         my @rd_inds = map $_->get_index, map @{$_->{IndObjs}}, @$pobjs{@$pnames};
         my $realdim_inds = join(", ", @rd_inds) || '0';
-        my @indnames = $sig->ind_names_sorted;
+        my @indnames = sort $sig->dims_obj->ind_names;
         my $indnames = join(",", map qq|"$_"|, @indnames) || '""';
         my $sizeof = $ptype ? "sizeof($ptype)" : '0';
         <<EOF;
 static pdl_datatypes ${vname}_gentypes[] = { $gentypes_txt };
-static char ${vname}_flags[] = {
-  $join_flags
-};
 static PDL_Indx ${vname}_realdims[] = { $realdims };
 static char *${vname}_parnames[] = { $parnames };
 static short ${vname}_parflags[] = {
@@ -2036,7 +2030,7 @@ static PDL_Indx ${vname}_realdims_starts[] = { $realdim_ind_start };
 static PDL_Indx ${vname}_realdims_ind_ids[] = { $realdim_inds };
 static char *${vname}_indnames[] = { $indnames };
 pdl_transvtable $vname = {
-  $op_flags, $iflags, ${vname}_gentypes, $nparents, $npdls, ${vname}_flags,
+  $op_flags, $iflags, ${vname}_gentypes, $nparents, $npdls, NULL /*CORE21*/,
   ${vname}_realdims, ${vname}_parnames,
   ${vname}_parflags, ${vname}_partypes,
   ${vname}_realdims_starts, ${vname}_realdims_ind_ids, @{[scalar @rd_inds]},

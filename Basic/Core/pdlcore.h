@@ -2,7 +2,7 @@
 #define __PDLCORE_H
 
 /* version 20: memory-management changes */
-/* on 21, unify pdl_broadcast per_pdl_flags, par_flags; remove threadloop #defines; change creating to char; relocate struct pdl.value appropriately, remove pdl_null, safe_indterm */
+/* on 21, look for comments "CORE21", unify pdl_trans per_pdl_flags, par_flags; remove threadloop #defines; change creating to char; relocate struct pdl.value appropriately, remove pdl_null, safe_indterm, initbroadcaststruct to take trans & remove in[cd]_sizes, remove pdl_{read,writeback}data_affine */
 #define PDL_CORE_VERSION 20
 #define startbroadcastloop startthreadloop
 #define pdl_startbroadcastloop pdl_startthreadloop
@@ -186,18 +186,16 @@ struct Core {
 
 typedef struct Core Core;
 
-#define PDL_DECLARE_PARAMETER(type, flag, name, pdlname, nullcheck) \
-  type *name ## _datap = ((type *)(PDL_REPRP_TRANS(pdlname, flag))); \
+#define PDL_DECLARE_PARAMETER(type, name, pdlname, nullcheck, ppsym) \
+  type *name ## _datap = ((type *)(PDL_REPRP(pdlname))); \
   if ((nullcheck) && pdlname->nvals > 0 && !name ## _datap) \
-    return PDL_CORE_(make_error_simple)(PDL_EUSERERROR, "parameter " #name " got NULL data"); \
+    return PDL_CORE_(make_error)(PDL_EUSERERROR, "parameter " #name "=%p got NULL data", pdlname); \
 
-#define PDL_DECLARE_PARAMETER_BADVAL(type, flag, name, pdlname, nullcheck) \
-  PDL_DECLARE_PARAMETER(type, flag, name, pdlname, nullcheck) \
-  type name ## _badval = 0; \
-  PDL_Anyval name ## _anyval_badval = PDL_CORE_(get_pdl_badvalue)(pdlname); \
-  (void)name ## _badval; \
-  (void)name ## _anyval_badval; \
-  ANYVAL_TO_CTYPE(name ## _badval, type, name ## _anyval_badval);
+#define PDL_DECLARE_PARAMETER_BADVAL(type, name, pdlname, nullcheck, ppsym) \
+  PDL_DECLARE_PARAMETER(type, name, pdlname, nullcheck, ppsym) \
+  PDL_Anyval name ## _anyval_badval = PDL_CORE_(get_pdl_badvalue)(pdlname); (void)name ## _anyval_badval; \
+  type name ## _badval = name ## _anyval_badval.value.ppsym; (void)name ## _badval; \
+  char name ## _badval_isnan = PDL_ISNAN_ ## ppsym(name ## _badval); (void) name ## _badval_isnan; \
 
 /* __PDLCORE_H */
 #endif

@@ -34,6 +34,7 @@ use warnings;
 # extend as necessary
 my @funcs = qw/ clump diagonal dice dice_axis dummy flat
                 index index2d indexND indexNDb mslice mv
+                broadcast unbroadcast
                 nslice_if_pdl polyfillv px
                 range rangeb reorder reshape sever slice
                 where whereND xchg /;
@@ -64,12 +65,10 @@ PDL has lvalue subs:
 
 sub subs {
   my ($type,$func) = @_;
-  if (defined $func) {
-    $func =~ s/^.*:://;
-    return ($^V and $^V >= 5.006007) && scalar grep {$_ eq $func} @funcs;
-  } else {
-    return ($^V and $^V >= 5.006007) ? @funcs : ();
-  }
+  return unless $^V and $^V >= 5.006007;
+  return @funcs if !defined $func;
+  $func =~ s/^.*:://;
+  scalar grep {$_ eq $func} @funcs;
 }
 
 # print "defining lvalue subs:\n$prots\n";

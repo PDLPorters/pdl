@@ -684,12 +684,11 @@ numbers.  It might be useful to be able to return complex eigenvalues.
 pp_def(
        "svd",
        HandleBad => 0,
-       Pars => 'a(n,m); [t]w(wsize); [o]u(n,m); [o,phys]z(n); [o]v(n,n);',
+       Pars => 'a(n,m); [t]w(wsize=CALC($SIZE(n) * ($SIZE(m) + $SIZE(n)))); [o]u(n,m); [o,phys]z(n); [o]v(n,n);',
        GenericTypes => ['D'],
        RedoDimsCode => '
         if ($SIZE(m)<$SIZE(n))
             $CROAK("svd requires input ndarrays to have m >= n; you have m=%td and n=%td. Try inputting the transpose.  See the docs for svd.",$SIZE(m),$SIZE(n));
-        $SIZE(wsize) = $SIZE(n) * ($SIZE(m) + $SIZE(n));
        ',
        Code => '
               extern void SVD( double *W, double *Z, int nRow, int nCol );
@@ -1353,9 +1352,8 @@ less opaque interface.
 # code
 #
 pp_def("squaretotri",
-	Pars => 'a(n,n); [o]b(m)',
+	Pars => 'a(n,n); [o]b(m=CALC(($SIZE(n) * ($SIZE(n)+1))/2))',
 	GenericTypes => [ppdefs_all],
-	RedoDimsCode => '$SIZE(m) = ($SIZE(n) * ($SIZE(n)+1))/2;',
 	Code => '
             register PDL_Indx mna=0, nb=0;
             loop(m) %{

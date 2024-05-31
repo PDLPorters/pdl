@@ -93,4 +93,60 @@ my $expected = pdl('[[1 1][1 3]]');
 ok all approx($got, $expected, 1e-3) or diag "got: $got\nexp: $expected";
 }
 
+{
+# cut down from demo 3d
+my $size = 5;
+my $x = xvals($size+1,$size+1) / $size;
+my $y = yvals($size+1,$size+1) / $size;
+my $z = 0.5 + 0.5 * (sin($x*6.3) * sin($y*6.3)) ** 3;
+my $cvals = pdl q[0.203 0.276];
+my $points = cat($x,$y,$z)->mv(-1,0);
+my ($segs, $cnt) = contour_segments($cvals, $z, $points);
+$segs = $segs->slice(',0:'.$cnt->max);
+ok all(approx $cnt, pdl(15,15), 2), 'contour_segments' or diag $segs, $cnt;
+
+$z = pdl q[
+  0 0 0 0 0;
+  0 0 1 0 0;
+  0 1 0 1 0;
+  0 1 1 1 0;
+  0 0 0 0 0
+];
+(my $got, $cnt) = contour_segments(0.5, $z, my $coords = $z->ndcoords);
+$got = $got->slice(',0:'.$cnt->max)->uniqvec;
+my $exp = pdl q[
+ [0.5   2] [0.5   3] [  1 1.5] [  1 3.5]
+ [1.5   1] [1.5   2] [  2 0.5] [  2 1.5]
+ [  2 2.5] [  2 3.5] [2.5   1] [2.5   2]
+ [  3 1.5] [  3 3.5] [3.5   2] [3.5   3]
+];
+ok all(approx $got, $exp, 0.1), 'contour_segments' or diag $got, $exp;
+
+my ($pi, $p) = contour_polylines(0.5, $z, $coords);
+my $pi_max = $pi->max;
+$p = $p->slice(','.($pi_max < 0 ? '1:0:1' : "0:$pi_max"))->uniqvec;
+is $p->dim(1), $exp->dim(1), 'same size' or diag "got=$p\nexp=$exp";
+ok all(approx $p, $exp, 0.1), 'contour_polylines' or diag "got=$p";
+}
+
+for (
+  [6, q[0 1; 2 3; 4 5], '[1 3 5]', '[4 5 2 3 0 1]', 1],
+  [6, q[0 1; 1 2; 2 3; 3 1; 3 2; 4 5], '[1 6 8 -1 -1 -1]', '[4 5 0 1 2 3 2 3 1 -1 -1 -1]', 1],
+  [9, q[0 1; 1 2; 2 3; 3 1; 3 2; 4 5; 6 7; 7 8; 8 6], '[1 6 8 12 -1 -1 -1 -1 -1]', '[4 5 0 1 2 3 2 3 1 6 7 8 6 -1 -1 -1 -1 -1]', 1],
+  [6, q[0 1; 1 2; 2 3; 3 1; 3 2; 4 5], '[4 6 8 -1 -1 -1]', '[0 1 2 3 1 2 3 4 5 -1 -1 -1]', 0],
+  [6, q[0 1; 2 1; 2 3; 3 1; 3 2; 4 5], '[4 6 8 -1 -1 -1]', '[0 1 2 3 1 2 3 4 5 -1 -1 -1]', 0],
+) {
+  my ($d, $e, $pindsexp, $pexp, $directed) = @$_;
+  my ($pinds, $p) = path_join(pdl($e), $d, $directed);
+  is "$p", $pexp;
+  is "$pinds", $pindsexp;
+}
+
+{
+  my ($pi, $p) = map pdl($_), '[4 6 8 -1 -1 -1]', '[0 1 2 3 1 2 3 4 5 -1 -1 -1]';
+  my @segs = path_segs($pi, $p);
+  $_ = "$_" for @segs;
+  is_deeply \@segs, ['[0 1 2 3 1]', '[2 3]', '[4 5]'];
+}
+
 done_testing;

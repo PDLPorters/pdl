@@ -4,21 +4,12 @@ use Test::More;
 use PDL::LiteF;
 
 {
-	# 1. Test that changes do flow
-	my $pa = pdl 2,3,4;
-	$pa->doflow;
-	my $pb = $pa + $pa;
-	is($pb->at(0), 4);
-	is($pb->at(1), 6);
-	$pa->set(0,50);
-	is($pb->at(0), 100);
-	is($pb->at(1), 6);
-
-	# exercise that set_datatype destroys trans
-	# XXX if set datatype of $pa, $pb gets a corrupted value of 64.0000158399343
-	$pb->set_datatype(PDL::float()->enum);
-	$pa->set(0,60);
-	is($pb->at(0), 100);
+  my $pa = pdl 2,3,4;
+  $pa->doflow;
+  my $pb = $pa + $pa;
+  is "$pb", '[4 6 8]';
+  $pa->set(0,50);
+  is "$pb", '[100 6 8]';
 }
 
 {
@@ -319,6 +310,12 @@ END
 my $pa = pdl [[0,1,2],[3,4,5],[6,7,8]],[[10,11,12],[13,14,15],[16,17,18]];
 my $pb = zeroes(3,3);
 my $pc = $pb->broadcast(0,1);
+is $pc->info, 'PDL: Double D [] T1 [3,3]', 'info right for explicit broadcasting 1 dim';
+is $pb->broadcast(0)->info, 'PDL: Double D [3] T1 [3]', 'info right for explicit broadcasting 2 dims';
+is zeroes(4,7,2,8)->broadcast(2)->info, 'PDL: Double D [4,7,8] T1 [2]', 'info right for higher-dim explicit broadcasting 1 dims';
+is zeroes(4,7,2,8)->broadcast(2,1)->info, 'PDL: Double D [4,8] T1 [2,7]', 'info right for higher-dim explicit broadcasting 2 dims';
+is zeroes(4,7,2,8,5,6)->broadcast(2,4)->info, 'PDL: Double D [4,7,8,6] T1 [2,5]', 'info right for higher-dim explicit broadcasting 2 dims';
+is zeroes(4,7,2,8,5,6)->broadcast1(2)->broadcast2(3)->info, 'PDL: Double D [4,7,8,6] T1 [2] T2 [5]', 'info right for higher-dim explicit broadcasting 2 sets of dims';
 $pb->make_physical();
 $pc->make_physical();
 maximum($pa->broadcast(0,1),$pc);
@@ -342,16 +339,9 @@ is(join(',',$pc->dims), "4,6,5", 'unbroadcast dims');
 #### Now, test whether the Perl-accessible broadcast works:
 my $pa = pdl [[0,1,2],[3,4,5],[6,7,8]],[[10,11,12],[13,14,15],[16,17,18]];
 my $pb = pdl [2,3,4];
-PDL::broadcastover_n($pa,$pb,sub {print "ROUND: @_\n"});
+PDL::broadcastover_n(sub {print "ROUND: @_\n"},$pa,$pb);
 # As well as with virtuals...
-PDL::broadcastover_n($pa->slice("-1:0,-1:0"),$pb,sub {print "ROUND: @_\n"});
-}
-
-{
-# test compat alias still works
-my $pa = pdl [[0,1,2],[3,4,5],[6,7,8]],[[10,11,12],[13,14,15],[16,17,18]];
-my $pb = pdl [2,3,4];
-PDL::threadover_n($pa,$pb,sub {print "ROUND: @_\n"});
+PDL::broadcastover_n(sub {print "ROUND: @_\n"},$pa->slice("-1:0,-1:0"),$pb);
 }
 
 done_testing;

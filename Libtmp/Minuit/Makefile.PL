@@ -127,14 +127,6 @@ undef &MY::postamble; # suppress warning
 	    ("minuitlib/$_\$(OBJ_EXT): minuitlib/$_.f
 	$mycompiler -c \$(FFLAGS) -o minuitlib/$_\$(OBJ_EXT) minuitlib/$_.f
 " )} @minuitfiles;
-	if (!defined($PDL::Config{MINUIT_LIB})) {
-          my $outflag = $Config{cc} eq 'cl' ? '-out:' : 'rv ';
-          $orig .= "
-minuitlib/libminuit\$(LIB_EXT): minuitlib/minuit\$(OBJ_EXT) minuitlib/intracfalse\$(OBJ_EXT)
-	\$(AR) ${outflag}minuitlib/libminuit\$(LIB_EXT) minuitlib/minuit\$(OBJ_EXT) minuitlib/intracfalse\$(OBJ_EXT)
-	\$(RANLIB) minuitlib/libminuit\$(LIB_EXT)
-";
-	}
 	return $orig;
 };
 

@@ -21,15 +21,15 @@
 
 #define VAFF_IO(name, X) \
 pdl_error pdl_ ## name(pdl *a) { \
-	pdl_error PDL_err = {0, NULL, 0}; \
-	PDL_Indx i; \
-	int j; \
-	int intype = a->datatype; \
-	if(!PDL_VAFFOK(a)) { \
-		return pdl_make_error_simple(PDL_EUSERERROR, "pdl_" #name " without vaffine"); \
-	} \
-    PDL_GENERICSWITCH(PDL_TYPELIST2_ALL, intype, X, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", intype)) \
-    return PDL_err; \
+  pdl_error PDL_err = {0, NULL, 0}; \
+  PDL_Indx i, j; \
+  int intype = a->datatype; \
+  if (!a->vafftrans) \
+    return pdl_make_error_simple(PDL_EUSERERROR, "pdl_" #name " without vafftrans"); \
+  if (a->nvals && !a->data) \
+    return pdl_make_error_simple(PDL_EUSERERROR, "pdl_" #name " non-empty with NULL data"); \
+  PDL_GENERICSWITCH(PDL_TYPELIST_ALL, intype, X, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", intype)) \
+  return PDL_err; \
 }
 
 #define X(...) XCODE(*ap = *pp, __VA_ARGS__)
@@ -43,8 +43,10 @@ VAFF_IO(writebackdata_vaffine, X)
 pdl_error pdl_converttype( pdl* a, int targtype ) {
     pdl_error PDL_err = {0, NULL, 0};
     PDLDEBUG_f(printf("pdl_converttype to %d: ", targtype); pdl_dump(a));
-    if(a->state & PDL_DONTTOUCHDATA)
+    if (a->state & PDL_DONTTOUCHDATA)
       return pdl_make_error_simple(PDL_EUSERERROR, "Trying to converttype magical (mmaped?) pdl");
+    if (!a->data)
+      return pdl_make_error(PDL_EUSERERROR, "converttype called with NULL data on pdl %p", a);
 
     int intype = a->datatype;
     if (intype == targtype)
@@ -69,8 +71,7 @@ pdl_error pdl_converttype( pdl* a, int targtype ) {
     PDL_Indx i = a->nvals; \
     ctype_from *data_from_typed = (ctype_from *) data_from_void; \
     ctype_from from_badval = pdl_get_pdl_badvalue(a).value.ppsym_from; \
-    char from_badval_isnan = PDL_ISNAN_##ppsym_from(from_badval); \
-    PDL_GENERICSWITCH2(PDL_TYPELIST2_ALL_, targtype, X_INNER, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", targtype))
+    char from_badval_isnan = PDL_ISNAN_##ppsym_from(from_badval);
 #define X_INNER(datatype_to, ctype_to, ppsym_to, shortctype_to, defbval_to, ...) \
     ctype_to *data_to_typed = (ctype_to *) data_to_void; \
     data_to_typed += i-1; data_from_typed += i-1; \
@@ -85,7 +86,9 @@ pdl_error pdl_converttype( pdl* a, int targtype ) {
     } else \
       while (i--) \
         *data_to_typed-- = (ctype_to) *data_from_typed--;
-    PDL_GENERICSWITCH(PDL_TYPELIST2_ALL, intype, X_OUTER, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", intype))
+    PDL_GENERICSWITCH2(
+      PDL_TYPELIST_ALL, intype, X_OUTER, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", intype),
+      PDL_TYPELIST_ALL_, targtype, X_INNER, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", targtype))
 #undef X_INNER
 #undef X_OUTER
 #undef THIS_ISBAD
@@ -111,5 +114,7 @@ pdl_error pdl_converttype( pdl* a, int targtype ) {
 
     a->datatype = targtype;
     PDLDEBUG_f(printf("pdl_converttype after: "); pdl_dump(a));
+    if (a->has_badvalue && a->badvalue.type != a->datatype)
+      return pdl_make_error(PDL_EUSERERROR, "Badvalue has type=%d != pdltype=%d", a->badvalue.type, a->datatype);
     return PDL_err;
 }

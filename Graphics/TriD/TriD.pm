@@ -166,7 +166,7 @@ will do exactly the same.
 
 Let's begin by thinking about how you might make a 2d data plot.
 If you sampled your data at regular intervals, you would have
-a time serires y(t) = (y0, y1, y2, ...).  You could plot y vs t
+a time series y(t) = (y0, y1, y2, ...).  You could plot y vs t
 by computing t0 = 0, t1 = dt, t2 = 2 * dt, and then plotting
 (t0, y0), (t1, y1), etc.
 
@@ -199,8 +199,6 @@ each point. The "x,y" help with gridding, because each point at C<x,y>
 is expected to have as geographical neighbours C<x+1,y>, C<x-1,y>,
 C<x,y+1>, C<x,y-1>, and the grid polygon-building relies on that.
 This is how, and why, the 3D earth in C<demo 3d> arranges its data.
-
- #!/usr/bin/perl
 
  use PDL;
  use PDL::Graphics::TriD;
@@ -294,6 +292,32 @@ only go in one direction. If this is unclear try both!
 
 See module documentation for more information on
 contexts and options
+
+=head2 line3d_segs
+
+=for ref
+
+3D line plot of non-continuous segments, defined by a variety of contexts.
+
+Implemented by C<PDL::Graphics::TriD::Lines>. Handles pairs of vertices
+as produced by L<PDL::ImageND/contour_segments>.
+
+=for usage
+
+ line3d_segs ndarray(3,x), {OPTIONS}
+ line3d_segs [CONTEXT], {OPTIONS}
+
+=for example
+
+  use PDL::ImageND
+  $size = 5;
+  $x = xvals($size+1,$size+1) / $size;
+  $y = yvals($size+1,$size+1) / $size;
+  $z = 0.5 + 0.5 * (sin($x*6.3) * sin($y*6.3)) ** 3;
+  $points = cat($x,$y,$z)->mv(-1,0)
+  ($segs, $cnt) = contour_segments(pdl(0.203,0.276), $z, $points)
+  $segs = $segs->slice(',0:'.$cnt->max)
+  line3d_segs $segs
 
 =head2 imag3d
 
@@ -456,8 +480,8 @@ Implemented by C<PDL::Graphics::TriD::Image>.
 
 =for usage
 
- imagrdb3d ndarray(3,x,y), {OPTIONS}
- imagrdb3d [ndarray,...], {OPTIONS}
+ imagrgb3d ndarray(3,x,y), {OPTIONS}
+ imagrgb3d [ndarray,...], {OPTIONS}
 
 The ndarray gives the colors. The option allowed is Points,
 which should give 4 3D coordinates for the corners of the polygon,
@@ -483,6 +507,20 @@ Grab a 3D image from the screen.
 
 The returned ndarray has dimensions (3,$x,$y) and is of type float
 (currently). XXX This should be altered later.
+
+=head2 contour3d
+
+=for usage
+
+ contour3d $d,[$x,$y,$z],[$r,$g,$b], {OPTIONS}
+
+where C<$d> is a 2D pdl of data to be contoured. C<[$x,$y,$z]> define a 3D
+map of C<$d> into the visualization space. C<[$r,$g,$b]> is an optional C<[3,1]>
+ndarray specifying the contour color and C<$options> is a hash reference to
+a list of options documented below.  Contours can also be coloured by
+value using the set_color_table function.
+
+Implemented by L<PDL::Graphics::TriD::Contours>.
 
 =head2 hold3d, release3d
 
@@ -556,19 +594,6 @@ returns 0.
 =for ref
 
 Close the currently-open 3D window.
-
-=head1 NOT EXPORTED
-
-These functions are not exported, partly because they are not fully
-implemented.
-
-=over
-
-=item contour3d
-
-Implemented by C<PDL::Graphics::TriD::Contours>.
-
-=back
 
 =head1 CONCEPTS
 
@@ -689,8 +714,8 @@ use PDL::Exporter;
 use PDL::Core '';  # barf
 our @ISA = qw/PDL::Exporter/;
 our @EXPORT_OK = qw/imag3d_ns imag3d line3d mesh3d lattice3d points3d
-  trigrid3d trigrid3d_ns
-  spheres3d describe3d imagrgb imagrgb3d hold3d release3d
+  trigrid3d trigrid3d_ns line3d_segs
+  contour3d spheres3d describe3d imagrgb imagrgb3d hold3d release3d
   keeptwiddling3d nokeeptwiddling3d close3d
   twiddle3d grabpic3d tridsettings/;
 our %EXPORT_TAGS = (Func=>\@EXPORT_OK);
@@ -865,9 +890,17 @@ sub PDL::line3d {
     graph_object($obj);
 }
 
+*line3d_segs=*line3d_segs=\&PDL::line3d_segs;
+sub PDL::line3d_segs {
+    &checkargs;
+    my $obj = PDL::Graphics::TriD::Lines->new(@_);
+    print "line3d_segs: object is $obj\n" if($PDL::Graphics::TriD::verbose);
+    graph_object($obj);
+}
+
 *contour3d=*contour3d=\&PDL::contour3d;
 sub PDL::contour3d {
-#  &checkargs;
+  &checkargs;
   require PDL::Graphics::TriD::Contours;
   graph_object(PDL::Graphics::TriD::Contours->new(@_));
 }
