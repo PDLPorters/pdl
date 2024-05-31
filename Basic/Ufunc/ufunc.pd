@@ -416,7 +416,7 @@ for ways of masking NaNs.
 	     %}
              if ( curind != -1 ) { $c() = curind; }
              else        { $SETBAD(c()); $PDLSTATESETBAD(c); }',
-	    Doc => "Like $name but returns the index rather than the value",
+	    Doc => "Like $name but returns the first matching index rather than the value",
 	    BadDoc =>
 'Output is set bad if no elements of the input are non-bad,
 otherwise the bad flag is cleared for the output ndarray.
@@ -466,7 +466,7 @@ EOF
 	    Doc => <<EOF,
 =for ref
 
-Returns the index of C<m_size> $name elements. As of 2.077, you can
+Returns the index of first C<m_size> $name elements. As of 2.077, you can
 specify how many by either passing in an ndarray of the given size
 (DEPRECATED - will be converted to indx if needed and the input arg will
 be set to that), or just the size, or a null and the size.
