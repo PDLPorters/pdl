@@ -2907,8 +2907,8 @@ You feed in a hash ref or a PDL with one of those as a header, and you
 get back a transform that converts 0-originated, pixel-centered
 coordinates into scientific coordinates via the transformation in the
 FITS header.  For most FITS headers, the transform is reversible, so
-applying the inverse goes the other way.  This is just a convenience
-subclass of PDL::Transform::Linear, but with unit/type support
+applying the inverse goes the other way.  This is just an instance
+of PDL::Transform::Linear, but with unit/type support
 using the FITS header you supply.
 
 For now, this transform is rather limited -- it really ought to
@@ -2918,7 +2918,7 @@ the whole transform framework.
 
 This transform implements the linear transform part of the WCS FITS
 standard outlined in Greisen & Calabata 2002 (A&A in press; find it at
-"http://arxiv.org/abs/astro-ph/0207407").
+L<https://arxiv.org/abs/astro-ph/0207407>).
 
 As a special case, you can pass in the boolean option "ignore_rgb"
 (default 0), and if you pass in a 3-D FITS header in which the last
@@ -2938,7 +2938,7 @@ sub t_fits {
   $hdr = $hdr->gethdr
     if(defined $hdr && UNIVERSAL::isa($hdr,'PDL'));
 
-  croak('PDL::Transform::FITS::new requires a FITS header hash\n')
+  croak('t_fits requires a FITS header hash\n')
     if(!defined $hdr || ref $hdr ne 'HASH' || !defined($hdr->{NAXIS}));
 
   my($n) = $hdr->{NAXIS}; $n = $n->at(0) if(UNIVERSAL::isa($n,'PDL'));
@@ -2965,7 +2965,7 @@ sub t_fits {
       my $tmp; # work around perl -d "feature"
       ($tmp = $matrix->slice("(".($1-1)."),(".($2-1).")")) .= $hdr->{$h};
     }
-    print "PDL::Transform::FITS: Detected CDi_j matrix: \n",$matrix,"\n"
+    print "t_fits: Detected CDi_j matrix: \n",$matrix,"\n"
       if($PDL::Transform::debug);
 
   } else {
@@ -2973,7 +2973,7 @@ sub t_fits {
     #
     # PCi_j + CDELTi formalism
     # If PCi_j aren't present, and N=2, then try using CROTA or
-    # CROTA2 to generate a rotation matrix instea.
+    # CROTA2 to generate a rotation matrix instead.
     #
 
     my($cdm) = PDL->zeroes($n,$n);
@@ -2992,17 +2992,14 @@ sub t_fits {
         my $tmp; # work around perl -d "feature"
         ($tmp = $cpm->slice("(".($1-1)."),(".($2-1).")")) .= $hdr->{$h};
       }
-      print "PDL::Transform::FITS: Detected PCi_j matrix: \n",$cpm,"\n"
+      print "t_fits: Detected PCi_j matrix: \n",$cpm,"\n"
         if($PDL::Transform::debug && @hgrab);
 
-    } elsif($n==2 && ( defined $hdr->{CROTA} || defined $hdr->{CROTA1} || defined $hdr->{CROTA2}) ) {
+    } elsif ($n==2 && grep defined $hdr->{$_}, qw(CROTA CROTA1 CROTA2)) {
 
         ## CROTA is deprecated; CROTA1 was used for a while but is unofficial;
         ## CROTA2 is encouraged instead.
-      my $cr;
-      $cr = $hdr->{CROTA2} unless defined $cr;
-      $cr = $hdr->{CROTA} unless defined $cr;
-      $cr = $hdr->{CROTA1} unless defined $cr;
+      my $cr = $hdr->{CROTA2} // $hdr->{CROTA} // $hdr->{CROTA1};
 
       $cr *= $PDL::Transform::DEG2RAD;
         # Rotation matrix rotates counterclockwise to get from sci to pixel coords
