@@ -543,6 +543,12 @@ error what is wrong with your args to C<pp_def>). Although work is being
 done to produce better warnings, do not be afraid to send your questions to
 the mailing list if you run into trouble.
 
+Another problem arises from the number of generated files that may be
+confusing especially when dealing with existing code.
+Bear in mind that the only sources are C<.pd> and C<.pod> files, while
+C<.pm>, C<.xs> and C<.c> files are generated from the C<.pd> files and
+shall not be altered as these changes would be overwritten.
+
 =head1 DESCRIPTION
 
 Now that you have some idea how to use C<pp_def> to define new PDL functions
