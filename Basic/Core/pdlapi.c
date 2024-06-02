@@ -420,7 +420,7 @@ pdl_error pdl__destroy_recprotect(pdl *it, int recurse_count) {
     /* Clear the sv field so that there will be no dangling ptrs */
     if(it->sv) {
 	    mg_free((SV *)it->sv);
-	    sv_setiv(it->sv,0x4242);
+	    sv_setiv(it->sv, 0);
 	    it->sv = NULL;
     }
     /* 1. count the trans_children that do flow */
