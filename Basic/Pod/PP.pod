@@ -544,10 +544,14 @@ done to produce better warnings, do not be afraid to send your questions to
 the mailing list if you run into trouble.
 
 Another problem arises from the number of generated files that may be
-confusing especially when dealing with existing code.
+confusing, especially when dealing with existing code.
 Bear in mind that the only sources are C<.pd> and C<.pod> files, while
 C<.pm>, C<.xs> and C<.c> files are generated from the C<.pd> files and
 shall not be altered as these changes would be overwritten.
+
+Furthermore, the generated files shall neither be part of a distribution nor
+under version control and therefore
+should be listed in C<MANIFEST.SKIP> and e.g. C<.gitignore>.
 
 =head1 DESCRIPTION
 
