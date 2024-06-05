@@ -612,7 +612,7 @@ sub hash2files {
 
 sub in_dir {
     my $code = shift;
-    my $dir = shift || File::Spec->catdir(File::Spec->curdir, './.pptest');
+    my $dir = shift || File::Spec->catdir(File::Spec->curdir, './.pptest/sub'); # /sub is so top Makefile.PL no see as subdir
     mkpath $dir;
     # chdir to the new directory
     my $orig_dir = getcwd();
