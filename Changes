@@ -1,3 +1,4 @@
+2.089_01 2024-06-05
 - add demo of GSL::CDF
 - floating-point-only operations in Ops, Primitive, Bad now default to double, not cldouble
 - fix treating a large Perl UV as an IV so getting sign wrong (#469)
