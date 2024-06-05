@@ -2131,7 +2131,7 @@ double pdl_drand(uint64_t *s);
 EOH
 
 pp_def(
-	'srand',
+	'srandom',
 	Pars=>'a();',
 	GenericTypes => ['Q'],
 	Code => <<'EOF',
@@ -2147,16 +2147,18 @@ for a number of threads equal to the return-value of
 L<PDL::Core/online_cpus>.
 As of 2.062, the generator changed from Perl's generator to xoshiro256++
 (see L<https://prng.di.unimi.it/>).
+Before PDL 2.090, this was called C<srand>, but was renamed to avoid
+clashing with Perl's built-in.
 
 =for usage
 
- srand(); # uses current time
- srand(5); # fixed number e.g. for testing
+ srandom(); # uses current time
+ srandom(5); # fixed number e.g. for testing
 
 EOF
 	PMCode=>pp_line_numbers(__LINE__, <<'EOD'),
-*srand = \&PDL::srand;
-sub PDL::srand { PDL::_srand_int($_[0] // PDL::Core::seed()) }
+*srandom = \&PDL::srandom;
+sub PDL::srandom { PDL::_srandom_int($_[0] // PDL::Core::seed()) }
 EOD
 );
 
@@ -2189,7 +2191,7 @@ excluding 1 itself). The arguments are the same as C<zeroes>
 (q.v.) - i.e. one can specify dimensions, types or give
 a template.
 
-You can use the PDL function L</srand> to seed the random generator.
+You can use the PDL function L</srandom> to seed the random generator.
 If it has not been called yet, it will be with the current time.
 As of 2.062, the generator changed from Perl's generator to xoshiro256++
 (see L<https://prng.di.unimi.it/>).
@@ -2235,7 +2237,7 @@ This is the uniform distribution between 0 and 1 (excluding both 0 and
 1, cf L</random>). The arguments are the same as C<zeroes> (q.v.) -
 i.e. one can specify dimensions, types or give a template.
 
-You can use the PDL function L</srand> to seed the random generator.
+You can use the PDL function L</srandom> to seed the random generator.
 If it has not been called yet, it will be with the current time.
 EOF
 	PMCode=>pp_line_numbers(__LINE__, <<'EOD'),
@@ -2268,7 +2270,7 @@ This is generated using the math library routine C<ndtri>.
 
 Mean = 0, Stddev = 1
 
-You can use the PDL function L</srand> to seed the random generator.
+You can use the PDL function L</srandom> to seed the random generator.
 If it has not been called yet, it will be with the current time.
 
 =cut

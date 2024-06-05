@@ -11,20 +11,20 @@ TODO: { local $TODO = 'Some CPAN Testers fails for OpenBSD'; subtest 'random' =>
     # check that our random functions work with Perl's srand
     # local $TODO = ;
 
-    subtest 'random and srand' => sub {
-        srand 5;
+    subtest 'random and srandom' => sub {
+        srandom 5;
         my $r1 = random 10;
-        srand 5;
+        srandom 5;
         my $r2 = random 10;
-        ok( tapprox( $r1, $r2 ), "random and srand" );
+        ok( tapprox( $r1, $r2 ), "random and srandom" );
     };
 
-    subtest 'grandom and srand' => sub {
-        srand 10;
+    subtest 'grandom and srandom' => sub {
+        srandom 10;
         my $r1 = grandom 10;
-        srand 10;
+        srandom 10;
         my $r2 = grandom 10;
-        ok( tapprox( $r1, $r2 ), "grandom and srand" );
+        ok( tapprox( $r1, $r2 ), "grandom and srandom" );
     };
 }; }
 
