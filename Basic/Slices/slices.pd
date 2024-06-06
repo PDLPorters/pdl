@@ -2273,7 +2273,7 @@ An empty ARRAY ref keeps the entire corresponding dim
 
 If $n is missing, you get a dummy dim of size 1.
 
-=item C<< [ $dex, , 0 ] >> - collapse and discard dim
+=item C<< [ $dex, 0, 0 ] >> - collapse and discard dim
 
 C<$dex> must be a single value.  It is used to index
 the source, and the corresponding dimension is discarded.
