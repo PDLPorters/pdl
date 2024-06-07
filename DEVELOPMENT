@@ -179,3 +179,39 @@ Changes to the existing PDL source tree:
 -- If your module requires external libraries or header files,
    add a section to perldl.conf.  The hash values with be available
    in your module's 'Makefile.PL' as $PDL::Config{WITH_MYMODULE},...
+
+
+Finding the Source
+------------------
+
+The directory layout in the repository is different from the layout of
+a PDL installation.  For some modules the .pm files are generated
+via PDL::PP, so changes would need to go into their .pd sources.
+Here's a table mapping PDL package names to their origin:
+
+| Package                | Source file                     |
+|------------------------+---------------------------------|
+| PDL                    | Basic/PDL.pm                    |
+| PDL::Bad               | Basic/Bad/bad.pd                |
+| PDL::Basic             | Basic/Core/Basic.pm             |
+| PDL::Core              | Basic/Core/Core.pm              |
+| PDL::Demos             | Demos/Demos.pm                  |
+| PDL::Graphics::Gnuplot | *not* in this repository        |
+| PDL::Graphics::PGPLOT  | *not* in this repository        |
+| PDL::Graphics::PLplot  | *not* in this repository        |
+| PDL::Graphics::Prima   | *not* in this repository        |
+| PDL::Graphics::Simple  | *not* in this repository        |
+| PDL::Graphics::TriD    | Graphics/TriD/TriD.pm           |
+| PDL::Graphics::TriD::* | Graphics/TriD/Objects.pm        |
+| PDL::IO::FITS          | IO/FITS/FITS.pm                 |
+| PDL::IO::Misc          | IO/Misc/misc.pd                 |
+| PDL::IO::Pic           | IO/Pnm/pnm.pd                   |
+| PDL::IO::Storable      | IO/Storable/storable.pd         |
+| PDL::Lvalue            | Basic/Lvalue.pm                 |
+| PDL::Math              | Basic/Math/math.pd              |
+| PDL::MatrixOps         | Basic/MatrixOps/matrixops.pd    |
+| PDL::NiceSlice         | Basic/SourceFilter/NiceSlice.pm |
+| PDL::Ops               | Basic/Ops/ops.pd                |
+| PDL::Primitive         | Basic/Primitive/primitive.pd    |
+| PDL::Slices            | Basic/Slices/slices.pd          |
+| PDL::Ufunc             | Basic/Ufunc/ufunc.pd            |
