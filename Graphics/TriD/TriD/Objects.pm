@@ -1,25 +1,42 @@
+=encoding UTF-8
+
 =head1 NAME
 
 PDL::Graphics::TriD::Objects - Simple Graph Objects for TriD
 
 =head1 SYNOPSIS
 
-Look in PDL/Demos/TkTriD_demo.pm for several examples, the code
-in PDL/Demos/TriD1.pm and PDL/Demos/TriD2.pm also uses objects
-but it hides them from the user.
+  use PDL::Graphics::TriD::Objects;
+
+This provides the following class hierarchy:
+
+  PDL::Graphics::TriD::GObject           (abstract) base class
+  ├ PDL::Graphics::TriD::Points          individual points
+  ├ PDL::Graphics::TriD::Spheres         fat 3D points :)
+  ├ PDL::Graphics::TriD::Lines           separate lines
+  ├ PDL::Graphics::TriD::LineStrip       continuous paths
+  ├ PDL::Graphics::TriD::STrigrid        polygons
+  │ └ PDL::Graphics::TriD::STrigrid_S    polygons with normals
+  └ PDL::Graphics::TriD::GObject_Lattice (abstract) base class
+    ├ PDL::Graphics::TriD::SCLattice     colored lattice
+    ├ PDL::Graphics::TriD::SLattice      ...with color per vertex
+    └ PDL::Graphics::TriD::SLattice_S    ...and with normals
 
 =head1 DESCRIPTION
 
-GObjects can be either stand-alone or in Graphs, scaled properly.
-All the points used by the object must be in the member {Points}.
-I guess we can afford to force data to be copied (X,Y,Z) -> (Points)...
+This module contains a collection of classes which represent graph
+objects.  It is for internal use and not meant to be used by PDL
+users.  GObjects can be either stand-alone or in Graphs, scaled
+properly.  All the points used by the object must be in the member
+{Points}.  I guess we can afford to force data to be copied (X,Y,Z) ->
+(Points)...
 
 =head1 OBJECTS
 
 =head2 PDL::Graphics::TriD::GObject
 
-Inherits from base PDL::Graphics::TriD::Object and adds fields Points, Colors and
-Options.  Need lots more here...
+Inherits from base PDL::Graphics::TriD::Object and adds fields Points,
+Colors and Options.
 
 =cut
 
