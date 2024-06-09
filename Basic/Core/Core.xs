@@ -205,7 +205,7 @@ topdl(klass, arg1, ...)
       (!SvROK(arg1) && SvTYPE(arg1) < SVt_PVAV) ||
       (SvROK(arg1) && SvTYPE(SvRV(arg1)) == SVt_PVAV)
     ) {
-      SP -= items; PUSHMARK(SP); SPAGAIN; /* these pass this set of args on */
+      PUSHMARK(SP - items); /* this passes current set of args on */
       int retvals = perl_call_method("new", G_SCALAR);
       SPAGAIN;
       if (retvals != 1) barf("new returned no values");
