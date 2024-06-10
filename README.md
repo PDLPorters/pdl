@@ -29,7 +29,7 @@ Before sending us your questions, please see the following files for further inf
 - `Basic/Pod/FAQ.pod`: The FAQ in pod format. Try `perldoc PDL::FAQ` after installation.
 - `Basic/Pod/QuickStart.pod`: A quick overview of PDL. Try `perldoc PDL::QuickStart` after installation.
 - `Basic/Pod/BadValues.pod`: A discussion of the bad value support in PDL
-- `DEVELOPMENT`: How to participate in the development of PDL
+- `Basic/Pod/DeveloperGuide.pod`: How to participate in the development of PDL
 
 **Note:** Most PDL documentation is available online within the PDL shell, `pdl2` (or `perldl`). Try the `help` command within either shell.
 

@@ -90,6 +90,7 @@ Basic/Pod/BadValues.pod
 Basic/Pod/Broadcasting.pod
 Basic/Pod/Course.pod
 Basic/Pod/Dataflow.pod
+Basic/Pod/DeveloperGuide.pod
 Basic/Pod/FAQ.pod
 Basic/Pod/Graphics.pod
 Basic/Pod/Index.pod
@@ -142,7 +143,6 @@ Demos/Sound.pm
 Demos/t/demos.t
 Demos/Transform_demo.pm
 DEPENDENCIES
-DEVELOPMENT
 Doc/Doc.pm
 Doc/Doc/Config.pm.PL
 Doc/Doc/Perldl.pm

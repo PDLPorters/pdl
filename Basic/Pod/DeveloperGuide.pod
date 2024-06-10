@@ -1,0 +1,248 @@
+=head1 NAME
+
+PDL::DeveloperGuide - How to develop for PDL
+
+=head1 Public Git Repository
+
+The PDL source distribution is hosted with L</Git> at the GitHub
+site L<https://github.com/PDLPorters/pdl>, alongside with other PDL
+related software.
+
+This is the preferred place to submit bug reports or, even better,
+pull requests.
+
+=head1 PDL Developer Guidelines
+
+The following guidelines are for any developer that has
+access to the PDL Git repository.
+
+=over
+
+=item 1) Add new files to the inventory
+
+Before committing a change with new files to the repository
+you should update:
+
+    - MANIFEST (if files were added, using 'make manifest')
+    - MANIFEST.SKIP (if applicable)
+
+=item 2) Add tests
+
+Make sure you add a test case in the 't' directory for any
+significant additional capability you add to PDL.  Please
+use L<Test::More> or one the of the Test modules available via
+perl modules rather than doing-it-yourself!
+
+=item 3) Add documentation
+
+Please include POD documentation for any functions you add to
+the distribution.
+
+=item 4) Run the tests
+
+Don't commit before you successfully built and passed
+C<make test>.
+
+=item 5) Watch for bug reports
+
+Bugs should be reported to the GitHub issue tracker at
+L<https://github.com/PDLPorters/pdl/issues>.  See L<PDL::Bugs> for a
+detailed description.
+
+=item 6) PDL Developer Recommended Workflow
+
+This is detailed in section 4.11 of L<PDL::FAQ>.
+
+=back
+
+=head1 PDL Developer Notes
+
+=head2 Random Musings
+
+A (small) collection of random musings to note if you feel
+the need to improve or add to PDL (please do):
+
+=over
+
+=item Organizing Commits
+
+git supports file-by-file commits so it is helpful
+to commit your changes to git a little at a time where
+each commit corresponds to a single change.  This makes
+it easy in the log to determine what was done and to
+locate any desired commit in case of issues that need
+to be resolved.
+
+=item Access to PDL's configuration
+
+If you need to access the configuration for PDL then use the
+C<%PDL::Config> variable. Prior to 2.4.1 this was a mess since
+you had to use %PDL_CONFIG within Makefile.PL and PDL::Config
+from *.pm/tests. The build process has been changed (I hesitate
+to say "cleaned up" ;) to just use %PDL::Config consistently
+throughout.
+
+=back
+
+=head2 Ingesting an external PDL module
+
+Notes on transferring an external PDL module to the PDL
+source tree for distribution with PDL:
+
+Suppose you have developed a PDL module that resides in a
+standalone source tree. You typically will need to have PDL
+installed on your system before you can build this module.
+
+If you wish to migrate the module into the PDL distribution
+you will need to make certain changes to the module source
+in order to built in the PDL distribution. You will need to
+removed dependecies on a pre-existing PDL installation for
+configuration and build of your module. This is because as
+part of the PDL distribution, it is possible that PDL has
+never been installed. Build processes based on PDL will then
+fail.
+
+Following is some specific advice that can help you do this.
+
+Changes that must be made to files in your module source tree
+if you are building the module from a .pd file :
+
+B<Makefile.PL:>
+
+=over
+
+=item *
+
+You must remove the line 'use PDL::Core::Dev;'.
+
+=item *
+
+The line 'PDL::Core::Dev->import();' must be present
+
+=item *
+
+You must change the call from C<pdlpp_postamble> to a call to
+C<pdlpp_postamble_int> (with the same arguments.)
+
+=item *
+
+It seems that most modules in the PDL source use
+
+  VERSION_FROM => '../../Basic/PDL.pm',
+
+but not all of them in order that their version tracks
+the PDL release version.  It is possible to maintain
+separate versioning even within the PDL source tree but
+it may make things confusing.
+
+=back
+
+Make certain that you make these changes to each 'Makefile.PL' in
+your source tree.
+
+
+B<Changes to the existing PDL source tree:>
+
+=over
+
+=item *
+
+Edit the 'Makefile.PL' in the directory above your module source
+to add your module directory name to
+C<DIR => [ qw/Module1 AnotherModule / ]>.
+
+=item *
+
+Add your test files (.t files) to the PDL/t directory renaming if
+required to avoid namespace conflicts.
+
+=item *
+
+Does your module depend on any libraries or external
+programs ?  If so, doocument the required programs with version
+numbers in PDL/DEPENDENCIES and add the PREREQ_* option to the
+main Makefile.PL if required.
+
+=item *
+
+If your module requires external libraries or header files,
+add a section to perldl.conf.  The hash values with be available
+in your module's 'Makefile.PL' as $PDL::Config{WITH_MYMODULE},...
+
+=back
+
+=head2 Finding the Source
+
+The directory layout in the repository is different from the layout of
+a PDL installation.  For some modules the .pm files are generated
+via PDL::PP, so changes would need to go into their .pd sources.
+Here's a table mapping PDL package names to their origin:
+
+  | Package                | Source file                     |
+  |------------------------+---------------------------------|
+  | PDL                    | Basic/PDL.pm                    |
+  | PDL::Bad               | Basic/Bad/bad.pd                |
+  | PDL::Basic             | Basic/Core/Basic.pm             |
+  | PDL::Core              | Basic/Core/Core.pm              |
+  | PDL::Demos             | Demos/Demos.pm                  |
+  | PDL::Graphics::Gnuplot | *not* in this repository        |
+  | PDL::Graphics::PGPLOT  | *not* in this repository        |
+  | PDL::Graphics::PLplot  | *not* in this repository        |
+  | PDL::Graphics::Prima   | *not* in this repository        |
+  | PDL::Graphics::Simple  | *not* in this repository        |
+  | PDL::Graphics::TriD    | Graphics/TriD/TriD.pm           |
+  | PDL::Graphics::TriD::* | Graphics/TriD/Objects.pm        |
+  | PDL::IO::FITS          | IO/FITS/FITS.pm                 |
+  | PDL::IO::Misc          | IO/Misc/misc.pd                 |
+  | PDL::IO::Pic           | IO/Pnm/pnm.pd                   |
+  | PDL::IO::Storable      | IO/Storable/storable.pd         |
+  | PDL::Lvalue            | Basic/Lvalue.pm                 |
+  | PDL::Math              | Basic/Math/math.pd              |
+  | PDL::MatrixOps         | Basic/MatrixOps/matrixops.pd    |
+  | PDL::NiceSlice         | Basic/SourceFilter/NiceSlice.pm |
+  | PDL::Ops               | Basic/Ops/ops.pd                |
+  | PDL::Primitive         | Basic/Primitive/primitive.pd    |
+  | PDL::Slices            | Basic/Slices/slices.pd          |
+  | PDL::Ufunc             | Basic/Ufunc/ufunc.pd            |
+
+
+
+=head1 References
+
+=over
+
+=item Official Website
+
+For the audience of PDL users there is a dedicated website in the
+perl.org domain: L<https://pdl.perl.org/>.
+
+=item The current PDL version on MetaCPAN
+
+L<https://metacpan.org/dist/PDL>
+
+=item A guide to PDL's module references for PDL users
+
+L<PDL::Modules>
+
+=item The comprehensive modules index (autogenerated)
+
+L<PDL::Index>
+
+=item Git
+
+The main Git home page is at L<http://www.git-scm.org/>.
+Two good online Git references are:
+
+=over
+
+=item  the Git User's Manual at
+
+L<http://www.kernel.org/pub/software/scm/git/docs/user-manual.html>
+
+=item and Git Magic at
+
+L<http://www-cs-students.stanford.edu/~blynn/gitmagic/>
+
+=back
+
+=back
