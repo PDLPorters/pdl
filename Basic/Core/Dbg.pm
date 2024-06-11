@@ -29,7 +29,8 @@ use warnings;
 our $Title = "Type   Dimension       Flow  State          Mem";
 our $Infostr = "%6T %-15D  %3F   %-5S  %12M";
 
-package PDL;
+package # hide from MetaCPAN
+  PDL;
 
 =head1 FUNCTIONS
 

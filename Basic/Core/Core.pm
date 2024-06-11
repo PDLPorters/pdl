@@ -747,7 +747,8 @@ sub topdl {PDL->topdl(@_)}
 
 ####################### Overloaded operators #######################
 
-{ package PDL;
+{ package # hide from MetaCPAN
+    PDL;
   use Carp;
   use overload
     '""' => \&PDL::Core::string,

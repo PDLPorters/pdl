@@ -627,7 +627,8 @@ sub warn_non_numeric_op_wrapper {
   }
 }
 
-{ package PDL;
+{ package # hide from MetaCPAN
+    PDL;
   use overload %OVERLOADS,
     "eq"    => PDL::Ops::warn_non_numeric_op_wrapper(\&PDL::eq, 'eq'),
     ".="    => sub {

@@ -74,7 +74,8 @@ sub subs {
 # print "defining lvalue subs:\n$prots\n";
 
 eval << "EOV" if ($^V and $^V >= 5.006007);
-{ package PDL;
+{ package # hide from MetaCPAN
+    PDL;
   no warnings qw(misc);
   $prots
 }
