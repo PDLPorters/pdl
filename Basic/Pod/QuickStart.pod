@@ -12,11 +12,11 @@ A brief summary of the main PDL features and how to use them.
 =head2 Introduction
 
 Perl is an extremely good and versatile scripting language, well suited to
-beginners and allows rapid prototyping. However until recently it did not
-support data structures which allowed it to do fast number crunching.
+beginners and allows rapid prototyping.  However the Perl core does not
+support data structures which allow to do fast number crunching.
 
-However with the development of Perl v5, Perl acquired 'Objects'. To put
-it simply users can define their own special data types, and write
+With the development of Perl v5, Perl acquired 'Objects'. To put
+it simply, users can define their own special data types, and write
 custom routines to manipulate them either in low level languages (C and
 Fortran) or in Perl itself.
 
@@ -41,17 +41,18 @@ data to be easily played with and visualised.
 
 =head2 Help
 
-PDL contains extensive documentation, available both within the
-I<perldl> or I<pdl2> shells and from the command line, using the C<pdldoc> program.
+PDL contains extensive user documentation, available both within the
+I<perldl> or I<pdl2> shells and from the command line, using the
+C<pdldoc> program.  C<pdldoc> is the PDL equivalent of C<perldoc -f>.
+You can also point a browser to L<https://metacpan.org/pod/PDL>.
+
 For further information try either of:
 
  pdl> help help
  $ pdldoc
 
-HTML copies of the documentation should also be available.
-To find their location, try the following:
-
- pdl> foreach ( map{"$_/PDL/HtmlDocs"}@INC ) { p "$_\n" if -d $_ }  
+If you want to delve into the internals of PDL, check out the
+L<Developer Guide|PDL::DeveloperGuide>.
 
 =head2 Perl Datatypes and how PDL extends them
 

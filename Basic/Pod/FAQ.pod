@@ -437,8 +437,10 @@ If you have a certain project in mind you should check if somebody
 else is already working on it or if you could benefit from existing
 modules. Do so by posting your planned project to the PDL developers
 mailing list at pdl-devel@lists.sourceforge.net . See the subscription
-instructions in L<Question 3.2|"Q: 3.2 Are there other PDL information sources on the Internet?">.
-We are always looking for people to write code and/or documentation ;).
+instructions in L<Question 3.2|"Q: 3.2 Are there other PDL information
+sources on the Internet?">.  We are always looking for people to write
+code and/or documentation.  The L<Developer Guide|PDL::DeveloperGuide>
+should get you started.
 
 
 =head2 Q: 3.6    I think I have found a bug in the current version of PDL. What shall I do?  

@@ -57,6 +57,74 @@ This is detailed in section 4.11 of L<PDL::FAQ>.
 
 =head1 PDL Developer Notes
 
+=head2 Getting (some) Debug Information
+
+PDL has some global variables which control diagnostic output:
+
+=over
+
+=item C<$::PP_VERBOSE>
+
+If set to a true value, L<PDL::PP> will print details while building
+the module processing C<pp_def> declarations.
+
+=item C<$PDL::Graphics::TriD::verbose>
+
+If set to a true value, the routines in L<PDL::Graphics::TriD> will
+report their progress.
+
+=item C<$PDL::verbose>
+
+Several modules produce diagnostic output to STDOUT if
+C<$PDL::verbose> has a true value.
+
+=item C<$PDL::debug>
+
+Several modules produce diagnostic output if C<$PDL::verbose> has a
+true value.
+
+=back
+
+
+=head2 Generating a Stack Trace
+
+To generate a stack-trace to help us debug a problem, please first of
+all do C<make realclean>, ensure you have the latest released PDL.
+Then, if it is still happening, please follow this process:
+
+=over
+
+=item Rerun perl Makefile.PL
+
+This will update the timestamps on Makefiles, prompting a full rebuild.
+
+=item Edit your generated top-level Makefile
+
+Add C<-g> to the C<OPTIMIZE => line to generate debug symbols (this gets
+propagated to subdirectories)
+
+=item Run: C<make>
+
+This builds PDL into the C<blib> directory.
+
+=item Run: C<gdb perl -ex 'run -Mblib t/tracking.t'>
+
+In gdb, run: C<bt>
+
+=item Copy-paste the backtrace output
+
+This should show where the segfault originated.
+
+=back
+
+Then please open an issue on whichever repo is relevant with your
+C<perl -V> output and PDL version, together with the stack-trace
+created above. When you do paste such output into a GitHub issue,
+please surround such blocks with ``` on their own lines. You can check
+out how it will render with the "Preview" button above the
+issue-editing box.
+
+
 =head2 Random Musings
 
 A (small) collection of random musings to note if you feel
@@ -66,108 +134,11 @@ the need to improve or add to PDL (please do):
 
 =item Organizing Commits
 
-git supports file-by-file commits so it is helpful
-to commit your changes to git a little at a time where
-each commit corresponds to a single change.  This makes
-it easy in the log to determine what was done and to
-locate any desired commit in case of issues that need
-to be resolved.
-
-=item Access to PDL's configuration
-
-If you need to access the configuration for PDL then use the
-C<%PDL::Config> variable. Prior to 2.4.1 this was a mess since
-you had to use %PDL_CONFIG within Makefile.PL and PDL::Config
-from *.pm/tests. The build process has been changed (I hesitate
-to say "cleaned up" ;) to just use %PDL::Config consistently
-throughout.
-
-=back
-
-=head2 Ingesting an external PDL module
-
-Notes on transferring an external PDL module to the PDL
-source tree for distribution with PDL:
-
-Suppose you have developed a PDL module that resides in a
-standalone source tree. You typically will need to have PDL
-installed on your system before you can build this module.
-
-If you wish to migrate the module into the PDL distribution
-you will need to make certain changes to the module source
-in order to built in the PDL distribution. You will need to
-removed dependecies on a pre-existing PDL installation for
-configuration and build of your module. This is because as
-part of the PDL distribution, it is possible that PDL has
-never been installed. Build processes based on PDL will then
-fail.
-
-Following is some specific advice that can help you do this.
-
-Changes that must be made to files in your module source tree
-if you are building the module from a .pd file :
-
-B<Makefile.PL:>
-
-=over
-
-=item *
-
-You must remove the line 'use PDL::Core::Dev;'.
-
-=item *
-
-The line 'PDL::Core::Dev->import();' must be present
-
-=item *
-
-You must change the call from C<pdlpp_postamble> to a call to
-C<pdlpp_postamble_int> (with the same arguments.)
-
-=item *
-
-It seems that most modules in the PDL source use
-
-  VERSION_FROM => '../../Basic/PDL.pm',
-
-but not all of them in order that their version tracks
-the PDL release version.  It is possible to maintain
-separate versioning even within the PDL source tree but
-it may make things confusing.
-
-=back
-
-Make certain that you make these changes to each 'Makefile.PL' in
-your source tree.
-
-
-B<Changes to the existing PDL source tree:>
-
-=over
-
-=item *
-
-Edit the 'Makefile.PL' in the directory above your module source
-to add your module directory name to
-C<DIR => [ qw/Module1 AnotherModule / ]>.
-
-=item *
-
-Add your test files (.t files) to the PDL/t directory renaming if
-required to avoid namespace conflicts.
-
-=item *
-
-Does your module depend on any libraries or external
-programs ?  If so, doocument the required programs with version
-numbers in PDL/DEPENDENCIES and add the PREREQ_* option to the
-main Makefile.PL if required.
-
-=item *
-
-If your module requires external libraries or header files,
-add a section to perldl.conf.  The hash values with be available
-in your module's 'Makefile.PL' as $PDL::Config{WITH_MYMODULE},...
+The preferred way to organize commits is one commit per small,
+meaningful change (ideally each with an update to the corresponding
+tests).  This makes it easy in the log to determine what was done and
+to locate any desired commit in case of issues that need to be
+resolved.
 
 =back
 
@@ -178,34 +149,34 @@ a PDL installation.  For some modules the .pm files are generated
 via PDL::PP, so changes would need to go into their .pd sources.
 Here's a table mapping PDL package names to their origin:
 
-  | Package                | Source file                     |
-  |------------------------+---------------------------------|
-  | PDL                    | Basic/PDL.pm                    |
-  | PDL::Bad               | Basic/Bad/bad.pd                |
-  | PDL::Basic             | Basic/Core/Basic.pm             |
-  | PDL::Core              | Basic/Core/Core.pm              |
-  | PDL::Demos             | Demos/Demos.pm                  |
-  | PDL::Graphics::Gnuplot | *not* in this repository        |
-  | PDL::Graphics::PGPLOT  | *not* in this repository        |
-  | PDL::Graphics::PLplot  | *not* in this repository        |
-  | PDL::Graphics::Prima   | *not* in this repository        |
-  | PDL::Graphics::Simple  | *not* in this repository        |
-  | PDL::Graphics::TriD    | Graphics/TriD/TriD.pm           |
-  | PDL::Graphics::TriD::* | Graphics/TriD/Objects.pm        |
-  | PDL::IO::FITS          | IO/FITS/FITS.pm                 |
-  | PDL::IO::Misc          | IO/Misc/misc.pd                 |
-  | PDL::IO::Pic           | IO/Pnm/pnm.pd                   |
-  | PDL::IO::Storable      | IO/Storable/storable.pd         |
-  | PDL::Lvalue            | Basic/Lvalue.pm                 |
-  | PDL::Math              | Basic/Math/math.pd              |
-  | PDL::MatrixOps         | Basic/MatrixOps/matrixops.pd    |
-  | PDL::NiceSlice         | Basic/SourceFilter/NiceSlice.pm |
-  | PDL::Ops               | Basic/Ops/ops.pd                |
-  | PDL::Primitive         | Basic/Primitive/primitive.pd    |
-  | PDL::Slices            | Basic/Slices/slices.pd          |
-  | PDL::Ufunc             | Basic/Ufunc/ufunc.pd            |
-
-
+  | Package                                | Source file                     |
+  |----------------------------------------+---------------------------------|
+  | PDL                                    | Basic/PDL.pm                    |
+  | PDL::Bad                               | Basic/Bad/bad.pd                |
+  | PDL::Basic                             | Basic/Core/Basic.pm             |
+  | PDL::Core                              | Basic/Core/Core.pm              |
+  | PDL::Demos                             | Demos/Demos.pm                  |
+  | PDL::Graphics::TriD                    | Graphics/TriD/TriD.pm           |
+  | PDL::Graphics::TriD::*                 | Graphics/TriD/Objects.pm        |
+  | PDL::Graphics::TriD::BoundingBox       | Graphics/TriD/TriD.pm           |
+  | PDL::Graphics::TriD::Material          | Graphics/TriD/TriD.pm           |
+  | PDL::Graphics::TriD::OneTransformation | Graphics/TriD/TriD.pm           |
+  | PDL::Graphics::TriD::QuaterController  | Graphics/TriD/TriD/ArcBall.pm   |
+  | PDL::Graphics::TriD::Scale             | Graphics/TriD/TriD.pm           |
+  | PDL::Graphics::TriD::Transformation    | Graphics/TriD/TriD.pm           |
+  | PDL::Graphics::TriD::Translation       | Graphics/TriD/TriD.pm           |
+  | PDL::IO::FITS                          | IO/FITS/FITS.pm                 |
+  | PDL::IO::Misc                          | IO/Misc/misc.pd                 |
+  | PDL::IO::Pic                           | IO/Pnm/pnm.pd                   |
+  | PDL::IO::Storable                      | IO/Storable/storable.pd         |
+  | PDL::Lvalue                            | Basic/Lvalue.pm                 |
+  | PDL::Math                              | Basic/Math/math.pd              |
+  | PDL::MatrixOps                         | Basic/MatrixOps/matrixops.pd    |
+  | PDL::NiceSlice                         | Basic/SourceFilter/NiceSlice.pm |
+  | PDL::Ops                               | Basic/Ops/ops.pd                |
+  | PDL::Primitive                         | Basic/Primitive/primitive.pd    |
+  | PDL::Slices                            | Basic/Slices/slices.pd          |
+  | PDL::Ufunc                             | Basic/Ufunc/ufunc.pd            |
 
 =head1 References
 
