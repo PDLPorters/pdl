@@ -2,4 +2,4 @@
 *.pm linguist-language=Perl
 *.pl linguist-language=Perl
 *.p linguist-language=Perl
-inc/* linquist-vendored
+inc/* linguist-vendored
