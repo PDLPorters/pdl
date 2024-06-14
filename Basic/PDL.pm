@@ -84,6 +84,11 @@ course that takes you from a complete beginner level to expert.
 List of all available documentation, sorted alphabetically. If you
 cannot find what you are looking for, try here.
 
+=item L<PDL::DeveloperGuide>
+
+A guide for people who want to contribute to PDL.  Contributions are
+very welcome!
+
 =back
 
 =head1 DATA TYPES
