@@ -450,4 +450,33 @@ subtest v_broadcast_dimensions => sub {
       "setdiff_sorted - broadcast dims - 0(*k)-0";
 };
 
+subtest v_vcos => sub {
+  my $a = pdl([[1,2,3,4],[1,2,2,1],[-1,-2,-3,-4]]);
+  my $b = pdl([1,2,3,4]);
+  my $c_want = pdl([1,0.8660254,-1]);
+
+  ##-- 1..2: vcos: basic
+  ok tapprox($a->vcos($b), $c_want, 1e-4), "vcos:flat";
+  ok tapprox($a->vcos($b->slice(",*3")), $c_want->slice(",*3"), 1e-4), "vcos:broadcasted";
+
+  ##-- 3: vcos: nullvec: a
+  my $a0 = $a->pdl;
+  my $nan = $^O =~ /MSWin32/i ? ((99**99)**99) - ((99**99)**99) : 'nan';
+  (my $tmp=$a0->slice(",1")) .= 0;
+  ok tapprox($a0->vcos($b), pdl([1,$nan,-1]), 1e-4), "vcos:nullvec:a:nan";
+
+  ##-- 4: vcos: nullvec: b
+  my $b0 = $b->zeroes;
+  ok all($a->vcos($b0)->isfinite->not), "vcos:nullvec:b:all-nan";
+
+  ##-- 5-6: bad values
+  my $abad       = $a->pdl->setbadif($a->abs==2);
+  my $abad_cwant = pdl([0.93094,0.64549,-0.93094]);
+  ok tapprox($abad->vcos($b), $abad_cwant, 1e-4), "vcos:bad:a";
+
+  my $bbad       = $b->pdl->setbadif($b->xvals==2);
+  my $bbad_cwant = pdl([0.8366,0.6211,-0.8366]);
+  ok tapprox($a->vcos($bbad), $bbad_cwant, 1e-4), "vcos:bad:b";
+};
+
 done_testing;

@@ -2111,6 +2111,82 @@ Contributed by Bryan Jurish E<lt>moocow@cpan.orgE<gt>.
 EOD
 );
 
+pp_def('vcos',
+  Pars => join('',
+    "a(M,N);",            ##-- logical (D,T)
+    "b(M);",              ##-- logical (D,1)
+    "float+ [o]vcos(N);", ##-- logical (T)
+  ),
+  GenericTypes => [ppdefs_all],
+  HandleBad => 1,
+  Code => pp_line_numbers(__LINE__, <<'EOF'),
+$GENERIC(vcos) bnorm = 0;
+loop(M) %{
+  PDL_IF_BAD(if ($ISGOOD(b())),)
+    bnorm += $b() * $b();
+%}
+bnorm = sqrt(bnorm);
+if (bnorm == 0) {
+   /*-- null-vector b(): set all vcos()=NAN --*/
+   loop (N) %{ $vcos() = NAN; %}
+}
+else {
+   /*-- usual case: compute values for N-slice of b() --*/
+   loop (N) %{
+     $GENERIC(vcos) anorm = 0, vval  = 0;
+     loop (M) %{
+       PDL_IF_BAD(if ($ISGOOD(a())),)
+       {
+         $GENERIC(vcos) aval   = $a();
+         anorm += aval * aval;
+         PDL_IF_BAD(if ($ISGOOD(b())),)
+           vval  += aval * $b();
+       }
+     %}
+     /*-- normalize --*/
+     anorm = sqrt(anorm);
+     if (anorm != 0) {
+       /*-- usual case a(), b() non-null --*/
+       $vcos() = vval / (anorm * bnorm);
+     } else {
+       /*-- null-vector a(): set vcos()=NAN --*/
+       $vcos() = NAN;
+     }
+  %}
+}
+EOF
+  CopyBadStatusCode => q{
+   if ( $ISPDLSTATEBAD(a) || $ISPDLSTATEBAD(b) ) {
+     $SETPDLSTATEBAD(vcos);
+   }
+},
+  Doc => q{
+Computes the vector cosine similarity of a dense vector $b() with respect
+to each row $a(*,i) of a dense PDL $a().  This is basically the same
+thing as:
+
+ ($a * $b)->sumover / ($a->pow(2)->sumover->sqrt * $b->pow(2)->sumover->sqrt)
+
+... but should be much faster to compute, and avoids allocating
+potentially large temporaries for the vector magnitudes.  Output values
+in $vcos() are cosine similarities in the range [-1,1], except for
+zero-magnitude vectors which will result in NaN values in $vcos().
+
+You can use PDL broadcasting to batch-compute distances for multiple $b()
+vectors simultaneously:
+
+  $bx   = random($M, $NB);   ##-- get $NB random vectors of size $N
+  $vcos = vcos($a,$bx);   ##-- $vcos(i,j) ~ sim($a(,i),$b(,j))
+
+Contributed by Bryan Jurish E<lt>moocow@cpan.orgE<gt>.
+},
+  BadDoc=> q{
+vcos() will set the bad status flag on the output $vcos() if
+it is set on either of the inputs $a() or $b(), but BAD values
+will otherwise be ignored for computing the cosine similarity.
+},
+);
+
 pp_addhdr(<<'EOH');
 extern int pdl_srand_threads;
 extern uint64_t *pdl_rand_state;
