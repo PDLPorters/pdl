@@ -280,19 +280,18 @@ PDL_TYPELIST_ALL(X)
 #define  PDL_OPT_ANY_OK          (PDL_OPT_VAFFTRANSOK)
   /* This is the hdrcpy flag                                                */
 #define  PDL_HDRCPY              0x0200
-  /* This is a badval flag for this PDL (hmmm -- there is also a flag       */
-  /* in the struct itself -- must be clearer about what this is for. --CED) */
+  /* This is a badval flag for this PDL as set by "badflag"                 */
 #define  PDL_BADVAL              0x0400
-  /* Debugging flag                                                         */
-#define  PDL_TRACEDEBUG          0x0800
+  /* If ndarray was created by PDL API but then got SV attached             */
+#define  PDL_DYNLANG_NODESTROY   0x0800
   /* inplace flag                                                           */
 #define  PDL_INPLACE             0x1000
   /* Flag indicating destruction in progress                                */
-#define         PDL_DESTROYING          0x2000
+#define  PDL_DESTROYING          0x2000
   /* If this flag is set, you must not alter the data pointer nor           */
-  /* free this ndarray nor use datasv (which should be null).                */
-  /* This means e.g. that the ndarray is mmapped from a file                 */
-#define         PDL_DONTTOUCHDATA       0x4000
+  /* free this ndarray nor use datasv (which should be null).               */
+  /* This means e.g. that the ndarray is mmapped from a file                */
+#define  PDL_DONTTOUCHDATA       0x4000
   /* whether the given pdl is getting its dims from the given trans */
 #define PDL_DIMS_FROM_TRANS(wtrans,pdl) (((pdl)->state & PDL_MYDIMS_TRANS) \
                 && (pdl)->trans_parent == (pdl_trans *)(wtrans))
@@ -308,7 +307,7 @@ PDL_TYPELIST_ALL(X)
  X(PDL_OPT_VAFFTRANSOK) \
  X(PDL_HDRCPY) \
  X(PDL_BADVAL) \
- X(PDL_TRACEDEBUG) \
+ X(PDL_DYNLANG_NODESTROY) \
  X(PDL_INPLACE) \
  X(PDL_DESTROYING) \
  X(PDL_DONTTOUCHDATA)

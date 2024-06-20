@@ -2302,7 +2302,7 @@ sub pdumphash {
       ins => [map sprintf('0x%x', $_->address), @ins],
       outs => [map sprintf('0x%x', $_->address), @outs],
     };
-    pdumphash($_, $sofar) for @ins, @outs;
+    for my $r (@ins, @outs) { pdumphash($r, $sofar) if !$sofar->{sprintf '0x%x', $r->address}; }
   } else {
     my @ins = grep defined, $obj->trans_parent;
     my @outs = $obj->trans_children;
@@ -2322,7 +2322,7 @@ sub pdumphash {
       ins => [map sprintf('0x%x', $_->address), @ins],
       outs => [map sprintf('0x%x', $_->address), @outs],
     };
-    pdumphash($_, $sofar) for @ins, @outs;
+    for my $r (@ins, @outs) { pdumphash($r, $sofar) if !$sofar->{sprintf '0x%x', $r->address}; }
   }
   $sofar;
 }

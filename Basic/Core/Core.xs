@@ -23,6 +23,7 @@
     EXTEND(SP, to - from); \
     for (i=from; i<to; i++) { \
       SV *sv = sv_newmortal(); \
+      if (!trans->pdls[i]->sv) trans->pdls[i]->state |= PDL_DYNLANG_NODESTROY; \
       pdl_SetSV_PDL(sv, trans->pdls[i]); \
       PUSHs(sv); \
     }
@@ -97,9 +98,15 @@ DESTROY(sv)
   CODE:
     if (SvROK(sv) && SvTYPE(SvRV(sv)) == SVt_PVHV) return;
     self = pdl_SvPDLV(sv);
-    PDLDEBUG_f(printf("DESTROYING %p\n",(void*)self);)
-    if (self != NULL)
-      pdl_barf_if_error(pdl_destroy(self));
+    PDLDEBUG_f(printf("DESTROYING %p\n",self);)
+    if (self == NULL) return;
+    if (self->state & PDL_DYNLANG_NODESTROY) {
+      PDLDEBUG_f(printf(" (actually just setting sv to NULL)\n");)
+      self->state &= ~PDL_DYNLANG_NODESTROY;
+      self->sv = NULL;
+      return;
+    }
+    pdl_barf_if_error(pdl_destroy(self));
 
 SV *
 new_from_specification(invoc, ...)

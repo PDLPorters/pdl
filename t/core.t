@@ -729,6 +729,12 @@ is 0+@pn, 2, 'par_names returned 2 things';
 my $roots = pdl '[1 2i 3i 4i 5i]';
 eval {PDL::Core::pdump($roots)}; # gave "panic: attempt to copy freed scalar"
 is $@, '';
+{
+my $x = sequence 3; $x->doflow; my $y = $x + 1;
+isnt $y->trans_parent, undef, '$y has parent';
+isnt PDL::Core::pdumphash($x), undef, 'pdumphash works';
+isnt $y->trans_parent, undef, '$y still has parent after pdumphash';
+}
 
 my $notouch = sequence(4);
 $notouch->set_donttouchdata(4 * PDL::Core::howbig($notouch->get_datatype));
