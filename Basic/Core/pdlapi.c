@@ -819,7 +819,6 @@ pdl_error pdl_changed(pdl *it, int what, int recursing) {
     printf("pdl_changed: entry for pdl %p recursing: %d, what=",
            (void*)it,recursing);
     pdl_dump_flags_fixspace(what,0,PDL_FLAGS_PDL);
-    if (it->state & PDL_TRACEDEBUG) pdl_dump(it);
   );
   pdl_trans *trans = it->trans_parent;
   if (recursing) {

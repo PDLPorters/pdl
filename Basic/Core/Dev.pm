@@ -493,7 +493,6 @@ my %flags = (
     anychgd => { FLAG => "ANYCHANGED" },
     datachgd => { FLAG => "PARENTDATACHANGED" },
     dimschgd => { FLAG => "PARENTDIMSCHANGED" },
-    tracedebug => { set => 1 },
 );
 
 sub generate_core_flags {

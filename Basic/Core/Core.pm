@@ -2533,13 +2533,6 @@ sub alltopdl {
     return $_[0]->new($_[1]);
 }
 
-=head2 tracedebug
-
-=for ref
-
-Sets whether an ndarray will have debugging info printed during use if a
-(Boolean) value is given. Returns the new value.
-
 =head2 donttouch
 
 =for ref
