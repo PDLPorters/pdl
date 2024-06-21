@@ -36,7 +36,7 @@ print OUT <<'EOF';
         PUSHMARK(SP); mXPUSHn(rval); mXPUSHn(ival); PUTBACK; \
         int count = perl_call_pv("PDL::Complex::Overloads::cplx", G_SCALAR); \
         SPAGAIN; \
-        if (count != 1) croak("Failed to create PDL::Complex::Overloads object (%.9g, %.9g)", rval, ival); \
+        if (count != 1) croak("Failed to create PDL::Complex::Overloads object (%.9" NVgf ", %.9" NVgf ")", rval, ival); \
         sv_setsv(output, POPs); \
         PUTBACK; \
         FREETMPS; LEAVE; \
