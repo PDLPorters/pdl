@@ -1,6 +1,7 @@
 - PDL::VectorValued::vcos into Primitive - thanks @moocow-the-bovine
 - remove PDL_TRACEDEBUG functionality
 - fix non-Perl created ndarray getting destroyed after Perl visibility (#484)
+- fix ones-optimisation problem in useithreads Perls which broke PDL::Parallel::threads
 
 2.089_01 2024-06-05
 - add demo of GSL::CDF

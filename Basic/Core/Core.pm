@@ -61,7 +61,7 @@ $PDL::toolongtoprint = 10000;  # maximum pdl size to stringify for printing
 *at_c = *at_bad_c; # back-compat alias
 *thread_define = *broadcast_define;
 
-our @pdl_ones; # optimisation to provide a "one" of the right type to avoid converttype
+our @pdl_ones :shared; # optimisation to provide a "one" of the right type to avoid converttype
 for my $t (PDL::Types::types()) {
   my $conv = $t->convertfunc;
   no strict 'refs';
@@ -69,7 +69,7 @@ for my $t (PDL::Types::types()) {
     return $t unless @_;
     alltopdl('PDL', (@_>1 ? [@_] : shift), $t);
   };
-  $pdl_ones[$t->enum] = pdl($t, 1);
+  $pdl_ones[$t->enum] = $Config{useithreads} ? 1 : pdl($t, 1);
 }
 
 BEGIN {
