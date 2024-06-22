@@ -620,8 +620,10 @@ pdl_error pdl__addchildtrans(pdl *it,pdl_trans *trans)
 	return PDL_err;
 }
 
-pdl_error pdl_make_physdims(pdl *it) {
+pdl_error pdl__make_physdims_recprotect(pdl *it, int recurse_count) {
   pdl_error PDL_err = {0, NULL, 0};
+  if (recurse_count > 1000)
+    return pdl_make_error_simple(PDL_EUSERERROR, "PDL:Internal Error: data structure recursion limit exceeded (max 1000 levels)\n\tThis could mean that you have found an infinite-recursion error in PDL, or\n\tthat you are building data structures with very long dataflow dependency\n\tchains.  You may want to try using sever() to break the dependency.\n");
   if (!it) return pdl_make_error_simple(PDL_EFATAL, "make_physdims called with NULL");
   PDLDEBUG_f(printf("make_physdims %p state=", it);pdl_dump_flags_fixspace(it->state, 0, PDL_FLAGS_PDL));
   PDL_CHKMAGIC(it);
@@ -634,11 +636,14 @@ pdl_error pdl_make_physdims(pdl *it) {
   PDL_Indx i;
   for (i=0; i<trans->vtable->nparents; i++)
     if (trans->pdls[i]->state & PDL_PARENTDIMSCHANGED)
-      PDL_RETERROR(PDL_err, pdl_make_physdims(trans->pdls[i]));
+      PDL_RETERROR(PDL_err, pdl__make_physdims_recprotect(trans->pdls[i], recurse_count+1));
   PDLDEBUG_f(printf("make_physdims: calling redodims trans=%p on pdl=%p\n", trans, it));
   REDODIMS(PDL_RETERROR, trans);
   PDLDEBUG_f(printf("make_physdims exit pdl=%p\n", it));
   return PDL_err;
+}
+pdl_error pdl_make_physdims(pdl *it) {
+  return pdl__make_physdims_recprotect(it, 0);
 }
 
 static inline pdl_error pdl_trans_flow_null_checks(pdl_trans *trans, int *ret) {
@@ -872,7 +877,7 @@ pdl_error pdl__make_physvaffine_recprotect(pdl *it, int recurse_count)
   pdl_error PDL_err = {0, NULL, 0};
   PDL_Indx i,j;
   PDLDEBUG_f(printf("make_physvaffine %p\n",(void*)it));
-  PDL_RETERROR(PDL_err, pdl_make_physdims(it));
+  PDL_RETERROR(PDL_err, pdl__make_physdims_recprotect(it, recurse_count+1));
   if (!it->trans_parent || !(it->trans_parent->flags & PDL_ITRANS_ISAFFINE)) {
     PDLDEBUG_f(printf("make_physvaffine handing off to make_physical %p\n",(void*)it));
     return pdl__make_physical_recprotect(it, recurse_count+1);

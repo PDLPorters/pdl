@@ -804,7 +804,8 @@ sub PDL::pdl { shift->new(@_) }
 
 =for ref
 
-Turn on dataflow, forward only. This means any transformations (a.k.a. PDL
+Turn on dataflow, forward only. See L<PDL::Dataflow> for more.
+This means any transformations (a.k.a. PDL
 operations) applied to this ndarray afterwards will have forward dataflow:
 
   $x = sequence 3;
