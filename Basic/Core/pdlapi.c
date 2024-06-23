@@ -711,7 +711,7 @@ pdl_error pdl_make_trans_mutual(pdl_trans *trans)
   for (i=nparents; i<npdls; i++) {
     pdl *child = pdls[i];
     wasnull[i] = !!(child->state & PDL_NOMYDIMS);
-    PDLDEBUG_f(printf("make_trans_mutual child=%p wasnull[%"IND_FLAG"]=%d", child, i, (int)wasnull[i]));
+    PDLDEBUG_f(printf("make_trans_mutual child=%p wasnull[%"IND_FLAG"]=%d\n", child, i, (int)wasnull[i]));
     if (dataflow) {
       /* This is because for "+=" (a = a + b) we must check for
          previous parent transformations and mutate if they exist
