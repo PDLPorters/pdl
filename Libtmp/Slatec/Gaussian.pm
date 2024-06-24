@@ -356,6 +356,3 @@ sub ph {my($x) = @_; for (sort keys %$x) {next if !ref $x->{$_} or
 	(join ',',@{$x->{$_}{Dims}}),"]\n";}}
 
 1;
-
-
-
