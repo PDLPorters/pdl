@@ -127,16 +127,15 @@ foreach my $func ( sort keys %over ) {
 	   Pars => "a(n); $_->[1] [o]b();",
 	   $_->[2] ? (GenericTypes=>$_->[2]) : (),
            Code => <<EOF,
-            \$GENERIC(b) tmp = $init;
-            PDL_IF_BAD(int flag = 0;,)
-            loop(n) %{
-            PDL_IF_BAD(if ( \$ISGOOD(a()) ) { flag = 1;,{)
-              tmp $op \$a();
-            }
-            @{[$leftzero ? "if ($leftzero) break;" : '']}
-            %}
-            PDL_IF_BAD(if ( !flag ) \$SETBAD(b()); else,)
-            \$b() = tmp;
+\$GENERIC(b) tmp = $init;
+PDL_IF_BAD(int flag = 0;,)
+loop(n) %{
+  PDL_IF_BAD(if ( \$ISBAD(a()) ) continue; flag = 1;,)
+  tmp $op \$a();
+  @{[$leftzero ? "if ($leftzero) break;" : '']}
+%}
+PDL_IF_BAD(if ( !flag ) \$SETBAD(b()); else,)
+\$b() = tmp;
 EOF
 	   Doc => projectdocs( $name, $_->[0].$func, $_->[3] ),
 	   ) for (
@@ -156,15 +155,14 @@ precision."
 	   HandleBad => 1,
 	   Pars => "a(n); $_->[1] [o]b(n);",
 	   $_->[2] ? (GenericTypes=>$_->[2]) : (),
-           Code => qq{
-            \$GENERIC(b) tmp = $init;
-            loop(n) %{
-              PDL_IF_BAD(if ( \$ISBAD(a()) ) { \$SETBAD(b()); } else,) {
-                tmp $op \$a();
-                \$b() = tmp;
-              }
-            %}
-           },
+           Code => <<EOF,
+\$GENERIC(b) tmp = $init;
+loop(n) %{
+  PDL_IF_BAD(if ( \$ISBAD(a()) ) { \$SETBAD(b()); continue; },)
+  tmp $op \$a();
+  \$b() = tmp;
+%}
+EOF
 	   Doc => cumuprojectdocs( $name, $_->[0].$cfunc, $_->[3] ),
 	   ) for (
       ['', 'int+', $A, ''],
@@ -212,18 +210,17 @@ foreach my $func ( sort keys %over ) {
 	   HandleBad => 1,
 	   %extra,
 	   Pars => 'a(n); ' . $otype . ' [o]b();',
-           Code => qq{
-	    $def = $init;
-            int flag = 0;
-            loop(n) %{
-            PDL_IF_BAD(if ( \$ISGOOD(a()) ) { flag = 1;,)
-              $op
-              if ( $leftzero ) break;
-            PDL_IF_BAD(},)
-            %}
-            PDL_IF_BAD(if ( !flag ) { \$SETBAD(b()); \$PDLSTATESETBAD(b); } else,)
-            \$b() = tmp;
-           },
+           Code => <<EOF,
+$def = $init;
+int flag = 0;
+loop(n) %{
+  PDL_IF_BAD(if ( \$ISBAD(a()) ) continue; flag = 1;,)
+  $op
+  if ( $leftzero ) break;
+%}
+PDL_IF_BAD(if (!flag) { \$SETBAD(b()); \$PDLSTATESETBAD(b); } else,)
+\$b() = tmp;
+EOF
 	   Doc => projectdocs( $txt, $func,''), 
        BadDoc => 
 'If C<a()> contains only bad data (and its bad flag is set), 
@@ -341,20 +338,19 @@ sub make_average {
 	"${prefix}average",
 	HandleBad => 1,
 	Pars => "a(n); $outpar_type [o]b();",
-        Code => q{
-          $GENERIC(b) tmp = 0;
-          PDL_Indx cnt = 0;
-          loop(n) %{
-            PDL_IF_BAD(if ( $ISGOOD(a()) ) {,)
-              cnt++;
-              tmp += $a();
-            PDL_IF_BAD(},)
-          %}
-          if ( !cnt ) {
-            PDL_IF_BAD($SETBAD(b()), $b() = PDL_IF_GENTYPE_INTEGER(0,NAN));
-          } else
-            $b() = tmp / cnt;
-        },
+        Code => <<'EOF',
+$GENERIC(b) tmp = 0;
+PDL_Indx cnt = 0;
+loop(n) %{
+  PDL_IF_BAD(if ( $ISBAD(a()) ) continue;,)
+  cnt++;
+  tmp += $a();
+%}
+if ( !cnt ) {
+  PDL_IF_BAD($SETBAD(b()), $b() = PDL_IF_GENTYPE_INTEGER(0,NAN));
+} else
+  $b() = tmp / cnt;
+EOF
 	Doc => projectdocs( 'average', "${prefix}average", $extra||'' ),
 	);
   synonym(map "$prefix$_", qw(average avgover));
@@ -381,15 +377,15 @@ for my $which (
 	    HandleBad => 1,
 	    Pars => 'a(n); [o]c();',
 	    Code =>
-	    '$GENERIC() cur = 0;
-	     int flag = 0;
-	     loop(n) %{
-		PDL_IF_BAD(if ($ISBAD(a())) continue;,)
-		if( !flag || ($a() '.$op.' cur ) || PDL_ISNAN_$PPSYM()(cur) )
-                  {cur = $a(); flag = 1;}
-	     %}
-             if ( flag ) { $c() = cur; }
-             else        { $SETBAD(c()); $PDLSTATESETBAD(c); }',
+'$GENERIC() cur = 0;
+int flag = 0;
+loop(n) %{
+  PDL_IF_BAD(if ($ISBAD(a())) continue;,)
+  if ( flag && !($a() '.$op.' cur) && !PDL_ISNAN_$PPSYM()(cur) ) continue;
+  cur = $a(); flag = 1;
+%}
+if ( flag ) { $c() = cur; }
+else        { $SETBAD(c()); $PDLSTATESETBAD(c); }',
 	    Doc => projectdocs($name,$name,''),
 	    BadDoc =>
 'Output is set bad if no elements of the input are non-bad,
@@ -407,15 +403,15 @@ for ways of masking NaNs.
 	    HandleBad => 1,
 	    Pars => 'a(n); indx [o] c();',
 	    Code =>
-	    '$GENERIC() cur = 0;
-             PDL_Indx curind = -1;
-	     loop(n) %{
-		PDL_IF_BAD(if ($ISBAD(a())) continue;,)
-		if(curind == -1 || $a() '.$op.' cur || PDL_ISNAN_$PPSYM()(cur))
-		   {cur = $a(); curind = n;}
-	     %}
-             if ( curind != -1 ) { $c() = curind; }
-             else        { $SETBAD(c()); $PDLSTATESETBAD(c); }',
+'$GENERIC() cur = 0;
+PDL_Indx curind = -1;
+loop(n) %{
+  PDL_IF_BAD(if ($ISBAD(a())) continue;,)
+  if (curind != -1 && !($a() '.$op.' cur) && !PDL_ISNAN_$PPSYM()(cur)) continue;
+  cur = $a(); curind = n;
+%}
+if ( curind != -1 ) { $c() = curind; }
+else                { $SETBAD(c()); $PDLSTATESETBAD(c); }',
 	    Doc => "Like $name but returns the first matching index rather than the value",
 	    BadDoc =>
 'Output is set bad if no elements of the input are non-bad,
@@ -446,23 +442,23 @@ sub PDL::${name}_n_ind {
 EOF
 	    RedoDimsCode => 'if($SIZE(m) > $SIZE(n)) $CROAK("m_size > n_size");',
 	    Code =>
-	    '$GENERIC() cur = 0; PDL_Indx curind; register PDL_Indx ns = $SIZE(n);
-	     $PDLSTATESETGOOD(c);
-	     loop(m) %{
-		 curind = ns;
-		 loop(n) %{
-			PDL_Indx outer_m = m; int flag=0;
-			loop (m=:outer_m) %{
-				if ($c() == n) {flag=1; break;}
-			%}
-			if(!flag &&
-			   PDL_IF_BAD($ISGOOD(a()) &&,)
-			   ((curind == ns) || $a() '.$op.' cur || PDL_ISNAN_$PPSYM()(cur)))
-				{cur = $a(); curind = n;}
-		 %}
-		 if (curind != ns) { $c() = curind; }
-		 else              { $SETBAD(c()); $PDLSTATESETBAD(c); }
-	     %}',
+'$GENERIC() cur = 0; PDL_Indx curind; register PDL_Indx ns = $SIZE(n);
+$PDLSTATESETGOOD(c);
+loop(m) %{
+  curind = ns;
+  loop(n) %{
+    PDL_Indx outer_m = m; int flag=0;
+    loop (m=:outer_m) %{
+      if ($c() == n) {flag=1; break;}
+    %}
+    if (!flag &&
+      PDL_IF_BAD($ISGOOD(a()) &&,)
+      ((curind == ns) || $a() '.$op.' cur || PDL_ISNAN_$PPSYM()(cur)))
+        {cur = $a(); curind = n;}
+  %}
+  if (curind != ns) { $c() = curind; }
+  else              { $SETBAD(c()); $PDLSTATESETBAD(c); }
+%}',
 	    Doc => <<EOF,
 =for ref
 
@@ -494,32 +490,31 @@ pp_def(
 	'minmaximum',
 	HandleBad => 1,
 	Pars => 'a(n); [o]cmin(); [o] cmax(); indx [o]cmin_ind(); indx [o]cmax_ind();',
-	Code =>
-	'$GENERIC() curmin = 0, curmax = 0; /* Handle null ndarray --CED */
-         PDL_Indx curmin_ind = 0, curmax_ind = 0; int flag = 0;
-	 loop(n) %{
-            PDL_IF_BAD(if ( $ISGOOD(a()) ),) {
-               if ( !flag ) {
-                  curmin = curmax = $a();
-                  curmin_ind = curmax_ind = n;
-                  flag = 1;
-               } else {
-                  if ( $a() < curmin ) { curmin = $a(); curmin_ind = n; }
-                  if ( $a() > curmax ) { curmax = $a(); curmax_ind = n; }
-               }
-            } /* ISGOOD */
-	 %}
-         PDL_IF_BAD(if ( !flag ) { /* Handle null ndarray */
-            $SETBAD(cmin()); $SETBAD(cmin_ind());
-            $SETBAD(cmax()); $SETBAD(cmax_ind());
-            $PDLSTATESETBAD(cmin); $PDLSTATESETBAD(cmin_ind);
-            $PDLSTATESETBAD(cmax); $PDLSTATESETBAD(cmax_ind);
-         } else,) {
-            $cmin() = curmin; $cmin_ind() = curmin_ind;
-            $cmax() = curmax; $cmax_ind() = curmax_ind;
-         }',
-	Doc =>
-'
+	Code => <<'EOF',
+$GENERIC() curmin = 0, curmax = 0; /* Handle null ndarray --CED */
+PDL_Indx curmin_ind = 0, curmax_ind = 0; int flag = 0;
+loop(n) %{
+  PDL_IF_BAD(if ( $ISBAD(a()) ) continue;,)
+  if ( !flag ) {
+    curmin = curmax = $a();
+    curmin_ind = curmax_ind = n;
+    flag = 1;
+  } else {
+    if ( $a() < curmin ) { curmin = $a(); curmin_ind = n; }
+    if ( $a() > curmax ) { curmax = $a(); curmax_ind = n; }
+  }
+%}
+if ( !flag ) { /* Handle null ndarray */
+  $SETBAD(cmin()); $SETBAD(cmin_ind());
+  $SETBAD(cmax()); $SETBAD(cmax_ind());
+  $PDLSTATESETBAD(cmin); $PDLSTATESETBAD(cmin_ind);
+  $PDLSTATESETBAD(cmax); $PDLSTATESETBAD(cmax_ind);
+} else {
+  $cmin() = curmin; $cmin_ind() = curmin_ind;
+  $cmax() = curmax; $cmax_ind() = curmax_ind;
+}
+EOF
+	Doc => '
 =for ref
 
 Find minimum and maximum and their indices for a given ndarray;
@@ -993,8 +988,8 @@ pp_def(
      PDL_IF_BAD(register PDL_Indx nb = $SIZE(n) - 1;,)
      '.qsort_croak('b',0,0).'
      loop(n) %{ 
-        PDL_IF_BAD(if (!$ISGOOD(a())) { $SETBAD(b(n=>nb)); nb--; }
-        else,)                        { $b(n=>nn) = $a(); nn++; }
+        PDL_IF_BAD(if ($ISBAD(a())) { $SETBAD(b(n=>nb)); nb--; }
+        else,)                      { $b(n=>nn) = $a(); nn++; }
      %}
      if ( nn != 0 ) {
         nn -= 1;
@@ -1035,13 +1030,12 @@ pp_def(
         if ($SIZE(n) == 0) return PDL_err;
         '.qsort_croak('indx',0,0).'
         loop(n) %{
-           PDL_IF_BAD(if (!$ISGOOD(a())) { $indx(n=>nb) = n; nb--; }
-           else                          { $indx(n=>nn) = n; nn++; } /* play safe since nn used more than once */
+           PDL_IF_BAD(if ($ISBAD(a())) { $indx(n=>nb) = n; nb--; }
+           else                        { $indx(n=>nn) = n; nn++; } /* play safe since nn used more than once */
            ,$indx() = n;)
         %}
-        PDL_IF_BAD(if ( nn != 0 ) {
-           nn -= 1;,{)
-        ' . generic_qsort_ind() . '}',
+        PDL_IF_BAD(if ( nn == 0 ) continue; nn -= 1;,)
+        ' . generic_qsort_ind(),
        BadDoc => 
 'Bad elements are moved to the end of the array:
 
@@ -1098,8 +1092,8 @@ pp_def(
          if (m >= nb-1) { nn = nb+1; break; } /* run out of "good" vectors */
        } else {
          loop(n) %{
-           if ($ISGOOD(a())) $b(m=>copy_dest) = $a();
-           else              $SETBAD(b(m=>copy_dest));
+           if ($ISBAD(a())) $SETBAD(b(m=>copy_dest));
+           else             $b(m=>copy_dest) = $a();
          %}
        }
      %}
@@ -1156,24 +1150,21 @@ pp_def(
     HandleBad => 1,
     Pars => 'a(n,m); indx [o]indx(m);',
     Code =>
-    'register PDL_Indx nn = PDL_IF_BAD(0,$SIZE(m)-1), nb = $SIZE(m) - 1;
-     PDL_Indx nd = $SIZE(n);
-     '.qsort_croak('indx',1,0).'
-     loop(m) %{
-       PDL_IF_BAD(
-       char allgood_a = 1;
-       loop(n) %{ if ( $ISBAD(a()) ) { allgood_a = 0; break; } %}
-       PDL_Indx copy_dest = allgood_a ? nn++ : nb--;
-       $indx(m=>copy_dest) = m;
-       ,
-       $indx()=m;
-       )
-     %}
-     PDL_IF_BAD(
-     if ( nn != 0 ) {
-       nn -= 1;,{)' .
-       generic_qsortvec_ind('a','nd') .'
-     }',
+'register PDL_Indx nn = PDL_IF_BAD(0,$SIZE(m)-1), nb = $SIZE(m) - 1;
+PDL_Indx nd = $SIZE(n);
+'.qsort_croak('indx',1,0).'
+loop(m) %{
+  PDL_IF_BAD(
+  char allgood_a = 1;
+  loop(n) %{ if ( $ISBAD(a()) ) { allgood_a = 0; break; } %}
+  PDL_Indx copy_dest = allgood_a ? nn++ : nb--;
+  $indx(m=>copy_dest) = m;
+  ,
+  $indx()=m;
+  )
+%}
+PDL_IF_BAD(if ( nn == 0 ) continue; nn -= 1;,)' .
+generic_qsortvec_ind('a','nd'),
     Doc => '
 =for ref
 
