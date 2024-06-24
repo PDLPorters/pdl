@@ -126,6 +126,13 @@ is $x.'', 'BAD', "max of empty nonbad float gives BAD";
 $empty->badflag(1);
 $x = $empty->maximum;
 ok( $x->isbad, "bad flag gets set on max over an empty dim");
+$x = $empty->magnover;
+ok( $x->isbad, "bad flag gets set on empty magnover");
+
+my $got;
+ok tapprox($got = zeroes(4)->magnover, 0), 'magnover correct for real zeroes' or diag "got=$got";
+ok tapprox($got = sequence(4)->magnover, 3.741657), 'magnover correct for real sequence' or diag "got=$got";
+ok tapprox($got = (sequence(4)+i())->magnover, 4.242640), 'magnover correct for complex' or diag "got=$got";
 
 #Test subroutines directly.
 

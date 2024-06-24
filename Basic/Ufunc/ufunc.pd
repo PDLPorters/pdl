@@ -113,7 +113,7 @@ EOD
 # This may NOT be sensible. Only time, and comments, will tell...
 #
 
-my %over = 
+my %over =
     (
      sumover  => { name => 'sum',     op => '+=', init => 0, },
      prodover => { name => 'product', op => '*=', init => 1, leftzero => 'tmp == 0' },
@@ -1188,6 +1188,29 @@ Vectors with bad components are moved to the end of the array as
 for L</qsortvec>.
 ',
     ); 
+
+pp_def('magnover',
+  HandleBad => 1,
+  Pars => "a(n); float+ [o]b();",
+  GenericTypes => $A,
+  Code => <<'EOF',
+long double sum=0;
+PDL_IF_BAD(int flag = 0;,)
+loop(n) %{
+  PDL_IF_BAD(if ($ISBAD(a())) continue; flag = 1;,)
+  sum += PDL_IF_GENTYPE_REAL(
+    $a()*$a(),
+    creall($a())*creall($a()) + cimagl($a())*cimagl($a())
+  );
+%}
+PDL_IF_BAD(if ( !flag ) { $SETBAD(b()); continue; },)
+$b() = sum == 0 ? 0 : sqrtl(sum);
+EOF
+  Doc => projectdocs( 'Euclidean (aka Pythagorean) distance', 'magnover', <<'EOF' ),
+Minimum C<float> precision output.
+See also L<PDL::Primitive/inner>, L<PDL::Primitive/norm>.
+EOF
+);
 
 pp_addpm({At=>'Bot'},<<'EOD');
 
