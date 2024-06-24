@@ -570,18 +570,19 @@ sub PDL::abs { $_[0]->type->real ? goto &PDL::_rabs : goto &PDL::_cabs }
 EOPM
 pp_addpm(make_overload(qw(abs abs), 0, 0, 1));
 
-pp_addpm(<<'EOPM');
-
-=head2 abs2
-
-=for ref
-
-Returns the square of the absolute value of a number.
-
-=cut
-
-sub PDL::abs2 ($) { my $r = &PDL::abs; $r * $r }
-EOPM
+pp_def('abs2',
+  GenericTypes=>$A,
+  HandleBad => 1,
+  Pars => 'a(); real [o]b()',
+  Doc => 'Returns the square of the absolute value of a number.',
+  Code => <<'EOF',
+PDL_IF_BAD(if ($ISBAD(a())) { $SETBAD(b()); continue; },)
+$b() = PDL_IF_GENTYPE_REAL(
+  $a()*$a(),
+  creall($a())*creall($a()) + cimagl($a())*cimagl($a())
+);
+EOF
+);
 
 pp_def('r2C',
   GenericTypes=>[qw(G C F D)], # last one is default so here = D

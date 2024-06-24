@@ -98,7 +98,8 @@ my $cabs = sqrt($x->re**2+$x->im**2);
 
 ok(abs($x)->type->real, 'Cabs type real');
 ok(tapprox(abs $x, $cabs), 'Cabs value') or diag "got: (@{[abs $x]}), expected ($cabs)";
-ok(tapprox(abs2 $x, $cabs**2), 'Cabs2 value') or diag "got: (@{[abs2 $x]}), expected (", $cabs**2, ")";
+ok(tapprox(abs2($x), $cabs**2), 'Cabs2 value') or diag "got: (@{[abs2 $x]}), expected (", $cabs**2, ")";
+ok abs2(cdouble(5))->type->real, 'abs2 always real';
 ok(carg($x)->type->real, 'Carg type real');
 ok(tapprox(carg($x), atan2($x->im, $x->re)), 'Carg value');
 
