@@ -451,7 +451,7 @@ PDL_IF_BAD(if ( !flag ) {
   continue;
 },)
 if (sum > 0) {
-  sum = sqrt(sum);
+  sum = sqrtl(sum);
   loop(n) %{
     PDL_IF_BAD(if ( $ISBAD(vec()) ) { $SETBAD(norm()); }
                else              ,) { $norm() = $vec()/sum; }
@@ -1012,9 +1012,7 @@ pp_def('statsover',
 	HandleBad => 1,
 	Pars => 'a(n); w(n); float+ [o]avg(); float+ [o]prms(); int+ [o]median(); int+ [o]min(); int+ [o]max(); float+ [o]adev(); float+ [o]rms()',
 	Code => <<'EOF',
-$GENERIC(avg) tmp = 0;
-$GENERIC(avg) tmp1 = 0;
-$GENERIC(avg) diff = 0;
+PDL_CLDouble tmp = 0, tmp1 = 0, diff = 0;
 $GENERIC(min) curmin = 0, curmax = 0;
 $GENERIC(w) norm = 0;
 int flag = 0;
@@ -1050,9 +1048,9 @@ PDL_IF_BAD(if ( !flag ) {
     tmp += diff * diff * $w();
     tmp1 += fabsl(diff) * $w();
   %}
-  $rms() = sqrt( tmp/norm );
+  $rms() = sqrtl( tmp/norm );
   if (norm>1)
-    $prms() =  sqrt( tmp/(norm-1) );
+    $prms() =  sqrtl( tmp/(norm-1) );
   else
     PDL_IF_BAD($SETBAD(prms()),$prms() = 0);
   $adev() = tmp1 / norm ;
@@ -2131,7 +2129,7 @@ if (bnorm == 0) {
   loop (N) %{ $vcos() = NAN; %}
   continue;
 }
-bnorm = sqrt(bnorm);
+bnorm = sqrtl(bnorm);
 /*-- usual case: compute values for N-slice of b() --*/
 loop (N) %{
   $GENERIC(vcos) anorm = 0, vval  = 0;
@@ -2143,7 +2141,7 @@ loop (N) %{
     vval  += aval * $b();
   %}
   /*-- normalize --*/
-  anorm = sqrt(anorm);
+  anorm = sqrtl(anorm);
   if (anorm != 0) {
     /*-- usual case a(), b() non-null --*/
     $vcos() = vval / (anorm * bnorm);
@@ -2163,7 +2161,7 @@ Computes the vector cosine similarity of a dense vector $b() with respect
 to each row $a(*,i) of a dense PDL $a().  This is basically the same
 thing as:
 
- ($a * $b)->sumover / ($a->pow(2)->sumover->sqrt * $b->pow(2)->sumover->sqrt)
+ inner($a, $b) / $a->magnover * $b->magnover
 
 ... but should be much faster to compute, and avoids allocating
 potentially large temporaries for the vector magnitudes.  Output values
