@@ -586,11 +586,7 @@ This routine handles bad values.
 =cut
 
 *$name = \\&PDL::$name;
-sub PDL::$name {
-	my (\$x) = \@_;
-	\$x->flat->${func}( my \$tmp=PDL->nullcreate(\$x) );
-	\$tmp;
-}
+sub PDL::$name { \$_[0]->flat->${func} }
 EOD
 
 } # for $op
