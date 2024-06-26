@@ -701,7 +701,10 @@ pdl_error pdl_make_trans_mutual(pdl_trans *trans)
   for (i=0; i<nparents; i++) {
     pdl *parent = pdls[i];
     PDL_RETERROR(PDL_err, pdl__addchildtrans(parent,trans));
-    if (parent->state & PDL_DATAFLOW_F) trans->flags |= PDL_ITRANS_DO_DATAFLOW_F;
+    if (parent->state & PDL_DATAFLOW_F) {
+      trans->flags |= PDL_ITRANS_DO_DATAFLOW_F;
+      dataflow = 1;
+    }
   }
   char wasnull[npdls];
   for (i=nparents; i<npdls; i++) {
