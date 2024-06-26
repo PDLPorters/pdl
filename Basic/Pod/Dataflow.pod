@@ -59,6 +59,12 @@ it for non-flowing operations (see L<PDL::Core/flowing>), so
 	pdl> print $y;
 	[10 6 8]
 
+C<flowing> operates by turning on a flag that the core turns off
+immediately after acting on it (rather like C<inplace>), so it only
+operates on the next operation (aka transfrom) called on that ndarray,
+making that operation be a forward-flowing one. That lasts until the
+output(s) of that operation get C<sever>ed.
+
 It is not possible to turn on backwards dataflow (such as is used by
 C<slice>-type operations), because there is no general way for PDL (or
 maths, in fact) to know how to reverse most operations - consider
@@ -73,6 +79,11 @@ Consider the following code:
 	$x = $w->diagonal(0,1);
 	$x += 50;
 	$z = $w + 2;
+
+This presents a problem, because the penultimate operation modifies
+C<$x>, and through backwards dataflow, C<$w>. The problem is that C<$w>
+is "subscribed" to updates from C<$u> and also C<$w>, so the next time
+either of them get updated, that modification gets overwritten.
 
 What do $y and $z contain now?
 
@@ -89,25 +100,25 @@ What do $y and $z contain now?
 	 [ 9 10 61]
 	]
 
-What about when $u is changed and a recalculation is triggered? A problem
-arises, in that PDL currently (as of 2.079) disallows (see F<pdlapi.c>),
-for normal transforms, output ndarrays with flow, or output ndarrays
-with any parent with dataflow. So C<$u++> throws an exception. But it
-is currently possible to use C<set>, which is a sort of micro-transform
-that calls (in the C API) C<PDL.set> to mutate the data, then
-C<PDL.changed> to trigger flow updates:
+What about when C<$u> is changed and a recalculation is triggered?
 
-	pdl> $u->set(1,1,90)
+	pdl> $u += 7;
 	pdl> p $y
 	[
-	 [ 2  3  4]
-	 [ 5 92  7]
-	 [ 8  9 10]
+	 [ 9 10 11]
+	 [12 13 14]
+	 [15 16 17]
+	]
+	pdl> p $z
+	[
+	 [10 11 12]
+	 [13 14 15]
+	 [16 17 18]
 	]
 
-You'll notice that while the setting of C<1,1> (the middle) of $u updated
-$y, the changes to $y that resulted from adding 50 to the diagonal
-(via $x, and two-way flow) got lost. This is one-way flow.
+You'll notice that updating C<$u> updated C<$y>, the changes to C<$y>
+that resulted from adding 50 to the diagonal (via C<$x>, and two-way flow)
+got lost. This is one-way flow.
 
 =head1 LAZY EVALUATION
 
@@ -127,19 +138,19 @@ as when tracking errors.
 There is an explanation for this behaviour: it may save cycles
 but more importantly, imagine the following:
 
-	pdl> $x = pdl 2,3,4;
-	pdl> $y = pdl 5,6,7;
-	pdl> $c = $x->flowing + $y->flowing;
-	pdl> $x->setdims([4]);
-	pdl> $y->setdims([4]);
-	pdl> print $c;
+	$x = pdl 2,3,4;
+	$y = pdl 5,6,7;
+	$z = $x->flowing + $y->flowing;
+	$x->setdims([4]);
+	$y->setdims([4]);
+	print $z;
 
-Now, if $c were evaluated between the two resizes, an error condition
+Now, if C<$z> were evaluated between the two resizes, an error condition
 of incompatible sizes would occur.
 
-What happens in the current version is that resizing $x raises
-a flag in $c: "PDL_PARENTDIMSCHANGED" and $y just raises the same flag
-again. When $c is next evaluated, the flags are checked and it is found
+What happens in the current version is that resizing C<$x> raises
+a flag in C<$z>: C<PDL_PARENTDIMSCHANGED> and C<$y> just raises the same flag
+again. When C<$z> is next evaluated, the flags are checked and it is found
 that a recalculation is needed.
 
 Of course, lazy evaluation can sometimes make debugging more painful
