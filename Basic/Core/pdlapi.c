@@ -721,16 +721,19 @@ pdl_error pdl_make_trans_mutual(pdl_trans *trans)
       child->state = (child->state & ~PDL_NOMYDIMS) | PDL_MYDIMS_TRANS;
   }
   if (!dataflow) {
-    PDL_ACCUMERROR(PDL_err, pdl__ensure_trans(trans, dataflow ? 0 : PDL_PARENTDIMSCHANGED, 0, 0));
-    for (i=vtable->nparents; i<vtable->npdls; i++) {
-      pdl *child = trans->pdls[i];
-      char isvaffine = !!PDL_VAFFOK(child);
-      PDLDEBUG_f(printf("make_trans_mutual isvaffine=%d wasnull=%d\n", (int)isvaffine, (int)wasnull[i]));
-      if (!isvaffine || wasnull[i])
-        CHANGED(child, wasnull[i] ? PDL_PARENTDIMSCHANGED : PDL_PARENTDATACHANGED, 0);
-      if (isvaffine)
-        CHANGED(child->vafftrans->from,PDL_PARENTDATACHANGED,0);
-    }
+    PDL_ACCUMERROR(PDL_err, pdl__ensure_trans(trans, PDL_PARENTDIMSCHANGED, 0, 0));
+    if (PDL_err.error)
+      PDLDEBUG_f(printf("make_trans_mutual got error in ensure, not calling CHANGED on children\n"));
+    else
+      for (i=vtable->nparents; i<vtable->npdls; i++) {
+        pdl *child = trans->pdls[i];
+        char isvaffine = !!PDL_VAFFOK(child);
+        PDLDEBUG_f(printf("make_trans_mutual isvaffine=%d wasnull=%d\n", (int)isvaffine, (int)wasnull[i]));
+        if (!isvaffine || wasnull[i])
+          CHANGED(child, wasnull[i] ? PDL_PARENTDIMSCHANGED : PDL_PARENTDATACHANGED, 0);
+        if (isvaffine)
+          CHANGED(child->vafftrans->from,PDL_PARENTDATACHANGED,0);
+      }
     PDL_ACCUMERROR(PDL_err, pdl_destroytransform(trans,0,0));
   }
   PDLDEBUG_f(printf("make_trans_mutual exit %p\n",(void*)trans));
