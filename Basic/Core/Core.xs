@@ -98,10 +98,10 @@ DESTROY(sv)
   CODE:
     if (SvROK(sv) && SvTYPE(SvRV(sv)) == SVt_PVHV) return;
     self = pdl_SvPDLV(sv);
-    PDLDEBUG_f(printf("DESTROYING %p\n",self);)
+    PDLDEBUG_f(printf("DESTROYING %p\n",self));
     if (self == NULL) return;
     if (self->state & PDL_DYNLANG_NODESTROY) {
-      PDLDEBUG_f(printf(" (actually just setting sv to NULL)\n");)
+      PDLDEBUG_f(printf(" (actually just setting sv to NULL)\n"));
       self->state &= ~PDL_DYNLANG_NODESTROY;
       self->sv = NULL;
       return;
@@ -373,7 +373,7 @@ freedata(it)
       pdl *it
       CODE:
 	if(it->datasv) {
-		PDLDEBUG_f(printf("pdl=%p SvREFCNT_dec datasv=%p\n",it,it->datasv);)
+		PDLDEBUG_f(printf("pdl=%p SvREFCNT_dec datasv=%p\n",it,it->datasv));
 		SvREFCNT_dec(it->datasv);
 		it->datasv=0;
 		it->data=0;

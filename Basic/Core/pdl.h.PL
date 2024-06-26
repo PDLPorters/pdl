@@ -33,7 +33,7 @@ print OUT <<'EOF';
 
 #ifdef PDL_DEBUGGING
 extern int pdl_debugging;
-#define PDLDEBUG_f(a)           if(pdl_debugging) { a; fflush(stdout); }
+#define PDLDEBUG_f(a) do {if (pdl_debugging) { a; fflush(stdout); }} while (0)
 #else
 #define PDLDEBUG_f(a)
 #endif

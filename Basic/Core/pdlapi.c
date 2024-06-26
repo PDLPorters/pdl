@@ -248,36 +248,35 @@ pdl_error pdl__free(pdl *it) {
     PDLDEBUG_f(printf("pdl__free %p\n",(void*)it));
     PDL_CHKMAGIC(it);
     /* now check if magic is still there */
-    if (pdl__ismagic(it)) {
+    if (pdl__ismagic(it))
       PDLDEBUG_f(printf("%p is still magic\n",(void*)it);pdl__print_magic(it));
-    }
     it->magicno = 0x42424245;
-    if(it->dims       != it->def_dims)       free((void*)it->dims);
-    if(it->dimincs    != it->def_dimincs)    free((void*)it->dimincs);
-    if(it->broadcastids  != it->def_broadcastids)  free((void*)it->broadcastids);
-    if(it->vafftrans) {
+    if (it->dims       != it->def_dims)       free((void*)it->dims);
+    if (it->dimincs    != it->def_dimincs)    free((void*)it->dimincs);
+    if (it->broadcastids  != it->def_broadcastids)  free((void*)it->broadcastids);
+    if (it->vafftrans) {
 	pdl_vafftrans_free(it);
     }
     pdl_trans_children *p1 = it->trans_children.next;
-    while(p1) {
+    while (p1) {
 	pdl_trans_children *p2 = p1->next;
 	free(p1);
 	p1 = p2;
     }
 /* Call special freeing magic, if exists */
-    if(PDL_ISMAGIC(it)) {
+    if (PDL_ISMAGIC(it)) {
 	pdl__call_magic(it, PDL_MAGIC_DELETEDATA);
 	pdl__magic_free(it);
     }
-    if(it->datasv) {
-	    PDLDEBUG_f(printf("SvREFCNT_dec datasv=%p\n",it->datasv);)
+    if (it->datasv) {
+	    PDLDEBUG_f(printf("SvREFCNT_dec datasv=%p\n",it->datasv));
 	    SvREFCNT_dec(it->datasv);
 	    it->data=0;
-    } else if(it->data && it->data != &it->value) {
+    } else if (it->data && it->data != &it->value) {
 	    pdl_pdl_warn("Warning: special data without datasv is not freed currently!!");
     }
     if(it->hdrsv) {
-	PDLDEBUG_f(printf("SvREFCNT_dec hdrsv=%p\n",it->hdrsv);)
+	PDLDEBUG_f(printf("SvREFCNT_dec hdrsv=%p\n",it->hdrsv));
 	SvREFCNT_dec(it->hdrsv);
 	it->hdrsv = 0;
     }
