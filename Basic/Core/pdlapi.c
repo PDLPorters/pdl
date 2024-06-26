@@ -170,17 +170,14 @@ pdl_error pdl_allocdata(pdl *it) {
 }
 
 pdl* pdl_pdlnew() {
-     pdl* it;
-     it = (pdl*) malloc(sizeof(pdl));
+     pdl *it = (pdl*) malloc(sizeof(pdl));
      if (!it) return it;
      memset(it, 0, sizeof(pdl));
      it->magicno = PDL_MAGICNO;
      it->datatype = PDL_D;
      it->trans_parent = NULL;
      it->vafftrans = NULL;
-     it->sv = NULL;
-     it->datasv = 0;
-     it->data = 0;
+     it->data = it->datasv = it->sv = NULL;
      it->has_badvalue = 0;
      it->state = PDL_NOMYDIMS;
      it->dims = it->def_dims;
@@ -834,7 +831,8 @@ pdl_error pdl_changed(pdl *it, int what, int recursing) {
     ) ? what : what & ~PDL_PARENTDATACHANGED;
     if (pdl__ismagic(it)) pdl__call_magic(it,PDL_MAGIC_MARKCHANGED);
   }
-  if (trans && !recursing && (trans->flags & PDL_ITRANS_DO_DATAFLOW_B)) {
+  if (trans && !recursing && (trans->flags & PDL_ITRANS_DO_DATAFLOW_B)
+      && (what & PDL_PARENTDATACHANGED)) {
     if (it->vafftrans) {
       if (it->state & PDL_ALLOCATED) {
         PDLDEBUG_f(printf("pdl_changed: calling writebackdata_vaffine (pdl %p)\n",(void*)it));
