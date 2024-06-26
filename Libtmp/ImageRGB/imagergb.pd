@@ -113,7 +113,7 @@ Make an RGB image from a palette image and its lookup table.
 Input should be of an integer type and the lookup table (3,x,...). Will perform
 the lookup for any N-dimensional input pdl (i.e. 0D, 1D, 2D, ...). Uses the
 index command but will dataflow only if
-the $lut ndarray has the dataflow_forward flag set (see L<PDL::Core/doflow>).
+the $lut ndarray has the dataflow_forward flag set (see L<PDL::Core/fflows>).
 
 =cut
 
@@ -123,12 +123,13 @@ the $lut ndarray has the dataflow_forward flag set (see L<PDL::Core/doflow>).
 *interlrgb=\&PDL::interlrgb;
 sub PDL::interlrgb {
     my ($pdl,$lut) = @_;
+    my $lut_fflows = $lut->fflows;
     # for our purposes $lut should be (3,z) where z is the number
     # of colours in the lut
     barf "expecting (3,x) input" if ($lut->dims)[0] != 3;
     # do the conversion as an implicitly broadcasted index lookup
     my $res = $lut->transpose->index($pdl->dummy(0));
-    $res->sever if !$lut->fflows;
+    $res->sever if !$lut_fflows;
     return $res;
 }
 
