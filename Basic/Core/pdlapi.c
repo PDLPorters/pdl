@@ -702,6 +702,8 @@ pdl_error pdl_make_trans_mutual(pdl_trans *trans)
     pdl *parent = pdls[i];
     PDL_RETERROR(PDL_err, pdl__addchildtrans(parent,trans));
     if (parent->state & PDL_DATAFLOW_F) {
+      if (!(parent->trans_parent && (parent->trans_parent->flags & PDL_ITRANS_DO_DATAFLOW_F))) /* not inherently flowing */
+        parent->state &= ~PDL_DATAFLOW_F;
       trans->flags |= PDL_ITRANS_DO_DATAFLOW_F;
       dataflow = 1;
     }

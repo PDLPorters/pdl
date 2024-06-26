@@ -40,7 +40,6 @@ ok( $bbb->sum == $bbb->nelem, "slices of slices of giant PDLs seem to work right
 # getdim
 # get_dataref
 # upd_data
-# doflow
 # flows
 # copy
 # unwind

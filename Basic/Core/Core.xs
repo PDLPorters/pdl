@@ -204,6 +204,17 @@ inplace(self, ...)
     RETVAL
 
 SV *
+flowing(self)
+  SV *self
+  CODE:
+    pdl *p = pdl_SvPDLV(self);
+    if (!p) barf("Failed to get PDL from arg");
+    p->state |= PDL_DATAFLOW_F;
+    SvREFCNT_inc(RETVAL = self);
+  OUTPUT:
+    RETVAL
+
+SV *
 topdl(klass, arg1, ...)
   SV *klass;
   SV *arg1;

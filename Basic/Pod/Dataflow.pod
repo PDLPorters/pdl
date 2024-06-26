@@ -49,11 +49,10 @@ type for the given transform:
 =head1 ONE-WAY
 
 You need to explicitly turn on one-way dataflow on an ndarray to activate
-it for non-flowing operations, so
+it for non-flowing operations (see L<PDL::Core/flowing>), so
 
 	pdl> $x = pdl 2,3,4;
-	pdl> $x->doflow;
-	pdl> $y = $x * 2;
+	pdl> $y = $x->flowing * 2;
 	pdl> print $y;
 	[4 6 8]
 	pdl> $x->set(0,5);
@@ -67,10 +66,10 @@ C<$z = $x * $y>, then adding one to C<$z>.
 
 Consider the following code:
 
-	$u = sequence(3,3); $u->doflow;
-	$v = ones(3,3); $v->doflow;
-	$w = $u + $v; $w->doflow; # must turn on for each
-	$y = $w + 1; $y->doflow;
+	$u = sequence(3,3);
+	$v = ones(3,3);
+	$w = $u->flowing + $v->flowing;
+	$y = $w->flowing + 1;
 	$x = $w->diagonal(0,1);
 	$x += 50;
 	$z = $w + 2;
@@ -128,9 +127,9 @@ as when tracking errors.
 There is an explanation for this behaviour: it may save cycles
 but more importantly, imagine the following:
 
-	pdl> $x = pdl 2,3,4; $x->doflow;
-	pdl> $y = pdl 5,6,7; $y->doflow;
-	pdl> $c = $x + $y;
+	pdl> $x = pdl 2,3,4;
+	pdl> $y = pdl 5,6,7;
+	pdl> $c = $x->flowing + $y->flowing;
 	pdl> $x->setdims([4]);
 	pdl> $y->setdims([4]);
 	pdl> print $c;
@@ -174,7 +173,7 @@ are connectors between ndarrays (with C<*>):
 This is what PDL actually has in memory after the first three lines.
 When $x is changed, $w changes due to C<diagonal> being a two-way operation.
 
-If you want flow from $w, you opt in using C<< $w->doflow >> (as shown
+If you want flow from $w, you opt in using C<< $w->flowing >> (as shown
 in this scenario). If you didn't, then don't enable it. If you have it
 but want to stop it, call C<< $ndarray->sever >>. That will destroy the
 ndarray's C<trans_parent> (here, a node marked with C<+>), and as you

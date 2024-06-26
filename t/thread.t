@@ -15,7 +15,7 @@ use PDL::LiteF;
 {
   # 3. Test what happens when we assign to $pb. (no coredumps allowed)
   my $pa = pdl 2,3,4;
-  $pa->doflow;
+  $pa->flowing;
   my $pb = $pa + $pa;
   is "$pb", '[4 6 8]';
   $pb->set(0,50);
@@ -68,10 +68,10 @@ use PDL::LiteF;
 
 {
 my $pa = pdl [2,3,4],[5,6,7];
-$pa->doflow;
+$pa->flowing;
 my $a2 = pdl 1;
 my $pb = $pa + $a2;
-is("$pb", "\n[\n [3 4 5]\n [6 7 8]\n]\n", 'pb doflow');
+is("$pb", "\n[\n [3 4 5]\n [6 7 8]\n]\n", 'pb flowing');
 my $pc = $pb * 2; # This should stay the same flowed structure.
 is("$pc", "\n[\n [ 6  8 10]\n [12 14 16]\n]\n", 'multiplied');
 }

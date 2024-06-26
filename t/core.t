@@ -29,7 +29,7 @@ $p->upd_data;
 
 {
   my $pa = pdl 2,3,4;
-  $pa->doflow;
+  $pa->flowing;
   my $pb = $pa + $pa;
   is "$pb", '[4 6 8]';
   $pa->set(0,50);
@@ -730,10 +730,13 @@ my $roots = pdl '[1 2i 3i 4i 5i]';
 eval {PDL::Core::pdump($roots)}; # gave "panic: attempt to copy freed scalar"
 is $@, '';
 {
-my $x = sequence 3; $x->doflow; my $y = $x + 1;
+my $x = sequence 3; my $y = $x->flowing + 1;
 isnt $y->trans_parent, undef, '$y has parent';
 isnt PDL::Core::pdumphash($x), undef, 'pdumphash works';
 isnt $y->trans_parent, undef, '$y still has parent after pdumphash';
+$x += 3;
+is "$x", "[3 4 5]", '$x right value';
+is "$y", "[4 5 6]", '$y right value';
 }
 
 my $notouch = sequence(4);

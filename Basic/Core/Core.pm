@@ -800,41 +800,25 @@ sub piddle {PDL->pdl(@_)}
 sub pdl {PDL->pdl(@_)}
 sub PDL::pdl { shift->new(@_) }
 
-=head2 doflow
+=head2 flowing
 
 =for ref
 
-Turn on dataflow, forward only. See L<PDL::Dataflow> for more.
-This means any transformations (a.k.a. PDL
-operations) applied to this ndarray afterwards will have forward dataflow:
+Turn on dataflow, forward only, only for the next operation (cf
+L</inplace>), returning the ndarray argument.
+This means the next transformation (a.k.a. PDL
+operation) applied to this ndarray will have forward dataflow:
 
   $x = sequence 3;
-  $x->doflow;
-  $y = $x + 1;
-  $x += 3;
+  $y = $x->flowing + 1; # could instead do $x->flowing; $y = $x + 1
+  $x += 3; # this does not flow, but that would be an infinite loop anyway
   print "$y\n"; # [4 5 6]
 
-As of 2.064, the core API does I<not> automatically sever transformations
-that have forward dataflow into them:
-
-  # following from the above
-  $y->set(1, 9); # value now [4 9 6]
-  $x += 11;
-  print "$y\n"; # [15 16 17] - previously would have been [4 9 6]
-
-If you want to sever such transformations, call L</sever> on the child
-ndarray (above, C<$y>).
+This replaced C<doflow> as of 2.090. See L<PDL::Dataflow> for more.
 
 =for usage
 
- $x->doflow;  doflow($x);
-
-=cut
-
-sub PDL::doflow {
-	my $this = shift;
-	$this->set_dataflow_f(1);
-}
+ $x->flowing; flowing($x);
 
 =head2 flows
 

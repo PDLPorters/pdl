@@ -4,6 +4,7 @@
 - fix ones-optimisation problem in useithreads Perls which broke PDL::Parallel::threads
 - add Ufunc::magnover (https://github.com/nrdvana/perl-Math-3Space/pull/8)
 - Ops::abs2 now PP op that doesn't first calculate sqrt for complex
+- replace doflow,set_dataflow_f with one-shot-each-time flowing (#485)
 
 2.089_01 2024-06-05
 - add demo of GSL::CDF
