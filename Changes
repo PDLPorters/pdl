@@ -1,3 +1,4 @@
+2.089_02 2024-06-26
 - PDL::VectorValued::vcos into Primitive - thanks @moocow-the-bovine
 - remove PDL_TRACEDEBUG functionality
 - fix non-Perl created ndarray getting destroyed after Perl visibility (#484)
