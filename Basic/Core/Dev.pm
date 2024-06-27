@@ -483,7 +483,6 @@ prints on C<STDOUT> XS text with core flags, for F<Core.xs>.
 my %flags = (
     hdrcpy => { set => 1 },
     fflows => { FLAG => "DATAFLOW_F" },
-    bflows => { FLAG => "DATAFLOW_B" },
     is_inplace => { FLAG => "INPLACE", postset => 1 },
     set_inplace => { FLAG => "INPLACE", noret => 1 },
     donttouch => { FLAG => "DONTTOUCHDATA" },

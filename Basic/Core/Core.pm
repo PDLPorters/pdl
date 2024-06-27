@@ -832,22 +832,13 @@ Whether or not an ndarray is indulging in dataflow
 
 =cut
 
-sub PDL::flows {
- 	my $this = shift;
-         return ($this->fflows || $this->bflows);
-}
+sub PDL::flows { shift->fflows }
 
 =head2 fflows
 
 =for ref
 
 Returns whether the ndarray's C<PDL_DATAFLOW_F> flag is set.
-
-=head2 bflows
-
-=for ref
-
-Returns whether the ndarray's C<PDL_DATAFLOW_B> flag is set.
 
 =head2 new
 
@@ -2000,11 +1991,8 @@ my %info = (
 		 },
 	    F => {
 		  Name => 'Flow',
-		  Sub => sub { my $flows = '';
-			       $flows = ($_[0]->bflows ? 'b':'') .
+		  Sub => sub { !$_[0]->flows ? '' :
 				 '~' . ($_[0]->fflows ? 'f':'')
-				   if ($_[0]->flows);
-			       $flows;
 			     },
 		 },
 	    M => {

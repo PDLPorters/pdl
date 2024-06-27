@@ -269,8 +269,7 @@ PDL_TYPELIST_ALL(X)
   /* Dataflow tracking flags -- F/B for forward/back.  These get set        */
   /* by transformations when they are set up.                               */
 #define  PDL_DATAFLOW_F          0x0010
-#define  PDL_DATAFLOW_B          0x0020
-#define  PDL_DATAFLOW_ANY        (PDL_DATAFLOW_F|PDL_DATAFLOW_B)
+#define  PDL_DATAFLOW_ANY        (PDL_DATAFLOW_F)
   /* Was this PDL null originally?                                          */
 #define  PDL_NOMYDIMS            0x0040
   /* Dims should be received via trans.                                     */
@@ -301,7 +300,6 @@ PDL_TYPELIST_ALL(X)
  X(PDL_PARENTDATACHANGED) \
  X(PDL_PARENTDIMSCHANGED) \
  X(PDL_DATAFLOW_F) \
- X(PDL_DATAFLOW_B) \
  X(PDL_NOMYDIMS) \
  X(PDL_MYDIMS_TRANS) \
  X(PDL_OPT_VAFFTRANSOK) \
