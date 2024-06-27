@@ -66,6 +66,10 @@
 #define CHANGED(...) \
     PDL_ACCUMERROR(PDL_err, pdl_changed(__VA_ARGS__))
 
+#define PDL_RECURSE_CHECK(var) \
+  if (var > 1000) \
+    return pdl_make_error_simple(PDL_EUSERERROR, "PDL:Internal Error: data structure recursion limit exceeded (max 1000 levels)\n\tThis could mean that you have found an infinite-recursion error in PDL, or\n\tthat you are building data structures with very long dataflow dependency\n\tchains.  You may want to try using sever() to break the dependency.\n")
+
 extern Core PDL;
 
 pdl_error pdl__make_physical_recprotect(pdl *it, int recurse_count);
@@ -618,8 +622,7 @@ pdl_error pdl__addchildtrans(pdl *it,pdl_trans *trans)
 
 pdl_error pdl__make_physdims_recprotect(pdl *it, int recurse_count) {
   pdl_error PDL_err = {0, NULL, 0};
-  if (recurse_count > 1000)
-    return pdl_make_error_simple(PDL_EUSERERROR, "PDL:Internal Error: data structure recursion limit exceeded (max 1000 levels)\n\tThis could mean that you have found an infinite-recursion error in PDL, or\n\tthat you are building data structures with very long dataflow dependency\n\tchains.  You may want to try using sever() to break the dependency.\n");
+  PDL_RECURSE_CHECK(recurse_count);
   if (!it) return pdl_make_error_simple(PDL_EFATAL, "make_physdims called with NULL");
   PDLDEBUG_f(printf("make_physdims %p state=", it);pdl_dump_flags_fixspace(it->state, 0, PDL_FLAGS_PDL));
   PDL_CHKMAGIC(it);
@@ -790,8 +793,7 @@ pdl_error pdl_redodims_default(pdl_trans *trans) {
 pdl_error pdl__make_physical_recprotect(pdl *it, int recurse_count) {
 	pdl_error PDL_err = {0, NULL, 0};
 	int i, vaffinepar=0;
-	if (recurse_count > 1000)
-	  return pdl_make_error_simple(PDL_EUSERERROR, "PDL:Internal Error: data structure recursion limit exceeded (max 1000 levels)\n\tThis could mean that you have found an infinite-recursion error in PDL, or\n\tthat you are building data structures with very long dataflow dependency\n\tchains.  You may want to try using sever() to break the dependency.\n");
+	PDL_RECURSE_CHECK(recurse_count);
 	PDLDEBUG_f(printf("make_physical %p\n",(void*)it));
 	pdl_trans *trans = it->trans_parent;
 	PDL_CHKMAGIC(it);
