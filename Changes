@@ -1,4 +1,5 @@
 - remove PDL_DATAFLOW_B entirely as meaningless (#485)
+- now an error to output to ndarray with inward but no backward dataflow (#485)
 
 2.089_02 2024-06-26
 - PDL::VectorValued::vcos into Primitive - thanks @moocow-the-bovine

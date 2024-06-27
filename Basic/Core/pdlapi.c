@@ -643,29 +643,18 @@ pdl_error pdl_make_physdims(pdl *it) {
 
 static inline pdl_error pdl_trans_flow_null_checks(pdl_trans *trans) {
   pdl_error PDL_err = {0, NULL, 0};
-  int pfflag=0;
   PDL_Indx i;
   pdl_transvtable *vtable = trans->vtable;
-/* Then, set our children. This is: */
-/* First, determine whether any of our children already have
- * a parent, and whether they need to be updated. If this is
- * the case, we need to do some thinking. */
-  for(i=0; i<vtable->nparents; i++) {
-    int state = trans->pdls[i]->state;
-    if (state & PDL_NOMYDIMS)
+  for (i=0; i<vtable->nparents; i++)
+    if (trans->pdls[i]->state & PDL_NOMYDIMS)
       return pdl_make_error(PDL_EUSERERROR,
 	"Error in %s: input parameter '%s' is null",
 	vtable->name, vtable->par_names[i]
       );
-    if(state & PDL_DATAFLOW_ANY) pfflag++;
-  }
-  for(; i<vtable->npdls; i++) {
-/* If children are flowing, croak. It's too difficult to handle properly */
-    if(trans->pdls[i]->state & PDL_DATAFLOW_ANY)
-	return pdl_make_error_simple(PDL_EUSERERROR, "Sorry, cannot flowing families right now\n");
-/* Same, if children have trans yet parents are flowing */
-    if(trans->pdls[i]->trans_parent && pfflag)
-	return pdl_make_error_simple(PDL_EUSERERROR, "Sorry, cannot flowing families right now (2)\n");
+  for (; i<vtable->npdls; i++) {
+    pdl *child = trans->pdls[i];
+    if (child->trans_parent && (child->trans_parent->flags & PDL_ITRANS_DO_DATAFLOW_ANY) == PDL_ITRANS_DO_DATAFLOW_F)
+      return pdl_make_error(PDL_EUSERERROR, "%s: cannot output to parameter '%s' with inward but no backward flow", vtable->name, vtable->par_names[i]);
   }
   return PDL_err;
 }

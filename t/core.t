@@ -743,6 +743,8 @@ ok $y->fflows, 'y "flowing" on';
 my $z = $y + 1;
 isnt $z->trans_parent, undef, 'z has trans_parent';
 ok !$y->fflows, 'y "flowing" off again';
+eval {$y += 4};
+isnt $@, '', 'error on assigning to ndarray with inward but no outward flow';
 }
 
 my $notouch = sequence(4);
