@@ -641,7 +641,7 @@ pdl_error pdl_make_physdims(pdl *it) {
   return pdl__make_physdims_recprotect(it, 0);
 }
 
-static inline pdl_error pdl_trans_flow_null_checks(pdl_trans *trans, int *ret) {
+static inline pdl_error pdl_trans_flow_null_checks(pdl_trans *trans) {
   pdl_error PDL_err = {0, NULL, 0};
   int pfflag=0;
   PDL_Indx i;
@@ -667,7 +667,6 @@ static inline pdl_error pdl_trans_flow_null_checks(pdl_trans *trans, int *ret) {
     if(trans->pdls[i]->trans_parent && pfflag)
 	return pdl_make_error_simple(PDL_EUSERERROR, "Sorry, cannot flowing families right now (2)\n");
   }
-  *ret = pfflag;
   return PDL_err;
 }
 
@@ -689,23 +688,21 @@ pdl_error pdl_make_trans_mutual(pdl_trans *trans)
     outputs - cf type_coerce */
   for (i=vtable->nparents; i<vtable->npdls; i++) pdls[i] = pdls[i+nchildren];
   PDL_TR_CHKMAGIC(trans);
-  int pfflag=0;
-  PDL_err = pdl_trans_flow_null_checks(trans, &pfflag);
+  PDL_err = pdl_trans_flow_null_checks(trans);
   if (PDL_err.error) {
     PDL_ACCUMERROR(PDL_err, pdl_trans_finaldestroy(trans));
     return PDL_err;
   }
-  char dataflow = !!(pfflag || (trans->flags & PDL_ITRANS_DO_DATAFLOW_ANY));
-  PDLDEBUG_f(printf("make_trans_mutual dataflow=%d\n", (int)dataflow));
   for (i=0; i<nparents; i++) {
     pdl *parent = pdls[i];
     PDL_RETERROR(PDL_err, pdl__addchildtrans(parent,trans));
     if (parent->state & PDL_DATAFLOW_F) {
       parent->state &= ~PDL_DATAFLOW_F;
       trans->flags |= PDL_ITRANS_DO_DATAFLOW_F;
-      dataflow = 1;
     }
   }
+  char dataflow = !!(trans->flags & PDL_ITRANS_DO_DATAFLOW_ANY);
+  PDLDEBUG_f(printf("make_trans_mutual dataflow=%d\n", (int)dataflow));
   char wasnull[npdls];
   for (i=nparents; i<npdls; i++) {
     pdl *child = pdls[i];
