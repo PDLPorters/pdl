@@ -30,11 +30,11 @@ my $self = {
   'libs' => '',
   'deps' => [],
 };
-my @deps = @{ $self->{deps} };
-my @typemaps = @{ $self->{typemaps} };
-my $libs = $self->{libs};
-my $inc = $self->{inc};
-my $CORE = undef;
+our @deps = @{ $self->{deps} };
+our @typemaps = @{ $self->{typemaps} };
+our $libs = $self->{libs};
+our $inc = $self->{inc};
+our $CORE = undef;
 foreach (@INC) {
   if ( -f "$_/PDL/Install/Files.pm") { $CORE = $_ . "/PDL/Install/"; last; }
 }
