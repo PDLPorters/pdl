@@ -737,6 +737,12 @@ isnt $y->trans_parent, undef, '$y still has parent after pdumphash';
 $x += 3;
 is "$x", "[3 4 5]", '$x right value';
 is "$y", "[4 5 6]", '$y right value';
+ok !$y->fflows, 'y not "flowing"';
+$y->flowing;
+ok $y->fflows, 'y "flowing" on';
+my $z = $y + 1;
+isnt $z->trans_parent, undef, 'z has trans_parent';
+ok !$y->fflows, 'y "flowing" off again';
 }
 
 my $notouch = sequence(4);

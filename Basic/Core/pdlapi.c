@@ -352,10 +352,6 @@ pdl_error pdl_destroytransform(pdl_trans *trans, int ensure, int recurse_count)
   if (!vtable)
     return pdl_make_error(PDL_EFATAL, "ZERO VTABLE DESTTRAN 0x%p %d\n",trans,ensure);
   char ismutual = (trans->flags & PDL_ITRANS_DO_DATAFLOW_ANY);
-  if (!ismutual) for(j=0; j<vtable->nparents; j++) {
-    if (!trans->pdls[j]) return pdl_make_error(PDL_EFATAL, "NULL pdls[%td] in %s", j, vtable->name);
-    if (trans->pdls[j]->state & PDL_DATAFLOW_ANY) { ismutual=1; break; }
-  }
   PDLDEBUG_f(printf("pdl_destroytransform %s=%p (ensure=%d ismutual=%d)\n",
     vtable->name,trans,ensure,(int)ismutual));
   if (ensure)
@@ -705,8 +701,7 @@ pdl_error pdl_make_trans_mutual(pdl_trans *trans)
     pdl *parent = pdls[i];
     PDL_RETERROR(PDL_err, pdl__addchildtrans(parent,trans));
     if (parent->state & PDL_DATAFLOW_F) {
-      if (!(parent->trans_parent && (parent->trans_parent->flags & PDL_ITRANS_DO_DATAFLOW_F))) /* not inherently flowing */
-        parent->state &= ~PDL_DATAFLOW_F;
+      parent->state &= ~PDL_DATAFLOW_F;
       trans->flags |= PDL_ITRANS_DO_DATAFLOW_F;
       dataflow = 1;
     }
