@@ -26,8 +26,8 @@ package PDL::Dbg;
 use strict;
 use warnings;
 # used by info
-our $Title = "Type   Dimension       Flow  State          Mem";
-our $Infostr = "%6T %-15D  %3F   %-5S  %12M";
+our $Title = "Type   Dimension       State          Mem";
+our $Infostr = "%6T %-15D  %-5S  %12M";
 
 package # hide from MetaCPAN
   PDL;

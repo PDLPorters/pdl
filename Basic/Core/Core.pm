@@ -31,7 +31,7 @@ my @exports_normal   = (@EXPORT,
       empty dup dupN inflateN
       badflag
       convert inplace zeroes zeros ones nan inf i list listindices unpdl
-      set at flows broadcast_define over reshape dog cat barf type
+      set at broadcast_define over reshape dog cat barf type
       thread_define dummy mslice approx flat sclr squeeze
       get_autopthread_targ set_autopthread_targ get_autopthread_actual
       get_autopthread_dim get_autopthread_size set_autopthread_size) );
@@ -75,7 +75,7 @@ for my $t (PDL::Types::types()) {
 BEGIN {
 for (qw(
   inflateN badflag dup dupN howbig unpdl nelem inplace dims
-  list broadcastids listindices null set at flows sclr shape
+  list broadcastids listindices null set at sclr shape
   broadcast_define convert over dog cat mslice
   type approx dummy isempty string
 )) {
@@ -819,20 +819,6 @@ This replaced C<doflow> as of 2.090. See L<PDL::Dataflow> for more.
 =for usage
 
  $x->flowing; flowing($x);
-
-=head2 flows
-
-=for ref
-
-Whether or not an ndarray is indulging in dataflow
-
-=for usage
-
- something if $x->flows; $hmm = flows($x);
-
-=cut
-
-sub PDL::flows { shift->fflows }
 
 =head2 fflows
 
@@ -1987,12 +1973,6 @@ my %info = (
 			       $state .= 'C' if $_[0]->anychgd;
  			       $state .= 'B' if $_[0]->badflag;
 			       $state;
-			     },
-		 },
-	    F => {
-		  Name => 'Flow',
-		  Sub => sub { !$_[0]->flows ? '' :
-				 '~' . ($_[0]->fflows ? 'f':'')
 			     },
 		 },
 	    M => {
