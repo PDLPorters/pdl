@@ -745,6 +745,10 @@ isnt $z->trans_parent, undef, 'z has trans_parent';
 ok !$y->fflows, 'y "flowing" off again';
 eval {$y += 4};
 isnt $@, '', 'error on assigning to ndarray with inward but no outward flow';
+my $oneway_slice = $y->slice('0:1');
+is "$oneway_slice", '[4 5]';
+eval {$oneway_slice .= 11};
+isnt $@, '', 'error on assigning into one-way slice';
 }
 
 my $notouch = sequence(4);

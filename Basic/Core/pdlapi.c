@@ -641,21 +641,31 @@ pdl_error pdl_make_physdims(pdl *it) {
   return pdl__make_physdims_recprotect(it, 0);
 }
 
-static inline pdl_error pdl_trans_flow_null_checks(pdl_trans *trans) {
+static inline char _trans_forward_only(pdl *p) {
+  pdl_trans *tp = p->trans_parent;
+  return !!(tp && (tp->flags & PDL_ITRANS_DO_DATAFLOW_ANY) == PDL_ITRANS_DO_DATAFLOW_F);
+}
+static inline pdl_error pdl_trans_flow_null_checks(pdl_trans *trans, char *disable_back) {
   pdl_error PDL_err = {0, NULL, 0};
   PDL_Indx i;
   pdl_transvtable *vtable = trans->vtable;
-  for (i=0; i<vtable->nparents; i++)
-    if (trans->pdls[i]->state & PDL_NOMYDIMS)
+  char input_forward_only = 0;
+  for (i=0; i<vtable->nparents; i++) {
+    pdl *parent = trans->pdls[i];
+    if (_trans_forward_only(parent))
+      input_forward_only = 1;
+    if (parent->state & PDL_NOMYDIMS)
       return pdl_make_error(PDL_EUSERERROR,
 	"Error in %s: input parameter '%s' is null",
 	vtable->name, vtable->par_names[i]
       );
+  }
   for (; i<vtable->npdls; i++) {
     pdl *child = trans->pdls[i];
-    if (child->trans_parent && (child->trans_parent->flags & PDL_ITRANS_DO_DATAFLOW_ANY) == PDL_ITRANS_DO_DATAFLOW_F)
+    if (_trans_forward_only(child))
       return pdl_make_error(PDL_EUSERERROR, "%s: cannot output to parameter '%s' with inward but no backward flow", vtable->name, vtable->par_names[i]);
   }
+  *disable_back = input_forward_only;
   return PDL_err;
 }
 
@@ -677,7 +687,8 @@ pdl_error pdl_make_trans_mutual(pdl_trans *trans)
     outputs - cf type_coerce */
   for (i=vtable->nparents; i<vtable->npdls; i++) pdls[i] = pdls[i+nchildren];
   PDL_TR_CHKMAGIC(trans);
-  PDL_err = pdl_trans_flow_null_checks(trans);
+  char disable_back = 0;
+  PDL_err = pdl_trans_flow_null_checks(trans, &disable_back);
   if (PDL_err.error) {
     PDL_ACCUMERROR(PDL_err, pdl_trans_finaldestroy(trans));
     return PDL_err;
@@ -691,7 +702,9 @@ pdl_error pdl_make_trans_mutual(pdl_trans *trans)
     }
   }
   char dataflow = !!(trans->flags & PDL_ITRANS_DO_DATAFLOW_ANY);
-  PDLDEBUG_f(printf("make_trans_mutual dataflow=%d\n", (int)dataflow));
+  PDLDEBUG_f(printf("make_trans_mutual dataflow=%d disable_back=%d\n", (int)dataflow, (int)disable_back));
+  if (dataflow && disable_back)
+    trans->flags &= ~PDL_ITRANS_DO_DATAFLOW_B;
   char wasnull[npdls];
   for (i=nparents; i<npdls; i++) {
     pdl *child = pdls[i];

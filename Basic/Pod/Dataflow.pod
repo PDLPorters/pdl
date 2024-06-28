@@ -77,32 +77,36 @@ Consider the following code:
 	$w = $u->flowing + $v->flowing;
 	$y = $w->flowing + 1;
 	$x = $w->diagonal(0,1);
-	$x += 50;
-	$z = $w + 2;
+	$z = $w->flowing + 2;
 
-This presents a problem, because the penultimate operation modifies
-C<$x>, and through backwards dataflow, C<$w>. The problem is that C<$w>
-is "subscribed" to updates from C<$u> and also C<$w>, so the next time
-either of them get updated, that modification gets overwritten.
+As of 2.090, C<$x> will I<not> have backward dataflow. This is because
+PDL turns that off, on detecting an input with forward-only dataflow. This
+means PDL will only created directed I<acyclic> graphs of dataflow.
+It also means you can only modify the contents of C<$x> by modifying its
+"upstream" data sources.
 
-What do $y and $z contain now?
+What do C<$x>, C<$y>, and C<$z> contain now?
 
+	pdl> p $x
+	[1 5 9]
 	pdl> p $y
 	[
-	 [52  3  4]
-	 [ 5 56  7]
-	 [ 8  9 60]
+	 [ 2  3  4]
+	 [ 5  6  7]
+	 [ 8  9 10]
 	]
 	pdl> p $z
 	[
-	 [53  4  5]
-	 [ 6 57  8]
-	 [ 9 10 61]
+	 [ 3  4  5]
+	 [ 6  7  8]
+	 [ 9 10 11]
 	]
 
 What about when C<$u> is changed and a recalculation is triggered?
 
 	pdl> $u += 7;
+	pdl> p $x
+	[8 12 16]
 	pdl> p $y
 	[
 	 [ 9 10 11]
@@ -115,10 +119,6 @@ What about when C<$u> is changed and a recalculation is triggered?
 	 [13 14 15]
 	 [16 17 18]
 	]
-
-You'll notice that updating C<$u> updated C<$y>, the changes to C<$y>
-that resulted from adding 50 to the diagonal (via C<$x>, and two-way flow)
-got lost. This is one-way flow.
 
 =head1 LAZY EVALUATION
 

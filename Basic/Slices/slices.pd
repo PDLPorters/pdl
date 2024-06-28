@@ -26,7 +26,9 @@ For example, you can make a 1000x1000 unit matrix with
  $x->diagonal(0,1) ++;
 
 which is quite efficient. See L<PDL::Indexing> and L<PDL::Tips> for
-more examples.
+more examples. As of 2.090, backward dataflow will be turned off if any
+input has inward-only dataflow, to avoid creating "loops". See
+L<PDL::Dataflow> for more.
 
 Slicing is so central to the PDL language that a special compile-time
 syntax has been introduced to handle it compactly; see L<PDL::NiceSlice>
