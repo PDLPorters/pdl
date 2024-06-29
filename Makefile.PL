@@ -138,10 +138,11 @@ my %min_version = (
   'OpenGL' => '0.70', # see also Graphics/TriD/Makefile.PL
   'OpenGL::GLUT' => '0.72', # see also Graphics/TriD/Makefile.PL
   'ExtUtils::F77' => '1.26', # eg 1.20 can leave off -lgfortran
-  'Inline'              => '0.83',      # fixed ILSM-finding
-  'Inline::C'           => '0.62',
-  'Term::ReadKey'       => '2.34',      #for perldl shell
-  'PGPLOT'              => '2.29',
+  'Inline' => '0.83', # fixed ILSM-finding
+  'Inline::C' => '0.62',
+  'Term::ReadKey' => '2.34', #for perldl shell
+  'PGPLOT' => '2.29',
+  'Alien::proj' => '1.27', # GIS::Proj, Transform::Proj4
 );
 for my $opt_dep (sort keys %min_version) {
   (my $file = $opt_dep) =~ s#::#/#g;
