@@ -266,10 +266,8 @@ PDL_TYPELIST_ALL(X)
   /* Physical data representation of the parent has changed (e.g.           */
   /* physical transposition), so incs etc. need to be recalculated.         */
 #define  PDL_ANYCHANGED          (PDL_PARENTDATACHANGED|PDL_PARENTDIMSCHANGED)
-  /* Dataflow tracking flags -- F/B for forward/back.  These get set        */
-  /* by transformations when they are set up.                               */
+  /* Dataflow forward flag request        */
 #define  PDL_DATAFLOW_F          0x0010
-#define  PDL_DATAFLOW_ANY        (PDL_DATAFLOW_F)
   /* Was this PDL null originally?                                          */
 #define  PDL_NOMYDIMS            0x0040
   /* Dims should be received via trans.                                     */
