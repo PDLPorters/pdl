@@ -120,6 +120,153 @@ What about when C<$u> is changed and a recalculation is triggered?
 	 [16 17 18]
 	]
 
+=head2 Example of dataflow to implement 3D space calculations
+
+This is a complete, working example that demonstrates the use of
+enduring C<flowing> relationships to model 3D entities, through a few
+transformations:
+
+  {package PDL::3Space;
+  use PDL;
+  sub new { my ($class, $parent) = @_;
+    my $self = bless {basis_local=>identity(3), origin_local=>zeroes(3)}, $class;
+    if (defined $parent) {
+      $self->{parent} = $parent;
+      $self->{basis} = $self->{basis_local}->flowing x $parent->{basis}->flowing;
+      $self->{origin} = ($self->{origin_local}->flowing x $self->{basis}->flowing)->flowing + $parent->{origin}->flowing;
+    } else {
+      $self->{basis} = $self->{basis_local};
+      $self->{origin} = $self->{origin_local}->flowing x $self->{basis}->flowing;
+    }
+    $self;
+  }
+  use overload '""' => sub {$_[0]{basis}->glue(1,$_[0]{origin}).''};
+  sub basis_update { $_[0]{basis_local} .= $_[1] x $_[0]{basis_local} }
+  sub origin_move { $_[0]{origin_local} += $_[1] }
+  sub local { my $local = PDL::3Space->new; $local->{$_} .= $_[0]{$_} for qw(basis_local origin_local); $local}
+  }
+
+This is the class, heavily inspired by L<Math::3Space>, and
+following discussions on interoperation between that and PDL (see
+L<https://github.com/nrdvana/perl-Math-3Space/pull/8>). The C<basis>
+and C<origin> members are "subscribed" to both their own local basis
+and origin, and their parent's if any. The C<basis_update> and
+C<origin_move> methods only update the local members, and C<basis_update>
+does so in terms of its previous value.
+
+The demonstrating code has a boat, and bird within its frame of
+reference. Note that the "local" origin still gets affected by its
+local basis.
+
+The basis and origin are always in global coordinates, and thanks to
+dataflow, are only recalculated on demand.
+
+  $rot_90_about_z = PDL->pdl([0,1,0], [-1,0,0], [0,0,1]);
+
+  $boat = PDL::3Space->new;
+  print "boat=$boat";
+  $bird = PDL::3Space->new($boat);
+  print "bird=$bird";
+  # boat=
+  # [
+  #  [1 0 0]
+  #  [0 1 0]
+  #  [0 0 1]
+  #  [0 0 0]
+  # ]
+  # bird=
+  # [
+  #  [1 0 0]
+  #  [0 1 0]
+  #  [0 0 1]
+  #  [0 0 0]
+  # ]
+
+  $boat->basis_update($rot_90_about_z);
+  print "after boat rot:\nboat=$boat";
+  print "bird=$bird";
+  # after boat rot:
+  # boat=
+  # [
+  #  [ 0  1  0]
+  #  [-1  0  0]
+  #  [ 0  0  1]
+  #  [ 0  0  0]
+  # ]
+  # bird=
+  # [
+  #  [ 0  1  0]
+  #  [-1  0  0]
+  #  [ 0  0  1]
+  #  [ 0  0  0]
+  # ]
+
+  $boat->origin_move(PDL->pdl(1,0,0));
+  print "after boat move:\nboat=$boat";
+  print "bird=$bird";
+  print "bird local=".$bird->local;
+  # after boat move:
+  # boat=
+  # [
+  #  [ 0  1  0]
+  #  [-1  0  0]
+  #  [ 0  0  1]
+  #  [ 0  1  0]
+  # ]
+  # bird=
+  # [
+  #  [ 0  1  0]
+  #  [-1  0  0]
+  #  [ 0  0  1]
+  #  [ 0  1  0]
+  # ]
+  # bird local=
+  # [
+  #  [1 0 0]
+  #  [0 1 0]
+  #  [0 0 1]
+  #  [0 0 0]
+  # ]
+
+  $bird->basis_update($rot_90_about_z);
+  $bird->origin_move(PDL->pdl(1,0,1));
+  print "after bird rot and move:\nbird=$bird";
+  print "bird local=".$bird->local;
+  # after bird rot and move:
+  # bird=
+  # [
+  #  [-1  0  0]
+  #  [ 0 -1  0]
+  #  [ 0  0  1]
+  #  [-1  1  1]
+  # ]
+  # bird local=
+  # [
+  #  [ 0  1  0]
+  #  [-1  0  0]
+  #  [ 0  0  1]
+  #  [ 0  1  1]
+  # ]
+
+  $boat->basis_update(PDL::MatrixOps::identity(3) * 2);
+  print "after boat expand:\nboat=$boat";
+  print "bird=$bird";
+  # after boat expand:
+  # boat=
+  # [
+  #  [ 0  2  0]
+  #  [-2  0  0]
+  #  [ 0  0  2]
+  #  [ 0  2  0]
+  # ]
+  # bird=
+  # [
+  #  [-2  0  0]
+  #  [ 0 -2  0]
+  #  [ 0  0  2]
+  #  [-2  2  2]
+  # ]
+
 =head1 LAZY EVALUATION
 
 In one-way flow context like the above, with:
