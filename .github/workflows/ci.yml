@@ -122,27 +122,29 @@ jobs:
 
       - run: perl -Iblib/lib -MData::Dumper -e 'eval { require PDL::Config }; $Data::Dumper::Sortkeys = 1; print Dumper \%PDL::Config'
 
-  ci-ubuntu-containers:
-    runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'push' || github.event_name == 'pull_request' }}
-    container: ${{ matrix.container }}
-    strategy:
-      fail-fast: false
-      matrix:
-        container: ['centos:centos7']
-    steps:
-      - uses: actions/checkout@v2
-      - name: CentOS setup
-        if: matrix.container == 'centos:centos7'
-        run: |
-          uname -a
-          yum -y install perl perl-App-cpanminus gcc bzip2 patch
-      - run: perl -V
-      - run: (cpanm -n ExtUtils::MakeMaker Devel::CheckLib File::Which && cpanm -n --installdeps .) || ( cat ~/.cpanm/build.log && false )
-      - name: Run tests
-        env:
-          HARNESS_OPTIONS: j4
-        run: perl Makefile.PL && make test
+# broken as of 2024-07-18 because nodejs broken by host libs:
+# /__e/node20/bin/node: /lib64/libm.so.6: version `GLIBC_2.27' not found (required by /__e/node20/bin/node)
+#  ci-ubuntu-containers:
+#    runs-on: ubuntu-latest
+#    if: ${{ github.event_name == 'push' || github.event_name == 'pull_request' }}
+#    container: ${{ matrix.container }}
+#    strategy:
+#      fail-fast: false
+#      matrix:
+#        container: ['centos:centos7']
+#    steps:
+#      - uses: actions/checkout@v2
+#      - name: CentOS setup
+#        if: matrix.container == 'centos:centos7'
+#        run: |
+#          uname -a
+#          yum -y install perl perl-App-cpanminus gcc bzip2 patch
+#      - run: perl -V
+#      - run: (cpanm -n ExtUtils::MakeMaker Devel::CheckLib File::Which && cpanm -n --installdeps .) || ( cat ~/.cpanm/build.log && false )
+#      - name: Run tests
+#        env:
+#          HARNESS_OPTIONS: j4
+#        run: perl Makefile.PL && make test
 
   cygwin:
     env:
@@ -254,7 +256,7 @@ jobs:
     runs-on: ubuntu-latest
     continue-on-error: true
     if: ${{ always() }}
-    needs: [ 'ci', 'ci-ubuntu-containers', 'cygwin', 'weird-perls' ]
+    needs: [ 'ci', 'cygwin', 'weird-perls' ] # , 'ci-ubuntu-containers'
     steps:
       - uses: PDLPorters/devops/github-actions/irc-notifications@master
         with:
