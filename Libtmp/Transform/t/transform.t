@@ -114,6 +114,9 @@ EOF
 	my $m51map = $m51->map(t_identity,{method=>'s'}); #SHOULD be a no-op
 	ok(all($m51==$m51map));
 
+	$m51map = $m51->map(t_identity, $m51->hdr,{method=>'s'}); #SHOULD be a no-op
+	ok(all($m51==$m51map), 'map works with FITS hashref');
+
 	my $m51_coords = pdl(0,0)->apply(t_fits($m51));
 	my $m51map_coords = pdl(0,0)->apply(t_fits($m51map));
 	ok(all(approx($m51_coords, $m51map_coords,1e-8)));

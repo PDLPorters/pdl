@@ -1559,19 +1559,11 @@ sub map {
   my ($out, @odims, $ohdr);
   if(UNIVERSAL::isa($tmp,'PDL')) {
     @odims = $tmp->dims;
-    my($x);
-    if(defined ($x = $tmp->gethdr)) {
-      my(%b) = %{$x};
-      $ohdr = \%b;
-    }
+    if (defined(my $x = $tmp->gethdr)) { $ohdr = {%$x} }
   } elsif(ref $tmp eq 'HASH') {
     # (must be a fits header -- or would be filtered above)
-    for my $i(1..$tmp->{NAXIS}){
-      push(@odims,$tmp->{"NAXIS$i"});
-    }
-    # deep-copy fits header into output
-    my %foo = %{$tmp};
-    $ohdr = \%foo;
+    @odims = map $tmp->{"NAXIS$_"}, 1..$tmp->{NAXIS};
+    $ohdr = {%$tmp}; # copy FITS header into output
   } elsif(ref $tmp eq 'ARRAY') {
     @odims = @$tmp;
   } else {
@@ -1593,19 +1585,16 @@ sub map {
   ## Figure out the dimensionality of the
   ## transform itself (extra dimensions come along for the ride)
   my $nd = $me->{odim} || $me->{idim} || 2;
-  my @sizes = $out->dims;
-  my @dd = @sizes;
-
+  my @dd = my @sizes = $out->dims;
   splice @dd,$nd; # Cut out dimensions after the end
 
   # Check that there are elements in the output fields...
   barf "map: output has no dims!\n"
         unless(@dd);
   my $ddtotal = 1;
-  map {$ddtotal *= $_} @dd;
+  $ddtotal *= $_ for @dd;
   barf "map: output has no elements (at least one dim is 0)!\n"
      unless($ddtotal);
-
 
   ##############################
   # If necessary, generate an appropriate FITS header for the output.
