@@ -310,6 +310,31 @@ Usage of C<Inline::Pdlpp> in general is similar to C<Inline::C>.
 In the absence of full docs for C<Inline::Pdlpp> you might want to compare
 L<Inline::C>.
 
+=head2 Use of PMCode
+
+If you need to pre/post-process data around your new PDL operation,
+a quirk of this module is that it makes a dynamic library that can be
+loaded in, but does not load in the PDL-generated Perl code. You can
+work around that as follows:
+
+  use Inline Pdlpp => <<'EOF';
+  pp_def('collatz_pdl',
+  Pars => 'beg(); end(); [o]number();  [o]highest()',
+  GenericTypes => ['Q'],
+  PMCode => '', # trigger the _int but keep the Perl code in main body
+  Code => '
+    /*...*/
+  '
+  );
+  EOF
+  sub PDL::collatz_pdl {
+    PDL::_collatz_pdl_int(@_, my $n = PDL->null, my $h = PDL->null);
+    # Perl scalars because is across forked processes in MCE
+    map $_->sclr, $n, $h;
+  }
+
+See L<https://www.perlmonks.org/?node_id=11115392> for context.
+
 =head2 Code that uses external libraries, etc
 
 The script below is somewhat more complicated in that it uses code
