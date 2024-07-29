@@ -466,8 +466,7 @@ sub earth_image {
     }
     last if defined($im);
   }
-  barf("earth_image: $f not found in \@INC\n")
-    unless defined($found);
+  barf("earth_image: $f not found in \@INC\n") if !$found;
   barf("earth_image: couldn't load $f; you may need to install netpbm.\n")
     unless defined($im);
   t_raster2fits()->apply($im);

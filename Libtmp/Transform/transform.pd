@@ -2582,6 +2582,7 @@ the type/unit fields are currently ignored by t_linear.
 { package PDL::Transform::Linear;
 our @ISA = ('PDL::Transform');
 *_opt = \&PDL::Transform::_opt;
+*barf = \&PDL::Transform::barf;
 *identity = \&PDL::MatrixOps::identity;
 
 sub PDL::Transform::t_linear { PDL::Transform::Linear->new(@_); }
@@ -2728,10 +2729,10 @@ sub new {
   ##############################
   # The meat -- just shift, matrix-multiply, and shift again.
   $me->{func} = sub {
-    my($in,$opt) = @_;
-    my($d) = $opt->{matrix}->dim(0)-1;
-    barf("Linear transform: transform is $d-D; data only ".($in->dim(0))."\n")
-        if($in->dim(0) < $d);
+    my ($in,$opt) = @_;
+    my $d = $opt->{matrix}->dim(0)-1;
+    barf("Linear transform: transform is @{[$d+1]}-D; data is ".$in->dim(0))
+        if $in->dim(0) <= $d;
     my $x = $in->slice("0:$d")->copy + $opt->{pre};
     my $out = $in->is_inplace ? $in : $in->copy;
     $out->slice("0:$d") .= $x x $opt->{matrix} + $opt->{post};
@@ -2739,12 +2740,12 @@ sub new {
   };
 
   $me->{inv} = (defined $me->{params}{inverse}) ? sub {
-    my($in,$opt) = @_;
-    my($d) = $opt->{inverse}->dim(0)-1;
-    barf("Linear transform: transform is $d-D; data only ".($in->dim(0))."\n")
-        if($in->dim(0) < $d);
-    my($x) = $in->slice("0:$d")->copy - $opt->{post};
-    my($out) = $in->is_inplace ? $in : $in->copy;
+    my ($in,$opt) = @_;
+    my $d = $opt->{inverse}->dim(0)-1;
+    barf("Linear transform: transform is @{[$d+1]}-D; data is ".$in->dim(0))
+        if $in->dim(0) <= $d;
+    my $x = $in->slice("0:$d")->copy - $opt->{post};
+    my $out = $in->is_inplace ? $in : $in->copy;
     my $tmp; # work around perl -d "feature"
     ($tmp = $out->slice("0:$d")) .= $x x $opt->{inverse} - $opt->{pre};
     $out;
