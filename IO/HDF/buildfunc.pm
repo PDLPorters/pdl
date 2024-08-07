@@ -94,22 +94,4 @@ sub create_low_level
     }
 } # End of create_low_level()...
 
-sub create_generic
-{
-    my $defn = shift;
-    my @alltype = ('char', 'unsigned char', 'short int', 'unsigned short int',
-                   'long int', 'unsigned long int', 'float', 'double');
-    my @nametype = ('char', 'uchar', 'short', 'ushort',
-                    'long', 'ulong', 'float', 'double');
-
-    foreach my $i ( 0 .. $#alltype )
-    {
-        my $xsout = $defn;
-        $xsout =~ s/GENERIC/$alltype[$i]/eg;     
-        $xsout =~ s/NAME/$nametype[$i]/eg;     
-        pp_addxs ('', $xsout);
-    }
-} # End of create_generic()...
-
-
 1;
