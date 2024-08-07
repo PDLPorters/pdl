@@ -303,7 +303,7 @@ Usage:
 
 =for ref
 
-Chooses values from C<$inndarray> to C<$outndarray>.
+Chooses values from C<$inndarray> to C<$outndarray>, treating both as flat.
 
 Usage:
 
@@ -932,8 +932,7 @@ EOF
   pp_addpm('
 sub ran_shuffle_vec {
 my ($obj,@in) = @_;
-my $p = PDL->sequence(PDL::indx(), 0+@in);
-$obj->ran_shuffle($p);
+$obj->ran_shuffle(my $p = PDL->sequence(PDL::indx(), 0+@in));
 @in[$p->list];
 }
 ');
@@ -941,15 +940,8 @@ $obj->ran_shuffle($p);
   pp_addpm('
 sub ran_choose_vec {
 my ($obj,$nout,@in) = @_;
-my (@out,$i,$pin,$pout);
-
-$pin = long [0..$#in];
-$pout = long [0..($nout-1)];
-$obj->ran_choose($pin,$pout);
-for($i=0;$i<$nout;$i++) {
-$out[$i]=$in[$pout->at($i)];
-}
-return @out;
+$obj->ran_choose(PDL->sequence(PDL::indx(), 0+@in),my $pout = PDL->zeroes(PDL::indx(), $nout));
+@in[$pout->list];
 }
 ');
 
@@ -1170,7 +1162,7 @@ ran_shuffle(rng, in)
   n = in->nvals;
   PDL->barf_if_error(PDL->make_physical(in));
   size = PDL->howbig(in->datatype);
-  gsl_ran_shuffle(rng,(double *) in->data,n,size);
+  gsl_ran_shuffle(rng,in->data,n,size);
 
 void
 ran_choose(rng, in, out)
@@ -1186,7 +1178,7 @@ ran_choose(rng, in, out)
   PDL->barf_if_error(PDL->make_physical(in));
   PDL->barf_if_error(PDL->make_physical(out));
   size = PDL->howbig(in->datatype);
-  gsl_ran_choose(rng,(double *) out->data, m, (double *) in->data,n,size);
+  gsl_ran_choose(rng,out->data, m, in->data,n,size);
 ');
 
 pp_core_importList(' qw/ zeroes long barf  /');  # import just a named list to our namespace, so we don't get warning
