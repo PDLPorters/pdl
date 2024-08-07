@@ -660,7 +660,7 @@ sub PDL::convolveND {
   my $aa = $x->range( -$koff, $adims + $kdims, $opt->{Boundary} )
                ->sever;
 
-  if($fft) {
+  if ($fft) {
     require PDL::FFT;
 
     print "convolveND: using FFT method\n" if($PDL::debug);
@@ -770,7 +770,7 @@ Code => <<'EOD'
     aptr[offs[0]] = acc;
     if (!pdl_broadcast_nd_step(npdls, offs, 0, ndims, incs, a->dims, ivec)) break;
   } while (1);
-
+  PDL->changed(a, PDL_PARENTDATACHANGED, 0);
 EOD
 );
 

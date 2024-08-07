@@ -1161,6 +1161,7 @@ ran_shuffle(rng, in)
   n = in->nvals;
   size = PDL->howbig(in->datatype);
   gsl_ran_shuffle(rng,in->data,n,size);
+  PDL->changed(in, PDL_PARENTDATACHANGED, 0);
 
 void
 ran_choose(rng, in, out)
@@ -1177,6 +1178,7 @@ ran_choose(rng, in, out)
   m = out->nvals;
   size = PDL->howbig(in->datatype);
   gsl_ran_choose(rng,out->data, m, in->data,n,size);
+  PDL->changed(out, PDL_PARENTDATACHANGED, 0);
 ');
 
 pp_core_importList(' qw/ zeroes long barf  /');  # import just a named list to our namespace, so we don't get warning

@@ -127,4 +127,8 @@ $o = $rng->ran_discrete($discrete_dist_handle,100);
 
 pass('ran_discrete() method');
 
+my $vec2d = sequence(10,10);
+$rng->ran_shuffle($_) for $vec2d->dog;
+ok any($vec2d != sequence(10,10)), 'ran_shuffle() method';
+
 done_testing;

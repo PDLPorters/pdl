@@ -1190,6 +1190,7 @@ static inline PDL_Double PDL_xform_aux ( pdl *map, PDL_Indx *coords, PDL_Double 
    /* Increment the pixel counter */
    if (!pdl_broadcast_nd_step(npdls, offs, 0, ndims, incs, out->dims, ovec)) break;
   } while (1);
+  PDL->changed(out, PDL_PARENTDATACHANGED, 0);
 +==EOD_map_c_code==
 
         Doc=><<'+==EOD_map_doc==',
