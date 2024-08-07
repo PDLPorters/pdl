@@ -348,4 +348,25 @@ ok all(approx $m51, $m51_2), 'read back written-out compressed FITS file' or dia
 }
 }
 
+#multi-line HISTORY header writing
+{   my $f_out;
+    my $hstr = join("\n",'A'..'G');
+
+    $f_out = 'long_history.fits';
+    my $x = xvals(10);
+    $x->hdr->{'HISTORY'} = $hstr;
+    $x->wfits($f_out);
+    my $xr = rfits($f_out);
+    is($xr->hdr->{'HISTORY'}, $hstr, 'multi-line HISTORY correct with fresh header');
+    unlink($f_out) or die "couldn't delete $f_out";
+
+    $f_out = 'm51_longhist.fits';
+    my $m51 = rfits('t/m51.fits.fz');
+    $m51->hdr->{HISTORY} = $hstr;
+    $m51->wfits($f_out);
+    my $m51r = rfits($f_out);
+    is($m51r->hdr->{'HISTORY'}, $hstr, 'multi-line HISTORY correct with pre-existing header');
+    unlink($f_out) or die "couldn't delete $f_out";
+}
+
 done_testing();
