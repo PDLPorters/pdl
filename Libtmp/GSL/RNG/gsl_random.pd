@@ -279,7 +279,7 @@ Example:
 
 =for ref
 
-Shuffles values in ndarray
+Shuffles values in ndarray, treating it as flat.
 
 Usage:
 
@@ -291,13 +291,13 @@ Usage:
 
 =for ref
 
-Shuffles values in ndarray
+Returns values in Perl list, shuffled.
 
 Usage:
 
 =for usage
 
-   $rng->ran_shuffle_vec(@vec);
+   @shuffled = $rng->ran_shuffle_vec(@vec);
 
 =head2 ran_choose
 
@@ -932,14 +932,9 @@ EOF
   pp_addpm('
 sub ran_shuffle_vec {
 my ($obj,@in) = @_;
-my (@out,$i,$p);
-
-$p = long [0..$#in];
+my $p = PDL->sequence(PDL::indx(), 0+@in);
 $obj->ran_shuffle($p);
-for($i=0;$i<scalar(@in);$i++) {
-$out[$p->at($i)]=$in[$i];
-}
-return @out;
+@in[$p->list];
 }
 ');
 
