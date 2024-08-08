@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use PDL::Types qw(types);
+use PDL::Types qw(types ppdefs_all);
 
 pp_bless('PDL::GSL::RNG'); # make the functions generated go into our namespace, and
 				# not PDL's namespace
@@ -443,6 +443,30 @@ sub pp_defnd { # hide the docs
   my ($name, %hash) = @_;
   pp_def($name,%hash,Doc=>undef);
 }
+
+pp_def('ran_shuffle_1d',
+       Pars => '[io]a(n)',
+       GenericTypes => [ppdefs_all()],
+       OtherPars => 'gsl_rng *rng',
+       Code => '
+gsl_ran_shuffle($COMP(rng), $P(a), $SIZE(n), sizeof($GENERIC()));
+',
+       PMCode => <<'EOF',
+sub ran_shuffle_1d { _ran_shuffle_1d_int(@_[1,0]) }
+EOF
+       Doc => <<'EOF',
+=for ref
+
+Takes n-dimensional ndarray, and shuffles it along its zero-th dimension.
+
+Usage:
+
+=for usage
+
+  $vec2d = sequence(10,10);
+  $rng->ran_shuffle_1d($vec2d);
+EOF
+);
 
 pp_def('get_uniform',
        Pars => '[o]a()',

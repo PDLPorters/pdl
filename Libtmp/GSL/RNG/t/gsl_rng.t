@@ -131,4 +131,8 @@ my $vec2d = sequence(10,10);
 $rng->ran_shuffle($_) for $vec2d->dog;
 ok any($vec2d != sequence(10,10)), 'ran_shuffle() method';
 
+$vec2d = sequence(10,10);
+$rng->ran_shuffle_1d($vec2d);
+ok any($vec2d != sequence(10,10)), 'ran_shuffle_1d() method';
+
 done_testing;
