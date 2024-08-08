@@ -275,7 +275,7 @@ EOD
 
 pp_def('pnminraw',
 	Pars => 'type(); byte+ [o] im(m,n); byte [t] buf(llen)',
-	OtherPars => 'int ms => m; int ns => n;
+	OtherPars => 'IV ms => m; IV ns => n;
 			int isbin; PerlIO *fp',
 	GenericTypes => [qw(B U L)],
 	RedoDimsCode => '
@@ -316,7 +316,7 @@ C<im> follows I<strictly> the type of C<type>).
 
 pp_def( 'pnminascii',
 	Pars => 'type(); byte+ [o] im(m,n)',
-	OtherPars => 'int ms => m; int ns => n;
+	OtherPars => 'IV ms => m; IV ns => n;
 			int format; PerlIO *fp',
 	GenericTypes => [qw(B U S L)],
 	CHeader => qq{#include "get.h"\n},

@@ -1268,7 +1268,7 @@ pp_def($_->{Name},
        Pars => 'in(n); '.$_->{WeightPar}.$_->{HistType}.  '[o] hist(m)',
        GenericTypes => [ppdefs_all],
        # set outdim by Par!
-       OtherPars => 'double step; double min; int msize => m',
+       OtherPars => 'double step; double min; IV msize => m',
        HandleBad => 1,
        RedoDimsCode => 'if ($SIZE(m) == 0) $CROAK("called with m dim of 0");',
        Code => pp_line_numbers(__LINE__-1, '
@@ -1372,8 +1372,8 @@ pp_def($_->{Name},
        Pars => 'ina(n); inb(n); '.$_->{WeightPar}.$_->{HistType}.  '[o] hist(ma,mb)',
        GenericTypes => [ppdefs_all],
        # set outdim by Par!
-       OtherPars => 'double stepa; double mina; int masize => ma;
-	             double stepb; double minb; int mbsize => mb;',
+       OtherPars => 'double stepa; double mina; IV masize => ma;
+	             double stepb; double minb; IV mbsize => mb;',
        HandleBad => 1,
        RedoDimsCode => '
         if ($SIZE(ma) == 0) $CROAK("called with ma dim of 0");

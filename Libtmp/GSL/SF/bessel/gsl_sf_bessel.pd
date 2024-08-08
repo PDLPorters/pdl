@@ -39,7 +39,7 @@ $e() = r.err;
 
 pp_def('gsl_sf_bessel_Jn_array',
        GenericTypes => ['D'],
-       OtherPars =>'int s; int n=>num',
+       OtherPars =>'int s; IV n=>num',
        Pars=>'double x(); double [o]y(num)',
        Code =>'
 GSLERR(gsl_sf_bessel_Jn_array,($COMP(s),$COMP(s)+$COMP(n)-1,$x(),$P(y)))
@@ -62,7 +62,7 @@ $e() = r.err;
 
 pp_def('gsl_sf_bessel_Yn_array',
        GenericTypes => ['D'],
-       OtherPars =>'int s; int n=>num',
+       OtherPars =>'int s; IV n=>num',
        Pars=>'double x(); double [o]y(num)',
        Code =>'
 GSLERR(gsl_sf_bessel_Yn_array,($COMP(s),$COMP(s)+$COMP(n)-1,$x(),$P(y)))
@@ -85,7 +85,7 @@ $e() = r.err;
 
 pp_def('gsl_sf_bessel_I_array',
        GenericTypes => ['D'],
-       OtherPars =>'int s; int n=>num',
+       OtherPars =>'int s; IV n=>num',
        Pars=>'double x(); double [o]y(num)',
        Code =>'
 GSLERR(gsl_sf_bessel_In_array,($COMP(s),$COMP(s)+$COMP(n)-1,$x(),$P(y)))
@@ -108,7 +108,7 @@ $e() = r.err;
 
 pp_def('gsl_sf_bessel_In_scaled_array',
        GenericTypes => ['D'],
-       OtherPars =>'int s; int n=>num',
+       OtherPars =>'int s; IV n=>num',
        Pars=>'double x(); double [o]y(num)',
        Code =>'
 GSLERR(gsl_sf_bessel_In_scaled_array,($COMP(s),$COMP(s)+$COMP(n)-1,$x(),$P(y)))
@@ -131,7 +131,7 @@ $e() = r.err;
 
 pp_def('gsl_sf_bessel_K_array',
        GenericTypes => ['D'],
-       OtherPars =>'int s; int n=>num',
+       OtherPars =>'int s; IV n=>num',
        Pars=>'double x(); double [o]y(num)',
        Code =>'
 GSLERR(gsl_sf_bessel_Kn_array,($COMP(s),$COMP(s)+$COMP(n)-1,$x(),$P(y)))
@@ -154,7 +154,7 @@ $e() = r.err;
 
 pp_def('gsl_sf_bessel_Kn_scaled_array',
        GenericTypes => ['D'],
-       OtherPars =>'int s; int n=>num',
+       OtherPars =>'int s; IV n=>num',
        Pars=>'double x(); double [o]y(num)',
        Code =>'
 GSLERR(gsl_sf_bessel_Kn_scaled_array,($COMP(s),$COMP(s)+$COMP(n)-1,$x(),$P(y)))

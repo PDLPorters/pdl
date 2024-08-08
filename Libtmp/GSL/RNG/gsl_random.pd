@@ -535,7 +535,7 @@ EOF
 pp_def('get_int',
        Pars => '[o]a()',
        GenericTypes => ['F','D'],
-       OtherPars => 'int n; gsl_rng *rng',
+       OtherPars => 'IV n; gsl_rng *rng',
        Code => '
 $a() = gsl_rng_uniform_int($COMP(rng),$COMP(n));',
        PMCode => make_get_sub('get_int','$n,'),
@@ -855,7 +855,7 @@ my $MAX_DIMENSIONS = 100;
 pp_defnd('ran_dir_nd',
 	Pars => '[o]x(n)',
 	GenericTypes => ['F','D'],
-	OtherPars => 'int ns => n; gsl_rng *rng',
+	OtherPars => 'IV ns => n; gsl_rng *rng',
         Code =>'
 double xxx[' . $MAX_DIMENSIONS .'];
 gsl_ran_dir_nd($COMP(rng), $COMP(ns), xxx);
@@ -937,7 +937,7 @@ $obj->ran_choose(PDL->sequence(PDL::indx(), 0+@in),my $pout = PDL->zeroes(PDL::i
 pp_def('ran_ver',
 	Pars => '[o]x(n)',
 	GenericTypes => ['F','D'],
-	OtherPars => 'double x0; double r;int ns => n; gsl_rng *rng',
+	OtherPars => 'double x0; double r;IV ns => n; gsl_rng *rng',
         Code =>'
 double xx=$COMP(x0);
 
@@ -968,7 +968,7 @@ EOF
 pp_def('ran_caos',
 	Pars => '[o]x(n)',
 	GenericTypes => ['F','D'],
-	OtherPars => 'double m; int ns => n; gsl_rng *rng',
+	OtherPars => 'double m; IV ns => n; gsl_rng *rng',
         Code =>'
 double xx=gsl_ran_gaussian($COMP(rng),0.1)+0.5;
 
@@ -1126,7 +1126,7 @@ ran_discrete_preproc(rng, p)
   gsl_rng * rng
   pdl * p
      CODE:
-       int n;
+       IV n;
        if (p->ndims!=1 || p->datatype!=PDL_D) {
 	 barf("Bad input to ran_discrete_preproc!");
        }
@@ -1141,7 +1141,7 @@ ran_shuffle(rng, in)
   gsl_rng * rng
   pdl * in
  CODE:
-  int size, n;
+  IV size, n;
   PDL->barf_if_error(PDL->make_physical(in));
   n = in->nvals;
   size = PDL->howbig(in->datatype);
@@ -1154,7 +1154,7 @@ ran_choose(rng, in, out)
   pdl * in
   pdl * out
  CODE:
-  int size, n,m;
+  IV size, n,m;
 
   if (in->datatype != out->datatype) barf("Data Types must match for ran_chooser");
   PDL->barf_if_error(PDL->make_physical(in));

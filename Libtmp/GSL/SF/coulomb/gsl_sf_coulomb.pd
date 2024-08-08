@@ -43,7 +43,7 @@ $e() = r.err;
 
 pp_def('gsl_sf_coulomb_wave_FGp_array',
        GenericTypes => ['D'],
-       OtherPars =>'double lam_min; int kmax=>n; double eta',
+       OtherPars =>'double lam_min; IV kmax=>n; double eta',
        Pars=>'double x(); double [o]fc(n); double [o]fcp(n); double [o]gc(n); double [o]gcp(n); int [o]ovfw(); double [o]fe(n); double [o]ge(n);',
        Code =>'
 int s;
@@ -60,7 +60,7 @@ else {$ovfw()=0;}}
 
 pp_def('gsl_sf_coulomb_wave_sphF_array',
        GenericTypes => ['D'],
-       OtherPars =>'double lam_min; int kmax=>n; double eta',
+       OtherPars =>'double lam_min; IV kmax=>n; double eta',
        Pars=>'double x(); double [o]fc(n); int [o]ovfw(); double [o]fe(n);',
        Code =>'
 int s;

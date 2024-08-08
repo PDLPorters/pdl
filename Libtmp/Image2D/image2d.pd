@@ -396,7 +396,7 @@ Note: this routine does the median over all points in a rectangular
 
 EOD
         Pars => 'a(m,n); [o]b(m,n); indx [t]mapi(isize=CALC($SIZE(p) + $SIZE(m))); indx [t]mapj(jsize=CALC($SIZE(q) + $SIZE(n)))',
-        OtherPars => 'int p_size=>p; int q_size=>q; int opt;',
+        OtherPars => 'IV p_size=>p; IV q_size=>q; int opt;',
         PMCode => <<'EOF',
 sub PDL::med2df {
    my $opt; $opt = pop @_ if ref($_[$#_]) eq 'HASH';
@@ -1878,7 +1878,7 @@ output image does not map onto one in the input image.
 EOD
     HandleBad => 0,
     Pars => 'img(m,n); ldouble px(np,np); ldouble py(np,np); [o] warp(m,n); ldouble [t] poly(np); ldouble [t] kernel(ns)',
-    OtherPars => 'char *kernel_type; double noval; int nsamples => ns',
+    OtherPars => 'char *kernel_type; double noval; IV nsamples => ns',
     GenericTypes => [ qw(F D E) ],
         PMCode => <<'EOF',
 # support routine

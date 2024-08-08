@@ -1254,7 +1254,7 @@ EOPM
 
 pp_def('rasc',
        Pars => '[o] nums(n); int [o] ierr(n)',
-       OtherPars => 'PerlIO *fp; int num => n',
+       OtherPars => 'PerlIO *fp; IV num => n',
        PMFunc => '',
        PMCode => <<'EOF',
 sub rasc {PDL->rasc(@_)}
