@@ -115,6 +115,7 @@ sub init_converter_table {
 		 ['PS','pnmtops -dpi=100',
 		  'pstopnm -stdout -xborder=0 -yborder=0 -quiet -dpi=100'],
 		 ['GIF','ppmtogif','giftopnm'],
+		 ['XBM','pbmtoxbm','xbmtopbm'],
 		 ['IFF','ppmtoilbm','ilbmtoppm']
 		 );
   push(@special,['JPEG', 'cjpeg' ,'djpeg'])
@@ -786,7 +787,7 @@ sub PDL::wmpeg {
 Figure out the format of an image file from its magic numbers, or else, from its extension.
 
 Currently recognized image formats are: PNM, GIF, TIFF, JPEG, SGI,
-RAST, IFF, PCX, PS, FITS, PNG.  If the format can not be determined,
+RAST, IFF, PCX, PS, FITS, PNG, XBM.  If the format can not be determined,
 the string 'UNKNOWN' is returned.
 
 =for example
@@ -855,6 +856,7 @@ sub chkext {
 	return 'PS'   if $ext =~ /^ps/;
 	return 'FITS' if $ext =~ /^f(i?ts|it)$/;
 	return 'PNG'  if $ext =~ /^png$/i;
+	return 'XBM'  if $ext =~ /^xbm$/i;
     }
 
 
@@ -893,6 +895,7 @@ sub chkform {
     return 'PS'   if $magic =~ /%!\s*PS/;
     return 'FITS' if $magic =~ /^SIMPLE  \=/;
     return 'PNG'  if $magic =~ /^.PNG\r/;
+    return 'XBM'  if $magic =~ /^#define\s+/;
     return chkext(getext($file));    # then try extensions
 }
 
