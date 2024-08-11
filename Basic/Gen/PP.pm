@@ -1032,7 +1032,7 @@ sub typemap_eval { # lifted from ExtUtils::ParseXS::Eval, ignoring eg $ALIAS
   my ($var, $type, $num, $init, $pname, $arg, $ntype, $argoff, $subtype)
     = @$varhash{qw(var type num init pname arg ntype argoff subtype)};
   my $ALIAS;
-  my $rv = eval qq("$code");
+  my $rv = eval qq(qq\a$code\a);
   die $@ if $@;
   $rv;
 }
