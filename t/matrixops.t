@@ -202,22 +202,20 @@ ok((stretcher(pdl([2,3],[3,4]))->flat == pdl(2,0,0,3,3,0,0,4))->all, "stretcher 
 }
 
 {
-### Check eigens
+### Check eigens with symmetric
 my $pa = pdl([3,4],[4,-3]);
 ### Check that eigens runs OK
 my ($vec,$val);
 lives_ok { ($vec,$val) = eigens $pa } "eigens runs OK";
+ok tapprox($vec, pdl('[0.8944 -0.4472; 0.4472 0.8944]'), 1e-4), 'vec ok';
+ok tapprox($val, pdl('[5 -5]'), 1e-4), 'val ok';
 ### Check that it really returns eigenvectors
 my $c = float(($pa x $vec) / $vec);
-#print "c is $c\n";
 ok(all($c->slice(":,0") == $c->slice(":,1")),"eigens really returns eigenvectors");
-### Check that the eigenvalues are correct for this matrix
-ok((float($val->slice("0")) == - float($val->slice("1")) and
-	float($val->slice("0") * $val->slice("1")) == float(-25)),"eigenvalues are correct");
 }
 
 {
-### Check computations on larger matrix with known eigenvalue sum.
+### Check computations on larger symmetric matrix with known eigenvalue sum.
 my $m = pdl(
    [ 1.638,  2.153,  1.482,  1.695, -0.557, -2.443,  -0.71,  1.983],
    [ 2.153,  3.596,  2.461,  2.436, -0.591, -3.711, -0.493,  2.434],
@@ -232,10 +230,9 @@ my $esum=0;
 my ($vec,$val);
 eval {
     ($vec,$val) = eigens($m);
-    $esum=sprintf "%.3f", sum($val); #signature of eigenvalues
+    $esum = sum($val); #signature of eigenvalues
 };
-#print STDERR "eigensum for the 8x8: $esum\n";
-ok($esum == 61.308,"eigens sum for 8x8 correct answer");
+ok tapprox($esum, 61.308, 1e-3),"eigens sum for 8x8 correct answer";
 }
 
 {

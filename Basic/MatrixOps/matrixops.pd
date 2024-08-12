@@ -436,55 +436,48 @@ if (fabsf($SIZE(n) - n) > 0.0001)
   $CROAK("Non-triangular vector size=%"IND_FLAG, $SIZE(m));
 EOF
 
-######################################################################
-### eigens_sym
-###
 pp_def("eigens_sym",
-       HandleBad => 0,
-	Pars => '[phys]a(m); [o,phys]ev(n,n); [o,phys]e(n)',
-	RedoDimsCode => $TRIANGULAR_REDODIMS,
-	GenericTypes => ['D'],
-	Code => '
-		extern void eigens( double *A, double *RR, double *E, int N );
-		eigens($P(a), $P(ev), $P(e), $SIZE(n));
-',
-      PMCode =>'
-   sub PDL::eigens_sym {
-      my ($x) = @_;
-      my (@d) = $x->dims;
-      barf "Need real square matrix for eigens_sym"
-            if $#d < 1 or $d[0] != $d[1];
-      my ($sym) = 0.5*($x + $x->transpose);
-      my ($err) = PDL::max(abs($sym));
-      barf "Need symmetric component non-zero for eigens_sym"
-          if $err == 0;
-      $err = PDL::max(abs($x-$sym))/$err;
-      warn "Using symmetrized version of the matrix in eigens_sym"
-	if $err > 1e-5 && $PDL::debug;
-
-      &PDL::_eigens_sym_int($sym->squaretotri, my $ev=PDL->null, my $e=PDL->null);
-
-      return $ev->transpose, $e
-	if(wantarray);
-      $e;                #just eigenvalues
-   }
-'
-      , Doc => '
+  HandleBad => 0,
+  Pars => '[phys]a(m); [o,phys]ev(n,n); [o,phys]e(n)',
+  RedoDimsCode => $TRIANGULAR_REDODIMS,
+  GenericTypes => ['D'],
+  Code => <<'EOF',
+extern void eigens( double *A, double *RR, double *E, int N );
+eigens($P(a), $P(ev), $P(e), $SIZE(n));
+EOF
+  PMCode => <<'EOF',
+sub PDL::eigens_sym {
+  my ($x) = @_;
+  my @d = $x->dims;
+  barf "Need real square matrix for eigens_sym"
+        if @d < 2 or $d[0] != $d[1];
+  my ($sym) = 0.5*($x + $x->transpose);
+  my ($err) = PDL::max(abs($sym));
+  barf "Need symmetric component non-zero for eigens_sym" if $err == 0;
+  $err = PDL::max(abs($x-$sym))/$err;
+  warn "Using symmetrized version of the matrix in eigens_sym"
+    if $err > 1e-5 && $PDL::debug;
+  PDL::_eigens_sym_int($sym->squaretotri, my $ev=PDL->null, my $e=PDL->null);
+  return ($ev->transpose, $e) if wantarray;
+  $e;                #just eigenvalues
+}
+EOF
+  Doc => <<'EOF',
 =for ref
 
 Eigenvalues and -vectors of a symmetric square matrix.  If passed
 an asymmetric matrix, the routine will warn and symmetrize it, by taking
 the average value.  That is, it will solve for 0.5*($a+$a->transpose).
 
-It\'s broadcastable, so if C<$a> is 3x3x100, it\'s treated as 100 separate 3x3
+It's broadcastable, so if C<$a> is 3x3x100, it's treated as 100 separate 3x3
 matrices, and both C<$ev> and C<$e> get extra dimensions accordingly.
 
 If called in scalar context it hands back only the eigenvalues.  Ultimately,
 it should switch to a faster algorithm in this case (as discarding the
 eigenvectors is wasteful).
 
-The algorithm used is due to J. vonNeumann, which was a rediscovery of
-L<Jacobi\'s Method|http://en.wikipedia.org/wiki/Jacobi_eigenvalue_algorithm> .
+The algorithm used is due to J. von Neumann, which was a rediscovery of
+L<Jacobi's Method|http://en.wikipedia.org/wiki/Jacobi_eigenvalue_algorithm> .
 
 The eigenvectors are returned in COLUMNS of the returned PDL.  That
 makes it slightly easier to access individual eigenvectors, since the
@@ -495,133 +488,147 @@ runs across their components.
     $vector = $ev->slice($n);       # Select nth eigenvector as a column-vector
     $vector = $ev->slice("($n)");     # Select nth eigenvector as a row-vector
 
+To compare with L<PDL::LinearAlgebra>:
+
+  use PDL::LinearAlgebra;
+  ($val, $rvec) = msymeigen($A = pdl([3,4], [4,-3]),1,1);
+  print $val->slice(1) * $rvec->slice(1);
+  #[
+  # [        -4.472136]
+  # [        -2.236068]
+  #]
+  print $A x $rvec->slice(1);
+  #[
+  # [        -4.472136]
+  # [        -2.236068]
+  #]
+  ($rvec, $val) = eigens_sym($A); # note return values other way round
+  # otherwise the same
+
 =for usage
 
     ($ev, $e) = eigens_sym($x); # e-vects & e-values
     $e = eigens_sym($x);        # just eigenvalues
-
-=cut
-
-',);
+EOF
+);
 
 ######################################################################
 ### eigens
 ###
 pp_def("eigens",
-       HandleBad => 0,
-	Pars => '[phys]a(m); [o,phys]ev(l=2,n,n); [o,phys]e(l,n)',
-	RedoDimsCode => $TRIANGULAR_REDODIMS,
-	GenericTypes => ['D'],
-	Code => '
-	    #include "eigen.h"
+  HandleBad => 0,
+  Pars => '[phys]a(m); [o,phys]ev(l=2,n,n); [o,phys]e(l,n)',
+  RedoDimsCode => $TRIANGULAR_REDODIMS,
+  GenericTypes => ['D'],
+  CHeader => '#include "eigen.h"',
+  Code => <<'EOF',
+register PDL_Indx sn = $SIZE(n);
+int i,j;
 
-	    register PDL_Indx sn = $SIZE(n);
-	    int i,j;
+void **foo;
+void **bar;
+New(42, foo, sn, void*);
+New(111, bar, sn, void*);
 
-            void **foo;
-            void **bar;
-            New(42, foo, sn, void*);
-            New(111, bar, sn, void*);
+for(  i=j=0;  i<$SIZE(m);  i += sn  ) {
+  foo[j] = &( ($P(a))[ i ] );
+  bar[j] = &( ($P(ev))[ i+i ] );
+  j++;
+}
 
-	    for(  i=j=0;  i<$SIZE(m);  i += sn  ) {
-		foo[j] = &( ($P(a))[ i ] );
-		bar[j] = &( ($P(ev))[ i+i ] );
-		j++;
-	    }
+Eigen( sn, 0, (double **) foo, 20*sn, 1e-13, 0,
+  (complex double *)( $P(e) ),
+  (complex double **) bar
+);
+Safefree(foo);
+Safefree(bar);
 
-	    Eigen( sn, 0, (double **) foo, 20*sn, 1e-13, 0,
-		   (complex double *)( $P(e) ),
-                   (complex double **) bar
-		 );
-            Safefree(foo);
-            Safefree(bar);
+/* Check for invalid values: convenience block */
+{
+  int k;
+  char ok, flag;
+  PDL_Double eps = 0;
 
-            /* Check for invalid values: convenience block */
-            {
-                int k;
-                char ok, flag;
-                PDL_Double eps = 0;
+  /* First: find maximum eigenvalue */
+  for(i=0; i< sn; i++ ) {
+      PDL_Double z = fabs (  ($P(e))[i*2]  );
+      if( z > eps )
+          eps = z;
+  }
+  eps *= 1e-10;
 
-  		/* First: find maximum eigenvalue */
-                for(i=0; i< sn; i++ ) {
-                    PDL_Double z = fabs (  ($P(e))[i*2]  );
-                    if( z > eps )
-                        eps = z;
-                }
-                eps *= 1e-10;
-
-		/* Next: scan for non-real terms and parallel vectors */
-                for( i=0;  i < sn;  i++ ) {
-                   ok = ( fabs( ($P(e))[i*2+1] ) < eps );
-                   for(  j=0; ok && j< sn;  j++)
-                      ok &= fabs( ($P(ev))[ 2* (i*sn + j) + 1] ) < eps;
-                   for(  k=0; ok && k < i; k++ ) {
-                     if( isfinite( ($P(ev))[ 2 * (k*sn) ] ) ) {
-                       for( flag=1, j=0; ok && flag && j< sn; j++)
-                         flag &= ( fabs( ($P(ev))[ 2 * (i*sn + j) ] -
-                                         ($P(ev))[ 2 * (k*sn + j) ]
-                                       )
-                                   < 1e-10 * (
-                                      fabs(($P(ev))[ 2 * (k*sn + j) ]) +
-                                      fabs(($P(ev))[ 2 * (i*sn + j) ]) )
-                                 );
-                       ok &= !flag;
-                     }
-                   }
-                   if (ok) {
-                       for(j=0; ok && j<sn; j++) {
-                           double ex = ($P(e))[i*2] * ($P(ev))[2 * (i*sn + j)];
-                           double ac = 0.0; /*actual matrix product*/
-                           for(k=0; k<sn; k++)
-                               ac += ($P(a))[i*sn + k] * ($P(ev))[2 * (i*sn + k)];
-                           ok &= fabs(ac-ex)<eps;
-                       }
-                   }
-
-                   /* Set column to NaN if necessary */
-                   if( !ok  ) {
-                     /* TODO: We should set the badval bit if in use. */
-		     for(j=0; j< sn; j++)
-		       ($P(ev))[2 * (i*sn+j)] = NAN;
-		     ($P(e))[i*2] = NAN;
-                   }
-                }
-            }
-',
-      PMCode =>'
-   sub PDL::eigens {
-      my ($x) = @_;
-      my (@d) = $x->dims;
-      barf "Need real square matrix for eigens"
-            if $#d < 1 or $d[0] != $d[1];
-      my $deviation = PDL::max(abs($x - $x->transpose))/PDL::max(abs($x));
-      if ( $deviation <= 1e-5 ) {
-          &PDL::_eigens_sym_int($x->squaretotri, my $ev=PDL->null, my $e=PDL->null);
-          return $ev->transpose, $e   if wantarray;
-          return $e;  #just eigenvalues
+  /* Next: scan for non-real terms and parallel vectors */
+  for( i=0;  i < sn;  i++ ) {
+    ok = ( fabs( ($P(e))[i*2+1] ) < eps );
+    for(  j=0; ok && j< sn;  j++)
+      ok &= fabs( ($P(ev))[ 2* (i*sn + j) + 1] ) < eps;
+    for(  k=0; ok && k < i; k++ ) {
+      if( isfinite( ($P(ev))[ 2 * (k*sn) ] ) ) {
+        for( flag=1, j=0; ok && flag && j< sn; j++)
+          flag &= ( fabs( ($P(ev))[ 2 * (i*sn + j) ] -
+                          ($P(ev))[ 2 * (k*sn + j) ]
+                        )
+                    < 1e-10 * (
+                       fabs(($P(ev))[ 2 * (k*sn + j) ]) +
+                       fabs(($P(ev))[ 2 * (i*sn + j) ]) )
+                  );
+        ok &= !flag;
       }
-      else {
-          if($PDL::verbose || $PDL::debug) {
-   	    print "eigens: using the asymmetric case from SSL\n";
-	  }
-	  if( !$PDL::eigens_bug_ack && !$ENV{PDL_EIGENS_ACK} ) {
-	    print STDERR "WARNING: using sketchy algorithm for PDL::eigens asymmetric case -- you might\n".
-	          "    miss an eigenvector or two\nThis should be fixed in PDL v2.5 (due 2009), \n".
-		  "    or you might fix it yourself (hint hint).  You can shut off this warning\n".
-		  "    by setting the variable $PDL::eigens_bug_ack, or the environment variable\n".
-		  "    PDL_EIGENS_HACK prior to calling eigens() with a non-symmetric matrix.\n";
-		  $PDL::eigens_bug_ack = 1;
-	  }
-
-          &PDL::_eigens_int($x->clump(0,1), my $ev=PDL->null, my $e=PDL->null);
-
-          return $ev->index(0)->transpose->sever, $e->index(0)->sever
-              if(wantarray);
-          return $e->index(0)->sever;  #just eigenvalues
+    }
+    if (ok) {
+      for(j=0; ok && j<sn; j++) {
+        double ex = ($P(e))[i*2] * ($P(ev))[2 * (i*sn + j)];
+        double ac = 0.0; /*actual matrix product*/
+        for(k=0; k<sn; k++)
+            ac += ($P(a))[i*sn + k] * ($P(ev))[2 * (i*sn + k)];
+        ok &= fabs(ac-ex)<eps;
       }
-   }
-'
-      , Doc => '
+    }
+
+    /* Set column to NaN if necessary */
+    if( !ok  ) {
+      /* TODO: We should set the badval bit if in use. */
+      for(j=0; j< sn; j++)
+        ($P(ev))[2 * (i*sn+j)] = NAN;
+      ($P(e))[i*2] = NAN;
+    }
+  }
+}
+EOF
+  PMCode => <<'EOF',
+sub PDL::eigens {
+  my ($x) = @_;
+  my @d = $x->dims;
+  barf "Need real square matrix for eigens"
+        if @d < 2 or $d[0] != $d[1];
+  my $deviation = PDL::max(abs($x - $x->transpose))/PDL::max(abs($x));
+  if ( $deviation <= 1e-5 ) {
+    PDL::_eigens_sym_int($x->squaretotri, my $ev=PDL->null, my $e=PDL->null);
+    return $ev->transpose, $e   if wantarray;
+    return $e;  #just eigenvalues
+  } else {
+    if ($PDL::verbose || $PDL::debug) {
+      print "eigens: using the asymmetric case from SSL\n";
+    }
+    if (!$PDL::eigens_bug_ack && !$ENV{PDL_EIGENS_ACK}) {
+      print STDERR <<'EOWARN';
+WARNING: using sketchy algorithm for PDL::eigens asymmetric case -- you might
+    miss an eigenvector or two
+This should be fixed in PDL v2.5 (due 2009),
+    or you might fix it yourself (hint hint).  You can shut off this warning
+    by setting the variable $PDL::eigens_bug_ack, or the environment variable
+    PDL_EIGENS_ACK prior to calling eigens() with a non-symmetric matrix.
+EOWARN
+            $PDL::eigens_bug_ack = 1;
+    }
+    PDL::_eigens_int($x->clump(0,1), my $ev=PDL->null, my $e=PDL->null);
+    return $ev->index(0)->transpose->sever, $e->index(0)->sever
+        if wantarray;
+    return $e->index(0)->sever;  #just eigenvalues
+  }
+}
+EOF
+  Doc => <<'EOF',
 =for ref
 
 Real eigenvalues and -vectors of a real square matrix.
@@ -675,9 +682,10 @@ numbers.  It might be useful to be able to return complex eigenvalues.
 
 =for usage
 
-    ($ev, $e) = eigens($x); # e\'vects & e\'vals
-    $e = eigens($x);        # just eigenvalues
-',);
+  ($ev, $e) = eigens($x); # e\'vects & e\'vals
+  $e = eigens($x);        # just eigenvalues
+EOF
+);
 
 ######################################################################
 ### svd
