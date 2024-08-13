@@ -850,9 +850,9 @@ void Eigen(int n, int ref, double **AJAC, int maxit, double eps,
   T=MatrixAlloc(n);
   A=MatrixAlloc(n);
 
-  for(i=1; i<=n; i++)
-    for(j=1; j<=n; j++)
-      A[i-1][j-1]=AJAC[i-1][j-1];
+  for(i=0; i<n; i++)
+    for(j=0; j<n; j++)
+      A[i][j]=AJAC[i][j];
 
   Balance(n, 10, A, &ballow, &balhi, bald);
   Elmhes(n, ballow, balhi, A, intout);
@@ -861,12 +861,6 @@ void Eigen(int n, int ref, double **AJAC, int maxit, double eps,
   hqr2(n, ballow, balhi, maxit, eps, A, T, wr, wi, intout, &fail);
   if (fail==1) 
     (void) fprintf(stderr, "Failure in hqr2 function. Do not trust the given eigenvectors and -values\n");
-  /*
-  tmxx=0;
-  for(i=1; i<=n; i++)
-    if (abs(intout[i-1])>tmxx)
-      tmxx=(int)ceil(abs(intout[i-1]));
-  */
   for(i=1; i<=n; i++)
     for(j=1; j<=n; j++)
       A[i-1][j-1]=0.0;
@@ -886,7 +880,7 @@ void Eigen(int n, int ref, double **AJAC, int maxit, double eps,
   } while (i<n);
   if (i==n)
     A[i-1][i-1]=wr[i-1];
- 
+
   Swap(n, A, T, eps);
   BalBak(n, ballow, balhi, n, T, bald);
   NormalizingMatrix(n, A, fixedref, &ref, T, eps);
@@ -927,8 +921,3 @@ void Eigen(int n, int ref, double **AJAC, int maxit, double eps,
   MatrixFree(n, A);
   MatrixFree(n, T);
 } /* Eigen */
-
-
-
-
-

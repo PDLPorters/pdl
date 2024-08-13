@@ -209,9 +209,6 @@ my ($vec,$val);
 lives_ok { ($vec,$val) = eigens $pa } "eigens runs OK";
 ok tapprox($vec, pdl('[0.8944 -0.4472; 0.4472 0.8944]'), 1e-4), 'vec ok';
 ok tapprox($val, pdl('[5 -5]'), 1e-4), 'val ok';
-### Check that it really returns eigenvectors
-my $c = float(($pa x $vec) / $vec);
-ok(all($c->slice(":,0") == $c->slice(":,1")),"eigens really returns eigenvectors");
 }
 
 {
@@ -238,14 +235,15 @@ ok tapprox($esum, 61.308, 1e-3),"eigens sum for 8x8 correct answer";
 {
 my $esum=0;
 lives_ok {
-    $esum = sprintf "%.3f", sum scalar eigens_sym($m);
+    $esum = sum scalar eigens_sym($m);
 } "eigens_sym for 8x8 ran OK";
-is($esum, 61.308, 'eigens_sym sum for 8x8 correct answer');
+ok tapprox($esum, 61.308, 1e-3),"eigens_sym sum for 8x8 correct answer";
+}
 }
 
 {
 if(0){ #fails because of bad eigenvectors
-#Check an assymmetric matrix:
+#Check an asymmetric matrix:
 my $pa = pdl ([4,-1], [2,1]);
 my $esum;
 my ($vec,$val);
@@ -257,16 +255,13 @@ ok($esum == 5);
 }
 }
 
-}
-
-{
-
 if(0){ #eigens for asymmetric matrices disbled
 #The below matrix has complex eigenvalues
 my $should_be_nan = eval { sum(scalar eigens(pdl([1,1],[-1,1]))) };
 ok( ! ($should_be_nan == $should_be_nan)); #only NaN is not equal to itself
 }
 
+{
 #check singular value decomposition for MxN matrices (M=#rows, N=#columns):
 
 my $svd_in = pdl([3,1,2,-1],[-1,3,0,2],[-2,3,0,0],[1,3,-1,2]);

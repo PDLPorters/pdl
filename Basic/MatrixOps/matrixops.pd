@@ -517,12 +517,11 @@ EOF
 ###
 pp_def("eigens",
   HandleBad => 0,
-  Pars => '[phys]a(m); [o,phys]ev(l=2,n,n); [o,phys]e(l,n)',
-  RedoDimsCode => $TRIANGULAR_REDODIMS,
+  Pars => '[phys]a(n,n); [o,phys]ev(l=2,n,n); [o,phys]e(l,n)',
   GenericTypes => ['D'],
   CHeader => '#include "eigen.h"',
   Code => <<'EOF',
-register PDL_Indx sn = $SIZE(n);
+register PDL_Indx sn = $SIZE(n), n2 = sn*sn;
 int i,j;
 
 void **foo;
@@ -530,7 +529,7 @@ void **bar;
 New(42, foo, sn, void*);
 New(111, bar, sn, void*);
 
-for(  i=j=0;  i<$SIZE(m);  i += sn  ) {
+for(  i=j=0;  i<n2;  i += sn  ) {
   foo[j] = &( ($P(a))[ i ] );
   bar[j] = &( ($P(ev))[ i+i ] );
   j++;
@@ -621,7 +620,7 @@ This should be fixed in PDL v2.5 (due 2009),
 EOWARN
             $PDL::eigens_bug_ack = 1;
     }
-    PDL::_eigens_int($x->clump(0,1), my $ev=PDL->null, my $e=PDL->null);
+    PDL::_eigens_int($x, my $ev=PDL->null, my $e=PDL->null);
     return $ev->index(0)->transpose->sever, $e->index(0)->sever
         if wantarray;
     return $e->index(0)->sever;  #just eigenvalues
@@ -651,7 +650,7 @@ eigenvectors, they are replaced with all "NaN"s.
 Use of the eigens function on asymmetric matrices should be considered
 experimental!  For asymmetric matrices, nearly all observed matrices
 with real eigenvalues produce incorrect results, due to errors of the
-sslib algorithm.  If your assymmetric matrix returns all NaNs, do not
+sslib algorithm.  If your asymmetric matrix returns all NaNs, do not
 assume that the values are complex.  Also, problems with memory access
 is known in this library.
 
@@ -682,7 +681,7 @@ numbers.  It might be useful to be able to return complex eigenvalues.
 
 =for usage
 
-  ($ev, $e) = eigens($x); # e\'vects & e\'vals
+  ($ev, $e) = eigens($x); # e'vects & e'vals
   $e = eigens($x);        # just eigenvalues
 EOF
 );
