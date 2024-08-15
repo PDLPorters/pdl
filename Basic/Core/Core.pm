@@ -55,6 +55,7 @@ $PDL::doubleformat = "%10.8g";
 $PDL::indxformat   = "%12d";   # Default print format for PDL_Indx values
 $PDL::undefval     = 0;        # Value to use instead of undef when creating PDLs
 $PDL::toolongtoprint = 10000;  # maximum pdl size to stringify for printing
+$PDL::infoformat = "%C: %T %D";
 
 ################ Exportable functions of the Core ######################
 
@@ -246,6 +247,16 @@ respectively.  The default default values are:
   $PDL::floatformat  = "%7g";
   $PDL::doubleformat = "%10.8g";
   $PDL::indxformat   = "%12d";
+
+=back
+
+=head3 C<$PDL::infoformat>
+
+=over 4
+
+The default format for C<info>.  The default value is:
+
+  $PDL::infoformat = "%C: %T %D";
 
 =back
 
@@ -2116,11 +2127,13 @@ Calculated memory consumption of this ndarray's data area
 
 =back
 
+The default format is C<"%C: %T %D">.
+This can be modified by assigning to C<$PDL::infoformat>.
 =cut
 
 sub PDL::info {
     my ($this,$str) = @_;
-    $str = "%C: %T %D" unless defined $str;
+    $str = $PDL::infoformat unless defined $str;
     return ref($this)."->null" if $this->isnull;
     my @hash = split /(%[-,0-9]*[.]?[0-9]*\w)/, $str;
     my @args = ();
