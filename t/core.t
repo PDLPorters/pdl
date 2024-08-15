@@ -478,6 +478,12 @@ my $mt_info = $empty->info;
 $mt_info =~m/\[([\d,]+)\]/;
 my $mt_info_dims = pdl("$1");
 ok(any($mt_info_dims==0), "empty ndarray's info contains a 0 dimension");
+{
+    is($PDL::infoformat, "%C: %T %D", "check default info format");
+    local $PDL::infoformat = "default info format for %C";
+    is(pdl(2, 3)->info, "default info format for PDL",
+        "use default info format");
+}
 ok($null->isnull, "a null ndarray is null");
 ok($null->isempty, "a null ndarray is empty") or diag $null->info;
 ok(!$empty->isnull, "an empty ndarray is not null");
