@@ -5,6 +5,7 @@
 - add IO::Pic support for XBM
 - fix typemaps for future Perl versions (#487) - thanks @HaraldJoerg
 - $PDL::infoformat now default for info method (#491) - thanks @jo-37
+- move PDL::Graphics::LUT to PGPLOT distro
 
 2.089_02 2024-06-26
 - PDL::VectorValued::vcos into Primitive - thanks @moocow-the-bovine
