@@ -127,12 +127,10 @@ for (@functions) {
 @func_defs = sort { $a->[1] cmp $b->[1] } @func_defs; # sort by function name
 
 for my $f (@func_defs) {
-  my $out_type = $f->[0];
-  my $function = $f->[1];
-  (my $func_short = $function) =~ s/^([^_]+_[^_]+_[^_]+).*$/$1/;
+  my ($out_type, $function, $pars) = @$f;
+  my $func_short = join '_', (split '_', $function)[0..2];
+  my ($p, $code) = print_ppdef($out_type, $function, @$pars);
   my $desc = delete $func_desc{$func_short};
-  my @pars = @{$f->[2]};
-  my ($p, $code) = print_ppdef($out_type, $function, @pars);
   pp_addpm(qq{\n=head2 $desc->[0] (${func_short}_*)\n\n$desc->[1]\n\n=cut\n\n}) if $desc;
   pp_def($function,
     HandleBad => 1,
@@ -145,21 +143,17 @@ for my $f (@func_defs) {
 
 sub print_ppdef {
   my ($out_type, $function, @pars) = @_;
-  my $pars = join ' ', map "@$_[0,1]();", @pars, [$out_type, '[o]out'];
+  @pars = map $_->[0] eq 'double' ? [$_->[1]] : $_, @pars;
+  my $pars = join ' ', map "@$_();", @pars, ['[o]out'];
   my $code = pp_line_numbers(__LINE__, <<EOF);
 gsl_error_handler_t *current_handler;
 funcname = "$function";
 current_handler = gsl_set_error_handler(cdf_error_handler);
-\$out() = $function(
-EOF
-  $code .= "\$" . $_->[1] . "(), "
-    for (@pars);
-  $code .= ");
+\$out() = $function(@{[join ', ', map "\$$_->[-1]()", @pars]});
 gsl_set_error_handler(current_handler);
-";
-  $code =~ s/, \);/ );/;
+EOF
   $code =
-    "PDL_IF_BAD(if ( !(" . join(' && ', map { "\$ISGOOD($_->[1]())" } @pars ) . ") ) {" .
+    "PDL_IF_BAD(if ( !(" . join(' && ', map { "\$ISGOOD($_->[-1]())" } @pars ) . ") ) {" .
     "\$SETBAD(out()); }" .
     'else,) {' . $code . "}\n";
   return ($pars, $code);
