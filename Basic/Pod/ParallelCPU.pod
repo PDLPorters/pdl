@@ -124,7 +124,7 @@ the case if you are running on Windows, Linux, MacOS X, or other unix variants.
 
 =head2 Non-Threadsafe Code
 
-Not all the libraries that PDL intefaces to are thread-safe, i.e. they aren't written to operate
+Not all the libraries that PDL interfaces to are thread-safe, i.e. they aren't written to operate
 in a multi-threaded environment without crashing or causing side-effects. Some examples in the PDL
 core is the I<fft> function and the I<pnmout> functions. 
 
@@ -163,4 +163,4 @@ your bottleneck. For simple calculations (e.g simple additions) you can run into
 Copyright 2011 John Cerney. You can distribute and/or
 modify this document under the same terms as the current Perl license.
 
-See: http://dev.perl.org/licenses/
+See: L<http://dev.perl.org/licenses/>

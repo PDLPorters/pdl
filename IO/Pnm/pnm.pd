@@ -394,10 +394,10 @@ pp_def(	'pnmout',
 			  loop(m) %{
 			    k = (k << 1) | ($a() < 1);
 			    bit++;
-				if (bit==8) {
-				  PerlIO_putc($COMP(fp),k);
-				  bit = k = 0;
-				}
+			    if (bit==8) {
+			      PerlIO_putc($COMP(fp),k);
+			      bit = k = 0;
+			    }
 			  %}
 			  if (bit) {
 			    k = k << (8-bit);
@@ -405,14 +405,20 @@ pp_def(	'pnmout',
 			  }
 		       %}
 		    } else {
-		      int len = $SIZE(m) * sizeof($GENERIC());
+		      PDL_Indx len = $SIZE(m) * sizeof($GENERIC());
 		      broadcastloop %{
-			if (PerlIO_write($COMP(fp),$P(a),len) != len)
-				$CROAK("Error writing pnm file");
+			PDL_Indx this_len = len;
+			while (1) {
+			  PDL_Indx wrote = PerlIO_write($COMP(fp),$P(a),this_len);
+			  if (wrote < 0)
+			    $CROAK("Error writing pnm file: %s", strerror(errno));
+			  this_len -= wrote;
+			  if (this_len <= 0) break;
+			}
 		      %}
 		    }
 		 } else {
-		    int len=0;
+		    PDL_Indx len=0;
 		    broadcastloop %{
 			loop(m) %{
 				PerlIO_printf($COMP(fp),"%3d ",$COMP(isbin) ?
