@@ -66,21 +66,16 @@ static void cdf_error_handler(const char *reason, const char *file, int line, in
 
 ');
 
-my ($header) = `gsl-config --cflags` =~ m/-I(.+)$/;
+use Text::ParseWords qw(shellwords);
+my ($header) = map {s/^-I//;$_} grep /^-I/, shellwords `gsl-config --cflags`;
 $header .= '/gsl/gsl_cdf.h';
-# for win32. Thanks Sisyphus!
-$header =~ s/"//g;
-
-open my $fh, "< $header" or die "$!";
-
-local $/ = undef;
-my $h = <$fh>;
+my $h = do { open my $fh, "<", $header or die "$header: $!"; local $/ = undef; <$fh> };
 my @functions = $h =~ m/(double\s+gsl_cdf_.+?\)\s*;\s*)\n/xmsg;
 my @func_defs;
 
 my %p_type = (
   'double'       => 'double',
-  'unsigned int' => 'ushort',
+  'unsigned int' => 'ulonglong',
 );
 
 my %func_desc = (
