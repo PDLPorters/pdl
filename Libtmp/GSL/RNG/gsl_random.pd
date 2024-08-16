@@ -435,9 +435,85 @@ pp_addhdr('
 
 #include "gsl/gsl_rng.h"
 #include "gsl/gsl_randist.h"
-
-
 ');
+
+use Config;
+my %p_type = (
+  'double' => 'double',
+  'unsigned int' => $Config{intsize} == 4 ? 'uint' :
+    $Config{intsize} == 8 ? 'ulonglong' : die("Unknown intsize, not [48]"),
+  'size_t' => 'SIZE',
+);
+use Text::ParseWords qw(shellwords);
+my ($header) = map {s/^-I//;$_} grep /^-I/, shellwords `gsl-config --cflags`;
+$header .= '/gsl/gsl_randist.h';
+my $h = do { open my $fh, "<", $header or die "$header: $!"; local $/ = undef; <$fh> };
+my @defs;
+DEF: for my $def ($h =~ m/(double\s+gsl_ran_\S*_pdf\s*\(.+?\))/sg) {
+  local $_ = $def;
+  s/\n\s+/ /xmsg;
+  s/const //g;
+  if (m/^(\w+)\s+(\w+)\s*\(\s*(.+)\s*\)/s) {
+    my ($out_type, $function, $pars) = ($1, $2, $3);
+    my @pars = split /,/, $pars;
+    for (@pars) {
+      die "Couldn't parse '$_' in '$def'" if !m/^(.+?)(\w+)\s*(\[\s*\])?\s*$/;
+      my ($type, $par, $vec) = ($1, $2, $3);
+      next DEF if $type =~ /gsl_ran_discrete_t/;
+      s/^ | $//g for ($type, $par);
+      $par = lc $par;
+        # numbers interfere with $ISGOOD in BadCode
+      $par =~ s/1/a/g;
+      $par =~ s/2/b/g;
+      die("unknown type '$type' in '$def'") if !$p_type{$type};
+      $_ = [$p_type{$type}, $par, $vec ? 1 : ()];
+    }
+    push @defs, [ $out_type, $function, \@pars ];
+  }
+}
+@defs = sort { $a->[1] cmp $b->[1] } @defs; # sort by function name
+for my $f (@defs) {
+  my ($out_type, $function, $pars) = @$f;
+  my ($p, $code) = gen_def($out_type, $function, @$pars);
+  (my $pp_name = $function) =~ s/^gsl_//;
+  pp_def($pp_name,
+    HandleBad => 1,
+    GenericTypes => ['D'],
+    Pars => $p,
+    Code => $code,
+    Doc  => '',
+  );
+}
+sub gen_def {
+  my ($out_type, $function, @pars) = @_;
+  my $SIZEVAR;
+  my @formal_pars = map {
+    if ($_->[0] eq 'SIZE') {
+      die "$function got second sizevar (@$_) but already got '$SIZEVAR'"
+        if $SIZEVAR;
+      $SIZEVAR = $_->[1];
+      ()
+    } else {
+      my $prefix = $_->[0] eq 'double' ? '' : "$_->[0] ";
+      my $suffix = !$_->[2] ? '()' :
+        $SIZEVAR ? "($SIZEVAR)" :
+        die "$function got vector par (@$_) but no sizevar";
+      $prefix.$_->[1].$suffix
+    }
+  } @pars;
+  my $pars = join '; ', @formal_pars, '[o]out()';
+  my @call_pars = map $_->[0] eq 'SIZE' ? "\$SIZE($_->[1])" :
+    $_->[2] ? "\$P($_->[1])" : "\$$_->[1]()",
+    @pars;
+  my $code = join "\n", "PDL_IF_BAD(char anybad=0;,)",
+    (map $_->[2] ?
+      "PDL_IF_BAD(loop ($SIZEVAR) %{ if (\$ISBAD($_->[1]())) { anybad=1; break; } %},)" :
+      "PDL_IF_BAD(if ( \$ISBAD($_->[1]())) anybad=1;,)",
+      grep $_->[0] ne 'SIZE', @pars),
+    "PDL_IF_BAD(if (anybad) { \$SETBAD(out()); continue; },)",
+    "\$out() = $function(@{[join ', ', @call_pars]});\n";
+  return ($pars, $code);
+}
 
 sub pp_defnd { # hide the docs
   my ($name, %hash) = @_;
