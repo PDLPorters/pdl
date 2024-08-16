@@ -472,10 +472,12 @@ DEF: for my $def ($h =~ m/(double\s+gsl_ran_\S*_pdf\s*\(.+?\))/sg) {
   }
 }
 @defs = sort { $a->[1] cmp $b->[1] } @defs; # sort by function name
+my @export_names;
 for my $f (@defs) {
   my ($out_type, $function, $pars) = @$f;
   my ($p, $code) = gen_def($out_type, $function, @$pars);
   (my $pp_name = $function) =~ s/^gsl_//;
+  push @export_names, $pp_name;
   pp_def($pp_name,
     HandleBad => 1,
     GenericTypes => ['D'],
@@ -1270,6 +1272,7 @@ pp_core_importList(' qw/ zeroes long barf  /');  # import just a named list to o
 				     # messages like 'warning 'min' redefined at line ...'
 
 pp_export_nothing;  # set to not export anything. (This is a OO package, it doesn't need to export any methods.)
+pp_add_exported(@export_names); # ... except functions suitable for that
 
 pp_add_boot('gsl_set_error_handler_off();
 ');
