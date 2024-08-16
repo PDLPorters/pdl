@@ -117,9 +117,6 @@ for (@functions) {
         my ($type, $par) = ($1, $2);
         s/^ | $//g for ($type, $par);
         $par = lc $par;
-          # numbers interfere with $ISGOOD in BadCode
-        $par =~ s/1/a/g;
-        $par =~ s/2/b/g;
         $_ = [$p_type{$type}, $par];
       }
     }
