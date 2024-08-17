@@ -7,6 +7,7 @@
 - $PDL::infoformat now default for info method (#491) - thanks @jo-37
 - move PDL::Graphics::LUT to PGPLOT distro
 - add GSL::RNG bindings for most _pdf functions
+- add demo of GSL::RNG
 
 2.089_02 2024-06-26
 - PDL::VectorValued::vcos into Primitive - thanks @moocow-the-bovine

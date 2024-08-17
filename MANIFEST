@@ -362,6 +362,7 @@ Libtmp/GSL/MROOT/FUNC.c
 Libtmp/GSL/MROOT/gsl_mroot.pd
 Libtmp/GSL/MROOT/Makefile.PL
 Libtmp/GSL/MROOT/t/gsl_mroot.t
+Libtmp/GSL/RNG/Demo.pm
 Libtmp/GSL/RNG/gsl_random.pd
 Libtmp/GSL/RNG/Makefile.PL
 Libtmp/GSL/RNG/README

@@ -34,6 +34,7 @@ my %hash = pdlpp_stdargs_int(@pack);
 
 $hash{INC} .= " $GSL_includes";
 push @{$hash{LIBS}},$GSL_libs;
+$hash{PM}{'Demo.pm'} = '$(INST_LIB)/PDL/Demos/GSL_RNG.pm';
 
 undef &MY::postamble; # suppress warning
 *MY::postamble = sub { pdlpp_postamble_int(@pack); };
