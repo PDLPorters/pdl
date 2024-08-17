@@ -242,8 +242,6 @@ sub PDL::wpnm {
     barf "wpnm: pbmconverter error: $!" if !$already_open and !close $fh;
 }
 
-
-
 ;# Exit with OK status
 
 1;
