@@ -22,6 +22,6 @@
 #include <stdio.h>
 #include "complex.h"
 
-extern char *Eigen(int, double **, int, double, complex double *, complex double **);
+extern char *Eigen(int, double *, int, double, complex double *, complex double *);
 
 #endif /* SSL_EIGEN_SSL */

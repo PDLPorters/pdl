@@ -521,26 +521,7 @@ pp_def("eigens",
   GenericTypes => ['D'],
   CHeader => '#include "eigen.h"',
   Code => <<'EOF',
-register PDL_Indx sn = $SIZE(n), n2 = sn*sn;
-int i,j;
-
-void **foo;
-void **bar;
-New(42, foo, sn, void*);
-New(111, bar, sn, void*);
-
-for(  i=j=0;  i<n2;  i += sn  ) {
-  foo[j] = &( ($P(a))[ i ] );
-  bar[j] = &( ($P(ev))[ i ] );
-  j++;
-}
-
-char *ret = Eigen( sn, (double **) foo, 20*sn, 1e-13,
-  (complex double *)( $P(e) ),
-  (complex double **) bar
-);
-Safefree(foo);
-Safefree(bar);
+char *ret = Eigen($SIZE(n), $P(a), 20*$SIZE(n), 1e-13, $P(e), $P(ev));
 if (ret) $CROAK("%s", ret);
 EOF
   PMCode => <<'EOF',

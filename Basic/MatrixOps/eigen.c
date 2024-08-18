@@ -821,8 +821,8 @@ void hqr2(int n, int low, int upp, int maxits, double macheps,
  L270:;
 } /* hqr2 */
 	  
-char *Eigen(int n, double **AJAC, int maxit, double eps,
-	   complex double *values, complex double **vectors) {
+char *Eigen(int n, double *AJAC, int maxit, double eps,
+	   complex double *values, complex double *vectors) {
 
   double  *wr, *wi, *bald, **T, **A;
   int     i, j, ballow, balhi, block;
@@ -838,7 +838,7 @@ char *Eigen(int n, double **AJAC, int maxit, double eps,
 
   for(i=0; i<n; i++)
     for(j=0; j<n; j++)
-      A[i][j]=AJAC[i][j];
+      A[i][j]=AJAC[i*n + j];
 
   Balance(n, 10, A, &ballow, &balhi, bald);
   Elmhes(n, ballow, balhi, A, intout);
@@ -889,13 +889,13 @@ char *Eigen(int n, double **AJAC, int maxit, double eps,
     BlockCheck(A, n, i, &block, eps);
     if (block==1) {
       for(j=1; j<=n; j++)
-	vectors[j-1][i-1] = T[j-1][i-1] + I * T[j-1][i];
+	vectors[(j-1)*n + i-1] = T[j-1][i-1] + I * T[j-1][i];
       for(j=1; j<=n; j++)
-	vectors[j-1][i] = T[j-1][i-1] + I * -T[j-1][i];
+	vectors[(j-1)*n + i] = T[j-1][i-1] + I * -T[j-1][i];
       i+=2;
     } else {
       for(j=1; j<=n; j++)
-	vectors[j-1][i-1] = T[j-1][i-1];
+	vectors[(j-1)*n + i-1] = T[j-1][i-1];
       i++;
     } /* if else */
   } while (i!=(n+1));
