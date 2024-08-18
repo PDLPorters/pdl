@@ -770,7 +770,10 @@ sub PDL::wmpeg {
          map int(($MDims[$_]-$Dims[$_])/2).':'.
             int(($MDims[$_]+$Dims[$_])/2-1),0..2);
    local $SIG{PIPE} = 'IGNORE';
-   open my $fh, '|-', qw(ffmpeg -y -loglevel quiet -f image2pipe -codec:v ppm -i -), $file
+   my $loglevel = 'quiet';
+   $loglevel = 'verbose' if $PDL::verbose;
+   $loglevel = 'debug' if $PDL::debug;
+   open my $fh, '|-', qw(ffmpeg -y -loglevel), $loglevel, qw(-f image2pipe -codec:v ppm -i -), $file
       or barf "spawning ffmpeg failed: $?";
    binmode $fh;
    for ($pdl->dog) {
