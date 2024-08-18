@@ -556,8 +556,7 @@ sub PDL::eigens {
     return $e;  #just eigenvalues
   } else {
     PDL::_eigens_int($x, my $ev=PDL->null, my $e=PDL->null);
-    return $ev->transpose->sever, $e
-        if wantarray;
+    return $ev, $e if wantarray;
     return $e;  #just eigenvalues
   }
 }

@@ -889,13 +889,13 @@ char *Eigen(int n, double **AJAC, int maxit, double eps,
     BlockCheck(A, n, i, &block, eps);
     if (block==1) {
       for(j=1; j<=n; j++)
-	vectors[i-1][j-1] = T[j-1][i-1] + I * T[j-1][i];
+	vectors[j-1][i-1] = T[j-1][i-1] + I * T[j-1][i];
       for(j=1; j<=n; j++)
-	vectors[i][j-1] = T[j-1][i-1] + I * -T[j-1][i];
+	vectors[j-1][i] = T[j-1][i-1] + I * -T[j-1][i];
       i+=2;
     } else {
       for(j=1; j<=n; j++)
-	vectors[i-1][j-1] = T[j-1][i-1];
+	vectors[j-1][i-1] = T[j-1][i-1];
       i++;
     } /* if else */
   } while (i!=(n+1));
