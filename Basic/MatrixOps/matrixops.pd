@@ -517,7 +517,7 @@ EOF
 ###
 pp_def("eigens",
   HandleBad => 0,
-  Pars => '[phys]a(n,n); [o,phys]ev(l=2,n,n); [o,phys]e(l,n)',
+  Pars => '[phys]a(n,n); complex [o,phys]ev(n,n); complex [o,phys]e(n)',
   GenericTypes => ['D'],
   CHeader => '#include "eigen.h"',
   Code => <<'EOF',
@@ -531,68 +531,17 @@ New(111, bar, sn, void*);
 
 for(  i=j=0;  i<n2;  i += sn  ) {
   foo[j] = &( ($P(a))[ i ] );
-  bar[j] = &( ($P(ev))[ i+i ] );
+  bar[j] = &( ($P(ev))[ i ] );
   j++;
 }
 
-Eigen( sn, 0, (double **) foo, 20*sn, 1e-13, 0,
+char *ret = Eigen( sn, (double **) foo, 20*sn, 1e-13,
   (complex double *)( $P(e) ),
   (complex double **) bar
 );
 Safefree(foo);
 Safefree(bar);
-
-/* Check for invalid values: convenience block */
-{
-  int k;
-  char ok, flag;
-  PDL_Double eps = 0;
-
-  /* First: find maximum eigenvalue */
-  for(i=0; i< sn; i++ ) {
-      PDL_Double z = fabs (  ($P(e))[i*2]  );
-      if( z > eps )
-          eps = z;
-  }
-  eps *= 1e-10;
-
-  /* Next: scan for non-real terms and parallel vectors */
-  for( i=0;  i < sn;  i++ ) {
-    ok = ( fabs( ($P(e))[i*2+1] ) < eps );
-    for(  j=0; ok && j< sn;  j++)
-      ok &= fabs( ($P(ev))[ 2* (i*sn + j) + 1] ) < eps;
-    for(  k=0; ok && k < i; k++ ) {
-      if( isfinite( ($P(ev))[ 2 * (k*sn) ] ) ) {
-        for( flag=1, j=0; ok && flag && j< sn; j++)
-          flag &= ( fabs( ($P(ev))[ 2 * (i*sn + j) ] -
-                          ($P(ev))[ 2 * (k*sn + j) ]
-                        )
-                    < 1e-10 * (
-                       fabs(($P(ev))[ 2 * (k*sn + j) ]) +
-                       fabs(($P(ev))[ 2 * (i*sn + j) ]) )
-                  );
-        ok &= !flag;
-      }
-    }
-    if (ok) {
-      for(j=0; ok && j<sn; j++) {
-        double ex = ($P(e))[i*2] * ($P(ev))[2 * (i*sn + j)];
-        double ac = 0.0; /*actual matrix product*/
-        for(k=0; k<sn; k++)
-            ac += ($P(a))[i*sn + k] * ($P(ev))[2 * (i*sn + k)];
-        ok &= fabs(ac-ex)<eps;
-      }
-    }
-
-    /* Set column to NaN if necessary */
-    if( !ok  ) {
-      /* TODO: We should set the badval bit if in use. */
-      for(j=0; j< sn; j++)
-        ($P(ev))[2 * (i*sn+j)] = NAN;
-      ($P(e))[i*2] = NAN;
-    }
-  }
-}
+if (ret) $CROAK("%s", ret);
 EOF
   PMCode => <<'EOF',
 sub PDL::eigens {
@@ -606,31 +555,17 @@ sub PDL::eigens {
     return $ev->transpose, $e   if wantarray;
     return $e;  #just eigenvalues
   } else {
-    if ($PDL::verbose || $PDL::debug) {
-      print "eigens: using the asymmetric case from SSL\n";
-    }
-    if (!$PDL::eigens_bug_ack && !$ENV{PDL_EIGENS_ACK}) {
-      print STDERR <<'EOWARN';
-WARNING: using sketchy algorithm for PDL::eigens asymmetric case -- you might
-    miss an eigenvector or two
-This should be fixed in PDL v2.5 (due 2009),
-    or you might fix it yourself (hint hint).  You can shut off this warning
-    by setting the variable $PDL::eigens_bug_ack, or the environment variable
-    PDL_EIGENS_ACK prior to calling eigens() with a non-symmetric matrix.
-EOWARN
-            $PDL::eigens_bug_ack = 1;
-    }
     PDL::_eigens_int($x, my $ev=PDL->null, my $e=PDL->null);
-    return $ev->index(0)->transpose->sever, $e->index(0)->sever
+    return $ev->transpose->sever, $e
         if wantarray;
-    return $e->index(0)->sever;  #just eigenvalues
+    return $e;  #just eigenvalues
   }
 }
 EOF
   Doc => <<'EOF',
 =for ref
 
-Real eigenvalues and -vectors of a real square matrix.
+Complex eigenvalues and -vectors of a real square matrix.
 
 (See also L<"eigens_sym"|/eigens_sym>, for eigenvalues and -vectors
 of a real, symmetric, square matrix).
@@ -639,24 +574,12 @@ The eigens function will attempt to compute the eigenvalues and
 eigenvectors of a square matrix with real components.  If the matrix
 is symmetric, the same underlying code as L<"eigens_sym"|/eigens_sym>
 is used.  If asymmetric, the eigenvalues and eigenvectors are computed
-with algorithms from the sslib library.  If any imaginary components
-exist in the eigenvalues, the results are currently considered to be
-invalid, and such eigenvalues are returned as "NaN"s.  This is true
-for eigenvectors also.  That is if there are imaginary components to
-any of the values in the eigenvector, the eigenvalue and corresponding
-eigenvectors are all set to "NaN".  Finally, if there are any repeated
-eigenvectors, they are replaced with all "NaN"s.
-
-Use of the eigens function on asymmetric matrices should be considered
-experimental!  For asymmetric matrices, nearly all observed matrices
-with real eigenvalues produce incorrect results, due to errors of the
-sslib algorithm.  If your asymmetric matrix returns all NaNs, do not
-assume that the values are complex.  Also, problems with memory access
-is known in this library.
+with algorithms from the sslib library. These are a slightly modified
+version of EISPACK's C<rg> code.
 
 Not all square matrices are diagonalizable.  If you feed in a
-non-diagonalizable matrix, then one or more of the eigenvectors will
-be set to NaN, along with the corresponding eigenvalues.
+non-diagonalizable matrix, then the algorithm may fail, in which case
+an exception will be thrown.
 
 C<eigens> is broadcastable, so you can solve 100 eigenproblems by
 feeding in a 3x3x100 array. Both C<$ev> and C<$e> get extra dimensions accordingly.
@@ -673,11 +596,22 @@ eigenvectors and the 1st dim runs across their components.
 	$vector = $ev->slice($n);   # Select nth eigenvector as a column-vector
 	$vector = $ev->slice("($n)"); # Select nth eigenvector as a row-vector
 
-DEVEL NOTES:
+To compare with L<PDL::LinearAlgebra>:
 
-For now, there is no distinction between a complex eigenvalue and an
-invalid eigenvalue, although the underlying code generates complex
-numbers.  It might be useful to be able to return complex eigenvalues.
+  use PDL::LinearAlgebra;
+  ($val, $lvec, $rvec) = meigen($A = pdl([4,-1], [2,1]),1,1);
+  print $val->slice(1) * $rvec->slice(1);
+  #[
+  # [0.894427190999916]
+  # [ 1.78885438199983]
+  #]
+  print $A x $rvec->slice(1);
+  #[
+  # [0.894427190999916]
+  # [ 1.78885438199983]
+  #]
+  ($rvec, $val) = eigens($A); # note return values other way round
+  # otherwise the same
 
 =for usage
 

@@ -88,46 +88,32 @@ void PrintEigen(int n, double **A, double **B, double eps, FILE *outfile) {
 } /* PrintEigen */
 
 
-void NormalizingMatrix(int n, double **A, int fixedref, int *ref, 
+void NormalizingMatrix(int n, double **A,
 		       double **V, double eps) {
 
-  int      j, col, block;
-  complex double  c1, c2, c3;
-  double   sqrnorm, norm, max;
+  int      j, col=1, block;
 
-  col=1;
   do {
-    if (fixedref==0) {
-      *ref=1;
-      c1 = V[*ref-1][col-1] + I * V[*ref-1][col];
-      max=cabs(c1);
-      for(j=2; j<=n; j++) {
-	c2 = V[j-1][col-1] + I * V[j-1][col];
-	sqrnorm=cabs(c2);
-	if (sqrnorm>max) {
-	  *ref=j;
-	  max=sqrnorm;
-	} /* if */
-      } /* for j */
-    } /* if fixedref */
+    double sumsq = 0;
+    for(j=1; j<=n; j++) {
+      BlockCheck(A, n, col, &block, eps);
+      sumsq += (V[j-1][col-1] * V[j-1][col-1]) + (block==1 ? (V[j-1][col] * V[j-1][col]) : 0);
+    }
+    double norm = sqrt(sumsq);
+    if (norm == 0.0) continue;
     BlockCheck(A, n, col, &block, eps);
     if (block==1) {
-      c1 = V[*ref-1][col-1] + I * V[*ref-1][col];
       for(j=1; j<=n; j++) {
-	c2 = V[j-1][col-1] + I * V[j-1][col];
-	c3 = c2 / c1;
+	complex double c2 = V[j-1][col-1] + I * V[j-1][col], c3 = c2 / norm;
 	V[j-1][col-1]=creal(c3);
 	V[j-1][col]=cimag(c3);
       } /* for j */
       col+=2;
-    } /* if */
-    else {
-      norm=fabs(V[*ref-1][col-1]);
-      if (norm!=0.0)
-	for(j=1; j<=n; j++)
-	  V[j-1][col-1]/=norm;
+    } else {
+      for(j=1; j<=n; j++)
+	V[j-1][col-1] /= norm;
       col++;
-    } /* else */
+    }
   } while (col<=n);
 } /* NormalizingMatrix */
 
@@ -835,8 +821,8 @@ void hqr2(int n, int low, int upp, int maxits, double macheps,
  L270:;
 } /* hqr2 */
 	  
-void Eigen(int n, int ref, double **AJAC, int maxit, double eps, 
-	   int fixedref, complex double *values, complex double **vectors) {
+char *Eigen(int n, double **AJAC, int maxit, double eps,
+	   complex double *values, complex double **vectors) {
 
   double  *wr, *wi, *bald, **T, **A;
   int     i, j, ballow, balhi, block;
@@ -860,7 +846,7 @@ void Eigen(int n, int ref, double **AJAC, int maxit, double eps,
 
   hqr2(n, ballow, balhi, maxit, eps, A, T, wr, wi, intout, &fail);
   if (fail==1) 
-    (void) fprintf(stderr, "Failure in hqr2 function. Do not trust the given eigenvectors and -values\n");
+    return "Failure in hqr2 function";
   for(i=1; i<=n; i++)
     for(j=1; j<=n; j++)
       A[i-1][j-1]=0.0;
@@ -883,7 +869,7 @@ void Eigen(int n, int ref, double **AJAC, int maxit, double eps,
 
   Swap(n, A, T, eps);
   BalBak(n, ballow, balhi, n, T, bald);
-  NormalizingMatrix(n, A, fixedref, &ref, T, eps);
+  NormalizingMatrix(n, A, T, eps);
 
   /* store eigenvectors and eigenvalues nicely */
   i=1;              /* eigenvalues */
@@ -920,4 +906,5 @@ void Eigen(int n, int ref, double **AJAC, int maxit, double eps,
   IntVectorFree(n, intout);
   MatrixFree(n, A);
   MatrixFree(n, T);
+  return NULL;
 } /* Eigen */

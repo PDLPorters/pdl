@@ -242,7 +242,6 @@ ok tapprox($esum, 61.308, 1e-3),"eigens_sym sum for 8x8 correct answer";
 }
 
 {
-if(0){ #fails because of bad eigenvectors
 #Check an asymmetric matrix:
 my $pa = pdl ([4,-1], [2,1]);
 my $esum;
@@ -253,12 +252,25 @@ lives_ok {
 };
 ok($esum == 5);
 }
+
+{
+#The below matrix has complex eigenvalues
+my ($rvec, $val) = eigens(pdl([1,1],[-1,1]));
+ok all(approx $rvec, pdl('[0.707i -0.707i; 0.707 0.707]'), 1e-3);
+ok all(approx $val, pdl('[1-i 1+i]'), 1e-3);
 }
 
-if(0){ #eigens for asymmetric matrices disbled
-#The below matrix has complex eigenvalues
-my $should_be_nan = eval { sum(scalar eigens(pdl([1,1],[-1,1]))) };
-ok( ! ($should_be_nan == $should_be_nan)); #only NaN is not equal to itself
+throws_ok { eigens(pdl '243 -54 0; 126 72 10; 144 -72 135') } qr/hqr2 function/;
+
+{
+#asymmetric case with complex eigenvectors
+my ($rvec, $val) = eigens(my $A = pdl '1 0 0 0; 0 1 0 0; 0 0 0 -1; 0 0 1 0');
+ok all(approx $val, pdl('-i i 1 1'), 1e-3) or diag $val;
+for my $i (0..3) {
+  my ($vals, $vecs) = ($val->slice($i), $rvec->slice($i));
+  ok all(approx $vals * $vecs, $A x $vecs, 1e-3)
+    or diag "index=$i vals=$vals vecs=$vecs";
+}
 }
 
 {
