@@ -12,7 +12,8 @@ require File::Temp;
 my $fs = 'File::Spec';
 sub cfile { return $fs->catfile(@_)}
 
-my $file = File::Temp::tempfile();
+my %tmp_opts = (TMPDIR => 1, UNLINK => 1);
+my $file = File::Temp::tempfile(%tmp_opts);
 
 ################ Test rfits/wfits ########################
 
@@ -30,7 +31,7 @@ is( sum($t->slice('0:4,:')), -sum($t2->slice('5:-1,:')),
 
 my $h = $t2->gethdr;
 ok( $$h{'FOO'} eq "foo" && $$h{'BAR'} == 42,
-    "header check on FOO/BAR" );			#3     
+    "header check on FOO/BAR" );			#3
 
 ok( $$h{'NUM'}+1 == 124 && $$h{'NUMSTR'} eq '0123',
     "header check on NUM/NUMSTR" );			#4
@@ -81,42 +82,42 @@ unless($PDL::Astro_FITS_Header) {
 	my $y = double( 2.3, 4.3, -999.0, 42 );
 	my $table = { COLA => $x, COLB => $y };
 	wfits $table, $file;
-	
+
 	my $table2 = rfits $file;
 	unlink $file;
-	
+
 	ok( defined $table2, "Read of table returned something" );	#5
 	is( ref($table2), "HASH", "which is a hash reference" );	#6
 	is( $$table2{tbl}, "binary", "and appears to be a binary TABLE" );#7
-	
+
 	ok( exists $$table2{COLA} && exists $$table2{COLB}, "columns COLA and COLB exist" ); #8
 	is( $$table2{hdr}{TTYPE1}, "COLA", "column #1 is COLA" );	  #9
 	is( $$table2{hdr}{TFORM1}, "1J", "  stored as 1J" );		  #10
 	is( $$table2{hdr}{TTYPE2}, "COLB", "column #2 is COLB" );	  #11
 	is( $$table2{hdr}{TFORM2}, "1D", "  stored as 1D" );		  #12
-	
+
 	compare_ndarrays $x, $$table2{COLA}, "COLA";			#13-16
 	compare_ndarrays $y, $$table2{COLB}, "COLB";			#17-20
-	
+
 	$table = { BAR => $x, FOO => $y,
 		   hdr => { TTYPE1 => 'FOO', TTYPE2 => 'BAR' } };
 	$table2 = {};
-	
+
 	wfits $table, $file;
 	$table2 = rfits $file;
-	
+
 	ok( defined $table2 && ref($table2) eq "HASH" && $$table2{tbl} eq "binary",
 	    "Read in the second binary table" );		       #21
 	is( $$table2{hdr}{TTYPE1}, "FOO", "column #1 is FOO" );	       #22
 	is( $$table2{hdr}{TFORM1}, "1D", "  stored as 1D" );	       #23
 	is( $$table2{hdr}{TTYPE2}, "BAR", "column #2 is BAR" );	       #24
 	is( $$table2{hdr}{TFORM2}, "1J", "  stored as 1J" );	       #25
-	
+
 	compare_ndarrays $x, $$table2{BAR}, "BAR";			#26-29
 	compare_ndarrays $y, $$table2{FOO}, "FOO";			#30-33
-	
+
 	# try out more "exotic" data types
-	
+
 	$x = byte(12,45,23,0);
 	$y = short(-99,100,0,32767);
 	my $c = ushort(99,32768,65535,0);
@@ -128,11 +129,10 @@ unless($PDL::Astro_FITS_Header) {
 	##	  FCOL => $f,
 	};
 	$table2 = {};
-	
+
 	wfits $table, $file;
 	$table2 = rfits $file;
-	#unlink $file;
-	
+
 	ok( defined $table2 && ref($table2) eq "HASH" && $$table2{tbl} eq "binary",
 	    "Read in the third binary table" );			       #34
 	my @elem = sort keys %$table2;
@@ -142,7 +142,7 @@ unless($PDL::Astro_FITS_Header) {
 	is ( $#elem+1, 7, "hash contains 7 elements" );			#35
 	ok( eq_array( \@elem, \@expected ), "hash contains expected
 	    keys" );							#36
-	
+
 	# convert the string array so that each element has the same length
 	# (and calculate the maximum length to use in the check below)
 	#
@@ -154,7 +154,7 @@ unless($PDL::Astro_FITS_Header) {
 	foreach my $str ( @$d ) {
 	  $str .= ' ' x ($dlen-length($str));
 	}
-	
+
 	# note that, for now, ushort data is written out as a long (Int4)
 	# instead of being written out as an Int2 using TSCALE/TZERO
 	#
@@ -194,8 +194,9 @@ unless($PDL::Astro_FITS_Header) {
     for my $cref ( \(&byte, &short, &long, &float, &double) ) {
         for my $x ($a1,$a2) {
             $p = &$cref($x);
-            $p->wfits('x.fits');
-            $q = PDL->rfits('x.fits');
+            unlink $file;
+            $p->wfits($file);
+            $q = PDL->rfits($file);
 	    my $flag = 1;
             if ( ${$p->get_dataref} ne ${$q->get_dataref} ) {
 	        $flag = 0;
@@ -208,7 +209,6 @@ unless($PDL::Astro_FITS_Header) {
         }
 	$bp_i++;
     }
-    unlink 'x.fits';
 }
 
 {
@@ -219,8 +219,9 @@ unless($PDL::Astro_FITS_Header) {
     my @s;
     for my $i (8,16,32,-32,-64) {
     for my $p ($p2, $p1) {
-        $p->wfits('x.fits',$i);
-        $q = PDL->rfits('x.fits');
+        unlink $file;
+        $p->wfits($file,$i);
+        $q = PDL->rfits($file);
         @s = $q->stats;
 	my $flag;
         if ($s[0] == 1.5 and $s[1] < 0.7072 and $s[1]>0.577) {
@@ -233,11 +234,10 @@ unless($PDL::Astro_FITS_Header) {
            diag "\tp:", unpack("c8" x         $p->nelem,  ${$p->get_dataref});
            diag "\tq:", unpack("c" x abs($i/8*$q->nelem), ${$q->get_dataref});
         }
-	is($q->hdr->{BITPIX},$i,"BITPIX explicitly set to $i"); #check that explicitly setting BITPIX in wfits works.
+	is($q->hdr->{BITPIX},$i,"BITPIX explicitly set to $i works");
 	ok($flag,"ndarray - bitpix=$i" ); #74-83
     }
     }
-    unlink 'x.fits';
 };
 
 }; # end of SKIP block
@@ -245,7 +245,7 @@ unless($PDL::Astro_FITS_Header) {
 #### Check that discontinuous data (e.g. from fftnd) get written correctly.
 #### (Sourceforge bug 3299611) it is possible to store data in a PDL non-contiguously
 #### through the C API, by manipulating dimincs; fft uses this technique, which
-#### used to hose up fits output.  
+#### used to hose up fits output.
 
 SKIP:{
     eval "use PDL::FFT";
@@ -254,6 +254,7 @@ SKIP:{
     my $ar = sequence(10,10,10);
     my $ai = zeroes($ar);
     fftnd($ar,$ai);
+    unlink $file;
     wfits($ar,$file);
     my $y = rfits($file);
     ok(all($ar==$y),"fftnd output (non-contiguous in memory) is written correctly");
@@ -315,7 +316,7 @@ if(-w dirname($tildefile)) {
 
 # test bad with r/wfits
 {
-(undef, my $fname) = File::Temp::tempfile( 'delmeXXXXX', SUFFIX => '.fits', OPEN => 0 );
+(undef, my $fname) = File::Temp::tempfile( 'delmeXXXXX', SUFFIX => '.fits', %tmp_opts );
 my $x = sequence(10)->setbadat(0);
 #diag "Writing to fits: $x  type = (", $x->get_datatype, ")\n";
 $x->wfits($fname);
@@ -329,13 +330,12 @@ $y = rfits($fname);
 my $got = $y->slice('0:0');
 ok( $got->isbad, "wfits coerced bad flag with integer datatype" ) or diag "got: $got (from $y)";
 ok( sum(abs(convert($x,short)-$y)) < 1.0e-5, "  and the values" );
-unlink $fname if -e $fname;
 }
 
 {
 my $m51 = rfits('t/m51.fits.fz');
 is_deeply [$m51->dims], [384,384], 'right dims from compressed FITS file';
-(undef, my $fname) = File::Temp::tempfile( 'delmeXXXXX', SUFFIX => '.fits', OPEN => 0 );
+(undef, my $fname) = File::Temp::tempfile( 'delmeXXXXX', SUFFIX => '.fits', %tmp_opts );
 my $m51_2;
 if ($PDL::Astro_FITS_Header) {
 my $m51_tbl = rfits('t/m51.fits.fz',{expand=>0});
@@ -346,7 +346,6 @@ $m51->wfits($fname, {compress=>1});
 $m51_2 = rfits($fname);
 ok all(approx $m51, $m51_2), 'read back written-out compressed FITS file' or diag "got:", $m51_2->info;
 }
-unlink $fname if -e $fname;
 }
 
 done_testing();
