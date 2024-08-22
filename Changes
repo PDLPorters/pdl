@@ -10,6 +10,7 @@
 - add demo of GSL::RNG
 - fix MatrixOps::eigens for asymmetric case inc complex eigenvectors
 - fix GSL problem on Windows (#493) - thanks @shawnlaffan for report
+- wfits fixed to handle multi HISTORY (#488, #489) - thanks @d-lamb for report
 
 2.089_02 2024-06-26
 - PDL::VectorValued::vcos into Primitive - thanks @moocow-the-bovine

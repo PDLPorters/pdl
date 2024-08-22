@@ -1619,8 +1619,9 @@ sub wheader {
     my ($fh, $k, $hdr, $nbytes) = @_;
     if ($k =~ m/(HISTORY|COMMENT)/) {
 	my $hc = $1;
-	return $nbytes unless ref($hdr->{$k}) eq 'ARRAY';
-	foreach my $line (@{$hdr->{$k}}) {
+	return $nbytes unless exists $hdr->{$k};
+	my @vals = ref($hdr->{$k}) eq 'ARRAY' ? @{$hdr->{$k}} : grep length, split /\n+/, $hdr->{$k};
+	foreach my $line (@vals) {
 	    printf $fh "$hc %-72s", substr($line,0,72);
 	    $nbytes += 80;
 	}
@@ -1925,7 +1926,9 @@ sub PDL::wfits {
 	  }
 	  # Make sure that the HISTORY lines all come at the end
 	  my @hindex = $afhdr->index('HISTORY');
-	  $afhdr->insert(-1-$_, $afhdr->remove($hindex[-1-$_])) for 0..$#hindex;
+	  my @hitems = map $afhdr->item($_), @hindex;
+	  $afhdr->remove($_) for reverse @hindex; # remove from back as from front disrupts numbering
+	  $afhdr->insert(-1, $_) for @hitems;
 	  # Make sure the last card is an END
 	  $afhdr->insert(scalar($afhdr->cards),
 		       Astro::FITS::Header::Item->new(Keyword=>'END'));

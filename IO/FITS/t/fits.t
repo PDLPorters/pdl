@@ -348,25 +348,26 @@ ok all(approx $m51, $m51_2), 'read back written-out compressed FITS file' or dia
 }
 }
 
-#multi-line HISTORY header writing
-{   my $f_out;
-    my $hstr = join("\n",'A'..'G');
-
-    $f_out = 'long_history.fits';
+{
+    my $hstr = join("\n",'A'..'G',''); # must end in newline
+    (undef, my $f_out) = File::Temp::tempfile( 'delmeXXXXX', SUFFIX => '.fits', %tmp_opts );
     my $x = xvals(10);
     $x->hdr->{'HISTORY'} = $hstr;
     $x->wfits($f_out);
     my $xr = rfits($f_out);
-    is($xr->hdr->{'HISTORY'}, $hstr, 'multi-line HISTORY correct with fresh header');
-    unlink($f_out) or die "couldn't delete $f_out";
-
-    $f_out = 'm51_longhist.fits';
+    my $hist = $xr->hdr->{'HISTORY'};
+    $hist = join '', map "$_\n", @$hist if ref $hist eq 'ARRAY';
+    $hist =~ s/ +$//gm;
+    is($hist, $hstr, 'multi-line HISTORY correct with fresh header');
+    (undef, $f_out) = File::Temp::tempfile( 'delmeXXXXX', SUFFIX => '.fits', %tmp_opts ); # new one as Windows unable to remove
     my $m51 = rfits('t/m51.fits.fz');
     $m51->hdr->{HISTORY} = $hstr;
     $m51->wfits($f_out);
     my $m51r = rfits($f_out);
-    is($m51r->hdr->{'HISTORY'}, $hstr, 'multi-line HISTORY correct with pre-existing header');
-    unlink($f_out) or die "couldn't delete $f_out";
+    $hist = $m51r->hdr->{'HISTORY'};
+    $hist = join '', map "$_\n", @$hist if ref $hist eq 'ARRAY';
+    $hist =~ s/ +$//gm;
+    is($hist, $hstr, 'multi-line HISTORY correct with pre-existing header');
 }
 
 done_testing();
