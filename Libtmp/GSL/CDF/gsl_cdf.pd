@@ -67,7 +67,9 @@ static void cdf_error_handler(const char *reason, const char *file, int line, in
 ');
 
 use Text::ParseWords qw(shellwords);
-my ($header) = map {s/^-I//;$_} grep /^-I/, shellwords `gsl-config --cflags`;
+chomp(my $header = `gsl-config --cflags`);
+$header =~ s#\\#/#g; # win32
+($header) = map {s/^-I//;$_} grep /^-I/, shellwords $header;
 $header .= '/gsl/gsl_cdf.h';
 my $h = do { open my $fh, "<", $header or die "$header: $!"; local $/ = undef; <$fh> };
 my @functions = $h =~ m/(double\s+gsl_cdf_.+?\)\s*;\s*)\n/xmsg;

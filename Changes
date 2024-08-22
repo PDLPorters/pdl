@@ -9,6 +9,7 @@
 - add GSL::RNG bindings for most _pdf functions
 - add demo of GSL::RNG
 - fix MatrixOps::eigens for asymmetric case inc complex eigenvectors
+- fix GSL problem on Windows (#493) - thanks @shawnlaffan for report
 
 2.089_02 2024-06-26
 - PDL::VectorValued::vcos into Primitive - thanks @moocow-the-bovine
