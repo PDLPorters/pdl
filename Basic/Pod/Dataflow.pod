@@ -61,7 +61,7 @@ it for non-flowing operations (see L<PDL::Core/flowing>), so
 
 C<flowing> operates by turning on a flag that the core turns off
 immediately after acting on it (rather like C<inplace>), so it only
-operates on the next operation (aka transfrom) called on that ndarray,
+operates on the next operation (aka transform) called on that ndarray,
 making that operation be a forward-flowing one. That lasts until the
 output(s) of that operation get C<sever>ed.
 

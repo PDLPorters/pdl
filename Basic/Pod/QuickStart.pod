@@ -13,7 +13,7 @@ A brief summary of the main PDL features and how to use them.
 
 Perl is an extremely good and versatile scripting language, well suited to
 beginners and allows rapid prototyping.  However the Perl core does not
-support data structures which allow to do fast number crunching.
+support data structures which allow doing fast number crunching.
 
 With the development of Perl v5, Perl acquired 'Objects'. To put
 it simply, users can define their own special data types, and write
