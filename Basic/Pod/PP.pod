@@ -27,7 +27,7 @@ PDL::PP - Generate PDL routines from concise descriptions
 
 =head1 OVERVIEW
 
-PDL::PP prepares Perl modules and the C sources and allows to write
+PDL::PP prepares Perl modules and the C sources and allows writing
 software which can be called from Perl but executes with C speed -
 with ease.  These C sources need to be compiled before your code can be
 executed.  There are two modes of operation for this:
