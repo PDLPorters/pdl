@@ -19,7 +19,7 @@ print OUT <<'EOF';
 #define __PDLPERL_H
 
 #define PDL_XS_SCALAR(thistype, ppsym, val) \
-  PDL_Anyval av = {PDL_CLD, {.H=0 + 1I}}; /* guarantee all bits set */ \
+  PDL_Anyval av = {PDL_CLD, {.H=0 + 0I}}; /* guarantee all bits set */ \
   av.type = thistype; av.value.ppsym=val; \
   pdl *b = pdl_scalar(av); \
   if (!b) XSRETURN_UNDEF; \
@@ -67,7 +67,9 @@ print OUT <<'EOF';
     if (SvROK(sv2)) { \
         if (sv_derived_from(sv2, "PDL")) { \
             pdl *it = PDL_CORE_(SvPDLV)(sv2); \
-            outany = PDL_CORE_(at0)(it); \
+            outany.type = PDL_INVALID; \
+            if (it->nvals == 1) \
+                ANYVAL_FROM_CTYPE_OFFSET(outany, it->datatype, PDL_REPRP(it), PDL_REPROFFS(it)); \
             if (outany.type < 0) PDL_CORE_(pdl_barf)("Position out of range"); \
             break; \
         } \

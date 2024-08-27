@@ -510,27 +510,20 @@ PDL_Indx pdl_get_offset(PDL_Indx* pos, PDL_Indx* dims, PDL_Indx *incs, PDL_Indx 
    }
    result = offset;
    for (i=0; i<ndims; i++) {
-       result = result + (pos[i]+((pos[i]<0)?dims[i]:0))*incs[i];
+       result += (pos[i]+((pos[i]<0)?dims[i]:0))*incs[i];
    }
    return result;
 }
 
-/* wrapper for pdl_at where only want first item, cf sclr_c */
+/*CORE21 unused*/
 PDL_Anyval pdl_at0( pdl* it ) {
-    PDL_Anyval result = { PDL_INVALID, {0} };
-    if (it->nvals != 1) { return result; }
-    ANYVAL_FROM_CTYPE_OFFSET(result, it->datatype, PDL_REPRP(it), PDL_REPROFFS(it));
-    return result;
+    return (PDL_Anyval){ PDL_INVALID, {0} };
 }
 
-/* Return value at position (x,y,z...) */
+/*CORE21 unused*/
 PDL_Anyval pdl_at( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims,
 	PDL_Indx* incs, PDL_Indx offset, PDL_Indx ndims) {
-   PDL_Anyval result = { PDL_INVALID, {0} };
-   PDL_Indx ioff = pdl_get_offset(pos, dims, incs, offset, ndims);
-   if (ioff < 0) return result;
-   ANYVAL_FROM_CTYPE_OFFSET(result, datatype, x, ioff);
-   return result;
+  return (PDL_Anyval){ PDL_INVALID, {0} };
 }
 
 /* Set value at position (x,y,z...) */

@@ -48,13 +48,12 @@
 
 PDL_Indx av_ndcheck(AV* av, AV* dims, int level, int *datalevel);
 pdl* pdl_from_array(AV* av, AV* dims, int type, pdl* p);
-PDL_Anyval pdl_at( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims, /* Value at x,y,z,... */
-             PDL_Indx *incs, PDL_Indx offset, PDL_Indx ndims);
 pdl_error pdl_writebackdata_vaffine(pdl *it);
 pdl_error pdl_readdata_vaffine(pdl *it);
 pdl_error pdl_dim_checks(pdl_transvtable *vtable, pdl **pdls,
   pdl_broadcast *broadcast, PDL_Indx *creating,
   PDL_Indx *ind_sizes, char load_only);
+PDL_Indx pdl_get_offset(PDL_Indx* pos, PDL_Indx* dims, PDL_Indx *incs, PDL_Indx offset, PDL_Indx ndims);
 
 /* pdlutil.c */
 typedef enum {
@@ -93,7 +92,7 @@ void pdl_dump_anyval(PDL_Anyval v);
   X(howbig, size_t, ( int )) \
   X(packdims, PDL_Indx*, ( SV* sv, PDL_Indx *ndims )) \
   X(setdims, pdl_error, ( pdl* it, PDL_Indx* dims, PDL_Indx ndims )) \
-  X(at0, PDL_Anyval, ( pdl* x )) \
+  X(at0, PDL_Anyval, ( pdl* x )) /*CORE21*/ \
   X(reallocdims, pdl_error, ( pdl *it,PDL_Indx ndims )) \
   X(reallocbroadcastids, pdl_error, ( pdl *it,PDL_Indx ndims )) \
   X(resize_defaultincs, void, ( pdl *it )) /* Make incs out of dims */ \
@@ -114,7 +113,7 @@ void pdl_dump_anyval(PDL_Anyval v);
   X(add_deletedata_magic, pdl_error,  (pdl *it,void (*func)(pdl *, Size_t param), \
     Size_t param)) /* Automagic destructor */ \
   X(setdims_careful, pdl_error, (pdl *pdl)) \
-  X(get_offs, PDL_Anyval, (pdl *pdl,PDL_Indx offs)) \
+  X(get_offs, PDL_Anyval, (pdl *pdl,PDL_Indx offs)) /*CORE21*/ \
   X(set, pdl_error, ( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims, \
     PDL_Indx *incs, PDL_Indx offs, PDL_Indx ndims, PDL_Anyval value)) \
   X(create_trans, pdl_trans *, (pdl_transvtable *vtable)) \
@@ -132,8 +131,8 @@ void pdl_dump_anyval(PDL_Anyval v);
   X(propagate_badflag, void, (pdl *it, int newval)) \
   X(propagate_badvalue, void, (pdl *it)) \
   X(changed, pdl_error, (pdl *it, int what, int recursing)) \
-  X(get_pdl_badvalue, PDL_Anyval, (pdl *it)) \
-  X(get_badvalue, PDL_Anyval, (int datatype)) \
+  X(get_pdl_badvalue, PDL_Anyval, (pdl *it)) /*CORE21*/ \
+  X(get_badvalue, PDL_Anyval, (int datatype)) /*CORE21*/ \
   X(set_datatype, pdl_error, (pdl *a, int datatype)) \
   X(hdr_copy, SV *, (SV *hdrp)) \
   X(hdr_childcopy, void, (pdl_trans *trans)) \
@@ -193,8 +192,7 @@ typedef struct Core Core;
 
 #define PDL_DECLARE_PARAMETER_BADVAL(type, name, pdlname, nullcheck, ppsym) \
   PDL_DECLARE_PARAMETER(type, name, pdlname, nullcheck, ppsym) \
-  PDL_Anyval name ## _anyval_badval = PDL_CORE_(get_pdl_badvalue)(pdlname); (void)name ## _anyval_badval; \
-  type name ## _badval = name ## _anyval_badval.value.ppsym; (void)name ## _badval; \
+  type name ## _badval = pdlname->has_badvalue ? pdlname->badvalue.value.ppsym : PDL->bvals.ppsym; (void)name ## _badval; \
   char name ## _badval_isnan = PDL_ISNAN_ ## ppsym(name ## _badval); (void) name ## _badval_isnan; \
 
 /* __PDLCORE_H */

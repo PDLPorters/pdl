@@ -83,9 +83,18 @@ sub protect_chars {
 # simple binary operators
 
 pp_addhdr(pp_line_numbers(__LINE__, <<'EOF'));
+#define PDL_BADVAL_WARN_X(datatype, ctype, ppsym, ...) \
+  bad_anyval.type = datatype; bad_anyval.value.ppsym = PDL->bvals.ppsym;
 #define PDL_BADVAL_WARN(var) \
   { \
-    PDL_Anyval bad_anyval = PDL->get_pdl_badvalue(var); \
+    PDL_Anyval bad_anyval = { PDL_INVALID, {0} }; \
+    if (!(var->has_badvalue && var->badvalue.type != var->datatype)) { \
+      if (var->has_badvalue) \
+        bad_anyval = var->badvalue; \
+      else { \
+        PDL_GENERICSWITCH(PDL_TYPELIST_ALL, var->datatype, PDL_BADVAL_WARN_X, ) \
+      } \
+    } \
     if (bad_anyval.type < 0) \
       barf("Error getting badvalue, type=%d", bad_anyval.type); \
     complex double bad_c; \

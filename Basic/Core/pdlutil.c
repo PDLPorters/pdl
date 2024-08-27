@@ -464,14 +464,30 @@ void pdl_dump_fixspace(pdl *it,int nspac)
 		pdl_print_iarr(PDL_REPRINCS(it), it->vafftrans->ndims);
 	}
 	if (it->state & PDL_BADVAL) {
-		printf("\n%s   Badvalue (%s): ",spaces, it->has_badvalue ? "bespoke" : "orig");
-		pdl_dump_anyval(pdl_get_pdl_badvalue(it));
+          printf("\n%s   Badvalue (%s): ",spaces, it->has_badvalue ? "bespoke" : "orig");
+          PDL_Anyval result = { PDL_INVALID, {0} };
+          if (!(it->has_badvalue && it->badvalue.type != it->datatype)) {
+            if (it->has_badvalue)
+              result = it->badvalue;
+            else {
+#define X(datatype, ctype, ppsym, shortctype, defbval, ...) \
+  result.type = datatype; result.value.ppsym = defbval;
+              PDL_GENERICSWITCH(PDL_TYPELIST_ALL, it->datatype, X, )
+#undef X
+            }
+          }
+          if (result.type < 0)
+            printf("ERROR getting badval");
+          else
+            pdl_dump_anyval(result);
 	}
 	if (it->state & PDL_ALLOCATED) {
 		printf("\n%s   First values: (",spaces);
 		for (i=0; i<it->nvals && i<10; i++) {
                        if (i) printf(" ");
-                       pdl_dump_anyval(pdl_get_offs(it,i));
+                       PDL_Anyval result = { PDL_INVALID, {0} };
+                       ANYVAL_FROM_CTYPE_OFFSET(result, it->datatype, it->data, i);
+                       pdl_dump_anyval(result);
 		}
 	} else {
 		printf("\n%s   (not allocated",spaces);

@@ -187,6 +187,9 @@ pdl_error pdl_converttypei_readdata(pdl_trans *trans) {
   pdl_error PDL_err = {0, NULL, 0};
   pdl_params_converttypei *params = trans->params;
   int fromtype = trans->__datatype, totype = params->totype;
+  extern struct Core PDL;
+  struct Core *PDLptr = &PDL;
+#define PDL PDLptr /* so PDL_DECLARE_PARAMETER_BADVAL can get bvals */
   PDLDEBUG_f(printf("pdl_converttypei_readdata %s=%p from parent to type=%d: ", trans->vtable->name, trans, totype); pdl_dump(trans->pdls[0]));
 #define FROMpdl_indx 0
 #define TOpdl_indx 1
@@ -201,6 +204,7 @@ pdl_error pdl_converttypei_readdata(pdl_trans *trans) {
   pdl *TOpdl = trans->pdls[TOpdl_indx];
 #undef FROMpdl_indx
 #undef TOpdl_indx
+#undef PDL
   if (TOpdl->has_badvalue && TOpdl->badvalue.type != TOpdl->datatype)
     return pdl_make_error(PDL_EUSERERROR, "Badvalue has type=%d != pdltype=%d", TOpdl->badvalue.type, TOpdl->datatype);
   return PDL_err;
@@ -210,6 +214,9 @@ pdl_error pdl_converttypei_writebackdata(pdl_trans *trans) {
   pdl_error PDL_err = {0, NULL, 0};
   pdl_params_converttypei *params = trans->params;
   int fromtype = params->totype, totype = trans->__datatype;
+  extern struct Core PDL;
+  struct Core *PDLptr = &PDL;
+#define PDL PDLptr /* so PDL_DECLARE_PARAMETER_BADVAL can get bvals */
   PDLDEBUG_f(printf("pdl_converttypei_writebackdata %s=%p from child to type=%d: ", trans->vtable->name, trans, totype); pdl_dump(trans->pdls[1]));
 #define FROMpdl_indx 1
 #define TOpdl_indx 0
@@ -221,6 +228,7 @@ pdl_error pdl_converttypei_writebackdata(pdl_trans *trans) {
   pdl *TOpdl = trans->pdls[TOpdl_indx];
 #undef FROMpdl_indx
 #undef TOpdl_indx
+#undef PDL
   if (TOpdl->has_badvalue && TOpdl->badvalue.type != TOpdl->datatype)
     return pdl_make_error(PDL_EUSERERROR, "Badvalue has type=%d != pdltype=%d", TOpdl->badvalue.type, TOpdl->datatype);
   return PDL_err;
