@@ -790,7 +790,7 @@ BOOT:
    PDL_CORE_LIST(X)
 #undef X
 #define X(symbol, ctype, ppsym, shortctype, defbval, ...) \
-  PDL.bvals.shortctype = defbval;
+  PDL.bvals.ppsym = defbval;
    PDL_TYPELIST_ALL(X)
 #undef X
    /*

@@ -231,11 +231,11 @@ static inline int _anyval_isbad(PDL_Anyval inany, PDL_Anyval badval) {
 #define PDL_ISBAD2(inval,badval,ppsym,badval_isnan) \
   (badval_isnan ? PDL_ISNAN_ ## ppsym(inval) : inval == badval)
 
-typedef struct badvals {
-#define X(symbol, ctype, ppsym, shortctype, ...) ctype shortctype;
+typedef struct pdl_badvals {
+#define X(symbol, ctype, ppsym, ...) ctype ppsym;
 PDL_TYPELIST_ALL(X)
 #undef X
-} badvals;
+} pdl_badvals;
 
 /*
  * Define the pdl C data structure which maps onto the original PDL

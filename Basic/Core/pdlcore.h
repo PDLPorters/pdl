@@ -176,7 +176,7 @@ PDL_TYPELIST_ALL(X)
 
 struct Core {
   I32    Version;
-  badvals bvals;  /* store the default bad values */
+  pdl_badvals bvals;  /* store the default bad values */
 
 #define X(sym, rettype, args) \
   rettype (*sym) args;
