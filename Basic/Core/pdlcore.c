@@ -3,6 +3,8 @@
 #include "pdlcore.h"  /* Core declarations */
 #include "pdlperl.h"
 
+extern struct Core PDL;
+
 void pdl_SetSV_PDL ( SV *sv, pdl *it ) {
         SV *newref;
         if (!it->sv) {
@@ -586,10 +588,12 @@ pdl_error pdl_set( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims, PDL_Ind
       i=0; \
       if (source_data && dest_data && pdlsiz) { \
         ctype_src *src_data_typed = source_data; \
-        ctype_src src_badval_c = source_badval.value.ppsym_src; \
-        char src_badval_isnan = PDL_ISNAN_##ppsym_src(src_badval_c); \
         char found_bad = 0; \
         if (source_pdl->state & PDL_BADVAL) { \
+          if (source_pdl->has_badvalue && source_pdl->badvalue.type != datatype) \
+            barf("Source badvalue has type=%d != pdltype=%d", source_pdl->badvalue.type, datatype); \
+          ctype_src src_badval_c = source_pdl->has_badvalue ? source_pdl->badvalue.value.ppsym_src : PDL.bvals.ppsym_src; \
+          char src_badval_isnan = PDL_ISNAN_##ppsym_src(src_badval_c); \
           for (; i<pdlsiz; i++) \
             if (PDL_ISBAD2(src_data_typed[i], src_badval_c, ppsym_src, src_badval_isnan)) { \
               dest_data[i] = dest_badval_c; \
@@ -646,14 +650,9 @@ PDL_Indx pdl_kludge_copy_ ## ppsym_dest(PDL_Indx dest_off, /* Offset into the de
     } else { \
       pdlsiz = source_pdl->dims[pdldim]; \
     } \
-    /* This is used inside the switch in order to detect badvalues. */ \
-    PDL_Anyval source_badval = pdl_get_pdl_badvalue(source_pdl); \
-    if (source_badval.type < 0) barf("Error getting badvalue, type=%d", source_badval.type); \
-    PDL_Anyval dest_badval = pdl_get_pdl_badvalue(dest_pdl); \
-    if (dest_badval.type < 0) barf("Error getting badvalue, type=%d", dest_badval.type); \
-    if (dest_badval.type != datatype_dest) \
-      barf("Badvalue has type=%d != pdltype=%d", dest_badval.type, datatype_dest); \
-    ctype_dest dest_badval_c = dest_badval.value.ppsym_dest; \
+    if (dest_pdl->has_badvalue && dest_pdl->badvalue.type != datatype_dest) \
+      barf("Destination badvalue has type=%d != pdltype=%d", dest_pdl->badvalue.type, datatype_dest); \
+    ctype_dest dest_badval_c = dest_pdl->has_badvalue ? dest_pdl->badvalue.value.ppsym_dest : PDL.bvals.ppsym_dest; \
     PDL_GENERICSWITCH(PDL_TYPELIST_ALL_, source_pdl->datatype, X, croak("Not a known data type code=%d", source_pdl->datatype)) \
     return undef_count; \
   } \

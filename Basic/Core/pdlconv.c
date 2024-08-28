@@ -1,6 +1,8 @@
 #include "pdl.h"      /* Data structure declarations */
 #include "pdlcore.h"  /* Core declarations */
 
+extern struct Core PDL;
+
 #define XCODE(code, datatype, ctype, ...) \
     ctype *ap = (ctype *) a->data; \
     ctype *pp = (ctype *) a->vafftrans->from->data; \
@@ -70,7 +72,7 @@ pdl_error pdl_converttype( pdl* a, int targtype ) {
 #define X_OUTER(datatype_from, ctype_from, ppsym_from, ...) \
     PDL_Indx i = a->nvals; \
     ctype_from *data_from_typed = (ctype_from *) data_from_void; \
-    ctype_from from_badval = pdl_get_pdl_badvalue(a).value.ppsym_from; \
+    ctype_from from_badval = a->has_badvalue ? a->badvalue.value.ppsym_from : PDL.bvals.ppsym_from; \
     char from_badval_isnan = PDL_ISNAN_##ppsym_from(from_badval);
 #define X_INNER(datatype_to, ctype_to, ppsym_to, shortctype_to, defbval_to, ...) \
     ctype_to *data_to_typed = (ctype_to *) data_to_void; \
