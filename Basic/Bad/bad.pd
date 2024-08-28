@@ -293,7 +293,11 @@ _badvalue_per_pdl_int(pdl_val, val, type)
        PDL_Anyval typedval;
        ANYVAL_TO_ANYVAL_NEWTYPE(val, typedval, pdl_val->datatype);
        if (typedval.type < 0) PDL->pdl_barf("Error making typedval");
-       pdl_val->badvalue = typedval;
+#define X(datatype, ctype, ppsym, ...) \
+       pdl_val->badvalue.type = typedval.type; \
+       pdl_val->badvalue.value.ppsym = typedval.value.ppsym;
+       PDL_GENERICSWITCH(PDL_TYPELIST_ALL, pdl_val->datatype, X, croak("Not a known data type code=%d", type))
+#undef X
        pdl_val->has_badvalue = 1;
        PDL->propagate_badvalue( pdl_val );
     }
