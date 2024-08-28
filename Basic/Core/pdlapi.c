@@ -998,6 +998,7 @@ void pdl_propagate_badflag( pdl *it, int newval ) {
     PDL_END_CHILDLOOP(it)
 }
 
+/*CORE21 use pdl_error, replace fprintf*/
 void pdl_propagate_badvalue( pdl *it ) {
     PDL_DECL_CHILDLOOP(it)
     PDL_START_CHILDLOOP(it)
@@ -1005,8 +1006,14 @@ void pdl_propagate_badvalue( pdl *it ) {
 	PDL_Indx i;
 	for( i = trans->vtable->nparents; i < trans->vtable->npdls; i++ ) {
 	    pdl *child = trans->pdls[i];
+            PDL_Anyval typedval;
+            ANYVAL_TO_ANYVAL_NEWTYPE(it->badvalue, typedval, child->datatype);
+            if (typedval.type < 0) {
+                fprintf(stderr, "propagate_badvalue: error making typedval\n");
+                return;
+            }
             child->has_badvalue = 1;
-            child->badvalue = it->badvalue;
+            child->badvalue = typedval;
 	    /* make sure we propagate to grandchildren, etc */
 	    pdl_propagate_badvalue( child );
         } /* for: i */

@@ -712,4 +712,12 @@ subtest "badvalues for native complex" => sub {
     or diag "badvalue:", $pdl->badvalue->info, "=", $pdl->badvalue;
 };
 
+subtest "badvalue propagated to different-typed child not break them" => sub {
+  my $pd = pdl 7;
+  my $pl = $pd->_convert_int(long->enum);
+  $pd->badvalue(inf());
+  eval { $pl->dump };
+  is $@, '', 'badval propagate to different-typed child not break it';
+};
+
 done_testing;
