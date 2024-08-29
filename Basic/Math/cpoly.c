@@ -4,6 +4,7 @@
 
 /* algorithm 419 collected algorithms from acm.
    algorithm appeared in comm. acm, vol. 15, no. 02, p. 097. */
+/* available in 2024 from https://calgo.acm.org/ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -40,7 +41,7 @@ static double are,mre,eta,infin,smalno,base;
 /* driver to test cpoly */
 int main()
 {
-  int fail;
+  char *fail = NULL;
   double p[50],pi[50],zr[50],zi[50];
 
   int i;
@@ -329,10 +330,8 @@ static complex double noshft(int l1, int nn, complex double tc, complex double h
   /*  Computes the derivative polynomial as the initial h
       polynomial and computes l1 no-shift h polynomials. */
   int i,jj,n = nn-1,nm1 = n-1,nm2=nm1-1;
-  for (i=0;i<n;i++) {
-    double xni = n-i;
-    hc[i] = xni*pc[i]/((double)(n));
-  }
+  for (i=0;i<n;i++)
+    hc[i] = (n-i)*pc[i] / n;
   for (jj=0;jj<l1;jj++) {
     if (cmod(hc[nm2]) > eta*10.0*cmod(pc[nm2])) {
       tc = cdivid(-pc[n], hc[nm1]);
