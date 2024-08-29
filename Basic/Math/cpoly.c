@@ -216,8 +216,8 @@ char *cpoly(double opr[], double opi[], int degree,
   if (opr[0] == 0.0 && opi[0] == 0.0)
     return "algorithm fails if the leading coefficient is zero.";
 
-  double xx,yy,xxx,bnd;
-  complex double zc,tc,sc,pvc;
+  double xx=0.0,yy=0.0,xxx=0.0,bnd=0.0;
+  complex double zc=0.0,tc=0.0,sc=0.0,pvc=0.0;
   char *failreason = NULL;
   int cnt1,cnt2,i,idnn2;
 
@@ -336,6 +336,8 @@ static complex double noshft(int l1, int nn, complex double tc, complex double h
   for (jj=0;jj<l1;jj++) {
     if (cmod(hc[nm2]) > eta*10.0*cmod(pc[nm2])) {
       tc = cdivid(-pc[n], hc[nm1]);
+      if (isnan(creal(tc)) || isnan(cimag(tc)))
+        return tc; /* error, stop now */
       for (i=0;i<nm1;i++) {
 	int j = nm1-i;
 	hc[j] = pc[j] + tc * hc[j-1];
@@ -641,6 +643,7 @@ static complex double cdivid(complex double a, complex double b)
   } else {
     double r = bi/br;
     double d = br+r*bi;
+    if (isinf(d)) return 0 + 0*I; /* clang 3.4.1 has 1/inf = NaN so we dodge */
     return (ar+ai*r + I*(ai-ar*r))/d;
   }
 }
