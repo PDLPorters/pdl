@@ -283,6 +283,8 @@ char *cpoly(double opr[], double opi[], int degree,
 
       /* First stage calculation, no shift */
       tc = noshft(5,nn,tc,hc,pc);
+      if (isnan(creal(tc)) || isnan(cimag(tc)))
+        return "noshft returned NaN";
 
       /* Inner loop to select a shift. */
       for (cnt2=1;failreason && (cnt2<10);cnt2++) {
