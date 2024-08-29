@@ -187,10 +187,8 @@ void prtz(int n,double zr[], double zi[])
 }
 #endif
 
-
-/* rjrw 10/04/2000: fix for cos 94: was -.060756474L */
-#define COSR (-.069756474L)
-#define SINR (.99756405L)
+#define COSR (-0.0697564737441253008L)
+#define SINR (0.997564050259824248L)
 
 char *cpoly(double opr[], double opi[], int degree,
 	   double zeror[], double zeroi[])
@@ -237,7 +235,7 @@ char *cpoly(double opr[], double opi[], int degree,
     goto returnlab;
   }
 
-  xx = .70710678L;
+  xx = 0.70710678118654752438L;
   yy = -xx;
 
   /* Remove the zeros at the origin if any */
