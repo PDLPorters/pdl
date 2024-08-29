@@ -360,6 +360,8 @@ EOF
 
 Complex roots of a complex polynomial, given coefficients in order
 of decreasing powers. Only works for degree >= 1.
+Uses the Jenkins-Traub algorithm (see
+L<https://en.wikipedia.org/wiki/Jenkins%E2%80%93Traub_algorithm>).
 As of 2.086, works with native-complex data.
 
 =for usage

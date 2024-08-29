@@ -4,7 +4,8 @@
 
 /* algorithm 419 collected algorithms from acm.
    algorithm appeared in comm. acm, vol. 15, no. 02, p. 097. */
-/* available in 2024 from https://calgo.acm.org/ */
+/* available in 2024 from https://calgo.acm.org/
+   see https://en.wikipedia.org/wiki/Jenkins%E2%80%93Traub_algorithm */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -359,8 +360,10 @@ static int fxshft(int l2, int nn, complex double shc[], complex double qpc[], co
 	approximate zero if successful.
 
 	l2    - Limit of fixed shift steps
-	zc    - Approximate zero if conv is .true.
-	conv  - Flag indicating convergence of stage 3 iteration
+
+        output:
+	zc    - Approximate zero if true return
+	returns true if convergence of stage 3 iteration
      */
 {
   int test,pasd,boolvar;
@@ -427,10 +430,10 @@ static int vrshft(int l3, int nn, complex double qpc[], complex double pc[], com
 	 l3      - Limit of steps in stage 3
 	 zc      - On entry contains the initial iterate,
 	           On exit, it contains the final iterate (if it converges).
-	 conv    - TRUE if iteration converges
+	 returns TRUE if iteration converges
      */
 {
-  double mp,ms,omp,relstp;
+  double omp = 0,relstp = 0;
   int i,j,boolvar;
   int b = FALSE;
   *sc = *zc;
@@ -440,8 +443,7 @@ static int vrshft(int l3, int nn, complex double qpc[], complex double pc[], com
 
     /* Evaluate p at s and test for convergence */
     *pvc = polyev(nn,*sc,pc,qpc);
-    mp = cmod(*pvc);
-    ms = cmod(*sc);
+    double mp = cmod(*pvc), ms = cmod(*sc);
     if (mp <= 20.0L*errev(nn,ms,mp,qpc)) {
       /* Polynomial value is smaller in value than a bound on the error
 	 in evaluating p, terminate the iteration */
@@ -729,5 +731,6 @@ static void init(int nncr)
        cf e.g. errev() above */
     are = eta;
     mre = 2.0L*sqrt(2.0L)*eta;
+    nmax = 1;
   }
 }
