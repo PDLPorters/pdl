@@ -553,22 +553,23 @@ static double cauchy(int nn, complex double pc[])
   pc[n] = -creal(pc[n]) + I*cimag(pc[n]);
 
   /* Compute upper estimate of bound */
-  xm = exp( (log(-creal(pc[n])) - log(creal(pc[0])))/((double)n) );
+  x = exp( (log(-creal(pc[n])) - log(creal(pc[0])))/n );
   if (creal(pc[nm]) != 0.0) {
     /* If Newton step at the origin is better, use it */
-    x = -creal(pc[n])/creal(pc[nm]);
-    if (x < xm)
-      xm = x;
+    xm = -creal(pc[n])/creal(pc[nm]);
+    if (xm < x)
+      x = xm;
   }
 
   /* Chop the interval (0,x) until f <= 0 */
-  do {
-    x = xm;
-    xm *= .1;
+  while (1) {
+    xm = x*.1;
     f = creal(pc[0]);
     for (i=1;i<nn;i++)
       f = f*xm+creal(pc[i]);
-  } while (f > 0.);
+    if (f <= 0.) break;
+    x = xm;
+  }
   dx = x;
 
   /* Do Newton iteration until x converges to two decimal places */
