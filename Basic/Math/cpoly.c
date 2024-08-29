@@ -388,36 +388,28 @@ static int fxshft(int l2, int nn, complex double shc[], complex double qpc[], co
 
     /* Test for convergence unless stage 3 has failed once or
        this is the last h polynomial */
-    if (!boolvar && test && j != l2) {
-      if (cmod(*tc-otc) < .5*cmod(*zc)) {
-	if (pasd) {
-
-	  /* The weak convergence test has been passed twice, start the
-	     third stage iteration, after saving the current h polynomial
-	     and shift */
-	  for (i=0;i<n;i++) {
-	    shc[i] = hc[i];
-	  }
-	  complex double svsc = *sc;
-	  if (vrshft(10,nn,qpc,pc,qhc,hc,tc,sc,pvc,zc))
-	    return TRUE;
-
-	  /* The iteration failed to converge
-	     Turn off testing and restore h,s,pv and t */
-	  test = FALSE;
-	  for (i=0;i<n;i++) {
-	    hc[i] = shc[i];
-	  }
-	  *sc = svsc;
-	  *pvc = polyev(nn,*sc,pc,qpc);
-	  boolvar = calct(nn,*sc,*pvc,qhc,hc,tc);
-	} else {
-	  pasd = TRUE;
-	}
-      }
-    } else {
-      pasd = FALSE;
+    if (boolvar || !test || j == l2-1) continue;
+    if (cmod(*tc-otc) >= .5*cmod(*zc)) { pasd = FALSE; continue; }
+    if (!pasd) { pasd = TRUE; continue; }
+    /* The weak convergence test has been passed twice, start the
+       third stage iteration, after saving the current h polynomial
+       and shift */
+    for (i=0;i<n;i++) {
+      shc[i] = hc[i];
     }
+    complex double svsc = *sc;
+    if (vrshft(10,nn,qpc,pc,qhc,hc,tc,sc,pvc,zc))
+      return TRUE;
+
+    /* The iteration failed to converge
+       Turn off testing and restore h,s,pv and t */
+    test = FALSE;
+    for (i=0;i<n;i++) {
+      hc[i] = shc[i];
+    }
+    *sc = svsc;
+    *pvc = polyev(nn,*sc,pc,qpc);
+    boolvar = calct(nn,*sc,*pvc,qhc,hc,tc);
   }
 
   /* Attempt an iteration with final h polynomial from second stage */
