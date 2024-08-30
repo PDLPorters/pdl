@@ -31,15 +31,6 @@ sub depends_on {
 
 sub mmax { return $_[0] > $_[1] ? $_[0] : $_[1] }
 
-my $warned = 0;
-sub tifftest {
-  my ($form) = @_;
-  return 0 unless $form eq 'TIFF';
-  warn "WARNING: you are probably using buggy tiff converters.
-     Check IO/Pnm/converters for patched source files\n" unless $warned;
-  return $warned = 1;
-}
-
 $PDL::debug = 0;
 $PDL::IO::Pic::debug = 0;
 my $iform = 'PNMRAW'; # change to PNMASCII to use ASCII PNM intermediate
@@ -109,9 +100,9 @@ foreach my $form (sort @allowed) {
         my $in2 = rpic_unlink($tbyte);
 
         my $comp = $im1 / PDL::ushort(mmax(depends_on($form),$arr->[1]));
-        ok($usherr || tapprox($in1,$comp,$arr->[3]) || tifftest($form), $form)
+        ok($usherr || tapprox($in1,$comp,$arr->[3]), $form)
           or diag "got=$in1\nexpected:$comp";
-        ok(tapprox($in2,$im2) || tifftest($form));
+        ok(tapprox($in2,$im2));
 
         if ($PDL::debug) {
           note $in1->px;

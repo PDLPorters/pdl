@@ -148,8 +148,8 @@ sub init_converter_table {
     }
   }
 
-  for (sort keys %converter) {
-    $converter{$_}{ushortok} = (m/GIF/ ? 0 : 1);
+  for (keys %converter) {
+    $converter{$_}{ushortok} = (m/GIF|TIFF/ ? 0 : 1);
   }
 }
 
