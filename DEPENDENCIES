@@ -100,14 +100,13 @@ perldl (shell)    Term::ReadLine::Perl
                                           or Term::ReadLine::Gnu is not installed.
 
 
-PDL::GIS::Proj
 PDL::Transform::Proj
                   A PDL interface to the PROJ4 geographic projection
                   library and the PDL::Transform interface to PROJ4.
                   See http://trac.osgeo.org/proj/
 
-                                          Module will be built if the PROJ4
-                                          library is installed and detected.
+                                          Module will be built if Alien::proj
+                                          is installed.
 
 
 PDL::Graphics::TriD

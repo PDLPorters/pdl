@@ -11,16 +11,13 @@ if ($@) {
   return;
 }
 
-my $incflags = Alien::proj->cflags;
-
-my $ppfile = "Proj4.pd";
+my $ppfile = "proj4.pd";
 my $package = [$ppfile, 'Proj4', $package_name];
 my %hash = pdlpp_stdargs_int($package);
 $hash{VERSION_FROM} = $ppfile;
-#$hash{TYPEMAPS} = [&PDL_TYPEMAP()];
-$hash{LIBS} = [ Alien::proj->libs ];
-$hash{INC} = PDL_INCLUDE() . " $incflags";
-$hash{realclean} = { FILES => '' } unless $hash{realclean};
+$hash{LIBS}[0] .= ' ' . Alien::proj->libs;
+$hash{INC}     .= ' ' . Alien::proj->cflags;
+$hash{realclean} ||= { FILES => '' };
 $hash{realclean}{FILES} .= ' _Inline';
 
 undef &MY::postamble; # suppress warning

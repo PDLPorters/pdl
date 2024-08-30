@@ -79,7 +79,6 @@ You should finish with a PDL having the following functionality:
   - base PDL modules
 
   - PDL::IO::GD
-  - PDL::GIS::Proj
   - PDL::Graphics::TriD
   - PDL::GSL::*
   - PDL::Minuit

@@ -331,12 +331,6 @@ Libtmp/Fit/Polynomial.pm
 Libtmp/Fit/t/poly.t
 Libtmp/Func.pm
 Libtmp/Func_demo.pm
-Libtmp/GIS/Makefile.PL
-Libtmp/GIS/Proj/Makefile.PL
-Libtmp/GIS/Proj/Proj.pd
-Libtmp/GIS/Proj/README
-Libtmp/GIS/Proj/t/gis_proj.t
-Libtmp/GIS/Proj/TODO
 Libtmp/GSL/CDF/Demo.pm
 Libtmp/GSL/CDF/gsl_cdf.pd
 Libtmp/GSL/CDF/Makefile.PL
@@ -592,11 +586,10 @@ Libtmp/Transform/Cartography/earth_water-2048x1024.png
 Libtmp/Transform/Cartography/Makefile.PL
 Libtmp/Transform/Makefile.PL
 Libtmp/Transform/Proj4/Makefile.PL
-Libtmp/Transform/Proj4/Proj4.pd
-Libtmp/Transform/Proj4/README
+Libtmp/Transform/Proj4/proj4.pd
+Libtmp/Transform/Proj4/t/gis_proj.t
 Libtmp/Transform/Proj4/t/proj_transform.t
 Libtmp/Transform/Proj4/t/proj_transform2.t
-Libtmp/Transform/Proj4/TODO
 Libtmp/Transform/t/transform.t
 Libtmp/Transform/transform.pd
 m51.fits

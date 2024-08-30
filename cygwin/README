@@ -52,7 +52,6 @@ external dependencies:
  PDL::IO::GD
   (Builds if the gd lib is installed via cygwin Setup.exe)
 
- PDL::GIS::Proj
  PDL::Transform::Proj4
   (Builds if the PROJ4 lib is installed via cygwin Setup.exe)
 

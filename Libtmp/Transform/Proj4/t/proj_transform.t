@@ -3,7 +3,6 @@ use warnings;
 use PDL::LiteF;
 use Test::More;
 use PDL::Transform::Proj4;
-use PDL::GIS::Proj qw(proj_version);
 
 my $test_jpegtopnm = 1;
 if($^O =~ /MSWin32/i) {
@@ -15,9 +14,7 @@ if($^O =~ /MSWin32/i) {
 plan skip_all => "The jpegtopnm utility (needed for proj_transform.t tests) not found."
     if !$test_jpegtopnm;
 
-my @projections = sort keys %{PDL::GIS::Proj::load_projection_information()};
-my @proj_version = proj_version();
-diag "PROJ version: (@proj_version)";
+my @projections = sort keys %{PDL::Transform::Proj4::load_projection_information()};
 
 # Test integration with PDL::Transform
 

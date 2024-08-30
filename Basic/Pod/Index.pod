@@ -232,10 +232,6 @@ L<PDL::Func> - interpolation, integration, & gradient estimation (differentiatio
 
 =item *
 
-L<PDL::GIS::Proj> - PDL interface to the PROJ projection library.
-
-=item *
-
 L<PDL::GSL::CDF> - PDL interface to GSL Cumulative Distribution Functions
 
 =item *

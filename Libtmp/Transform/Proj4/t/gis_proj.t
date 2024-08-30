@@ -1,11 +1,3 @@
-# t/gis_proj.t
-#
-# Test program for the PDL::GIS::Proj library
-#
-# Judd Taylor, Orbital Systems, Ltd.
-# 18 March 2003
-#
-
 use strict;
 use warnings;
 use PDL::LiteF;
@@ -15,7 +7,9 @@ diag "ENV $_ = ", explain $ENV{$_}
   for qw(LD_LIBRARY_PATH DYLD_LIBRARY_PATH LDFLAGS CFLAGS CXXFLAGS LD_RUN_PATH
     LC_RUN_PATH);
 }
-use PDL::GIS::Proj;
+use PDL::Transform::Proj4;
+use Alien::proj;
+diag "Alien::proj version $Alien::proj::VERSION";
 
 sub tapprox
 {
@@ -27,8 +21,9 @@ sub tapprox
     $res;
 }
 
-my @version = eval { proj_version() };
+my @version = eval { PDL::Transform::Proj4::proj_version() };
 is $@, '', 'proj_version no die';
+diag "PROJ version: @version";
 
 print "Testing forward transformation...\n";
 my $proj = "+proj=merc +ellps=WGS72 +lon_0=80.25w +lat_0=30n";
@@ -42,10 +37,10 @@ my $xy_exp = double [
   [-640086.87134846, 13812394.85701733],
 ];
 
-my ($xy) = fwd_transform($lonlat, $proj);
+my ($xy) = PDL::Transform::Proj4::fwd_transform($lonlat, $proj);
 ok( tapprox( $xy, $xy_exp ) );
 
-my ($lonlat2) = inv_transform($xy, $proj);
+my ($lonlat2) = PDL::Transform::Proj4::inv_transform($xy, $proj);
 ok( tapprox( $lonlat2, $lonlat ) );
 
 # Do the corners of a cyl eq map, and see what we get...
@@ -59,27 +54,22 @@ my $xy3_exp = double [
 ];
 
 # TEST 5 & 6:
-my ($xy3) = fwd_transform($lonlat3, $cyl_eq);
+my ($xy3) = PDL::Transform::Proj4::fwd_transform($lonlat3, $cyl_eq);
 ok( tapprox( $xy3, $xy3_exp ) );
 
 # TEST 11:
-my $proj_info = get_proj_info($proj);
+my $proj_info = PDL::Transform::Proj4::get_proj_info($proj);
 
 $lonlat = ((xvals( double, 35, 17 ) - 17.0) * 10.0)->cat(
   (yvals( double, 35, 17 ) - 8.0) * 10.0)->mv(2,0);
 my $exp = $lonlat->copy;
 $lonlat->inplace(1);
-fwd_transform($lonlat, $proj);
+PDL::Transform::Proj4::fwd_transform($lonlat, $proj);
 ok !all(approx($lonlat, $exp)), 'check it changed';
-
-# TEST 14:
-# Get projection descriptions:
-my $projections = load_projection_descriptions();
-#diag explain $projections;
 
 # TEST 15:
 # Get full projection information:
-my $info = load_projection_information();
+my $info = PDL::Transform::Proj4::load_projection_information();
 #diag explain $info;
 
 done_testing;
