@@ -362,12 +362,12 @@ flags(x)
     PDL_FLAG_DUMP(PDL_LIST_FLAGS_PDLSTATE, x->state)
 
 int
-set_donttouchdata(it,size)
+set_donttouchdata(it,size=-1)
       pdl *it
       IV size
       CODE:
             it->state |= PDL_DONTTOUCHDATA | PDL_ALLOCATED;
-            it->nbytes = size;
+            if (size >= 0) it->nbytes = size;
             RETVAL = 1;
       OUTPUT:
             RETVAL

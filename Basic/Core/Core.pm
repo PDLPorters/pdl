@@ -1518,6 +1518,7 @@ Frees the C<datasv> if possible. Useful in memory-mapping functionality.
 
 Sets the C<PDL_DONTTOUCHDATA> flag and the C<nbytes> to the given
 value. Useful in memory-mapping functionality.
+The C<nbytes> can be omitted, in which case only the flag is set.
 
 =head2 set_data_by_offset
 

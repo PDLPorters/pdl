@@ -758,7 +758,7 @@ isnt $@, '', 'error on assigning into one-way slice';
 }
 
 my $notouch = sequence(4);
-$notouch->set_donttouchdata(4 * PDL::Core::howbig($notouch->get_datatype));
+$notouch->set_donttouchdata;
 eval { $notouch->setdims([2,2]); $notouch->make_physical; };
 is $@, '', 'setdims to same total size of set_donttouchdata should be fine';
 eval { $notouch->setdims([3,2]); $notouch->make_physical; };
