@@ -33,6 +33,16 @@ is $p->datasv_refcount, 1;
 my $ref = $p->get_dataref;
 $ref = $p->get_dataref;
 is $p->datasv_refcount, 2;
+my $p2 = PDL->new_around_datasv(0+$ref);
+$p2->set_datatype($p->type->enum);
+$p2->setdims([$p->dims]);
+$p2->set_donttouchdata($p->nbytes);
+is $p->datasv_refcount, 3;
+is $p2->datasv_refcount, 3;
+undef $p2;
+is $p->datasv_refcount, 2;
+undef $ref;
+is $p->datasv_refcount, 1;
 }
 
 {

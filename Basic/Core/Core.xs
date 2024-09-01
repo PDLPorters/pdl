@@ -997,18 +997,39 @@ sclr(it)
 
 SV *
 initialize(class)
-        SV *class
-        CODE:
-        HV *bless_stash = SvROK(class)
-          ? SvSTASH(SvRV(class)) /* a reference to a class */
-          : gv_stashsv(class, 0); /* a class name */
-        RETVAL = newSV(0);
-        pdl *n = pdl_pdlnew();
-        if (!n) pdl_pdl_barf("Error making null pdl");
-        pdl_SetSV_PDL(RETVAL,n);   /* set a null PDL to this SV * */
-        RETVAL = sv_bless(RETVAL, bless_stash); /* bless appropriately  */
-        OUTPUT:
-        RETVAL
+  SV *class
+  CODE:
+    HV *bless_stash = SvROK(class)
+      ? SvSTASH(SvRV(class)) /* a reference to a class */
+      : gv_stashsv(class, 0); /* a class name */
+    RETVAL = newSV(0);
+    pdl *n = pdl_pdlnew();
+    if (!n) pdl_pdl_barf("Error making null pdl");
+    pdl_SetSV_PDL(RETVAL,n);   /* set a null PDL to this SV * */
+    RETVAL = sv_bless(RETVAL, bless_stash); /* bless appropriately  */
+    OUTPUT:
+    RETVAL
+
+# undocumented for present. returns PDL still needing dims and datatype
+SV *
+new_around_datasv(class, datasv_pointer)
+  SV *class
+  IV datasv_pointer
+  CODE:
+    HV *bless_stash = SvROK(class)
+      ? SvSTASH(SvRV(class)) /* a reference to a class */
+      : gv_stashsv(class, 0); /* a class name */
+    RETVAL = newSV(0);
+    pdl *n = pdl_pdlnew();
+    if (!n) pdl_pdl_barf("Error making null pdl");
+    pdl_SetSV_PDL(RETVAL,n);   /* set a null PDL to this SV * */
+    RETVAL = sv_bless(RETVAL, bless_stash); /* bless appropriately  */
+    /* set the datasv to what was supplied */
+    n->datasv = (void*)datasv_pointer;
+    SvREFCNT_inc((SV*)(datasv_pointer));
+    n->data = SvPV_nolen((SV*)datasv_pointer);
+  OUTPUT:
+    RETVAL
 
 SV *
 get_dataref(self)
