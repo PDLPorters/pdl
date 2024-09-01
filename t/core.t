@@ -28,6 +28,14 @@ $p->upd_data;
 }
 
 {
+my $p = sequence(100); # big enough to not fit in "value" field
+is $p->datasv_refcount, 1;
+my $ref = $p->get_dataref;
+$ref = $p->get_dataref;
+is $p->datasv_refcount, 2;
+}
+
+{
   my $pa = pdl 2,3,4;
   $pa->flowing;
   my $pb = $pa + $pa;

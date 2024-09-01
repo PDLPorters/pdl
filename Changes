@@ -2,6 +2,7 @@
 - fix badvalue propagated to different-typed child breaking them
 - merge GIS::Proj into Transform::Proj4
 - allow set_donttouchdata with no nbytes param
+- add datasv_refcount method
 
 2.090 2024-08-23
 - remove PDL_DATAFLOW_B entirely as meaningless (#485)
@@ -286,6 +287,7 @@
 
 2.068_04 2022-01-22
 - fix bug in memory allocation revealed on 32-bit
+- add nbytes method
 
 2.068_03 2022-01-20
 - improve GSL version parsing - thanks @d-lamb

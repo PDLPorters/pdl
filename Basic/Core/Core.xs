@@ -394,6 +394,15 @@ freedata(it)
 		die("Trying to free data of pdl with data != 0 and datasv==0");
 	}
 
+IV
+datasv_refcount(p)
+  pdl *p
+  CODE:
+    if (!p->datasv) barf("NULL datasv");
+    RETVAL = SvREFCNT((SV*)p->datasv);
+  OUTPUT:
+    RETVAL
+
 int
 set_data_by_offset(it,orig,offset)
       pdl *it
@@ -727,7 +736,6 @@ listref_c(x)
      }
      if (pdl_badval.type < 0) barf("Error getting badvalue, type=%d", pdl_badval.type);
    }
-
    pdl_barf_if_error(pdl_make_physvaffine( x ));
    void *data = PDL_REPRP(x);
    AV *av = newAV();
@@ -756,7 +764,6 @@ listref_c(x)
 	 ANYVAL_TO_SV(sv, pdl_val);
       }
       av_store( av, lind, sv );
-
       lind++;
       stop = 1;
       for(ind = 0; ind < x->ndims; ind++) {
@@ -781,10 +788,8 @@ set_c(x,pos,value)
     PDL_Indx ipos;
    CODE:
     pdl_barf_if_error(pdl_make_physvaffine( x ));
-
     if (pos == NULL || pos_count < x->ndims)
        croak("Invalid position");
-
     /*  allow additional trailing indices
      *  which must be all zero, i.e. a
      *  [3,1,5] ndarray is treated as an [3,1,5,1,1,1,....]
@@ -793,7 +798,6 @@ set_c(x,pos,value)
     for (ipos=x->ndims; ipos<pos_count; ipos++)
       if (pos[ipos] != 0)
          croak("Invalid position");
-
     pdl_barf_if_error(pdl_set(PDL_REPRP(x), x->datatype, pos, x->dims,
         PDL_REPRINCS(x), PDL_REPROFFS(x),
 	x->ndims,value));
