@@ -3042,7 +3042,7 @@ flatten an ndarray (alias for C<< $pdl->clump(-1) >>)
 Useful method to make a 1D ndarray from an
 arbitrarily sized input ndarray. Data flows
 back and forth as usual with slicing routines.
-Falls through if argument already != 1D.
+Falls through if argument already == 1D.
 
 =cut
 

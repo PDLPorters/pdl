@@ -1136,7 +1136,7 @@ and
 If you are only using implicit broadcasting then the output variable can
 be automatically created by PDL. You flag that to the PP-function by
 setting the output argument to a special kind of ndarray that is returned
-from a call to the function C<<PDL->null>> that returns an essentially
+from a call to the function C<< PDL->null >> that returns an essentially
 "empty" ndarray (for those interested in details there is a flag
 in the C pdl structure for this). The dimensions
 of the created ndarray are determined by the rules of implicit

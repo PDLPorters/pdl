@@ -1,105 +1,159 @@
 =head1 NAME
 
-PDL::Objects -- Object-Orientation, what is it and how to exploit it
+PDL::Objects -- Object-orientation, what it is and how to exploit it
 
 =head1 DESCRIPTION
 
-This still needs to be written properly.  [Also, is there a good reason
-we don't recommend storing extra object data in the header hash?]
+This describes how to subclass L<PDL> objects for fun and profit.
 
-=head2 Inheritance
+=head2 Why subclass?
 
 There are basically two reasons for subclassing ndarrays.
 The first is simply that you want to be able to use your own routines
 like
 
-	$ndarray->something()
+  $ndarray->something
 
 but don't want to mess up the PDL namespace (a worthy goal, indeed!).
 The other is that you wish to provide special handling of some functions
 or more information about the data the ndarray contains.
-In the first case, you can do with
+The first case you can do with
 
-	package BAR;
-	@ISA=qw/PDL/;
-	sub foo {my($this) = @_; fiddle;}
+  package BAR;
+  our @ISA=qw/PDL/;
+  sub foo {my($this) = @_; fiddle;}
 
-	package main;
-	$x = PDL::pdl(BAR,5);
-	$x->foo();
+  package main;
+  $x = BAR->pdl(5);
+  $x->foo;
 
 However, because a PDL object is an opaque reference to a C struct,
-it is not possible to
+it is not instantly possible to
 extend the PDL class by e.g. extra data via subclassing.
-To circumvent this problem
-PerlDL has built-in support to extent the PDL class via the I<has-a>
-relation for blessed hashes.  You can get the I<HAS-A> behave like
-I<IS-A> simply in that you assign the C<PDL> object to the attribute
-named PDL and redefine the method initialize().
 
-    package FOO;
+=head2 Perl values into underlying C values
 
-    @FOO::ISA = qw(PDL);
-    sub initialize {
-        my $class = shift;
-        my $self = {
-                creation_time => time(),  # necessary extension :-)
-                PDL => null,             # used to store PDL object
-                };
-        bless $self, $class;
-    }
+C<typemap>s turns Perl values into the C entities needed by the C
+code. PDL's one uses C<SvPDLV> to extract a C<pdl*> from a Perl
+value. That knows how to deal with:
+
+=over
+
+=item *
+
+"simple" blessed scalars that have a C pointer
+
+=item *
+
+blessed hash-refs that have a C<PDL> member that's a C pointer as above
+
+=item *
+
+blessed hash-refs that have a C<PDL> member that's a Perl code-ref.
+It will be called, and is expected to return an ndarray that conforms
+to one of cases 1-2 or 4-5 above. Example from F<t/subclass.t>:
+
+  package PDL::Derived2;
+  # This is a array of ones of dim 'Coeff'
+  # All that is stored initially is "Coeff", the
+  # PDL array is only realised when a boring PDL
+  # function is called on it. One can imagine methods
+  # in PDL::Derived2 doing manipulation on the Coeffs
+  # rather than actualizing the data.
+  our @ISA = qw/PDL/;
+  sub new {
+    my $class = shift;
+    bless {
+      Coeff=>shift,
+      PDL=>sub { return $_[0]->cache },
+      SomethingElse=>42,
+    }, $class;
+  }
+  # Actualize the value (demonstrating cacheing)
+  # One can imagine expiring the cache if say, Coeffs change
+  sub cache {
+    my $self = shift;
+    return $self->{Cache} if exists $self->{Cache};
+    $self->{Cache} = PDL->ones(@$self{qw(Coeff Coeff)})+2;
+  }
+
+=item *
+
+"simple" Perl data, either a scalar or an array-reference
+
+=item *
+
+blessed hash-refs that are a L<Math::Complex> (or subclass) object
+- special case of the "scalar" above
+
+=back
+
+The rest of this document deals with the second case above.
+
+=head2 Inheritance
+
+To enable subclassing, make a package and bless a hash-ref into it
+with a C<PDL> member. Make that package inherit from C<PDL>, and
+redefine the method C<initialize>.
+
+  package FOO;
+  our ISA = qw(PDL);
+  sub initialize {
+    my $class = shift;
+    my $self = {
+      creation_time => time(),  # necessary extension :-)
+      PDL => $class->SUPER::initialize, # used to store PDL object
+    };
+    bless $self, ref $class || $class;
+  }
 
 All PDL constructors will call initialize() to make sure that your
-extensions are added by I<all> PDL constructors automatically.   The
-C<PDL> attribute is used by perlDL to store the PDL object and
-all PDL methods use this attribute automatically if they are called
-with a blessed hash reference instead of a PDL object (a blessed scalar).
+extensions are added by I<all> PDL constructors automatically.
 
 Do remember that if you subclass a class that is subclassed from an ndarray,
-you need to call SUPER::initialize.
-
-
-NEED STUFF ABOUT CODE REFs!!
+you need to call C<SUPER::initialize>.
 
 =head2 Examples
 
 You can find some simple examples of PDL subclassing in the PDL distribution
-test-case files. Look in C<t/subclass2.t>, C<t/subclass3.t>, etc.
+test-case files. Look in F<t/subclass.t>.
 
 =head2 Output Auto-Creation and Subclassed Objects
 
 For PDL Functions where the output is created and returned, PDL will either
 call the subclassed object's C<initialize> or C<copy> method to create the
-output object. (See L<PDL::Indexing|PDL::Indexing/"Output auto-creation and PP-function calling conventions"> 
+output object. (See L<PDL::Indexing|PDL::Indexing/"Output auto-creation and PP-function calling conventions">
 for a discussion on Output Auto-Creation.) This behavior is summarized as follows:
 
-=over 1
+=over
 
 =item *
 
-For I<Simple> functions, defined as having a signature of 
+For I<simple> functions, defined as having a signature of
 
  func( a(), [o]b() )
 
-PDL will call $a->copy to create the output object. 
+PDL will call C<< $a->copy >> to create the output object.
 
 In the spirit of the Perl philosophy of making I<Easy Things Easy>,
-This behavior enables PDL-subclassed objects to be written without having to
+this behavior enables PDL-subclassed objects to be written without having to
 overload the many simple PDL functions in this category.
 
-The file t/subclass4.t in the PDL Distribution tests for this behavior.
-See that file for an example. 
+The file F<t/subclass.t> in the PDL Distribution tests for this behavior.
+See that file for an example.
 
 =item *
 
-For other functions, PDL will call $class->initialize to create the output object.
-Where $class is the class name of the first argument supplied to the function.
+For other functions, PDL will call C<< $class->initialize >> to
+create the output object.  Where C<$class> is the class name of the
+first argument supplied to the function.
 
-For these more complex cases, it is difficult to second-guess the subclassed object's 
-designer to know if a C<copy> or a C<initialize> is appropriate. So for these cases,
-$class->initialize is called by default. If this is not appropriate for you,
-overload the function in your subclass and do whatever is appropriate is the overloaded
-function's code.
+For these more complex cases, it is difficult to second-guess the
+subclassed object's designer to know if a C<copy> or a C<initialize>
+is appropriate. So for these cases, C<< $class->initialize >> is
+called by default. If this is not appropriate for you, overload the
+function in your subclass and do whatever is appropriate is the
+overloaded function's code.
 
 =back
 
