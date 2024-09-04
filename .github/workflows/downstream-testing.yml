@@ -20,7 +20,7 @@ jobs:
           path: .github/devops
       - run: make -C .github/devops/docker -f Makefile.docker docker.pdl PATH_TO_PDL=$(pwd)
       - run: docker save pdl:latest --output pdl-latest.tar
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         with:
           name: pdl-latest-image
           path: pdl-latest.tar
@@ -37,7 +37,7 @@ jobs:
       fail-fast: false
       matrix: ${{ fromJSON(needs.build-docker.outputs.project-matrix) }}
     steps:
-      - uses: actions/download-artifact@v4.1.7
+      - uses: actions/download-artifact@v4
         with:
           name: pdl-latest-image
           path: .
