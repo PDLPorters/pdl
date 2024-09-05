@@ -374,6 +374,9 @@ tricpy($A, 1, $got = null);
 ok tapprox($got, $lo), 'lower triangle #2' or diag "got: $got";
 ok tapprox($got = $A->mstack($up), pdl('[1 2 3; 4 5 6; 7 8 9; 1 2 3; 0 5 6; 0 0 9]')) or diag "got: $got";
 ok tapprox($got = sequence(2,3)->augment(sequence(3,3)+10), pdl('[0 1 10 11 12; 2 3 13 14 15; 4 5 16 17 18]')) or diag "got: $got";
+my $B = pdl('[i 2+4i 3+5i; 0 3i 7+9i]');
+ok tapprox($got = $B->t, pdl('[i 0; 2+4i 3i; 3+5i 7+9i]')) or diag "got: $got";
+ok tapprox($got = $B->t(1), pdl('[-i 0; 2-4i -3i; 3-5i 7-9i]')) or diag "got: $got";
 }
 
 done_testing;
