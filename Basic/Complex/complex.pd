@@ -247,6 +247,9 @@ sub i { $i->copy + (@_ ? $_[0] : 0) };
 *asinh = \&Casinh;
 *acosh = \&Cacosh;
 *atanh = \&Catanh;
+*tricpy = \&Ctricpy;
+*mstack = \&Cmstack;
+*augment = \&Caugment;
 EOD
 
 for (qw(Ctan Catan re im i cplx real)) {
@@ -1055,7 +1058,7 @@ sub rCpolynomial {
        !
 ;
 
-pp_def('tricpy',
+pp_def('Ctricpy',
   Pars => 'A(c=2,m,n);[o] C(c=2,m,n)',
   OtherPars => 'int uplo',
   OtherParsDefaults => {uplo => 0},
@@ -1090,7 +1093,7 @@ Originally by Grégory Vanuxem.
 EOT
 );
 
-pp_def('mstack',
+pp_def('Cmstack',
   DefaultFlow => 1,
   TwoWay => 1,
   Pars => 'x(c=2,n,m);y(c,n,p);[o]out(c,n,q=CALC($SIZE(m)+$SIZE(p)));',
@@ -1107,6 +1110,28 @@ loop (q=$SIZE(m),n,c) %{ $y(p=>q-$SIZE(m)) = $out(); %}
 
 Combine two 2D ndarrays into a single ndarray, along the second
 ("vertical") dim.
+This routine does backward and forward dataflow automatically.
+
+Originally by Grégory Vanuxem.
+EOT
+);
+
+pp_def('Caugment',
+  DefaultFlow => 1,
+  TwoWay => 1,
+  Pars => 'x(c=2,n);y(c,p);[o]out(c,q=CALC($SIZE(n)+$SIZE(p)));',
+  Code => '
+loop (q=:$SIZE(n),c) %{ $out() = $x(n=>q); %}
+loop (q=$SIZE(n),c)  %{ $out() = $y(p=>q-$SIZE(n)); %}
+',
+  BackCode => '
+loop (q=:$SIZE(n),c) %{ $x(n=>q)          = $out(); %}
+loop (q=$SIZE(n),c)  %{ $y(p=>q-$SIZE(n)) = $out(); %}
+',
+  Doc => <<EOT
+=for ref
+
+Combine two ndarrays into a single ndarray along the 0-th ("horizontal") dim.
 This routine does backward and forward dataflow automatically.
 
 Originally by Grégory Vanuxem.

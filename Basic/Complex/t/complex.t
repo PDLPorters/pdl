@@ -402,6 +402,8 @@ ok tapprox($aa->tricpy(0), $up);
 ok tapprox($aa->tricpy, $up);
 ok tapprox($aa->tricpy(1), $lo);
 ok tapprox($aa->mstack($up), pdl('[[0 1; 2 3; 4 5] [6 7; 8 9; 10 11] [12 13; 14 15; 16 17] [0 1; 2 3; 4 5] [0 0; 8 9; 10 11] [0 0; 0 0; 16 17]]')->cplx);
+my $got;
+ok tapprox($got = PDL->sequence(2,2,3)->cplx->augment(PDL->sequence(2,3,3)->cplx+10), PDL::Complex->from_native(pdl('[i 2+3i 10+i 12+3i 14+5i; 4+5i 6+7i 16+7i 18+9i 20+11i; 8+9i 10+11i 22+13i 24+15i 26+17i]'))) or diag "got: ", $got->real;
 }
 
 done_testing;

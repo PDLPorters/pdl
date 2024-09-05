@@ -1369,6 +1369,29 @@ Originally by Grégory Vanuxem.
 EOT
 );
 
+pp_def('augment',
+  DefaultFlow => 1,
+  TwoWay => 1,
+  Pars => 'x(n); y(p);[o]out(q=CALC($SIZE(n)+$SIZE(p)))',
+  GenericTypes => [ppdefs_all()],
+  Code => '
+loop (q=:$SIZE(n)) %{ $out() = $x(n=>q); %}
+loop (q=$SIZE(n))  %{ $out() = $y(p=>q-$SIZE(n)); %}
+',
+  BackCode => '
+loop (q=:$SIZE(n)) %{ $x(n=>q)          = $out(); %}
+loop (q=$SIZE(n))  %{ $y(p=>q-$SIZE(n)) = $out(); %}
+',
+  Doc => <<EOT
+=for ref
+
+Combine two ndarrays into a single ndarray along the 0-th ("horizontal") dim.
+This routine does backward and forward dataflow automatically.
+
+Originally by Grégory Vanuxem.
+EOT
+);
+
 pp_addpm({At=>'Bot'},<<'EOD');
 
 =head1 AUTHOR
