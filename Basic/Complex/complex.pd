@@ -21,7 +21,7 @@ use warnings;
 use Carp;
 our $VERSION = '2.009';
 
-=encoding iso-8859-1
+=encoding utf8
 
 =head1 NAME
 
@@ -1055,8 +1055,7 @@ sub rCpolynomial {
        !
 ;
 
-pp_def(
-  'tricpy',
+pp_def('tricpy',
   Pars => 'A(c=2,m,n);[o] C(c=2,m,n)',
   OtherPars => 'int uplo',
   OtherParsDefaults => {uplo => 0},
@@ -1086,6 +1085,29 @@ or
 
 Copy triangular part to another matrix. If uplo == 0 copy upper triangular
 part.
+
+Originally by Grégory Vanuxem.
+EOT
+);
+
+pp_def('mstack',
+  DefaultFlow => 1,
+  TwoWay => 1,
+  Pars => 'x(c=2,n,m);y(c,n,p);[o]out(c,n,q=CALC($SIZE(m)+$SIZE(p)));',
+  Code => '
+loop (m,n,c) %{ $out(q=>m) = $x(); %}
+loop (q=$SIZE(m),n,c) %{ $out() = $y(p=>q-$SIZE(m)); %}
+',
+  BackCode => '
+loop (m,n,c) %{ $x() = $out(q=>m); %}
+loop (q=$SIZE(m),n,c) %{ $y(p=>q-$SIZE(m)) = $out(); %}
+',
+  Doc => <<EOT
+=for ref
+
+Combine two 2D ndarrays into a single ndarray, along the second
+("vertical") dim.
+This routine does backward and forward dataflow automatically.
 
 Originally by Grégory Vanuxem.
 EOT
@@ -1189,8 +1211,6 @@ in the file COPYING in the PDL distribution.
 perl(1), L<PDL>.
 
 =cut
-
-
 EOD
 
 pp_done;

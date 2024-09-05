@@ -361,9 +361,9 @@ is $y.'', "
 }
 
 {
-my $A = pdl '[[1 2 3] [4 5 6] [7 8 9]]';
-my $up = pdl '[[1 2 3] [0 5 6] [0 0 9]]';
-my $lo = pdl '[[1 0 0] [4 5 0] [7 8 9]]';
+my $A = pdl '[1 2 3; 4 5 6; 7 8 9]';
+my $up = pdl '[1 2 3; 0 5 6; 0 0 9]';
+my $lo = pdl '[1 0 0; 4 5 0; 7 8 9]';
 my $got;
 ok tapprox($got = $A->tricpy(0), $up), 'upper triangle #1' or diag "got: $got";
 tricpy($A, 0, $got = null);
@@ -372,6 +372,7 @@ ok tapprox($got = $A->tricpy, $up), 'upper triangle #3' or diag "got: $got";
 ok tapprox($got = $A->tricpy(1), $lo), 'lower triangle #1' or diag "got: $got";
 tricpy($A, 1, $got = null);
 ok tapprox($got, $lo), 'lower triangle #2' or diag "got: $got";
+ok tapprox($got = $A->mstack($up), pdl('[1 2 3; 4 5 6; 7 8 9; 1 2 3; 0 5 6; 0 0 9]')) or diag "got: $got";
 }
 
 done_testing;

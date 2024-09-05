@@ -7,6 +7,8 @@ use warnings;
 use PDL::Types qw(ppdefs_all);
 
 pp_addpm({At=>'Top'},<<'EOD');
+=encoding utf8
+
 use strict;
 use warnings;
 
@@ -1307,8 +1309,7 @@ Does not touch upper half of output.
 ',
 );
 
-pp_def(
-  'tricpy',
+pp_def('tricpy',
   Pars => 'A(m,n);[o] C(m,n)',
   OtherPars => 'int uplo',
   OtherParsDefaults => {uplo => 0},
@@ -1339,6 +1340,30 @@ or
 
 Copy triangular part to another matrix. If uplo == 0 copy upper triangular
 part.
+
+Originally by Grégory Vanuxem.
+EOT
+);
+
+pp_def('mstack',
+  DefaultFlow => 1,
+  TwoWay => 1,
+  Pars => 'x(n,m);y(n,p);[o]out(n,q=CALC($SIZE(m)+$SIZE(p)));',
+  GenericTypes => [ppdefs_all()],
+  Code => '
+loop (m,n) %{ $out(q=>m) = $x(); %}
+loop (q=$SIZE(m),n) %{ $out() = $y(p=>q-$SIZE(m)); %}
+',
+  BackCode => '
+loop (m,n) %{ $x() = $out(q=>m); %}
+loop (q=$SIZE(m),n) %{ $y(p=>q-$SIZE(m)) = $out(); %}
+',
+  Doc => <<EOT
+=for ref
+
+Combine two 2D ndarrays into a single ndarray, along the second
+("vertical") dim.
+This routine does backward and forward dataflow automatically.
 
 Originally by Grégory Vanuxem.
 EOT
