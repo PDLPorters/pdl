@@ -1042,21 +1042,54 @@ sub rCpolynomial {
              double or = 0;
              double oi = 0;
              double Xr;
-
              loop(n) %{
                 or += $coeffs() * xr;
                 oi += $coeffs() * xi;
-
                 Xr = xr;
                 xr = Xr * $x(c=>0) - xi * $x(c=>1);
                 xi = xi * $x(c=>0) + Xr * $x(c=>1);
              %}
-
              $out(c=>0) = or;
              $out(c=>1) = oi;
           %}
        !
 ;
+
+pp_def(
+  'tricpy',
+  Pars => 'A(c=2,m,n);[o] C(c=2,m,n)',
+  OtherPars => 'int uplo',
+  OtherParsDefaults => {uplo => 0},
+  ArgOrder => [qw(A uplo C)],
+  Code => '
+if ($COMP(uplo)) { /* lower */
+  broadcastloop %{ loop(n,m=:n+1,c) %{ $C() = $A(); %} %}
+} else {
+  broadcastloop %{ loop(n,m=n,c) %{ $C() = $A(); %} %}
+}
+  ',
+  Doc => <<'EOT',
+=for usage
+
+tricpy(PDL(A), int(uplo), PDL(C))
+
+=for example
+
+  $c = $a->tricpy($uplo); # explicit uplo
+  $c = $a->tricpy;        # default upper
+
+or
+
+  tricpy($a, $uplo, $c);  # modify c
+
+=for ref
+
+Copy triangular part to another matrix. If uplo == 0 copy upper triangular
+part.
+
+Originally by Grégory Vanuxem.
+EOT
+);
 
 pp_add_isa 'PDL';
 

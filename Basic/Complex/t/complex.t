@@ -394,4 +394,12 @@ TODO: {
     ok($zero_imag!=5,'neq real');
 }
 
+my $aa = PDL->sequence(2,3,3)->cplx;
+my $up = pdl('[[0 1; 2 3; 4 5] [0 0; 8 9; 10 11] [0 0; 0 0; 16 17]]')->cplx;
+my $lo = pdl('[[0 1; 0 0; 0 0] [6 7; 8 9; 0 0] [12 13; 14 15; 16 17]]')->cplx;
+
+tapprox($aa->tricpy(0), $up);
+tapprox($aa->tricpy, $up);
+tapprox($aa->tricpy(1), $lo);
+
 done_testing;

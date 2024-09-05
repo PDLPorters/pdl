@@ -4,6 +4,7 @@
 - allow set_donttouchdata with no nbytes param
 - add datasv_refcount method
 - core support for PDL::Parallel::threads
+- add tricpy
 
 2.090 2024-08-23
 - remove PDL_DATAFLOW_B entirely as meaningless (#485)

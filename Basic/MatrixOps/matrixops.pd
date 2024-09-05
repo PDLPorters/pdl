@@ -1307,6 +1307,43 @@ Does not touch upper half of output.
 ',
 );
 
+pp_def(
+  'tricpy',
+  Pars => 'A(m,n);[o] C(m,n)',
+  OtherPars => 'int uplo',
+  OtherParsDefaults => {uplo => 0},
+  ArgOrder => [qw(A uplo C)],
+  GenericTypes => [ppdefs_all()],
+  Code => '
+if ($COMP(uplo)) { /* lower */
+  broadcastloop %{ loop(n,m=:n+1) %{ $C() = $A(); %} %}
+} else {
+  broadcastloop %{ loop(n,m=n) %{ $C() = $A(); %} %}
+}
+',
+  Doc => <<'EOT',
+=for usage
+
+tricpy(PDL(A), int(uplo), PDL(C))
+
+=for example
+
+  $c = $a->tricpy($uplo); # explicit uplo
+  $c = $a->tricpy;        # default upper
+
+or
+
+  tricpy($a, $uplo, $c);  # modify c
+
+=for ref
+
+Copy triangular part to another matrix. If uplo == 0 copy upper triangular
+part.
+
+Originally by Grégory Vanuxem.
+EOT
+);
+
 pp_addpm({At=>'Bot'},<<'EOD');
 
 =head1 AUTHOR
