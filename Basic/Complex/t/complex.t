@@ -407,6 +407,8 @@ ok tapprox($got = PDL->sequence(2,2,3)->cplx->augment(PDL->sequence(2,3,3)->cplx
 my $B = PDL::Complex->from_native(pdl('[i 2+4i 3+5i; 0 3i 7+9i]'));
 ok tapprox($got = $B->t, PDL::Complex->from_native(pdl('[i 0; 2+4i 3i; 3+5i 7+9i]'))) or diag "got: $got";
 ok tapprox($got = $B->t(1), PDL::Complex->from_native(pdl('[-i 0; 2-4i -3i; 3-5i 7-9i]'))) or diag "got: $got";
+ok tapprox($got = PDL::Complex->from_native(PDL->sequence(3)->r2C)->t, PDL::Complex->from_native(pdl('[0; 1; 2]')->r2C)) or diag "got: $got";
+is_deeply $got = [PDL::Complex->from_native(pdl(3)->r2C)->t->dims], [2,1,1] or diag "got: ", explain $got;
 }
 
 done_testing;

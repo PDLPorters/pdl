@@ -452,7 +452,10 @@ Originally by Grégory Vanuxem.
 
 sub t {
   my ($m, $conj) = @_;
-  my $r = ($m->dims > 2) ? $m->xchg(1,2) : $m->dummy(1);
+  my $ndims = $m->dims;
+  my $r = $ndims > 2 ? $m->xchg(1,2) :
+    $ndims > 1 ? $m->dummy(1) :
+    $m->dummy(1)->dummy(1);
   $conj ? $r->conj : $r;
 }
 

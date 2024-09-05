@@ -377,6 +377,8 @@ ok tapprox($got = sequence(2,3)->augment(sequence(3,3)+10), pdl('[0 1 10 11 12; 
 my $B = pdl('[i 2+4i 3+5i; 0 3i 7+9i]');
 ok tapprox($got = $B->t, pdl('[i 0; 2+4i 3i; 3+5i 7+9i]')) or diag "got: $got";
 ok tapprox($got = $B->t(1), pdl('[-i 0; 2-4i -3i; 3-5i 7-9i]')) or diag "got: $got";
+ok tapprox($got = sequence(3)->t, pdl('[0; 1; 2]')) or diag "got: $got";
+is_deeply $got = [pdl(3)->t->dims], [1,1] or diag "got: ", explain $got;
 }
 
 done_testing;

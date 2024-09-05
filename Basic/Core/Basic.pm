@@ -719,8 +719,9 @@ transpose rows and columns.
 
 sub PDL::transpose {
   my ($this) = @_;
-  $this->getndims > 1 ? $this->xchg(0,1) :
-  $this->getndims > 0 ? $this->dummy(0) :
+  my $ndims = $this->dims;
+  $ndims > 1 ? $this->xchg(0,1) :
+  $ndims > 0 ? $this->dummy(0) :
   $this->dummy(0)->dummy(0);
 }
 
@@ -743,7 +744,7 @@ Originally by Grégory Vanuxem.
 
 sub PDL::t {
   my ($m, $conj) = @_;
-  my $r = ($m->dims > 1) ? $m->xchg(0,1) : $m->dummy(0);
+  my $r = $m->transpose;
   ($conj && !$r->type->real) ? $r->conj : $r;
 }
 
