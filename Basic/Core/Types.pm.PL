@@ -779,11 +779,11 @@ sub types { @CACHED_TYPES }
 
     sub floatsuffix { $_[0][1]{floatsuffix} // 'floatsuffix called on non-float type' }
 
-    my %bswap_cache;
+    my (%bswap_cache, %howbig_cache);
     sub bswap {
       PDL::Core::barf('Usage: $type->bswap with no args') if @_ > 1;
       return $bswap_cache{$_[0][0]} if $bswap_cache{$_[0][0]};
-      my $size = PDL::Core::howbig($_[0][0]);
+      my $size = $_[0]->howbig;
       return $bswap_cache{$_[0][0]} = sub {} if $size < 2;
       require PDL::IO::Misc;
       $bswap_cache{$_[0][0]} =
@@ -791,6 +791,10 @@ sub types { @CACHED_TYPES }
         $size == 4 ? \&PDL::bswap4 :
         $size == 8 ? \&PDL::bswap8 :
         PDL::Core::barf("bswap couldn't find swap function for $_[0][1]{shortctype}");
+    }
+
+    sub howbig {
+      $howbig_cache{$_[0][0]} ||= PDL::Core::howbig($_[0][0]);
     }
 
 !NO!SUBS!

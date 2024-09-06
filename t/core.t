@@ -685,6 +685,7 @@ for my $type (
   { typefunc => *float , size => 4 },
   { typefunc => *double, size => 8 },
 ) {
+  is $type->{typefunc}()->howbig, $type->{size}, 'howbig method works';
   my $pdl = $type->{typefunc}(42); # build a PDL with datatype $type->{type}
   is( PDL::Core::howbig( $pdl->get_datatype ), $type->{size} );
   is $pdl->type, $type->{typefunc}->().'', 'pdl has right type';
