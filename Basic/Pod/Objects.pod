@@ -152,7 +152,7 @@ For these more complex cases, it is difficult to second-guess the
 subclassed object's designer to know if a C<copy> or a C<initialize>
 is appropriate. So for these cases, C<< $class->initialize >> is
 called by default. If this is not appropriate for you, overload the
-function in your subclass and do whatever is appropriate is the
+function in your subclass and do whatever is appropriate in the
 overloaded function's code.
 
 =back
