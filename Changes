@@ -1,3 +1,4 @@
+2.091 2024-09-06
 - disable/replace PDL_Anyval-returning API functions as clang 3.4.1 corrupts
 - fix badvalue propagated to different-typed child breaking them
 - merge GIS::Proj into Transform::Proj4
