@@ -588,7 +588,9 @@ pdl_error pdl_setdims_careful(pdl *it)
 
 /*CORE21 unused*/
 PDL_Anyval pdl_get_offs(pdl *it, PDL_Indx offs) {
-    return (PDL_Anyval){ PDL_INVALID, {0} };
+  PDL_Anyval result = { PDL_INVALID, {0} };
+  ANYVAL_FROM_CTYPE_OFFSET(result, it->datatype, it->data, offs);
+  return result;
 }
 
 pdl_error pdl__addchildtrans(pdl *it,pdl_trans *trans)
@@ -1022,11 +1024,19 @@ void pdl_propagate_badvalue( pdl *it ) {
 
 /*CORE21 unused*/
 PDL_Anyval pdl_get_badvalue( int datatype ) {
-  return (PDL_Anyval){ PDL_INVALID, {0} };
+  PDL_Anyval retval = { PDL_INVALID, {0} };
+#define X(datatype, ctype, ppsym, ...) \
+  retval.type = datatype; retval.value.ppsym = PDL.bvals.ppsym;
+  PDL_GENERICSWITCH(PDL_TYPELIST_ALL, datatype, X, return retval)
+#undef X
+  return retval;
 }
 
+/*CORE21 unused*/
 PDL_Anyval pdl_get_pdl_badvalue( pdl *it ) {
-  return (PDL_Anyval){ PDL_INVALID, {0} };
+  if (it->has_badvalue && it->badvalue.type != it->datatype)
+    return (PDL_Anyval){ PDL_INVALID, {0} };
+  return it->has_badvalue ? it->badvalue : pdl_get_badvalue( it->datatype );
 }
 
 pdl_trans *pdl_create_trans(pdl_transvtable *vtable) {

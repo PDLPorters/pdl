@@ -517,13 +517,20 @@ PDL_Indx pdl_get_offset(PDL_Indx* pos, PDL_Indx* dims, PDL_Indx *incs, PDL_Indx 
 
 /*CORE21 unused*/
 PDL_Anyval pdl_at0( pdl* it ) {
-    return (PDL_Anyval){ PDL_INVALID, {0} };
+  PDL_Anyval result = { PDL_INVALID, {0} };
+  if (it->nvals != 1) { return result; }
+  ANYVAL_FROM_CTYPE_OFFSET(result, it->datatype, PDL_REPRP(it), PDL_REPROFFS(it));
+  return result;
 }
 
 /*CORE21 unused*/
 PDL_Anyval pdl_at( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims,
 	PDL_Indx* incs, PDL_Indx offset, PDL_Indx ndims) {
-  return (PDL_Anyval){ PDL_INVALID, {0} };
+  PDL_Anyval result = { PDL_INVALID, {0} };
+  PDL_Indx ioff = pdl_get_offset(pos, dims, incs, offset, ndims);
+  if (ioff < 0) return result;
+  ANYVAL_FROM_CTYPE_OFFSET(result, datatype, x, ioff);
+  return result;
 }
 
 /* Set value at position (x,y,z...) */

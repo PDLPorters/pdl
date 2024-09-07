@@ -1,4 +1,5 @@
 - add Type::howbig
+- restore ABI (https://github.com/moocow-the-bovine/PDL-VectorValued/issues/10 https://github.com/PDLPorters/PDL-Stats/issues/33) - thanks @sebastic for report
 
 2.091 2024-09-06
 - disable/replace PDL_Anyval-returning API functions as clang 3.4.1 corrupts
