@@ -1,3 +1,4 @@
+2.092 2024-09-07
 - add Type::howbig
 - restore ABI (https://github.com/moocow-the-bovine/PDL-VectorValued/issues/10 https://github.com/PDLPorters/PDL-Stats/issues/33) - thanks @sebastic for report
 
