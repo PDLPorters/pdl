@@ -3335,22 +3335,6 @@ unpdl converts any bad values into the string 'BAD'.
 
 =cut
 
-sub PDL::unpdl {
-    barf 'Usage: unpdl($pdl)' if $#_ != 0;
-    my $pdl = PDL->topdl(shift);
-    return [] if $pdl->nelem == 0;
-    return _unpdl_int($pdl);
-}
-
-sub _unpdl_int {
-    my $pdl = shift;
-    if ($pdl->ndims > 1) {
-        return [ map { _unpdl_int($_) } dog $pdl ];
-    } else {
-        return listref_c($pdl);
-    }
-}
-
 =head2 listindices
 
 =for ref

@@ -86,6 +86,85 @@ char *_dims_from_args(AV *av, SV **svs, IV n) {
   return NULL;
 }
 
+static inline SV *pdl2avref(pdl *x, char flatten) {
+  int stop = 0, badflag = (x->state & PDL_BADVAL) > 0;
+  volatile PDL_Anyval pdl_val = { PDL_INVALID, {0} }; /* same reason as below */
+  volatile PDL_Anyval pdl_badval = { PDL_INVALID, {0} };
+  if (badflag) {
+    if (!(x->has_badvalue && x->badvalue.type != x->datatype)) {
+      if (x->has_badvalue)
+        pdl_badval = x->badvalue;
+      else {
+#define X(datatype, ctype, ppsym, ...) \
+         pdl_badval.type = datatype; pdl_badval.value.ppsym = PDL.bvals.ppsym;
+        PDL_GENERICSWITCH(PDL_TYPELIST_ALL, x->datatype, X, )
+#undef X
+      }
+    }
+    if (pdl_badval.type < 0) barf("Error getting badvalue, type=%d", pdl_badval.type);
+  }
+  pdl_barf_if_error(pdl_make_physvaffine( x ));
+  if (!x->nvals) return newRV_noinc((SV *)newAV());
+  void *data = PDL_REPRP(x);
+  PDL_Indx ind, inds[!x->ndims ? 1 : x->ndims];
+  AV *avs[(flatten || !x->ndims) ? 1 : x->ndims];
+  if (flatten || !x->ndims) {
+    inds[0] = 0;
+    avs[0] = newAV();
+    av_extend(avs[0], flatten ? x->nvals : 1);
+    if (flatten) for (ind=1; ind < x->ndims; ind++) inds[ind] = 0;
+  } else
+    for (ind=x->ndims-1; ind >= 0; ind--) {
+      inds[ind] = 0;
+      avs[ind] = newAV();
+      av_extend(avs[ind], x->dims[ind]);
+      if (ind < x->ndims-1) av_store(avs[ind+1], 0, newRV_noinc((SV *)avs[ind]));
+    }
+  PDL_Indx *incs = PDL_REPRINCS(x), offs = PDL_REPROFFS(x), lind = 0;
+  while (!stop) {
+    pdl_val.type = PDL_INVALID;
+    PDL_Indx ioff = pdl_get_offset(inds, x->dims, incs, offs, x->ndims);
+    if (ioff >= 0)
+      ANYVAL_FROM_CTYPE_OFFSET(pdl_val, x->datatype, data, ioff);
+    if (pdl_val.type < 0) croak("Position out of range");
+    SV *sv;
+    if (badflag) {
+      /* volatile because gcc optimiser otherwise won't recalc for complex double when long-double code added */
+      volatile int isbad = ANYVAL_ISBAD(pdl_val, pdl_badval);
+      if (isbad == -1) croak("ANYVAL_ISBAD error on types %d, %d", pdl_val.type, pdl_badval.type);
+      if (isbad)
+        sv = newSVpvn( "BAD", 3 );
+      else {
+        sv = newSV(0);
+        ANYVAL_TO_SV(sv, pdl_val);
+      }
+    } else {
+      sv = newSV(0);
+      ANYVAL_TO_SV(sv, pdl_val);
+    }
+    av_store( avs[0], flatten ? lind++ : inds[0], sv );
+    stop = 1;
+    char didwrap[x->ndims];
+    for (ind = 0; ind < x->ndims; ind++) didwrap[ind] = 0;
+    for (ind = 0; ind < x->ndims; ind++) {
+      if (++(inds[ind]) < x->dims[ind]) {
+        stop = 0; break;
+      }
+      inds[ind] = 0;
+      didwrap[ind] = 1;
+    }
+    if (stop) break;
+    if (flatten) continue;
+    for (ind=x->ndims-2; ind >= 0; ind--) { /* never redo outer so -2 */
+      if (!didwrap[ind]) continue;
+      avs[ind] = newAV();
+      av_extend(avs[ind], x->dims[ind]);
+      av_store(avs[ind+1], inds[ind+1], newRV_noinc((SV *)avs[ind]));
+    }
+  }
+  return newRV_noinc((SV *)avs[(flatten || !x->ndims) ? 0 : x->ndims-1]);
+}
+
 MODULE = PDL::Core     PACKAGE = PDL
 
 # Destroy a PDL - note if a hash do nothing, the $$x{PDL} component
@@ -710,68 +789,11 @@ at_bad_c(x,pos)
     OUTPUT:
      RETVAL
 
-# returns the string 'BAD' if an element is bad
 SV *
 listref_c(x)
    pdl *x
-  PREINIT:
-   SV *sv;
-   volatile PDL_Anyval pdl_val = { PDL_INVALID, {0} }; /* same reason as below */
-   volatile PDL_Anyval pdl_badval = { PDL_INVALID, {0} };
   CODE:
-   int stop = 0, badflag = (x->state & PDL_BADVAL) > 0;
-   if (badflag) {
-     if (!(x->has_badvalue && x->badvalue.type != x->datatype)) {
-       if (x->has_badvalue)
-         pdl_badval = x->badvalue;
-       else {
-#define X(datatype, ctype, ppsym, ...) \
-          pdl_badval.type = datatype; pdl_badval.value.ppsym = PDL.bvals.ppsym;
-         PDL_GENERICSWITCH(PDL_TYPELIST_ALL, x->datatype, X, )
-#undef X
-       }
-     }
-     if (pdl_badval.type < 0) barf("Error getting badvalue, type=%d", pdl_badval.type);
-   }
-   pdl_barf_if_error(pdl_make_physvaffine( x ));
-   void *data = PDL_REPRP(x);
-   AV *av = newAV();
-   av_extend(av,x->nvals);
-   PDL_Indx ind, lind=0, inds[x->ndims];
-   PDL_Indx *incs = PDL_REPRINCS(x), offs = PDL_REPROFFS(x);
-   for(ind=0; ind < x->ndims; ind++) inds[ind] = 0;
-   while(!stop) {
-      pdl_val.type = PDL_INVALID;
-      PDL_Indx ioff = pdl_get_offset(inds, x->dims, PDL_REPRINCS(x), offs, x->ndims);
-      if (ioff >= 0)
-        ANYVAL_FROM_CTYPE_OFFSET(pdl_val, x->datatype, data, ioff);
-      if (pdl_val.type < 0) croak("Position out of range");
-      if (badflag) {
-	 /* volatile because gcc optimiser otherwise won't recalc for complex double when long-double code added */
-	 volatile int isbad = ANYVAL_ISBAD(pdl_val, pdl_badval);
-	 if (isbad == -1) croak("ANYVAL_ISBAD error on types %d, %d", pdl_val.type, pdl_badval.type);
-	 if (isbad)
-	    sv = newSVpvn( "BAD", 3 );
-	 else {
-	    sv = newSV(0);
-	    ANYVAL_TO_SV(sv, pdl_val);
-	 }
-      } else {
-	 sv = newSV(0);
-	 ANYVAL_TO_SV(sv, pdl_val);
-      }
-      av_store( av, lind, sv );
-      lind++;
-      stop = 1;
-      for(ind = 0; ind < x->ndims; ind++) {
-	 if(++(inds[ind]) >= x->dims[ind]) {
-	    inds[ind] = 0;
-         } else {
-	    stop = 0; break;
-         }
-      }
-   }
-   RETVAL = newRV_noinc((SV *)av);
+   RETVAL = pdl2avref(x, 1);
   OUTPUT:
    RETVAL
 
@@ -1234,9 +1256,16 @@ gethdr(p)
                 } else {
 		    RETVAL = newRV( (SV*) SvRV((SV*)p->hdrsv) );
                 }
-
 	OUTPUT:
 	 RETVAL
+
+SV *
+unpdl(x)
+  pdl *x
+CODE:
+  RETVAL = pdl2avref(x, 0);
+OUTPUT:
+  RETVAL
 
 void
 broadcastover_n(code, pdl1, ...)
