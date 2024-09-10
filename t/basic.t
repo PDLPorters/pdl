@@ -46,6 +46,10 @@ ok(tapprox($z->mv(2,0)->uniqvec->flat,pdl(0..25)/5-3),"zlinvals values"); #12
 $a1->inplace->xvals;
 my $got = $a1->slice('(10),(0),(0)');
 ok tapprox($got, 10), 'inplace xvals works' or diag "got:$got";
+eval { zeroes(1)->xlinvals(5,10) };
+like $@, qr/at least/, 'cannot have length-one *linvals';
+eval { zeroes(0)->xlinvals(5,10) };
+like $@, qr/at least/, 'cannot have length-zero dim *linvals';
 }
 
 {
@@ -59,6 +63,10 @@ ok(all($x->shape==$zl->shape),"zlogvals shape"); #15
 ok(tapprox($xl->uniqvec->flat->log10,pdl(2..12)),"xlogvals values"); #16
 ok(tapprox($yl->mv(1,0)->uniqvec->flat->log10,pdl(-3..2)),"ylogvals values"); #17
 ok(tapprox($zl->mv(2,0)->uniqvec->flat->log10,pdl(-10..-3)),"zlogvals values");#18
+eval { zeroes(1)->xlogvals(5,10) };
+like $@, qr/at least/, 'cannot have length-one *logvals';
+eval { zeroes(0)->xlogvals(5,10) };
+like $@, qr/at least/, 'cannot have length-zero *logvals';
 }
 #test axisvals
 my $z = axisvals(zeroes(3,4,5,6),3);
