@@ -531,16 +531,16 @@ like $@, qr/Position 2 at dimension 0 out of range/;
 is $pb->at(-1,2), 5;
 }
 
-my $array = [
- [[1,2],
-  [3,4]],
- [[5,6],
-  [7,8]],
- [[9,10],
-  [11,12]]
-];
-my $pdl = pdl $array;
-is_deeply( unpdl($pdl), $array, "back convert 3d");
+for my $array (
+  1,
+  [1..3],
+  [[[1,2], [3,4]], [[5,6], [7,8]], [[9,10], [11,12]]],
+) {
+  my ($expected, $got) = ref $array ? $array : [$array]; # scalar not round-tripped right but back-compat
+  is_deeply $got = pdl($array)->unpdl, $expected,
+    "back convert ".join('', explain $array)
+    or diag explain $got;
+}
 SKIP: {
   skip("your perl hasn't 64bit int support", 6) if $Config{ivsize} < 8;
   {

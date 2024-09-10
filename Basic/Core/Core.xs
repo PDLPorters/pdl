@@ -710,10 +710,7 @@ at_bad_c(x,pos)
     OUTPUT:
      RETVAL
 
-
 # returns the string 'BAD' if an element is bad
-#
-
 SV *
 listref_c(x)
    pdl *x

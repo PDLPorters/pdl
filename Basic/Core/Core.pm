@@ -3320,6 +3320,10 @@ C<unpdl> does not support this. However, it is suggested you would
 generate an index-set with C<< $pdl->whereND($pdl == $PDL::undefval)
 >>, then loop over the Perl data, setting those locations to C<undef>.
 
+Another round-trip caveat: a zero-dimensional ndarray (a scalar) will be
+returned as a single-element array-ref. This is conceptually incorrect,
+but cannot now be changed due to backward compatibility.
+
 =for example
 
  use JSON;
