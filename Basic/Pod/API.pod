@@ -383,6 +383,7 @@ Used by C<set_datatype> to change an ndarray's type, converting and
 possibly re-allocating the data if a different size. If the ndarray's
 C<badflag> was set, its C<badvalue> will become the default for the
 new type. Bad values will still be bad.
+As of 2.093, will physicalise its ndarray.
 
 =item *
 

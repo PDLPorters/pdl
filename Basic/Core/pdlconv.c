@@ -50,6 +50,7 @@ pdl_error pdl_converttype( pdl* a, int targtype ) {
     if (!a->data)
       return pdl_make_error(PDL_EUSERERROR, "converttype called with NULL data on pdl %p", a);
 
+    PDL_RETERROR(PDL_err, pdl_make_physical(a));
     int intype = a->datatype;
     if (intype == targtype)
        return PDL_err;

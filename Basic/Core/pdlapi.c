@@ -955,8 +955,7 @@ pdl_error pdl_set_datatype(pdl *a, int datatype)
       if (PDL_CHILDLOOP_THISCHILD(a))
         return pdl_make_error_simple(PDL_EUSERERROR, "set_datatype: ndarray has child transform");
     PDL_END_CHILDLOOP(a)
-    PDL_RETERROR(PDL_err, pdl_make_physical(a));
-    if(a->trans_parent)
+    if (a->trans_parent)
 	PDL_RETERROR(PDL_err, pdl_destroytransform(a->trans_parent,1,0));
     if (a->state & PDL_NOMYDIMS)
 	a->datatype = datatype;
