@@ -34,15 +34,27 @@ my $ref = $p->get_dataref;
 $ref = $p->get_dataref;
 is $p->datasv_refcount, 2;
 my $p2 = PDL->new_around_datasv(0+$ref);
+ok $p2->allocated;
+is $p2->nbytes, $p->type->howbig * $p->nelem;
 $p2->set_datatype($p->type->enum);
 $p2->setdims([$p->dims]);
-$p2->set_donttouchdata($p->nbytes);
+$p2->set_donttouchdata;
 is $p->datasv_refcount, 3;
 is $p2->datasv_refcount, 3;
 undef $p2;
 is $p->datasv_refcount, 2;
 undef $ref;
 is $p->datasv_refcount, 1;
+my $datasv_ref = \(' ' x 50);
+my $p3 = PDL->new_around_datasv(0+$datasv_ref);
+ok $p3->allocated;
+$p3->set_datatype(byte->enum);
+$p3->setdims([50]);
+$p3->set_donttouchdata;
+is $p3->datasv_refcount, 2;
+is $p3->nbytes, 50;
+undef $datasv_ref;
+is $p3->datasv_refcount, 1;
 }
 
 {

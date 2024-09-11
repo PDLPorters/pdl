@@ -1,4 +1,5 @@
 - PDL.set_datatype now doesn't physicalise input, PDL.convert_type does
+- new_around_datasv now sets nbytes and ALLOCATED
 
 2.092 2024-09-07
 - add Type::howbig

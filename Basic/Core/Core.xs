@@ -1047,6 +1047,8 @@ new_around_datasv(class, datasv_pointer)
     n->datasv = (void*)datasv_pointer;
     SvREFCNT_inc((SV*)(datasv_pointer));
     n->data = SvPV_nolen((SV*)datasv_pointer);
+    n->nbytes = SvCUR((SV*)datasv_pointer);
+    n->state |= PDL_ALLOCATED;
   OUTPUT:
     RETVAL
 
