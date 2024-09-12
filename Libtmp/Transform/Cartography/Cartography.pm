@@ -541,8 +541,9 @@ sub earth_shape {
 =for usage
 
  $x = clean_lines(t_mercator->apply(scalar(earth_coast())));
- $x = clean_lines($line_pen, [threshold]);
- $x = $lines->clean_lines;
+ $x = $lines->clean_lines; # same as above, both "first (scalar) form"
+ $x = clean_lines($line_pen, [threshold]); # also same but threshold given
+ $x = clean_lines($line, $pen, [threshold]); # "second (list) form"
 
 =for ref
 
@@ -552,10 +553,11 @@ C<clean_lines> massages vector data to remove jumps due to singularities
 in the transform.
 
 In the first (scalar) form, C<$line_pen> contains both (X,Y) points and pen 
-values suitable to be fed to
-L<lines|PDL::Graphics::PGPLOT::Window/lines>:
-in the second (list) form, C<$lines> contains the (X,Y) points and C<$pen>
-contains the pen values.  
+values in the 3rd column suitable to be fed to
+L<lines|PDL::Graphics::PGPLOT::Window/lines>.
+
+In the second (list) form, C<$lines> contains the (X,Y) points and C<$pen>
+contains the pen values, in one less dimension than the C<$lines>.
 
 C<clean_lines> assumes that all the outline polylines are local --
 that is to say, there are no large jumps.  Any jumps larger than a
@@ -608,7 +610,6 @@ sub clean_lines {
     }
 
     my $pok = (($p != 0) & isfinite($p));
-    # Kludge to work around minmax bug (nans confuse it!)
     my($l0) = $l->slice("(0)");
     my($x0,$x1) = $l0->where(isfinite($l0) & $pok)->minmax;
     my($xth) = abs($x1-$x0) * $th;
