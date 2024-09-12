@@ -212,8 +212,8 @@ my $pa = t_raster2fits()->apply(sequence(byte, 3, 10, 10));
 eval { $pa->match([100,100,3]) };
 is $@, '', 't_fits invertible';
 is earth_coast()->nbad, 0, 'earth_coast no BAD';
-my $in = pdl '[178.5 63.1 1; 179 63.2 1; 179.6 63.3 1; -179.8 65 1; -179.5 65.1 0]';
-my $exp = pdl '[178.5 63.1 1; 179 63.2 1; 179.6 63.3 0; -179.8 65 1; -179.5 65.1 0]';
+my $in = pdl '[178.5 63.1 NaN; NaN NaN 0; 178.5 63.1 1; 179 63.2 1; 179.6 63.3 1; -179.8 65 1; -179.5 65.1 0]';
+my $exp = pdl '[178.5 63.1 0; 1000 1000 0; 178.5 63.1 1; 179 63.2 1; 179.6 63.3 0; -179.8 65 1; -179.5 65.1 0]';
 my $got;
 my @cl_tests = (
   [sub {clean_lines($in)}, 'l'],
@@ -221,9 +221,9 @@ my @cl_tests = (
   [sub {clean_lines((map $in->slice($_), qw(0:1 (2))), 0.1)}, 'l p t'],
   [sub {clean_lines($in, 0.1)}, 'lp t']
 );
-ok all(approx $got=$_->[0](), $exp), "scalar $_->[1]" or diag "got=$got" for @cl_tests;
-ok all(approx $got=($_->[0]())[0], $exp->slice('0:1')), "listl $_->[1]" or diag "got=$got" for @cl_tests;
-ok all(approx $got=($_->[0]())[1], $exp->slice('(2)')), "listp $_->[1]" or diag "got=$got" for @cl_tests;
+ok all(approx $got=$_->[0]()->setnantobad->setbadtoval(1000), $exp), "scalar $_->[1]" or diag "got=$got" for @cl_tests;
+ok all(approx $got=($_->[0]())[0]->setnantobad->setbadtoval(1000), $exp->slice('0:1')), "listl $_->[1]" or diag "got=$got" for @cl_tests;
+ok all(approx $got=($_->[0]())[1]->setnantobad->setbadtoval(1000), $exp->slice('(2)')), "listp $_->[1]" or diag "got=$got" for @cl_tests;
 }
 
 {
