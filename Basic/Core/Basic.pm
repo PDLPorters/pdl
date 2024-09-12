@@ -153,6 +153,7 @@ etc. see L<zeroes|PDL::Core/zeroes>.
 =for ref
 
 X axis values between endpoints (see L</xvals>).
+Works with dim-length of one as of 2.093, giving the starting point.
 
 =for usage
 
@@ -188,6 +189,7 @@ See L</xlinvals> for more information.
 =for ref
 
 X axis values logarithmically spaced between endpoints (see L</xvals>).
+Works with dim-length of one as of 2.093, giving the starting point.
 
 =for usage
 
@@ -241,12 +243,12 @@ sub PDL::zvals {
 sub _dimcheck {
   my ($pdl, $whichdim, $name) = @_;
   my $dim = $pdl->getdim($whichdim);
-  barf "Must have at least two elements in dimension for $name" if $dim <= 1;
+  barf "Must have at least one element in dimension for $name" if $dim < 1;
   $dim;
 }
 sub _linvals {
   my ($pdl, $v1, $v2, $dim, $method) = @_;
-  $pdl->$method * (($v2 - $v1) / ($dim-1)) + $v1;
+  $pdl->$method * (($v2 - $v1) / ($dim > 1 ? ($dim-1) : 1)) + $v1;
 }
 sub PDL::xlinvals {
   _linvals(@_[0..2], _dimcheck($_[0], 0, 'xlinvals'), 'xvals');
@@ -262,7 +264,7 @@ sub _logvals {
   my ($pdl, $min, $max, $dim, $method) = @_;
   barf "min and max must be positive" if $min <= 0 || $max <= 0;
   my ($lmin,$lmax) = map log($_), $min, $max;
-  exp($pdl->$method * (($lmax - $lmin) / ($dim-1)) + $lmin);
+  exp($pdl->$method * (($lmax - $lmin) / ($dim > 1 ? ($dim-1) : 1)) + $lmin);
 }
 sub PDL::xlogvals {
   _logvals(@_[0..2], _dimcheck($_[0], 0, 'xlogvals'), 'xvals');
