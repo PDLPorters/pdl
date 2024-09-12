@@ -109,7 +109,6 @@ EOF
 #   NaN values are handled inconsistently by min, minimum, max, maximum...
 #
 {
- my $inf = inf();
  my $nan = nan();
  my $x = pdl($nan, 0, 1, 2);
  my $y = pdl(0, 1, 2, $nan);

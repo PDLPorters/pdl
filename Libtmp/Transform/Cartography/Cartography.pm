@@ -579,57 +579,25 @@ it is probably not worth the computational overhead.
 
 *PDL::clean_lines = *PDL::clean_lines = \&clean_lines;
 sub clean_lines {
-    my($lines) = shift;
-    my($x) = shift;
-    my($y) = shift;
-    my($l,$p,$th);
-
-    $th = 0.1;
-
-    if(defined($y)) {
-	# separate case with thresh
-	$l = $lines;
-	$p = $x->is_inplace?$x:$x->copy;
-	$th = $y;
-    } else {
-	if(!defined($x)) {
-	    # duplex case no thresh
-	    $l = $lines->slice("0:1");
-	    $p = $lines->is_inplace ? $lines->slice("(2)") : $lines->slice("(2)")->sever;
-	} elsif(UNIVERSAL::isa($x,'PDL') && 
-		$lines->slice("(0)")->nelem == $x->nelem) {
-	    # Separate case no thresh
-	    $l = $lines;
-	    $p = $x->is_inplace ? $x : $x->copy;;
-	} else {
-	    # duplex case with thresh
-	    $l = $lines->slice("0:1");
-	    $p = $lines->is_inplace ? $lines->slice("(2)") : $lines->slice("(2)")->sever;
-	    $th = $x;
-	}
-    }
-
-    my $pok = (($p != 0) & isfinite($p));
-    my($l0) = $l->slice("(0)");
-    my($x0,$x1) = $l0->where(isfinite($l0) & $pok)->minmax;
-    my($xth) = abs($x1-$x0) * $th;
-
-    my($l1) = $l->slice("(1)");
-    ($x0,$x1) = $l1->where(isfinite($l1) & $pok)->minmax;
-    my($yth) = abs($x1-$x0) * $th;
-
-    my $diff = abs($l->slice(":,1:-1") - $l->slice(":,0:-2"));
-
-    $diff->where(!isfinite($diff)) .= 2*($xth + $yth); 
-    $p->where(($diff->slice("(0)") > $xth) | ($diff->slice("(1)") > $yth)) .= 0;
-    if(wantarray){
-	return($l,$p);
-    } else {
-	return $l->append($p->dummy(0,1));
-    }
+  my $th = !UNIVERSAL::isa($_[-1],'PDL') ? pop : 0.1;
+  die "Usage: clean_lines(\$line[, \$pen][, \$thresh])\n"
+    if @_ > 2 || !@_;
+  die "clean_lines: all non-threshold args must be ndarrays\n"
+    if grep !UNIVERSAL::isa($_,'PDL'), @_;
+  die "clean_lines: need lines[3,n...] in single-arg case\n"
+    if @_ == 1 and $_[0]->dim(0) != 3;
+  my ($l, $p) = @_ == 1
+    ? ($_[0]->slice("0:1"), $_[0]->is_inplace ? $_[0]->slice("(2)") : $_[0]->slice("(2)")->sever)
+    : ($_[0], $_[1]->is_inplace ? $_[1] : $_[1]->copy);
+  my $break_mask = !isfinite($p); # break on NaN/Inf/BAD
+  $break_mask |= !isfinite($l)->orover; # break on either coord NaN/Inf/BAD
+  my ($mins, $maxes) = $l->t->whereND(($p != 0) & isfinite($p))->minmaxover;
+  my $threshes = abs($maxes-$mins) * $th;
+  my $diff = $l->t->diff2->abs->t;
+  $break_mask |= ($diff > $threshes)->orover->append(pdl(0));
+  $p->whereND($break_mask) .= 0;
+  wantarray ? ($l,$p) : $l->append($p->dummy(0,1));
 }    
-
-
 
 ######################################################################
 

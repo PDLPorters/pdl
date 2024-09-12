@@ -221,9 +221,15 @@ my @cl_tests = (
   [sub {clean_lines((map $in->slice($_), qw(0:1 (2))), 0.1)}, 'l p t'],
   [sub {clean_lines($in, 0.1)}, 'lp t']
 );
-ok all(approx $got=$_->[0]()->setnantobad->setbadtoval(1000), $exp), "scalar $_->[1]" or diag "got=$got" for @cl_tests;
-ok all(approx $got=($_->[0]())[0]->setnantobad->setbadtoval(1000), $exp->slice('0:1')), "listl $_->[1]" or diag "got=$got" for @cl_tests;
-ok all(approx $got=($_->[0]())[1]->setnantobad->setbadtoval(1000), $exp->slice('(2)')), "listp $_->[1]" or diag "got=$got" for @cl_tests;
+for (['', sub {}], ["broadcast ", sub {
+  $_ = $_->dummy(2,2)->copy, $_->slice('0:1,,1')->where($_->slice('0:1,,1') < 500) += 2 for $in, $exp;
+}]) {
+  my ($prefix, $mod) = @$_;
+  $mod->();
+  ok all(approx $got=$_->[0]()->setnantobad->setbadtoval(1000), $exp), "${prefix}scalar $_->[1]" or diag "got=$got\nexp=".$exp for @cl_tests;
+  ok all(approx $got=($_->[0]())[0]->setnantobad->setbadtoval(1000), $exp->slice('0:1')), "${prefix}listl $_->[1]" or diag "got=$got\nexp=".$exp->slice('0:1') for @cl_tests;
+  ok all(approx $got=($_->[0]())[1]->setnantobad->setbadtoval(1000), $exp->slice('(2)')), "${prefix}listp $_->[1]" or diag "got=$got\nexp=".$exp->slice('(2)') for @cl_tests;
+}
 }
 
 {
