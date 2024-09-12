@@ -1,6 +1,7 @@
 - PDL.set_datatype now doesn't physicalise input, PDL.convert_type does
 - new_around_datasv now sets nbytes and ALLOCATED
 - [xyz]{lin,log}vals now works with dim-length of one
+- minmax skips NaNs entirely, so now works with leading NaN
 
 2.092 2024-09-07
 - add Type::howbig

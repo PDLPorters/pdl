@@ -494,14 +494,15 @@ pp_def(
 $GENERIC() curmin = 0, curmax = 0; /* Handle null ndarray --CED */
 PDL_Indx curmin_ind = 0, curmax_ind = 0; int flag = 0;
 loop(n) %{
-  PDL_IF_BAD(if ( $ISBAD(a()) ) continue;,)
-  if ( !flag ) {
+  PDL_IF_BAD(if ($ISBAD(a())) continue;,)
+  if (PDL_ISNAN_$PPSYM()($a())) continue;
+  if (!flag) {
     curmin = curmax = $a();
     curmin_ind = curmax_ind = n;
     flag = 1;
   } else {
-    if ( $a() < curmin ) { curmin = $a(); curmin_ind = n; }
-    if ( $a() > curmax ) { curmax = $a(); curmax_ind = n; }
+    if ($a() < curmin) { curmin = $a(); curmin_ind = n; }
+    if ($a() > curmax) { curmax = $a(); curmax_ind = n; }
   }
 %}
 if ( !flag ) { /* Handle null ndarray */

@@ -114,8 +114,12 @@ EOF
  my $x = pdl($nan, 0, 1, 2);
  my $y = pdl(0, 1, 2, $nan);
 
- ok($x->min == $y->min, "min with NaNs");
- ok($x->max == $y->max, "max with NaNs");
+ is "".$x->min, '0', 'min leading nan';
+ is "".$y->min, '0', 'min trailing nan';
+ is "".$x->max, '2', 'max leading nan';
+ is "".$y->max, '2', 'max trailing nan';
+ is join(" ", $x->minmax), '0 2', 'minmax leading nan';
+ is join(" ", $y->minmax), '0 2', 'minmax trailing nan';
 }
 my $empty = empty();
 $x = $empty->maximum;
@@ -210,7 +214,7 @@ ok( tapprox( X->average(),  PDL->pdl( [ 4,  2.16666 ] ) ), "average" );
 ok( tapprox( X->sumover(),  PDL->pdl( [ 12, 6.5 ] ) ),     "sumover" );
 ok( tapprox( X->prodover(), PDL->pdl( [ 60, 9 ] ) ),       "prodover" );
 
-# provide indepdent copies of test data.
+# provide independent copies of test data.
 sub IM {
     PDL->new(
         [
