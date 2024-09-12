@@ -211,7 +211,9 @@ use PDL::Transform::Cartography;
 my $pa = t_raster2fits()->apply(sequence(byte, 3, 10, 10));
 eval { $pa->match([100,100,3]) };
 is $@, '', 't_fits invertible';
+
 is earth_coast()->nbad, 0, 'earth_coast no BAD';
+
 my $in = pdl '[178.5 63.1 NaN; NaN NaN 0; 178.5 63.1 1; 179 63.2 1; 179.6 63.3 1; -179.8 65 1; -179.5 65.1 0]';
 my $exp = pdl '[178.5 63.1 0; 1000 1000 0; 178.5 63.1 1; 179 63.2 1; 179.6 63.3 0; -179.8 65 1; -179.5 65.1 0]';
 my $got;
@@ -230,6 +232,10 @@ for (['', sub {}], ["broadcast ", sub {
   ok all(approx $got=($_->[0]())[0]->setnantobad->setbadtoval(1000), $exp->slice('0:1')), "${prefix}listl $_->[1]" or diag "got=$got\nexp=".$exp->slice('0:1') for @cl_tests;
   ok all(approx $got=($_->[0]())[1]->setnantobad->setbadtoval(1000), $exp->slice('(2)')), "${prefix}listp $_->[1]" or diag "got=$got\nexp=".$exp->slice('(2)') for @cl_tests;
 }
+$in = pdl '[178.5 63.1 1; 179 62 1; 178.8 63.1 1; 179 64.2 1; 179.2 63.7 1; 179.3 65 1; 179.4 63 1; 179.6 63.3 1; 179.8 65 1; 179.5 65.3 0]';
+$exp = pdl '[179 64.2 1; 179.2 63.7 0; 179.4 63 1; 179.6 63.3 0]';
+my $or = [[178.9,179.7], [62.8,64.5]];
+ok all(approx $got=$in->clean_lines(1.1,{or=>$or}), $exp), "scalar orange" or diag "got=$got\nexp=".$exp;
 }
 
 {

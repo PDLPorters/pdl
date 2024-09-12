@@ -2,6 +2,7 @@
 - new_around_datasv now sets nbytes and ALLOCATED
 - [xyz]{lin,log}vals now works with dim-length of one
 - minmax skips NaNs entirely, so now works with leading NaN
+- Transform::Cartography::clean_lines now has orange option like Transform::map
 
 2.092 2024-09-07
 - add Type::howbig

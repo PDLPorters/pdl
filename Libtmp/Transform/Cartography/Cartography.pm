@@ -542,8 +542,8 @@ sub earth_shape {
 
  $x = clean_lines(t_mercator->apply(scalar(earth_coast())));
  $x = $lines->clean_lines; # same as above, both "first (scalar) form"
- $x = clean_lines($line_pen, [threshold]); # also same but threshold given
- $x = clean_lines($line, $pen, [threshold]); # "second (list) form"
+ $x = clean_lines($line_pen[,threshold][,opt]); # also same but threshold given
+ $x = clean_lines($line,$pen[,threshold][,opt]); # "second (list) form"
 
 =for ref
 
@@ -567,6 +567,28 @@ The C<threshold> parameter sets the relative size of the largest jump, relative
 to the map range (as determined by a min/max operation).  The default size is
 0.1.
 
+=for options
+
+The following options are interpreted:
+
+=over 3
+
+=item or, orange, output_range, Output_Range
+
+This sets the window of output space, similar to that in
+L<PDL::Transform/map>. As there, it specifies a quadrilateral in
+output space. Any points not in that will be removed from the output,
+and line breaks (0 pen values) will be inserted before.
+
+To use this without the rest of the line-breaking functionality, set
+C<threshold> to greater than 1, which will therefore never be exceeded:
+
+  $lp = $lp->clean_lines(1.1,{or=>[[178.9,179.7], [62.8,64.5]]})
+
+Because this returns a selection of the inputs, it will not broadcast.
+
+=back
+
 NOTES
 
 This almost never catches stuff near the apex of cylindrical maps,
@@ -579,6 +601,7 @@ it is probably not worth the computational overhead.
 
 *PDL::clean_lines = *PDL::clean_lines = \&clean_lines;
 sub clean_lines {
+  my $opt = ref($_[-1]) eq 'HASH' ? pop : {};
   my $th = !UNIVERSAL::isa($_[-1],'PDL') ? pop : 0.1;
   die "Usage: clean_lines(\$line[, \$pen][, \$thresh])\n"
     if @_ > 2 || !@_;
@@ -596,6 +619,23 @@ sub clean_lines {
   my $diff = $l->t->diff2->abs->t;
   $break_mask |= ($diff > $threshes)->orover->append(pdl(0));
   $p->whereND($break_mask) .= 0;
+  my $orange = PDL::Transform::_opt($opt, ['or','orange','output_range','Output_Range']);
+  if (defined $orange) {
+    die "clean_lines: no broadcasting with orange\n" if $p->ndims > 1;
+    die "clean_lines: orange must be array-ref\n" if ref($orange) ne 'ARRAY';
+    die "clean_lines: orange must have two elements" if @$orange != 2;
+    die "clean_lines: orange must have two array-refs\n"
+      if grep ref() ne 'ARRAY', @$orange;
+    die "clean_lines: orange must have two array-refs each with two elements\n"
+      if grep @$_ != 2, @$orange;
+    ($mins, $maxes) = PDL->pdl($orange)->using(0,1);
+    my $outside_mask = (($l < $mins) | ($l > $maxes))->orover;
+    $break_mask = $outside_mask->slice('1:-1')->append(pdl(0)); # break before
+    $p->whereND($break_mask) .= 0;
+    my $keep_inds = (!$outside_mask)->which;
+    $l = $l->dice_axis(1, $keep_inds)->sever;
+    $p = $p->dice_axis(0, $keep_inds)->sever;
+  }
   wantarray ? ($l,$p) : $l->append($p->dummy(0,1));
 }    
 
