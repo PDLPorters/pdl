@@ -365,24 +365,17 @@ sub reinstator_regexp{
 sub perldlpp {
  my ($class, $txt) = @_;
  local($_);
- ##############################
- # Backwards compatibility to before the two-parameter form. The only
- # call should be around line 206 of PDL::AutoLoader, but one never
- # knows....
- #    -- CED 5-Nov-2007
- if(!defined($txt)) { 
+ if (!defined($txt)) { 
      print "PDL::NiceSlice::perldlpp -- got deprecated one-argument form, from ".(join("; ",caller))."...\n";
      $txt = $class; 
      $class = "PDL::NiceSlice";
  }
 
- ## Debugging to track exactly what is going on -- left in, in case it's needed again
- if($PDL::NiceSlice::debug > 1) {
+ if ($PDL::NiceSlice::debug > 1) {
      print "PDL::NiceSlice::perldlpp - got:\n$txt\n";
-     my $i;
-     for $i(0..5){
-	 my($package,$filename,$line,$subroutine, $hasargs) = caller($i);
-	 printf("layer %d: %20s, %40s, line %5d, sub %20s, args: %d\n",$i,$package,$filename,$line,$subroutine,$hasargs);
+     for my $i (0..5){
+	 my ($package,$filename,$line,$subroutine, $hasargs) = caller($i);
+	 printf "layer %d: %20s, %40s, line %5s, sub %20s, args: %s\n",$i,$package//'',$filename//'',$line//'',$subroutine//'',$hasargs//'';
      }
  }
 
@@ -438,7 +431,7 @@ sub perldlpp {
 	     $new .= "$_\n";
 
 	 }
-     } while(@lines && !$end);
+     } while @lines && !$end;
  };
      
  if ($@) {

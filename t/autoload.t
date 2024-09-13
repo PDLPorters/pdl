@@ -3,6 +3,7 @@ use strict;
 use warnings;
 use Test::More;
 use PDL::LiteF;
+use PDL::NiceSlice;
 
 plan skip_all => 'This test must be run from t/..' if !-f 't/func.pdl';
 
@@ -17,6 +18,9 @@ my $x = long(2 + ones(2,2));
 my $y = func($x);
 
 ok approx(sum($y), 4*29), 'Check autoload of func.pdl' or diag "got=$y";
+{ no warnings 'once';
+is $::GLOBAL_VAR, '$'.'COMP(max_it)', "NiceSlice didn't mangle text";
+}
 
 #check that tilde expansion works (not applicable on MS Windows)
 SKIP: {

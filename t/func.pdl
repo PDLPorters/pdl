@@ -1,13 +1,10 @@
-
 # Test file for autoloader.t
 
+no PDL::NiceSlice;
 sub func {
-
    my $x = shift;
-
+   $::GLOBAL_VAR = '$COMP(max_it)';
    return ($x**3 + 2);
-
 };
 
 1; # OK status
-

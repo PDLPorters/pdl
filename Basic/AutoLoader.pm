@@ -224,10 +224,10 @@ sub PDL::AutoLoader::autoloader_do {
   my ($file) = shift;
   if(defined($PDL::NiceSlice::VERSION)) {
     print "AutoLoader: NiceSlice enabled...\n" if($PDL::debug);
-    if(open(AUTOLOAD_FILE,"<$file")) {
-      my($script) = PDL::NiceSlice::perldlpp("PDL::NiceSlice", join("",<AUTOLOAD_FILE>));
-      eval $script;
-    }
+    return if !open my $fh ,"<", $file;
+    my $text = join "", <$fh>;
+    my $script = PDL::NiceSlice::perldlpp("PDL::NiceSlice", $text);
+    eval $script;
   } else {
     print "AutoLoader: no NiceSlice...\n" if($PDL::debug);
     do $file;

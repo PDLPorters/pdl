@@ -199,7 +199,7 @@ unless ($@) {
     return $ret;
   }
   my $preproc = sub { my ($txt) = @_;
-	  my $new = PDL::NiceSlice::perldlpp('main',$txt);
+	  my $new = PDL::NiceSlice::perldlpp('PDL::NiceSlice',$txt);
 	  print STDERR "processed $new\n" if report && $new ne $txt;
 	  return $new;
   };
