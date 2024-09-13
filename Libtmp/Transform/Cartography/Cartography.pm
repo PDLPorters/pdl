@@ -565,7 +565,8 @@ threshold size are broken by setting the appropriate pen values to 0.
 
 The C<threshold> parameter sets the relative size of the largest jump, relative
 to the map range (as determined by a min/max operation).  The default size is
-0.1.
+0.1. If C<threshold> is greater than or equal to 1, lines will not be
+broken based on point separation.
 
 =for options
 
@@ -575,15 +576,12 @@ The following options are interpreted:
 
 =item or, orange, output_range, Output_Range
 
+  $lp = $lp->clean_lines(1.1,{or=>[[178.9,179.7], [62.8,64.5]]})
+
 This sets the window of output space, similar to that in
 L<PDL::Transform/map>. As there, it specifies a quadrilateral in
 output space. Any points not in that will be removed from the output,
 and line breaks (0 pen values) will be inserted before.
-
-To use this without the rest of the line-breaking functionality, set
-C<threshold> to greater than 1, which will therefore never be exceeded:
-
-  $lp = $lp->clean_lines(1.1,{or=>[[178.9,179.7], [62.8,64.5]]})
 
 Because this returns a selection of the inputs, it will not broadcast.
 
@@ -614,10 +612,12 @@ sub clean_lines {
     : ($_[0], $_[1]->is_inplace ? $_[1] : $_[1]->copy);
   my $break_mask = !isfinite($p); # break on NaN/Inf/BAD
   $break_mask |= !isfinite($l)->orover; # break on either coord NaN/Inf/BAD
-  my ($mins, $maxes) = $l->t->whereND(($p != 0) & isfinite($p))->minmaxover;
-  my $threshes = abs($maxes-$mins) * $th;
-  my $diff = $l->t->diff2->abs->t;
-  $break_mask |= ($diff > $threshes)->orover->append(pdl(0));
+  if ($th < 1) {
+    my ($mins, $maxes) = $l->t->whereND(($p != 0) & isfinite($p))->minmaxover;
+    my $threshes = abs($maxes-$mins) * $th;
+    my $diff = $l->t->diff2->abs->t;
+    $break_mask |= ($diff > $threshes)->orover->append(pdl(0));
+  }
   $p->whereND($break_mask) .= 0;
   my $orange = PDL::Transform::_opt($opt, ['or','orange','output_range','Output_Range']);
   if (defined $orange) {
@@ -628,7 +628,7 @@ sub clean_lines {
       if grep ref() ne 'ARRAY', @$orange;
     die "clean_lines: orange must have two array-refs each with two elements\n"
       if grep @$_ != 2, @$orange;
-    ($mins, $maxes) = PDL->pdl($orange)->using(0,1);
+    my ($mins, $maxes) = PDL->pdl($orange)->using(0,1);
     my $outside_mask = (($l < $mins) | ($l > $maxes))->orover;
     $break_mask = $outside_mask->slice('1:-1')->append(pdl(0)); # break before
     $p->whereND($break_mask) .= 0;
