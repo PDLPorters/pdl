@@ -585,6 +585,13 @@ and line breaks (0 pen values) will be inserted before.
 
 Because this returns a selection of the inputs, it will not broadcast.
 
+=item fn, filter_nan
+
+Defaults to true. Will break before any points with bad/C<NaN>/C<Inf>
+coordinates, and remove those points from the output.
+
+Because this returns a selection of the inputs, it will not broadcast.
+
 =back
 
 NOTES
@@ -619,6 +626,16 @@ sub clean_lines {
     $break_mask |= ($diff > $threshes)->orover->append(pdl(0));
   }
   $p->whereND($break_mask) .= 0;
+  my $fn = PDL::Transform::_opt($opt, ['fn','filter_nan'], 1);
+  if ($fn) {
+    die "clean_lines: no broadcasting with filter_nan\n" if $p->ndims > 1;
+    my $nonfinite_mask = (!$l->isfinite)->orover;
+    $break_mask = $nonfinite_mask->slice('1:-1')->append(pdl(0)); # break before
+    $p->whereND($break_mask) .= 0;
+    my $keep_inds = (!$nonfinite_mask)->which;
+    $l = $l->dice_axis(1, $keep_inds)->sever;
+    $p = $p->dice_axis(0, $keep_inds)->sever;
+  }
   my $orange = PDL::Transform::_opt($opt, ['or','orange','output_range','Output_Range']);
   if (defined $orange) {
     die "clean_lines: no broadcasting with orange\n" if $p->ndims > 1;
