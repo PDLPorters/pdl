@@ -3642,16 +3642,6 @@ The output ndarrays are set bad if the original ndarray has its bad flag set.
 
 =cut
 
-sub PDL::dog {
-  my $opt = ref($_[-1]) eq 'HASH' ? pop @_ : {};
-  my $p = shift;
-  barf "Usage: \$pdl->dog([\\%opt])" if @_;
-  barf "dog: must have at least one dim" if !$p->ndims;
-  my $s = ":,"x($p->getndims-1);
-  my @res = map $p->slice($s."(".$_.")"), 0..$p->dim(-1)-1;
-  $$opt{Break} ? map $_->copy, @res : @res
-}
-
 ###################### Misc internal routines ####################
 
 # N-D array stringifier

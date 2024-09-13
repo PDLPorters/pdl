@@ -1270,6 +1270,33 @@ OUTPUT:
   RETVAL
 
 void
+dog(x, opt=sv_2mortal(newRV_noinc((SV *)newHV())))
+  pdl *x
+  SV *opt
+PPCODE:
+  HV *opt_hv = NULL;
+  if (!(SvROK(opt) && SvTYPE(opt_hv = (HV*)SvRV(opt)) == SVt_PVHV))
+    barf("Usage: $pdl->dog([\\%%opt])");
+  pdl_barf_if_error(pdl_make_physdims(x));
+  if (x->ndims <= 0) barf("dog: must have at least one dim");
+  SV **svp = hv_fetchs(opt_hv, "Break", 0);
+  char dobreak = (svp && *svp && SvOK(*svp));
+  PDL_Indx *thesedims = x->dims, *theseincs = PDL_REPRINCS(x), ndimsm1 = x->ndims-1;
+  PDL_Indx i, howmany = x->dims[ndimsm1], thisoffs = 0, topinc = x->dimincs[ndimsm1];
+  EXTEND(SP, howmany);
+  for (i = 0; i < howmany; i++, thisoffs += topinc) {
+    pdl *childpdl = pdl_pdlnew();
+    if (!childpdl) pdl_pdl_barf("Error making null pdl");
+    pdl_barf_if_error(pdl_affine_new(x,childpdl,thisoffs,
+      thesedims,ndimsm1,theseincs,ndimsm1));
+    SV *childsv = sv_newmortal();
+    pdl_SetSV_PDL(childsv, childpdl); /* do before sever so .sv true */
+    if (dobreak) pdl_barf_if_error(pdl_sever(childpdl));
+    PUSHs(childsv);
+  }
+  XSRETURN(howmany);
+
+void
 broadcastover_n(code, pdl1, ...)
     SV *code;
     pdl *pdl1;

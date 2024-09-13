@@ -964,6 +964,7 @@ pdl_error pdl_set_datatype(pdl *a, int datatype)
     return PDL_err;
 }
 
+/* do SetSV_PDL first, else .sv will be false and destroytransform will destroy src */
 pdl_error pdl_sever(pdl *src)
 {
     pdl_error PDL_err = {0, NULL, 0};
