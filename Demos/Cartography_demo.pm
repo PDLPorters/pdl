@@ -1,19 +1,13 @@
 package PDL::Demos::Cartography_demo;
 
 sub init {'
-use PDL::Graphics::PGPLOT::Window;
 use PDL::Transform::Cartography;
 '}
 sub done {'
-$w->close;
 undef $w;
 '}
 
-sub info {('cartography','Cartographic projections (Req.: PGPLOT)')}
-
-##$ENV{PGPLOT_XW_WIDTH}=0.6;
-$ENV{PGPLOT_DEV} = $^O =~ /MSWin32/          ? '/GW'            :
-                   defined($ENV{PGPLOT_DEV}) ? $ENV{PGPLOT_DEV} : "/XWIN";
+sub info {('cartography','Cartographic projections (Req.: PDL::Graphics::Simple)')}
 
 my @demos = (
 PDL->rpiccan('JPEG') ? () :
@@ -33,28 +27,22 @@ earth_image('day') call on the next screen.
 [comment => q|
 
  This demo illustrates the PDL::Transform::Cartography module.
- It also requires PGPLOT support: you must have PGPLOT installed to run it.
+ Also you must have PDL::Graphics::Simple installed to run it.
 
  PDL::Transform::Cartography includes a global earth vector coastline map
  and night and day world image maps, as well as the infrastructure for 
  transforming them to different coordinate systems.
-   
- If you are using an RGB-enabled version of PGPLOT, then the map
- images will appear in color on your screen.  Otherwise they will
- appear in greyscale.  (The vector data will appear in color
- regardless).
-
- |],
+|],
 
 [act => q|
   ### Load the necessary modules 
-    use PDL::Graphics::PGPLOT::Window;
+    use PDL::Graphics::Simple;
     use PDL::Transform::Cartography;
     
   ### Get the vector coastline map (and a lon/lat grid), and load the Earth
   ### RGB daytime image -- both of these are built-in to the module. The
   ### coastline map is a set of (X,Y,Pen) vectors.
-    $coast = earth_coast() -> glue( 1, scalar graticule(15,1) );
+    $coast = earth_coast()->glue( 1, scalar graticule(15,1) );
     print "Coastline data are a collection of vectors:  ",
              join("x",$coast->dims),"\n";
 
@@ -72,11 +60,8 @@ earth_image('day') call on the next screen.
   }
   print "\n";
 
-  $dev = $^O =~ /MSWin32/          ? '/GW'            :
-         defined($ENV{PGPLOT_DEV}) ? $ENV{PGPLOT_DEV} : "/XW";
-         # $dev = $^O =~ /MSWin/i ? '/GW' : '/xw';
-  $w = pgwin(Dev=> $dev, size=>[8,6]);
-  $w->fits_imag($map, {Title=>"NASA/MODIS Earth Map (Plate Carree)",J=>0});
+  $w = pgswin();
+  $w->plot(with=>'fits', $map, {Title=>"NASA/MODIS Earth Map (Plate Carree)",J=>0});
 &],
 
 [act => q&
@@ -86,7 +71,7 @@ earth_image('day') call on the next screen.
   ### at the 180th parallel.
   
   $w->hold;
-  $w->lines( $coast -> clean_lines );
+  $w->plot(with=>'polylines', $coast->clean_lines);
   $w->release;
 
 &],
@@ -96,18 +81,14 @@ earth_image('day') call on the next screen.
 ### say "??cartography" in the perldl or pdl2 shell.  Here are four
 ### of them:
 
-$w->close;   # Close old window
-undef $w;
-
-#$dev = $^O =~ /MSWin/i ? '/GW' : '/xw';
-$dev = $^O =~ /MSWin32/          ? '/GW'            :
-       defined($ENV{PGPLOT_DEV}) ? $ENV{PGPLOT_DEV} : "/XW";
-$w = pgwin( Dev=> $dev, size=>[8,6], nx=>2, ny=>2 ) ;
+undef $w; # Close old window
+$w = pgswin( size=>[8,6], multi=>[2,2] ) ;
 
 sub draw {
- ($tx, $t, $px, $opt ) = @_;
- $w->fits_imag( $map->map( $tx, $px, $opt ),{Title=>$t, CharSize=>1.5, J=>1} );
- $w->hold;   $w->lines( $coast -> apply( $tx ) -> clean_lines ); $w->release;
+ ($tx, $t, $px, @opt ) = @_;
+ $w->plot(with=>'fits', $map->map( $tx, $px, @opt ),
+   with=>'polylines', $coast->apply( $tx )->clean_lines(@opt),
+   {Title=>$t, J=>1});
 }
 
 ## (The "or" option specifies the output range of the mapping)
