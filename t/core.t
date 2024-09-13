@@ -459,13 +459,20 @@ my ($dogcopy) = $c2->dog({Break=>1});
 $dogcopy++;
 ok all($dogcopy != $c2->slice(':,(0)')), 'Break means copy'; # not lo as cat no flow
 my ($dogslice) = $c2->dog;
-$dogslice->dump;
-$lo->dump;
 $dogslice++;
 ok all($dogslice == $c2->slice(':,(0)')), 'no Break means dataflow' or diag "got=$dogslice\nexpected=$lo";
+eval {pdl([3])->dog(5)};
+like $@, qr/Usage/, "error if excess args";
+for ([[], qr/at least/], [[5]], [[4,5]]) {
+  my ($dims, $err) = @$_;
+  my @d = eval {zeroes(@$dims)->dog};
+  like($@, $err, "right error (@$dims)"), next if $err;
+  is 0+@d, $dims->[-1], "works (@$dims)";
+}
+@list = pdl('[3;0;2;0]')->mv(0,-1)->dog;
+is 0+@list, 1, "dog on pure-vaff works";
 
 $x = sequence(byte,5);
-
 $x->inplace;
 ok($x->is_inplace,"original item inplace-d true inplace flag");
 eval { $x->inplace(1) };
