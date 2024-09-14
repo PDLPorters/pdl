@@ -1,17 +1,14 @@
 package PDL::Demos::Transform_demo;
 
-use PDL::Graphics::PGPLOT::Window;
+use PDL::Graphics::Simple;
 use PDL::Transform;
 require File::Spec;
 use Carp;
 
-sub info {('transform', 'Coordinate transformations (Req.: PGPLOT)')}
+sub info {('transform', 'Coordinate transformations (Req.: PDL::Graphics::Simple)')}
 
 sub init {'
-##$ENV{PGPLOT_XW_WIDTH}=0.6;
-$ENV{PGPLOT_DEV} = $^O =~ /MSWin32/          ? "/GW"            :
-                   defined($ENV{PGPLOT_DEV}) ? $ENV{PGPLOT_DEV} : "/XWIN";
-use PDL::Graphics::PGPLOT::Window;
+use PDL::Graphics::Simple;
 '}
 
 # try and find m51.fits
@@ -28,7 +25,7 @@ my @demo = (
 [comment => q|
     This demo illustrates the PDL::Transform module.
 
-    It requires PGPLOT support in PDL and makes use of the image of
+    It requires PDL::Graphics::Simple installed and makes use of the image of
     M51 kindly provided by the Hubble Heritage group at the
     Space Telescope Science Institute.
 
@@ -91,25 +88,22 @@ my @demo = (
 [act => q|
   #### Resampling with ->map and no FITS interpretation works in pixel space.
 
-  ### Create a PGPLOT window, and display the original image
-    $dev = $^O =~ /MSWin32/          ? '/GW'            :
-           defined($ENV{PGPLOT_DEV}) ? $ENV{PGPLOT_DEV} : "/XW";
-    $win = pgwin( dev=> $dev, nx=>2, ny=>2, Charsize=>2, J=>1, Size=>[8,6] );
-
-    $win->imag( $m51 , { DrawWedge=>0, Title=>"M51" }  );
+  ### Create a plot window, and display the original image
+    $win = pgswin( size=>[8,6], multi=>[2,2] ) ;
+    $win->plot(with=>'image', $m51, { Title=>"M51" });
 
   ### Grow m51 by a factor of 3; origin is at lower left
   #   (the "pix" makes the resampling happen in pixel coordinate
   #   space, ignoring the FITS header)
 
-    $win->imag( $m51->map( $ts, {pix=>1} )  );
-    $win->label_axes("","","M51 grown by 3 (pixel coords)");
+    $win->plot(with=>'image', $m51->map($ts, {pix=>1}),
+      { Title=>"M51 grown by 3 (pixel coords)" });
 
   ### Shrink m51 by a factor of 3; origin still at lower left.
   #   (You can invert the transform with a leading '!'.)
 
-    $win->imag( $m51->map( !$ts, {pix=>1} )  );
-    $win->label_axes("","","M51 shrunk by 3 (pixel coords)");
+    $win->plot(with=>'image', $m51->map(!$ts, {pix=>1}),
+      { Title=>"M51 shrunk by 3 (pixel coords)" });
 |],
 
 [act => q|
@@ -119,18 +113,16 @@ my @demo = (
     # you have.  Here, "t_fits" translates between pixels in the data
     # and arcminutes in the image plane.
 
-    ### Clear the panel and start over
-
-    $win->panel(4);                 # (Clear whole window on next plot)
-    $win->imag( $m51, { Title=>"M51" } );
+    $win->plot(with=>'points', pdl([1]), {title=>''}); # blank, clears
+    $win->plot(with=>'image', $m51, { Title=>"M51" });
 
     ### Scale in scientific coordinates.
     #   Here's a way to scale in scientific coordinates:
     #   wrap our transformation in FITS-header transforms to translate
     #   the transformation into scientific space.
 
-    $win->imag(  $m51->map( !$ts->wrap(t_fits($m51)), {pix=>1} )   );
-    $win->label_axes("","","M51 shrunk 3x (sci. coords)");
+    $win->plot(with=>'image', $m51->map(!$ts->wrap(t_fits($m51)), {pix=>1}),
+      { Title=>"M51 shrunk by 3 (sci. coords)" });
 |],
 
 [act => q|
@@ -138,18 +130,19 @@ my @demo = (
  # FITS coordinates (if the image has a FITS header):
 
  ### Scale in scientific coordinates (origin at center of galaxy)
-   $win->fits_imag( $m51->map( $ts, $m51->hdr ), { Title=>"M51 3x" } );
+  $win->plot(with=>'fits', $m51->map($ts, $m51->hdr), { Title=>"M51 3x" });
 
  ### Instead of setting up a coordinate transformation you can use the
  #   implicit FITS header matching.  Just tweak the template header:
-   $tohdr = $m51->hdr_copy;
-   $tohdr->{CDELT1} /= 3;  # Magnify 3x in horiz direction
-   $tohdr->{CDELT2} /= 3;  # Magnify 3x in vert direction
+  $tohdr = $m51->hdr_copy;
+  $tohdr->{CDELT1} /= 3;  # Magnify 3x in horiz direction
+  $tohdr->{CDELT2} /= 3;  # Magnify 3x in vert direction
 
  ### Resample to match the new FITS header
  #   (Note that, although the image is scaled exactly the same as before,
  #   this time the scientific coordinates have scaled too.)
-  $win->fits_imag( $m51->map( t_identity(), $tohdr ), { Title=>"3x (FITS)" } );
+  $win->plot(with=>'fits', $m51->map(t_identity(), $tohdr),
+    { Title=>"3x (FITS)" });
 |],
 
 [act => q|
@@ -157,16 +150,16 @@ my @demo = (
  #   Sampling is fastest, linear interpolation is better.  Jacobian resampling
  #   is slow but prevents aliasing under skew or reducing transformations.
 
- $win->fits_imag( $m51_fl , {Title=>"M51"} );
+ $win->plot(with=>'fits', $m51, { Title=>"M51" });
 
- $win->fits_imag( $m51_fl->map( $ts, $m51_fl, { method=>"sample" } ),
-		{Title=>"M51 x3 (sampled)"} );
+ $win->plot(with=>'fits', $m51_fl->map( $ts, $m51_fl, { method=>"sample" } ),
+		{ Title=>"M51 x3 (sampled)" });
 
- $win->fits_imag( $m51_fl->map( $ts, $m51_fl, { method=>"linear" } ),
-		{ Title=>"M51 x3 (interp.)"} );
+ $win->plot(with=>'fits', $m51_fl->map($ts, $m51_fl, {method=>"linear"}),
+		{ Title=>"M51 x3 (interp.)"});
 
- $win->fits_imag( $m51_fl->map( $ts, $m51_fl, { method=>"jacobian" } ),
- 	        { Title=>"M51 x3 (jacob.)"} );
+ $win->plot(with=>'fits', $m51_fl->map($ts, $m51_fl, { method=>"jacobian" }),
+ 	        { Title=>"M51 x3 (jacob.)"});
 |],
 
 [act => q|
@@ -174,18 +167,17 @@ my @demo = (
  #  using a simple nonlinear transformation:  radial coordinate transformation.
 
  ### Original image
-    $win->fits_imag( $m51 ,{Title=>"M51"});
+ $win->plot(with=>'fits', $m51, { Title=>"M51" });
 
  ### Radial structure in M51 (linear radial scale; origin at (0,0) by default)
-    $tu = t_radial( u=>'degree' );
-    $win->fits_imag( $m51_fl->map($tu), { Title=>"M51 radial (linear)", J=>0});
+ $tu = t_radial( u=>'degree' );
+ $win->plot(with=>'fits', $m51_fl->map($tu),
+    { Title=>"M51 radial (linear)", J=>0 });
 
  ### Radial structure in M51 (conformal/logarithmic radial scale)
-    $tu_c = t_radial( r0=>0.1 );  # Y axis 0 is at 0.1 arcmin
-    $win->panel(3);
-    $win->fits_imag( $m51_fl->map($tu_c),
-		     { Title=>"M51 radial (conformal)",
- 		       YRange=>[0,4] } );
+ $tu_c = t_radial( r0=>0.1 );  # Y axis 0 is at 0.1 arcmin
+ $win->plot(with=>'fits', $m51_fl->map($tu_c),
+    { Title=>"M51 radial (conformal)", YRange=>[0,4] } );
 |],
 # NOTE:
 #   need to 'double protect' the \ in the label_axes()
@@ -218,89 +210,81 @@ my @demo = (
     # Note that you can use ->map and ->unmap as either PDL methods
     # or transform methods; what to do is clear from context.
 
-    # Original image
-    $win->fits_imag($m51, {Title => "M51"} );
+$win->plot(with=>'points', pdl([1]), {title=>''}); # blank, clears
+# Original image
+$win->plot(with=>'fits', $m51, { Title=>"M51" });
 
-    # Skewed
-    $win->fits_imag( $m51_fl->map( $t_skew ),
-	{ Title => "M51 skewed by \\\\gp in spatial coords" } );
+# Skewed
+$win->plot(with=>'fits', $m51_fl->map( $t_skew ),
+    { Title => "M51 skewed by pi in spatial coords" } );
 
-    # Untwisted -- show that m51 has a half-twist per scale height
-    $win->fits_imag( $m51_fl->map( $t_untwist ),
-	{ Title => "M51 unspiraled (\\\\gp / r\\\\ds\\\\u)"} );
+# Untwisted -- show that m51 has a half-twist per scale height
+$win->plot(with=>'fits', $m51_fl->map( $t_untwist ),
+    { Title => "M51 unspiraled (pi / r_s)"} );
 
-    # Untwisted -- the jacobian method uses variable spatial filtering
-    # to eliminate spatial artifacts, at significant computational cost
-    # (This may take some time to complete).
-    $win->fits_imag( $m51_fl->map( $t_untwist, {m=>"jacobian"}),
-        { Title => "M51 unspiraled (\\\\gp / r\\\\ds\\\\u; antialiased)" } );
+# Untwisted -- the jacobian method uses variable spatial filtering
+# to eliminate spatial artifacts, at significant computational cost
+# (This may take some time to complete).
+$win->plot(with=>'fits', $m51_fl->map( $t_untwist, {m=>"jacobian"}),
+    { Title => "M51 unspiraled (pi / r_s; antialiased)" } );
 |],
 
 [act => q|
-    $win->close;
-    ###   Native FITS interpretation makes it easy to view your data in
-    ###   your preferred coordinate system.  Here we zoom in on a 0.2x0.2
-    ###   arcmin region of M51, sampling it to 100x100 pixels resolution.
+  ###   Native FITS interpretation makes it easy to view your data in
+  ###   your preferred coordinate system.  Here we zoom in on a 0.2x0.2
+  ###   arcmin region of M51, sampling it to 100x100 pixels resolution.
 
-    $m51 = float $m51;
-    $data = $m51->match([100,100],{or=>[[-0.05,0.15],[-0.05,0.15]]});
-    $s = "M51 closeup ("; $ss=" coords)";
-    $ps = " (pixels)";
+$m51 = float $m51;
+$data = $m51->match([100,100],{or=>[[-0.05,0.15],[-0.05,0.15]]});
+$s = "M51 closeup ("; $ss=" coords)";
+$ps = " (pixels)";
 
-    $dev = $^O =~ /MSWin32/          ? '/GW'            :
-           defined($ENV{PGPLOT_DEV}) ? $ENV{PGPLOT_DEV} : "/XW";
-    $w1 = pgwin( dev=> $dev, size=>[4,4], charsize=>1.5, justify=>1 );
-    $w1->imag( $data, 600, 750, { title=>"${s}pixel${ss}",
-				  xtitle=>"X$ps", ytitle=>"Y$ps" } );
-    $w1->hold;
-
-    $w2 = pgwin( dev=> $dev, size=>[4,4], charsize=>1.5, justify=>1 );
-    $w2->fits_imag( $data, 600, 750, { title=>"${s}sci.${ss}", dr=>0 } );
-    $w2->hold;
-
-    # Now please separate the two X windows on your screen, and press ENTER.
-    ###############################
+$win = pgswin( size=>[8,4], multi=>[2,1] ) ;
+$win->plot(with=>'image', $data,  { title=>"${s}pixel${ss}",
+  xlabel=>"X$ps", ylabel=>"Y$ps", crange=>[600,750] } );
+$win->plot(with=>'fits', $data, { title=>"${s}sci.${ss}",
+  crange=>[600,750] } );
 |],
 
 [act => q|
-    ###   Now rotate the image 360 degrees in 10 degree increments.
-    ###   The 'match' method resamples $data to the rotated scientific
-    ###   coordinate system in $hdr.  The "pixel coordinates" window shows
-    ###   the resampled data in their new pixel coordinate system.
-    ###   The "sci. coordinates" window shows the data remaining fixed in
-    ###   scientific space, even though the pixels that represent them are
-    ###   moving and rotating.
+  ###   Now rotate the image 360 degrees in 10 degree increments.
+  ###   The 'match' method resamples $data to the rotated scientific
+  ###   coordinate system in $hdr.  The "pixel coordinates" window shows
+  ###   the resampled data in their new pixel coordinate system.
+  ###   The "sci. coordinates" window shows the data remaining fixed in
+  ###   scientific space, even though the pixels that represent them are
+  ###   moving and rotating.
 
-  $hdr = $data->hdr_copy;
+$hdr = $data->hdr_copy;
 
-  for( $rot=0; $rot<=360; $rot += 10 ) {
-    $hdr->{CROTA2} = $rot;
+for ($rot=0; $rot<=360; $rot += 10) {
+  $hdr->{CROTA2} = $rot;
 
-    $d = $data->match($hdr);
+  $d = $m51->match($hdr);
 
-    $w1->imag( $d, 600, 750 );
-    $w2->fits_imag($d, 600, 750, {dr=>0});
-  }
+  $win->plot(with=>'image', $d,  { title=>"${s}pixel${ss}",
+    xlabel=>"X$ps", ylabel=>"Y$ps", crange=>[600,750] } );
+  $win->plot(with=>'fits', $d, { title=>"${s}sci.${ss}",
+    xrange=>[-0.05,0.15], yrange=>[-0.05,0.15], crange=>[600,750] } );
+}
 |],
 
 [act => q|
-   ###   You can do the same thing even with nonsquare coordinates.
-   ###   Here, we resample the same region in scientific space into a
-   ###   150x50 pixel array.
+ ###   You can do the same thing even with nonsquare coordinates.
+ ###   Here, we resample the same region in scientific space into a
+ ###   150x50 pixel array.
 
-  $data = $m51->match([150,50],{or=>[[-0.05,0.15],[-0.05,0.15]]});
-  $hdr = $data->hdr_copy;
+$data = $m51->match([150,50],{or=>[[-0.05,0.15],[-0.05,0.15]]});
+$hdr = $data->hdr_copy;
 
-  $w1->release;
-  $w1->imag( $data, 600, 750, { title=>"${s}pixel${ss}",
-		                xtitle=>"X$ps", ytitle=>"Y$ps", pix=>1 } );
-  $w1->hold;
-
-  for( $rot=0; $rot<=750; $rot += 5 ) {
-    $hdr->{CROTA2} = $rot;
-    $d = $data->match($hdr);
-    $w1->imag($d, 600, 750);    $w2->fits_imag($d, 600, 750, {dr=>0});
-  }
+for ($rot=0; $rot<=750; $rot += 5) {
+  $hdr->{CROTA2} = $rot;
+  $d = $m51->match($hdr,{or=>[[-0.05,0.15],[-0.05,0.15]]});
+  $win->plot(with=>'image', $d,  { title=>"${s}pixel${ss}",
+    xlabel=>"X$ps", ylabel=>"Y$ps", crange=>[600,750] } );
+  $win->plot(with=>'fits', $d, { title=>"${s}sci.${ss}",
+    xrange=>[-0.05,0.15], yrange=>[-0.05,0.15], crange=>[600,750] } );
+}
 |],
 
 [comment => q|
@@ -315,8 +299,6 @@ my @demo = (
 
 sub demo { @demo }
 sub done {'
-  $w1->release; $w1->close; undef $w1;
-  $w2->release; $w2->close; undef $w2;
   undef $win;
 '}
 
