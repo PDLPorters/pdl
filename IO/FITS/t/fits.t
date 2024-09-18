@@ -13,7 +13,7 @@ my $fs = 'File::Spec';
 sub cfile { return $fs->catfile(@_)}
 
 my %tmp_opts = (TMPDIR => 1, UNLINK => 1);
-my $file = File::Temp::tempfile(%tmp_opts);
+my (undef, $file) = File::Temp::tempfile(%tmp_opts);
 
 ################ Test rfits/wfits ########################
 
