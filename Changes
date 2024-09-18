@@ -3,6 +3,7 @@
 - [xyz]{lin,log}vals now works with dim-length of one
 - minmax skips NaNs entirely, so now works with leading NaN
 - add Transform::Cartography::clean_lines options: orange, filter_nan
+- Transform::Proj4 captures projection information at build not runtime
 
 2.092 2024-09-07
 - add Type::howbig

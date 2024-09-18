@@ -137,7 +137,6 @@ proj_version(...)
     mPUSHu(PROJ_VERSION_PATCH);
 ENDXS
 
-my $load_desc = <<'EOF';
 my %SKIP = map +($_=>1), qw(
   and or Special for Madagascar
   fixed Earth For CH1903
@@ -189,11 +188,8 @@ sub load_projection_information {
     $info{nzmg}{CATEGORIES} = [ 'fixed Earth' ];
     return \%info;
 }
-EOF
-eval $load_desc;
-die if $@;
 
-pp_addpm( <<'ENDPM' . $load_desc );
+pp_addpm(<<'ENDPM');
 =head2 proj_version
 
 Returns a 3-element list with PROJ major, minor, patch version-numbers.
@@ -202,6 +198,13 @@ Not exported.
 =cut
 
 ENDPM
+pp_addpm("sub load_projection_information {+" . do {
+  use Data::Dumper;
+  local $Data::Dumper::Sortkeys = 1;
+  local $Data::Dumper::Terse = 1;
+  local $Data::Dumper::Indent = 1;
+  join '', Dumper load_projection_information();
+}."}\n\n");
 pp_export_nothing();
 
 pp_addpm( { At => 'Top' }, <<'ENDPM' );
