@@ -138,6 +138,7 @@ Demos/Demos.pm
 Demos/earth-interp.pl
 Demos/earth.txt
 Demos/General.pm
+Demos/harness
 Demos/Makefile.PL
 Demos/Sound.pm
 Demos/t/demos.t

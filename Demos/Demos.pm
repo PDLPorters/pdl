@@ -73,7 +73,6 @@ my ($kw_loaded, %kw2info); # info = [kw, description, module]
 sub _load_keywords {
   return if $kw_loaded;
   $kw_loaded = 1;
-  # || do {warn "\n\n\n\nerror: $@";0}
   my @modules = grep eval "require $_; 1", __PACKAGE__->list;
   my %mod2i = map +($_ => [$_->info]), grep $_->can('info'), @modules;
   %kw2info = map +($mod2i{$_}[0] => [@{$mod2i{$_}}, $_]), keys %mod2i;

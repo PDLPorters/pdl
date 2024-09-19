@@ -257,7 +257,7 @@ $win->plot(with=>'fits', $data, { title=>"${s}sci.${ss}",
 
 $hdr = $data->hdr_copy;
 
-for ($rot=0; $rot<=360; $rot += 10) {
+for ($rot=0; $rot<360; $rot += 10) {
   $hdr->{CROTA2} = $rot;
 
   $d = $m51->match($hdr);
@@ -277,7 +277,7 @@ for ($rot=0; $rot<=360; $rot += 10) {
 $data = $m51->match([150,50],{or=>[[-0.05,0.15],[-0.05,0.15]]});
 $hdr = $data->hdr_copy;
 
-for ($rot=0; $rot<=750; $rot += 5) {
+for ($rot=0; $rot<360; $rot += 5) {
   $hdr->{CROTA2} = $rot;
   $d = $m51->match($hdr,{or=>[[-0.05,0.15],[-0.05,0.15]]});
   $win->plot(with=>'image', $d,  { title=>"${s}pixel${ss}",

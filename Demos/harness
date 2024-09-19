@@ -1,0 +1,111 @@
+use strict; use warnings;
+use PDL;
+use PDL::Demos;
+use File::Path qw(mkpath);
+use File::Spec::Functions qw(catdir catfile splitpath);
+
+my $html_header = <<'EOF';
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>%s</title>
+</head>
+<body>
+EOF
+my $html_footer = <<'EOF';
+</body>
+</html>
+EOF
+my ($name_pat, $name_glob) = qw(output-%d.png output-*.png);
+
+my $destroot = shift;
+die "Usage: $0 destroot" unless defined $destroot && -d $destroot;
+
+my @infos = map [PDL::Demos->info($_)], PDL::Demos->keywords;
+@infos = grep $_->[0] eq 'pdl' || $_->[1] =~ /Simple|GSL/, @infos;
+
+my @this_output;
+sub do_output { push @this_output, @_; }
+for (@infos) {
+  my ($kw, $blurb, $mod) = @$_;
+  my $outdir = catdir($destroot, $kw);
+  print " $kw -> $outdir\n";
+  $ENV{PDL_SIMPLE_ENGINE} = 'gnuplot';
+  $ENV{PDL_SIMPLE_OUTPUT} = catfile($outdir, $name_pat);
+  mkpath($outdir) or die "$outdir: $!" if !-d $outdir;
+  unlink($_) or die "unlink $_: $!"
+    for grep -f, glob catfile($outdir, $name_glob);
+  PDL::Demos->init($kw);
+  my ($vidcounter, @outframes, %seen_img) = 0;
+  for my $frame (PDL::Demos->demo($kw)) {
+    my ($cmd, $txt) = @$frame;
+    my @lines = split /\n/, $txt;
+    shift @lines until $lines[0] =~ /\S/;
+    pop @lines until $lines[-1] =~ /\S/;
+    die "No non-blank lines found in a frame of $kw, text '$txt'" if !@lines;
+    if ($cmd eq 'comment') {
+      my $final = join "\n", @lines;
+      $final =~ s#\n\n+#\n<p/>\n#g;
+      push @outframes, [$final];
+      next;
+    }
+    my ($state, $chunk, @to_execute, @thisframe) = ($lines[0] =~ /^\s*#/ ? 'c' : 'w', '');
+    for (@lines) {
+      if (/^\s*#+\s*(.*?)\s*#*\s*$/) { # words
+        if ($state eq 'c') {
+          chomp $chunk;
+          push @thisframe, "<pre>\n$chunk\n</pre>" if $chunk;
+          $chunk = '';
+        }
+        $state = 'w';
+        $chunk .= $1 ? "$1\n" : "<p/>\n";
+      } else {
+        if ($state eq 'w') {
+          chomp $chunk;
+          push @thisframe, $chunk if $chunk;
+          $chunk = '';
+        }
+        $state = 'c';
+        $chunk .= "$_\n" if /\S/;
+        push @to_execute, $_;
+      }
+    }
+    chomp($chunk), push @thisframe, $state eq 'c' ? "<pre>\n$chunk\n</pre>" : $chunk
+      if $chunk;
+    if (@to_execute) {
+      @this_output = ();
+      s#^(\s*)print\b#do_output +#g for @to_execute;
+      s#^(\s*)printf\b#do_output sprintf#g for @to_execute;
+      my $exec_text = join "\n", "package $mod; *do_output=\\&main::do_output; sub do_output; no strict; use PDL;", @to_execute;
+      eval $exec_text;
+      die if $@;
+      my $o = join('', @this_output)."\n";
+      $o =~ s/\A\n+|\n+\z//g;
+      $o = "<pre>\n$o\n</pre>" if $o;
+      my @this_imgs = map $_->[1], sort {$a->[0]<=>$b->[0]} map [/(\d+)/, $_],
+        grep !$seen_img{$_}++, glob catfile($outdir, $name_glob);
+      if (@this_imgs) {
+        if (@this_imgs > 1) {
+          my $multiframe = cat(map rpic($_), @this_imgs);
+          my $vidfile = catfile($outdir, "vid-".++$vidcounter.".gif");
+          $multiframe->wmpeg($vidfile);
+          unlink @this_imgs;
+          delete @seen_img{@this_imgs}; # may reappear with new content
+          @this_imgs = $vidfile;
+        }
+        $o .= sprintf qq{\n<img src="%s"/>}, (splitpath $this_imgs[0])[2];
+      }
+      push @thisframe, "<h4>Output</h4>\n$o" if $o;
+    }
+    push @outframes, \@thisframe;
+  }
+  PDL::Demos->done($kw);
+  open my $fh, ">", catfile($outdir, "index.html");
+  my $title = "$kw - $blurb";
+  print $fh sprintf($html_header, $title),
+    "<h1>$kw - $blurb</h1>\n\n",
+    join("\n\n<hr/>\n", map join("\n", @$_), @outframes), "\n",
+    $html_footer;
+}
