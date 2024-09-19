@@ -2,7 +2,7 @@ use strict; use warnings;
 use PDL;
 use PDL::Demos;
 use File::Path qw(mkpath);
-use File::Spec::Functions qw(catdir catfile splitpath);
+use File::Spec::Functions qw(catdir catfile splitpath updir);
 
 my $html_header = <<'EOF';
 <!DOCTYPE html>
@@ -23,14 +23,16 @@ my ($name_pat, $name_glob) = qw(output-%d.png output-*.png);
 my $destroot = shift;
 die "Usage: $0 destroot" unless defined $destroot && -d $destroot;
 
-my @infos = map [PDL::Demos->info($_)], PDL::Demos->keywords;
+my @infos = map [PDL::Demos->info($_)],
+  'pdl', sort grep $_ ne 'pdl', PDL::Demos->keywords;
 @infos = grep $_->[0] eq 'pdl' || $_->[1] =~ /Simple|GSL/, @infos;
 
 my @this_output;
 sub do_output { push @this_output, @_; }
+my @titles;
 for (@infos) {
   my ($kw, $blurb, $mod) = @$_;
-  my $outdir = catdir($destroot, $kw);
+  my $outdir = catdir($destroot, updir, updir, qw(images demos), $kw);
   print " $kw -> $outdir\n";
   $ENV{PDL_SIMPLE_ENGINE} = 'gnuplot';
   $ENV{PDL_SIMPLE_OUTPUT} = catfile($outdir, $name_pat);
@@ -48,7 +50,7 @@ for (@infos) {
     if ($cmd eq 'comment') {
       my $final = join "\n", @lines;
       $final =~ s#\n\n+#\n<p/>\n#g;
-      push @outframes, [$final];
+      push @outframes, [hyperlink($final)];
       next;
     }
     my ($state, $chunk, @to_execute, @thisframe) = ($lines[0] =~ /^\s*#/ ? 'c' : 'w', '');
@@ -95,17 +97,46 @@ for (@infos) {
           delete @seen_img{@this_imgs}; # may reappear with new content
           @this_imgs = $vidfile;
         }
-        $o .= sprintf qq{\n<img src="%s"/>}, (splitpath $this_imgs[0])[2];
+        $o .= sprintf qq{\n<img src="images/demos/$kw/%s"/>}, (splitpath $this_imgs[0])[2];
       }
       push @thisframe, "<h4>Output</h4>\n$o" if $o;
     }
+    $_ = hyperlink($_) for @thisframe;
     push @outframes, \@thisframe;
   }
   PDL::Demos->done($kw);
-  open my $fh, ">", catfile($outdir, "index.html");
-  my $title = "$kw - $blurb";
+  rmdir $outdir if !glob catfile($outdir, $name_glob);
+  open my $fh, ">", catfile($destroot, "$kw.html");
+  $blurb =~ s#\s*\(.*##;
+  push @titles, [$kw, my $title = "$kw - $blurb"];
   print $fh sprintf($html_header, $title),
-    "<h1>$kw - $blurb</h1>\n\n",
+    "<h1>$title</h1>\n\n",
     join("\n\n<hr/>\n", map join("\n", @$_), @outframes), "\n",
     $html_footer;
+}
+open my $fh, ">", catfile($destroot, "index.html");
+print $fh
+  <<'EOF',
+<!-- Generated with pdl/Demos/harness -->
+<h1 class='title'>Demos and Examples</h1>
+<p>On the following pages you'll find some examples of how to use PDL
+for basic computations and plotting purposes. Several of the examples
+are available as demos within <tt>perldl</tt>. For more details try:</p>
+<pre>
+ <b>perldl></b> demo
+</pre>
+<ul>
+EOF
+  (map qq{<li><a href="?page=demos/$_->[0]">$_->[1]</a></li>\n}, @titles),
+  <<'EOF';
+<li><a href="?page=demos/plot2D">2D plotting with PGPLOT</a></li>
+<li><a href="?page=screenshots/index">3D plots</a></li>
+</ul>
+EOF
+
+sub hyperlink {
+  my ($text) = @_;
+  $text =~ s#PDL::[^\s;]+#<a href="https://metacpan.org/pod/$&">$&</a>#g;
+  $text =~ s#([^"])(https?:\S+)#$1<a href="$2">$2</a>#g;
+  $text;
 }
