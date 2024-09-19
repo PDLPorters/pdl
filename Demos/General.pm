@@ -4,7 +4,7 @@
 
 package PDL::Demos::General;
 
-sub info {('pdl', 'general demo')}
+sub info {('pdl', 'Introduction -- a tour of PDL')}
 
 my @demo = (
 [comment => q|
@@ -12,12 +12,11 @@ Welcome to a short tour of PDL's capabilities.
 
 This tour shows some of the main selling points
 of PDL. However, because we want this script to
-run everywhere, some modules which require external
-modules for use are explicitly excluded, namely
- - PDL::Graphics::TriD (3D Graphics) [*]
- - PDL::Graphics::Simple (general plotting through several drivers)
- - PDL::IO::FlexRaw (flexible raw input/output plus memory-mapping)
-[*]: this module has its separate demos in a subdirectory.
+run everywhere, it doesn't show off modules which
+require external modules for use, including those
+supporting 3D graphics. You can list all the demos
+available on your system by doing "demo" at the
+'pdl>' prompt.
 
 Note that your own scripts must start with
 

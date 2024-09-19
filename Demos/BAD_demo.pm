@@ -209,7 +209,7 @@ my @demos = (
 );
 $@ = ''; # reset
 
-sub info {('bad', 'Bad-value demo (Optional: PDL::Graphics::Simple)')}
+sub info {('bad', 'Bad-value support (Optional: PDL::Graphics::Simple)')}
 
 sub demo { @demos }
 sub init { 'eval "use PDL::Graphics::Simple"' }
