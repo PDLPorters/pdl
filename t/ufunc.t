@@ -275,6 +275,13 @@ subtest 'minimum_n_ind' => sub {
     }
 };
 
+subtest diffover => sub {
+  my $a = sequence(5) + 2;
+  ok tapprox($a->diffover, pdl(0, 1, 1, 1, 1)), "diffover";
+  $a->inplace->diffover;
+  ok tapprox($a, pdl(0, 1, 1, 1, 1)), "diffover inplace";
+};
+
 subtest diff2 => sub {
   my $got = pdl('[BAD 2 3 4]')->diff2;
   is "$got", "[2 1 1]", 'first bad';
