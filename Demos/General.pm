@@ -124,6 +124,7 @@ print $y->min,"\n";
 |],
 
 [act => q|
+srandom(5);
 print $y->random;
 |],
 

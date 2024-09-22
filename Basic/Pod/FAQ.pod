@@ -1201,48 +1201,12 @@ Note that case matters with C<help> but not with C<apropos> .
 
 =head2 Q: 6.22   PGPLOT does not write out PNG files.
 
-B<NOTE> As of 2.086, PDL's PGPLOT-using modules are now all supplied
-with the L<PGPLOT> module itself. This note is now only historical.
-
-There are a few sources of trouble with PGPLOT and PNG files. First,
-when compiling the pgplot libraries, make sure you uncomment the PNG
-entries in the F<drivers.list> file. Then when running 'make' you
-probably got an error like
-
-  C<make: *** No rule to make target `png.h', needed by `pndriv.o'.  Stop.>
-
-To fix this, find the line in the 'makefile' that starts with
-'pndriv.o:' (it's near the bottom). Change, for example, ./png.h to
-/usr/include/png.h, if that is where your header files are (you do
-have the libpng and libz devel packages, don't you?).  Do this for all
-four entries on that line, then go back and run C<make>.
-
-Second, if you already have the PGPLOT Perl module and PDL installed,
-you probably tried to write out a PNG file and got fatal error message
-like:
-
-  C<undefined symbol: png_create_write_struct>
-
-This is because the PGPLOT Perl module does not automatically link
-against the png and z libraries. So when you are installing the PGPLOT
-Perl module (version 2.19) from CPAN, don't do C<install PGPLOT>, but
-just do C<get PGPLOT>. Then exit from CPAN and manually install
-PGPLOT, calling the makefile thusly:
-
-  C<perl Makefile.PL EXLIB=png,z EXDIR=/usr/lib>
-
-assuming that there exist files such as /usr/lib/libpng.so.*,
-/usr/lib/libz.so.*. Then do the standard C<make;make test;make
-install;> sequence. Now you can write png files from PDL!
-
-
+As of 2.086, PDL's PGPLOT-using modules are now all supplied
+with the L<PGPLOT> module itself.
 
 =head1 EXTENSIONS OF PDL
 
-
-
 =head2 Q: 7.1    I am looking for a package to do XXX in PDL. Where shall I look for it?  
-
 
 The first stop is again C<perldl> or C<pdl2> and the on-line help
 or the PDL documentation. There is already a lot of functionality in

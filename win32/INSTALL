@@ -71,13 +71,6 @@ To Build from Source
                             # from building PDL. It just means that the PDL
                             # you build will be missing "the fortran stuff".
 
-   cpan -i PGPLOT           # Optional - for PGPLOT graphics support.
-                            # This will fail if the pgplot C library can't
-                            # be found.
-			          # It will also fail if no Fortran compiler is
-			          # found---simpler to install using ppm
-			          # (see above).
-
    cpan -i OpenGL           # Optional, but recommended - this is for PDL's
                             # TriD support.
                             # Also available via ppm (see above) if there

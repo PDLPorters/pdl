@@ -793,26 +793,15 @@ B<Best for>: Plotting 2D functions and data sets.
 
 Provides a uniform interface to PGPLOT, PLplot, Gnuplot, and Prima.
 
-=item L<PDL::Graphics::PGPLOT>
-
-B<Best for>: Plotting 2D functions and data sets.
-
-This is an interface to the venerable PGPLOT library. PGPLOT has
-been widely used in the academic and scientific communities for
-many years. In part because of its age, PGPLOT has some limitations
-compared to newer packages such as PLplot (e.g. no RGB graphics).
-But it has many features that still make it popular in the scientific
-community.
-
-=item L<PDL::Graphics::PLplot>
+=item L<PDL::Graphics::Gnuplot>
 
 B<Best for>: Plotting 2D functions as well as 2D and 3D data sets.
 
-This is an interface to the PLplot plotting library. PLplot
-is a modern, open source library for making scientific plots.
-It supports plots of both 2D and 3D data sets. PLplot is best
-supported for unix/linux/macosx platforms. It has an active
-developers community and support for win32 platforms is improving.
+This is an interface to Gnuplot,
+a modern, open source program for making scientific plots.
+It supports plots of both 2D and 3D data sets. It is
+supported for Unix/Linux/MacOS/Win32 platforms, with an active
+developers community.
 
 =item L<PDL::Graphics::TriD>
 

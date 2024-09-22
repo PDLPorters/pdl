@@ -30,7 +30,7 @@ Because it is backend-independent, the
 plot you get will always be what you asked for, regardless of which
 plotting engine you have installed on your system.
 
-Only a small subset of PDL's complete graphics functionality is
+Only a subset of PDL's complete graphics functionality is
 supported -- each individual plotting module has unique advantages and
 functionality that are beyond what L<PDL::Graphics::Simple> can do.
 
@@ -105,20 +105,6 @@ widely used in the academic and scientific communities for many years.
 In part because of its age, PGPLOT has some limitations compared to
 newer packages such as PLplot (e.g. no RGB graphics). But it has many
 features that still make it popular in the scientific community.
-
-=head1 SEE ALSO
-
-L<PDL::Graphics::Simple>
-
-L<PDL::Graphics::Gnuplot>
-
-L<PDL::Graphics::Prima>
-
-L<PDL::Graphics::TriD>
-
-L<PDL::Graphics::PGPLOT>
-
-L<PDL::Graphics::PLplot>
 
 =head1 AUTHOR
 

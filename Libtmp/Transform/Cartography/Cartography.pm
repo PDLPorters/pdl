@@ -6,11 +6,12 @@ PDL::Transform::Cartography - Useful cartographic projections
 
  # make a Mercator map of Earth
  use PDL::Transform::Cartography;
+ use PDL::Graphics::Simple;
  $x = earth_coast();
  $x = graticule(10,2)->glue(1,$x);
  $t = t_mercator;
- $w = pgwin(xs);
- $w->lines($t->apply($x)->clean_lines());
+ $w = pgswin();
+ $w->plot(with=>'polylines', $t->apply($x)->clean_lines);
 
 =head1 DESCRIPTION
 
@@ -173,8 +174,8 @@ at load time.
 
 Draw a Mercator map of the world on-screen:
 
-   $w = pgwin(xs);
-   $w->lines(earth_coast->apply(t_mercator)->clean_lines);
+   $w = pgswin();
+   $w->plot(with=>'polylines', earth_coast->apply(t_mercator)->clean_lines);
 
 Here, C<earth_coast()> returns a 3xn ndarray containing (lon, lat, pen) 
 values for the included world coastal outline; C<t_mercator> converts
@@ -183,9 +184,9 @@ lines that cross the 180th meridian.
 
 Draw a Mercator map of the world, with lon/lat at 10 degree intervals:
 
-   $w = pgwin(xs)
+   $w = pgswin();
    $x = earth_coast()->glue(1,graticule(10,1));
-   $w->lines($x->apply(t_mercator)->clean_lines);
+   $w->plot(with=>'polylines', $x->apply(t_mercator)->clean_lines);
 
 This works just the same as the first example, except that a map graticule
 has been applied with interline spacing of 10 degrees lon/lat and 
@@ -294,7 +295,7 @@ sub _strval {
 
 Returns a grid of meridians and parallels as a list of vectors suitable
 for sending to
-L<PDL::Graphics::PGPLOT::Window::lines|PDL::Graphics::PGPLOT::Window/lines>
+L<PDL::Graphics::Simple|PDL::Graphics::Simple/polylines>
 for plotting.
 The grid is in degrees in (theta, phi) coordinates -- this is (E lon, N lat) 
 for terrestrial grids or (RA, dec) for celestial ones.  You must then 
@@ -307,11 +308,11 @@ You can attach the graticule to a vector map using the syntax:
 In array context you get back a 2-element list containing an ndarray of
 the (theta,phi) pairs and an ndarray of the pen values (1 or 0) suitable for
 calling
-L<PDL::Graphics::PGPLOT::Window::lines|PDL::Graphics::PGPLOT::Window/lines>.
+L<PDL::Graphics::Simple|PDL::Graphics::Simple/polylines>.
 In scalar context the two elements are combined into a single ndarray.
 
 The pen values associated with the graticule are negative, which will cause
-L<PDL::Graphics::PGPLOT::Window::lines|PDL::Graphics::PGPLOT::Window/lines>
+L<PDL::Graphics::Simple|PDL::Graphics::Simple/polylines>
 to plot them as hairlines.
 
 If a third argument is given, it is a hash of options, which can be:
@@ -397,8 +398,8 @@ database (see author information).  The vector coastline data are in
 plate carree format so they can be converted to other projections via
 the L<apply|PDL::Transform/apply> method and cartographic transforms,
 and are suitable for plotting with the
-L<lines|PDL::Graphics::PGPLOT::Window/lines>
-method in the PGPLOT
+L<polylines|PDL::Graphics::Simple/polylines>
+plot type in the PDL::Graphics::Simple
 output library:  the first dimension is (X,Y,pen) with breaks having 
 a pen value of 0 and hairlines having negative pen values.  The second 
 dimension broadcasts over all the points in the data set.
@@ -407,9 +408,11 @@ The vector map includes lines that pass through the antipodean
 meridian, so if you want to plot it without reprojecting, you should
 run it through L</clean_lines> first:
 
-    $w = pgwin();
-    $w->lines(earth_coast->clean_lines);     # plot plate carree map of world
-    $w->lines(earth_coast->apply(t_gnomonic))# plot gnomonic map of world
+    $w = pgswin();
+    $w->plot(with=>'polylines',
+      earth_coast->clean_lines);     # plot plate carree map of world
+    $w->plot(with=>'polylines',
+      earth_coast->apply(t_gnomonic)->clean_lines)# plot gnomonic map of world
 
 C<earth_coast> is just a quick-and-dirty way of loading the file
 "earth_coast.vec.fits" that is part of the normal installation tree.
@@ -554,7 +557,8 @@ in the transform.
 
 In the first (scalar) form, C<$line_pen> contains both (X,Y) points and pen 
 values in the 3rd column suitable to be fed to
-L<lines|PDL::Graphics::PGPLOT::Window/lines>.
+the L<polylines|PDL::Graphics::Simple/polylines>
+plot type in the PDL::Graphics::Simple.
 
 In the second (list) form, C<$lines> contains the (X,Y) points and C<$pen>
 contains the pen values, in one less dimension than the C<$lines>.
@@ -2826,11 +2830,9 @@ roughly 77W,38N).  Superimpose a linear coastline map on a photographic map.
 
   $x = graticule(1,0.1)->glue(1,earth_coast());
   $t = t_perspective(r0=>6478/6378.0,fov=>60,cam=>[22.5,-20],o=>[-77,36])
-  $w = pgwin(size=>[10,6],J=>1);
-  $w->fits_imag(earth_image()->map($t,[800,500],{m=>linear}));
-  $w->hold;
-  $w->lines($x->apply($t),{xt=>'Degrees',yt=>'Degrees'});
-  $w->release;
+  $w = pgswin(size=>[10,6],J=>1);
+  $w->plot(with=>'fits', earth_image()->map($t,[800,500],{m=>linear}),
+    with=>'polylines', $x->apply($t)->clean_lines);
 
 Model a 5x telescope looking at Betelgeuse with a 10 degree field of view
 (since the telescope is looking at the Celestial sphere, r is 0 and this

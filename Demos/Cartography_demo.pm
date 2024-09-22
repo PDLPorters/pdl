@@ -14,7 +14,8 @@ PDL->rpiccan('JPEG') ? () :
     [comment => q|
 This demo illustrates the PDL::Transform::Cartography module.  
 
-It requires PGPLOT and also the ability to read/write JPEG images.
+It requires PDL::Graphics::Simple and also the ability to read/write
+JPEG images.
 
 You don't seem to have that ability at the moment -- this is likely
 because you do not have NetPBM installed.  See the man page for PDL::IO::Pic.
@@ -66,9 +67,9 @@ earth_image('day') call on the next screen.
 
 [act => q&
   ### The map data are co-aligned with the vector data, which can be drawn
-  ### on top of the window with the "->lines" PGPLOT method.  The 
-  ### clean_lines method breaks lines that pass over the map's singularity 
-  ### at the 180th parallel.
+  ### on top of the window with the "with polylines" PDL::Graphics::Simple
+  ### plot type.  The clean_lines method breaks lines that pass over
+  ### the map's singularity at the 180th parallel.
   
   $w->hold;
   $w->plot(with=>'polylines', $coast->clean_lines);
@@ -119,10 +120,10 @@ draw( t_orthographic( o=>[-90,40] ),
       "Orthographic",  [400,300]);
 
 draw( t_vertical( r0=> (2 + 1), o=>[-90,40] ), 
-      "Vertical (Altitude = 2 r\\\\de\\\\u)", [400,300]);
+      "Vertical (Altitude = 2 r_e)", [400,300]);
 
 draw( t_perspective( r0=> (2 + 1), o=>[-90,40] ),
-      "True Perspective (Altitude= 2 r\\\\de\\\\u)", [400,300]);
+      "True Perspective (Altitude= 2 r_e)", [400,300]);
 
 # Observer is 0.1 earth-radii above surface, lon 117W, lat 31N (over Tijuana).
 # view is 45 degrees below horizontal, azimuth -22 (338) degrees.

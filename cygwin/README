@@ -32,15 +32,6 @@ including bad values support (if configured) as well as the
 following modules which depend on the presence of various       
 external dependencies:                                          
 
- PDL::FFTW
-  (Builds if FFTW version 2 has been hand built and installed,
-   cygwin Setup.exe only provides FFTW version 3).
-
- PDL::Graphics::PGPLOT
-  (Builds if the FORTRAN pgplot library has been hand built
-   and installed, and if the *Perl* PGPLOT module is installed
-   and FORTRAN)
-
  PDL::Graphics::TriD
   (Builds automatically if you have X11 and OpenGL + FreeGLUT
    installed).
@@ -77,8 +68,6 @@ and also
   (Parallel pthread support will build and install by default
    since the cygwin DLL includes POSIX threads)
 
-
-
 =================================================================
                GRAPHICS (non-CORE DISTRIBUTION)
 =================================================================
@@ -87,14 +76,14 @@ core PDL distribution.  You'll need to install from CPAN
 separately:
 
  PDL::Graphics::Gnuplot  Needs the gnuplot executable
-  
+
  PDL::Graphics::Prima    Install Prima and PDL::Graphics::Prima
                          via the cpan shells cpan, cpanm...
 			 Give interactive plotting support and
 			 a full GUI toolkit that can be used to
 			 implement graphical perl/PDL/Prima apps.
 
-
+ PDL::Graphics::PGPLOT   Part of CPAN PGPLOT distribution
 
 =================================================================
                            NOT WORKING

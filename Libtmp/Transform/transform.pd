@@ -68,27 +68,28 @@ Coordinate transformations and mappings are a little counterintuitive
 at first.  Here are some examples of transforms in action:
 
    use PDL::Transform;
+   use PDL::Graphics::Simple;
    $x = rfits('m51.fits');   # Substitute path if necessary!
    $ts = t_linear(Scale=>3); # Scaling transform
 
-   $w = pgwin(xs);
-   $w->imag($x);
+   $w = pgswin(xs);
+   $w->plot(with=>'image', $x);
 
    ## Grow m51 by a factor of 3; origin is at lower left.
    $y = $ts->map($x,{pix=>1});    # pix option uses direct pixel coord system
-   $w->imag($y);
+   $w->plot(with=>'image', $y);
 
    ## Shrink m51 by a factor of 3; origin still at lower left.
    $c = $ts->unmap($x, {pix=>1});
-   $w->imag($c);
+   $w->plot(with=>'image', $c);
 
    ## Grow m51 by a factor of 3; origin is at scientific origin.
    $d = $ts->map($x,$x->hdr);    # FITS hdr template prevents autoscaling
-   $w->imag($d);
+   $w->plot(with=>'image', $d);
 
    ## Shrink m51 by a factor of 3; origin is still at sci. origin.
    $e = $ts->unmap($x,$x->hdr);
-   $w->imag($e);
+   $w->plot(with=>'image', $e);
 
    ## A no-op: shrink m51 by a factor of 3, then autoscale back to size
    $f = $ts->map($x);            # No template causes autoscaling of output
@@ -1331,8 +1332,7 @@ value, then it is the aspect ratio between the first dimension and all
 subsequent dimensions -- or, for a 2-D transformation, the scientific
 pixel aspect ratio.  Values less than 1 shrink the scale in the first
 dimension compared to the other dimensions; values greater than 1
-enlarge it compared to the other dimensions.  (This is the same sense
-as in the L<PGPLOT|PDL::Graphics::PGPLOT> interface.)
+enlarge it compared to the other dimensions.
 
 =item ir, irange, input_range, Input_Range
 
@@ -3003,8 +3003,7 @@ sub t_fits {
       my $tmp; # work around perl -d "feature"
       ($tmp = $cd->slice("(".($i-1).")")) .= $hdr->{"CDELT$i"};
     }
-#If there are no CDELTs, then we assume they are all 1.0,
-#as in PDL::Graphics::PGPLOT::Window::_FITS_tr.
+#If there are no CDELTs, then we assume they are all 1.0
     $cd+=1 if (all($cd==0));
 
     $matrix = $cdm x $cpm;

@@ -385,9 +385,9 @@ If C<hist> is run in list context, C<$xvals> gives the
 computed bin centres as double values.
 
 A nice idiom (with
-L<PDL::Graphics::PGPLOT>) is
+L<PDL::Graphics::Simple>) is
 
- bin hist $data;  # Plot histogram
+ bins hist($data), {yrange=>[0,$data->dim(0)]};  # Plot histogram
 
 =for example
 
@@ -429,9 +429,10 @@ as type double values.  C<$data> and C<$wt> should have
 the same dimensionality and extents.
 
 A nice idiom (with
-L<PDL::Graphics::PGPLOT>) is
+L<PDL::Graphics::Simple>) is
 
  bin whist $data, $wt;  # Plot histogram
+ bins whist($data, $wt), {yrange=>[0,$data->dim(0)]};  # Plot histogram
 
 =for example
 

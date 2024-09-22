@@ -105,7 +105,7 @@ PDL::Demos - PDL demo infrastructure
   # in a demo, if text-orientated
   package PDL::Demos::Blah;
   sub info { ('blah', 'Longer description of demo') }
-  sub init { 'use PDL::Graphics::PGPLOT;' }
+  sub init { 'use PDL::Graphics::Simple;' }
   my @demo = (
     [comment => "Welcome to the Blah demo"],
     [act => <<'EOF'],

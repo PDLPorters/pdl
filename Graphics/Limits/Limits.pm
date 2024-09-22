@@ -206,7 +206,6 @@ sub set_mask
 
 #####################################################################
 
-# based upon PGPLOT's pgrnge routine.
 sub range_frac
 {
   my ( $axis, $frac, $zerofix ) = @_;
@@ -228,8 +227,6 @@ sub range_frac
 }
 
 #####################################################################
-
-# based upon PGPLOT's pgrnd routine
 
 #  routine to find the closest "round" number to X, a "round" number
 #  being 1, 2 or 5 times a power of 10.
