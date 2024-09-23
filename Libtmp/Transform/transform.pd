@@ -2806,7 +2806,7 @@ pp_addpm(<<'+======EOD_t_scale======');
 Convenience interface to L</t_linear>.
 
 t_scale produces a transform that scales around the origin by a fixed
-amount.  It acts exactly the same as C<t_linear(Scale=>\<scale\>)>.
+amount.  It acts exactly the same as C<<< t_linear(Scale=>$scale) >>>.
 
 =cut
 
@@ -2834,7 +2834,7 @@ pp_addpm(<<'+======EOD_t_offset ======');
 Convenience interface to L</t_linear>.
 
 t_offset produces a transform that shifts the origin to a new location.
-It acts exactly the same as C<t_linear(Pre=>\<shift\>)>.
+It acts exactly the same as C<<< t_linear(Pre=>$shift) >>>.
 
 =cut
 
