@@ -233,7 +233,7 @@ my @demo = (
 	use PDL::Transform::Cartography;
 	eval { # this is in case no NetPBM, i.e. can't load Earth images
 	  $shape = earth_shape();
-	  $floats = t_raster2float()->apply($shape->mv(2,0));
+	  $floats = t_raster2float()->apply($shape->dummy(0,3));
 	  $radius = $floats->slice('(2)'); # r g b all same
 	  $radius *= float((6377.09863 - 6370.69873) / 6371);
 	  $radius += float(6370.69873 / 6371);

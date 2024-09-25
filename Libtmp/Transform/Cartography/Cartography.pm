@@ -258,6 +258,7 @@ our $VERSION = "0.6";
 $VERSION = eval $VERSION;
 our @EXPORT_OK = qw(
   graticule earth_image earth_coast earth_shape clean_lines t_unit_sphere
+  raster2fits
   t_orthographic t_rot_sphere t_caree t_carree t_mercator t_utm t_sin_lat
   t_sinusoidal t_conic t_albers t_lambert t_stereographic t_gnomonic
   t_az_eqd t_az_eqa t_vertical t_perspective t_hammer t_aitoff
@@ -265,6 +266,9 @@ our @EXPORT_OK = qw(
 );
 our @EXPORT = @EXPORT_OK;
 our %EXPORT_TAGS = (Func=>\@EXPORT_OK);
+
+our @PLATE_CARREE = ([qw(Longitude Latitude RGB)],
+  [qw(degrees degrees index)], [[-180,180], [-90,90], [0,2]]);
 
 ##############################
 # Steal _opt from PDL::Transform.
@@ -472,7 +476,7 @@ sub earth_image {
   barf("earth_image: $f not found in \@INC\n") if !$found;
   barf("earth_image: couldn't load $f; you may need to install netpbm.\n")
     unless defined($im);
-  t_raster2fits()->apply($im);
+  raster2fits($im, @PLATE_CARREE);
 }
 
 =head2 earth_shape
@@ -535,8 +539,42 @@ sub earth_shape {
     unless defined($found);
   barf("earth_shape: couldn't load $f; you may need to install netpbm.\n")
     unless defined($im);
-  $im = $im->dummy(0,3); # fake RGB
-  t_raster2fits()->apply($im);
+  raster2fits($im, @PLATE_CARREE);
+}
+
+=head2 raster2fits
+
+=for usage
+
+  $pdl_fits = raster2fits($pdl, \@axislabels, \@axisunits, \@axisranges);
+  $pdl_fits = raster2fits($pdl, @PDL::Transform::Cartography::PLATE_CARREE);
+
+=for ref
+
+Convert a raster ([3,]x,y) to FITS (x,y[,3]), with a suitable header
+for the given parameters.
+
+=cut
+
+sub raster2fits {
+  die "Usage: raster2fits(\$d, \\\@axislabels, \\\@axisunits, \\\@axisranges)\n" if @_ != 4;
+  my ($d, $axislabels, $axisunits, $axisranges) = @_;
+  my $is_single_plane = (my $ndims = $d->ndims) <= 2;
+  my $out = $is_single_plane ? $d : $d->mv(0,2);
+  my $h = $out->fhdr;
+  $h->{SIMPLE} = 'T';
+  $h->{NAXIS} = $ndims;
+  local $_;
+  my @dims = $out->dims;
+  $h->{"NAXIS".($_+1)} = $dims[$_] for 0..$ndims-1;
+  $h->{"CRVAL".($_+1)} = 0 for 0..$ndims-1;
+  $h->{"CRPIX".($_+1)} = $_<2 ? ($dims[$_]+1)/2 : 1 for 0..$ndims-1;
+  $h->{"CTYPE".($_+1)} = $axislabels->[$_] for 0..$ndims-1;
+  $h->{"CUNIT".($_+1)} = $axisunits->[$_] for 0..$ndims-1;
+  $h->{"CDELT".($_+1)} = ($axisranges->[$_][1]-$axisranges->[$_][0])/$dims[$_]
+    for 0..$ndims-1;
+  $h->{HISTORY}='PDL conversion from raster image',
+  $out;
 }
 
 =head2 clean_lines
@@ -842,47 +880,26 @@ sub t_raster2float {
 
 =head2 t_raster2fits
 
-=for usage
-
-  $t = t_raster2fits();
-
 =for ref
 
-(Cartography) Convert a raster (3,x,y) to FITS plate carree (x,y,3)
-
-Adds suitable C<hdr>. Assumes degrees. Used by L</earth_image>.
+Deprecated as it's not actually a transformation, which operates
+on coordinates. Use L</raster2fits>.
 
 =cut
 
 sub t_raster2fits {
   my ($me) = _new(@_, 'Raster to FITS plate carree conversion');
-  $me->{odim} = 3;
   $me->{params}->{itype} = ['RGB','X','Y'];
   $me->{params}->{iunit} = ['RGB','pixels','pixels'];
   $me->{params}->{otype} = ['X','Y','RGB'];
   $me->{params}->{ounit} = ['pixels','pixels','RGB'];
   $me->{func} = sub {
     my($d,$o) = @_;
-    my $out = $d->mv(0,2);
-    my $h = $out->fhdr;
-    $h->{SIMPLE} = 'T';
-    $h->{NAXIS} = $d->ndims;
-    local $_;
-    $h->{"NAXIS".($_+1)} = $out->dim($_) for 0..$out->ndims-1;
-    $h->{"CRVAL".($_+1)} = 0 for 0..$out->ndims-1;
-    $h->{"CRPIX".($_+1)} = $_<2 ? ($out->dim($_)+1)/2 : 1 for 0..$out->ndims-1;
-    my ($lon, $lat) = $out->dims;
-    $h->{CTYPE1}='Longitude';   $h->{CUNIT1}='degrees'; $h->{CDELT1}=360/$lon;
-    $h->{CTYPE2}='Latitude';    $h->{CUNIT2}='degrees'; $h->{CDELT2}=180/$lat;
-    $h->{CTYPE3}='RGB';         $h->{CUNIT3}='index';   $h->{CDELT3}=1.0;
-    $h->{COMMENT}='Plate Carree Projection';
-    $h->{HISTORY}='PDL conversion from raster image',
-    $out->hdrcpy(1);
-    $out;
+    raster2fits($d, @PLATE_CARREE);
   };
   $me->{inv} = sub {
     my($d,$o) = @_;
-    $d->mv(2,0);
+    $d->ndims > 2 ? $d->mv(2,0) : $d;
   };
   $me;
 }

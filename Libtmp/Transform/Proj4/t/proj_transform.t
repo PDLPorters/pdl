@@ -53,7 +53,7 @@ SKIP: {
 EOF
 
    my $shape = earth_shape();
-   $got = t_raster2float()->apply($shape->mv(2,0));
+   $got = t_raster2float()->apply($shape->dummy(0,3));
    my $lonlatradius = $got->slice('0:2'); # r g b all same
    $lonlatradius->slice('(2)') *= float((6377.09863 - 6370.69873) / 6371);
    $lonlatradius->slice('(2)') += float(6370.69873 / 6371);

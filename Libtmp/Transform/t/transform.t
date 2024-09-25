@@ -208,8 +208,8 @@ EOF
 
 {
 use PDL::Transform::Cartography;
-my $pa = t_raster2fits()->apply(sequence(byte, 3, 10, 10));
-eval { $pa->match([100,100,3]) };
+my $pa = raster2fits(sequence(byte, 10, 10), @PDL::Transform::Cartography::PLATE_CARREE);
+eval { $pa->match([100,100]) };
 is $@, '', 't_fits invertible';
 
 is earth_coast()->nbad, 0, 'earth_coast no BAD';

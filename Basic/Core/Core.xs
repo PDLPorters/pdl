@@ -1232,34 +1232,29 @@ sethdr(p,h)
 SV *
 hdr(p)
 	pdl *p
-	CODE:
-		pdl_barf_if_error(pdl_make_physdims(p));
-
-                /* Make sure that in the undef case we return not */
-                /* undef but an empty hash ref. */
-
-                if((p->hdrsv==NULL) || (p->hdrsv == &PL_sv_undef)) {
-	            p->hdrsv = (void*) newRV_noinc( (SV*)newHV() );
-                }
-
-		RETVAL = newRV( (SV*) SvRV((SV*)p->hdrsv) );
-
-	OUTPUT:
-	 RETVAL
+CODE:
+  pdl_barf_if_error(pdl_make_physdims(p));
+  /* Make sure that in the undef case we return not */
+  /* undef but an empty hash ref. */
+  if((p->hdrsv==NULL) || (p->hdrsv == &PL_sv_undef)) {
+    p->hdrsv = (void*) newRV_noinc( (SV*)newHV() );
+  }
+  RETVAL = newRV( (SV*) SvRV((SV*)p->hdrsv) );
+OUTPUT:
+  RETVAL
 
 SV *
 gethdr(p)
-	pdl *p
-	CODE:
-		pdl_barf_if_error(pdl_make_physdims(p));
-
-                if((p->hdrsv==NULL) || (p->hdrsv == &PL_sv_undef)) {
-	            RETVAL = &PL_sv_undef;
-                } else {
-		    RETVAL = newRV( (SV*) SvRV((SV*)p->hdrsv) );
-                }
-	OUTPUT:
-	 RETVAL
+  pdl *p
+CODE:
+  pdl_barf_if_error(pdl_make_physdims(p));
+  if((p->hdrsv==NULL) || (p->hdrsv == &PL_sv_undef)) {
+      RETVAL = &PL_sv_undef;
+  } else {
+      RETVAL = newRV( (SV*) SvRV((SV*)p->hdrsv) );
+  }
+OUTPUT:
+  RETVAL
 
 SV *
 unpdl(x)
