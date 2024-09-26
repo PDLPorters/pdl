@@ -816,15 +816,10 @@ sub PDL::imageformat {
 sub piccan {
   my $class = shift;
   my $rw = (shift =~ /r/i) ? 'Rok' : 'Wok';
-  if ($#_ > -1) {
-    my $format = shift;
-    barf 'unknown format' unless defined($converter{$format});
-    return $converter{$format}->{$rw};
-  } else {
-    my @formats = ();
-    for (sort keys %converter) {push @formats, $_ if $converter{$_}->{$rw}}
-    return @formats;
-  }
+  return sort grep $converter{$_}{$rw}, keys %converter if !@_;
+  my $format = shift;
+  barf 'unknown format' unless defined($converter{$format});
+  return $converter{$format}{$rw};
 }
 
 sub getext {

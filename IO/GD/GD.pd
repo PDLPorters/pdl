@@ -151,15 +151,19 @@ loop(y,x) %{
   );
 %}
 EOF
-my $gdi_to_img = 'loop(y,x) %{ $img() = gdImageGetPixel($COMP(im), x, y); %}';
-my $gdiTrue_to_img = <<'EOF';
-loop(y,x) %{
-  int tpixel = gdImageTrueColorPixel($COMP(im), x, y);
+my $gdi_to_img_tpl = 'loop(y,x) %%{ $img() = gdImageGetPixel($COMP(im), x, %sy); %%}';
+my $gdi_to_img = sprintf $gdi_to_img_tpl, '';
+my $gdi_to_img_inv = sprintf $gdi_to_img_tpl, '$SIZE(y)-1-';
+my $gdiTrue_to_img_tpl = <<'EOF';
+loop(y,x) %%{
+  int tpixel = gdImageTrueColorPixel($COMP(im), x, %sy);
   $img(z=>0) = gdTrueColorGetRed(tpixel);
   $img(z=>1) = gdTrueColorGetGreen(tpixel);
   $img(z=>2) = gdTrueColorGetBlue(tpixel);
-%}
+%%}
 EOF
+my $gdiTrue_to_img = sprintf $gdiTrue_to_img_tpl, '';
+my $gdiTrue_to_img_inv = sprintf $gdiTrue_to_img_tpl, '$SIZE(y)-1-';
 my $gdi_to_ptr = '$img_ptr() = PTR2IV(im);';
 
 # Function to write a PNG image from an ndarray variable:
@@ -331,12 +335,28 @@ pp_def( '_gd_image_to_pdl_true',
         Code => $gdiTrue_to_img,
 );
 
+pp_def( '_gd_image_to_rgb_true',
+        Pars => '[o] img(z=3,x=CALC(gdImageSX($COMP(im))),y=CALC(gdImageSY($COMP(im))));',
+        GenericTypes => ['B'],
+        %gdi_from_args,
+        Doc => undef,
+        Code => $gdiTrue_to_img_inv,
+);
+
 pp_def( '_gd_image_to_pdl',
         Pars => '[o] img(x=CALC(gdImageSX($COMP(im))),y=CALC(gdImageSY($COMP(im))));',
         GenericTypes => ['L'],
         %gdi_from_args,
         Doc => undef,
         Code => $gdi_to_img,
+);
+
+pp_def( '_gd_image_to_rgb',
+        Pars => '[o] img(x=CALC(gdImageSX($COMP(im))),y=CALC(gdImageSY($COMP(im))));',
+        GenericTypes => ['L'],
+        %gdi_from_args,
+        Doc => undef,
+        Code => $gdi_to_img_inv,
 );
 
 pp_def( '_pdl_to_gd_image_true',
@@ -411,7 +431,10 @@ Object Oriented interface to the GD image library.
  my $y = $gd->SY();
 
  # Grab the PDL of the data:
- my $pdl = $gd->to_pdl();
+ my $pdl = $gd->to_pdl; # (x,y,3) y=0 at top
+
+ # Grab the PDL of the data:
+ my $pdl = $gd->to_rgb; # (3,x,y) y=0 at bottom
 
  # Kill this thing:
  $gd->DESTROY();
@@ -780,6 +803,8 @@ EOF
 =head2 to_pdl
 
 When you're done playing with your GDImage and want an ndarray back, use this function to return one.
+For true-colour, RGB dim is highest (x,y,3).
+To get it in the lowest dim (and with y=0 is the bottom), use L</to_rgb>.
 
 =cut
 
@@ -787,6 +812,20 @@ sub to_pdl {
     my $self = shift;
     $self->gdImageTrueColor() ? _gd_image_to_pdl_true( $self->{IMG_PTR} )
       : _gd_image_to_pdl( $self->{IMG_PTR} );
+}
+
+=head2 to_rgb
+
+When you're done playing with your GDImage and want an ndarray back, use this function to return one.
+For true-colour, RGB dim is lowest (3,x,y).
+To get it in the highest dim (and with y=0 is the top), use L</to_pdl>.
+
+=cut
+
+sub to_rgb {
+    my $self = shift;
+    $self->gdImageTrueColor() ? _gd_image_to_rgb_true( $self->{IMG_PTR} )
+      : _gd_image_to_rgb( $self->{IMG_PTR} );
 }
 
 =head2 apply_lut( $lut(ndarray) )

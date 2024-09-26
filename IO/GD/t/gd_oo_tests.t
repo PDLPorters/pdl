@@ -45,8 +45,13 @@ ok( $x, 'query X dim' );
 my $y = $gd->gdImageSY();
 ok( $y, 'query Y dim' );
 
-my $pdl2 = $gd->to_pdl();
+my $pdl2 = $gd->to_pdl;
 ok( tapprox( $pdl, $pdl2 ), 'image matches original pdl' );
+
+my $pdl3 = $gd->to_rgb->slice(',-1:0');
+ok( tapprox( $pdl3, $pdl ), 'rgb image matches original pdl' )
+  or diag 'orig(0:3,0:3)=', $pdl->slice('0:3,0:3'),
+    'new(0:3,0:3)=', $pdl3->slice('0:3,0:3');
 
 $gd->DESTROY();
 
