@@ -1226,6 +1226,8 @@ our $tile_compressors = {
   'GZIP_1' => undef,
   'RICE_1' => [
     sub { ### RICE_1 compressor
+      eval { require PDL::Compression };
+      die "rfits: error while loading PDL::Compression to pack tile-compressed image.\n\t$@\n" if $@;
       my ($tiles, $tbl, $params) = @_;
       my $blocksize = $params->{BLOCKSIZE} || 32;
       my ($compressed,undef,undef,$len) = $tiles->rice_compress($blocksize);
