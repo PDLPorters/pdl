@@ -6,37 +6,29 @@ use Test::More;
 use File::Temp qw(tempdir);
 use File::Spec;
 
-# The rim() function was failing badly for a number of reasons ...
-# and perhaps is still failing.
-# See http://mailman.jach.hawaii.edu/pipermail/pdl-porters/2012-July/004916.html
-# This script serves firstly as a reminder that rim() needs fixing,
-# and subsequently that it stays in a basically functional form.
-# AFAIK, this script itself breaks none of the rules regarding the
-# the usage of the rim() function - Sisyphus.
+my $fmt = uc(my $ext = 'pnm');
+my $file = File::Spec->catfile(tempdir( CLEANUP => 1 ), "ushort.$ext");
 
-my $cols = 3;
-my $rows = 3;
-
-my $ext = 'pnm';
-my $fmt = uc($ext);
-
-my $tmpdir = tempdir( CLEANUP => 1 );
-my $file = File::Spec->catfile($tmpdir, "ushort.$ext");
-
-my $in  = sequence($cols, $rows)->ushort * 213;
-$in->wpic($file, {FORMAT => $fmt});
-
-my $out1 = rim($file, {FORMAT => $fmt});
-
-my $out2 = sequence($cols, $rows);
-rim($out2, $file, {FORMAT => $fmt});
-
-my $out3 = PDL->rpic($file, {FORMAT => $fmt});
-
-ok(sum(abs($out1 - $out2)) == 0, "\$out1 & \$out2 are the same");
-
-ok(sum(abs($out3 - $out2)) == 0, "\$out3 & \$out2 are the same");
-
-ok(sum(abs($out1 - $in  )) == 0, "\$out1 & \$in are the same");
+test_pdl(sequence(3,3)->ushort * 213, 0, $file);
+test_pdl(sequence(3,3,3)->ushort * 213, 1, $file);
+test_pdl(sequence(3,4,4)->ushort * 213, 1, $file);
 
 done_testing;
+
+sub test_pdl {
+  my ($in, $expect_reorder, $file) = @_;
+  my $orig_info = $in->info;
+  $in->wpic($file, {FORMAT => $fmt});
+  my $out1 = rim($file, {FORMAT => $fmt});
+  my $out2 = PDL->null;
+  rim($out2, $file, {FORMAT => $fmt});
+  my $out3 = PDL->rpic($file, {FORMAT => $fmt});
+  if ($expect_reorder) { $_ = $_->mv(-1,0) for $out1, $out2 }
+  eval {ok all($out1 == $in), "\$out1 & \$in are the same $orig_info"};
+  is $@, '', $orig_info;
+  eval {ok all($out2 == $in), "\$out2 & \$in are the same $orig_info"};
+  is $@, '', $orig_info;
+  eval {ok all($out3 == $in), "\$out3 & \$in are the same $orig_info"}
+    or diag "in=$in\nout1=$out1";
+  is $@, '', $orig_info;
+}
