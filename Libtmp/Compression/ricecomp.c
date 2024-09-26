@@ -183,7 +183,7 @@ unsigned int *diff;
    z = output_nbits(buffer, a0, bsize * 8);
    if (z) {
      free(diff);
-     return "buffer overrun";
+     return "buffer overrun (1)";
  }
  }
 
@@ -250,12 +250,12 @@ unsigned int *diff;
 	   */
 	  if (output_nbits(buffer, fsmax+1, fsbits) ) {
 	    free(diff);
-	    return "buffer overrun";
+	    return "buffer overrun (2)";
 	  }
 	  for (j=0; j<thisblock; j++) {
 	    if (output_nbits(buffer, diff[j], bbits) ) {
 	      free(diff);
-	      return "buffer overrun";
+	      return "buffer overrun (3)";
 	    }
 	  }
 	} else if (fs == 0 && pixelsum == 0) {
@@ -320,7 +320,7 @@ unsigned int *diff;
 	  /* check if overflowed output buffer */
 	  if (buffer->current > buffer->end) {
 	    free(diff);
-	    return "buffer overrun";
+	    return "buffer overrun (4)";
 	  }
 	  buffer->bitbuffer = lbitbuffer;
 	  buffer->bits_to_go = lbits_to_go;
