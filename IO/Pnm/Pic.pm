@@ -78,7 +78,7 @@ the filter when trying to open the pipe. [']
 #
 
 $PDL::IO::Pic::debug = $PDL::IO::Pic::debug || 0;
-&init_converter_table();
+init_converter_table();
 
 # setup functions
 
@@ -89,68 +89,36 @@ sub init_converter_table {
 
   # Pbmplus systems have cjpeg/djpeg; netpbm systems have pnmtojpeg and
   # jpegtopnm.
+  $converter{$_} = {put => "pnmto\L$_", get => "\L${_}topnm"}
+    for qw/TIFF SGI RAST PCX PNG/, !$converter{JPEG} && File::Which::which('pnmtojpeg') ? "JPEG" : ();
 
-  my $jpeg_conv='';
+  $converter{$_->[0]} = {put => $_->[1], get => $_->[2]} for
+    ['PNM','NONE','NONE'],
+    ['PS','pnmtops -dpi=100',
+      'pstopnm -stdout -xborder=0 -yborder=0 -quiet -dpi=100'],
+    ['GIF','ppmtogif','giftopnm'],
+    ['XBM','pbmtoxbm','xbmtopbm'],
+    ['IFF','ppmtoilbm','ilbmtoppm'],
+    !$converter{JPEG} && File::Which::which('cjpeg') ? ['JPEG', 'cjpeg' ,'djpeg'] : ();
 
-  {
-      my @path = File::Spec->path();
-      my $ext = $^O =~ /MSWin/i ? '.exe' : '';
-      local $_;
-      my $pbmplus;
-
-      for (@path) {
-	  $jpeg_conv="cjpeg" if ( -x "$_/cjpeg" . $ext );
-	  $jpeg_conv="pnmtojpeg" if (  -x "$_/pnmtojpeg" . $ext );
-      }
-  }
-
-  my @normal = qw/TIFF SGI RAST PCX PNG/;
-  push(@normal,"JPEG") if($jpeg_conv eq 'pnmtojpeg');
-
-  for (@normal)
-    { my $conv = lc; $converter{$_} = {put => "pnmto$conv",
-				       get => "$conv".'topnm'} }
-
-  my @special = (['PNM','NONE','NONE'],
-		 ['PS','pnmtops -dpi=100',
-		  'pstopnm -stdout -xborder=0 -yborder=0 -quiet -dpi=100'],
-		 ['GIF','ppmtogif','giftopnm'],
-		 ['XBM','pbmtoxbm','xbmtopbm'],
-		 ['IFF','ppmtoilbm','ilbmtoppm']
-		 );
-  push(@special,['JPEG', 'cjpeg' ,'djpeg'])
-      if($jpeg_conv eq 'cjpeg');
-
-   for(@special) {
-    $converter{$_->[0]} = {put => $_->[1],
-			   get => $_->[2]}
-  }
-
-  $converter{'FITS'}={ 'referral' => {'put' => \&PDL::wfits, 'get' => \&PDL::rfits} };
+  $converter{FITS}= {referral => {put => \&PDL::wfits, get => \&PDL::rfits}};
 
   # these converters do not understand pbmplus flags:
-  $converter{'JPEG'}->{FLAGS} = '';
-  $converter{'GIF'}->{Prefilt} = 'ppmquant 256 |';
+  $converter{JPEG}{FLAGS} = '';
+  $converter{GIF}{Prefilt} = 'ppmquant 256 |';
 
-
-  my $key;
-  for $key (sort keys %converter) {
-
-    $converter{$key}->{Rok} = File::Which::which($converter{$key}->{'get'})
-      if defined($converter{$key}->{'get'});
-
-    $converter{$key}->{Wok} = File::Which::which($converter{$key}->{'put'})
-      if defined($converter{$key}->{'put'});
-
-    if (defined $converter{$key}->{Prefilt}) {
-      my $filt = $1 if $converter{$key}->{Prefilt} =~ /^\s*(\S+)\s+/;
-      $converter{$key}->{Wok} = File::Which::which($filt) if $converter{$key}->{Wok};
+  for my $key (keys %converter) {
+    $converter{$key}{Rok} = File::Which::which($converter{$key}{get})
+      if defined($converter{$key}{get});
+    $converter{$key}{Wok} = File::Which::which($converter{$key}{put})
+      if defined($converter{$key}{put});
+    if (defined $converter{$key}{Prefilt}) {
+      my $filt = $1 if $converter{$key}{Prefilt} =~ /^\s*(\S+)\s+/;
+      $converter{$key}{Wok} = File::Which::which($filt) if $converter{$key}{Wok};
     }
   }
 
-  for (keys %converter) {
-    $converter{$_}{ushortok} = (m/GIF|TIFF/ ? 0 : 1);
-  }
+  $converter{$_}{ushortok} = 1 for grep !m/GIF|TIFF/, keys %converter;
 }
 
 =head1 FUNCTIONS
@@ -235,7 +203,7 @@ sub rpic {PDL->rpic(@_)}
 
 sub PDL::rpic {
     barf 'Usage: $im = rpic($file[,hints]) or $im = PDL->rpic($file[,hints])'
-       if $#_<0;
+       if !@_;
     my ($class,$file,$hints,$maybe) = @_;
     my ($type, $pdl);
 
@@ -424,7 +392,7 @@ my $wpicopts = \%wpicopts;
 
 sub PDL::wpic {
     barf 'Usage: wpic($pdl,$filename[,$hints]) ' .
-	   'or $pdl->wpic($filename,[,$hints])' if $#_<1;
+	   'or $pdl->wpic($filename,[,$hints])' if @_ < 2;
 
     my ($pdl,$file,$hints) = @_;
     my ($type, $cmd, $form,$iform,$iraw);
@@ -494,7 +462,7 @@ If the image is in FITS format, then you get the data back in exactly
 the same order as in the file itself.
 
 Images with a ".Z" or ".gz" extension are assumed to be compressed with
-UNIX L<"compress"|compress> or L<"gzip"|gzip>, respecetively, and are
+UNIX L<"compress"|compress> or L<"gzip"|gzip>, respectively, and are
 automatically uncompressed before reading.
 
 OPTIONS
@@ -524,42 +492,16 @@ prevents use of a lookup table in JPEG images.
 
 =cut
 
-use PDL::IO::Pic;
-
 sub rim {
-  my(@args) = @_;
-
-  my $out;
-
   ## Handle dest-PDL-first case
-  if(@args >= 2 and (UNIVERSAL::isa($args[0],'PDL'))) {
-      my $dest = shift @args;
-      my $rpa = PDL->null;
-      $out = rpic(@args);
-
-      if($out->ndims == 3 && $out->dim(0) == 3 &&
-	 !( defined($out->gethdr) && $out->gethdr->{SIMPLE} )
-	  ) {
-	  $out =  $out->reorder(1,2,0);
-      }
-
-      $dest .= $out;
-      return $out;
-  }
-
-  # Handle no-first-PDL case
-  $out = rpic(@args);
-
-  if($out->ndims == 3 && $out->dim(0) == 3 &&
-     !( defined($out->gethdr) && $out->gethdr->{SIMPLE} )
-     ) {
-    return $out->reorder(1,2,0);
-  }
-
+  my $dest = @_ >= 2 && UNIVERSAL::isa($_[0],'PDL') ? shift : undef;
+  my $out = rpic(@_);
+  my $isrgb = $out->ndims == 3 && $out->dim(0) == 3;
+  $out =  $out->reorder(1,2,0) if $isrgb &&
+    !(defined($out->gethdr) && $out->gethdr->{SIMPLE});
+  $dest .= $out if defined $dest;
   $out;
 }
-
-
 
 =head2 wim
 
@@ -636,19 +578,14 @@ Use color-table information
 
 sub PDL::wim {
   my(@args) = @_;
-
   my($im) = $args[0];
-
+  my $isrgb = $im->ndims == 3 && $im->dim(2) == 3;
   $args[0] = $im->reorder(2,0,1)
-    if(    $im->ndims == 3
-       and $im->dim(2)==3
-       and !(
-	      ( $args[1] =~ m/\.fits$/i )
-	      or
-	      ( ref $args[2] eq 'HASH' and $args[2]->{FORMAT} =~ m/fits/i )
-	    )
-       );
-
+    if $isrgb and !(
+      ( $args[1] =~ m/\.fits$/i )
+      or
+      ( ref $args[2] eq 'HASH' and $args[2]->{FORMAT} =~ m/fits/i )
+    );
   wpic(@args);
 }
 
@@ -955,16 +892,16 @@ sub chkpdl {
 	$pdl = bytescl($pdl,-255);
     }
 
-    my ($isrgb,$form) = (0,"");
     my @Dims = $pdl->dims;
-    $isrgb = 1 if ($#Dims >= 2) && ($Dims[0] == 3);
+    my $isrgb = @Dims >= 3 && $Dims[0] == 3;
     barf "expecting 2D or 3D-RGB-interlaced data as input"
-	unless ($isrgb || ($#Dims == 1));
+	unless $isrgb || @Dims == 2;
 
     $$hints{'COLOR'} = "" unless defined($$hints{'COLOR'});
+    my $form = "";
     if ($iform =~ /P[NP]M/) {  # figure out the format from the data
 	$form = 'PPM' if $isrgb;
-	$form = 'PGM' if ($#Dims == 1) || ($$hints{'COLOR'} =~ /bwdither/i);
+	$form = 'PGM' if (@Dims == 2) || ($$hints{'COLOR'} =~ /bwdither/i);
 	$form = 'PBM' if ($$hints{'COLOR'} =~ /bw/i);
         $iform = $form; }
     # this is the place for data conversions
