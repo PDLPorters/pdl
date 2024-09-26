@@ -229,62 +229,67 @@ my @demo = (
 |],
 
 [actnw => q|
-	# Show the world!
-	use PDL::Transform::Cartography;
-	eval { # this is in case no NetPBM, i.e. can't load Earth images
-	  $shape = earth_shape();
-	  $floats = t_raster2float()->apply($shape->dummy(0,3));
-	  $radius = $floats->slice('(2)'); # r g b all same
-	  $radius *= float((6377.09863 - 6370.69873) / 6371);
-	  $radius += float(6370.69873 / 6371);
-	  $e_i = earth_image('day');
-	  $earth = t_raster2float()->apply($e_i->mv(2,0));
-	  $earth = $earth->append($radius->dummy(0));
-	  $shrink = 2.5; # how much to shrink by
-	  $new_x = int($e_i->dim(0) / $shrink);
-	  $earth2 = $earth->mv(0,2)->match([$new_x,int($new_x/2),6])->mv(2,0); # shrink
-	  ($lonlatrad, $rgb) = map $earth2->slice($_), pdl(0,1,5), '2:4';
-	  $sph = t_spherical()->inverse()->apply($lonlatrad);
-	  imag3d($sph, $rgb, {Lines=>0});
-	};
-	# [press 'q' in the graphics window when done]
+# Show the world!
+use PDL::Transform::Cartography;
+eval { # this is in case no NetPBM, i.e. can't load Earth images
+  $radius = earth_shape();
+  $e_i = earth_image('day')->float / float(255);
+  $rgbrad = $e_i->mv(2,0)->append($radius->dummy(0));
+  $shrink = 2.5; # how much to shrink by
+  $new_x = int($e_i->dim(0) / $shrink);
+  $rgbrad2 = $rgbrad->mv(0,2)->match([$new_x,int($new_x/2),4])->mv(2,0); # shrink
+  ($rgb, $rad) = map $rgbrad2->slice($_), '0:2', '3';
+  ($w, $h) = map $rgbrad2->dim($_), 1, 2;
+  $lonlat = cat(meshgrid(
+    zeroes($w)->xlinvals(-PI,PI), zeroes($h)->xlinvals(-PI/2,PI/2)
+  ))->mv(-1,0);
+  $lonlatrad = $lonlat->append($rad);
+  $sph = t_spherical()->inverse()->apply($lonlatrad);
+  imag3d($sph, $rgb, {Lines=>0});
+};
+# [press 'q' in the graphics window when done]
 |],
 
 [actnw => q|
-	return if !defined $earth; # failed to load
-	# Show off the world!
-	# The Earth's radius doesn't proportionally vary much,
-	# but let's exaggerate it to prove we have height information!
-	$lonlatrad->slice('2') -= 1;
-	$lonlatrad->slice('2') *= 100;
-	$lonlatrad->slice('2') += 1;
-	$sph = t_spherical()->inverse()->apply($lonlatrad);
-	imag3d($sph, $rgb, {Lines=>0});
-	# [press 'q' in the graphics window when done]
+return if !defined $rgbrad; # failed to load
+# Show off the world!
+# The Earth's radius doesn't proportionally vary much,
+# but let's exaggerate it to prove we have height information!
+$lonlatrad->slice('2') -= 1;
+$lonlatrad->slice('2') *= 1000;
+$lonlatrad->slice('2') += 1;
+$sph = t_spherical()->inverse()->apply($lonlatrad);
+imag3d($sph, $rgb, {Lines=>0});
+# [press 'q' in the graphics window when done]
 |],
 
 [actnw => q|
-	return if !defined $earth; # failed to load
-	# Now zoom in over Europe
-	($lats, $lons) = map $_ / 180, pdl(22, 72), pdl(-10, 40);
-	$lats = indx(($lats + 0.5) * $earth->dim(2));
-	$lons = indx((($lons + 1) / 2) * $earth->dim(1));
-	$earth3 = $earth->slice(':', map [$_->list], $lons, $lats)->sever; # zoom
-	($lonlatrad, $rgb) = map $earth3->slice($_), pdl(0,1,5), '2:4';
-	$lonlatrad->slice('2') -= 1;
-	$lonlatrad->slice('2') *= 50; # exaggerate terrain but less
-	$lonlatrad->slice('2') += 1;
-	$sph = t_spherical()->inverse()->apply($lonlatrad);
-	imag3d($sph, $rgb, {Lines=>0});
-	# [press 'q' in the graphics window when done]
+return if !defined $rgbrad; # failed to load
+# Now zoom in over Europe
+($lats, $lons) = map $_ / 180, pdl(22, 72), pdl(-10, 40);
+$latinds = indx(($lats + 0.5) * $rgbrad->dim(2));
+$loninds = indx((($lons + 1) / 2) * $rgbrad->dim(1));
+$rgbrad3 = $rgbrad->slice(':', map [$_->list], $loninds, $latinds)->sever; # zoom
+$lonlat3 = cat(meshgrid(
+  zeroes($rgbrad3->dim(1))->xlinvals($lons->list),
+  zeroes($rgbrad3->dim(2))->xlinvals($lats->list),
+))->mv(-1,0);
+($rgb3, $rad3) = map $rgbrad3->slice($_), '0:2', '3';
+$lonlatrad3 = $lonlat3->append($rad3);
+$lonlatrad3->slice('2') -= 1;
+$lonlatrad3->slice('2') *= 100; # exaggerate terrain but less
+$lonlatrad3->slice('2') += 1;
+$sph = t_spherical()->inverse()->apply($lonlatrad3);
+imag3d($sph, $rgb3, {Lines=>0});
+# [press 'q' in the graphics window when done]
 |],
 
 [actnw => q|
-	# '3d2' contains some of the more special constructions available
-	# in the PDL::Graphics::TriD modules.
+# '3d2' contains some of the more special constructions available
+# in the PDL::Graphics::TriD modules.
 
-	# close 3D window if we opened it
-	close3d() if $|.__PACKAGE__.q|::we_opened;
+# close 3D window if we opened it
+close3d() if $|.__PACKAGE__.q|::we_opened;
 |],
 );
 

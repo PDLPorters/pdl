@@ -262,7 +262,7 @@ our @EXPORT_OK = qw(
   t_orthographic t_rot_sphere t_caree t_carree t_mercator t_utm t_sin_lat
   t_sinusoidal t_conic t_albers t_lambert t_stereographic t_gnomonic
   t_az_eqd t_az_eqa t_vertical t_perspective t_hammer t_aitoff
-  t_raster2fits t_raster2float
+  t_raster2fits
 );
 our @EXPORT = @EXPORT_OK;
 our %EXPORT_TAGS = (Func=>\@EXPORT_OK);
@@ -496,14 +496,9 @@ L<http://visibleearth.nasa.gov/view.php?id=73934>).  The image is a
 plate carree map, so you can convert it to other projections via the
 L<map|PDL::Transform/map> method and cartographic transforms.
 The data is from 8-bit grayscale (so only 256 levels), but is returned
-in a similar format to L</earth_image>. The range represents a span of
-6400m, so Everest and the Marianas Trench are not accurately represented.
-
-To turn this into a C<float>, (C<lonlatradius,x,y>) with C<x>
-and C<y> in radians, and the radius as a C<float> as a proportion of the
-Earth's mean radius, use L</t_raster2float>.
-The Earth is treated here as a perfect sphere with sea
-level at radius 6,371km.
+as float, values in Earth radii, in dimensions (2048,1024), like
+L</earth_image>. The range represents a span of 6400m, so Everest and
+the Marianas Trench are not accurately represented.
 
   Value       Hex value   Float    From centre in km   Float as radius
   Base        00          0.0      6370.69873km        0.99995
@@ -513,10 +508,6 @@ level at radius 6,371km.
 Code:
 
   $shape = earth_shape();
-  $floats = t_raster2float()->apply($shape->mv(2,0));
-  $lonlatradius = $floats->slice('0:2'); # r g b all same
-  $lonlatradius->slice('(2)') *= float((6377.09863 - 6370.69873) / 6371);
-  $lonlatradius->slice('(2)') += float(6370.69873 / 6371);
 
 =cut
 
@@ -539,7 +530,8 @@ sub earth_shape {
     unless defined($found);
   barf("earth_shape: couldn't load $f; you may need to install netpbm.\n")
     unless defined($im);
-  raster2fits($im, @PLATE_CARREE);
+  ((raster2fits($im, @PLATE_CARREE)->float - float(0x0C)) / float(255*6400))
+    + float(1);
 }
 
 =head2 raster2fits
@@ -830,52 +822,6 @@ sub PDL::Transform::Cartography::_finish {
       return $out;
     } 
   return $me;
-}
-
-=head2 t_raster2float
-
-=for usage
-
-  $t = t_raster2float();
-
-=for ref
-
-(Cartography) Convert a raster (3,x,y) to C<float> (lonlatrgb,x,y)
-
-Assumes C<bytes> input, and radians and C<float> output, with the first
-2 coordinates suitable for use as plate carree.
-
-=cut
-
-sub t_raster2float {
-  my ($me) = _new(@_, 'Raster FITS plate carree to OpenGL-ready float conversion');
-  $me->{odim} = 3;
-  $me->{params}->{itype} = ['RGB','X','Y'];
-  $me->{params}->{iunit} = ['index','pixels','pixels'];
-  $me->{odim} = 2;
-  $me->{params}->{otype} = ['LonLatRGB','X','Y'];
-  $me->{params}->{ounit} = ['Float','index','index'];
-  $me->{func} = sub {
-    my($d,$o) = @_;
-    my (undef, $x, $y, @otherdims) = $d->dims;
-    my $type = float;
-    my $out_xy = zeroes(byte, $x, $y, @otherdims);
-    my $out = zeroes($type, 5, $x, $y, @otherdims);
-    $out->slice($_->[0]) .= $_->[1]
-      for ['(0)', $out_xy->xlinvals(-$PI, $PI)],
-        ['(1)', $out_xy->ylinvals(-$PI/2, $PI/2)],
-        ['2:4', $d->convert($type) / 255];
-    $out;
-  };
-  $me->{inv} = sub {
-    my($d,$o) = @_;
-    my $type = byte;
-    my (undef, $x, $y, @otherdims) = $d->dims;
-    my $out = zeroes($type, 3, $x, $y, @otherdims);
-    $out .= $d->slice('2:4') * 255;
-    $out;
-  };
-  $me;
 }
 
 =head2 t_raster2fits

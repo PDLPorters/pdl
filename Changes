@@ -6,6 +6,7 @@
 - Transform::Proj4 captures projection information at build not runtime
 - move Stats::diff to Ufunc::diffover
 - deprecate t_raster2fits, add raster2fits
+- remove t_raster2float
 
 2.092 2024-09-07
 - add Type::howbig
