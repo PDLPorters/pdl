@@ -315,16 +315,11 @@ sub PDL::rfitshdr {
 }
 
 sub PDL::rfits {
-  
   my $class = shift;
-  
   barf 'Usage: $x = rfits($file)  -or-   $x = PDL->rfits($file)' if (@_ < 1 || @_ > 2);
-  
   my $file = shift; 
-  
   my $u_opt = ifhref(shift);
   my $opt = $rfits_options->options($u_opt);
-  
   my($nbytes, $line, $name, $rest, $size, $i, $bscale, $bzero, $extnum);
 
   $nbytes = 0;
