@@ -103,12 +103,6 @@ RCS
 ^IO/Misc/Misc.*
 ^IO/NDF/NDF.pm$
 ^IO/Pnm/Pnm\..*
-^IO/Pnm/converters$
-^IO/Pnm/converters/README
-^IO/Pnm/converters/pnmtotiff$
-^IO/Pnm/converters/pnmtotiff.c
-^IO/Pnm/converters/tifftopnm$
-^IO/Pnm/converters/tifftopnm.c
 ^IO/Storable/Storable\.c
 ^IO/Storable/Storable\.pm
 ^IO/Storable/Storable\.xs

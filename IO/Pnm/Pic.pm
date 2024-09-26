@@ -90,7 +90,8 @@ sub init_converter_table {
   # Pbmplus systems have cjpeg/djpeg; netpbm systems have pnmtojpeg and
   # jpegtopnm.
   $converter{$_} = {put => "pnmto\L$_", get => "\L${_}topnm"}
-    for qw/TIFF SGI RAST PCX PNG/, !$converter{JPEG} && File::Which::which('pnmtojpeg') ? "JPEG" : ();
+    for qw/TIFF SGI RAST PCX/, !$converter{PNG} ? 'PNG' : (),
+      !$converter{JPEG} && File::Which::which('pnmtojpeg') ? "JPEG" : ();
 
   $converter{$_->[0]} = {put => $_->[1], get => $_->[2]} for
     ['PNM','NONE','NONE'],
@@ -753,10 +754,11 @@ sub PDL::imageformat {
 sub piccan {
   my $class = shift;
   my $rw = (shift =~ /r/i) ? 'Rok' : 'Wok';
-  return sort grep $converter{$_}{$rw}, keys %converter if !@_;
+  my $refer_rw = $rw eq 'Rok' ? 'get' : 'put';
+  return sort grep $converter{$_}{$rw} || ($converter{$_}{referral} && $converter{$_}{referral}{$refer_rw}), keys %converter if !@_;
   my $format = shift;
   barf 'unknown format' unless defined($converter{$format});
-  return $converter{$format}{$rw};
+  return $converter{$format}{$rw} || ($converter{$format}{referral} && $converter{$format}{referral}{$refer_rw});
 }
 
 sub getext {

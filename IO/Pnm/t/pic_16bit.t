@@ -11,14 +11,7 @@ use PDL::LiteF;
 use PDL::NiceSlice;
 use PDL::IO::Pic;
 
-my $test_pnmtopng;
-$test_pnmtopng = 1;
-if($^O =~ /MSWin32/i) {
-   $test_pnmtopng = `pnmtopng --help 2>&1`;
-   $test_pnmtopng = $test_pnmtopng =~ /^pnmtopng:/ ? 1 : 0;
-} elsif ( !defined( scalar( qx(pnmtopng --help 2>&1) ) ) ) {
-   $test_pnmtopng = 0;
-} 
+my $can_png = PDL->wpiccan('PNG');
 
 $PDL::IO::Pic::debug=20;
 
@@ -31,31 +24,27 @@ my $a_pnm = rpic("$filestub.pnm");
 ok(sum(abs($x-$a_pnm)) == 0, 'pnm byte image save+restore');
 unlink "$filestub.pnm";
 
-SKIP: {
-  skip ": pnmtopng not found, is NetPBM installed?", 1 unless $test_pnmtopng; 
+if ($can_png) {
   $x->wpic("$filestub.png");
   my $a_png;
   unless ($^O =~ /MSWin32/i) { $a_png = rpic("$filestub.png") }
   else { $a_png = rpic("$filestub.png", {FORMAT => 'PNG'}) }
-  ok(sum(abs($x-$a_png)) == 0, 'png byte image save+restore'); #test 3
+  ok all($x == $a_png), 'png byte image save+restore';
   unlink "$filestub.png";
-};
+}
 
 # test save/restore of 16-bit image
 my $a16 = sequence(256, 255)->ushort * 231;
-$a16->wpic('tushort_a16.pnm');
-my $a16_pnm = rpic('tushort_a16.pnm');
-ok(sum(abs($a16-$a16_pnm)) == 0, 'pnm ushort image save+restore'); # test 4
-unlink 'tushort_a16.pnm';
+my $pnm_file = File::Spec->catfile($tmpdir, 'tushort_a16.pnm');
+$a16->wpic($pnm_file);
+my $a16_pnm = rpic($pnm_file);
+ok all($a16 == $a16_pnm), 'pnm ushort image save+restore';
 
-SKIP : {
-  skip ": pnmtopng not found, is NetPBM installed?", 1 unless $test_pnmtopng;
-  $a16->wpic('tushort_a16.png');
-  my $a16_png;
-  unless($^O =~ /MSWin32/i) {$a16_png = rpic('tushort_a16.png')}
-  else {$a16_png = rpic('tushort_a16.png', {FORMAT => 'PNG'})} 
-  ok(sum(abs($a16-$a16_png)) == 0, 'png ushort image save+restore'); # test 5 (fails on Win32 if not skipped)
-  unlink 'tushort_a16.png';
+if ($can_png) {
+  my $png_file = File::Spec->catfile($tmpdir, 'tushort_a16.png');
+  $a16->wpic($png_file);
+  my $a16_png = rpic($png_file, $^O =~ /MSWin32/i ? {FORMAT => 'PNG'} : ());
+  ok all($a16 == $a16_png), 'png ushort image save+restore';
 }
 
 done_testing;
