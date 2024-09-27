@@ -2,25 +2,14 @@ use strict;
 use warnings;
 use PDL::LiteF;
 use PDL::Transform::Proj4;
+use PDL::Transform::Cartography;
 use Test::More;
 
 # Test integration with PDL::Transform
 
-my $im = sequence(2048,1024)/2048/1024*255.99;
-$im = $im->byte;
-my $h = $im->fhdr;
-
-$h->{SIMPLE} = 'T';
-$h->{NAXIS} = 3;
-$h->{NAXIS1}=2048;          $h->{CRPIX1}=1024.5;    $h->{CRVAL1}=0;
-$h->{NAXIS2}=1024;          $h->{CRPIX2}=512.5;     $h->{CRVAL2}=0;
-$h->{NAXIS3}=3,             $h->{CRPIX3}=1;         $h->{CRVAL3}=0;
-$h->{CTYPE1}='Longitude';   $h->{CUNIT1}='degrees'; $h->{CDELT1}=180/1024.0;
-$h->{CTYPE2}='Latitude';    $h->{CUNIT2}='degrees'; $h->{CDELT2}=180/1024.0;
-$h->{CTYPE3}='RGB';         $h->{CUNIT3}='index';   $h->{CDELT3}=1.0;
-$h->{COMMENT}='Plate Carree Projection';
-$h->{HISTORY}='PDL Distribution Image, derived from NASA/MODIS data',
-
+my ($w, $h) = (2048,1024);
+my $im = sequence($w,$h)/$w/$h*255.99;
+$im = raster2fits($im->byte, @PDL::Transform::Cartography::PLATE_CARREE);
 $im->hdrcpy(1);
 $im->badflag(1);
 
@@ -40,13 +29,12 @@ SKIP: {
    my $map_size = [500,500];
 
    my @slices = (
-      "245:254,68:77,(0)",
-      "128:137,272:281,(0)",
-      "245:254,262:271,(0)",
-      "390:399,245:254,(0)",
-      "271:280,464:473,(0)"
+      "245:254,68:77",
+      "128:137,272:281",
+      "245:254,262:271",
+      "390:399,245:254",
+      "271:280,464:473"
    );
-
 
    ##############
    # TESTS 1-5: #
