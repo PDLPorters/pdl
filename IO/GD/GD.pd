@@ -143,7 +143,11 @@ loop(j) %{
     $CROAK("palette mismatch on index %"IND_FLAG" (mapped to %d)!\n", j, tmp);
 %}
 EOF
-my $img_to_gdi = 'loop(y,x) %{ gdImageSetPixel(im, x, y, $img()); %}';
+my $img_to_gdi = 'loop(y,x) %{
+  if ($img() >= $SIZE(j))
+    $CROAK("Pixel value=%d exceeded LUT size", (int)$img());
+  gdImageSetPixel(im, x, y, $img());
+%}';
 my $img_to_gdiTrue = <<'EOF';
 loop(y,x) %{
   gdImageSetPixel(im, x, y,
@@ -725,7 +729,7 @@ EOF
             }
             else
             {
-                my $lut = sequence(byte, 255)->slice("*3,:");
+                my $lut = sequence(byte, 256)->slice("*3,:");
                 die "$sub: _pdl_to_gd_image_lut() failed!\n" unless
                   $self->{IMG_PTR} = _pdl_to_gd_image_lut( $pdl, $lut )->sclr;
             }

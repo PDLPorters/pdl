@@ -32,6 +32,9 @@ write_lut($lutfile);
 my $lut = load_lut( $lutfile );
 ok( ($lut->dim(0) == 3 && $lut->dim(1) == 256) );
 
+eval {write_png( sequence(16,16), sequence(255)->dummy(0,3), $testfile1 )};
+like $@, qr/exceeded LUT size/, 'too-short LUT throws exception';
+
 my $pdl = sequence(byte, 30, 30);
 write_png( $pdl, $lut, $testfile1 );
 
