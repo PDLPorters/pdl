@@ -10,6 +10,7 @@
 - IO::GD add OO to_rpic for ndarrays (3,x,y) if truecolour, y=0 at bottom, like rpic
 - IO::GD stop read_true_png segfaulting with non-true PNG
 - IO::Pic use IO::GD for JPEG if available, helps Windows with no NetPBM
+- Primitive::matmult handle bad values, treating like NaN
 
 2.092 2024-09-07
 - add Type::howbig

@@ -197,14 +197,14 @@ L</matmult> method.
 EOD
 
 pp_def('matmult',
-	HandleBad=>0,
+	HandleBad=>1,
 	Pars => 'a(t,h); b(w,t); [o]c(w,h);',
 	GenericTypes => [ppdefs_all],
 	PMCode => pp_line_numbers(__LINE__, <<'EOPM'),
 sub PDL::matmult {
     my ($x,$y,$c) = @_;
     $y = PDL->topdl($y);
-    $c = PDL->null unless do { local $@; eval { $c->isa('PDL') } };
+    $c = PDL->null if !UNIVERSAL::isa($c, 'PDL');
     while($x->getndims < 2) {$x = $x->dummy(-1)}
     while($y->getndims < 2) {$y = $y->dummy(-1)}
     return ($c .= $x * $y) if( ($x->dim(0)==1 && $x->dim(1)==1) ||
@@ -231,17 +231,21 @@ loop (h=::tsiz,w=::tsiz) %{
   loop (t=::tsiz,h=h_outer:h_outer+tsiz,w=w_outer:w_outer+tsiz) %{
     // Cache the accumulated value for the output
     $GENERIC() cc = $c();
+    PDL_IF_BAD(if ($ISBADVAR(cc,c)) continue;,)
     // Cache data pointers before 't' run through tile
     $GENERIC() *ad = &($a());
     $GENERIC() *bd = &($b());
     // Hotspot - run the 't' summation
     PDL_Indx t_outer = t;
+    PDL_IF_BAD(char c_isbad = 0;,)
     loop (t=t_outer:t_outer+tsiz) %{
+      PDL_IF_BAD(if ($ISBADVAR(*ad,a) || $ISBADVAR(*bd,b)) { c_isbad = 1; break; },)
       cc += *ad * *bd;
       ad += atdi;
       bd += btdi;
     %}
     // put the output back to be further accumulated later
+    PDL_IF_BAD(if (c_isbad) { $SETBAD(c()); continue; },)
     $c() = cc;
   %}
 %}
@@ -264,7 +268,7 @@ footprint within cache as long as possible on most modern CPUs.
 For usage, see L</x>, a description of the overloaded 'x' operator
 
 EOD
-	);
+);
 
 pp_def('innerwt',
        HandleBad => 1,

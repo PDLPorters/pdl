@@ -77,4 +77,21 @@ ok tapprox( PB() x 2, PB() * 2, 'ndarray x Perl scalar' );
 
 ok tapprox( pdl(3) x PB(), PB() *3 ), '1D ndarray x ndarray';
 
+subtest 'nans' => sub {
+  my $A = pdl '[1 nan 0; 0 1 0; 0 0 1]';
+  my $B = PDL->sequence(2,3);
+  my $C = $A x $B;
+  $C->inplace->setnantobad;
+  $C->inplace->setbadtoval(6);
+  ok tapprox($C, pdl '[6 6; 2 3; 4 5]');
+};
+
+subtest 'badvals' => sub {
+  my $A = pdl '[1 BAD 0; 0 1 0; 0 0 1]';
+  my $B = PDL->sequence(2,3);
+  my $C = $A x $B;
+  $C->inplace->setbadtoval(6);
+  ok tapprox($C, pdl '[6 6; 2 3; 4 5]');
+};
+
 done_testing;

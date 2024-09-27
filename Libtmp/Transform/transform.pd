@@ -2092,8 +2092,8 @@ sub compose {
     $data;
   };
   $me->{inv} = sub {
-    my($data,$p) = @_;
-    my($ip) = $data->is_inplace;
+    my ($data,$p) = @_;
+    my $ip = $data->is_inplace;
     for my $t ( @{$p->{clist}} ) {
       croak("Error: tried to invert a non-invertible PDL::Transform inside a composition!\n  offending transform: $t\n")
           unless(defined($t->{inv}) and ref($t->{inv}) eq 'CODE');
