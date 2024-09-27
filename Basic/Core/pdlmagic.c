@@ -223,6 +223,8 @@ static void *pthread_perform(void *vp) {
 	struct ptarg *p = (ptarg *)vp;
 	PDLDEBUG_f(printf("STARTING THREAD %d (%lu)\n",p->no, (long unsigned)pthread_self()));
 	pthread_setspecific(p->mag->key,(void *)&(p->no));
+	int oldtype; /* don't care but must supply */
+	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, &oldtype);
 	p->error_return = (p->func)(p->t);
 	PDLDEBUG_f(printf("ENDING THREAD %d (%lu)\n",p->no, (long unsigned)pthread_self()));
 	return NULL;
@@ -245,7 +247,7 @@ int pdl_magic_get_thread(pdl *it) {
 
 pdl_error pdl_magic_thread_cast(pdl *it,pdl_error (*func)(pdl_trans *),pdl_trans *t, pdl_broadcast *broadcast) {
 	pdl_error PDL_err = {0, NULL, 0};
-	PDL_Indx i;
+	PDL_BRC_CHKMAGIC(broadcast);
 	int clearMagic = 0; /* Flag = 1 if we are temporarily creating pthreading magic in the
 						   supplied pdl.  */
 	pdl_magic_pthread *ptr = (pdl_magic_pthread *)pdl__find_magic(it, PDL_MAGIC_THREADING);
@@ -270,25 +272,31 @@ pdl_error pdl_magic_thread_cast(pdl *it,pdl_error (*func)(pdl_trans *),pdl_trans
 	pthread_key_create(&(ptr->key),NULL);
 	/* Get the pthread ID of this main thread we are in.
 	 *	Any barf, warn, etc calls in the spawned pthreads can use this
-	 *	to tell if its a spawned pthread
+	 *	to tell if it's a spawned pthread
 	 */
 	pdl_main_pthreadID = pthread_self();
 	done_pdl_main_pthreadID_init = 1;
 
 	PDLDEBUG_f(printf("CREATING THREADS, ME: TBD, key: %ld\n", (unsigned long)(ptr->key)));
+	PDL_Indx i, last_pthread = -1;
 	for(i=0; i<broadcast->mag_nthr; i++) {
 	    tparg[i].mag = ptr;
 	    tparg[i].func = func;
 	    tparg[i].t = t;
 	    tparg[i].no = i;
 	    tparg[i].error_return = PDL_err;
-	    if (pthread_create(tp+i, NULL, pthread_perform, tparg+i)) {
-		return pdl_make_error_simple(PDL_EFATAL, "Unable to create pthreads!");
-	    }
+	    if (pthread_create(tp+i, NULL, pthread_perform, tparg+i))
+	      break;
+	    last_pthread = i;
+	}
+	if (last_pthread < broadcast->mag_nthr-1) {
+	  /* went wrong, cancel ones that started */
+	  for (i=0; i <= last_pthread; i++)
+	    pthread_cancel(tp[i]);
 	}
 
 	PDLDEBUG_f(printf("JOINING THREADS, ME: TBD, key: %ld\n", (unsigned long)(ptr->key)));
-	for(i=0; i<broadcast->mag_nthr; i++) {
+	for(i=0; i<=last_pthread; i++) {
 		pthread_join(tp[i], NULL);
 	}
 	PDLDEBUG_f(printf("FINISHED THREADS, ME: TBD, key: %ld\n", (unsigned long)(ptr->key)));
@@ -313,7 +321,9 @@ pdl_error pdl_magic_thread_cast(pdl *it,pdl_error (*func)(pdl_trans *),pdl_trans
 	} while(0)
 
 	handle_deferred_errors(warn, pdl_pdl_warn("%s", pdl_pthread_warn_msgs));
-	handle_deferred_errors(barf, PDL_err = pdl_error_accumulate(PDL_err, pdl_make_error(PDL_EFATAL, "%s", pdl_pthread_barf_msgs)));
+	if (last_pthread < broadcast->mag_nthr-1)
+	  return pdl_make_error_simple(PDL_EFATAL, "Failed to create at least one thread, aborting");
+	handle_deferred_errors(barf, PDL_err = pdl_error_accumulate(PDL_err, pdl_make_error(PDL_EUSERERROR, "%s", pdl_pthread_barf_msgs)));
 	for(i=0; i<broadcast->mag_nthr; i++) {
 	    PDL_err = pdl_error_accumulate(PDL_err, tparg[i].error_return);
 	}

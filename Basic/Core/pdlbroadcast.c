@@ -55,12 +55,14 @@ PDL_Indx *pdl_get_threadoffsp(pdl_broadcast *broadcast)
 static inline PDL_Indx* pdl_get_threadoffsp_int(pdl_broadcast *broadcast, int *pthr, PDL_Indx **inds, PDL_Indx **dims)
 {
   if (broadcast->gflags & PDL_BROADCAST_MAGICKED) {
-	int thr = pdl_magic_get_thread(broadcast->pdls[broadcast->mag_nthpdl]);
-	if (thr < 0) return NULL;
-	*pthr = thr;
-	*inds = broadcast->inds  + thr * broadcast->ndims;
-	*dims = broadcast->dims  + thr * broadcast->ndims;
-	return  broadcast->offs  + thr * broadcast->npdls;
+    if (broadcast->mag_nthpdl < 0 || broadcast->mag_nthpdl >= broadcast->npdls)
+      return NULL;
+    int thr = pdl_magic_get_thread(broadcast->pdls[broadcast->mag_nthpdl]);
+    if (thr < 0) return NULL;
+    *pthr = thr;
+    *inds = broadcast->inds  + thr * broadcast->ndims;
+    *dims = broadcast->dims  + thr * broadcast->ndims;
+    return  broadcast->offs  + thr * broadcast->npdls;
   }
   *pthr = 0;
 /* The non-multithreaded case: return just the usual offsets */
