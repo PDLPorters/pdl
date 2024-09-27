@@ -53,7 +53,7 @@ ok( tapprox( $pdl3, $pdl ), 'rgb image matches original pdl' )
   or diag 'orig(0:3,0:3)=', $pdl->slice('0:3,0:3'),
     'new(0:3,0:3)=', $pdl3->slice('0:3,0:3');
 
-$gd->DESTROY();
+undef $gd;
 
 my $im = PDL::IO::GD->new( { x => 300, y => 300 } );
 ok( defined( $im ), 'create new image from scratch' );
@@ -88,29 +88,25 @@ ok( 1, 'generate a color bar' );
 # Write the output file:
 $im->write_Png( $testfile2 );
 ok( 1, 'write the output file' );
-$im->DESTROY(); $im = undef;
+undef $im;
 
-# Create from a 2d PDL without a LUT:
 my $pic = sequence(100, 100);
 $im = PDL::IO::GD->new({ pdl => $pic });
 ok( defined( $im ), 'create from 2d PDL without a LUT' );
-$im->DESTROY(); $im = undef;
+undef $im;
 
-# Create from a 2d PDL and a LUT:
 $im = PDL::IO::GD->new({ pdl => $pic, lut => $lut });
 ok( defined( $im ), 'create from 2d PDL and a LUT' );
-$im->DESTROY(); $im = undef;
+undef $im;
 
-# Create from a RGB PDL:
 my $pic3d = $pic->dummy(2,3);
 $im = PDL::IO::GD->new({ pdl => $pic3d });
 ok( defined( $im ), 'create from a RGB PDL' );
-$im->DESTROY(); $im = undef;
+undef $im;
 
-# Create an RGB from scratch:
 $im = PDL::IO::GD->new({ x => 100, y => 100, true_color => 1 });
 ok( defined( $im ), 'create an RGB from scratch' );
-$im->DESTROY(); $im = undef;
+undef $im;
 
 # Create from a 2d PNG data glob:
 my $rc = open( TF1, $testfile1 );
@@ -121,12 +117,12 @@ my $blob = <TF1>;
 close( TF1 );
 $im = PDL::IO::GD->new({ data => $blob });
 ok( defined( $im ), 'create from a 2d PNG data glob' );
-$im->DESTROY(); $im = undef;
+undef $im;
 
 # Create from a 2d PNG data glob, with the type given:
 $im = PDL::IO::GD->new({ data => $blob, type => 'png' });
 ok( defined( $im ), 'create from glob with type given' );
-$im->DESTROY(); $im = undef;
+undef $im;
 
 # Create from a 3d PNG data glob:
 $rc = open( TF3, $testfile3 );
@@ -137,11 +133,10 @@ my $blob3d = <TF3>;
 close( TF3 );
 $im = PDL::IO::GD->new({ data => $blob3d });
 ok( defined( $im ), 'create from a 3d PNG data glob' );
-
 # Get a PNG data glob from a created 
 my $png_blob = $im->get_Png_data();
 ok( $blob3d eq $png_blob, 'get a PNG data glob' );
-$im->DESTROY(); $im = undef;
+undef $im;
 
 # Try a nicer way to make an object. Just pass in a filename:
 my $gd_new_just_filename = PDL::IO::GD->new( $testfile1 );
@@ -166,8 +161,8 @@ done_testing;
 
 sub write_lut {
     my $filename = shift;
-    open( LUT, ">$filename" );
-    print LUT <<'ENDLUT';
+    open my $fh, ">", $filename or die "Can't write $filename: $!\n";
+    print $fh <<'ENDLUT';
   2    0    4
   9    0    7
  22    0   19
@@ -425,5 +420,4 @@ sub write_lut {
   0    0    0
 255  255  255
 ENDLUT
-    close( LUT );
 } # End of write_lut()...

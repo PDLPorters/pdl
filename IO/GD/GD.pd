@@ -155,6 +155,7 @@ my $gdi_to_img_tpl = 'loop(y,x) %%{ $img() = gdImageGetPixel($COMP(im), x, %sy);
 my $gdi_to_img = sprintf $gdi_to_img_tpl, '';
 my $gdi_to_img_inv = sprintf $gdi_to_img_tpl, '$SIZE(y)-1-';
 my $gdiTrue_to_img_tpl = <<'EOF';
+if (!$COMP(im)->trueColor) $CROAK("Tried to read a non-truecolour image as truecolour");
 loop(y,x) %%{
   int tpixel = gdImageTrueColorPixel($COMP(im), x, %sy);
   $img(z=>0) = gdTrueColorGetRed(tpixel);

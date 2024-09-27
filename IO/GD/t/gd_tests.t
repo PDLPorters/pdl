@@ -44,6 +44,8 @@ $image = null;
 
 $image = read_true_png( $testfile2 );
 ok( tapprox( $image, $tc_pdl ) );
+eval {read_true_png($testfile1)};
+like $@, qr/Tried to read a non-truecolour/, 'right error instead of segfault';
 
 my $lut2 = read_png_lut( $testfile1 );
 ok( tapprox( $lut, $lut2 ) );
@@ -65,9 +67,8 @@ done_testing;
 
 sub write_lut {
     my $filename = shift;
-    open( LUT, ">$filename" )
-        or die "Can't write $filename: $!\n";
-    print LUT <<'ENDLUT';
+    open my $fh, ">", $filename or die "Can't write $filename: $!\n";
+    print $fh <<'ENDLUT';
   2    0    4
   9    0    7
  22    0   19
@@ -325,6 +326,4 @@ sub write_lut {
   0    0    0
 255  255  255
 ENDLUT
-    close( LUT );
 } # End of write_lut()...
-

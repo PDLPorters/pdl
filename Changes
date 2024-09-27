@@ -8,6 +8,7 @@
 - deprecate t_raster2fits, add raster2fits
 - remove t_raster2float
 - IO::GD add OO to_rgb for ndarrays (3,x,y), y=0 at bottom, like rpic
+- IO::GD stop read_true_png segfaulting with non-true PNG
 
 2.092 2024-09-07
 - add Type::howbig
