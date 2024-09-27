@@ -36,6 +36,8 @@ write_png( $pdl, $lut, $testfile_lut );
 
 write_true_png(sequence(100, 100, 3), $testfile_true);
 
+eval {PDL::IO::GD->new( { filename => "$tempdir/notthere.png" } )};
+like $@, qr/Error/, 'exception not segfault on non-existent file';
 my $gd = PDL::IO::GD->new( { filename => $testfile_lut } );
 #diag "Object created!\n";
 ok( defined( $gd ), 'Object created' );
