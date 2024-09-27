@@ -139,7 +139,7 @@ EOF
 	   HandleBad => 1,
 	   NoBadifNaN => 1,
 	   Inplace => [ 'a' ],
-	   Code => pp_line_numbers(__LINE__-1, <<EOF),
+	   Code => pp_line_numbers(__LINE__, <<EOF),
 PDL_IF_BAD(char anybad = 0;,)
 broadcastloop %{
   PDL_IF_BAD(if ( ( \$PDLSTATEISBAD(a) && \$ISBAD(a()) )
@@ -250,7 +250,7 @@ ENDCODE
 	   OtherPars => 'int $swap',
 	   OtherParsDefaults => { swap => 0 },
 	   Inplace => [ 'a' ],
-	   Code => pp_line_numbers(__LINE__-1, <<EOF),
+	   Code => pp_line_numbers(__LINE__, <<EOF),
 PDL_IF_BAD(char anybad = 0;,)
 broadcastloop %{
   PDL_IF_BAD(if ( \$ISBAD(a()) || \$ISBAD(b()) ) { anybad = 1; \$SETBAD(c()); } else ,) {
@@ -317,7 +317,7 @@ sub ufunc {
 	   HandleBad => 1,
 	   NoBadifNaN => 1,
 	   Inplace => 1,
-	   Code => pp_line_numbers(__LINE__-1, <<EOF),
+	   Code => pp_line_numbers(__LINE__, <<EOF),
 PDL_IF_BAD(if ( \$ISBAD(a()) ) \$SETBAD(b()); else {,)
   $codestr
 PDL_IF_BAD(},)
@@ -425,7 +425,7 @@ pp_def ( '_rabs',
 	HandleBad => 1,
 	NoBadifNaN => 1,
 	    Inplace => 1,
-	Code => pp_line_numbers(__LINE__, qq{
+	Code => pp_line_numbers(__LINE__-1, qq{
 PDL_IF_BAD(if ( \$ISBAD(a()) ) \$SETBAD(b()); else,)
   $rabs_code
 	}),
@@ -489,14 +489,14 @@ sub cfunc {
 	   HandleBad => 1,
 	   NoBadifNaN => 1,
 	   Inplace => 1,
-	   Code => pp_line_numbers(__LINE__, qq{
+	   Code => pp_line_numbers(__LINE__-1, qq{
 PDL_IF_BAD(if ( \$ISBAD(complexv()) ) \$SETBAD(b()); else,)
   $codestr
 	   }),
 	   !$backcode ? () : (
 	     DefaultFlow => 1,
 	     TwoWay => 1,
-	     BackCode => pp_line_numbers(__LINE__, qq{
+	     BackCode => pp_line_numbers(__LINE__-1, qq{
 		PDL_IF_BAD(if ( \$ISBAD(b()) ) \$SETBAD(complexv()); else {,)
 		   $backcode
 		PDL_IF_BAD(},)
@@ -541,7 +541,7 @@ Algorithm from L<Wikipedia|http://en.wikipedia.org/wiki/Exponentiation_by_squari
 },
    Pars => 'a(); longlong b(); [o] ans()',
    GenericTypes => $AF,
-   Code => pp_line_numbers(__LINE__, q{
+   Code => pp_line_numbers(__LINE__-1, q{
 $GENERIC(b) n = $b();
 if (n == 0) {
   $ans() = 1;
