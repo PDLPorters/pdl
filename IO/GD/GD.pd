@@ -336,7 +336,7 @@ pp_def( '_gd_image_to_pdl_true',
         Code => $gdiTrue_to_img,
 );
 
-pp_def( '_gd_image_to_rgb_true',
+pp_def( '_gd_image_to_rpic_true',
         Pars => '[o] img(z=3,x=CALC(gdImageSX($COMP(im))),y=CALC(gdImageSY($COMP(im))));',
         GenericTypes => ['B'],
         %gdi_from_args,
@@ -352,7 +352,7 @@ pp_def( '_gd_image_to_pdl',
         Code => $gdi_to_img,
 );
 
-pp_def( '_gd_image_to_rgb',
+pp_def( '_gd_image_to_rpic',
         Pars => '[o] img(x=CALC(gdImageSX($COMP(im))),y=CALC(gdImageSY($COMP(im))));',
         GenericTypes => ['L'],
         %gdi_from_args,
@@ -435,7 +435,7 @@ Object Oriented interface to the GD image library.
  my $pdl = $gd->to_pdl; # (x,y,3) y=0 at top
 
  # Grab the PDL of the data:
- my $pdl = $gd->to_rgb; # (3,x,y) y=0 at bottom
+ my $pdl = $gd->to_rpic; # (3,x,y) y=0 at bottom
 
  # Kill this thing:
  $gd->DESTROY();
@@ -805,7 +805,7 @@ EOF
 
 When you're done playing with your GDImage and want an ndarray back, use this function to return one.
 For true-colour, RGB dim is highest (x,y,3).
-To get it in the lowest dim (and with y=0 is the bottom), use L</to_rgb>.
+To get it in the lowest dim (and with y=0 is the bottom), use L</to_rpic>.
 
 =cut
 
@@ -815,7 +815,7 @@ sub to_pdl {
       : _gd_image_to_pdl( $self->{IMG_PTR} );
 }
 
-=head2 to_rgb
+=head2 to_rpic
 
 When you're done playing with your GDImage and want an ndarray back, use this function to return one.
 For true-colour, RGB dim is lowest (3,x,y).
@@ -823,10 +823,10 @@ To get it in the highest dim (and with y=0 is the top), use L</to_pdl>.
 
 =cut
 
-sub to_rgb {
+sub to_rpic {
     my $self = shift;
-    $self->gdImageTrueColor() ? _gd_image_to_rgb_true( $self->{IMG_PTR} )
-      : _gd_image_to_rgb( $self->{IMG_PTR} );
+    $self->gdImageTrueColor() ? _gd_image_to_rpic_true( $self->{IMG_PTR} )
+      : _gd_image_to_rpic( $self->{IMG_PTR} );
 }
 
 =head2 apply_lut( $lut(ndarray) )
