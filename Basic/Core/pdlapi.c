@@ -1149,7 +1149,7 @@ char pdl_trans_badflag_from_inputs(pdl_trans *trans) {
     break;
   }
   if (retval && (vtable->flags & PDL_TRANS_BADIGNORE)) {
-    printf("WARNING: %s does not handle bad values.\n", vtable->name);
+    pdl_pdl_warn("WARNING: %s does not handle bad values", vtable->name);
     trans->bvalflag = 0; /* but still return true */
   }
   return retval;
