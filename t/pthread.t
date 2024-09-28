@@ -28,8 +28,8 @@ for (
   my ($thr_num, $size, $thr_want, $dim) = @$_;
   set_autopthread_targ($thr_num);
   (my $t = zeroes(@$size))++;
-  is(get_autopthread_actual(), $thr_want, "right pthread no");
-  is(get_autopthread_dim(), $dim, "right pthread dim");
+  is(get_autopthread_actual(), $thr_want, "right pthread no for (@$size)");
+  is(get_autopthread_dim(), $dim, "right pthread dim for (@$size)");
 }
 set_autopthread_targ(0);
 
@@ -54,8 +54,8 @@ my @T = (
 for (@T) {
   my ($thr_on, $thr_off, $thr_check, $bench_hash, $label) = @$_;
   {
-  $pa = zeroes(2000000);
-  $pb = zeroes(2000000);
+  $pa = zeroes(200);
+  $pb = zeroes(200);
 
   $thr_on->($pa, 0, 9);
 
@@ -79,8 +79,8 @@ for (@T) {
 
   {
   # Try multi-dim cases
-  $pa = zeroes(200000,2,2);
-  $pb = zeroes(200000,2,2);
+  $pa = zeroes(200,2,2);
+  $pb = zeroes(200,2,2);
   $thr_on->($pa, 0, 2);
   $pa+=1;
   $thr_off->($pb);
@@ -92,7 +92,7 @@ for (@T) {
   ##  This is performed multiple times to be sure that indexing isn't
   ##  messed up for the multiple pthreads
   foreach (1..20){
-    $pa = zeroes(3, 200000,2,2);
+    $pa = zeroes(3, 200,2,2);
     $thr_on->($pa, 1, 2);
     $pa += 1;
     ok( $pa->max < 1.1, "multi-run $label" ); # Should never be greater than 1

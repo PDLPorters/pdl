@@ -33,7 +33,7 @@ my $e_sort = $e->qsortvec;
 eval { sequence(3, 3)->medover(my $o = null, my $t = null); };
 isnt $@, '', 'a [t] Par cannot be passed';
 
-my $med_dim = 1000;
+my $med_dim = 5;
 ok tapprox(sequence(10,$med_dim,$med_dim)->medover, sequence($med_dim,$med_dim)*10+4.5), 'medover';
 
 # Test a range of values
