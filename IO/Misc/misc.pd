@@ -162,17 +162,16 @@ sub _burp_1D {
 
    my $start = $index - @{$databox} + 1;
 
-   my $tmp; # work around for perl -d "feature"
    if (ref $data eq 'ARRAY') {
       push @{$data}, @{$databox};
    } elsif ( ref($databox->[0]) eq "ARRAY" ) {
       # could add POSIX::strtol for hex and octal support but
       # can't break float conversions (how?)
-      ($tmp = $data->slice(":,$start:$index")) .= pdl($databox);
+      $data->slice(":,$start:$index") .= pdl($databox);
    } else {
       # could add POSIX::strtol for hex and octal support but
       # can't break float conversions (how?)
-      ($tmp = $data->slice("$start:$index")) .= pdl($databox);
+      $data->slice("$start:$index") .= pdl($databox);
    }
    $_[0] = [ $data, [] ];
 }
@@ -1225,7 +1224,7 @@ sub rcube {
     barf "Usage: blah" unless ref($reader) eq "CODE";
 
     my $k=0;
-    my ($im,$cube,$tmp,$nx,$ny);
+    my ($im,$cube,$nx,$ny);
     my $nz = scalar(@_);
 
     for my $file (@_) {
@@ -1241,8 +1240,7 @@ sub rcube {
              $im->getdim(0) != $nx or $im->getdim(1) != $ny ;
 
        }
-       $tmp = $cube->slice(":,:,($k)");
-       $tmp .= $im;
+       $cube->slice(":,:,($k)") .= $im;
        $k++;
       }
 

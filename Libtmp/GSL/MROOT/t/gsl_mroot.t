@@ -27,8 +27,7 @@ sub rosenbrock{
   my $a1 = 1;
   my $b1 = 10;
   my $y = zeroes($x);
-  my $tmp; # work around perl -d "feature"
-  ($tmp = $y->slice(0)) .=  $a1 * (1 - $x->slice(0));
-  ($tmp = $y->slice(1)) .=  $b1 * ($x->slice(1) - $x->slice(0)**2);
+  $y->slice(0) .=  $a1 * (1 - $x->slice(0));
+  $y->slice(1) .=  $b1 * ($x->slice(1) - $x->slice(0)**2);
   return $y;
 }

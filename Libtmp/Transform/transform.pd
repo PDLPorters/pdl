@@ -1723,8 +1723,7 @@ sub map {
 
       my $justify = _opt($opt,['j','J','just','justify','Justify'],0);
       if($justify) {
-          my $tmp; # work around perl -d "feature"
-          ($tmp = $scale->slice("0")) *= $justify;
+          $scale->slice("0") *= $justify;
           $scale .= $scale->max;
           $scale->slice("0") /= $justify;
       }
@@ -1835,8 +1834,7 @@ sub map {
   ##  ( Kind of an anticlimax after all that, eh? )
   if(!$integrate) {
     my $x = $in->interpND($idx,{method=>$method, bound=>$bound});
-    my $tmp; # work around perl -d "feature"
-    ($tmp = $out->slice(":")) .= $x; # trivial slice prevents header overwrite...
+    $out->slice(":") .= $x; # trivial slice prevents header overwrite...
     return $out;
   }
 
@@ -1906,8 +1904,7 @@ sub map {
 
   my @rdims = (@iddims[1..$#iddims], @idims[$#iddims..$#idims]);
   {
-     my $tmp; # work around perl -d "feature"
-     ($tmp = $out->slice(":")) .= $o2->reshape(@rdims);
+     $out->slice(":") .= $o2->reshape(@rdims);
   }
   return $out;
 }
@@ -2419,9 +2416,8 @@ sub t_lookup {
             mv(0,-1)->
             clump($itable->ndims-1);  # oloop: (pixel, index)
         {
-            my $tmp; # work around perl -d "feature"
-            ($tmp = $oloop->mv(-1,0)) -= $offset;
-            ($tmp = $oloop->mv(-1,0)) /= $scale;
+            $oloop->mv(-1,0) -= $offset;
+            $oloop->mv(-1,0) /= $scale;
         }
 
         # The Right Thing to do here is to take the outer product of $itable and $otable, then collapse
@@ -2451,17 +2447,15 @@ sub t_lookup {
             my $coord = $c + $dc;
             # At last, we've found the best-fit to an enl_scale'th of an input-table pixel.
             # Back it out to input-science coordinates, and stuff it in the inverse table.
-            my $tmp; # work around perl -d "feature"
-            ($tmp = $itable_flattened->slice("($i)")) .= $coord;
+            $itable_flattened->slice("($i)") .= $coord;
 
             print " $i..." if( ($i%1000==0) && ( $PDL::verbose || $PDL::debug || $PDL::Transform::debug));
         }
 
         {
-            my $tmp; # work around perl -d "feature"
-            ($tmp = $itable->clump($itable->ndims-1)) .= $itable_flattened;
-            ($tmp = $itable->mv(-1,0)) -= $p->{offset};
-            ($tmp = $itable->mv(-1,0)) /= $p->{scale};
+            $itable->clump($itable->ndims-1) .= $itable_flattened;
+            $itable->mv(-1,0) -= $p->{offset};
+            $itable->mv(-1,0) /= $p->{scale};
         }
 
         $p->{itable} = $itable;
@@ -2667,8 +2661,7 @@ sub new {
     }
 
     $me->{params}->{matrix} = PDL->zeroes($me->{idim},$me->{odim});
-    my $tmp; # work around perl -d "feature"
-    ($tmp = $me->{params}->{matrix}->diagonal(0,1)) .= 1;
+    $me->{params}->{matrix}->diagonal(0,1) .= 1;
   }
 
   ### Handle rotation option
@@ -2712,8 +2705,7 @@ sub new {
 
   # Apply scaling
   $me->{params}{matrix} = $me->{params}{matrix}->slice(":,:");
-  my $tmp; # work around perl -d "feature"
-  ($tmp = $me->{params}{matrix}->diagonal(0,1)) *= $scale
+  $me->{params}{matrix}->diagonal(0,1) *= $scale
     if defined($scale);
 
   # Check for an inverse and apply it if possible
@@ -2747,8 +2739,7 @@ sub new {
         if $in->dim(0) <= $d;
     my $x = $in->slice("0:$d")->copy - $opt->{post};
     my $out = $in->is_inplace ? $in : $in->copy;
-    my $tmp; # work around perl -d "feature"
-    ($tmp = $out->slice("0:$d")) .= $x x $opt->{inverse} - $opt->{pre};
+    $out->slice("0:$d") .= $x x $opt->{inverse} - $opt->{pre};
     $out;
   } : undef;
 
@@ -2953,8 +2944,7 @@ sub t_fits {
     #
     for my $h(@hgrab) {
       $h =~ m/CD(\d{1,3})_(\d{1,3})/;  # Should always match
-      my $tmp; # work around perl -d "feature"
-      ($tmp = $matrix->slice("(".($1-1)."),(".($2-1).")")) .= $hdr->{$h};
+      $matrix->slice("(".($1-1)."),(".($2-1).")") .= $hdr->{$h};
     }
     print "t_fits: Detected CDi_j matrix: \n",$matrix,"\n"
       if($PDL::Transform::debug);
@@ -2971,8 +2961,7 @@ sub t_fits {
     my($cd) = $cdm->diagonal(0,1);
 
     my($cpm) = PDL->zeroes($n,$n);
-    my $tmp; # work around perl -d "feature"
-    ($tmp = $cpm->diagonal(0,1)) .= 1;     # PC: diagonal defaults to unity
+    $cpm->diagonal(0,1) .= 1;     # PC: diagonal defaults to unity
     $cd .= 1;
 
 
@@ -2980,8 +2969,7 @@ sub t_fits {
 
       for my $h(@hgrab) {
         $h =~ m/PC(\d{1,3})_(\d{1,3})$/ || die "t_fits - match failed! This should never happen!";
-        my $tmp; # work around perl -d "feature"
-        ($tmp = $cpm->slice("(".($1-1)."),(".($2-1).")")) .= $hdr->{$h};
+        $cpm->slice("(".($1-1)."),(".($2-1).")") .= $hdr->{$h};
       }
       print "t_fits: Detected PCi_j matrix: \n",$cpm,"\n"
         if($PDL::Transform::debug && @hgrab);
@@ -3000,8 +2988,7 @@ sub t_fits {
     }
 
     for my $i(1..$n) {
-      my $tmp; # work around perl -d "feature"
-      ($tmp = $cd->slice("(".($i-1).")")) .= $hdr->{"CDELT$i"};
+      $cd->slice("(".($i-1).")") .= $hdr->{"CDELT$i"};
     }
 #If there are no CDELTs, then we assume they are all 1.0
     $cd+=1 if (all($cd==0));
@@ -3011,9 +2998,8 @@ sub t_fits {
 
   my($i1) = 0;
   for my $i(1..$n) {
-    my $tmp; # work around perl -d "feature"
-    ($tmp = $pre->slice("($i1)"))  .= 1 - $hdr->{"CRPIX$i"};
-    ($tmp = $post->slice("($i1)")) .= $hdr->{"CRVAL$i"};
+    $pre->slice("($i1)")  .= 1 - $hdr->{"CRPIX$i"};
+    $post->slice("($i1)") .= $hdr->{"CRVAL$i"};
     $i1++;
   }
 
@@ -3285,16 +3271,15 @@ sub t_radial {
       my($out) = ($data->new_or_inplace);
 
       my($d) = $data->copy;
-      my $tmp; # work around perl -d "feature"
-      ($tmp = $d->slice("0:1")) -= $o->{origin};
+      $d->slice("0:1") -= $o->{origin};
 
       my($d0) = $d->slice("(0)");
       my($d1) = $d->slice("(1)");
 
       # (mod operator on atan2 puts everything in the interval [0,2*PI).)
-      ($tmp = $out->slice("(0)")) .= (atan2(-$d1,$d0) % (2*$PDL::Transform::PI)) * $me->{params}->{angunit};
+      $out->slice("(0)") .= (atan2(-$d1,$d0) % (2*$PDL::Transform::PI)) * $me->{params}->{angunit};
 
-      ($tmp = $out->slice("(1)")) .= (defined $o->{r0}) ?
+      $out->slice("(1)") .= (defined $o->{r0}) ?
               0.5 * log( ($d1*$d1 + $d0 * $d0) / ($o->{r0} * $o->{r0}) ) :
               sqrt($d1*$d1 + $d0*$d0);
 
@@ -3804,12 +3789,11 @@ sub t_spherical {
         my($d0,$d1,$d2) = ($d->slice("(0)"),$d->slice("(1)"),$d->slice("(2)"));
         my($out) =   ($d->is_inplace) ? $data : $data->copy;
 
-        my $tmp; # work around perl -d "feature"
-        ($tmp = $out->slice("(0)")) .= PDL::atan2($d1, $d0);
-        ($tmp = $out->slice("(2)")) .= PDL::sqrt($d0*$d0 + $d1*$d1 + $d2*$d2);
-        ($tmp = $out->slice("(1)")) .= PDL::asin($d2 / $out->slice("(2)"));
+        $out->slice("(0)") .= PDL::atan2($d1, $d0);
+        $out->slice("(2)") .= PDL::sqrt($d0*$d0 + $d1*$d1 + $d2*$d2);
+        $out->slice("(1)") .= PDL::asin($d2 / $out->slice("(2)"));
 
-        ($tmp = $out->slice("0:1")) /= $o->{angunit}
+        $out->slice("0:1") /= $o->{angunit}
           if(defined $o->{angunit});
 
         $out;
@@ -3975,8 +3959,7 @@ sub t_projective {
     my $h = ($M->inv x $p->slice(":,(1),:")->flat->slice("*1"))->slice("(0)");
 #    print "ok\n";
     my $matrix = ones(3,3);
-    my $tmp; # work around perl -d "feature"
-    ($tmp = $matrix->flat->slice("0:7")) .= $h;
+    $matrix->flat->slice("0:7") .= $h;
     $me->{params}->{matrix} = $matrix;
 
     $me->{params}->{matinv} = $matrix->inv;

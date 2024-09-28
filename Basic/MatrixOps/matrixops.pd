@@ -149,7 +149,7 @@ sub identity {
     my @dims = $n->dims;
     $out = zeroes($n->type, @dims[0, 0, 2..$#dims]);
   }
-  (my $tmp = $out->diagonal(0,1))++; # work around perl -d "feature"
+  $out->diagonal(0,1)++;
   $was_pdl ? bless $out, ref($n) : $out;
 }
 EOD
@@ -177,8 +177,7 @@ Return a diagonal matrix with the specified diagonal elements
 sub stretcher {
   my $in = shift;
   my $out = zeroes($in->dim(0),$in->dims);
-  my $tmp;  # work around for perl -d "feature"
-  ($tmp = $out->diagonal(0,1)) += $in;
+  $out->diagonal(0,1) += $in;
   $out;
 }
 
@@ -840,9 +839,7 @@ sub lu_decomp {
             $sl2 = $permute->index($col);
             $tmpval .= $sl1; $sl1 .= $sl2; $sl2 .= $tmpval;
 
-            { my $tmp;
-               ($tmp = $parity->where($wh>0)) *= -1.0;
-            }
+            $parity->where($wh>0) *= -1.0;
          }
 
          # LAPACK cgetrf does not try fix singularity so nor do we, even though NR does
@@ -971,8 +968,7 @@ sub lu_decomp2 {
     # Figure a_ij, with no pivoting
     if($col < $n1) {
       # Divide the rest of the column by the diagonal element
-      my $tmp; # work around for perl -d "feature"
-      ($tmp = $out->slice("($col),".($col+1).":$n1")) /= $diagonal->index($col)->dummy(0,$n1-$col);
+      $out->slice("($col),".($col+1).":$n1") /= $diagonal->index($col)->dummy(0,$n1-$col);
     }
 
   } # end of column loop
@@ -1181,26 +1177,21 @@ BROADCAST_OK:
 
    for $row(1..$n1) {
       $r1 = $row-1;
-      my $tmp; # work around perl -d "feature
-      ($tmp = $out->index($row)) -= ($lu->slice("0:$r1,$row") *
+      $out->index($row) -= ($lu->slice("0:$r1,$row") *
          $out->slice("0:$r1")
       )->sumover;
    }
 
    ## Do backward substitution into U, and normalize by the diagonal
    my $ludiag = $lu->diagonal(0,1);
-   {
-      my $tmp; # work around for perl -d "feature"
-      ($tmp = $out->index($n1)) /= $ludiag->index($n1)->dummy(0);        # TODO: check broadcasting
-   }
+   $out->index($n1) /= $ludiag->index($n1)->dummy(0); # TODO: check broadcasting
 
    for ($row=$n1; $row>0; $row--) {
       $r1 = $row-1;
-      my $tmp; # work around for perl -d "feature"
-      ($tmp = $out->index($r1)) -= ($lu->slice("$row:$n1,$r1") *                  # TODO: check broadcast dims
+      $out->index($r1) -= ($lu->slice("$row:$n1,$r1") * # TODO: check broadcast dims
          $out->slice("$row:$n1")
       )->sumover;
-      ($tmp = $out->index($r1)) /= $ludiag->index($r1)->dummy(0);        # TODO: check broadcast dims
+      $out->index($r1) /= $ludiag->index($r1)->dummy(0); # TODO: check broadcast dims
    }
 
    if ($y->is_inplace) {

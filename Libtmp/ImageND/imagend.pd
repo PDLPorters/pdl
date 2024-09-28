@@ -669,8 +669,7 @@ sub PDL::convolveND {
     # at the end.
     $aa = double($aa);
     $_ = $aa->zeroes for my ($aai, $kk, $kki);
-    my $tmp;  # work around new perl -d "feature"
-    ($tmp = $kk->range( - ($kdims/2)->floor, $kdims, 'p')) .= $k;
+    $kk->range( - ($kdims/2)->floor, $kdims, 'p') .= $k;
     PDL::fftnd($kk, $kki);
     PDL::fftnd($aa, $aai);
 
