@@ -132,7 +132,6 @@ cygwin/g77_gcc.conf
 cygwin/INSTALL
 cygwin/README
 Demos/BAD_demo.pm
-Demos/Cartography_demo.pm
 Demos/Demos.pm
 Demos/earth-interp.pl
 Demos/earth.txt
@@ -141,7 +140,6 @@ Demos/harness
 Demos/Makefile.PL
 Demos/Sound.pm
 Demos/t/demos.t
-Demos/Transform_demo.pm
 DEPENDENCIES
 Doc/Doc.pm
 Doc/Doc/Config.pm.PL
@@ -584,6 +582,7 @@ Libtmp/Transform/Cartography/earth_height-2048x1024.jpg
 Libtmp/Transform/Cartography/earth_night.jpg
 Libtmp/Transform/Cartography/earth_water-2048x1024.png
 Libtmp/Transform/Cartography/Makefile.PL
+Libtmp/Transform/Cartography_demo.pm
 Libtmp/Transform/Makefile.PL
 Libtmp/Transform/Proj4/Makefile.PL
 Libtmp/Transform/Proj4/proj4.pd
@@ -592,6 +591,7 @@ Libtmp/Transform/Proj4/t/proj_transform.t
 Libtmp/Transform/Proj4/t/proj_transform2.t
 Libtmp/Transform/t/transform.t
 Libtmp/Transform/transform.pd
+Libtmp/Transform/Transform_demo.pm
 m51.fits
 macosx/README
 Makefile.PL

@@ -13,8 +13,6 @@ WriteMakefile(
     'Demos.pm'    => '$(INST_LIBDIR)/Demos.pm',
     'BAD_demo.pm'       => '$(INST_LIBDIR)/Demos/BAD_demo.pm',
     'Sound.pm'          => '$(INST_LIBDIR)/Demos/Sound.pm',
-    'Transform_demo.pm' => '$(INST_LIBDIR)/Demos/Transform_demo.pm',
-    'Cartography_demo.pm' => '$(INST_LIBDIR)/Demos/Cartography_demo.pm',
     '../m51.fits'       => '$(INST_LIBDIR)/Demos/m51.fits',
   },
   NO_MYMETA => 1,
