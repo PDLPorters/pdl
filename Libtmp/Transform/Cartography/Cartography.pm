@@ -262,7 +262,6 @@ our @EXPORT_OK = qw(
   t_orthographic t_rot_sphere t_caree t_carree t_mercator t_utm t_sin_lat
   t_sinusoidal t_conic t_albers t_lambert t_stereographic t_gnomonic
   t_az_eqd t_az_eqa t_vertical t_perspective t_hammer t_aitoff
-  t_raster2fits
 );
 our @EXPORT = @EXPORT_OK;
 our %EXPORT_TAGS = (Func=>\@EXPORT_OK);
@@ -822,32 +821,6 @@ sub PDL::Transform::Cartography::_finish {
       return $out;
     } 
   return $me;
-}
-
-=head2 t_raster2fits
-
-=for ref
-
-Deprecated as it's not actually a transformation, which operates
-on coordinates. Use L</raster2fits>.
-
-=cut
-
-sub t_raster2fits {
-  my ($me) = _new(@_, 'Raster to FITS plate carree conversion');
-  $me->{params}->{itype} = ['RGB','X','Y'];
-  $me->{params}->{iunit} = ['RGB','pixels','pixels'];
-  $me->{params}->{otype} = ['X','Y','RGB'];
-  $me->{params}->{ounit} = ['pixels','pixels','RGB'];
-  $me->{func} = sub {
-    my($d,$o) = @_;
-    raster2fits($d, @PLATE_CARREE);
-  };
-  $me->{inv} = sub {
-    my($d,$o) = @_;
-    $d->ndims > 2 ? $d->mv(2,0) : $d;
-  };
-  $me;
 }
 
 ######################################################################

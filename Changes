@@ -5,8 +5,7 @@
 - add Transform::Cartography::clean_lines options: orange, filter_nan
 - Transform::Proj4 captures projection information at build not runtime
 - move Stats::diff to Ufunc::diffover
-- deprecate t_raster2fits, add raster2fits
-- remove t_raster2float
+- remove t_raster2float and t_raster2fits, add raster2fits
 - IO::GD add OO to_rpic for ndarrays (3,x,y) if truecolour, y=0 at bottom, like rpic
 - IO::GD stop read_true_png segfaulting with non-true PNG
 - IO::Pic use IO::GD for JPEG if available, helps Windows with no NetPBM
