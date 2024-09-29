@@ -1,3 +1,99 @@
+package PDL::Opt::Simplex;
+use strict;
+use warnings;
+use PDL;
+use PDL::Exporter;
+
+our @ISA = qw/PDL::Exporter/;
+our @EXPORT_OK = qw/simplex make_simplex/;
+our %EXPORT_TAGS = ( Func => [@EXPORT_OK] );
+
+*simplex = \&PDL::simplex;
+
+sub make_simplex {
+  my ($init, $initsize) = @_;
+  my ( $nd, $nd2, @otherdims ) = ( $init->dims, 1 );
+  pop @otherdims if @otherdims; # drop the spurious "1"
+  return unless $nd2 == $nd + 1 or $nd2 == 1;
+  return $init if $nd2 == $nd + 1;
+  my $simp = PDL->zeroes( $nd, $nd + 1, @otherdims );
+  # Constructing a tetrahedron:
+  # At step n (starting from zero)
+  # take vertices 0..n and move them 1/(n+1) to negative dir on axis n.
+  # Take vertex n+1 and move it n/(n+1) to positive dir on axis n
+  my $uppertri = $simp->copy;
+  ones($nd * ($nd+1) / 2)->tritosquare($uppertri->slice(",:-2")->t);
+  my $iseq = sequence($nd);
+  my $pjseq = $iseq / ( $iseq + 1 );
+  $simp .= $init - $initsize * $pjseq * $uppertri;
+  $simp->slice(",1:")->diagonal(0,1) += $initsize * (1-$pjseq);
+  $simp;
+}
+
+sub PDL::simplex {
+  my ( $init, $initsize, $minsize, $maxiter, $sub, $logsub, $t ) = @_;
+  my $simp = make_simplex($init, $initsize) // return;
+  my $nd = $simp->dim(0);
+  my $vals = $sub->($simp);
+  my $ssize = ( $simp - $simp->slice(":,0") )->magnover->maxover;
+  $logsub->( $simp, $vals, $ssize ) if $logsub;
+  while ( $maxiter-- and $ssize > $minsize ) {
+    my $valsn = !$t ? $vals : $vals - $t * log( $vals->random + 0.00001 );
+    my $minind = $valsn->minimum_ind;
+    my $maxind = $valsn->maxover_n_ind(2);
+    my $maxind0 = $maxind->at(0);
+    my @worstvals = $valsn->index($maxind)->list;
+    my $bestval = $valsn->at($minind);
+    my $ssum = ($simp->t->sumover - (my $worst = $simp->slice(":,($maxind0)"))) / $nd;
+    my $new = 2 * $ssum - $worst;
+    my $val = $sub->($new)->at(0);
+    $val = $val - $t * ( -log( rand() + 0.00001 ) ) if $t;
+    my $removetop = 0;
+    if ( $val < $bestval ) {
+      my $newnew = $new + $ssum - $worst;
+      my $val2   = $sub->($newnew);
+      if ( $val2->at(0) < $val ) {
+#        print "CASE1 Reflection and Expansion\n";
+        $worst .= $newnew;
+        $val = $val2;
+      } else {
+#        print "CASE2 Reflection, $newnew, $val, $val2\n";
+        $worst .= $new;
+      }
+      $removetop = 1;
+    } elsif ( $val < $worstvals[1] ) {
+#      print "CASE3 Reflection\n";
+      $worst .= $new;
+      $removetop = 1;
+    } else {
+      my $newnew = 0.5 * $ssum + 0.5 * $worst;
+      my $val2   = $sub->($newnew);
+      if ( $val2->at(0) < $worstvals[0] ) {
+#        print "CASE4 Contraction, $newnew, $val, $val2\n";
+        $worst .= $newnew;
+        $val = $val2;
+        $removetop = 1;
+      }
+    }
+    if ($removetop) {
+      $vals->slice( "($maxind0)" ) .= $val;
+    } else {
+#      print "CASE5 Multiple Contraction\n";
+      $simp = 0.5 * $simp->slice(":,$minind") + 0.5 * $simp;
+      my $idx = which( sequence($nd+1) != $minind );
+      $vals->index($idx) .= $sub->($simp->dice_axis(1,$idx));
+    }
+    $ssize = ( $simp - $simp->slice(":,0") )->magnover->max;
+    $logsub->( $simp, $vals, $ssize ) if $logsub;
+  }
+  my $mmind = $vals->minimum_ind;
+  return ( $simp->slice(":,$mmind"), $ssize, $vals->index($mmind) );
+}
+
+1;
+
+__END__
+
 =head1 NAME
 
 PDL::Opt::Simplex -- Simplex optimization routines
@@ -15,17 +111,15 @@ PDL::Opt::Simplex -- Simplex optimization routines
   # more involved:
   use PDL;
   use PDL::Opt::Simplex;
-
   my $count = 0;
   # find value of $x that returns a minimum
   sub f {
     my ($vec) = @_;
     $count++;
     my $x = $vec->slice('(0)');
-    # The parabola (x+3)^2 - 5 has a minima at x=-3:
+    # The parabola (x+3)^2 - 5 has a minimum at x=-3:
     return (($x+3)**2 - 5);
   }
-
   sub log {
     my ($vec, $vals, $ssize) = @_;
     # $vec is the array of values being optimized
@@ -37,11 +131,8 @@ PDL::Opt::Simplex -- Simplex optimization routines
     # so, from above: f(6) == 76 and f(0) == 4
     print "$count [$ssize]: $x -> $vals\n";
   }
-
-  my $vec_initial = pdl [30];
-  my ( $vec_optimal, $ssize, $optval ) = simplex($vec_initial, 3, 1e-6, 100, \&f, \&log);
-  my $x = $vec_optimal->slice('(0)');
-  print "ssize=$ssize  opt=$x -> minima=$optval\n";
+  my ($optimum, $ssize, $optval) = simplex(pdl(30), 3, 1e-6, 100, \&f, \&log);
+  print "ssize=$ssize  opt=$optimum -> minimum=$optval\n";
 
 =head1 DESCRIPTION
 
@@ -52,31 +143,46 @@ according to certain rules. The main
 benefit of the algorithm is that you do not need to calculate
 the derivatives of your function. 
 
-$init is a 1D vector holding the initial values of the N fitted
-parameters, $optimum is a vector holding the final solution.
-$optval is the evaluation of the final solution.
+C<$init> is a 1D vector holding the initial values of the N fitted
+parameters, C<$optimum> is a vector holding the final values.
+C<$optval> is the evaluation of the final values.
 
-$initsize is the size of $init (more...)
+C<$initsize> is the size of C<$init>. It is only used if your supplied
+C<$init> is a single point in your search space, to construct the simplex
+("cloud") of N+1 points the algorithm uses, being the distance away from
+your single C<$init> point along each dimension. This is done by the
+exportable function C<make_simplex($init, $initsize)>, e.g.:
 
-$minsize is some sort of convergence criterion (more...)
-- e.g. $minsize = 1e-6
+  pdl> use PDL::Opt::Simplex
+  pdl> p $t = make_simplex(pdl(0,0,0), pdl(0.12,0.12,0.12))
+  [
+   [    0 -0.06 -0.08]
+   [ 0.12 -0.06 -0.08]
+   [    0  0.06 -0.08]
+   [    0     0  0.04]
+  ]
+  pdl> use PDL::Graphics::TriD
+  pdl> spheres3d $t # spheres not points so can easily see
+
+C<$minsize> is the convergence criterion, e.g. C<$minsize> = 1e-6;
+the algorithm will terminate when all the values of C<$ssize> are less
+than C<$minsize>.
 
 The sub is assumed to understand more than 1 dimensions and broadcasting.
-Its signature is 'inp(nparams); [ret]out()'. An example would be
+Its signature is C<inp(nparams); [ret]out()>. An example would be
 
 	sub evaluate_func_at {
 		my($xv) = @_;
-		my $x1 = $xv->slice("(0)");
-		my $x2 = $xv->slice("(1)");
+		my ($x1, $x2) = $xv->using(0,1);
 		return $x1**4 + ($x2-5)**4 + $x1*$x2;
 	}
 
-Here $xv is a vector holding the current values of the parameters
-being fitted which are then sliced out explicitly as $x1 and $x2.
+Here C<$xv> is a vector holding the current values of the parameters
+being fitted which are then sliced out explicitly as C<$x1> and C<$x2>.
 
-$ssize gives a very very approximate estimate of how close we might
-be - it might be miles wrong. It is the euclidean distance between
-the best and the worst vertices. If it is not very small, the algorithm
+C<$ssize> gives a very very approximate estimate of how close we might
+be - it might be miles wrong. It is the largest Euclidean distance between
+the first vertex and any other. If it is not very small, the algorithm
 has not converged.
 
 =head1 FUNCTIONS
@@ -86,6 +192,8 @@ has not converged.
 =for ref
 
 Simplex optimization routine
+
+Mutates its C<$init> input if given as a full simplex (dims C<n,n+1>).
 
 =for usage
 
@@ -133,133 +241,3 @@ distribution. If this file is separated from the PDL distribution,
 the copyright notice should be included in the file.
 
 =cut
-
-package PDL::Opt::Simplex;
-use strict;
-use warnings;
-use PDL;
-use PDL::Primitive;
-use PDL::Exporter;
-
-# use AutoLoader;
-
-@PDL::Opt::Simplex::ISA = qw/PDL::Exporter/;
-
-@PDL::Opt::Simplex::EXPORT_OK = qw/simplex/;
-%PDL::Opt::Simplex::EXPORT_TAGS = ( Func => [@PDL::Opt::Simplex::EXPORT_OK] );
-
-*simplex = \&PDL::simplex;
-
-sub PDL::simplex {
-    my ( $init, $initsize, $minsize, $maxiter, $sub, $logsub, $t ) = @_;
-    if ( !defined $t ) { $t = 0 }
-    my ( $i, $j );
-    my ( $nd, $nd2 ) = ( dims($init), 1 );
-    my $simp;
-    if ( $nd2 == 1 ) {
-        $simp = PDL->zeroes( $nd, $nd + 1 );
-        $simp .= $init;
-
-        # Constructing a tetrahedron:
-        # At step n (starting from zero)
-        # take vertices 0..n and move them 1/(n+1) to negative dir on axis n.
-        # Take vertex n+1 and move it n/(n+1) to positive dir on axis n
-        if ( !ref $initsize ) {
-            $initsize = PDL->pdl($initsize)->dummy( 0, $nd );
-        }
-        for ( $i = 0 ; $i < $nd ; $i++ ) {
-            my $pj = $i / ( $i + 1 );
-            $simp->slice("$i,0:$i") -=
-              $initsize->at($i) * $pj;
-            $simp->slice( "$i," . ( $i + 1 ) ) +=
-              $initsize->at($i) * ( 1 - $pj );
-        }
-    }
-    elsif ( $nd2 == $nd + 1 ) {
-        $simp = $init;
-    }
-    else {
-        return;
-    }
-    my $maxind = PDL->zeroes(2);
-    my $minind = PDL->null;
-    my $ssum   = PDL->null;
-    my $worst;
-    my $new;
-    my $vals = &{$sub}($simp);
-    my $ss1  = ( $simp - $simp->slice(":,0") )**2;
-    sumover( $ss1, ( my $ss2 = PDL->null ) );
-    my $ssize = PDL::max( sqrt($ss2) );
-    &{$logsub}( $simp, $vals, $ssize )
-      if $logsub;
-
-    while ( $maxiter-- and max( PDL->topdl($ssize) ) > $minsize ) {
-        my $valsn = $vals;
-        if ($t) {
-            my $noise = $vals->random();
-            $noise->random;
-            $valsn = $vals + $t * ( -log( $noise + 0.00001 ) );
-        }
-        maximum_n_ind( $valsn, $maxind );
-        minimum_ind( $valsn, $minind );
-        my @worstvals = map { $valsn->at( $maxind->at($_) ) } 0 .. 1;
-        my $bestval = $valsn->at($minind);
-
-        sumover( $simp->xchg( 0, 1 ), $ssum );
-        $ssum -= ( $worst = $simp->slice( ":,(" . $maxind->at(0) . ")" ) );
-        $ssum /= $nd;
-        $new = 2 * $ssum - $worst;
-        my $val = ( &{$sub}($new) )->at(0);
-        if ($t) {
-            $val = $val - $t * ( -log( rand() + 0.00001 ) );
-        }
-        my $removetop = 0;
-        if ( $val < $bestval ) {
-            my $newnew = $new + $ssum - $worst;
-            my $val2   = &{$sub}($newnew);
-            if ( $val2->at(0) < $val ) {
-#                print "CASE1 Reflection and Expansion\n";
-                $worst .= $newnew;
-                $val = $val2;
-            }
-            else {
-#                print "CASE2 Reflection, $newnew, $val, $val2\n";
-                $worst .= $new;
-            }
-            $removetop = 1;
-        }
-        elsif ( $val < $worstvals[1] ) {
-#            print "CASE3 Reflection\n";
-            $worst .= $new;
-            $removetop = 1;
-        }
-        else {
-            my $newnew = 0.5 * $ssum + 0.5 * $worst;
-            my $val2   = &{$sub}($newnew);
-            if ( $val2->at(0) < $worstvals[0] ) {
-#                print "CASE4 Contraction, $newnew, $val, $val2\n";
-                $worst .= $newnew;
-                $val = $val2;
-                $removetop = 1;
-            }
-        }
-        if ($removetop) {
-            $vals->slice( "(" . $maxind->at(0) . ")" ) .= $val;
-        }
-        else {
-#            print "CASE5 Multiple Contraction\n";
-            $simp = 0.5 * $simp->slice(":,$minind") + 0.5 * $simp;
-            my $idx = which( sequence($nd+1) != $minind );
-            $vals->index($idx) .= &{$sub}($simp->dice_axis(1,$idx));
-        }
-        my $ss1 = ( $simp - $simp->slice(":,0") )**2;
-        sumover( $ss1, ( $ss2 = PDL->null ) );
-        $ssize = PDL::max( sqrt($ss2) );
-        &{$logsub}( $simp, $vals, $ssize )
-          if $logsub;
-    }
-    minimum_ind( $vals, ( my $mmind = PDL->null ) );
-    return ( $simp->slice(":,$mmind"), $ssize, $vals->index($mmind) );
-}
-
-1;
