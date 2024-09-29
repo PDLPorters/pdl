@@ -169,9 +169,9 @@ sub PDL::simplex {
         }
         for ( $i = 0 ; $i < $nd ; $i++ ) {
             my $pj = $i / ( $i + 1 );
-            ( my $stoopid = $simp->slice("$i,0:$i") ) -=
+            $simp->slice("$i,0:$i") -=
               $initsize->at($i) * $pj;
-            ( my $stoopid1 = $simp->slice( "$i," . ( $i + 1 ) ) ) +=
+            $simp->slice( "$i," . ( $i + 1 ) ) +=
               $initsize->at($i) * ( 1 - $pj );
         }
     }
@@ -244,13 +244,13 @@ sub PDL::simplex {
             }
         }
         if ($removetop) {
-            ( my $stoopid = $vals->slice( "(" . $maxind->at(0) . ")" ) ) .= $val;
+            $vals->slice( "(" . $maxind->at(0) . ")" ) .= $val;
         }
         else {
 #            print "CASE5 Multiple Contraction\n";
             $simp = 0.5 * $simp->slice(":,$minind") + 0.5 * $simp;
             my $idx = which( sequence($nd+1) != $minind );
-            ( my $stoopid = $vals->index($idx) ) .= &{$sub}($simp->dice_axis(1,$idx));
+            $vals->index($idx) .= &{$sub}($simp->dice_axis(1,$idx));
         }
         my $ss1 = ( $simp - $simp->slice(":,0") )**2;
         sumover( $ss1, ( $ss2 = PDL->null ) );
