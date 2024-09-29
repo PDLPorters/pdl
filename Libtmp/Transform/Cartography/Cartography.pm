@@ -564,7 +564,7 @@ sub raster2fits {
   $h->{"CUNIT".($_+1)} = $axisunits->[$_] for 0..$ndims-1;
   $h->{"CDELT".($_+1)} = ($axisranges->[$_][1]-$axisranges->[$_][0])/$dims[$_]
     for 0..$ndims-1;
-  $h->{HISTORY}='PDL conversion from raster image',
+  $h->{HISTORY}='PDL conversion from raster image';
   $out;
 }
 
