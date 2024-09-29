@@ -82,9 +82,6 @@ nytprof*
 Basic/Bad/Bad.c
 Basic/Bad/Bad.pm
 Basic/Bad/Bad.xs
-Basic/Complex/Complex.c
-Basic/Complex/Complex.pm
-Basic/Complex/Complex.xs
 Basic/Core/Config.pm
 Basic/Core/Core.c
 Basic/Core/Types.pm
@@ -271,6 +268,9 @@ Libtmp/ImageND/ImageND.xs
 Libtmp/ImageRGB/ImageRGB.c
 Libtmp/ImageRGB/ImageRGB.pm
 Libtmp/ImageRGB/ImageRGB.xs
+Libtmp/LegacyComplex/Complex.c
+Libtmp/LegacyComplex/Complex.pm
+Libtmp/LegacyComplex/Complex.xs
 Libtmp/Minuit/Minuit.c
 Libtmp/Minuit/Minuit.pm
 Libtmp/Minuit/Minuit.xs

@@ -42,9 +42,6 @@ RCS
 ^Basic/Bad/Bad\.c$
 ^Basic/Bad/Bad\.pm$
 ^Basic/Bad/Bad\.xs$
-^Basic/Complex/Complex\.c
-^Basic/Complex/Complex\.pm
-^Basic/Complex/Complex\.xs
 ^Basic/Core/Config\.pm
 ^Basic/Core/Core\.c$
 ^Basic/Core/Types\.pm$
@@ -137,6 +134,7 @@ RCS
 ^Libtmp/Image2D/Image2D\..*
 ^Libtmp/ImageND/ImageND\..*
 ^Libtmp/ImageRGB/ImageRGB\..*
+^Libtmp/LegacyComplex/Complex\..*
 ^Libtmp/Minuit/.*\.a$
 ^Libtmp/Minuit/.*\.pm$
 ^Libtmp/Minuit/.*\.xs$

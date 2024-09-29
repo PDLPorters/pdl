@@ -1,9 +1,6 @@
 Basic/AutoLoader.pm
 Basic/Bad/bad.pd
 Basic/Bad/Makefile.PL
-Basic/Complex/complex.pd
-Basic/Complex/Makefile.PL
-Basic/Complex/t/complex.t
 Basic/Constants.pm
 Basic/Core/Basic.pm
 Basic/Core/Char.pm
@@ -437,6 +434,9 @@ Libtmp/ImageRGB/ppm_quant.c
 Libtmp/ImageRGB/t/imagergb.t
 Libtmp/ImageRGB/t/picnorgb.t
 Libtmp/ImageRGB/t/picrgb.t
+Libtmp/LegacyComplex/complex.pd
+Libtmp/LegacyComplex/Makefile.PL
+Libtmp/LegacyComplex/t/complex.t
 Libtmp/Makefile.PL
 Libtmp/Minuit/FCN.c
 Libtmp/Minuit/FCN.h
