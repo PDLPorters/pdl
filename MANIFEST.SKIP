@@ -78,7 +78,6 @@ RCS
 ^Doc/docscan$
 ^Doc/pdlfunc\.pod
 ^Doc/pdlhead2item$
-^Graphics/IIS/IIS\..*
 ^Graphics/TriD/OpenGLQ/OpenGLQ\.*
 ^Graphics/TriD/OpenGLQ/blib
 ^Graphics/TriD/OpenGLQ/oglq-expand.pl$
@@ -214,4 +213,3 @@ subdirs
 ^nytprof(/|\.out)
 \.gc(ov|no|da)$
 pp-\w*\.c$
-^debian/

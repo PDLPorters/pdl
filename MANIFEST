@@ -162,10 +162,6 @@ Example/InlinePdlpp/Module/t/myinlinemod.t
 Example/Simplex/tsimp2.pl
 Example/Simplex/tsimp_needs_pgplot.pl
 Graphics/Graphics2D.pm
-Graphics/IIS/iis.pd
-Graphics/IIS/libiis.h
-Graphics/IIS/Makefile.PL
-Graphics/IIS/pdliisdisp.c
 Graphics/Limits/Limits.pm
 Graphics/Limits/Makefile.PL
 Graphics/Limits/t/limits_errb.t

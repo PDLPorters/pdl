@@ -1,3 +1,5 @@
+- split Graphics/IIS out to separate PDL::Graphics::IIS distro
+
 2.093 2024-09-29
 - PDL.set_datatype now doesn't physicalise input, PDL.convert_type does
 - new_around_datasv now sets nbytes and ALLOCATED
