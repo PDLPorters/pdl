@@ -82,7 +82,7 @@ sub step {
 	my $tst = 0.10;
 	$this->{Velo} = ($this->{Velo}//0) + $tst * 0.02 * ($velr + $vela);
 	$this->{Velo} *=
-	  ((0.92*50/(50+sqrt(($this->{Velo}**2)->sumover->dummy(0)))))**$tst;
+	  (0.92*50/(50+$this->{Velo}->magnover->dummy(0)))**$tst;
 	$c += $tst * 0.05 * $this->{Velo};
 	(my $tmp = $c->transpose->index($this->{FInd}->dummy(0)))
 		.= $this->{FCoord}

@@ -924,7 +924,7 @@ sub t_unit_sphere {
     my($d,$o) = @_;
 	
     my($d0,$d1,$d2) = ($d->slice("(0)"),$d->slice("(1)"),$d->slice("(2)"));
-    my($r) = sqrt(($d->slice("0:2")*$d->slice("0:2"))->sumover);
+    my($r) = $d->slice("0:2")->magnover;
     my(@dims) = $d->dims;
     $dims[0]--;
     my($out) = zeroes(@dims);
@@ -2232,7 +2232,7 @@ sub t_az_eqd {
     my($x) = $d->slice("(0)");
     my($y) = $d->slice("(1)");
 
-    my $rho = sqrt(($d->slice("0:1")*$d->slice("0:1"))->sumover);
+    my $rho = $d->slice("0:1")->magnover;
     # Order is important -- ((0)) overwrites $x if is_inplace!
     $out->slice("(0)") .= atan2( $x * sin($rho), $rho * cos $rho );
     $out->slice("(1)") .= asin( $y * sin($rho) / $rho );
@@ -2578,7 +2578,7 @@ sub t_vertical {
 	$out->slice("0:1") *= ($P - 1.0) * ($o->{f} ? 1.0 : $o->{tconv})
      	    if($o->{t});
 
-	my($rho) = sqrt(sumover($d->slice("0:1") * $d->slice("0:1")));
+	my $rho = $d->slice("0:1")->magnover;
 	my($sin_c) = ( (  $P - sqrt( 1 - ($rho*$rho * ($P+1)/($P-1)) ) ) /
 		       ( ($P-1)/$rho + $rho/($P-1) )
 		       );
@@ -2917,7 +2917,7 @@ sub t_perspective {
       ## Apply the tangent-plane transform, and scale by the magnification.
       my $dcyz = $dc->slice("1:2");
 
-      my $r = ( $dcyz * $dcyz ) -> sumover -> sqrt ;     
+      my $r = $dcyz->magnover;
       my $rscale;
       if( $o->{mag} == 1.0 ) {
 	  $rscale = - 1.0 / $dc->slice("(0)");
@@ -2969,7 +2969,7 @@ sub t_perspective {
 
 	## Inverse-magnify if required
 	if($o->{mag} != 1.0) {
-	  my $r = ($oyz * $oyz)->sumover->sqrt;
+	  my $r = $oyz->magnover;
 	  my $scale = tan( atan( $r ) / $o->{mag} ) / $r;
 	  $out->slice("0:1") *= $scale->dummy(0,1);
 	}
