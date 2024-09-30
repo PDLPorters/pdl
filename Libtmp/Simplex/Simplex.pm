@@ -35,9 +35,11 @@ sub PDL::simplex {
   my $simp = make_simplex($init, $initsize) // return;
   my $nd = $simp->dim(0);
   my $vals = $sub->($simp);
-  my $ssize = ( $simp - $simp->slice(":,0") )->magnover->maxover;
-  $logsub->( $simp, $vals, $ssize ) if $logsub;
-  while ( $maxiter-- and $ssize > $minsize ) {
+  my $ssize;
+  while ($maxiter--) {
+    $ssize = ( $simp - $simp->slice(":,0") )->magnover->maxover;
+    $logsub->( $simp, $vals, $ssize ) if $logsub;
+    last unless $ssize > $minsize;
     my $valsn = !$t ? $vals : $vals - $t * log( $vals->random + 0.00001 );
     my $minind = $valsn->minimum_ind;
     my $maxind = $valsn->maxover_n_ind(2);
@@ -79,12 +81,10 @@ sub PDL::simplex {
       $vals->slice( "($maxind0)" ) .= $val;
     } else {
 #      print "CASE5 Multiple Contraction\n";
-      $simp = 0.5 * $simp->slice(":,$minind") + 0.5 * $simp;
+      $simp .= 0.5 * ($simp->slice(":,$minind") + $simp);
       my $idx = which( sequence($nd+1) != $minind );
       $vals->index($idx) .= $sub->($simp->dice_axis(1,$idx));
     }
-    $ssize = ( $simp - $simp->slice(":,0") )->magnover->max;
-    $logsub->( $simp, $vals, $ssize ) if $logsub;
   }
   my $mmind = $vals->minimum_ind;
   return ( $simp->slice(":,$mmind"), $ssize, $vals->index($mmind) );

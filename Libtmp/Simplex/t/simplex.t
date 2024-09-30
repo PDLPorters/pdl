@@ -15,9 +15,9 @@ sub test_simplex {
       sumover( ( $_[0] - $dis )**2 ) + 1;
     }, $nolog ? () : $logsub,
   );
-  ok all PDL::Core::approx($opt, $dis, 1e-3), 'optimum';
-  ok PDL::Core::approx($ssize, 0, 1e-3), 'ssize';
-  ok PDL::Core::approx($optval, 1, 1e-3), 'optval';
+  ok all PDL::Core::approx($opt, $dis, 1e-3), 'optimum' or diag "got=$opt";
+  ok PDL::Core::approx($ssize, 0, 1e-3), 'ssize' or diag "got=$ssize";
+  ok PDL::Core::approx($optval, 1, 1e-3), 'optval' or diag "got=$optval";
   ok $log_called, 'log called' if !$nolog;
   my @init_dims = $init->dims;
   my @exp_dims = ($init_dims[0], 1, @init_dims[2..$#init_dims]);
