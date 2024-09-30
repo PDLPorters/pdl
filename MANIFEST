@@ -125,9 +125,12 @@ Basic/Ufunc/ufunc.pd
 Bugs.pod
 Changes
 COPYING
+cygwin/fix-max-memory.txt
 cygwin/g77_gcc.conf
 cygwin/INSTALL
+cygwin/max_memory.c
 cygwin/README
+cygwin/tmalloc.pl
 Demos/BAD_demo.pm
 Demos/Demos.pm
 Demos/earth-interp.pl
