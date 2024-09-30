@@ -11,7 +11,7 @@ https://github.com/PDLPorters/pdl/wiki/Installing-PDL-on-Windows
 If you would like, instead, to build PDL from source,
 that's (generally) fairly straight forward.
 
-Certain parts of PDL (eg PDL::Slatec and PDL::Minuit)
+Certain parts of PDL (eg PDL::Slatec)
 can't be built without a fortran compiler. In the docs
 that follow I call these parts (somewhat loosely) "the
 fortran stuff".

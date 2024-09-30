@@ -380,18 +380,6 @@ This module provides both high-level and low-level functionality built
 on PLplot. The low-level commands are pretty much direct bindings to
 PLplot's C interface. Read more at L<PDL::Graphics::PLplot>.
 
-=item PDL::Graphics::IIS
-
-Many astronomers like to use SAOimage and Ximtool (or there
-derivations/clones). These are useful free widgets for inspection and
-visualisation of images. (They are not provided with perlDL but can
-easily be obtained from their official sites off the Net.)
-
-The L<PDL::Graphics::IIS> 
-package provides allows one to display images
-in these ("IIS" is the name of an ancient item of image display
-hardware whose protocols these tools conform to.)
-
 =item PDL::Graphics::TriD
 
 See L<PDL::Graphics::TriD>, this is a collection

@@ -124,10 +124,6 @@ Interpolation-related functions.
 
 Helper routines for 3D graphics.
 
-=item L<PDL::Graphics::IIS>
-
-Display images on IIS devices.
-
 =back
 
 
@@ -135,10 +131,6 @@ Display images on IIS devices.
 =head2 Helper Modules
 
 =over 5
-
-=item L<PDL::Graphics::LUT>
-
-Look-up tables.
 
 =item L<PDL::Graphics::Limits>
 
@@ -187,10 +179,6 @@ Linear filtering.
 =item L<PDL::Opt::Simplex>
 
 Simplex optimization routines.
-
-=item L<PDL::Minuit>
-
-PDL interface to the Minuit library.
 
 =item L<PDL::Slatec>
 

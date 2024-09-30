@@ -268,10 +268,6 @@ Libtmp/ImageRGB/ImageRGB.xs
 Libtmp/LegacyComplex/Complex.c
 Libtmp/LegacyComplex/Complex.pm
 Libtmp/LegacyComplex/Complex.xs
-Libtmp/Minuit/Minuit.c
-Libtmp/Minuit/Minuit.pm
-Libtmp/Minuit/Minuit.xs
-Libtmp/Minuit/minuitlib/libminuit.a
 Libtmp/Slatec/Slatec.c
 Libtmp/Slatec/Slatec.pm
 Libtmp/Slatec/Slatec.xs

@@ -1,7 +1,6 @@
 use strict;
 use warnings;
 use PDL::LiteF;
-use PDL::Config;
 use PDL::Core::Dev;
 use PDL::Types qw(ppdefs ppdefs_complex ppdefs_all);
 

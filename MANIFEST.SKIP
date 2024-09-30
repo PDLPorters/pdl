@@ -134,10 +134,6 @@ RCS
 ^Libtmp/ImageND/ImageND\..*
 ^Libtmp/ImageRGB/ImageRGB\..*
 ^Libtmp/LegacyComplex/Complex\..*
-^Libtmp/Minuit/.*\.a$
-^Libtmp/Minuit/.*\.pm$
-^Libtmp/Minuit/.*\.xs$
-^Libtmp/Minuit/M.*\.c$
 ^Libtmp/Slatec/Slatec.c
 ^Libtmp/Slatec/Slatec.pm
 ^Libtmp/Slatec/Slatec.xs

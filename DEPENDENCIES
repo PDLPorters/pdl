@@ -127,17 +127,6 @@ PDL::Graphics::TriD
                                           perldl.conf and set WITH_3D => 0.
 
 
-PDL::Graphics::IIS
-                  To be useful an application that supports
-                  the 'IIS' protocol must be installed, e.g.
-                  SAOimage or Ximtool, see
-                  http://tdc-www.harvard.edu/software/saoimage.html
-                  http://iraf.noao.edu/iraf/web/projects/x11iraf/
-
-                                          PDL::Graphics::IIS  builds
-                                          without viewers.
-
-
 PDL::GSL modules
                   Needs the GSL (Gnu Scientific Library) to
                   build.  Version >= 1.0 is required
@@ -204,17 +193,6 @@ PDL::IO::Pic      rpic/wpic: NetPBM converters
                                           converters.  Recommend at
                                           least version 10.58.00 of
                                           NetPBM.
-
-
-PDL::Minuit       PDL interface to Minuit minimization routines in
-                  the CERN library,
-                  http://wwwasdoc.web.cern.ch/wwwasdoc/minuit/minmain.html
-                  The Minuit library code is included.  A fortran compiler
-                  is required and ExtUtils:F77 (version >= 1.03).
-
-                                          Will not be built unless
-                                          ExtUtils::F77 is installed *and*
-                                          supports your platform.
 
 
 PDL::Slatec       Linear algebra routines.

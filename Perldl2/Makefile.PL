@@ -4,15 +4,6 @@ use ExtUtils::MakeMaker;
 
 my @podpms = map { $_.".pod", '$(INST_LIBDIR)/' . $_ .".pod"} qw/pdl2/;
 
-# Make sure we have the PDL CONFIG hash loaded, and try to load it
-# from perldl.conf if not.
-use File::Spec;
-unless (%PDL::Config) {
-	our %PDL_CONFIG;
-	do File::Spec->catfile('..', 'perldl.conf') ;
-	%PDL::Config = %PDL_CONFIG;
-}
-
 # Extra build target to build the doc database
 undef &MY::postamble; # suppress warning
 *MY::postamble = sub {

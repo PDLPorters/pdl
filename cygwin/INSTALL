@@ -64,7 +64,6 @@ need to run Inline programs with taint enabled), and should pull
 in installs for the following dependencies:
 
   Astro::FITS::Header
-  Convert::UU
   Data::Dumper
   File::Spec
   Filter::Util::Call
@@ -81,7 +80,6 @@ You should finish with a PDL having the following functionality:
   - PDL::IO::GD
   - PDL::Graphics::TriD
   - PDL::GSL::*
-  - PDL::Minuit
   - PDL::Slatec
   - PDL::Transform::Proj4
 

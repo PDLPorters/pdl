@@ -46,9 +46,6 @@ external dependencies:
  PDL::Transform::Proj4
   (Builds if the PROJ4 lib is installed via cygwin Setup.exe)
 
- PDL::Minuit
-  (Builds if ExtUtils::F77 has been installed and FORTRAN)
-
  PDL::Slatec
   (Builds if ExtUtils::F77 has been installed.
    Needs a FORTRAN compiler.)
@@ -90,8 +87,6 @@ separately:
 =================================================================
 These modules with external dependencies are not yet available
 for cygwin:
-
- PDL::Graphics::IIS
 
  PDL::IO::HDF           (HDF4 has not been ported to cygwin
                          but HDF5 is available via the cygwin

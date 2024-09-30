@@ -380,14 +380,6 @@ L<PDL::Graphics2D> - An object oriented interface to PDL graphics
 
 =item *
 
-L<PDL::Graphics::IIS> - Display PDL images on IIS devices (saoimage/ximtool)
-
-=item *
-
-L<PDL::Graphics::LUT> - provides access to a number of look-up tables
-
-=item *
-
 L<PDL::Graphics::Limits> - derive limits for display purposes
 
 =item *
@@ -541,10 +533,6 @@ L<PDL::Matrix> - a convenience matrix class for column-major access
 =item *
 
 L<PDL::MatrixOps> - Some Useful Matrix Operations
-
-=item *
-
-L<PDL::Minuit> - a PDL interface to the Minuit library
 
 =item *
 
