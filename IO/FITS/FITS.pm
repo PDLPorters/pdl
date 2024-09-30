@@ -2311,9 +2311,8 @@ sub _prep_table {
 
 	  # First, check we're legit
 	  if( !UNIVERSAL::isa($var, 'PDL') || 
-	      $var->ndims != 2 ||
 	      !UNIVERSAL::isa($lengths,'PDL') ||
-	      $lengths->ndims != 1 ||
+	      ($var->ndims - $lengths->ndims) != 1 ||
 	      $lengths->dim(0) != $var->dim(0)
 	      ) {
 	      die <<FOO;
