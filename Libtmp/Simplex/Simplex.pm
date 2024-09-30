@@ -49,38 +49,31 @@ sub PDL::simplex {
     my $ssum = ($simp->t->sumover - (my $worst = $simp->slice(":,($maxind0)"))) / $nd;
     my $new = 2 * $ssum - $worst;
     my $val = $sub->($new)->at(0);
-    $val = $val - $t * ( -log( rand() + 0.00001 ) ) if $t;
+    $val += $t * log( rand() + 0.00001 ) if $t;
     my $removetop = 0;
     if ( $val < $bestval ) {
       my $newnew = $new + $ssum - $worst;
       my $val2   = $sub->($newnew);
-      if ( $val2->at(0) < $val ) {
-#        print "CASE1 Reflection and Expansion\n";
-        $worst .= $newnew;
+      if ( $val2->at(0) < $val ) { # CASE1 Reflection and Expansion
+        $new = $newnew;
         $val = $val2;
-      } else {
-#        print "CASE2 Reflection, $newnew, $val, $val2\n";
-        $worst .= $new;
-      }
+      } # else CASE2 Reflection
       $removetop = 1;
-    } elsif ( $val < $worstvals[1] ) {
-#      print "CASE3 Reflection\n";
-      $worst .= $new;
+    } elsif ( $val < $worstvals[1] ) { # CASE3 Reflection
       $removetop = 1;
     } else {
-      my $newnew = 0.5 * $ssum + 0.5 * $worst;
+      my $newnew = 0.5 * ($ssum + $worst);
       my $val2   = $sub->($newnew);
-      if ( $val2->at(0) < $worstvals[0] ) {
-#        print "CASE4 Contraction, $newnew, $val, $val2\n";
-        $worst .= $newnew;
+      if ( $val2->at(0) < $worstvals[0] ) { # CASE4 Contraction
+        $new = $newnew;
         $val = $val2;
         $removetop = 1;
       }
     }
     if ($removetop) {
+      $worst .= $new;
       $vals->slice( "($maxind0)" ) .= $val;
-    } else {
-#      print "CASE5 Multiple Contraction\n";
+    } else { # CASE5 Multiple Contraction
       $simp .= 0.5 * ($simp->slice(":,$minind") + $simp);
       my $idx = which( sequence($nd+1) != $minind );
       $vals->index($idx) .= $sub->($simp->dice_axis(1,$idx));
