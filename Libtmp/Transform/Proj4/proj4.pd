@@ -6,6 +6,7 @@
 use strict;
 use warnings;
 use File::Spec;
+use Alien::proj;
 
 our $VERSION = "1.32";
 
@@ -144,7 +145,7 @@ my %SKIP = map +($_=>1), qw(
   fixed Earth For CH1903
 );
 sub load_projection_information {
-    my $text = do { open my $fh, '-|', qw(proj -lP) or die "proj -lP: $!"; local $/; <$fh> };
+    my $text = Alien::proj->run_utility ("proj", "-lP");
     my @chunks = $text =~ /(.+?)(?=(?:^\S|\z))/gms;
     chomp for @chunks;
     my %descriptions = map {
@@ -523,18 +524,6 @@ sub proj_params
     $self->update_proj_string();
     return $self->{params}->{proj_params};
 } # End of proj_params()...
-
-# Returns a string with information about what parameters proj will
-# actually use, this includes defaults, and +init=file stuff. It's
-# the same as running 'proj -v'. It uses the proj command line, so
-# it might not work with all shells. I've tested it with bash.
-sub get_proj_info
-{
-    my $params = shift;
-    my @a = split(/\n/, `echo | proj -v $params`);
-    pop(@a);
-    return join("\n", @a);
-}
 
 sub t_proj
 {

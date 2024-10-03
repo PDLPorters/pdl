@@ -1,18 +1,12 @@
 use strict;
 use warnings;
 use PDL::LiteF;
+use PDL::IO::Pic ();
 use Test::More;
 use PDL::Transform::Proj4;
 
-my $test_jpegtopnm = 1;
-if($^O =~ /MSWin32/i) {
-    $test_jpegtopnm = `jpegtopnm --help 2>&1`;
-    $test_jpegtopnm = $test_jpegtopnm =~ /^jpegtopnm:/ ? 1 : 0;
-} elsif ( !defined scalar qx(jpegtopnm --help 2>&1) ) {
-    $test_jpegtopnm = 0;
-}
-plan skip_all => "The jpegtopnm utility (needed for proj_transform.t tests) not found."
-    if !$test_jpegtopnm;
+plan skip_all => "Reading JPEG (needed for proj_transform.t tests) not possible in this PDL."
+    if !PDL->rpiccan('JPEG');
 
 my @projections = sort keys %{PDL::Transform::Proj4::load_projection_information()};
 

@@ -57,9 +57,6 @@ my $xy3_exp = double [
 my ($xy3) = PDL::Transform::Proj4::fwd_transform($lonlat3, $cyl_eq);
 ok( tapprox( $xy3, $xy3_exp ) );
 
-# TEST 11:
-my $proj_info = PDL::Transform::Proj4::get_proj_info($proj);
-
 $lonlat = ((xvals( double, 35, 17 ) - 17.0) * 10.0)->cat(
   (yvals( double, 35, 17 ) - 8.0) * 10.0)->mv(2,0);
 my $exp = $lonlat->copy;
