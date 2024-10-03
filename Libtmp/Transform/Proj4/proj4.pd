@@ -86,6 +86,7 @@ EOF
 
 pp_def( 'fwd_transform',
         Pars => 'lonlat(n=2); [o] xy(n);',
+        NoPthread => 1,
         Doc => <<'EOF',
 =for ref
 
@@ -105,6 +106,7 @@ EOF
 
 pp_def( 'inv_transform',
         Pars => 'xy(n=2); [o] lonlat(n);',
+        NoPthread => 1,
         Doc => <<'EOF',
 =for ref
 
@@ -224,22 +226,24 @@ PDL::Transform::Proj4 - PDL::Transform interface to the Proj4 projection library
  use PDL::Transform::Cartography;
  use PDL::Transform::Proj4;
  use PDL::Graphics::Simple;
- $x = earth_coast();
- $x = graticule(10,2)->glue(1,$x);
- $t = t_proj( proj_params => "+proj=ortho +ellps=WGS84 +lon_0=-90 +lat_0=40" );
+ $e = earth_image('day');
+ ($c, $pen) = graticule(10,2)->glue(1,earth_coast())->clean_lines;
+ $t = t_proj(proj_params => "+proj=ortho +ellps=WGS84 +lon_0=0 +lat_0=40");
  $w = pgswin();
- $w->plot(with=>'polylines', $t->apply($x)->clean_lines);
+ $w->plot(with=>'fits', $e->map($t),
+   with=>'polylines', clean_lines($c->apply($t), $pen), {j=>1});
 
  # Using the aliased functions:
  # Make an orthographic map of Earth
  use PDL::Transform::Cartography;
  use PDL::Transform::Proj4;
  use PDL::Graphics::Simple;
- $x = earth_coast();
- $x = graticule(10,2)->glue(1,$x);
- $t = t_proj_ortho( ellps => 'WGS84', lon_0 => -90, lat_0 => 40 )
+ $e = earth_image('day');
+ ($c, $pen) = graticule(10,2)->glue(1,earth_coast())->clean_lines;
+ $t = t_proj_ortho( ellps => 'WGS84', lon_0=>0, lat_0=>40 );
  $w = pgswin();
- $w->plot(with=>'polylines', $t->apply($x)->clean_lines);
+ $w->plot(with=>'fits', $e->map($t),
+   with=>'polylines', clean_lines($c->apply($t), $pen), {j=>1});
 
 =head1 DESCRIPTION
 
@@ -350,7 +354,7 @@ Arithmetic mean of the major and minor axis, Ra = (a + b)/2.
 
 =head3 R_g
 
-Geometric mean of the major and minor axis, Rg = (ab)1/2.
+Geometric mean of the major and minor axis, Rg = (ab)/2.
 
 =head3 R_h
 

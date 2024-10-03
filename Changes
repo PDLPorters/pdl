@@ -1,5 +1,6 @@
 - split Graphics/IIS out to separate PDL::Graphics::IIS distro
 - split Libtmp/Minuit out to separate PDL::Minuit distro
+- Transform::Proj4 add NoPthread as using non-thread-safe API
 
 2.093 2024-09-29
 - PDL.set_datatype now doesn't physicalise input, PDL.convert_type does
