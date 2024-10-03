@@ -2,6 +2,7 @@
 - split Libtmp/Minuit out to separate PDL::Minuit distro
 - Transform::Proj4 add NoPthread as using non-thread-safe API
 - Transform::Proj4 use Alien::proj better for build (#499) - thanks @shawnlaffan
+- perldl/pdl2 now have "x" command that Data::Dumper-s argument
 
 2.093 2024-09-29
 - PDL.set_datatype now doesn't physicalise input, PDL.convert_type does

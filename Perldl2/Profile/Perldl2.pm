@@ -132,6 +132,16 @@ sub apply_profile {
    } );
 
    $repl->eval( q{
+    sub x {
+      require Data::Dumper;
+      local $Data::Dumper::Indent = 1;
+      local $Data::Dumper::Indent = 1;
+      local $Data::Dumper::Terse = 1;
+      print Data::Dumper::Dumper(@_);
+    }
+   } );
+
+   $repl->eval( q{
     use PDL::Demos;
     sub demo {
       if (!$_[0]) {
