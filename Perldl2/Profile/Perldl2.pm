@@ -135,7 +135,7 @@ sub apply_profile {
     sub x {
       require Data::Dumper;
       local $Data::Dumper::Indent = 1;
-      local $Data::Dumper::Indent = 1;
+      local $Data::Dumper::Sortkeys = 1;
       local $Data::Dumper::Terse = 1;
       print Data::Dumper::Dumper(@_);
     }
