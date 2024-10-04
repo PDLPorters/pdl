@@ -134,6 +134,24 @@ proj_version(...)
     mPUSHu(PROJ_VERSION_MAJOR);
     mPUSHu(PROJ_VERSION_MINOR);
     mPUSHu(PROJ_VERSION_PATCH);
+
+# returns input_units, output_units
+void
+units(is_fwd, proj_str)
+  int is_fwd
+  char *proj_str
+PPCODE:
+  PJ *proj = proj_create( NULL, proj_str ); /* Init the projection */
+  if (!proj)
+    croak("Failed to create PJ: %s", proj_errno_string(proj_errno(proj)));
+  EXTEND(sp, 2);
+  char *input_u = proj_angular_input(proj, is_fwd ? PJ_FWD : PJ_INV)
+    ? "radians" : proj_degree_input(proj, PJ_FWD) ? "degrees" : "metres";
+  char *output_u = proj_angular_output(proj, is_fwd ? PJ_FWD : PJ_INV)
+    ? "radians" : proj_degree_output(proj, PJ_FWD) ? "degrees" : "metres";
+  mPUSHs(newSVpv(input_u, 0));
+  mPUSHs(newSVpv(output_u, 0));
+  proj_destroy(proj);
 ENDXS
 
 my %SKIP = map +($_=>1), qw(

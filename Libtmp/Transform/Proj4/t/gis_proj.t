@@ -53,7 +53,6 @@ my $xy3_exp = double [
   [20037508.34278924, -10018754.17139462]
 ];
 
-# TEST 5 & 6:
 my ($xy3) = PDL::Transform::Proj4::fwd_transform($lonlat3, $cyl_eq);
 ok( tapprox( $xy3, $xy3_exp ) );
 
@@ -64,9 +63,11 @@ $lonlat->inplace(1);
 PDL::Transform::Proj4::fwd_transform($lonlat, $proj);
 ok !all(approx($lonlat, $exp)), 'check it changed';
 
-# TEST 15:
 # Get full projection information:
 my $info = PDL::Transform::Proj4::load_projection_information();
 #diag explain $info;
+
+my @units = PDL::Transform::Proj4::units(1, $cyl_eq);
+is 0+@units, 2, 'got 2 units back';
 
 done_testing;
