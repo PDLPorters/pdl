@@ -182,12 +182,6 @@ sub load_projection_information {
           $hash{CATEGORIES} = \@types;
         }
         # If there's more than 2 lines, then it usually is a listing of parameters:
-        # General parameters for all projections:
-        $hash{PARAMS}{GENERAL} =
-            [ qw( x_0 y_0 lon_0 units init no_defs geoc over ) ];
-        # Earth Figure Parameters:
-        $hash{PARAMS}{EARTH} =
-            [ qw( ellps b f rf e es R R_A R_V R_a R_g R_h R_lat_g ) ];
         # Projection Specific Parameters:
         $hash{PARAMS}{PROJ} = [
           grep !$SKIP{$_}, map {s/=//; s/[,\[\]]//sg; $_}
