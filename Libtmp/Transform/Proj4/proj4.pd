@@ -23,25 +23,17 @@ pp_addhdr(<<'EOHDR');
 #define DEG_TO_RAD      .017453292519943296
 EOHDR
 
-my $code_head = <<'EOF';
-PJ_COORD in, out;
-PJ *proj = proj_create( NULL, $COMP(params) ); /* Init the projection */
-if( proj == NULL )
-    $CROAK("%s: Projection initialization failed: %s\n", func, proj_errno_string(proj_errno(proj)));
-/* Loop over the values converting as we go */
-broadcastloop %{
-EOF
-my $code_foot = <<'EOF';
-%}
-proj_destroy(proj);
-EOF
-
 sub wrap_code {
   my ($name, $in, $out, $is_fwd) = @_;
-  my $body = <<EOF;
+  (Code => <<EOF,
+PJ_COORD in, out;
+PJ *proj = proj_create( NULL, \$COMP(params) ); /* Init the projection */
+if( proj == NULL )
+    \$CROAK("Projection initialization failed: %s\\n", proj_errno_string(proj_errno(proj)));
+/* Loop over the values converting as we go */
+broadcastloop %{
 PDL_IF_BAD(
-if ( @{[ join '||', map "\$ISBAD($in(n=>$_))", 0,1 ]} )
-{
+if ( @{[ join '||', map "\$ISBAD($in(n=>$_))", 0,1 ]} ) {
 @{[ join "\n", map "\$SETBAD($out(n=>$_));", 0,1 ]}
 }
 else,)
@@ -49,25 +41,20 @@ else,)
     in.uv.u = \$$in(n=>0) @{[$is_fwd ? ' * DEG_TO_RAD' : '']};
     in.uv.v = \$$in(n=>1) @{[$is_fwd ? ' * DEG_TO_RAD' : '']};
     out = proj_trans(proj, PJ_@{[$is_fwd ? 'FWD' : 'INV']}, in);
-    if (out.uv.u == HUGE_VAL)
-    {
+    if (out.uv.u == HUGE_VAL) {
 PDL_IF_BAD(
         @{[ join "\n", map "\$SETBAD($out(n=>$_));", 0,1 ]}
 ,
-        \$CROAK("%s: Projection conversion failed at (%f, %f): %s\\n",
-                func, \$$in(n=>0), \$$in(n=>1), proj_errno_string(proj_errno(proj)));
+        \$CROAK("Projection conversion failed at (%f, %f): %s\\n",
+                \$$in(n=>0), \$$in(n=>1), proj_errno_string(proj_errno(proj)));
 )
     }
     \$$out(n=>0) = out.uv.u@{[$is_fwd ? '' : ' * RAD_TO_DEG']};
     \$$out(n=>1) = out.uv.v@{[$is_fwd ? '' : ' * RAD_TO_DEG']};
 }
+%}
+proj_destroy(proj);
 EOF
-  my $code = join '', qq{char* func = "$name" PDL_IF_BAD("[BADCODE]",) "()";},
-    $code_head,
-    $body,
-    $code_foot,
-    ;
-  (Code => $code,
     Pars => "$in(n=2); [o] $out(n);",
     GenericTypes => ['D'],
     OtherPars => 'char* params;',
