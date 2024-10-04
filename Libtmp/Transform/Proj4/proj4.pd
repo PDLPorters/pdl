@@ -17,12 +17,8 @@ my @export_funcs = ();
 
 pp_addbegin( <<'ENDBEGIN' );
 use PDL::LiteF;
-use PDL::NiceSlice;
 use PDL::Transform;
 use Alien::proj;
-if ($^O =~ /MSWin32/ and $Alien::proj::VERSION le '1.25') {
-  $ENV{PATH} = join ';', (Alien::proj->bin_dirs, $ENV{PATH});
-}
 ENDBEGIN
 
 pp_addhdr(<<'EOHDR');
@@ -218,6 +214,9 @@ pp_addpm( { At => 'Top' }, <<'ENDPM' );
 # Judd Taylor, USF IMaRS
 # 4 Apr 2006
 
+use strict;
+use warnings;
+
 =head1 NAME
 
 PDL::Transform::Proj4 - PDL::Transform interface to the Proj4 projection library
@@ -397,28 +396,19 @@ Eccentricity squared +es=e2
 sub new
 {
     my $proto = shift;
-    my $sub = "PDL::Transform::Proj4::new()";
-    #print STDERR "$sub: ARGS: [" . join(", ", @_ ) . "]\n";
     my $class = ref($proto) || $proto;
     my $self  = $class->SUPER::new( @_ );
-
-    bless ($self, $class);
 
     my $o = $_[0];
     unless( (ref $o) )
         { $o = {@_}; }
-
-    #use Data::Dumper;
-    #my $dd2 = Data::Dumper->new( [$o], ["$sub: o"] );
-    #$dd2->Indent(1);
-    #print STDERR $dd2->Dump();
 
     $self->{name} = "Proj4";
 
     # Grab our options:
 
     # Used in the general sense:
-    $self->{params}->{proj_params} = PDL::Transform::_opt( $o, ['proj_params','params'] );
+    $self->{params}{proj_params} = PDL::Transform::_opt( $o, ['proj_params','params'] );
 
     # Projection options available to all projections:
     $self->{general_params} = [ qw( proj x_0 y_0 lat_0 lon_0 units init ) ];
@@ -428,42 +418,32 @@ sub new
     # Options that have no value (like "+over"):
     $self->{bool_params} = [ qw( no_defs over geoc ) ];
     foreach my $param ( @{ $self->{bool_params} } )
-        { $self->{params}->{$param} = ( PDL::Transform::_opt( $o, [ $param ] ) ) ? 'ON' : undef; }
+        { $self->{params}{$param} = ( PDL::Transform::_opt( $o, [ $param ] ) ) ? 'ON' : undef; }
 
     # Options for the Earth figure: (ellipsoid, etc):
     $self->{earth_params} = [ qw( ellps R R_A R_V R_a R_g R_h R_lat_a R_lat_g b f rf e es ) ];
     foreach my $param ( @{ $self->{earth_params} } )
-        { $self->{params}->{$param} = PDL::Transform::_opt( $o, [ $param ] ); }
+        { $self->{params}{$param} = PDL::Transform::_opt( $o, [ $param ] ); }
 
     # First process the old params that may already be in the string:
     # These override the specific params set above:
-    if( defined( $self->{params}->{proj_params} ) )
-    {
-        $self->{orig_proj_params} = $self->{params}->{proj_params};
+    if (defined( $self->{params}{proj_params} )) {
+        $self->{orig_proj_params} = $self->{params}{proj_params};
 
         my @params = split( /\s+/, $self->{orig_proj_params} );
-        foreach my $param ( @params )
-        {
-            if( $param =~ /^\+(\S+)=(\S+)/ )
-            {
+        foreach my $param ( @params ) {
+            if ($param =~ /^\+(\S+)=(\S+)/) {
                 my ($name, $val) = ($1, $2);
-                $self->{params}->{$name} = $val;
-                #print STDERR "$sub: $name => $val\n";
-            }
-            elsif( $param =~ /^\+(\S+)/ )
-            {   # Boolean option
-                $self->{params}->{$1} = 'ON';
+                $self->{params}{$name} = $val;
+            } elsif ($param =~ /^\+(\S+)/) {   # Boolean option
+                $self->{params}{$1} = 'ON';
             }
         }
     }
 
     # Update the proj_string to current options:
     #
-    $self->update_proj_string();
-
-    #my $dd = Data::Dumper->new( [$self->{params}], ["$sub: params"] );
-    #$dd->Indent(1);
-    #print STDERR $dd->Dump();
+    $self->update_proj_string;
 
     ##############################
     # The meat -- just copy and paste from Transform.pm :)
@@ -496,39 +476,21 @@ sub new
     return $self;
 } # End of new()...
 
-sub update_proj_string
-{
+sub update_proj_string {
     my $self = shift;
-    my $sub = "PDL::Transform::Proj4::update_proj_string()";
-
     # (Re)Generate the proj_params string from the options passed:
-    #
-    delete( $self->{params}->{proj_params} );
-    my $proj_string = "";
-
-    foreach my $param ( sort keys %{ $self->{params} } )
-    {
-        next unless defined( $self->{params}->{$param} );
-
-        $proj_string .= ( $self->{params}->{$param} eq 'ON' )
-                        ? "+$param " : " +$param=" . $self->{params}->{$param} . " ";
-        #print STDERR "$sub: Adding \'$proj_string\'...\n";
-    }
-
-    #print STDERR "$sub: Final proj_params: \'$proj_string\'\n";
-
-    $self->{params}->{proj_params} = $proj_string;
+    my @params = map "+$_".($self->{params}{$_} eq 'ON' ? '' : "=$self->{params}{$_}"),
+      sort grep defined $self->{params}{$_}, keys %{$self->{params}};
+    $self->{params}{proj_params} = "@params";
 } # End of update_proj_string()...
 
-sub proj_params
-{
+sub proj_params {
     my $self = shift;
-    $self->update_proj_string();
-    return $self->{params}->{proj_params};
+    $self->update_proj_string;
+    return $self->{params}{proj_params};
 } # End of proj_params()...
 
-sub t_proj
-{
+sub t_proj {
     PDL::Transform::Proj4->new( @_ );
 } # End of t_proj()...
 
@@ -558,34 +520,23 @@ my $projections = eval { load_projection_information() } || {};
 
 foreach my $name ( sort keys %$projections )
 {
-    #print STDERR "Generating code for projection $name...\n";
     my $projection = $projections->{$name};
     # Start out with  a blank template:
     my $template = pp_line_numbers __LINE__, <<'ENDTEMPLATE';
 # Autogenerated code for the Proj4 projection code:
 #    INSERT_NAME_HERE
-#
 package # hide from PAUSE
   PDL::Transform::Proj4::INSERT_NAME_HERE;
 use strict;
 use warnings;
 our @ISA = ( 'PDL::Transform::Proj4' );
 
-sub new
-{
+sub new {
     my $proto = shift;
     my $class = ref($proto) || $proto;
-    my $sub = "PDL::Transform::Proj4::INSERT_NAME_HERE::new()";
-    #print STDERR "$sub: ARGS: [" . join(", ", @_ ) . "]\n";
     my $self  = $class->SUPER::new( @_ );
-    bless ($self, $class);
     my $o = $_[0];
-    unless( (ref $o) )
-        { $o = {@_}; }
-    #use Data::Dumper;
-    #my $dd2 = Data::Dumper->new( [$o], ["$sub: o"] );
-    #$dd2->Indent(1);
-    #print STDERR $dd2->Dump();
+    $o = {@_} if !ref $o;
     $self->{name} = "INSERT_FULL_NAME_HERE";
     $self->{proj_code} = "INSERT_NAME_HERE";
     # Make sure proj is set in the options:
@@ -593,13 +544,11 @@ sub new
     # Grab our projection specific options:
     #
     $self->{projection_params} = [ qw( INSERT_PARAM_LIST_HERE ) ];
-    foreach my $param ( @{ $self->{projection_params} } )
-        { $self->{params}->{$param} = PDL::Transform::_opt( $o, [ $param ] ); }
-    $self->update_proj_string();
-    #my $dd = Data::Dumper->new( [$self->{params}], ["$sub: params"] );
-    #$dd->Indent(1);
-    #print STDERR $dd->Dump();
-    #print STDERR "$sub: Final proj_params: \'" . $self->{params}->{proj_params} . "\'\n";
+    foreach my $param ( @{ $self->{projection_params} } ) {
+        my $val = PDL::Transform::_opt( $o, [ $param ] );
+        $self->{params}{$param} = $val if defined $val;
+    }
+    $self->update_proj_string;
     return $self;
 } # End of PDL::Transform::INSERT_NAME_HERE::new()...
 
