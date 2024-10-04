@@ -129,17 +129,16 @@ proj_version(...)
 
 # returns input_units, output_units
 void
-units(is_fwd, proj_str)
-  int is_fwd
+units(proj_str)
   char *proj_str
 PPCODE:
   PJ *proj = proj_create( NULL, proj_str ); /* Init the projection */
   if (!proj)
     croak("Failed to create PJ: %s", proj_errno_string(proj_errno(proj)));
   EXTEND(sp, 2);
-  char *input_u = proj_angular_input(proj, is_fwd ? PJ_FWD : PJ_INV)
+  char *input_u = proj_angular_input(proj, PJ_FWD)
     ? "radians" : proj_degree_input(proj, PJ_FWD) ? "degrees" : "metres";
-  char *output_u = proj_angular_output(proj, is_fwd ? PJ_FWD : PJ_INV)
+  char *output_u = proj_angular_output(proj, PJ_FWD)
     ? "radians" : proj_degree_output(proj, PJ_FWD) ? "degrees" : "metres";
   mPUSHs(newSVpv(input_u, 0));
   mPUSHs(newSVpv(output_u, 0));
@@ -407,31 +406,19 @@ our @EARTH_PARAMS = qw(ellps R R_A R_V R_a R_g R_h R_lat_a R_lat_g b f rf e es);
 our @BOOL_PARAMS = qw( no_defs over geoc );
 
 sub new {
-    my $proto = shift;
-    my $class = ref($proto) || $proto;
-    my $self  = $class->SUPER::new( @_ );
-
+    my $self  = shift->SUPER::new( @_ );
     my $o = $_[0];
-    unless( (ref $o) )
-        { $o = {@_}; }
-
+    $o = {@_} if !ref $o;
     $self->{name} = "Proj4";
-
-    # Grab our options:
-
-    # Used in the general sense:
     $self->{params}{proj_params} = PDL::Transform::_opt( $o, ['proj_params','params'] );
-
     foreach my $param ( @BOOL_PARAMS ) {
         my $val = PDL::Transform::_opt( $o, [ $param ] );
         $self->{params}{$param} = 'ON' if $val;
     }
-
     foreach my $param (@GENERAL_PARAMS, @EARTH_PARAMS) {
         my $val = PDL::Transform::_opt( $o, [ $param ] );
         $self->{params}{$param} = $val if defined $val;
     }
-
     # First process the old params that may already be in the string:
     # These override the specific params set above:
     if (defined( $self->{params}{proj_params} )) {
@@ -446,15 +433,10 @@ sub new {
             }
         }
     }
-
     # Update the proj_string to current options:
-    #
     $self->update_proj_string;
-
-    ##############################
     # The meat -- just copy and paste from Transform.pm :)
     #    (and do some proj stuff here as well)
-
     # Forward transformation:
     $self->{func} = sub
     {
@@ -466,7 +448,6 @@ sub new {
         $out->inplace(1);
         PDL::Transform::Proj4::fwd_transform( $out, $opt->{proj_params} );
     };
-
     # Inverse transformation:
     $self->{inv} = sub
     {
@@ -478,7 +459,6 @@ sub new {
         $out->inplace(1);
         PDL::Transform::Proj4::inv_transform( $out, $opt->{proj_params} );
     };
-
     return $self;
 } # End of new()...
 
@@ -510,15 +490,15 @@ sub new {
   my \$self  = shift->SUPER::new( \@_ );
   my \$o = \$_[0];
   \$o = {\@_} if !ref \$o;
-  \$self->{name} = q{$full_name};
-  # Make sure proj is set in the options:
   \$self->{params}{proj} = q{$name};
-  # Grab our projection specific options:
   foreach my \$param (\@PARAM_LIST) {
       my \$val = PDL::Transform::_opt( \$o, [ \$param ] );
       \$self->{params}{\$param} = \$val if defined \$val;
   }
   \$self->update_proj_string;
+  my (\$iunit, \$ounit) = PDL::Transform::Proj4::units(\$self->{params}{proj_params});
+  \@\$self{qw(name idim odim iunit ounit)} = (q{$full_name}, 2, 2,
+   [(\$iunit)x2], [(\$ounit)x2]);
   return \$self;
 }
 EOF
@@ -537,7 +517,6 @@ pp_addpm( { At => 'Middle' }, <<'ENDPM' );
 This is the main entry point for the generalized interface. See above on its usage.
 
 =cut
-
 
 ENDPM
 push( @export_funcs, 't_proj' );
@@ -565,12 +544,10 @@ foreach my $name ( sort keys %$projections )
     my $alias_name = "t_proj_$name";
     push( @export_funcs, $alias_name );
     my $doc_param_list = "";
-    if( scalar( @{ $projection->{PARAMS}{PROJ} } ) )
-    {
+    if( scalar( @{ $projection->{PARAMS}{PROJ} } ) ) {
         $doc_param_list .= "\nProjection Parameters\n\n=for options\n\n=over 4\n\n";
-        foreach my $param ( sort @{ $projection->{PARAMS}{PROJ} } )
-            { next if(!$param); $doc_param_list .= "=item $param\n\n"; }
-	    $doc_param_list .= "=back\n\n";
+        $doc_param_list .= join '', map "=item $_\n\n", sort @{ $projection->{PARAMS}{PROJ} };
+        $doc_param_list .= "=back\n\n";
     }
     my $alias_template = $ALIAS_TEMPLATE;
     $alias_template =~ s/INSERT_ALIAS_NAME_HERE/$alias_name/sg;

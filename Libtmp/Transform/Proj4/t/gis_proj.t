@@ -67,7 +67,7 @@ ok !all(approx($lonlat, $exp)), 'check it changed';
 my $info = PDL::Transform::Proj4::load_projection_information();
 #diag explain $info;
 
-my @units = PDL::Transform::Proj4::units(1, $cyl_eq);
+my @units = PDL::Transform::Proj4::units($cyl_eq);
 is 0+@units, 2, 'got 2 units back';
 
 done_testing;

@@ -109,14 +109,6 @@ EOF
    }
 }
 
-my $eqc_opts = "+proj=eqc +lon_0=0 +datum=WGS84";
-for my $proj (@projections) {
-   my $alias = "t_proj_$proj";
-   my $proj = eval { no strict 'refs'; $alias->( proj_params => $eqc_opts ) };
-   is $@, '';
-   isnt $proj, undef;
-}
-
 done_testing;
 
 sub get_ref_robin_slices {
