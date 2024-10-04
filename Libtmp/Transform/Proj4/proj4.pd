@@ -25,33 +25,39 @@ EOHDR
 
 sub wrap_code {
   my ($name, $in, $out, $is_fwd) = @_;
-  (Code => <<EOF,
+  pp_def($name,
+    Code => <<EOF,
 PJ_COORD in, out;
 PJ *proj = proj_create( NULL, \$COMP(params) ); /* Init the projection */
 if( proj == NULL )
-    \$CROAK("Projection initialization failed: %s\\n", proj_errno_string(proj_errno(proj)));
-/* Loop over the values converting as we go */
+  \$CROAK("Projection initialization failed: %s\\n", proj_errno_string(proj_errno(proj)));
+char convert_rad_in = @{[$is_fwd ? 'proj_angular_input(proj, PJ_FWD)' : '0']},
+  convert_rad_out = @{[$is_fwd ? '0' : 'proj_angular_output(proj, PJ_INV)']};
 broadcastloop %{
-PDL_IF_BAD(
-if ( @{[ join '||', map "\$ISBAD($in(n=>$_))", 0,1 ]} ) {
-@{[ join "\n", map "\$SETBAD($out(n=>$_));", 0,1 ]}
-}
-else,)
-{
-    in.uv.u = \$$in(n=>0) @{[$is_fwd ? ' * DEG_TO_RAD' : '']};
-    in.uv.v = \$$in(n=>1) @{[$is_fwd ? ' * DEG_TO_RAD' : '']};
-    out = proj_trans(proj, PJ_@{[$is_fwd ? 'FWD' : 'INV']}, in);
-    if (out.uv.u == HUGE_VAL) {
-PDL_IF_BAD(
-        @{[ join "\n", map "\$SETBAD($out(n=>$_));", 0,1 ]}
-,
-        \$CROAK("Projection conversion failed at (%f, %f): %s\\n",
-                \$$in(n=>0), \$$in(n=>1), proj_errno_string(proj_errno(proj)));
-)
-    }
-    \$$out(n=>0) = out.uv.u@{[$is_fwd ? '' : ' * RAD_TO_DEG']};
-    \$$out(n=>1) = out.uv.v@{[$is_fwd ? '' : ' * RAD_TO_DEG']};
-}
+  PDL_IF_BAD(
+  if ( @{[ join '||', map "\$ISBAD($in(n=>$_))", 0,1 ]} ) {
+  @{[ join "\n", map "\$SETBAD($out(n=>$_));", 0,1 ]}
+  continue;
+  },)
+  in.uv.u = \$$in(n=>0);
+  in.uv.v = \$$in(n=>1);
+  if (convert_rad_in) {
+    in.uv.u *= DEG_TO_RAD; in.uv.v *= DEG_TO_RAD;
+  }
+  out = proj_trans(proj, PJ_@{[$is_fwd ? 'FWD' : 'INV']}, in);
+  if (out.uv.u == HUGE_VAL) {
+    PDL_IF_BAD(
+    @{[ join "\n", map "\$SETBAD($out(n=>$_));", 0,1 ]}
+    ,
+    \$CROAK("Projection conversion failed at (%f, %f): %s\\n",
+      \$$in(n=>0), \$$in(n=>1), proj_errno_string(proj_errno(proj)));
+    )
+  }
+  if (convert_rad_out) {
+    out.uv.u *= RAD_TO_DEG; out.uv.v *= RAD_TO_DEG;
+  }
+  \$$out(n=>0) = out.uv.u;
+  \$$out(n=>1) = out.uv.v;
 %}
 proj_destroy(proj);
 EOF
@@ -61,50 +67,14 @@ EOF
     HandleBad => 1,
     Inplace => 1,
     NoPthread => 1,
+    Doc => undef,
   );
 }
 
-pp_def( 'fwd_transform',
-        Doc => <<'EOF',
-=for ref
+wrap_code('fwd_transform', 'lonlat', 'xy', 1);
+wrap_code('inv_transform', 'xy', 'lonlat', 0);
 
-PROJ forward transformation $params is a string of the projection
-transformation parameters.
-
-Returns a pdl with x, y values at positions 0, 1. The units are dependent
-on PROJ behavior. They will be PDL->null if an error has occurred.
-
-=for bad
-
-Ignores bad elements of $lat and $lon, and sets the corresponding elements
-of $x and $y to BAD
-EOF
-        wrap_code('fwd_transform', 'lonlat', 'xy', 1),
-);
-
-pp_def( 'inv_transform',
-        Doc => <<'EOF',
-=for ref
-
-PROJ inverse transformation $params is a string of the projection
-transformation parameters.
-
-Returns a pdl with lon, lat values at positions 0, 1. The units are
-dependent on PROJ behavior. They will be PDL->null if an error has
-occurred.
-
-=for bad
-
-Ignores bad elements of $lat and $lon, and sets the corresponding elements
-of $x and $y to BAD
-EOF
-        wrap_code('inv_transform', 'xy', 'lonlat', 0),
-);
-
-#
 # Utility functions for getting projection description information (in a general case).
-#
-
 pp_addxs('', <<'ENDXS' );
 void
 proj_version(...)
@@ -123,10 +93,10 @@ PPCODE:
   if (!proj)
     croak("Failed to create PJ: %s", proj_errno_string(proj_errno(proj)));
   EXTEND(sp, 2);
-  char *input_u = proj_angular_input(proj, PJ_FWD)
-    ? "radians" : proj_degree_input(proj, PJ_FWD) ? "degrees" : "metres";
-  char *output_u = proj_angular_output(proj, PJ_FWD)
-    ? "radians" : proj_degree_output(proj, PJ_FWD) ? "degrees" : "metres";
+  char *input_u = proj_angular_input(proj, PJ_FWD) ||
+    proj_degree_input(proj, PJ_FWD) ? "degrees" : "metres";
+  char *output_u = proj_angular_output(proj, PJ_FWD) ||
+    proj_degree_output(proj, PJ_FWD) ? "degrees" : "metres";
   mPUSHs(newSVpv(input_u, 0));
   mPUSHs(newSVpv(output_u, 0));
   proj_destroy(proj);
@@ -256,6 +226,10 @@ with just the B<proj_params> option defined.
 
 When options are used, they must be used with a '+' before them when placed in the proj_params string,
 but that is not required otherwise. See the SYNOPSIS above.
+
+Please note that unlike PROJ, all angles in these operations are
+in degrees. This is correctly (as of PDL 2.094) reflected in the
+PDL::Transform subclass objects.
 
 =head2 ALIASED INTERFACE
 
