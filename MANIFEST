@@ -579,7 +579,6 @@ Libtmp/Transform/Proj4/Makefile.PL
 Libtmp/Transform/Proj4/proj4.pd
 Libtmp/Transform/Proj4/t/gis_proj.t
 Libtmp/Transform/Proj4/t/proj_transform.t
-Libtmp/Transform/Proj4/t/proj_transform2.t
 Libtmp/Transform/t/transform.t
 Libtmp/Transform/transform.pd
 Libtmp/Transform/Transform_demo.pm
