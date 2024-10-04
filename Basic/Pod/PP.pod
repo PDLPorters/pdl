@@ -1553,7 +1553,7 @@ appropriate wrapping C code around it). However, when you explicitly
 use the C<broadcastloop> function, PDL::PP recognises this and doesn't
 wrap your code with an additional broadcast loop. This has the effect that
 code you write outside the broadcast loop is only executed once per
-transformation and just the code with in the surrounding C<%{ ... %}>
+transformation and just the code within the surrounding C<%{ ... %}>
 pair is placed within the tightest broadcast loop. This also comes in
 handy when you want to perform a decision (or any other code,
 especially CPU intensive code) only once per thread, i.e.

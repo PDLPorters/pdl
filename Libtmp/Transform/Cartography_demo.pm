@@ -138,7 +138,7 @@ draw( t_perspective( r0=> 1.1, o=>[-117,31], cam=>[-22,-45,0] ),
 That concludes the basic cartography demo.  Numerous other transforms
 are available.  
 
-Because PDL's cartographic transforms work with in the Transform module
+Because PDL's cartographic transforms work within the Transform module
 and are invertible, it's easy to use them both forwards and backwards.
 In particular, the perspective transformation is useful for ingesting 
 scientific image data of the Earth or other planets, and converting to
