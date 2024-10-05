@@ -2024,7 +2024,7 @@ You can also compose transforms using the overloaded matrix-multiplication
 
 This is accomplished by inserting a splicing code ref into the C<func>
 and C<inv> slots.  It combines multiple compositions into a single
-list of transforms to be executed in order, fram last to first (in
+list of transforms to be executed in order, from last to first (in
 keeping with standard mathematical notation).  If one of the functions is
 itself a composition, it is interpolated into the list rather than left
 separate.  Ultimately, linear transformations may also be combined within

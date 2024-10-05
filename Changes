@@ -4,6 +4,8 @@
 - Transform::Proj4 use Alien::proj better for build (#499) - thanks @shawnlaffan
 - perldl/pdl2 now have "x" command that Data::Dumper-s argument
 - Transform::Proj4 objects have correct units
+- add demo for Transform::Proj4
+- fix Transform::Proj4 tests and build (#498 #499) - thanks @shawnlaffan
 
 2.093 2024-09-29
 - PDL.set_datatype now doesn't physicalise input, PDL.convert_type does

@@ -575,6 +575,7 @@ Libtmp/Transform/Cartography/earth_water-2048x1024.png
 Libtmp/Transform/Cartography/Makefile.PL
 Libtmp/Transform/Cartography_demo.pm
 Libtmp/Transform/Makefile.PL
+Libtmp/Transform/Proj4/Demo.pm
 Libtmp/Transform/Proj4/Makefile.PL
 Libtmp/Transform/Proj4/proj4.pd
 Libtmp/Transform/Proj4/t/gis_proj.t

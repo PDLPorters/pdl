@@ -19,6 +19,7 @@ $hash{LIBS}[0] .= ' ' . Alien::proj->libs;
 $hash{INC}     .= ' ' . Alien::proj->cflags;
 $hash{realclean} ||= { FILES => '' };
 $hash{realclean}{FILES} .= ' _Inline';
+$hash{PM}{'Demo.pm'} = '$(INST_LIB)/PDL/Demos/Proj4_demo.pm';
 
 undef &MY::postamble; # suppress warning
 *MY::postamble = sub { pdlpp_postamble_int( $package ); };
