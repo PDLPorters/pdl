@@ -48,6 +48,7 @@ broadcastloop %{
   if (out.uv.u == HUGE_VAL) {
     PDL_IF_BAD(
     @{[ join "\n", map "\$SETBAD($out(n=>$_));", 0,1 ]}
+    continue;
     ,
     \$CROAK("Projection conversion failed at (%f, %f): %s\\n",
       \$$in(n=>0), \$$in(n=>1), proj_errno_string(proj_errno(proj)));
