@@ -92,7 +92,7 @@ units(proj_str)
 PPCODE:
   PJ *proj = proj_create( NULL, proj_str ); /* Init the projection */
   if (!proj)
-    croak("Failed to create PJ: %s", proj_errno_string(proj_errno(proj)));
+    croak("Failed to create PJ from '%s': %s", proj_str, proj_errno_string(proj_errno(proj)));
   EXTEND(sp, 2);
   char *input_u = proj_angular_input(proj, PJ_FWD) ||
     proj_degree_input(proj, PJ_FWD) ? "degrees" : "metres";
@@ -122,11 +122,13 @@ sub load_projection_information {
         my %hash = (CODE => $projection);
         my @lines = split( /\n/, $description );
         chomp @lines;
+        # Can this projection do inverse?
+        $hash{INVERSE} = 1;
         # Full name of this projection:
         ($hash{NAME}, my $temp) = splice @lines, 0, 2;
         if ($temp) {
           # The second line is usually a list of projection types this one is:
-          $temp =~ s/no inv\.*,*//;
+          $hash{INVERSE} = 0 if $temp =~ s/no inv\.*,*//i;
           $temp =~ s/or//;
           my @temp_types = split(/[,&\s]/, $temp );
           my @types = grep( /.+/, @temp_types );
@@ -138,8 +140,6 @@ sub load_projection_information {
           grep !$SKIP{$_}, map {s/=//; s/[,\[\]]//sg; $_}
             grep length, map split(/\s+/), @lines
         ];
-        # Can this projection do inverse?
-        $hash{INVERSE} = ( $description =~ /no inv/ ) ? 0 : 1;
         $info{$projection} = \%hash;
     }
     # A couple of overrides:
@@ -367,6 +367,25 @@ our @EARTH_PARAMS = qw(ellps R R_A R_V R_a R_g R_h R_lat_a R_lat_g b f rf e es);
 # Options that have no value (like "+over"):
 our @BOOL_PARAMS = qw( no_defs over geoc );
 
+# The meat -- just copy and paste from Transform.pm :)
+#    (and do some proj stuff here as well)
+sub _proj4_fwd {
+  my ($in, $opt) = @_;
+  my $out = $in->new_or_inplace();
+  # Always set the badflag to 1 here, to handle possible bad projection values:
+  $out->badflag(1);
+  $out->inplace(1);
+  fwd_transform( $out, $opt->{proj_params} );
+}
+sub _proj4_inv {
+  my ($in, $opt) = @_;
+  my $out = $in->new_or_inplace();
+  # Always set the badflag to 1 here, to handle possible bad projection values:
+  $out->badflag(1);
+  $out->inplace(1);
+  inv_transform( $out, $opt->{proj_params} );
+}
+
 sub new {
     my $self  = shift->SUPER::new( @_ );
     my $o = $_[0];
@@ -395,32 +414,11 @@ sub new {
             }
         }
     }
-    # Update the proj_string to current options:
-    $self->update_proj_string;
-    # The meat -- just copy and paste from Transform.pm :)
-    #    (and do some proj stuff here as well)
-    # Forward transformation:
-    $self->{func} = sub
-    {
-        my $in = shift;
-        my $opt = shift;
-        my $out = $in->new_or_inplace();
-        # Always set the badflag to 1 here, to handle possible bad projection values:
-        $out->badflag(1);
-        $out->inplace(1);
-        PDL::Transform::Proj4::fwd_transform( $out, $opt->{proj_params} );
-    };
-    # Inverse transformation:
-    $self->{inv} = sub
-    {
-        my $in = shift;
-        my $opt = shift;
-        my $out = $in->new_or_inplace();
-        # Always set the badflag to 1 here, to handle possible bad projection values:
-        $out->badflag(1);
-        $out->inplace(1);
-        PDL::Transform::Proj4::inv_transform( $out, $opt->{proj_params} );
-    };
+    @$self{qw(idim odim)} = (2, 2);
+    # Update proj_string to current options:
+    $self->update_proj_string if $self->{params}{proj};
+    $self->{func} = \&_proj4_fwd; # Forward transformation
+    $self->{inv} = \&_proj4_inv; # Inverse transformation
     return $self;
 } # End of new()...
 
@@ -430,6 +428,8 @@ sub update_proj_string {
     my @params = map "+$_".($self->{params}{$_} eq 'ON' ? '' : "=$self->{params}{$_}"),
       sort grep $_ ne 'proj_params' && defined $self->{params}{$_}, keys %{$self->{params}};
     $self->{params}{proj_params} = "@params";
+  my ($iunit, $ounit) = PDL::Transform::Proj4::units($self->{params}{proj_params});
+  @$self{qw(iunit ounit)} = ([($iunit)x2], [($ounit)x2]);
 } # End of update_proj_string()...
 
 sub proj_params {
@@ -443,7 +443,7 @@ sub t_proj {
 } # End of t_proj()...
 
 sub _make_class {
-  my ($name, $full_name, $param_list) = @_;
+  my ($name, $full_name, $can_inv, $param_list) = @_;
   eval <<"EOF";
 package PDL::Transform::Proj4::${name};
 our \@ISA = 'PDL::Transform::Proj4';
@@ -452,15 +452,13 @@ sub new {
   my \$self  = shift->SUPER::new( \@_ );
   my \$o = \$_[0];
   \$o = {\@_} if !ref \$o;
-  \$self->{params}{proj} = q{$name};
+  \$self->{name} = \$self->{params}{proj} = q{$name};
   foreach my \$param (\@PARAM_LIST) {
       my \$val = PDL::Transform::_opt( \$o, [ \$param ] );
       \$self->{params}{\$param} = \$val if defined \$val;
   }
+  delete \$self->{inv} if !$can_inv;
   \$self->update_proj_string;
-  my (\$iunit, \$ounit) = PDL::Transform::Proj4::units(\$self->{params}{proj_params});
-  \@\$self{qw(name idim odim iunit ounit)} = (q{$full_name}, 2, 2,
-   [(\$iunit)x2], [(\$ounit)x2]);
   return \$self;
 }
 EOF
@@ -490,6 +488,7 @@ my $ALIAS_TEMPLATE = pp_line_numbers __LINE__, <<'ENDTEMPLATE';
 =head2 INSERT_ALIAS_NAME_HERE
 
 Proj4 projection code C<INSERT_NAME_HERE>, full name "INSERT_FULL_NAME_HERE".
+INSERT_CATEGORIES_LIST_HERE
 INSERT_PARAM_LIST_HERE
 
 =cut
@@ -501,21 +500,26 @@ foreach my $name ( sort keys %$projections )
 {
     my $projection = $projections->{$name};
     my $param_list = 'qw('.join(' ', @{ $projection->{PARAMS}{PROJ} }).')';
-    pp_addpm( {At => 'Bot'}, "_make_class(q{$name}, q{$projection->{NAME}}, q{$param_list});\n" );
+    pp_addpm( {At => 'Bot'}, "_make_class(q{$name}, q{$projection->{NAME}}, $projection->{INVERSE}, q{$param_list});\n" );
     # Generate the alias sub:
     my $alias_name = "t_proj_$name";
     push( @export_funcs, $alias_name );
-    my $doc_param_list = "";
+    $_ = "" for my ($doc_param_list, $cat_list);
     if( scalar( @{ $projection->{PARAMS}{PROJ} } ) ) {
         $doc_param_list .= "\nProjection Parameters\n\n=for options\n\n=over 4\n\n";
         $doc_param_list .= join '', map "=item $_\n\n", sort @{ $projection->{PARAMS}{PROJ} };
         $doc_param_list .= "=back\n\n";
     }
+    unshift @{$projection->{CATEGORIES}}, "B<no inverse>"
+      if !$projection->{INVERSE};
+    $cat_list = "\nCategories: @{$projection->{CATEGORIES}}.\n\n"
+      if @{$projection->{CATEGORIES} || []};
     my $alias_template = $ALIAS_TEMPLATE;
     $alias_template =~ s/INSERT_ALIAS_NAME_HERE/$alias_name/sg;
     $alias_template =~ s/INSERT_NAME_HERE/$name/sg;
     $alias_template =~ s/INSERT_FULL_NAME_HERE/$projection->{NAME}/sg;
     $alias_template =~ s/INSERT_PARAM_LIST_HERE/$doc_param_list/sg;
+    $alias_template =~ s/INSERT_CATEGORIES_LIST_HERE/$cat_list/sg;
     pp_addpm( {At => 'Middle'},  $alias_template );
 } # for each projection...
 
