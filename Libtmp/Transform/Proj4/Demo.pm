@@ -37,6 +37,7 @@ a look at some of them.
 [act => q|
 ### Load the necessary modules
 use PDL::Graphics::Simple;
+use PDL::Transform; # for t_scale
 use PDL::Transform::Proj4;
 use PDL::Transform::Cartography;
 
@@ -67,6 +68,10 @@ $w->plot(with=>'fits', $earth->map($t),
 &],
 
 [act => q&
+### Because the Earth's radius in metres is quite a big number, we're
+### going to make our plots neater by scaling them (and changing the units)
+### with a scaling transform. The number is the Earth's radius from WGS72.
+###
 ### There are a large number of map projections -- to list them all,
 ### say "?? t_proj" in the perldl or pdl2 shell.  Here are four
 ### of them:
@@ -76,6 +81,7 @@ $w = pgswin( size=>[8,6], multi=>[2,2] ) ;
 
 sub draw {
  ($tx, $t, $px, @opt ) = @_;
+ $tx = t_scale(1/6378135, iunit=>'metres', ounit=>'radii') x $tx;
  $w->plot(with=>'fits', $earth->map( $tx, $px, @opt ),
    with=>'polylines', clean_lines($coast->apply($tx), $pen, @opt),
    {Title=>$t});
@@ -105,6 +111,7 @@ draw( t_proj_som(inc_angle=>98, ps_rev=>0.06, asc_lon=>64),
 
 sub drawL {
  ($tx, $t, $px, @opt ) = @_;
+ $tx = t_scale(1/6378135, iunit=>'metres', ounit=>'radii') x $tx;
  $w->plot(with=>'polylines', clean_lines($coast->apply($tx), $pen, @opt),
    {Title=>$t});
 }

@@ -7,42 +7,44 @@ use Test::More;
 use Test::Exception;
 
 {
-	##############################
-	##############################
-	# Test basic transformation
-	my $t = t_linear(scale=>[2]);
-	ok( $t->{idim} == 1 && $t->{odim} == 1, "t_linear can make a 1-d transform" );
+  ##############################
+  ##############################
+  # Test basic transformation
+  my $t = t_linear(scale=>[2]);
+  ok( $t->{idim} == 1 && $t->{odim} == 1, "t_linear can make a 1-d transform" );
 
-	my $pa = sequence(2,2)+1;
-	my $pb = $pa->apply($t);
+  my $pa = sequence(2,2)+1;
+  my $pb = $pa->apply($t);
 
-	ok( all( approx( $pb, pdl( [2, 2], [6, 4] ) )), "1-d apply on a collection of vectors ignors higher dim");
+  ok( all( approx( $pb, pdl( [2, 2], [6, 4] ) )), "1-d apply on a collection of vectors ignors higher dim");
 
-	my $t2 = t_linear(scale=>[2,3]);
+  my $t2 = t_linear(scale=>[2,3]);
 
-	ok( $t2->{idim} == 2 && $t2->{odim} == 2, "t_linear can make a 2-d transform" );
+  ok( $t2->{idim} == 2 && $t2->{odim} == 2, "t_linear can make a 2-d transform" );
 
-	$pb = $pa->apply($t2);
+  $pb = $pa->apply($t2);
 
-	ok( all( approx( $pb, pdl( [2, 6], [6, 12] ) )), "2-d apply treats the higher dim");
+  ok( all( approx( $pb, pdl( [2, 6], [6, 12] ) )), "2-d apply treats the higher dim");
 
-	$pb = pdl(2,3)->invert($t2);
-	ok( all( approx($pb, 1) ), "invert works");
+  $pb = pdl(2,3)->invert($t2);
+  ok( all( approx($pb, 1) ), "invert works");
 
-	my $t3 = t_rot([45,45,45]);
-	$pa = PDL::MatrixOps::identity(3);
-	my $got = $pa->apply($t3);
-	ok all(approx $got, pdl(<<'EOF'), 1e-4), 't_rot works' or diag 'got=', $got;
+  my $t3 = t_rot([45,45,45]);
+  $pa = PDL::MatrixOps::identity(3);
+  my $got = $pa->apply($t3);
+  ok all(approx $got, pdl(<<'EOF'), 1e-4), 't_rot works' or diag 'got=', $got;
 [
-  [        0.5 -0.14644661  0.85355339]
-  [        0.5  0.85355339 -0.14644661]
-  [-0.70710678         0.5         0.5]
+[        0.5 -0.14644661  0.85355339]
+[        0.5  0.85355339 -0.14644661]
+[-0.70710678         0.5         0.5]
 ]
 EOF
+  my $t4 = t_linear(scale=>[2], idim=>2, odim=>2, iunit=>[('metres')x2], ounit=>[('radii')x2]);
+  isnt $t4->{$_}, undef, "$_ in object" for qw(idim odim iunit ounit);
+  my $t5 = t_linear(scale=>[0.5], idim=>2, odim=>2, iunit=>[('radii')x2], ounit=>[('half-radii')x2]) x $t4;
+  is_deeply $t5->{iunit}, [('metres')x2], 'compose right iunit';
+  is_deeply $t5->{ounit}, [('half-radii')x2], 'compose right ounit';
 }
-
-
-
 
 {
 	##############################

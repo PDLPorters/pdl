@@ -428,7 +428,10 @@ sub earth_coast {
     require PDL::IO::FITS;
     foreach(@INC) {
 	my $file = "$_/$fn";
-	return PDL::IO::FITS::rfits($file) if(-e $file);
+	next if !-e $file;
+	my $val = PDL::IO::FITS::rfits($file);
+	$val->hdrcpy(1);
+	return $val;
     }
     barf("earth_coast: $fn not found in \@INC.\n");
 }

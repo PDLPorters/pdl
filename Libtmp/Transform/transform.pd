@@ -348,6 +348,22 @@ sub apply {
     unless(defined($me->{func}) and ref($me->{func}) eq 'CODE');
   my $result = $me->{func}->($from,$me->{params});
   $result->is_inplace(0); # clear inplace flag, just in case.
+  if (defined $from->gethdr && $from->hdr->{NAXIS}) {
+    my $nd = $me->{odim} || $me->{idim} || 2;
+    for my $d (1..$nd) {
+      $result->hdr->{"CTYPE$d"} = ( (!defined($me->{otype}) ? "" :
+          ref($me->{otype}) ne 'ARRAY' ? $me->{otype} :
+          $me->{otype}[$d-1])
+         || $from->hdr->{"CTYPE$d"}
+         || "");
+      $result->hdr->{"CUNIT$d"} = ( (!defined($me->{ounit}) ? "" :
+          ref($me->{ounit}) ne 'ARRAY' ? $me->{ounit} :
+          $me->{ounit}[$d-1])
+         || $from->hdr->{"CUNIT$d"}
+         || $from->hdr->{"CTYPE$d"}
+         || "");
+    }
+  }
   return $result;
 }
 
@@ -1738,15 +1754,17 @@ sub map {
               $out->hdr->{"CDELT$d"} = $scale->at($d-1);
               $out->hdr->{"CRVAL$d"} = ( $omin->at($d-1) + $omax->at($d-1) ) /2 ;
               $out->hdr->{"NAXIS$d"} = $out->dim($d-1);
-              $out->hdr->{"CTYPE$d"} = ( (defined($me->{otype}) ?
-                                          $me->{otype}->[$d-1] : "")
-                                         || $in->hdr->{"CTYPE$d"}
-                                         || "");
-              $out->hdr->{"CUNIT$d"} = ( (defined($me->{ounit}) ?
-                                          $me->{ounit}->[$d-1] : "")
-                                         || $in->hdr->{"CUNIT$d"}
-                                         || $in->hdr->{"CTYPE$d"}
-                                         || "");
+              $out->hdr->{"CTYPE$d"} = ( (!defined($me->{otype}) ? "" :
+                  ref($me->{otype}) ne 'ARRAY' ? $me->{otype} :
+                  $me->{otype}[$d-1])
+                 || $in->hdr->{"CTYPE$d"}
+                 || "");
+              $out->hdr->{"CUNIT$d"} = ( (!defined($me->{ounit}) ? "" :
+                  ref($me->{ounit}) ne 'ARRAY' ? $me->{ounit} :
+                  $me->{ounit}[$d-1])
+                 || $in->hdr->{"CUNIT$d"}
+                 || $in->hdr->{"CTYPE$d"}
+                 || "");
           }
           $out->hdr->{"NAXIS"} = $nd;
 
@@ -1782,15 +1800,17 @@ sub map {
               $out->hdr->{"CRPIX$d"} = 1 + ($out->dim($d-1)-1)/2;
               $out->hdr->{"CRVAL$d"} = $midpoint_val->at($d-1);
               $out->hdr->{"NAXIS$d"} = $out->dim($d-1);
-              $out->hdr->{"CTYPE$d"} = ( (defined($me->{otype}) ?
-                                          $me->{otype}->[$d-1] : "")
-                                         || $in->hdr->{"CTYPE$d"}
-                                         || "");
-              $out->hdr->{"CUNIT$d"} = ( (defined($me->{ounit}) ?
-                                          $me->{ounit}->[$d-1] : "")
-                                         || $in->hdr->{"CUNIT$d"}
-                                         || $in->hdr->{"CTYPE$d"}
-                                         || "");
+              $out->hdr->{"CTYPE$d"} = ( (!defined($me->{otype}) ? "" :
+                  ref($me->{otype}) ne 'ARRAY' ? $me->{otype} :
+                  $me->{otype}[$d-1])
+                 || $in->hdr->{"CTYPE$d"}
+                 || "");
+              $out->hdr->{"CUNIT$d"} = ( (!defined($me->{ounit}) ? "" :
+                  ref($me->{ounit}) ne 'ARRAY' ? $me->{ounit} :
+                  $me->{ounit}[$d-1])
+                 || $in->hdr->{"CUNIT$d"}
+                 || $in->hdr->{"CTYPE$d"}
+                 || "");
               for my $e(1..$nd) {
                   $out->hdr->{"CD${d}_${e}"} = $mat->at($d-1,$e-1);
                   print "setting CD${d}_${e} to ".$mat->at($d-1,$e-1)."\n" if($PDL::Transform::debug);
@@ -2052,9 +2072,9 @@ sub compose {
   $me->{name} = "";
   my @clist;
   for my $f (@funcs) {
-    $me->{idim} = $f->{idim} if($f->{idim} > $me->{idim});
-    $me->{odim} = $f->{odim} if($f->{odim} > $me->{odim});
-    if(UNIVERSAL::isa($f,"PDL::Transform::Composition")) {
+    $me->{idim} = $f->{idim} if $f->{idim} > $me->{idim};
+    $me->{odim} = $f->{odim} if $f->{odim} > $me->{odim};
+    if (UNIVERSAL::isa($f,"PDL::Transform::Composition")) {
       if($f->{is_inverse}) {
         for(reverse(@{$f->{params}->{clist}})) {
           push(@clist,$_->inverse);
@@ -2566,11 +2586,22 @@ to tell and the default number of dimensions is 2.  This provides a way
 to do, e.g., 3-D scaling: just set C<{s=><scale-factor>, dims=>3}> and
 you are on your way.
 
+=item idim
+
+=item odim
+
+=item iunit
+
+=item ounit
+
+=item itype
+
+=item otype
+
+These are incorporated in the object, though not much is done with them
+yet as of 2.094.
+
 =back
-
-NOTES
-
-the type/unit fields are currently ignored by t_linear.
 
 =cut
 
@@ -2718,6 +2749,11 @@ sub new {
 
   $me->{params}{idim} = $me->{idim};
   $me->{params}{odim} = $me->{odim};
+
+  for (qw(iunit ounit itype otype)) {
+    next unless defined (my $val = _opt($o,[$_]));
+    $me->{$_} = $val;
+  }
 
   ##############################
   # The meat -- just shift, matrix-multiply, and shift again.
