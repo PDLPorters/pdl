@@ -40,7 +40,7 @@ module that is available on CPAN.
 
 Basic FITS image files are supported, along with BINTABLE and IMAGE extensions.
 ASCII Table support is planned, as are the HEASARC bintable extensions that
-are recommended in the 1999 FITS standard.  
+are recommended in the 1999 FITS standard.
 
 Table support is based on hashes and named columns, rather than the
 less convenient (but slightly more congruent) technique of perl lists
@@ -60,7 +60,7 @@ documentation for details.
 Copyright (C) Karl Glazebrook, Craig DeForest, and Doug Burke, 1997-2010.
 There is no warranty.  You are allowed to redistribute and/or modify
 this software under certain conditions.  For details, see the file
-COPYING in the PDL distribution.  If this file is separated from the 
+COPYING in the PDL distribution.  If this file is separated from the
 PDL distribution, the copyright notice should be pasted into in this file.
 
 =head1 FUNCTIONS
@@ -74,7 +74,7 @@ $PDL::Astro_FITS_Header = eval {
     Astro::FITS::Header->VERSION(1.12);
     1;
 };
-warn <<'EOF' if !$PDL::Astro_FITS_Header and !($ENV{"PDL_FITS_LEGACY"} || $PDL::Config{FITS_LEGACY});
+warn <<'EOF' if !$PDL::Astro_FITS_Header and !($ENV{PDL_FITS_LEGACY} || $PDL::Config{FITS_LEGACY});
 WARNING: Can't find the Astro::FITS::Header module, limiting FITS support.
   PDL will use the deprecated legacy perl hash handling code but will not
   properly support tables, FITS extensions, or COMMENT cards. You really
@@ -129,11 +129,11 @@ if desired:
 
 Determines whether the data are linearly scaled using the BSCALE/BZERO keywords
 in the FITS header.  To read in the exact data values in the file, set this
-to 0. 
+to 0.
 
 =item data (default=1)
 
-Determines whether to read the data, or just the header.  If you set this to 
+Determines whether to read the data, or just the header.  If you set this to
 0, you will get back the FITS header rather than the data themselves.  (Note
 that the header is normally returned as the C<hdr> field of the returned PDL;
 this causes it to be returned as a hash ref directly.)
@@ -143,8 +143,8 @@ this causes it to be returned as a hash ref directly.)
 Determines whether the L<hdrcpy|PDL::Core/hdrcpy> flag is set in the returned
 PDL.  Setting the flag will cause an explicit deep copy of the header whenever
 you use the returned PDL in an arithmetic or slicing operation.  That is useful
-in many circumstances but also causes a hit in speed.  When two or more PDLs 
-with hdrcpy set are used in an expression, the result gets the header of the 
+in many circumstances but also causes a hit in speed.  When two or more PDLs
+with hdrcpy set are used in an expression, the result gets the header of the
 first PDL in the expression.  See L<hdrcpy|PDL::Core/hdrcpy> for an example.
 
 =item expand (default=1)
@@ -163,7 +163,7 @@ the FITS header information.  This permits explicit control over FITS
 card information, and conforms well with the FITS specification.  But
 Astro::FITS::Header objects are about 40-60x more memory intensive
 than comparable perl hashes, and also use ~10x more CPU to manage.
-For jobs where header processing performance is important (e.g. reading 
+For jobs where header processing performance is important (e.g. reading
 just the headers of 1,000 FITS files), set afh to 0 to use the legacy parser
 and get a large boost in speed.
 
@@ -184,7 +184,7 @@ more control over card order, comment fields, and variable types.
 
 The header keywords are converted to I<uppercase> per the FITS
 standard.  Access is case-insensitive on the perl side, provided that
-Astro::FITS::Header is installed. 
+Astro::FITS::Header is installed.
 
 If Astro::FITS::Header is not installed, then a built-in legacy parser
 is used to generate the header hash.  Keyword-associated comments in
@@ -237,14 +237,14 @@ from the third row of the table.
 The header of the table itself is parsed as with a normal FITS HDU,
 and is returned in the element 'hdr' of the returned hash.  You can
 use that to preserve the original column order or access the table at a low
-level, if you like. 
+level, if you like.
 
 Scaling and zero-point adjustment are performed as with BSCALE/BZERO:
 the appropriate keywords are deleted from the as-returned header.  To avoid
-this behavior, set 'bscale=>0' in the options hash.  
+this behavior, set 'bscale=>0' in the options hash.
 
 As appropriate, TSCAL/ZERO and TUNIT are copied into each column-PDL's
-header as BSCALE/BZERO and BUNIT.  
+header as BSCALE/BZERO and BUNIT.
 
 The main hash also contains the element 'tbl', which is set
 to 'binary' to distinguish it from an ASCII table.
@@ -263,7 +263,7 @@ Variable-length arrays are supported for reading.  They are unpacked
 into PDLs that appear exactly the same as the output for fixed-length
 rows, except that each row is padded to the maximum length given
 in the extra characters -- e.g. a row with TFORM of 1PB(300) will
-yield an NAXIS2x300 output field in the final hash.   The padding 
+yield an NAXIS2x300 output field in the final hash.   The padding
 uses the TNULL<n> keyword for the column, or 0 if TNULL<n> is not
 present.  The output hash also gets an additional field, "len_<name>",
 that contains the number of elements in each table row.
@@ -274,7 +274,7 @@ CFITSIO and several large projects (including NASA's Solar Dynamics
 Observatory) now support an unofficial extension to FITS that stores
 images as a collection of individually compressed tiles within a
 BINTABLE extension.  These images are automagically uncompressed by
-default, and delivered as if they were normal image files.  You can 
+default, and delivered as if they were normal image files.  You can
 override this behavior by supplying the "expand" key in the options hash.
 
 Currently, only Rice compression is supported, though there is a framework
@@ -284,7 +284,7 @@ in place for adding other compression schemes.
 
 =head3 BAD VALUE HANDLING
 
-If a FITS file contains the C<BLANK> keyword (and has C<BITPIX E<gt> 0>), 
+If a FITS file contains the C<BLANK> keyword (and has C<BITPIX E<gt> 0>),
 the ndarray will have its bad flag set, and those elements which equal the
 C<BLANK> value will be set bad.  For C<BITPIX E<lt> 0>, any NaN's are
 converted to bad (if necessary).
@@ -298,8 +298,8 @@ Read only the header of a FITS file or an extension within it.
 
 This is syntactic sugar for the C<data=E<gt>0> option to L<rfits|/rfits()>.
 
-See L<rfits|/rfits()> for details on header handling.  rfitshdr() runs 
-the same code to read the header, but returns it rather than 
+See L<rfits|/rfits()> for details on header handling.  rfitshdr() runs
+the same code to read the header, but returns it rather than
 reading in a data structure as well.
 
 =cut
@@ -317,7 +317,7 @@ sub PDL::rfitshdr {
 sub PDL::rfits {
   my $class = shift;
   barf 'Usage: $x = rfits($file)  -or-   $x = PDL->rfits($file)' if (@_ < 1 || @_ > 2);
-  my $file = shift; 
+  my $file = shift;
   my $u_opt = ifhref(shift);
   my $opt = $rfits_options->options($u_opt);
   my($nbytes, $line, $name, $rest, $size, $i, $bscale, $bzero, $extnum);
@@ -357,7 +357,7 @@ sub PDL::rfits {
        while( read($fh,$line,80) && ($line !~ /^XTENSION=/) && !$fh->eof() ) {
 	   read($fh,$line,2880-80);
        };
-       return @extensions 
+       return @extensions
 	   if(eof $fh);
 
    } else {
@@ -368,7 +368,7 @@ sub PDL::rfits {
    }
 
    $nbytes = 80; # Number of bytes read from this extension (1 line so far)
- 
+
    if($line =~ /^XTENSION= \'(\w+)\s*\'/) {
      $ext_type = $1;
    } elsif( @extensions ) {
@@ -379,7 +379,7 @@ sub PDL::rfits {
    }
 
    push(@cards,$line)  if($PDL::Astro_FITS_Header);
-   
+
    #
    # If we are in scalar context, skip to the desired extension
    # number.  [This implementation is really slow since we have
@@ -388,7 +388,7 @@ sub PDL::rfits {
    # a time with seek() calls. ]
    #     --CD
    #
- 
+
    if(!wantarray and $currentext != $extnum) {
 
     skipper: while(1) {
@@ -408,13 +408,13 @@ sub PDL::rfits {
       }
     }
    } # End of skipping to desired extension
-   
+
    #
    # Snarf up the found header, and parse it if Astro::FITS::Header
    # does not exist.
-   # 
+   #
 
-   if($PDL::Astro_FITS_Header and $opt->{afh}) { 
+   if($PDL::Astro_FITS_Header and $opt->{afh}) {
 
      ## Astro::FITS::Header parsing.  Snarf lines to the END card,
      ## and pass them to Astro::FITS::Header.
@@ -430,27 +430,27 @@ sub PDL::rfits {
      my(%hdrhash);
      tie %hdrhash,"Astro::FITS::Header",$hdr;
      $foo = \%hdrhash;
-   
+
    } else {
-     
-     ## Legacy (straight header-to-hash-ref) parsing.  
+
+     ## Legacy (straight header-to-hash-ref) parsing.
      ## Cheesy but fast.
-     
+
      hdr_legacy: { do {
        no strict 'refs';
        # skip if the first eight characters are ' '
        # - as seen in headers from the DSS at STScI
        if (substr($line,0,8) ne " " x 8) { # If non-blank
-       
-          $name = (split(' ',substr($line,0,8)))[0]; 
+
+          $name = (split(' ',substr($line,0,8)))[0];
 
           $rest = substr($line,8);
-       
+
           if ($name =~ m/^HISTORY/) {
 	         push @history, $rest;
           } else {
 	         $$foo{$name} = "";
-	 
+
 	         $$foo{$name}=$1 if $rest =~ m|^= +([^\/\' ][^\/ ]*) *( +/(.*))?$| ;
 	         $$foo{$name}=$1 if $rest =~ m|^= \'(.*)\' *( +/(.*))?$| ;
 	         $$foo{COMMENT}{$name} = $3 if defined($3);
@@ -461,19 +461,19 @@ sub PDL::rfits {
      } while !eof $fh; }
 
      # Clean up HISTORY card
-     $$foo{"HISTORY"} = \@history if $#history >= 0;
-   
+     $$foo{HISTORY} = \@history if $#history >= 0;
+
      # Step to end of header block in file
      my $skip = 2879 - ($nbytes-1)%2880;
      read $fh, my $dummy, $skip if $skip;
      $nbytes += $skip;
 
    } # End of legacy header parsing
- 
 
-   
+
+
    ##############################
-   # Special case: if the file only contains 
+   # Special case: if the file only contains
    # extensions then read the first extension in scalar context,
    # instead of the null zeroth extension.
    #
@@ -482,14 +482,14 @@ sub PDL::rfits {
        and !wantarray               # Scalar context
        and !$explicit_extension     # No HDU specifier
        ) {
-     print "rfits: Skipping null primary HDU (use [0] to force read of primary)...\n" 
+     print "rfits: Skipping null primary HDU (use [0] to force read of primary)...\n"
        if($PDL::verbose);
      return PDL::rfits($class,$file.'[1]',$opt);
    }
- 
+
 
    ##########
-   # If we don't want data, return the header from the HDU.  Likewise, 
+   # If we don't want data, return the header from the HDU.  Likewise,
    # if NAXIS is 0 then there are no data, so return the header instead.
    if( ! $opt->{data} || $foo->{NAXIS}==0 ) {
      # If we're NOT reading data, then return the header instead of the
@@ -522,11 +522,11 @@ sub PDL::rfits {
 
   close $fh;
   return $pdl if !wantarray;
-  ## By default, ditch primary HDU placeholder 
+  ## By default, ditch primary HDU placeholder
   shift @extensions if ref($extensions[0]) eq 'HASH' and
-      $extensions[0]->{SIMPLE} and
-      exists($extensions[0]->{NAXIS}) and
-      $extensions[0]->{NAXIS} == 0
+      $extensions[0]{SIMPLE} and
+      exists($extensions[0]{NAXIS}) and
+      $extensions[0]{NAXIS} == 0
       ;
   @extensions; # Return all the extensions
 }
@@ -534,10 +534,10 @@ sub PDL::rfits {
 
 sub rfits { PDL->rfits(@_); }
 
-sub rfitshdr { 
-  my($file,$opt) = shift; 
-  $opt->{data} =0; 
-  PDL->rfitshdr($file,$opt); 
+sub rfitshdr {
+  my($file,$opt) = shift;
+  $opt->{data} =0;
+  PDL->rfitshdr($file,$opt);
 }
 
 
@@ -545,8 +545,8 @@ sub rfitshdr {
 #
 # FITS extensions patch-table links extension name to the supported reader.
 # IMAGE extensions are a special case that gets read just like a normal
-# FITS file.   
-# 
+# FITS file.
+#
 
 $PDL::IO::FITS::_Extension = {
       IMAGE    => \&_rfits_image
@@ -554,7 +554,7 @@ $PDL::IO::FITS::_Extension = {
   };
 
 
-       
+
 ##############################
 #
 # IMAGE extension -- this is also the default reader.
@@ -584,34 +584,34 @@ sub _rfits_image($$$$) {
   my $pdl = shift;  # $pdl contains a pre-blessed virgin PDL
 
   # Setup ndarray structure
-  
-  if(  defined($type_table->{0 + $foo->{"BITPIX"}})  ) {
-      $pdl->set_datatype( $type_table->{$foo->{"BITPIX"}} );
+
+  if(  defined($type_table->{0 + $foo->{BITPIX}})  ) {
+      $pdl->set_datatype( $type_table->{$foo->{BITPIX}} );
   } else {
-      die("rfits: strange BITPIX value ".$foo->{"BITPIX"}." in header - I give up!\n");
+      die("rfits: strange BITPIX value ".$foo->{BITPIX}." in header - I give up!\n");
   }
-  
+
   my @dims; # Store the dimenions 1..N, compute total number of pixels
   my $i = 1;
-  my $size = 1; 
+  my $size = 1;
 
 ##second part of the conditional guards against a poorly-written hdr.
-  while(defined( $$foo{"NAXIS$i"} ) && $i <= $$foo{"NAXIS"}) {
+  while(defined( $$foo{"NAXIS$i"} ) && $i <= $$foo{NAXIS}) {
     $size *= $$foo{"NAXIS$i"};
     push @dims, $$foo{"NAXIS$i"} ; $i++;
   }
   $pdl->setdims([@dims]);
-  
+
   my $dref = $pdl->get_dataref();
-  
-  print "BITPIX = ",$$foo{"BITPIX"}," size = $size pixels \n"
+
+  print "BITPIX = ",$$foo{BITPIX}," size = $size pixels \n"
     if $PDL::verbose;
-  
+
   # Slurp the FITS binary data
-  
-  print "Reading ",$size*PDL::Core::howbig($pdl->get_datatype) , " bytes\n" 
+
+  print "Reading ",$size*PDL::Core::howbig($pdl->get_datatype) , " bytes\n"
     if $PDL::verbose;
-  
+
   # Read the data and pad to the next HDU
   my $rdct = $size * PDL::Core::howbig($pdl->get_datatype);
   read $fh, $$dref, $rdct;
@@ -623,7 +623,7 @@ sub _rfits_image($$$$) {
   $pdl->sethdr($foo);
   $pdl->hdrcpy($opt->{hdrcpy});
   return $pdl;
-} 
+}
 
 sub treat_bscale($$){
     my $pdl = shift;
@@ -653,11 +653,11 @@ sub treat_bscale($$){
       if $pdl->badflag() and $PDL::verbose;
 
     my ($bscale, $bzero);
-    $bscale = $$foo{"BSCALE"}; $bzero = $$foo{"BZERO"};
+    $bscale = $$foo{BSCALE}; $bzero = $$foo{BZERO};
     $bscale = 1 if (!defined($bscale) || $bscale eq "");
     $bzero  = 0 if (!defined($bzero)  || $bzero  eq "");
     print "BSCALE = $bscale &&  BZERO = $bzero\n" if $PDL::verbose;
-    
+
     # Be clever and work out the final datatype before eating
     # memory
     #
@@ -675,31 +675,31 @@ sub treat_bscale($$){
       # -- too lazy to include this check in the code below,
       #    so just copy the header clean up stuff
       print "All elements are bad.\n" if $PDL::verbose;
-      
-      delete $$foo{"BSCALE"}; delete $$foo{"BZERO"};
+
+      delete $$foo{BSCALE}; delete $$foo{BZERO};
       $tmp = $pdl;
     }  #end of BSCALE section (whew!)
-    
-    
+
+
     $tmp = $tmp*$bscale if $bscale != 1; # Dummy run on one element
     $tmp = $tmp+$bzero  if $bzero  != 0;
-    
+
     $pdl = $pdl->convert($tmp->type) if $tmp->get_datatype != $pdl->get_datatype;
-    
+
     $pdl *= $bscale if $bscale != 1;
     $pdl += $bzero  if $bzero  != 0;
-    
-    delete $$foo{"BSCALE"}; delete $$foo{"BZERO"};
+
+    delete $$foo{BSCALE}; delete $$foo{BZERO};
     return $pdl;
 }
 
 
 ##########
-# 
+#
 # bintable_handlers -- helper table for bintable_row, below.
 #
 # Each element of the table is named by the appropriate type letter
-# from the FITS specification.  The value is a list containing the 
+# from the FITS specification.  The value is a list containing the
 # reading and writing methods.
 #
 # This probably ought to be a separate class, but instead it's a tawdry
@@ -707,26 +707,26 @@ sub treat_bscale($$){
 # genuine.
 #
 # 0: either a data type or a constructor.
-# 1: either a length per element or a read method. 
+# 1: either a length per element or a read method.
 # 2: either a length per element or a write method.
 # 3: 'finish' contains finishing-up code or a byte-count to swap.
 #
-# Main bintable type handler table.  
-# Elements: (constructor or type,  reader or nbytes, writer or nbytes, 
+# Main bintable type handler table.
+# Elements: (constructor or type,  reader or nbytes, writer or nbytes,
 # finisher or nbytes).  The finisher should convert the internal reading
-# format into the final output format, e.g. by swapping (which is done 
+# format into the final output format, e.g. by swapping (which is done
 # automatically in the basic case).  Output has row in the 0th dim.
 #
 # If present, the constructor should
-# accept ($rowlen $extra, $nrows, $$size), where $rowlen is the repeat 
-# specifier in the TFORM field, $extra is the extra characters if any 
-# (for added flavor later, if desired), and $nrows is the number of rows in 
+# accept ($rowlen $extra, $nrows, $$size), where $rowlen is the repeat
+# specifier in the TFORM field, $extra is the extra characters if any
+# (for added flavor later, if desired), and $nrows is the number of rows in
 # the table.  $$size points to a scalar value that should be incremented by the
 # size (in bytes) of a single row of the data, for accounting purposes.
 #
 # If a read  method is specified, it should accept:
 #   ($thing, $rownum, $strptr, $rpt, $extra)
-# where $rpt is the repeat count and $extra is the extra characters in the 
+# where $rpt is the repeat count and $extra is the extra characters in the
 # specifier; and it should cut the used characters off the front of the string.
 #
 # If a writer is specified it should accept:
@@ -740,20 +740,20 @@ sub treat_bscale($$){
 #
 # The magic numbers in the table (1,2,4,8, etc.) are kludgey -- they break
 # the isolation of PDL size and local code -- but they are a part of the FITS
-# standard.  The code will break anyway (damn) on machines that have other 
+# standard.  The code will break anyway (damn) on machines that have other
 # sizes for these datatypes.
-# 
+#
 
 $PDL::IO::FITS_bintable_handlers = {
   'X' => [ byte                              # Packed bit field
-           , sub { 
+           , sub {
 	     my( $pdl, $row, $strptr ) = @_;  # (ignore repeat and extra)
 	     my $n = $pdl->dim(0);
 	     my $s =  unpack( "B".$n,  substr(${$strptr}, 0, int(($n+7)/8),''));
 	   $s =~ tr/[01]/[\000\001]/;
 	   substr( ${$pdl->get_dataref},  $n * $row,  length($s)) = $s;
              }
-           , sub { 
+           , sub {
                my( $pdl, $row ) = @_;  # Ignore extra and rpt
                my $n = $pdl->dim(0);
                my $p2 = byte(($pdl->slice("($row)") != 0));
@@ -761,14 +761,14 @@ $PDL::IO::FITS_bintable_handlers = {
                $s =~ tr/[\000\001]/[01]/;
                pack(  "B".$pdl->dim(0), $s );
              }
-          , 1 
+          , 1
   ]
   ,'A' => [  sub { # constructor               # String  - handle as perl list
                my($rowlen, $extra, $nrows, $szptr) = @_;
                $$szptr += $rowlen;
                [(' 'x$rowlen) x $nrows];
             }
-          , sub { # reader 
+          , sub { # reader
               my( $list, $row, $strptr, $rpt ) = @_;
               $list->[$row] = substr(${$strptr},0,$rpt,'');
             }
@@ -776,9 +776,9 @@ $PDL::IO::FITS_bintable_handlers = {
               my($strs, $row, $rpt ) = @_;
               my $s = substr($strs->[$row],0,$rpt);
               $s . ' 'x($rpt - length $s);
-            } 
+            }
           , undef # no finisher needed
-         ]             
+         ]
   ,'B' => [ byte,    1,     1,     1  ] # byte
   ,'L' => [ byte,    1,     1,     1  ] # logical - treat as byte
   ,'I' => [ short,   2,     2,     2  ] # short (no unsigned shorts?)
@@ -787,10 +787,10 @@ $PDL::IO::FITS_bintable_handlers = {
   ,'E' => [ float,   4,     4,     4  ] # single-precision
   ,'D' => [ double,  8,     8,     8  ] # double-precision
   ,'C' => [ sub { _nucomplx(float,  eval '@_') }, sub { _rdcomplx(float,  eval '@_') },
-	    sub { _wrcomplx(float,  eval '@_') }, sub { _fncomplx(float,  eval '@_') } 
+	    sub { _wrcomplx(float,  eval '@_') }, sub { _fncomplx(float,  eval '@_') }
       ]
   ,'M' => [ sub { _nucomplx(double, eval '@_') }, sub { _rdcomplx(double, eval '@_') },
-	    sub { _wrcomplx(double, eval '@_') }, sub { _fncomplx(double, eval '@_') } 
+	    sub { _wrcomplx(double, eval '@_') }, sub { _fncomplx(double, eval '@_') }
       ]
   ,'PB' => [ sub { _nuP(byte, eval '@_') }, sub { _rdP(byte, eval '@_') },
 	     sub { _wrP(byte, eval '@_') }, sub { _fnP(byte, eval '@_') }
@@ -841,7 +841,7 @@ sub _fncomplx { # complex-number finisher-upper
 
 ##############################
 # Helpers for variable-length array types (construct/read/write/finish)
-# These look just like the complex-number case, except that they use $extra to determine the 
+# These look just like the complex-number case, except that they use $extra to determine the
 # size of the 0 dimension.
 sub _nuP {
     my( $type, $rowlen, $extra, $nrows, $szptr, $hdr, $i, $tbl ) = @_;
@@ -851,7 +851,7 @@ sub _nuP {
 	die("rfits: variable-length record has a repeat count that isn't unity! (got $rowlen); I give up.");
     }
     # declare the PDL.  Fill it with the blank value or (failing that) 0.
-    # Since P repeat count is required to be 0 or 1, we don't need an additional dimension for the 
+    # Since P repeat count is required to be 0 or 1, we don't need an additional dimension for the
     # repeat count -- the variable-length rows take that role.
     my $pdl = PDL->new_from_specification($type, $extra, $nrows);
     $pdl .= ($hdr->{"TNULL$i"} || 0);
@@ -861,8 +861,8 @@ sub _nuP {
 }
 
 sub _rdP {
-    my( $type, $pdl, $row, $strptr, $rpt, $extra, $heap_ptr, $tbl, $i ) = @_; 
-    $extra =~ s/\((.*)\)/$1/; 
+    my( $type, $pdl, $row, $strptr, $rpt, $extra, $heap_ptr, $tbl, $i ) = @_;
+    $extra =~ s/\((.*)\)/$1/;
     my $s = $pdl->get_dataref;
     # Read current offset and length
     my $oflen = pdl(long,0,0);
@@ -874,7 +874,7 @@ sub _rdP {
     my $rlen = $extra * PDL::Core::howbig($type); # rpt should be unity, otherwise we'd have to multiply it in.
     my $readlen = $oflen->at(0) * PDL::Core::howbig($type);
     # Store the length of this row in the header field.
-    $tbl->{"len_".$tbl->{hdr}->{"TTYPE$i"}}->dice_axis(0,$row) .= $oflen->at(0);
+    $tbl->{"len_".$tbl->{hdr}{"TTYPE$i"}}->dice_axis(0,$row) .= $oflen->at(0);
     print "_rdP: pdl is ",join("x",$pdl->dims),"; reading row $row - readlen is $readlen\n"
 	if($PDL::debug);
     # Copy the data into the output PDL.
@@ -904,7 +904,7 @@ sub _fnP {
 # _rfits_bintable -- snarf up a binary table, returning the named columns
 # in a hash ref, each element of which is a PDL or list ref according to the
 # header.
-# 
+#
 
 sub _rfits_bintable ($$$$) {
   my $fh  = shift;
@@ -913,34 +913,30 @@ sub _rfits_bintable ($$$$) {
   ##shift;  ### (ignore $pdl argument)
 
   warn "Warning: BINTABLE extension should have BITPIX=8, found ".$hdr->{BITPIX}.".  Winging it...\n" unless($hdr->{BITPIX} == 8);
-    
-  ### Allocate the main table hash
-  my $tbl = {};    # Table is indexed by name
-  $tbl->{hdr} = $hdr;
-  $tbl->{tbl} = 'binary';
 
+  ### Allocate the main table hash
+  my $tbl = { hdr=>$hdr, tbl=>'binary' };    # Table is indexed by name
   my $tmp = [];    # Temporary space is indexed by col. no.
-  
-  
+
   ### Allocate all the columns of the table, checking for consistency
   ### and name duplication.
-  
+
   barf "Binary extension has no fields (TFIELDS=0)" unless($hdr->{TFIELDS});
   my $rowlen = 0;
-  
+
   for my $i(1..$hdr->{TFIELDS}) {
     my $iter;
-    my $name = $tmp->[$i]->{name} = $hdr->{"TTYPE$i"} || "COL";
-    
+    my $name = $tmp->[$i]{name} = $hdr->{"TTYPE$i"} || "COL";
+
     ### Allocate some temp space for dealing with this column
     my $tmpcol = $tmp->[$i] = {};
-    
+
     ### Check for duplicate name and change accordingly...
     while( defined(  $tbl->{ $name } ) || ($name eq "COL") ) {
       $iter++;
       $name = ($hdr->{"TTYPE$i"} )."_$iter";
     }
-    
+
     # (Check avoids scrozzling comment fields unnecessarily)
     $hdr->{"TTYPE$i"} = $name unless($hdr->{"TTYPE$i"} eq $name);
     $tmpcol->{name} = $name;
@@ -954,7 +950,7 @@ sub _rfits_bintable ($$$$) {
         . $hdr->{"TFORM$i"}
       . "' for column $i ("
         . $hdr->{"TTYPE$i"}
-      . ")\n" if($hdr->{"TFORM$i"});
+      . ")\n" if $hdr->{"TFORM$i"};
       barf "BINTABLE header is missing a crucial field, TFORM$i.  I give up.\n";
     }
 
@@ -963,17 +959,17 @@ sub _rfits_bintable ($$$$) {
 
     $tmpcol->{handler} =  # sic - assignment
       $PDL::IO::FITS_bintable_handlers->{ $tmpcol->{type} }
-    or 
+    or
       barf "Unknown type ".$hdr->{"TFORM$i"}." in BINTABLE column $i "."("
       . $hdr->{"TTYPE$i"}
     . ")\n  That invalidates the byte count, so I give up.\n" ;
-    
-    
+
+
     ### Allocate the actual data space and increment the row length
-    
-    my $foo = $tmpcol->{handler}->[0];
+
+    my $foo = $tmpcol->{handler}[0];
     if( ref ($foo) eq 'CODE' ) {
-      $tmpcol->{data} = $tbl->{$name} = 
+      $tmpcol->{data} = $tbl->{$name} =
         &{$foo}( $tmpcol->{rpt}
                  , $tmpcol->{extra}
                  , $hdr->{NAXIS2}
@@ -983,25 +979,25 @@ sub _rfits_bintable ($$$$) {
 		 , $tbl
                 );
     } else {
-      $tmpcol->{data} = $tbl->{$name} = 
+      $tmpcol->{data} = $tbl->{$name} =
         PDL->new_from_specification(
-                                    $foo 
-                                    , $tmpcol->{rpt}, 
+                                    $foo
+                                    , $tmpcol->{rpt},
                                     , $hdr->{NAXIS2} || 1
                                     );
 
       $rowlen += PDL::Core::howbig($foo) * $tmpcol->{rpt};
     }
-    
-    print "Prefrobnicated col. $i "."(".$hdr->{"TTYPE$i"}.")\ttype is ".$hdr->{"TFORM$i"}."\t length is now $rowlen\n" if($PDL::debug);
-    
-    
+
+    print "Prefrobnicated col. $i "."(".$hdr->{"TTYPE$i"}.")\ttype is ".$hdr->{"TFORM$i"}."\t length is now $rowlen\n" if $PDL::debug;
+
+
   }  ### End of prefrobnication loop...
 
   barf "Calculated row length is $rowlen, hdr claims ".$hdr->{NAXIS1}
        . ".  Giving up.  (Set \$PDL::debug for more detailed info)\n"
     if($rowlen != $hdr->{NAXIS1});
-  
+
   ### Snarf up the whole extension, and pad to 2880 bytes...
   my ($rawtable, $heap, $n1, $n2);
 
@@ -1034,7 +1030,7 @@ sub _rfits_bintable ($$$$) {
     my $prelen = length($rawtable);
     for my $i(1..$hdr->{TFIELDS}) {
       my $tmpcol = $tmp->[$i];
-      my $reader = $tmpcol->{handler}->[1];
+      my $reader = $tmpcol->{handler}[1];
       if(ref $reader eq 'CODE') {
         &{$reader}( $tmpcol->{data}
                     , $row
@@ -1048,7 +1044,7 @@ sub _rfits_bintable ($$$$) {
       } elsif(ref $tmpcol->{data} eq 'PDL') {
         my $rlen = $reader * $tmpcol->{rpt};
 
-        substr( ${$tmpcol->{data}->get_dataref()}, $rlen * $row, $rlen ) = 
+        substr( ${$tmpcol->{data}->get_dataref()}, $rlen * $row, $rlen ) =
           substr( $rawtable, 0, $rlen, '');
         $tmpcol->{data}->upd_data;
 
@@ -1064,7 +1060,7 @@ sub _rfits_bintable ($$$$) {
   } # End of NAXIS2 loop
 
  #
- # Note: the above code tickles a bug in most versions of the emacs 
+ # Note: the above code tickles a bug in most versions of the emacs
  # prettyprinter.  The following "for my $i..." should be indented
  # two spaces.
  #
@@ -1072,7 +1068,7 @@ sub _rfits_bintable ($$$$) {
   ### Postfrobnicate the columns.
   for my $i(1..$hdr->{TFIELDS}) { # Postfrobnication loop
     my $tmpcol = $tmp->[$i];
-    my $post = $tmpcol->{handler}->[3];
+    my $post = $tmpcol->{handler}[3];
     if(ref $post eq 'CODE') {
       # Do postprocessing on all special types
       $tbl->{$tmpcol->{name}} = &$post($tmpcol->{data}, $i, $hdr, $opt);
@@ -1082,23 +1078,23 @@ sub _rfits_bintable ($$$$) {
       $tmpcol->{data}->type->bswap->($tmpcol->{data}) if !isbigendian();
 
       # Apply scaling and badval keys, which are illegal for A, L, and X
-      # types but legal for anyone else.  (A shouldn't be here, L and X 
+      # types but legal for anyone else.  (A shouldn't be here, L and X
       # might be)
       if($opt->{bscale}) {
 	my $tzero = defined($hdr->{"TZERO$i"}) ? $hdr->{"TZERO$i"} : 0.0;
 	my $tscal = defined($hdr->{"TSCAL$i"}) ? $hdr->{"TSCAL$i"} : 1.0;
-	
+
 	# The $valid_<foo> flags let us avoid unnecessary arithmetic.
 	my $valid_tzero = ($tzero != 0.0);
 	my $valid_tscal = ($tscal != 1.0);
-	
+
 	if ( $valid_tzero or $valid_tscal ) {
 	  if ( $tmpcol->{type} =~ m/[ALX]/i ) {
 	    warn "Ignoring illegal TSCAL/TZERO keywords for col $i (" .
 	      $tmpcol->{name} . "); type is $tmpcol->{type})\n";
-	    
+
 	  } else { # Not an illegal type -- do the scaling
-	    # (Normal execution path) 
+	    # (Normal execution path)
 	    # Use PDL's cleverness to work out the final datatype...
 	    my $tmp;
 	    my $pdl = $tmpcol->{data};
@@ -1115,22 +1111,22 @@ sub _rfits_bintable ($$$$) {
 	    # Figure out the type by scaling the single element.
 	    $tmp = ($tmp - $tzero) * $tscal;
 	    # Convert the whole PDL as necessary for the scaling.
-	    $tmpcol->{data} = $pdl->convert($tmp->type) 
+	    $tmpcol->{data} = $pdl->convert($tmp->type)
 	      if($tmp->get_datatype != $pdl->get_datatype);
 	    # Do the scaling.
 	    $tmpcol->{data} -= $tzero;
 	    $tmpcol->{data} *= $tscal;
 
-	  } # End of legal-type conditional  
+	  } # End of legal-type conditional
 	} # End of valid_<foo> conditional
 
 	delete $hdr->{"TZERO$i"};
 	delete $hdr->{"TSCAL$i"};
-	
+
       } else { # $opt->{bscale} is zero; don't scale.
 	       # Instead, copy factors into individual column headers.
-	my %foo = ("TZERO$i"=>"BZERO", 
-		   "TSCAL$i"=>"BSCALE", 
+	my %foo = ("TZERO$i"=>"BZERO",
+		   "TSCAL$i"=>"BSCALE",
 		   "TUNIT$i"=>"BUNIT");
 	for my $x(keys %foo) {
 	  $tmpcol->{data}->hdr->{$foo{$x}} = $hdr->{$x}
@@ -1162,9 +1158,9 @@ sub _rfits_bintable ($$$$) {
       } else {
 	  # Copy the PDL out to the table itself.
 	  if($hdr->{NAXIS2} > 0 && $tmpcol->{rpt}>0) {
-	      $tbl->{$tmpcol->{name}} = 
-		  ( ( $tmpcol->{data}->dim(0) == 1 ) 
-		    ? $tmpcol->{data}->slice("(0)") 
+	      $tbl->{$tmpcol->{name}} =
+		  ( ( $tmpcol->{data}->dim(0) == 1 )
+		    ? $tmpcol->{data}->slice("(0)")
 		    : $tmpcol->{data}->transpose
 		  );
 	  }
@@ -1172,10 +1168,10 @@ sub _rfits_bintable ($$$$) {
 
       # End of PDL postfrobnication case
     } elsif(defined $post) {
-      
+
       warn "Postfrobnication bug detected in column $i ("
 	. $tmpcol->{name}. ").  Winging it.\n";
-      
+
     }
   } # End of postfrobnication loop over columns
 
@@ -1201,10 +1197,10 @@ our $hdrconv = {
 
 ##############################
 ##############################
-# 
+#
 # _rfits_unpack_zimage - unpack a binary table that actually contains a compressed image
 #
-# This is implemented to support the partial spec by White, Greenfield, Pence, & Tody dated Oct 21, 1999, 
+# This is implemented to support the partial spec by White, Greenfield, Pence, & Tody dated Oct 21, 1999,
 # with reverse-engineered bits from the CFITSIO3240 library where the spec comes up short.
 #
 
@@ -1341,7 +1337,7 @@ sub _rfits_unpack_zimage($$$) {
     # $tiledex is 2-D (coordinate-index, list-index) and enumerates all tiles by image
     # location
     my $tiledex = PDL::ndcoords($ntiles->list)->mv(0,-1)->clump($ntiles->dim(0))->mv(-1,0);
-    
+
     ##########
     # Restore all the tiles at once
     my $tiles = $tc->[1]->( $tilesize, $tbl, $params ); # gets a (tilesize x ntiles) output
@@ -1412,8 +1408,8 @@ Suffix magic:
 
   # Automatically compress through pipe to gzip
   wfits $pdl, 'filename.fits.gz';
-  # Automatically compress through pipe to compress 
-  wfits $pdl, 'filename.fits.Z';  
+  # Automatically compress through pipe to compress
+  wfits $pdl, 'filename.fits.Z';
 
 Tilde expansion:
 
@@ -1422,13 +1418,13 @@ Tilde expansion:
 
 =over 3
 
-=item * Ordinary (PDL) data handling: 
+=item * Ordinary (PDL) data handling:
 
 If the first argument is a PDL, then the PDL is written out as an
 ordinary FITS file with a single Header/Data Unit of data.
 
-$BITPIX is then optional and coerces the output data type according to 
-the standard FITS convention for the BITPIX field (with positive 
+$BITPIX is then optional and coerces the output data type according to
+the standard FITS convention for the BITPIX field (with positive
 values representing integer types and negative values representing
 floating-point types).
 
@@ -1448,23 +1444,23 @@ may cause confusion if the slice is NOT out of the last dimension:
 C<wfits($x(:,(0),:),'file.fits');> and you would be best off adjusting
 the header yourself before calling C<wfits>.
 
-You can tile-compress images according to the CFITSIO extension to the 
+You can tile-compress images according to the CFITSIO extension to the
 FITS standard, by adding an option hash to the arguments:
 
 =over 3
 
-=item compress 
+=item compress
 
 This can be either unity, in which case Rice compression is used,
-or a (case-insensitive) string matching the CFITSIO compression 
+or a (case-insensitive) string matching the CFITSIO compression
 type names.  Currently supported compression algorithms are:
 
 =over 3
 
 =item * RICE_1 - linear Rice compression
 
-This uses limited-symbol-length Rice compression, which works well on 
-low entropy image data (where most pixels differ from their neighbors 
+This uses limited-symbol-length Rice compression, which works well on
+low entropy image data (where most pixels differ from their neighbors
 by much less than the dynamic range of the image).
 
 =back
@@ -1472,9 +1468,9 @@ by much less than the dynamic range of the image).
 =item BLOCKSIZE (RICE_1 only; default C<32>)
 
 For RICE_1, indicates the number of pixel samples to use
-for each compression block within the compression algorithm.  The 
+for each compression block within the compression algorithm.  The
 blocksize is independent of the tile dimensions.  For RICE
-compression the pixels from each tile are arranged in normal pixel 
+compression the pixels from each tile are arranged in normal pixel
 order (early dims fastest) and compressed as a linear stream.
 
 =back
@@ -1505,7 +1501,7 @@ value is a PDL scalar (with 0 dims), then that value is "broadcasted"
 over -- copied into all rows.
 
 Data dimensions higher than 2 are preserved in binary tables,
-via the TDIMn field (e.g. a 7x5x3 PDL is stored internally as 
+via the TDIMn field (e.g. a 7x5x3 PDL is stored internally as
 seven rows with 15 numerical entries per row, and reconstituted
 as a 7x5x3 PDL on read).
 
@@ -1516,7 +1512,7 @@ as a multi-string column in FITS tables, so any nonscalar values in
 the list are stringified before being written.  For example, if you
 pass in a perl list of 7 PDLs, each PDL will be stringified before
 being written, just as if you printed it to the screen.  This is
-probably not what you want -- you should use L</glue> to connect 
+probably not what you want -- you should use L</glue> to connect
 the separate PDLs into a single one.  (e.g. C<$x-E<gt>glue(1,$y,$c)-E<gt>mv(1,0)>)
 
 The column names are case-insensitive, but by convention the keys of
@@ -1525,7 +1521,7 @@ letters, hyphens, and underscores.  If you include other characters,
 then case is smashed to ALL CAPS, whitespace is converted to
 underscores, and unrecognized characters are ignored -- so if you
 include the key "Au Purity (%)", it will be written to the file as a
-column that is named "AU_PURITY".  Since this is not guaranteed to 
+column that is named "AU_PURITY".  Since this is not guaranteed to
 produce unique column names, subsequent columns by the same name are
 disambiguated by the addition of numbers.
 
@@ -1572,7 +1568,7 @@ As an example, the following
 will create a binary FITS table called F<table1.fits> which
 contains two columns called C<COLA> and C<COLB>. The order
 of the columns is controlled by setting the C<TTYPEn>
-keywords in the header array, so 
+keywords in the header array, so
 
   $h = { 'TTYPE1'=>'Y', 'TTYPE2'=>'X' };
   wfits { 'X'=>$x, 'Y'=>$y, hdr=>$h }, "table2.fits";
@@ -1583,14 +1579,14 @@ called C<Y> and the second column is C<X>.
 =item * multi-value handling
 
 If you feed in a perl array-ref rather than a PDL or a hash, then
-each element is written out as a separate HDU in the FITS file.  
+each element is written out as a separate HDU in the FITS file.
 Each element of the list must be a PDL or a hash.
 
 =item * DEVEL NOTES
 
 ASCII tables are not yet handled but should be.
 
-Binary tables currently only handle one vector (up to 1-D array) 
+Binary tables currently only handle one vector (up to 1-D array)
 per table entry; the standard allows more, and should be fully implemented.
 
 Handling multidim arrays implies that perl multidim lists should also be
@@ -1650,7 +1646,7 @@ sub wheader {
 	     } else {
 		 # Handle strings, truncating as necessary
 		 # (doesn't do multicard strings like Astro::FITS::Header does)
-		 # Convert single quotes to doubled single quotes 
+		 # Convert single quotes to doubled single quotes
 		 # (per FITS standard)
 		 (my $st = $hdrk) =~ s/\'/\'\'/g;
 		 my $sl=length($st)+2;
@@ -1695,7 +1691,7 @@ sub PDL::wfits {
 
   my ($opt, $BITPIX);
 
-  local $\ = undef;  # fix sf.net bug #3394327 
+  local $\ = undef;  # fix sf.net bug #3394327
 
   if(ref $x eq 'HASH') {
       $opt = $x;
@@ -1733,9 +1729,9 @@ sub PDL::wfits {
   for $pdl(@outputs) {
 
       if(ref($pdl) eq 'HASH') {
-	  my $table_type = ( exists($pdl->{tbl}) ? 
-			     ($pdl->{tbl} =~ m/^a/i ? 'ascii' : 'binary') : 
-			     "binary" 
+	  my $table_type = ( exists($pdl->{tbl}) ?
+			     ($pdl->{tbl} =~ m/^a/i ? 'ascii' : 'binary') :
+			     "binary"
 	      );
 	  _wfits_table($fh,$pdl,$table_type);
 	  next;
@@ -1788,10 +1784,10 @@ sub PDL::wfits {
       ##############################
       ## Check header and prepare to write it out
       my($h) = $pdl->gethdr();
-      # Extra logic: if we got handed a vanilla hash that that is *not* an Astro::FITS::Header, but 
-      # looks like it's a FITS header encoded in a hash, then attempt to process it with 
+      # Extra logic: if we got handed a vanilla hash that that is *not* an Astro::FITS::Header, but
+      # looks like it's a FITS header encoded in a hash, then attempt to process it with
       # Astro::FITS::Header before writing it out -- this helps with cleanup of tags.
-      if($PDL::Astro_FITS_Header and 
+      if($PDL::Astro_FITS_Header and
 	 defined($h) and
 	 ref($h) eq 'HASH' and
 	 !defined( tied %$h )
@@ -1806,7 +1802,7 @@ sub PDL::wfits {
 	      }
 	  }
 	  if($all_valid_fits) {
-	      # All the keys look like valid FITS header keywords -- so 
+	      # All the keys look like valid FITS header keywords -- so
 	      # create a tied FITS header object and use that instead.
 	      my $afh = Astro::FITS::Header->new;
 	      my %hh;
@@ -2014,7 +2010,7 @@ sub PDL::wfits {
 fits_field_cmp
 
 Sorting comparison routine that makes proper sense of the digits at the end
-of some FITS header fields.  Sort your hash keys using "fits_field_cmp" and 
+of some FITS header fields.  Sort your hash keys using "fits_field_cmp" and
 you will get (e.g.) your "TTYPE" fields in the correct order even if there
 are 140 of them.
 
@@ -2024,14 +2020,14 @@ $a and $b variables, rather than normal argument passing.
 =cut
 
 sub fits_field_cmp {
-  if( $a=~m/^(.*[^\d])(\d+)$/ ) { 
+  if( $a=~m/^(.*[^\d])(\d+)$/ ) {
     my ($an,$ad) = ($1,$2);
     if( $b=~m/^(.*[^\d])(\d+)$/ ) {
       my($bn,$bd) = ($1,$2);
-    
+
       if($an eq $bn) {
 	return $ad<=>$bd;
-      } 
+      }
     }
   }
   $a cmp $b;
@@ -2053,10 +2049,10 @@ sub _rows {
   return $var->dim(0) if( UNIVERSAL::isa($var,'PDL') );
   return 1+$#$var if(ref $var eq 'ARRAY');
   return 1 unless(ref $var);
-  
+
   warn "Warning: _rows found an unacceptable ref. ".ref $var.". Ignoring...\n"
     if($PDL::verbose);
-  
+
   return undef;
 }
 
@@ -2064,7 +2060,7 @@ sub _rows {
 
 =head2 _prep_table()
 
-=for ref 
+=for ref
 
 Accept a hash ref containing a table, and return a header describing the table
 and a string to be written out as the table, or barf.
@@ -2098,17 +2094,17 @@ sub _prep_table {
 
   #####
   # Figure out how many columns are in the table
-  my @colkeys = grep( ( !m/^(hdr|tbl)$/ and !m/^len_/ and defined $hash->{$_}), 
-		      sort fits_field_cmp keys %$hash 
+  my @colkeys = grep( ( !m/^(hdr|tbl)$/ and !m/^len_/ and defined $hash->{$_}),
+		      sort fits_field_cmp keys %$hash
 		      );
   my $cols = @colkeys;
 
   print "Table seems to have $cols columns...\n"
     if($PDL::verbose);
-  
+
   #####
   # Figure out how many rows are in the table, and store counts...
-  # 
+  #
   my $rows;
   my $rkey;
   for my $key(@colkeys) {
@@ -2122,7 +2118,7 @@ sub _prep_table {
     if($PDL::verbose);
 
   #####
-  # Squish and disambiguate column names 
+  # Squish and disambiguate column names
   #
   my %keysbyname;
   my %namesbykey;
@@ -2134,7 +2130,7 @@ sub _prep_table {
     my $name = $key;
     $name =~ tr/[a-z]/[A-Z]/;   # Uppercaseify (required by FITS standard)
     $name =~ s/\s+/_/g;         # Remove whitespace (required by FITS standard)
-    unless($nosquish) {     
+    unless($nosquish) {
       $name =~ s/[^A-Z0-9_-]//g;  # Squish (recommended by FITS standard)
     }
     ### Disambiguate...
@@ -2192,7 +2188,7 @@ sub _prep_table {
       $colnums{$name} = $i;
     } else { $i++; }
   }
-  
+
   print "Assertion failed:  i ($i) != colnums ($cols)\n"
     if($PDL::debug && $i != $cols);
 
@@ -2200,7 +2196,7 @@ sub _prep_table {
       join(",", map { $colnames[$_]; } (1..$cols) ) ."\n"
 	  if($PDL::debug);
 
-  ######## 
+  ########
   # OK, now the columns are allocated -- spew out a header.
 
   my @converters = ();   # Will fill up with conversion routines for each column
@@ -2234,29 +2230,29 @@ sub _prep_table {
 
       $hdr{"TTYPE$i"} = $colnames[$i];
       my $tform;
-      
+
       my $tstr;
       my $rpt;
       my $bytes;
-      
+
       if( UNIVERSAL::isa($var,'PDL') ) {
 
 	$internaltype[$i] = 'P';
 
 	my $t;
 
-	my $dims = pdl($var->dims); 
+	my $dims = pdl($var->dims);
 	($t = $dims->slice("(0)")) .= 1;
 	$rpt = $dims->prod;
 
 =pod
 
 =begin WHENCOMPLEXVALUESWORK
-	
+
 	if( UNIVERSAL::isa($var,'PDL::Complex') ) {
 	  $rpt = $var->dim(1);
 	  $t = 'complex'
-	} else { 
+	} else {
 	  $t = type $var;
 	}
 
@@ -2269,21 +2265,21 @@ sub _prep_table {
 	$t = $var->type;
 
 	$t = $bintable_types{$t};
-	
+
 	unless(defined($t)) {
 	  print "Warning: converting unknown type $t (column $colnames[$i]) to double...\n"
 	    if($PDL::verbose);
-	  $t = $bintable_types{'double'};
+	  $t = $bintable_types{double};
 	}
 
-	($tstr, $bytes, $converters[$i]) = @$t;	
+	($tstr, $bytes, $converters[$i]) = @$t;
 
       } elsif( ref $var eq 'ARRAY' ) {
 
 	$internaltype[$i] = 'A';
 	$bytes = 1;
-	
-	# Got an array (of strings) -- find the longest element 
+
+	# Got an array (of strings) -- find the longest element
 	$rpt = 0;
 	for(@$var) {
 	  my $l = length($_);
@@ -2293,7 +2289,7 @@ sub _prep_table {
 
       } elsif( ref $var ) {
 	barf "You seem to be writing out a ".(ref $var)." as a table column.  I\ndon't know how to do that (yet).\n";
-	
+
       } else {   # Scalar
 	$internaltype[$i] = 'A';
 	($tstr, $bytes, $converters[$i])  = ('A',1,undef);
@@ -2301,7 +2297,7 @@ sub _prep_table {
       }
 
 
-      # Now check if it's a variable-length array and, if so, insert an 
+      # Now check if it's a variable-length array and, if so, insert an
       # extra converter
       my $lname = "len_".$keysbyname{$colnames[$i]};
       if(exists $hash->{$lname}) {
@@ -2310,7 +2306,7 @@ sub _prep_table {
 	  # Variable length array - add extra handling logic.
 
 	  # First, check we're legit
-	  if( !UNIVERSAL::isa($var, 'PDL') || 
+	  if( !UNIVERSAL::isa($var, 'PDL') ||
 	      !UNIVERSAL::isa($lengths,'PDL') ||
 	      ($var->ndims - $lengths->ndims) != 1 ||
 	      $lengths->dim(0) != $var->dim(0)
@@ -2340,7 +2336,7 @@ FOO
 	      my $var = shift;
 	      my $row = shift;
 	      my $col = shift;
-	      
+
 	      my $len = $hash->{$lname};
 	      my $l;
 	      if(ref $len eq 'ARRAY') {
@@ -2352,17 +2348,17 @@ FOO
 	      } else {
 		  $l = $len;
 	      }
-	      # The standard says we should give a zero-offset 
+	      # The standard says we should give a zero-offset
 	      # pointer if the current row is zero-length; hence
 	      # the ternary operator.
 	      my $ret = pdl( $l, $l ? length($heap) : 0)->long;
 
 	      if($l) {
-		  # This echoes the normal-table swap and accumulation 
+		  # This echoes the normal-table swap and accumulation
 		  # stuff below, except we're accumulating into the heap.
 		  my $tmp = $csub ? &$csub($var, $row, $col) : $var;
 		  $tmp = $tmp->slice("0:".($l-1))->sever;
-		  
+
 		  $tmp->type->bswap->($tmp) if !isbigendian();
 		  my $t = $tmp->get_dataref;
 		  $heap .= $$t;
@@ -2378,7 +2374,7 @@ FOO
 	  $bytes = 8; # two longints per row in the main table.
       }
 
-      
+
       $hdr{"TFORM$i"} = "$rpt$tstr";
 
       if(UNIVERSAL::isa($var, 'PDL') and $var->ndims > 1) {
@@ -2387,19 +2383,19 @@ FOO
 
       $rowlen += ($field_len[$i] = $rpt * $bytes);
     }
-      
+
     $hdr{NAXIS1} = $rowlen;
-    
+
     ## Now accumulate the binary table
 
     my $table = "";
-    
+
     for my $r(0..$rows-1) {
       my $row = "";
       for my $c(1..$cols) {
 	my $tmp;
 	my $x = $fieldvars[$c];
-       
+
 	if($internaltype[$c] eq 'P') {  # PDL handling
 	  $tmp = $converters[$c]
 	    ? &{$converters[$c]}($x->slice("$r")->flat->sever, $r, $c)
@@ -2408,16 +2404,16 @@ FOO
 	  ## This would go faster if moved outside the loop but I'm too
 	  ## lazy to do it Right just now.  Perhaps after it actually works.
 	  $tmp->type->bswap->($tmp) if !isbigendian();
-	  my $t = $tmp->get_dataref;  
+	  my $t = $tmp->get_dataref;
 	  $tmp = $$t;
 	} else {                                  # Only other case is ASCII just now...
 	  $tmp = ( ref $x eq 'ARRAY' ) ?          # Switch on array or string
 	    ( $#$x == 0 ? $x->[0] : $x->[$r] )    # broadcast arrays as needed
 	      : $x;
-	 
+
 	  $tmp .= " " x ($field_len[$c] - length($tmp));
 	}
-       
+
 	# Now $tmp contains the bytes to be written out...
 	#
 	$row .= substr($tmp,0,$field_len[$c]);
@@ -2448,7 +2444,7 @@ sub _print_to_fits ($$$) {
     my $len = ((length $data) - 1) % 2880 + 1;
     print $fh $data . ($blank x (2880-$len));
 }
-  
+
 {
     my $ctr = 0;
 
@@ -2467,7 +2463,7 @@ sub _print_to_fits ($$$) {
 
 ##############################
 #
-# _wfits_table -- given a hash ref, try to write it out as a 
+# _wfits_table -- given a hash ref, try to write it out as a
 # table extension.  The file FITS should be open when you call it.
 # Most of the work of creating the extension header, and all of
 # the work of creating the table, is handled by _prep_table().
@@ -2489,7 +2485,7 @@ sub _wfits_table {
 
   # Copy the prepared fields into the extension header.
   tie my %newhdr,'Astro::FITS::Header',my $h = Astro::FITS::Header->new;
-  
+
   reset_hdr_ctr();
   add_hdr_item $h, "XTENSION", ($tbl eq 'ascii'?"TABLE":"BINTABLE"), 'string', "from perl hash";
   add_hdr_item $h, "BITPIX", $hdr->{BITPIX}, 'int';
@@ -2504,10 +2500,10 @@ sub _wfits_table {
 
   for my $field( sort fits_field_cmp keys %$hdr ) {
     next if( defined $newhdr{$field} or $field =~ m/^end|simple|xtension$/i);
-    my $type = 	(UNIVERSAL::isa($hdr->{field},'PDL') ? 
-		   $hdr->{$field}->type : 
-		   ((($hdr->{$field})=~ m/^[tf]$/i) ? 
-		    'logical' : 
+    my $type = 	(UNIVERSAL::isa($hdr->{field},'PDL') ?
+		   $hdr->{$field}->type :
+		   ((($hdr->{$field})=~ m/^[tf]$/i) ?
+		    'logical' :
 		    undef ## 'string' seems to have a bug - 'undef' works OK
 		    ));
 
@@ -2526,7 +2522,7 @@ sub _wfits_nullhdu {
   my $fh = shift;
   if($Astro::FITS::Header) {
     my $h = Astro::FITS::Header->new();
-    
+
     reset_hdr_ctr();
     add_hdr_item $h, "SIMPLE", "T", 'logical', "Null HDU (no data, only extensions)";
     add_hdr_item $h, "BITPIX", -32, 'int', "Needed to make fverify happy";
@@ -2547,11 +2543,11 @@ sub _wfits_nullhdu {
     ##    "  and Astrophysics', volume 376, page 359; bibcode: 2001A&A...376..359H";
     add_hdr_item $h, "HDUNAME", "PRIMARY", 'string';
     add_hdr_item $h, "END", undef, 'undef';
-    
+
     my $hdr = join("",$h->cards);
     _print_to_fits( $fh, $hdr, " " );
   } else {
-    _print_to_fits( $fh, 
+    _print_to_fits( $fh,
 		    q+SIMPLE  =                    T / Null HDU (no data, only extensions)            BITPIX  =                  -32 / Needed to make fverify happy                   NAXIS   =                    0                                                  EXTEND  =                    T / File contains extensions                       COMMENT   Written by perl (PDL::IO::FITS::wfits) legacy code.                   COMMENT   For best results, install Astro::FITS::Header.                        HDUNAME = 'PRIMARY '                                                            END                                                                             +,
 		    " ");
   }

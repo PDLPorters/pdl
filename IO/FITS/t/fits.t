@@ -27,14 +27,14 @@ wfits($t, $file);
 my $t2 = rfits $file;
 
 is( sum($t->slice('0:4,:')), -sum($t2->slice('5:-1,:')),
-    "r/wfits: slice check" );				#2
+    "r/wfits: slice check" );
 
 my $h = $t2->gethdr;
-ok( $$h{'FOO'} eq "foo" && $$h{'BAR'} == 42,
-    "header check on FOO/BAR" );			#3
+ok( $$h{FOO} eq "foo" && $$h{BAR} == 42,
+    "header check on FOO/BAR" );
 
 ok( $$h{'NUM'}+1 == 124 && $$h{'NUMSTR'} eq '0123',
-    "header check on NUM/NUMSTR" );			#4
+    "header check on NUM/NUMSTR" );
 
 unlink $file;
 

@@ -11,7 +11,7 @@ use PDL::NiceSlice;
 # Snarf the file and build a separate ndarray for each polyline
 print "Interpreting map file...\n";
 
-open my $mapfh, "<", "earth.txt";
+open my $mapfh, "<", "earth.txt" or die "earth.txt: $!";
 $nelem = 0;
 while(<$mapfh>) {
   next if m/^\#/ || m/^\s*$/;
@@ -63,5 +63,5 @@ $w->plot(with=>'polylines', $lonlatp,
 );
 print "ret> "; <STDIN>;
 
-#wfits($lonlatp,'earth_coast.vec.fits');
+wfits($lonlatp,'earth_coast.vec.fits');
 1;
