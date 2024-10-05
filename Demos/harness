@@ -28,7 +28,7 @@ my @infos = map [PDL::Demos->info($_)],
 @infos = grep $_->[0] eq 'pdl' || $_->[1] =~ /Simple|GSL/, @infos;
 
 my @this_output;
-sub do_output { push @this_output, @_; }
+sub do_output { push @this_output, map "$_", @_; }
 my @titles;
 for (@infos) {
   my ($kw, $blurb, $mod) = @$_;
