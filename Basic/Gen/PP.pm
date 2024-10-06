@@ -1850,6 +1850,7 @@ sub make_vfn_args {
    PDL::PP::Rule::Returns::NULL->new("WriteBackDataFuncName", "Code"),
    PDL::PP::Rule->new(make_vfn_args("WriteBackData")),
 
+   # CORE21 move this into pdlapi so RedoDims without Code can broadcast
    PDL::PP::Rule->new("DefaultRedoDims",
       ["StructName"],
       sub { "PDL_RETERROR(PDL_err, PDL->redodims_default($_[0]));\n" }),

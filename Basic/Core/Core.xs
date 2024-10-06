@@ -652,10 +652,10 @@ ind_sizes(x)
 void
 inc_sizes(x)
   pdl_trans *x;
-  PPCODE:
-    PDL_Indx i, max = x->vtable->nind_ids;
-    EXTEND(SP, max);
-    for(i=0; i<max; i++) mPUSHi(x->inc_sizes[i]);
+PPCODE:
+  PDL_Indx i, max = x->vtable->nind_ids; /* CORE21 rename nind_ids */
+  EXTEND(SP, max);
+  for(i=0; i<max; i++) mPUSHi(x->inc_sizes[i]);
 
 MODULE = PDL::Core     PACKAGE = PDL::Trans::VTable
 

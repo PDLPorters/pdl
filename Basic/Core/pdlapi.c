@@ -50,6 +50,12 @@
       ? vtable->redodims \
       : pdl_redodims_default)(trans)); \
     PDL_Indx i; \
+    for (i = 0; i < vtable->ninds; i++) \
+      if (trans->ind_sizes[i] < 0) \
+        PDL_ACCUMERROR(PDL_err, pdl_make_error(PDL_EUSERERROR, \
+          "%s: RedoDims gave size < 0 for dim %s", \
+          trans->vtable->name, trans->vtable->ind_names[i])); \
+    if (PDL_err.error) what(PDL_err, PDL_err); \
     for (i = vtable->nparents; i < vtable->npdls; i++) { \
       pdl *child = (trans)->pdls[i]; \
       PDLDEBUG_f(printf("REDODIMS child=%p turning off dimschanged, before=", child); pdl_dump_flags_fixspace(child->state, 0, PDL_FLAGS_PDL)); \
@@ -99,7 +105,7 @@ pdl_error pdl__ensure_trans(pdl_trans *trans, int what, char inputs_only, int re
     flag |= trans->pdls[j]->state & PDL_ANYCHANGED;
   PDLDEBUG_f(printf("pdl__ensure_trans after accum, par_pvaf=%"IND_FLAG" flag=", par_pvaf); pdl_dump_flags_fixspace(flag, 0, PDL_FLAGS_PDL));
   if (par_pvaf || flag & PDL_PARENTDIMSCHANGED)
-    REDODIMS(PDL_RETERROR, trans);
+    REDODIMS(PDL_RETERROR, trans); /* CORE21 change to make_physdims_recetc */
   if (flag & PDL_ANYCHANGED)
     READDATA(trans);
   return PDL_err;

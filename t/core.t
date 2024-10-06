@@ -184,6 +184,8 @@ $c->reshape(5,5);
 is($c->hdr->{demo}, "yes", "hdr after reshape");
 }
 
+eval {zeroes(0,-2)};
+like $@, qr/non-negative/, 'negative dim to zeroes gives clear error';
 eval {empty->squeeze->dims};
 is $@, '', 'can "squeeze" an empty';
 eval {empty->copy->make_physical};

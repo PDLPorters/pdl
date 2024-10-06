@@ -300,7 +300,7 @@ subtest diff2 => sub {
   $got = pdl('[BAD BAD]')->diff2;
   is "$got", "[BAD]", 'none good';
   eval {empty()->diff2};
-  like $@, qr/Tried to allocdata with -1 values/, 'empty';
+  like $@, qr/diff2/, 'empty gives good error';
   $got = pdl(1)->diff2;
   is "$got", "Empty[0]", 'single-element gives empty';
 };
