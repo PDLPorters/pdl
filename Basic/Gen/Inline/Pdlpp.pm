@@ -235,6 +235,41 @@ __END__
 
 Inline::Pdlpp - Write PDL Subroutines inline with PDL::PP
 
+=head1 SYNOPSIS
+
+  use strict; use warnings;
+  use PDL;
+  use Inline Pdlpp => 'DATA';
+
+  # make data with: echo -n 'ATCGZATCG' >input.data
+  # use it with aa_to_int.pl input.data
+
+  my $file; ($file = shift, -f $file) || die "Usage: $0 filename";
+  my $size = -s $file;
+  my $pdl = zeroes(byte, $size);
+  ${$pdl->get_dataref} = do { open my $fh, $file or die "$file: $!"; local $/; <$fh> };
+  $pdl->upd_data;
+  $pdl->inplace->aa_to_int;
+  print $pdl, "\n";
+
+  __DATA__
+  __Pdlpp__
+  pp_def('aa_to_int',
+   Pars => 'i();[o] o()',
+   GenericTypes => ['B'],
+   Inplace => 1,
+   Code => <<'EOF',
+  switch($i()) {
+   case 'A': $o() = 0; break;
+   case 'T': $o() = 1; break;
+   case 'C': $o() = 2; break;
+   case 'G': $o() = 3; break;
+   default: $o() = 255; break;
+  }
+  EOF
+   Doc => "=for ref\n\nConvert amino acid names to integers.\n",
+  );
+
 =head1 DESCRIPTION
 
 C<Inline::Pdlpp> is a module that allows you to write PDL subroutines
@@ -251,10 +286,9 @@ For more information on Inline in general, see L<Inline>.
 Some example scripts demonstrating C<Inline::Pdlpp> usage can be
 found in the F<Example/InlinePdlpp> directory.
 
-
 C<Inline::Pdlpp> is a subclass of L<Inline::C>. Most Kudos goes to Brian I.
 
-=head1 Usage
+=head1 USAGE
 
 You never actually use C<Inline::Pdlpp> directly. It is just a support module
 for using C<Inline.pm> with C<PDL::PP>. So the usage is always:
@@ -265,7 +299,7 @@ or
 
     bind Inline Pdlpp => ...;
 
-=head1 Examples
+=head1 EXAMPLES
 
 Pending availability of full docs a few quick examples
 that illustrate typical usage.
