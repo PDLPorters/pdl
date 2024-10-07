@@ -27,13 +27,16 @@ sub wrap_code {
   my ($name, $in, $out, $is_fwd) = @_;
   pp_def($name,
     Code => <<EOF,
-PJ_COORD in, out;
-PJ *proj = proj_create( NULL, \$COMP(params) ); /* Init the projection */
-if( proj == NULL )
-  \$CROAK("Projection initialization failed: %s\\n", proj_errno_string(proj_errno(proj)));
+PJ_CONTEXT *pj_context = proj_context_create();
+if (!pj_context)
+  \$CROAK("Projection context creation failed: %s\\n", proj_errno_string(proj_errno(NULL)));
+PJ *proj = proj_create( pj_context, \$COMP(params) );
+if (!proj)
+  \$CROAK("Projection initialization failed: %s\\n", proj_errno_string(proj_errno(NULL)));
 char rad_in = @{[$is_fwd ? 'proj_angular_input(proj, PJ_FWD)' : '0']},
   deg_out = @{[$is_fwd ? '0' : 'proj_angular_output(proj, PJ_INV)']};
-broadcastloop %{
+loop (n) %{
+  PJ_COORD in, out;
   PDL_IF_BAD(
   if ( @{[ join '||', map "\$ISBAD($in(ncoord=>$_))", 0,1 ]} ) {
     loop (ncoord) %{ \$SETBAD($out()); %}
@@ -53,13 +56,13 @@ broadcastloop %{
   loop (ncoord) %{ \$$out() = deg_out ? RAD_TO_DEG*out.v[ncoord] : out.v[ncoord]; %}
 %}
 proj_destroy(proj);
+proj_context_destroy(pj_context);
 EOF
-    Pars => "$in(ncoord=2); [o] $out(ncoord);",
+    Pars => "$in(ncoord=2,n); [o] $out(ncoord,n);",
     GenericTypes => ['D'],
     OtherPars => 'char* params;',
     HandleBad => 1,
     Inplace => 1,
-    NoPthread => 1,
     Doc => undef,
   );
 }
