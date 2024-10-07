@@ -31,38 +31,30 @@ PJ_COORD in, out;
 PJ *proj = proj_create( NULL, \$COMP(params) ); /* Init the projection */
 if( proj == NULL )
   \$CROAK("Projection initialization failed: %s\\n", proj_errno_string(proj_errno(proj)));
-char convert_rad_in = @{[$is_fwd ? 'proj_angular_input(proj, PJ_FWD)' : '0']},
-  convert_rad_out = @{[$is_fwd ? '0' : 'proj_angular_output(proj, PJ_INV)']};
+char rad_in = @{[$is_fwd ? 'proj_angular_input(proj, PJ_FWD)' : '0']},
+  deg_out = @{[$is_fwd ? '0' : 'proj_angular_output(proj, PJ_INV)']};
 broadcastloop %{
   PDL_IF_BAD(
-  if ( @{[ join '||', map "\$ISBAD($in(n=>$_))", 0,1 ]} ) {
-  @{[ join "\n", map "\$SETBAD($out(n=>$_));", 0,1 ]}
-  continue;
+  if ( @{[ join '||', map "\$ISBAD($in(ncoord=>$_))", 0,1 ]} ) {
+    loop (ncoord) %{ \$SETBAD($out()); %}
+    continue;
   },)
-  in.uv.u = \$$in(n=>0);
-  in.uv.v = \$$in(n=>1);
-  if (convert_rad_in) {
-    in.uv.u *= DEG_TO_RAD; in.uv.v *= DEG_TO_RAD;
-  }
+  loop (ncoord) %{ in.v[ncoord] = rad_in ? DEG_TO_RAD*\$$in() : \$$in(); %}
   out = proj_trans(proj, PJ_@{[$is_fwd ? 'FWD' : 'INV']}, in);
-  if (out.uv.u == HUGE_VAL) {
+  if (out.v[0] == HUGE_VAL) {
     PDL_IF_BAD(
-    @{[ join "\n", map "\$SETBAD($out(n=>$_));", 0,1 ]}
+    loop (ncoord) %{ \$SETBAD($out()); %}
     continue;
     ,
     \$CROAK("Projection conversion failed at (%f, %f): %s\\n",
-      \$$in(n=>0), \$$in(n=>1), proj_errno_string(proj_errno(proj)));
+      \$$in(ncoord=>0), \$$in(ncoord=>1), proj_errno_string(proj_errno(proj)));
     )
   }
-  if (convert_rad_out) {
-    out.uv.u *= RAD_TO_DEG; out.uv.v *= RAD_TO_DEG;
-  }
-  \$$out(n=>0) = out.uv.u;
-  \$$out(n=>1) = out.uv.v;
+  loop (ncoord) %{ \$$out() = deg_out ? RAD_TO_DEG*out.v[ncoord] : out.v[ncoord]; %}
 %}
 proj_destroy(proj);
 EOF
-    Pars => "$in(n=2); [o] $out(n);",
+    Pars => "$in(ncoord=2); [o] $out(ncoord);",
     GenericTypes => ['D'],
     OtherPars => 'char* params;',
     HandleBad => 1,

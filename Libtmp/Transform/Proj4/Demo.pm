@@ -125,7 +125,7 @@ drawL( t_proj_apian,     "Apian Globular I",            [400,300]);
 [comment => q|
 
 That concludes the demo of PROJ. Numerous other transforms are available.
-Take a look at https://proj.org/en/9.5/operations/projections/index.html
+Take a look at https://proj.org/en/stable/operations/projections/index.html
 for more!
 |],
 );
