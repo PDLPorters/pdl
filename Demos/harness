@@ -18,13 +18,30 @@ my $html_footer = <<'EOF';
 </body>
 </html>
 EOF
+my $index_header = <<'EOF';
+<!-- Generated with pdl/Demos/harness -->
+<h1 class='title'>Demos and Examples</h1>
+<p>On the following pages you'll find some examples of how to use PDL
+for basic computations and plotting purposes. Several of the examples
+are available as demos within <tt>perldl</tt>. For more details try:</p>
+<pre>
+ <b>perldl></b> demo
+</pre>
+<ul>
+EOF
+my $index_footer = <<'EOF';
+<li><a href="?page=demos/plot2D">2D plotting with PGPLOT</a></li>
+<li><a href="?page=screenshots/index">3D plots</a></li>
+</ul>
+EOF
 my ($name_pat, $name_glob) = qw(output-%d.png output-*.png);
 
 my $destroot = shift;
-die "Usage: $0 destroot" unless defined $destroot && -d $destroot;
+die "Usage: $0 destroot [singledemo]" unless defined $destroot && -d $destroot;
 
+my $single_demo = shift;
 my @infos = map [PDL::Demos->info($_)],
-  'pdl', sort grep $_ ne 'pdl', PDL::Demos->keywords;
+  'pdl', sort grep $_ ne 'pdl', $single_demo || PDL::Demos->keywords;
 @infos = grep $_->[0] eq 'pdl' || $_->[1] =~ /Simple|GSL/, @infos;
 
 my @this_output;
@@ -97,7 +114,7 @@ for (@infos) {
           delete @seen_img{@this_imgs}; # may reappear with new content
           @this_imgs = $vidfile;
         }
-        $o .= sprintf qq{\n<img src="images/demos/$kw/%s"/>}, (splitpath $this_imgs[0])[2];
+        $o .= sprintf qq{\n<img src="images/demos/%s/%s"/>}, $kw, (splitpath $this_imgs[0])[2];
       }
       push @thisframe, "<h4>Output</h4>\n$o" if $o;
     }
@@ -114,25 +131,13 @@ for (@infos) {
     join("\n\n<hr/>\n", map join("\n", @$_), @outframes), "\n",
     $html_footer;
 }
-open my $fh, ">", catfile($destroot, "index.html");
-print $fh
-  <<'EOF',
-<!-- Generated with pdl/Demos/harness -->
-<h1 class='title'>Demos and Examples</h1>
-<p>On the following pages you'll find some examples of how to use PDL
-for basic computations and plotting purposes. Several of the examples
-are available as demos within <tt>perldl</tt>. For more details try:</p>
-<pre>
- <b>perldl></b> demo
-</pre>
-<ul>
-EOF
-  (map qq{<li><a href="?page=demos/$_->[0]">$_->[1]</a></li>\n}, @titles),
-  <<'EOF';
-<li><a href="?page=demos/plot2D">2D plotting with PGPLOT</a></li>
-<li><a href="?page=screenshots/index">3D plots</a></li>
-</ul>
-EOF
+if (!$single_demo) {
+  open my $fh, ">", catfile($destroot, "index.html");
+  print $fh
+    $index_header,
+    (map qq{<li><a href="?page=demos/$_->[0]">$_->[1]</a></li>\n}, @titles),
+    $index_footer;
+}
 
 sub hyperlink {
   my ($text) = @_;

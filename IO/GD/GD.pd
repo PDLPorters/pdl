@@ -838,7 +838,7 @@ sub to_rpic {
 
 =head2 apply_lut( $lut(ndarray) )
 
-Does a $im->ColorAllocate() for and entire LUT ndarray at once.
+Does a $im->ColorAllocate() for an entire LUT ndarray at once.
 
 The LUT ndarray format is the same as for the general interface above.
 
