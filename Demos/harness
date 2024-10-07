@@ -136,7 +136,7 @@ EOF
 
 sub hyperlink {
   my ($text) = @_;
-  $text =~ s#PDL::[^\s;]+#<a href="https://metacpan.org/pod/$&">$&</a>#g;
+  $text =~ s#PDL::[a-zA-Z0-9_:]+#<a href="https://metacpan.org/pod/$&">$&</a>#g;
   $text =~ s#([^"])(https?:\S+)#$1<a href="$2">$2</a>#g;
   $text;
 }

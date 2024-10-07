@@ -162,8 +162,6 @@ Example/InlinePdlpp/inlppminimal.pl
 Example/InlinePdlpp/Module/Makefile.PL
 Example/InlinePdlpp/Module/MyInlineMod.pm
 Example/InlinePdlpp/Module/t/myinlinemod.t
-Example/Simplex/tsimp2.pl
-Example/Simplex/tsimp_needs_pgplot.pl
 Graphics/Graphics2D.pm
 Graphics/Limits/Limits.pm
 Graphics/Limits/Makefile.PL
@@ -437,6 +435,7 @@ Libtmp/LegacyComplex/complex.pd
 Libtmp/LegacyComplex/Makefile.PL
 Libtmp/LegacyComplex/t/complex.t
 Libtmp/Makefile.PL
+Libtmp/Simplex/Demo.pm
 Libtmp/Simplex/Makefile.PL
 Libtmp/Simplex/Simplex.pm
 Libtmp/Simplex/t/simplex.t
