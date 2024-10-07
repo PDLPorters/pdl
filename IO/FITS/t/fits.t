@@ -18,13 +18,16 @@ my (undef, $file) = File::Temp::tempfile(%tmp_opts);
 ################ Test rfits/wfits ########################
 
 my $t = long xvals(zeroes(11,20))-5;
+wfits($t, $file); # without a header
+my $t2 = rfits $file;
+unlike $t2->hdr->{COMMENT}, qr/HASH/, 'no "HASH" garbage in written header';
 
 # note: keywords are converted to uppercase
 my %hdr = ('Foo'=>'foo', 'Bar'=>42, 'NUM'=>'0123',NUMSTR=>['0123']);
 $t->sethdr(\%hdr);
 
 wfits($t, $file);
-my $t2 = rfits $file;
+$t2 = rfits $file;
 
 is( sum($t->slice('0:4,:')), -sum($t2->slice('5:-1,:')),
     "r/wfits: slice check" );

@@ -453,7 +453,6 @@ sub PDL::rfits {
 
 	         $$foo{$name}=$1 if $rest =~ m|^= +([^\/\' ][^\/ ]*) *( +/(.*))?$| ;
 	         $$foo{$name}=$1 if $rest =~ m|^= \'(.*)\' *( +/(.*))?$| ;
-	         $$foo{COMMENT}{$name} = $3 if defined($3);
           }
        } # non-blank
        last hdr_legacy if ((defined $name) && $name eq "END");
@@ -1609,7 +1608,7 @@ our @wfits_numbered_keywords = qw(CTYPE CRPIX CRVAL CDELT CROTA);
 
 # Local utility routine of wfits()
 sub wheader {
-    my ($fh, $k, $hdr, $nbytes) = @_;
+    my ($fh, $k, $hdr, $nbytes, $comment) = @_;
     if ($k =~ m/(HISTORY|COMMENT)/) {
 	my $hc = $1;
 	return $nbytes unless exists $hdr->{$k};
@@ -1630,8 +1629,7 @@ sub wheader {
 	    printf $fh "%-80s", substr($k,0,8);
 	} else {
 	    printf $fh "%-8s= ", substr($k,0,8);
-	    my $com = ( ref $hdr->{COMMENT} eq 'HASH' ) ?
-		$hdr->{COMMENT}{$k} : undef;
+	    my $com = delete $comment->{$k};
 	    if ($hdrk =~ /^ *([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))? *$/) { # Number?
 		my $cl=60-($com ? 2 : 0);
 		my $end=' ' x $cl;
@@ -1661,7 +1659,6 @@ sub wheader {
 	}
 	$nbytes += 80; delete $hdr->{$k};
     }
-    delete $hdr->{COMMENT}{$k} if ref $hdr->{COMMENT} eq 'HASH';
     $nbytes;
 }
 
@@ -1933,12 +1930,11 @@ sub PDL::wfits {
 	  my %hdr = %ohdr;
 	  for my $key (@key_order) {
 	      $hdr{$key} = $ohdr{$key};
-	      $hdr{COMMENT}{$key} = $comment{$key} if defined $comment{$key};
-	      $nbytes = wheader($fh, $key, \%hdr, $nbytes);
+	      $nbytes = wheader($fh, $key, \%hdr, $nbytes, \%comment);
 	  }
-	  $nbytes = wheader($fh, $_, \%hdr, $nbytes)
+	  $nbytes = wheader($fh, $_, \%hdr, $nbytes, \%comment)
 	      for sort fits_field_cmp grep !/HISTORY/, keys %hdr;
-	  $nbytes = wheader($fh, 'HISTORY', \%hdr, $nbytes); # Make sure that HISTORY entries come last.
+	  $nbytes = wheader($fh, 'HISTORY', \%hdr, $nbytes, \%comment); # Make sure that HISTORY entries come last.
 	  printf $fh "%-80s", "END";
 	  $nbytes += 80;
       }

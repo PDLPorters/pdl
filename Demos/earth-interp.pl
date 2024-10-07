@@ -31,7 +31,7 @@ while(<$mapfh>) {
 }
 
 print "Breaking up elements...\n";
-$elements = zeroes(4,$nelem);
+$elements = zeroes(float,4,$nelem);
 $pos = 0;
 foreach $z(@mainlist) {
   $n = $z->dim(1);
