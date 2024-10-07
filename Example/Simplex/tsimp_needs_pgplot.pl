@@ -10,8 +10,7 @@ hold;
 my $mult = pdl 4,1;
 sub func { (($mult * $_[0]) ** 2)->sumover }
 sub logs {
-  line($_[0]->slice("(0)"),$_[0]->slice("(1)"));
-  line($_[0]->slice("(0),0:2:2"),$_[0]->slice("(1),0:2:2"));
+  line($_[0]->glue(1,$_[0]->slice(",0"))->using(0,1));
   sleep 1;
 }
 simplex(pdl(-10,-10), 0.5, 0.01, 30,
