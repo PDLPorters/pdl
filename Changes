@@ -8,6 +8,7 @@
 - fix Transform::Proj4 tests and build (#498 #499) - thanks @shawnlaffan
 - t_linear stores iunit ounit itype otype
 - IO::FITS no longer writes COMMENT header with "HASH(0x...)"
+- add IO::GD::write_gif_anim for better GIF animation in Demos/harness
 
 2.093 2024-09-29
 - PDL.set_datatype now doesn't physicalise input, PDL.convert_type does

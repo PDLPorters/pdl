@@ -396,6 +396,53 @@ loop(i) %{
 EOC
 );
 
+pp_def( 'write_gif_anim',
+        Pars => 'img(c=3,x,y,n)',
+        GenericTypes => ['B'],
+        OtherPars => 'char* filename; int Loops; int Delay',
+        OtherParsDefaults => {Loops=>0, Delay=>4},
+        NoPthread => 1,
+        Doc => <<'EOF',
+=for ref
+
+Writes an image cube to a file as an animated GIF.
+
+RGB dimension is first. y=0 is at bottom. 0 loops = infinite (default).
+Delay in 100ths of a second, default 4.
+EOF
+        Code => <<'EOF',
+FILE *fh = fopen($COMP(filename), "wb");
+if (!fh) $CROAK("Error opening %s\n", $COMP(filename));
+gdImagePtr im = gdImageCreateTrueColor($SIZE(x), $SIZE(y)), im_prev = NULL;
+if (!im) $CROAK("Error creating gdImage\n");
+loop (n=0:1) %{
+  loop (y,x) %{
+    gdImageSetPixel(im, x, $SIZE(y)-1-y,
+      gdImageColorResolve(im, $img(c=>0), $img(c=>1), $img(c=>2))
+    );
+  %}
+%}
+gdImageGifAnimBegin(im, fh, 0, $COMP(Loops));
+gdImageGifAnimAdd(im, fh, 1, 0, 0, $COMP(Delay), gdDisposalNone, im_prev);
+im_prev = im;
+loop (n=1) %{
+  im = gdImageCreateTrueColor($SIZE(x), $SIZE(y));
+  if (!im) $CROAK("Error creating gdImage\n");
+  loop (y,x) %{
+    gdImageSetPixel(im, x, $SIZE(y)-1-y,
+      gdImageColorResolve(im, $img(c=>0), $img(c=>1), $img(c=>2))
+    );
+  %}
+  gdImageGifAnimAdd(im, fh, 1, 0, 0, $COMP(Delay), gdDisposalNone, im_prev);
+  gdImageDestroy(im_prev);
+  im_prev = im;
+%}
+gdImageDestroy(im_prev);
+gdImageGifAnimEnd(fh);
+fclose(fh);
+EOF
+);
+
 pp_addxs( <<'ENDXS' );
 void 
 _gdImageDestroy( im )

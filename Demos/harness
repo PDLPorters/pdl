@@ -1,5 +1,6 @@
 use strict; use warnings;
 use PDL;
+use PDL::IO::GD; # for write_gif_anim, bigger file but nicer looking
 use PDL::Demos;
 use File::Path qw(mkpath);
 use File::Spec::Functions qw(catdir catfile splitpath updir);
@@ -109,7 +110,7 @@ for (@infos) {
         if (@this_imgs > 1) {
           my $multiframe = cat(map rpic($_), @this_imgs);
           my $vidfile = catfile($outdir, "vid-".++$vidcounter.".gif");
-          $multiframe->wmpeg($vidfile);
+          $multiframe->write_gif_anim($vidfile, 0, 10);
           unlink @this_imgs;
           delete @seen_img{@this_imgs}; # may reappear with new content
           @this_imgs = $vidfile;
