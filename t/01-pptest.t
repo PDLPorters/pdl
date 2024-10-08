@@ -67,6 +67,7 @@ pp_def('foop1',
 pp_def(
 	'fsumover',
 	Pars => 'a1(n); float [o]b();',
+	GenericTypes => ['D'],
 	Code => 'PDL_Float tmp = 0;
 	 loop(n) %{ tmp += $a1(); %}
 	 $b() = tmp;'
@@ -76,6 +77,7 @@ pp_def(
 pp_def(
 	'nsumover',
 	Pars => 'a(n); int+ [o]b();',
+	GenericTypes => [qw(B S U L F D)],
 	Code => '$GENERIC(b) tmp = 0;
 	 loop(n) %{ tmp += $a(); %}
 	 $b() = tmp;'
@@ -89,6 +91,7 @@ pp_def("gelsd",
 
 pp_def( 'broadcastloop_continue',
 	 Pars => 'in(); [o] out()',
+        GenericTypes => ['F'],
 	 Code => q[
 	    int cnt = 0;
 	    threadloop %{
@@ -137,6 +140,7 @@ pp_add_boot pp_line_numbers(__LINE__, q{
 # test XS args with OtherPars
 pp_def('gl_arrows',
 	Pars => 'coords(tri=3,n); int indsa(); int indsb();',
+        GenericTypes => ['F'],
 	OtherPars => 'float headlen; float width;',
 	Code => ';', # do nothing
 );
@@ -144,6 +148,7 @@ pp_def('gl_arrows',
 # test XS args with funky Pars ordering
 pp_def('polyfill_pp',
 	Pars => 'int [io] im(m,n); float ps(two=2,np); int col()',
+        GenericTypes => ['F'],
 	Code => ';', # do nothing
 );
 
@@ -157,6 +162,7 @@ pp_def("rice_compress",
 pp_def('output_op',
   Pars => 'in(n=2)',
   OtherPars => '[o] PDL_Anyval v0; [o] PDL_Anyval v1',
+  GenericTypes => ['F'],
   Code => '
     pdl_datatypes dt = $PDL(in)->datatype;
     ANYVAL_FROM_CTYPE($COMP(v0), dt, $in(n=>0));
@@ -166,6 +172,7 @@ pp_def('output_op',
 pp_def('output_op2',
   Pars => 'in(n=2); [o] out()',
   OtherPars => '[o] PDL_Anyval v0; [o] PDL_Anyval v1',
+  GenericTypes => ['F'],
   Code => '
     pdl_datatypes dt = $PDL(in)->datatype;
     ANYVAL_FROM_CTYPE($COMP(v0), dt, $in(n=>0));
@@ -175,6 +182,7 @@ pp_def('output_op2',
 pp_def('output_op3',
   Pars => 'in(n=2); [o] out()',
   OtherPars => '[o] PDL_Anyval v0; [o] PDL_Anyval v1',
+  GenericTypes => ['F'],
   Code => '
     pdl_datatypes dt = $PDL(in)->datatype;
     ANYVAL_FROM_CTYPE($COMP(v0), dt, $in(n=>0));
@@ -186,6 +194,7 @@ pp_def('output_op3',
 pp_def('incomp_dim',
   Pars => '[o] a();',
   OtherPars => 'PDL_Indx d[];',
+  GenericTypes => ['F'],
   Code => '$a() = $COMP(d_count);',
 );
 
@@ -212,12 +221,14 @@ EOT
 pp_def('typem',
   Pars => 'int [o] out()',
   OtherPars => '[io] NV_ADD1 v1; NV_HR v2; thing *ptr',
+  GenericTypes => ['F'],
   Code => '$out() = $COMP(v1); $COMP(v1) = 8;',
 );
 
 pp_def('incomp_in',
   Pars => '[o] out()',
   OtherPars => 'pdl *ins[]',
+  GenericTypes => ['F'],
   RedoDimsCode => <<'EOC',
 pdl **ins = $COMP(ins);
 PDL_Indx i;
@@ -253,6 +264,7 @@ EOC
 pp_def('incomp_out',
   Pars => 'in(n)',
   OtherPars => 'PDL_Indx howmany; [o] pdl *outs[]',
+  GenericTypes => ['F'],
   HandleBad => 1,
   CallCopy => 0,
   GenericTypes => [PDL::Types::ppdefs_all()],
@@ -277,11 +289,13 @@ EOC
 
 pp_def('index_prec', # check $a(n=>x+1) works
   Pars => 'in(n); [o]out()',
+  GenericTypes => ['F'],
   Code => 'loop (n) %{ if (n > 1) $out() += $in(n=>n-1); %}',
 );
 
 pp_def("diff_central",
   Pars => 'double x(); double [o] res();',
+  GenericTypes => ['F'],
   OtherPars => 'SV* function;',
   Code => ';',
 );
@@ -291,20 +305,17 @@ pp_addpm(pp_line_numbers(__LINE__-1, q{ sub myfunc { } }));
 
 pp_def('testinc',
         Pars => 'a(); [o] b()',
+        GenericTypes => ['F'],
         Code => q{
            /* emulate user debugging */
-
            /* Why doesn't this work???!!!! */
        threadloop %{
     /*         printf("  %f, %f\r", $a(), $b());
              printf("  Here\n");
         */
-
                  /* Sanity check */
                  $b() = $a() + 1;
-
          %}
-
         },
 );
 
@@ -313,9 +324,9 @@ pp_def('testinc',
 
 pp_def('testinc2',
         Pars => 'a(); [o] b()',
+        GenericTypes => ['F'],
         Code => q{
            /* emulate user debugging */
-
            /* Why doesn't this work???!!!! */
    /*    threadloop %{
              printf("  %f, %f\r", $a(), $b());
@@ -324,7 +335,6 @@ pp_def('testinc2',
         */
           /* Sanity check */
           $b() = $a() + 1;
-
         },
 );
 
@@ -332,6 +342,7 @@ pp_def('or2',
   Pars => 'a(); b(); [o]c();',
   OtherPars => 'int swap; char *ign; int ign2',
   OtherParsDefaults => { swap => 0, ign=>'""', ign2=>0 },
+  GenericTypes => ['F'],
   ArgOrder => 1,
   Code => '$c() = $a() | $b();',
   GenericTypes => [qw(A B S U L K N P Q)],
@@ -347,12 +358,14 @@ pp_def('logadd',
 
 pp_def('ftr',
        Pars => 'a(); [o]b()',
+       GenericTypes => ['F'],
        Code => ';',
        FtrCode => "  sv_setiv(perl_get_sv(\"main::FOOTERVAL\",TRUE), 1);\n",
       );
 
 pp_def('ftrPM',
        Pars => 'a(); [o]b()',
+       GenericTypes => ['F'],
        Code => ';',
        HdrCode => "  sv_setiv(perl_get_sv(\"main::HEADERVAL\",TRUE), 1);\n",
        FtrCode => "  sv_setiv(perl_get_sv(\"main::FOOTERVAL\",TRUE), 1);\n",
