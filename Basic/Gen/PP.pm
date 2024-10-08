@@ -1646,7 +1646,7 @@ EOD
         my $svdecls = join '', map "\n  $_",
           (map "SV *${_}_SV = ".(
             !$name2cnts{$_} ? 'NULL' :
-            $argorder ? "items > $name2cnts{$_}[1] ? ST($name2cnts{$_}[1]) : ".($other_out{$_} ? "sv_newmortal()" : "NULL") :
+            ($argorder || (defined $otherdefaults->{$_} && !$nout)) ? "items > $name2cnts{$_}[1] ? ST($name2cnts{$_}[1]) : ".($other_out{$_} ? "sv_newmortal()" : "NULL") :
             $name2cnts{$_}[0] == ($name2cnts{$_}[1]//-1) ? "ST($name2cnts{$_}[0])" :
             "(items == $nmaxonstack) ? ST($name2cnts{$_}[0]) : ".
             (!defined $name2cnts{$_}[1] ? ($other_out{$_} ? "sv_newmortal()" : "NULL") :

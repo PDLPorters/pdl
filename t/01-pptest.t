@@ -357,9 +357,11 @@ pp_def('logadd',
       );
 
 pp_def('ftr',
-       Pars => 'a(); [o]b()',
+       Pars => 'a()',
        GenericTypes => ['F'],
-       Code => ';',
+       OtherPars => 'char* filename; int Loops; int Delay',
+       OtherParsDefaults => {Loops=>0, Delay=>4},
+       Code => 'sv_setiv(perl_get_sv("main::DelayVAL",TRUE), $COMP(Delay));',
        FtrCode => "  sv_setiv(perl_get_sv(\"main::FOOTERVAL\",TRUE), 1);\n",
       );
 
@@ -564,8 +566,10 @@ eval { ldouble(4)->logadd(3) };
 is $@, '';
 
 undef $main::FOOTERVAL;
-ftr(1);
+undef $main::DelayVAL;
+ftr(1, "file");
 is $main::FOOTERVAL, 1;
+is $main::DelayVAL, 4;
 
 undef $main::HEADERVAL;
 undef $main::FOOTERVAL;
