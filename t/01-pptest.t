@@ -485,7 +485,7 @@ is "$o", 4;
 $o = incomp_dim([0..3]);
 is "$o", 4;
 
-my $ptrObj = bless \(my $thing), 'thingPtr';
+my $ptrObj = bless \(my $thing = 75), 'thingPtr';
 $o = typem(my $oth = 3, {}, $ptrObj);
 is "$o", 4;
 is "$oth", 7;
