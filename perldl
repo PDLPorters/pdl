@@ -218,14 +218,15 @@ push @enabled, "MultiLines";
 
 my $interrupt_handle = eval 'use Sys::SigAction qw(set_sig_handler); 1';
 my $interrupt_msg = "Ctrl-C detected";
+my $pid = $$;
 if ($interrupt_handle) {
   push @enabled, "Interrupt";
 } else {
-  $SIG{'INT'} = sub { die "$interrupt_msg\n" }; # Ctrl-C handler
+  $SIG{'INT'} = sub { die "$interrupt_msg\n" if $$ == $pid }; # Ctrl-C handler
 }
 sub mksighandle {
   $interrupt_handle ? set_sig_handler(INT => sub {
-    die "$interrupt_msg\n";
+    die "$interrupt_msg\n" if $$ == $pid;
   }) : undef;
 }
 
