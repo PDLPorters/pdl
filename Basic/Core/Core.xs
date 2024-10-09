@@ -1030,27 +1030,34 @@ initialize(class)
     RETVAL
 
 # undocumented for present. returns PDL still needing dims and datatype
+# offset is in bytes, not elements
 SV *
-new_around_datasv(class, datasv_pointer)
+new_around_datasv(class, datasv_pointer, offset=0)
   SV *class
   IV datasv_pointer
-  CODE:
-    HV *bless_stash = SvROK(class)
-      ? SvSTASH(SvRV(class)) /* a reference to a class */
-      : gv_stashsv(class, 0); /* a class name */
-    RETVAL = newSV(0);
-    pdl *n = pdl_pdlnew();
-    if (!n) pdl_pdl_barf("Error making null pdl");
-    pdl_SetSV_PDL(RETVAL,n);   /* set a null PDL to this SV * */
-    RETVAL = sv_bless(RETVAL, bless_stash); /* bless appropriately  */
-    /* set the datasv to what was supplied */
-    n->datasv = (void*)datasv_pointer;
-    SvREFCNT_inc((SV*)(datasv_pointer));
-    n->data = SvPV_nolen((SV*)datasv_pointer);
-    n->nbytes = SvCUR((SV*)datasv_pointer);
-    n->state |= PDL_ALLOCATED;
-  OUTPUT:
-    RETVAL
+  IV offset
+CODE:
+  if (offset < 0)
+    pdl_pdl_barf("Tried to new_around_datasv with negative offset=%" IVdf, offset);
+  STRLEN sv_len = SvCUR((SV*)datasv_pointer);
+  if (offset >= sv_len)
+    pdl_pdl_barf("Tried to new_around_datasv with offset=%" IVdf " >= %zd", offset, sv_len);
+  HV *bless_stash = SvROK(class)
+    ? SvSTASH(SvRV(class)) /* a reference to a class */
+    : gv_stashsv(class, 0); /* a class name */
+  pdl *n = pdl_pdlnew();
+  if (!n) pdl_pdl_barf("Error making null pdl");
+  RETVAL = newSV(0);
+  pdl_SetSV_PDL(RETVAL,n);   /* set a null PDL to this SV * */
+  RETVAL = sv_bless(RETVAL, bless_stash); /* bless appropriately  */
+  /* set the datasv to what was supplied */
+  n->datasv = (void*)datasv_pointer;
+  SvREFCNT_inc((SV*)(datasv_pointer));
+  n->data = SvPV_nolen((SV*)datasv_pointer) + offset;
+  n->nbytes = sv_len - offset;
+  n->state |= PDL_ALLOCATED;
+OUTPUT:
+  RETVAL
 
 SV *
 get_dataref(self)
