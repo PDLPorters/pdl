@@ -16,11 +16,8 @@ for my $type (@types) {
   my $hdr = writeflex $data, $pdl;
   writeflexhdr($data,$hdr);
   my $npdl = eval {readflex $data};
-  TODO: {
-     local $TODO = "readflex returns index instead of long";
-     ok ($pdl->type == $npdl->type && 
-        all $pdl == $npdl);
-  }
+  is $pdl->type, $npdl->type;
+  ok all $pdl == $npdl;
 }
 
 unlink $data, "${data}.hdr";

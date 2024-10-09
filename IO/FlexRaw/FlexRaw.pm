@@ -705,7 +705,7 @@ READ:
 				      ref $hdr->{Dims} ? @{$hdr->{Dims}} : $hdr->{Dims});
 		$len = length $ {$pdl->get_dataref};
 
-		&mapchunk($d,$pdl,$len,$name,$offset) or last READ;
+		mapchunk($d,$pdl,$len,$name,$offset) or last READ;
 		$chunkread += $len;
 		if ($newfile && $f77mode) {
 			if ($opts{Creat}) {
@@ -726,7 +726,7 @@ READ:
 		if ($f77mode && $chunk->at == $chunkread) {
 			$chunkread = 0;
 			my ($check) = $chunk->copy;
-			&mapchunk($d,$check,4,$name,$offset) or last READ;
+			mapchunk($d,$check,4,$name,$offset) or last READ;
 			if ($opts{Creat}) {
 				$check->set(0,$size-8);
 				} else {

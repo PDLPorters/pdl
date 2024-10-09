@@ -425,7 +425,6 @@ sub new
 	# get lone vdata (not member of a vgroup)
 	my $lone=PDL::IO::HDF::VS::_VSlone($self->{HID});
 
-        my $MAX_REF = 0;
 	while ( $vdata_ref = shift @$lone )
         {
             my $mode="r";

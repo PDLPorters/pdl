@@ -90,7 +90,7 @@ SKIP: {
    }
 
    # **TEST 8** compare mapfraw ndarray with original ndarray	
-   ok(all(approx($x,$c)), "A ndarray and its mapflex representation should be about equal");
+   ok(all(approx($x,$c)), "An ndarray and its mapflex representation should be about equal");
 
    # **TEST 9** modifications should be saved when $c goes out of scope
    # THIS TEST FAILS.
