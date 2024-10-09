@@ -201,140 +201,124 @@ our @EXPORT = qw/writeflex writeflexhdr readflex mapflex glueflex/;
 # Cast type numbers in concrete, for external file's sake...
 my %flexnames = map +($_->enum => $_->ioname), types();
 my %flextypes = map +($_->ioname => $_->enum,
-		     $_->enum => $_->enum,
-		     $_->ppsym => $_->enum,
-		    ), types();
+  $_->enum => $_->enum,
+  $_->ppsym => $_->enum,
+), types();
 my %flexswap = map {
-		   my $nb = PDL::Core::howbig(my $val = $_->enum);
-		   ($val =>  $nb > 1 ? "bswap$nb" : undef)}
-	      types();
+  my $nb = PDL::Core::howbig(my $val = $_->enum);
+  $nb > 1 ? ($val =>  "bswap$nb") : ()
+} types();
 
 our $verbose = 0;
 our $writeflexhdr //= 0;
 
 sub _read_flexhdr {
-    my ($hname) = @_;
-    open my $hfile, $hname
-	or barf "Couldn't open '$hname' for reading: $!";
-    binmode $hfile;
-    my ($newfile) = 1;
-    my ($tid, @str);
-    my (@ret);
-    # check for ENVI files and bail (for now)
-    my $line1 = scalar <$hfile>;
-    barf "This is an ENVI format file, please use readenvi()\n" if $line1 =~ /^ENVI\r?$/;
-    seek $hfile, 0, 0;  # reset file pointer to beginning
- ITEM:
- while (!eof($hfile)) {
+  my ($hname) = @_;
+  open my $hfile, $hname or barf "Couldn't open '$hname' for reading: $!";
+  binmode $hfile;
+  my ($newfile, $tid, @str, @ret) = 1;
+  # check for ENVI files and bail (for now)
+  my $line1 = scalar <$hfile>;
+  barf "This is an ENVI format file, please use readenvi()\n" if $line1 =~ /^ENVI\r?$/;
+  seek $hfile, 0, 0;  # reset file pointer to beginning
+  ITEM: while (!eof($hfile)) {
     my ($ndims, $mode, @dims) = (-1, -2);
     my ($have_badvalue) = undef;
     my ($badvalue) = undef;
-    LINE:
-    while (<$hfile>) {
-       ### print STDERR "processing line '$_'\n";
-       next LINE if /^#/ or /^\s*$/;
-       chop;
-       tr/A-Z/a-z/;
-       @str = split;
-       TOKEN:
-       ### print STDERR "Got tokens: " . join(',',@str) . "\n";
-       my $numtokens = scalar @str;
-       foreach my $token (@str) {
-          next LINE if $token =~ /^#/;
-          if ($mode == -2) { # type
-             ### print STDERR "  \$mode == -2:  #tokens=$numtokens, '$token'\n";
-             if ($newfile) {
-                if ($token eq 'f77' || $token eq 'swap') {
-                   push @ret, {
-                      Type => $token
-                   };
-                   $numtokens--;
-                   next ITEM;
-                }
-             }
-             barf("Bad typename '$token' in readflex") if (!exists($flextypes{$token}));
-             $tid = $flextypes{$token};
-             $numtokens--;
-             $newfile = 0;
-             $mode++;
-          } elsif ($mode == -1) { #ndims
-             ### print STDERR "  \$mode == -1:  #tokens=$numtokens, '$token'\n";
-             barf("Not number for ndims in readflex") if $token !~ /^\d*$/;
-             $ndims = $token;
-             barf("Bad ndims in readflex") if ($ndims < 0);
-             $numtokens--;
-             $mode++;
-             if ($mode == $ndims and $numtokens == 0) {
-                last LINE;
-             }
-          } elsif ($mode < $ndims) { # get dims
-             ### print STDERR "  # get dims:  #tokens=$numtokens, '$token'\n";
-             barf("Not number for dimension in readflex")
-             if $token !~ /^\d*$/;
-             push(@dims,$token);
-             $numtokens--;
-             $mode++;
-             if ($mode == $ndims and $numtokens == 0) {
-                last LINE;
-             }
-          } elsif ($mode == $ndims and ! $have_badvalue) {  # check for badvalue info
-             ### print STDERR "  # ! \$have_badvalue:  #tokens=$numtokens, '$token'\n";
-             if ($token =~ /^badvalue$/ ) {
-                $have_badvalue = 1;
+    LINE: while (<$hfile>) {
+      next LINE if /^#/ or /^\s*$/;
+      chop;
+      tr/A-Z/a-z/;
+      @str = split;
+      my $numtokens = scalar @str;
+      TOKEN: foreach my $token (@str) {
+        next LINE if $token =~ /^#/;
+        if ($mode == -2) { # type
+          if ($newfile) {
+             if ($token eq 'f77' || $token eq 'swap') {
+                push @ret, {
+                   Type => $token
+                };
                 $numtokens--;
-                last LINE if $numtokens==0;  # using default bad value
-             } else {
-                last LINE;
+                next ITEM;
              }
-          } elsif ($mode == $ndims and $have_badvalue and $numtokens > 0) {
-             ### print STDERR "  #   \$have_badvalue:  #tokens = $numtokens, '$token'\n";
-             $badvalue = $token;
+          }
+          barf("Bad typename '$token' in readflex") if (!exists($flextypes{$token}));
+          $tid = $flextypes{$token};
+          $numtokens--;
+          $newfile = 0;
+          $mode++;
+        } elsif ($mode == -1) { #ndims
+          barf("Not number for ndims in readflex") if $token !~ /^\d*$/;
+          $ndims = $token;
+          barf("Bad ndims in readflex") if ($ndims < 0);
+          $numtokens--;
+          $mode++;
+          last LINE if $mode == $ndims and $numtokens == 0;
+        } elsif ($mode < $ndims) { # get dims
+          barf("Not number for dimension in readflex")
+          if $token !~ /^\d*$/;
+          push(@dims,$token);
+          $numtokens--;
+          $mode++;
+          last LINE if $mode == $ndims and $numtokens == 0;
+        } elsif ($mode == $ndims and ! $have_badvalue) {  # check for badvalue info
+          if ($token =~ /^badvalue$/ ) {
+             $have_badvalue = 1;
+             $numtokens--;
+             last LINE if $numtokens==0;  # using default bad value
+          } else {
              last LINE;
           }
-       }
+        } elsif ($mode == $ndims and $have_badvalue and $numtokens > 0) {
+          $badvalue = $token;
+          last LINE;
+        }
+      }
     }
     last ITEM if $mode == -2;
-    barf("Bad format in readflex header file ($ndims, $mode)") if ($ndims < 0 || $mode != $ndims);
+    barf "Bad format in readflex header file ($ndims, $mode)"
+      if $ndims < 0 || $mode != $ndims;
     push @ret, {
-       Type => $tid,
-       Dims => \@dims,
-    NDims => $ndims,
-    BadFlag => (($have_badvalue) ? 1 : 0),
-    BadValue => $badvalue,
- };
-    }
-    return \@ret;
+      Type => $tid,
+      Dims => \@dims,
+      NDims => $ndims,
+      BadFlag => (($have_badvalue) ? 1 : 0),
+      BadValue => $badvalue,
+    };
+  }
+  return \@ret;
 }
 
 sub readchunk {
-    my ($d, $pdl, $len, $name, $offset) = @_;
-    my ($nread);
-    print "Reading $len at $offset from $name\n"
-      if $verbose;
-    ($nread = read($d, ${$pdl->get_dataref}, $len)) == $len
-	or barf "Couldn't read $len bytes at offset $offset from '$name', got $nread";
-    $pdl->upd_data();
-    $len;
+  my ($d, $pdl, $len, $name, $offset) = @_;
+  my ($nread);
+  print "Reading $len at $offset from $name\n"
+    if $verbose;
+  ($nread = read($d, ${$pdl->get_dataref}, $len)) == $len
+      or barf "Couldn't read $len bytes at offset $offset from '$name', got $nread";
+  $pdl->upd_data();
+  $len;
 }
 
 our $flexmapok;
 sub myhandler {
-    $flexmapok = 0;
-    barf "Data out of alignment, can't map further\n";
+  $flexmapok = 0;
+  barf "Data out of alignment, can't map further\n";
 }
 
 sub mapchunk {
-    my ($orig, $pdl, $len, $name, $offset) = @_;
-    # link $len at $offset from $orig to $pdl.
-    # print "linking $len bytes from $offset\n";
-    $pdl->freedata;
-    $pdl->set_data_by_offset($orig,$offset);
-    local $flexmapok=1;
-    local $SIG{BUS} = \&myhandler unless $^O =~ /MSWin32/i;
-    local $SIG{FPE} = \&myhandler;
-    eval {$pdl->flat->at(0)};
-    $_[4] += $len; # mutate input
-    $flexmapok;
+  my ($orig, $pdl, $len, $name, $offset) = @_;
+  # link $len at $offset from $orig to $pdl.
+  # print "linking $len bytes from $offset\n";
+  $pdl->freedata;
+  $pdl->set_data_by_offset($orig,$offset);
+  local $flexmapok=1;
+  local $SIG{BUS} = \&myhandler unless $^O =~ /MSWin32/i;
+  local $SIG{FPE} = \&myhandler;
+  eval {$pdl->flat->at(0)};
+  $_[4] += $len; # mutate input
+  $flexmapok;
 }
 
 =head2 glueflex
@@ -415,172 +399,149 @@ Read a binary file with flexible format specification
 =cut
 
 sub readflex {
-    barf 'Usage ($x,$y,...) = readflex("filename"|FILEHANDLE [, \@hdr])'
-		if $#_ > 1;
-    my ($name,$h) = @_;
-    my ($hdr, $pdl, $len, @out, $chunk, $chunkread, $data);
-    my $offset = 0;
-    my ($newfile, $swapbyte, $f77mode, $zipt) = (1,0,0,0);
-    my $d;
-    # print("readflex: name is $name\n");
-    # Test if $name is a file handle
-    if (defined fileno($name)) {
-		$d = $name;
-    }
-    else {
-	$name =~ s/\.(gz|Z)$//; # strip any trailing compression suffix
-	$data = $name;
-	if(! -e $name ) {  # If it's still not found, then...
-	  suffix: for my $suffix('gz','Z') {
-	      if( -e "$name.$suffix" ) {
-
-		  ## This little fillip detects gzip if we need it, and caches
-		  ## the version in a package-global variable.  The return string
-		  ## is undefined if there is no gzip in the path.
-                  our $gzip_version;
-		  unless(defined($gzip_version)) {
-		      # Try running gzip -V to get the version.  Redirect STDERR to STDOUT since
-		      # Apple'z gzip writes its version to STDERR.
-		      $gzip_version = `gzip -V 2>&1`;
-		      unless(defined($gzip_version)) {
-			  # That may or may not work on Microsoft Windows, so if it doesn't,
-			  # try running gzip again without the redirect.
-			  $gzip_version = `gzip -V`;
-		      }
-		      barf "FlexRaw: couldn't find the external gzip utility (to parse $name.$suffix)!" unless(defined($gzip_version));
-		  }
-		  
-		  if($gzip_version =~ m/^Apple/) {
-		      # Apple gzip requires a suffix
-		      $data = "gzip -dcq $name.$suffix |";
-		  } else {
-		      # Other gzips apparently don't require a suffix - they find it automagically.
-		      $data = "gzip -dcq $name |";
-		  }
-
-		  $zipt = 1;
-		  last suffix;
-	      }
-	  }
-	}
-	my ($size) = (stat $name)[7];
-	open $d, $data
-	    or barf "Couldn't open '$data' for reading: $!";
-	$h ||= _read_flexhdr("$name.hdr");
-    }
-    binmode $d;
-
-    barf "Last dim given as undef but >1 header-hash given"
-      if ref $h->[0]{Dims} and @{$h->[0]{Dims}} and !defined $h->[0]{Dims}[-1] and @$h > 1;
-
-# Go through headers which reconfigure
-    foreach $hdr (@$h) {
-		my ($type) = $hdr->{Type};
-		if ($type eq 'swap') {
-			$swapbyte = 1;
-		} elsif ($type ne 'f77') {
-			last;
-		}
-    }
-
-READ:
-    foreach $hdr (@$h) {
-	my ($type) = $hdr->{Type};
-	# Case convert when we have user data
-	$type =~ tr/A-Z/a-z/ if $#_ == 1;
-	if ($newfile) {
-	    if ($type eq 'f77') {
-		$hdr = {
-		    Type => $PDL_L,
-		    Dims => [ ],
-		    NDims => 0
-		    };
-		$type = $PDL_L;
-		$f77mode = 1;
-	    } elsif ($type eq 'swap') {
-		next READ;
-	    } else {
-		$newfile = 0;
-	    }
-	}
-	if ($#_ == 1) {
-	    barf("Bad typename '$type' in readflex")
-		if (!defined($flextypes{$type}));
-	    $type = $flextypes{$type};
-	}
-	my @dims = ref $hdr->{Dims} ? @{$hdr->{Dims}} : $hdr->{Dims};
-	my @rdims = @dims[0..($#dims - (defined $dims[-1] ? 0 : 1))];
-	$len = pdl(PDL::Core::howbig($type), @rdims)->prodover->sclr;
-	if (@dims and !defined $dims[-1]) {
-	  my ($count, @pdls) = 0;
-	  while (!eof $d) {
-	    push @pdls, PDL->zeroes(PDL::Type->new($type), @rdims);
-	    $offset += readchunk($d,$pdls[-1],$len,$name, $offset);
-	    $count++;
-	  }
-	  $pdl = pdl(@pdls);
-	  $len *= $count;
-	} else {
-	  $pdl = PDL->zeroes(PDL::Type->new($type), @dims);
-	  $offset += readchunk($d,$pdl,$len,$name, $offset);
-	}
-	$chunkread += $len;
-	if ($swapbyte) {
-	  my $method = $flexswap{$type};
-	  $pdl->$method if $method;
-# 	    $pdl->type->bswap->($pdl);
-	}
-	if ($newfile && $f77mode) {
-	    if ($zipt || $swapbyte) {
-		$chunk = $pdl->copy;
-		$chunkread = 0;
-		next READ;
-	    } else {
-	      SWAP:
-		foreach (0,1) {
-		    seek($d,4,0);
-		    $swapbyte = $_;
-		    bswap4($pdl) if $swapbyte;
-		    $chunk = $pdl->copy;
-		    next SWAP if ! seek($d,$pdl->at,1);
-		    next SWAP if
-			read($d,${$chunk->get_dataref},$len) != $len;
-		    $chunk->upd_data;
-		    bswap4($chunk) if $swapbyte;
-		    next SWAP if ($pdl->at != $chunk->at);
-		    $chunkread = 0;
-		    barf "Error can't rewind" if !seek($d,4,0);
-		    # print "OK".($swapbyte?", swapped":""),"\n";
-		    next READ;
-		}
-		barf "Error: Doesn't look like f77 file (even swapped)";
-	    }
-	}
-
-        if ($hdr->{BadFlag}) {  # set badflag and badvalue if needed
-           $pdl->badflag($hdr->{BadFlag});
-           $pdl->badvalue($hdr->{BadValue}) if defined $hdr->{BadValue};
+  barf 'Usage ($x,$y,...) = readflex("filename"|FILEHANDLE [, \@hdr])'
+    if @_ > 2;
+  my ($name,$h) = @_;
+  my ($hdr, $pdl, $len, @out, $chunk, $chunkread, $data);
+  my $offset = 0;
+  my ($newfile, $swapbyte, $f77mode, $zipt) = (1,0,0,0);
+  my $d;
+  # print("readflex: name is $name\n");
+  # Test if $name is a file handle
+  if (defined fileno($name)) {
+    $d = $name;
+  } else {
+    $name =~ s/\.(gz|Z)$//; # strip any trailing compression suffix
+    $data = $name;
+    if (! -e $name ) {  # If it's still not found, then...
+      suffix: for my $suffix (grep -e "$name.$_", 'gz','Z') {
+        ## This little fillip detects gzip if we need it, and caches
+        ## the version in a package-global variable.  The return string
+        ## is undefined if there is no gzip in the path.
+        our $gzip_version;
+        unless (defined($gzip_version)) {
+          # Try running gzip -V to get the version.  Redirect STDERR to STDOUT since
+          # Apple'z gzip writes its version to STDERR.
+          $gzip_version = `gzip -V 2>&1`;
+          unless(defined($gzip_version)) {
+            # That may or may not work on Microsoft Windows, so if it doesn't,
+            # try running gzip again without the redirect.
+            $gzip_version = `gzip -V`;
+          }
+          barf "FlexRaw: couldn't find the external gzip utility (to parse $name.$suffix)!" unless(defined($gzip_version));
         }
-        push (@out,$pdl);
-
-	if ($f77mode && $chunk->at == $chunkread) {
-	    $chunkread = 0;
-	    my ($check) = $chunk->copy;
-	    $offset += readchunk($d,$check,4,$name,$offset);
-	    bswap4($check) if $swapbyte;
-	    if ($check->at ne $chunk->at) {
-		barf "F77 file format error for $check cf $chunk";
-		last READ;
-	    }
-	    if (!eof($d)) {
-		$offset += readchunk($d,$chunk,4,$name,$offset);
-		bswap4($chunk) if $swapbyte;
-	    } else {
-		last READ;
-	    }
-	}
+        if($gzip_version =~ m/^Apple/) {
+          # Apple gzip requires a suffix
+          $data = "gzip -dcq $name.$suffix |";
+        } else {
+          # Other gzips apparently don't require a suffix - they find it automagically.
+          $data = "gzip -dcq $name |";
+        }
+        $zipt = 1;
+        last suffix;
+      }
     }
-    wantarray ? @out : $out[0];
+    my $size = (stat $name)[7];
+    open $d, $data
+        or barf "Couldn't open '$data' for reading: $!";
+    $h ||= _read_flexhdr("$name.hdr");
+  }
+  binmode $d;
+  barf "Last dim given as undef but >1 header-hash given"
+    if ref $h->[0]{Dims} and @{$h->[0]{Dims}} and !defined $h->[0]{Dims}[-1] and @$h > 1;
+  # Go through headers which reconfigure
+  foreach $hdr (@$h) {
+    my ($type) = $hdr->{Type};
+    if ($type eq 'swap') {
+      $swapbyte = 1;
+    } elsif ($type ne 'f77') {
+      last;
+    }
+  }
+  READ: foreach $hdr (@$h) {
+    my ($type) = $hdr->{Type};
+    # Case convert when we have user data
+    $type =~ tr/A-Z/a-z/ if @_ == 2;
+    if ($newfile) {
+      if ($type eq 'f77') {
+        $hdr = { Type => $PDL_L, Dims => [ ], NDims => 0 };
+        $type = $PDL_L;
+        $f77mode = 1;
+      } elsif ($type eq 'swap') {
+        next READ;
+      } else {
+        $newfile = 0;
+      }
+    }
+    if (@_ == 2) {
+      barf "Bad typename '$type' in readflex" if !defined $flextypes{$type};
+      $type = $flextypes{$type};
+    }
+    my @dims = ref $hdr->{Dims} ? @{$hdr->{Dims}} : $hdr->{Dims};
+    my @rdims = @dims[0..($#dims - (defined $dims[-1] ? 0 : 1))];
+    $len = pdl(PDL::Core::howbig($type), @rdims)->prodover->sclr;
+    if (@dims and !defined $dims[-1]) {
+      my ($count, @pdls) = 0;
+      while (!eof $d) {
+        push @pdls, PDL->zeroes(PDL::Type->new($type), @rdims);
+        $offset += readchunk($d,$pdls[-1],$len,$name, $offset);
+        $count++;
+      }
+      $pdl = pdl(@pdls);
+      $len *= $count;
+    } else {
+      $pdl = PDL->zeroes(PDL::Type->new($type), @dims);
+      $offset += readchunk($d,$pdl,$len,$name, $offset);
+    }
+    $chunkread += $len;
+    if ($swapbyte) {
+      my $method = $flexswap{$type};
+      $pdl->$method if $method;
+    }
+    if ($newfile && $f77mode) {
+      if ($zipt || $swapbyte) {
+        $chunk = $pdl->copy;
+        $chunkread = 0;
+        next READ;
+      } else {
+        SWAP: foreach (0,1) {
+          seek($d,4,0);
+          $swapbyte = $_;
+          bswap4($pdl) if $swapbyte;
+          $chunk = $pdl->copy;
+          next SWAP if !seek($d,$pdl->at,1);
+          next SWAP if read($d,${$chunk->get_dataref},$len) != $len;
+          $chunk->upd_data;
+          bswap4($chunk) if $swapbyte;
+          next SWAP if $pdl->at != $chunk->at;
+          $chunkread = 0;
+          barf "Error can't rewind" if !seek($d,4,0);
+          # print "OK".($swapbyte?", swapped":""),"\n";
+          next READ;
+        }
+        barf "Error: Doesn't look like f77 file (even swapped)";
+      }
+    }
+    if ($hdr->{BadFlag}) {  # set badflag and badvalue if needed
+      $pdl->badflag($hdr->{BadFlag});
+      $pdl->badvalue($hdr->{BadValue}) if defined $hdr->{BadValue};
+    }
+    push @out, $pdl;
+    if ($f77mode && $chunk->at == $chunkread) {
+      $chunkread = 0;
+      my ($check) = $chunk->copy;
+      $offset += readchunk($d,$check,4,$name,$offset);
+      bswap4($check) if $swapbyte;
+      if ($check->at ne $chunk->at) {
+        barf "F77 file format error for $check cf $chunk";
+        last READ;
+      }
+      last READ if eof $d;
+      $offset += readchunk($d,$chunk,4,$name,$offset);
+      bswap4($chunk) if $swapbyte;
+    }
+  }
+  wantarray ? @out : $out[0];
 }
 
 =head2 mapflex
@@ -607,139 +568,107 @@ Memory map a binary file with flexible format specification
 =cut
 
 sub mapflex {
-    my ($usage)
-		= 'Usage ($x,$y,...) = mapflex("filename" [, \@hdr] [,\%opts])';
-    my $name = shift;
-    # reference to header array
-    my ($h, $size);
-    # reference to options array, with defaults
-    my (%opts) = ( 'ReadOnly' => 0, 'Creat' => 0, 'Trunc' => 0 );
-
-    my ($hdr, $d, $pdl, $len, @out, $chunk, $chunkread);
-    my $offset = 0;
-    my ($newfile, $swapbyte, $f77mode, $zipt) = (1,0,0,0);
-
-    foreach (@_) {
-		if (ref($_) eq "ARRAY") {
-			$h = $_;
-		} elsif (ref($_) eq "HASH") {
-			%opts = (%opts,%$_);
-		} else {
-			warn $usage;
-		}
+  my $name = shift;
+  # reference to header array
+  my ($h, $size);
+  # reference to options array, with defaults
+  my %opts = ( 'ReadOnly' => 0, 'Creat' => 0, 'Trunc' => 0 );
+  my ($hdr, $d, $pdl, $len, @out, $chunk, $chunkread);
+  my $offset = 0;
+  my ($newfile, $swapbyte, $f77mode, $zipt) = (1,0,0,0);
+  foreach (@_) {
+    if (ref($_) eq "ARRAY") {
+      $h = $_;
+    } elsif (ref($_) eq "HASH") {
+      %opts = (%opts,%$_);
+    } else {
+      warn 'Usage ($x,$y,...) = mapflex("filename" [, \@hdr] [,\%opts])';
     }
-
-    if ($name =~ s/\.gz$// || $name =~ s/\.Z$// ||
-	(! -e $name && (-e $name.'.gz' || -e $name.'.Z'))) {
-		barf "Can't map compressed file";
+  }
+  barf "Can't map compressed file"
+    if $name =~ s/\.gz$// || $name =~ s/\.Z$// ||
+      (!-e $name && (-e $name.'.gz' || -e $name.'.Z'));
+  $h = _read_flexhdr("$name.hdr") if !defined $h;
+  # Go through headers which reconfigure
+  foreach $hdr (@$h) {
+    my $type = $hdr->{Type};
+    barf "Can't map byte swapped file" if $type eq 'swap';
+    if ($type eq 'f77') {
+      $f77mode = 1;
+    } else {
+      barf "Bad typename '$type' in mapflex" if !defined $flextypes{$type};
+      $type = $flextypes{$type};
+      my $si = 1;
+      $si *= $_ for ref $hdr->{Dims} ? @{$hdr->{Dims}} : $hdr->{Dims};
+      $size += $si * PDL::Core::howbig ($type);
     }
-
-    if (!defined $h) {
-		$h = _read_flexhdr("$name.hdr");
+  }
+  # $s now contains estimated size of data in header --
+  # setting $f77mode means that it will be 8 x n bigger in reality
+  $size += 8 if $f77mode;
+  if (!$opts{Creat}) {
+    my ($s) = $size;
+    $size = (stat $name)[7];
+    barf "File looks too small ($size cf header $s)" if $size < $s;
+  }
+  $d = PDL->zeroes(byte());
+  $d->set_data_by_file_map($name,
+    $size,
+    1,
+    ($opts{ReadOnly}?0:1),
+    ($opts{Creat}?1:0),
+    (0644),
+    ($opts{Creat} || $opts{Trunc} ? 1:0)
+  );
+  READ: foreach $hdr (@$h) {
+    my ($type) = $hdr->{Type};
+    # Case convert when we have user data
+    $type =~ tr/A-Z/a-z/ if @_ == 2;
+    if ($newfile) {
+      if ($type eq 'f77') {
+        $hdr = { Type => $PDL_L, Dims => [], NDims => 0 };
+        $type = $PDL_L;
+      } else {
+        $newfile = 0;
+      }
     }
-
-# Go through headers which reconfigure
-    foreach $hdr (@$h) {
-		my ($type) = $hdr->{Type};
-		if ($type eq 'swap') {
-			barf "Can't map byte swapped file";
-		} elsif ($type eq 'f77') {
-			$f77mode = 1;
-		} else {
-			my($si) = 1;
-			foreach (ref $hdr->{Dims} ? @{$hdr->{Dims}} : $hdr->{Dims}) {
-			$si *= $_;
-			}
-			barf("Bad typename '$type' in mapflex")
-				unless defined $flextypes{$type};
-			$type = $flextypes{$type};
-			$size += $si * PDL::Core::howbig ($type);
-		}
+    if (@_ == 2) {
+      barf "Bad typename '$type' in mapflex" if !defined $flextypes{$type};
+      $type = $flextypes{$type};
     }
-# $s now contains estimated size of data in header --
-# setting $f77mode means that it will be 8 x n bigger in reality
-    $size += 8 if ($f77mode);
-    if (!($opts{Creat})) {
-		my ($s) = $size;
-		$size = (stat $name)[7];
-		barf "File looks too small ($size cf header $s)" if $size < $s;
+    my $pdl = PDL->zeroes(PDL::Type->new($type), ref $hdr->{Dims} ? @{$hdr->{Dims}} : $hdr->{Dims});
+    $len = length ${$pdl->get_dataref};
+    mapchunk($d,$pdl,$len,$name,$offset) or last READ;
+    $chunkread += $len;
+    if ($newfile && $f77mode) {
+      if ($opts{Creat}) {
+        $pdl->set(0,$size - 8);
+      } else {
+        $chunk = $pdl->copy;
+      }
+      $chunkread = 0;
+      next READ;
     }
-    # print "Size $size f77mode $f77mode\n";
-
-    $d = PDL->zeroes(byte());
-
-    # print "Mapping total size $size\n";
-    # use Data::Dumper;
-    # print "Options: ", Dumper(\%opts), "\n";
-    $d->set_data_by_file_map($name,
-        $size,
-        1,
-        ($opts{ReadOnly}?0:1),
-        ($opts{Creat}?1:0),
-        (0644),
-        ($opts{Creat} || $opts{Trunc} ? 1:0)
-    );
-READ:
-    foreach $hdr (@$h) {
-		my ($type) = $hdr->{Type};
-		# Case convert when we have user data
-		$type =~ tr/A-Z/a-z/ if $#_ == 1;
-		if ($newfile) {
-			if ($type eq 'f77') {
-			$hdr = {
-				Type => $PDL_L,
-				Dims => [ ],
-				NDims => 0
-				};
-			$type = $PDL_L;
-			} else {
-			$newfile = 0;
-			}
-		}
-		if ($#_ == 1) {
-			barf("Bad typename '$type' in mapflex")
-				unless defined $flextypes{$type};
-			$type = $flextypes{$type};
-		}
-		my $pdl = PDL->zeroes(PDL::Type->new($type),
-				      ref $hdr->{Dims} ? @{$hdr->{Dims}} : $hdr->{Dims});
-		$len = length $ {$pdl->get_dataref};
-
-		mapchunk($d,$pdl,$len,$name,$offset) or last READ;
-		$chunkread += $len;
-		if ($newfile && $f77mode) {
-			if ($opts{Creat}) {
-			$pdl->set(0,$size - 8);
-			} else {
-			$chunk = $pdl->copy;
-			}
-			$chunkread = 0;
-			next READ;
-		}
-
-                if ($hdr->{BadFlag}) {  # set badflag and badvalue if needed
-                   $pdl->badflag($hdr->{BadFlag});
-                   $pdl->badvalue($hdr->{BadValue}) if defined $hdr->{BadValue};
-                }
-			push (@out,$pdl);
-
-		if ($f77mode && $chunk->at == $chunkread) {
-			$chunkread = 0;
-			my ($check) = $chunk->copy;
-			mapchunk($d,$check,4,$name,$offset) or last READ;
-			if ($opts{Creat}) {
-				$check->set(0,$size-8);
-				} else {
-				if ($check->at ne $chunk->at) {
-					barf "F77 file format error for $check cf $chunk";
-					last READ;
-				}
-			}
-			barf "Will only map first f77 data statement" if $offset < $size;
-			last READ;
-		}
+    if ($hdr->{BadFlag}) {  # set badflag and badvalue if needed
+      $pdl->badflag($hdr->{BadFlag});
+      $pdl->badvalue($hdr->{BadValue}) if defined $hdr->{BadValue};
     }
-    wantarray ? @out : $out[0];
+    push (@out,$pdl);
+    if ($f77mode && $chunk->at == $chunkread) {
+      $chunkread = 0;
+      my ($check) = $chunk->copy;
+      mapchunk($d,$check,4,$name,$offset) or last READ;
+      if ($opts{Creat}) {
+        $check->set(0,$size-8);
+      } else {
+        barf "F77 file format error for $check cf $chunk"
+          if $check->at ne $chunk->at;
+      }
+      barf "Will only map first f77 data statement" if $offset < $size;
+      last READ;
+    }
+  }
+  wantarray ? @out : $out[0];
 }
 
 =head2 writeflex
@@ -767,46 +696,42 @@ or
 =cut
 
 sub writeflex {
-   my $usage = 'Usage $hdr = writeflex("filename"|FILEHANDLE,$pdl,...)';
-   barf $usage if $#_<0;
-   my($name) = shift;
-   my $isname = 0;
-   my $hdr;
-   my $d;
-
-   # Test if $name is a file handle
-   if (defined fileno($name)) {
-      $d = $name;
-   }
-   else {
-      barf $usage if ref $name;
-      $isname = 1;
-      my $modename = ($name =~ /^[+]?[><|]/) ? $name : ">$name";
-      open $d, $modename
-         or barf "Couldn't open '$name' for writing: $!";
-   }
-   binmode $d;
-   foreach my $pdl (@_) {
-      barf $usage if ! ref $pdl;
-      # print join(' ',$pdl->getndims,$pdl->dims),"\n";
-      push @{$hdr}, {
-         Type => $flexnames{$pdl->get_datatype},
-         Dims => [ $pdl->dims ],
-         NDims => $pdl->getndims,
-         BadFlag => $pdl->badflag,
-         BadValue => (($pdl->badvalue == $pdl->orig_badvalue) ? undef : $pdl->badvalue),
-      };
-      print $d ${$pdl->get_dataref};
-   }
-   if (defined wantarray) {
-      # list or scalar context
-      writeflexhdr($name, $hdr) if $isname and $writeflexhdr;
-      return $hdr;
-   } else {
-      # void context so write header file
-      writeflexhdr($name, $hdr) if $isname;
-      return;
-   }
+  my $usage = 'Usage $hdr = writeflex("filename"|FILEHANDLE,$pdl,...)';
+  barf $usage if !@_;
+  my $name = shift;
+  my $isname = 0;
+  my $hdr;
+  my $d;
+  # Test if $name is a file handle
+  if (defined fileno($name)) {
+    $d = $name;
+  } else {
+    barf $usage if ref $name;
+    $isname = 1;
+    my $modename = ($name =~ /^[+]?[><|]/) ? $name : ">$name";
+    open $d, $modename or barf "Couldn't open '$name' for writing: $!";
+  }
+  binmode $d;
+  foreach my $pdl (@_) {
+    barf $usage if !ref $pdl;
+    push @$hdr, {
+      Type => $flexnames{$pdl->get_datatype},
+      Dims => [ $pdl->dims ],
+      NDims => $pdl->getndims,
+      BadFlag => $pdl->badflag,
+      BadValue => (($pdl->badvalue == $pdl->orig_badvalue) ? undef : $pdl->badvalue),
+    };
+    print $d ${$pdl->get_dataref};
+  }
+  if (defined wantarray) {
+    # list or scalar context
+    writeflexhdr($name, $hdr) if $isname and $writeflexhdr;
+    return $hdr;
+  } else {
+    # void context so write header file
+    writeflexhdr($name, $hdr) if $isname;
+    return;
+  }
 }
 
 =head2 writeflexhdr
@@ -831,25 +756,20 @@ Write the header file corresponding to a previous writeflex call
 =cut
 
 sub writeflexhdr {
-    barf 'Usage writeflex("filename", $hdr)' if $#_!=1 || !ref $_[1];
-    my($name) = shift; my ($hdr) = shift;
-    my $hname = "$name.hdr";
-    open my $h, '>', $hname
-        or barf "Couldn't open '$hname' for writing: $!";
-    binmode $h;
-    print $h
-	"# Output from PDL::IO::writeflex, data in $name\n";
-    foreach (@$hdr) {
-	my ($type) = $_->{Type};
-	if (! exists $flextypes{$type}) {
-	    barf "Writeflexhdr: will only print data elements, not $type";
-	    next;
-	}
-	print $h join("\n",$_->{Type},
-		      $_->{NDims},
-		      (join ' ',ref $_->{Dims} ? @{$_->{Dims}} : $_->{Dims}) . (($_->{BadFlag}) ? " badvalue $_->{BadValue}" : '')),
-	"\n\n";
-    }
+  barf 'Usage writeflex("filename", $hdr)' if @_!=2 || !ref $_[1];
+  my($name, $hdr) = @_;
+  my $hname = "$name.hdr";
+  open my $h, '>', $hname or barf "Couldn't open '$hname' for writing: $!";
+  binmode $h;
+  print $h "# Output from PDL::IO::writeflex, data in $name\n";
+  foreach (@$hdr) {
+    my $type = $_->{Type};
+    barf "Writeflexhdr: will only print data elements, not $type"
+      if !exists $flextypes{$type};
+    print $h join("\n",$type, $_->{NDims},
+      (join ' ',ref $_->{Dims} ? @{$_->{Dims}} : $_->{Dims}) . (($_->{BadFlag}) ? " badvalue $_->{BadValue}" : '')),
+      "\n\n";
+  }
 }
 
 =head1 BAD VALUE SUPPORT
