@@ -598,9 +598,7 @@ sub mapflex {
     } else {
       barf "Bad typename '$type' in mapflex" if !defined $flextypes{$type};
       $type = $flextypes{$type};
-      my $si = 1;
-      $si *= $_ for ref $hdr->{Dims} ? @{$hdr->{Dims}} : $hdr->{Dims};
-      $size += $si * PDL::Core::howbig ($type);
+      $size += _data_size_in_bytes($type, $hdr->{Dims});
     }
   }
   # $s now contains estimated size of data in header --
@@ -669,6 +667,13 @@ sub mapflex {
     }
   }
   wantarray ? @out : $out[0];
+}
+
+sub _data_size_in_bytes {
+  my ($type, $dims) = @_;
+  my $si = 1;
+  $si *= $_ for ref $dims ? @$dims : $dims;
+  $si * PDL::Core::howbig($type);
 }
 
 =head2 writeflex
