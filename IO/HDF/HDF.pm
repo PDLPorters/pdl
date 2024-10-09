@@ -186,10 +186,6 @@ This is the max name length for SDS variables, attribtues, and just about anythi
 
 This is the max number of dims a HDF variable can have.
 
-=item VNAMELENMAX
-
-Max length of V interface names.
-
 =back
 
 =cut 
@@ -202,9 +198,6 @@ use constant MAX_NC_NAME => 256;
 
 # Maximum variable dims (use for alloc'ing mem for the low level calls that return dims:
 use constant MAX_VAR_DIMS => 32;
-
-# Max name len for VS interface:
-use constant VNAMELENMAX => 64;
 
 use constant FAIL => -1;
 
