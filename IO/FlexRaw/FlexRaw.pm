@@ -310,7 +310,6 @@ sub myhandler {
 sub mapchunk {
   my ($orig, $pdl, $len, $name, $offset) = @_;
   # link $len at $offset from $orig to $pdl.
-  # print "linking $len bytes from $offset\n";
   $pdl->freedata;
   $pdl->set_data_by_offset($orig,$offset);
   local $flexmapok=1;
@@ -406,7 +405,6 @@ sub readflex {
   my $offset = 0;
   my ($newfile, $swapbyte, $f77mode, $zipt) = (1,0,0,0);
   my $d;
-  # print("readflex: name is $name\n");
   # Test if $name is a file handle
   if (defined fileno($name)) {
     $d = $name;
@@ -516,7 +514,6 @@ sub readflex {
           next SWAP if $pdl->at != $chunk->at;
           $chunkread = 0;
           barf "Error can't rewind" if !seek($d,4,0);
-          # print "OK".($swapbyte?", swapped":""),"\n";
           next READ;
         }
         barf "Error: Doesn't look like f77 file (even swapped)";

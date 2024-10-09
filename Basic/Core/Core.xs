@@ -489,7 +489,7 @@ set_data_by_offset(it,orig,offset)
       STRLEN offset
       CODE:
               it->data = ((char *) orig->data) + offset;
-	      it->datasv = orig->sv;
+              it->datasv = orig->datasv;
               (void)SvREFCNT_inc(it->datasv);
               it->state |= PDL_DONTTOUCHDATA | PDL_ALLOCATED;
               RETVAL = 1;
