@@ -1506,12 +1506,6 @@ Returns the memory address of the ndarray's C<struct>.
 
 Returns the value of the ndarray C<struct>'s C<data> member.
 
-=head2 freedata
-
-=for ref
-
-Frees the C<datasv> if possible. Useful in memory-mapping functionality.
-
 =head2 set_donttouchdata
 
 =for ref
@@ -1519,15 +1513,6 @@ Frees the C<datasv> if possible. Useful in memory-mapping functionality.
 Sets the C<PDL_DONTTOUCHDATA> flag and the C<nbytes> to the given
 value. Useful in memory-mapping functionality.
 The C<nbytes> can be omitted, in which case only the flag is set.
-
-=head2 set_data_by_offset
-
-=for ref
-
-Sets the ndarray's C<data> and C<datasv> to those of the given ndarray,
-but the C<data> points to the other ndarray's C<data> plus the given
-offset.
-Sets the C<PDL_DONTTOUCHDATA> flag. Useful in memory-mapping functionality.
 
 =head2 nbytes
 
