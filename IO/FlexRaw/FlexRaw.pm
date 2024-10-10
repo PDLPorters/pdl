@@ -307,15 +307,15 @@ sub myhandler {
   barf "Data out of alignment, can't map further\n";
 }
 sub mapchunk {
-  my ($orig, $type, $dims, $offset) = @_;
-  my $pdl = PDL->zeroes(PDL::Type->new($type), ref $dims ? @$dims : $dims);
-  $pdl->get_dataref;
-  $pdl->freedata;
-  $pdl->set_data_by_offset($orig,$offset);
+  my ($svref, $type, $dims, $offset, $len) = @_;
+  my $pdl = PDL->new_around_datasv(0+$svref, $offset);
+  $pdl->set_datatype($type);
+  $pdl->setdims(ref $dims ? $dims : [$dims]);
+  $pdl->set_donttouchdata($len);
   local $flexmapok=1;
   local $SIG{BUS} = \&myhandler unless $^O =~ /MSWin32/i;
   local $SIG{FPE} = \&myhandler;
-  eval {$pdl->flat->at(0)};
+  eval {$pdl->at((0) x $pdl->ndims)}; # "->flat" allocs copy of whole array
   $flexmapok ? $pdl : undef;
 }
 
@@ -605,15 +605,13 @@ sub mapflex {
     $size = (stat $name)[7];
     barf "File looks too small ($size cf header $s)" if $size < $s;
   }
-  my $d = PDL->zeroes(byte());
-  $d->set_data_by_file_map($name,
-    $size,
-    1,
-    ($opts{ReadOnly}?0:1),
-    ($opts{Creat}?1:0),
-    (0644),
-    ($opts{Creat} || $opts{Trunc} ? 1:0)
-  );
+  my $mapped_sv; do {
+    my $writable = $opts{ReadOnly}?0:1;
+    my $creat = $opts{Creat}?1:0;
+    my $trunc = $opts{Creat} || $opts{Trunc} ? 1:0;
+    my $fh = PDL::Core::_file_map_open($name,$size,1,$writable,$creat,0644,$trunc);
+    PDL::Core::_file_map_sv(\$mapped_sv,$fh,$size,1,$writable);
+  };
   READ: for my $hdr (@$h) {
     my ($type) = $hdr->{Type};
     # Case convert when we have user data
@@ -631,7 +629,7 @@ sub mapflex {
       $type = $flextypes{$type};
     }
     my $len = _data_size_in_bytes($type, $hdr->{Dims});
-    my $pdl = mapchunk($d,$type,$hdr->{Dims},$offset);
+    my $pdl = mapchunk(\$mapped_sv,$type,$hdr->{Dims},$offset,$len);
     last READ if !defined $pdl;
     $offset += $len;
     $chunkread += $len;
@@ -651,7 +649,7 @@ sub mapflex {
     push @out, $pdl;
     if ($f77mode && $chunk->at == $chunkread) {
       $chunkread = 0;
-      my $check = mapchunk($d,$type,$hdr->{Dims},$offset);
+      my $check = mapchunk(\$mapped_sv,$type,$hdr->{Dims},$offset,4);
       last READ if !defined $check;
       $offset += 4;
       if ($opts{Creat}) {

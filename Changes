@@ -10,6 +10,7 @@
 - IO::FITS no longer writes COMMENT header with "HASH(0x...)"
 - add IO::GD::write_gif_anim for better GIF animation in Demos/harness
 - IO::HDF remove VNAMELENMAX and Vinquire as obsoleted by recent HDF4 (#500) - thanks @a-shahba for report
+- IO::FlexRaw::mapflex stop allocating memory (#501) - thanks @vitstradal for report
 
 2.093 2024-09-29
 - PDL.set_datatype now doesn't physicalise input, PDL.convert_type does

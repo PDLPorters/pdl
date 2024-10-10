@@ -467,20 +467,6 @@ nbytes(self)
   OUTPUT:
     RETVAL
 
-# Free the datasv if possible
-void
-freedata(it)
-      pdl *it
-      CODE:
-	if(it->datasv) {
-		PDLDEBUG_f(printf("pdl=%p SvREFCNT_dec datasv=%p\n",it,it->datasv));
-		SvREFCNT_dec(it->datasv);
-		it->datasv=0;
-		it->data=0;
-	} else if(it->data) {
-		die("Trying to free data of pdl with data != 0 and datasv==0");
-	}
-
 IV
 datasv_refcount(p)
   pdl *p
@@ -489,20 +475,6 @@ datasv_refcount(p)
     RETVAL = SvREFCNT((SV*)p->datasv);
   OUTPUT:
     RETVAL
-
-int
-set_data_by_offset(it,orig,offset)
-      pdl *it
-      pdl *orig
-      STRLEN offset
-      CODE:
-              it->data = ((char *) orig->data) + offset;
-              it->datasv = orig->datasv;
-              (void)SvREFCNT_inc(it->datasv);
-              it->state |= PDL_DONTTOUCHDATA | PDL_ALLOCATED;
-              RETVAL = 1;
-      OUTPUT:
-              RETVAL
 
 PDL_Indx
 nelem(x)
