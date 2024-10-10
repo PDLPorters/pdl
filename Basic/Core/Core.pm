@@ -4128,59 +4128,40 @@ sub PDL::fhdr {
     return \%hdr;
 }
 
+sub _file_map_sv {
+  require File::Map;
+  my ($svref, $fh, $len, $shared, $writable) = @_;
+  my $prot = File::Map::PROT_READ() | ($writable ? File::Map::PROT_WRITE() : 0);
+  my $flags = ($shared ? File::Map::MAP_SHARED() : File::Map::MAP_PRIVATE());
+  printf STDERR "_file_map_sv: calling sys_map(%s,%d,%d,%d,%s,%d)\n",
+    $svref, $len, $prot, $flags, $fh, 0 if $PDL::debug;
+  File::Map::sys_map($$svref, $len, $prot, $flags, $fh, 0);
+  printf STDERR "_file_map_sv: length \$\$svref is %d.\n",
+    length $$svref if $PDL::debug;
+}
+
+sub _file_map_open {
+  require Fcntl;
+  my ($name, $len, $shared, $writable, $creat, $perms, $trunc) = @_;
+  my $mode = ($writable && $shared ? Fcntl::O_RDWR() : Fcntl::O_RDONLY());
+  $mode |= Fcntl::O_CREAT() if $creat;
+  sysopen my $fh, $name, $mode, $perms
+    or die "Error opening file '$name': $!\n";
+  binmode $fh;
+  if ($trunc) {
+    truncate $fh,0 or die "truncate('$name',0) failed: $!";
+    truncate $fh,$len or die "truncate('$name',$len) failed: $!";
+  }
+  $fh;
+}
+
 sub PDL::set_data_by_file_map {
-   require Fcntl;
-   require File::Map;
-   my ($pdl,$name,$len,$shared,$writable,$creat,$mode,$trunc) = @_;
-   my $pdl_dataref = $pdl->get_dataref();
-
-   sysopen(my $fh, $name, ($writable && $shared ? Fcntl::O_RDWR() : Fcntl::O_RDONLY()) | ($creat ? Fcntl::O_CREAT() : 0), $mode)
-      or die "Error opening file '$name'\n";
-
-   binmode $fh;
-
-   if ($trunc) {
-      truncate($fh,0) or die "set_data_by_file_map: truncate('$name',0) failed, $!";
-      truncate($fh,$len) or die "set_data_by_file_map: truncate('$name',$len) failed, $!";
-   }
-
-   if ($len) {
-
-      if ($PDL::debug) {
-         printf STDERR
-         "set_data_by_file_map: calling sys_map(%s,%d,%d,%d,%s,%d)\n",
-         $pdl_dataref,
-         $len,
-         File::Map::PROT_READ() | ($writable ?  File::Map::PROT_WRITE() : 0),
-         ($shared ? File::Map::MAP_SHARED() : File::Map::MAP_PRIVATE()),
-         $fh,
-         0;
-      }
-
-      File::Map::sys_map(
-         ${$pdl_dataref},
-         $len,
-         File::Map::PROT_READ() | ($writable ?  File::Map::PROT_WRITE() : 0),
-         ($shared ? File::Map::MAP_SHARED() : File::Map::MAP_PRIVATE()),
-         $fh,
-         0
-      );
-
-      $pdl->upd_data(1);
-
-      if ($PDL::debug) {
-         printf STDERR "set_data_by_file_map: length \${\$pdl_dataref} is %d.\n", length ${$pdl_dataref};
-      }
-      $pdl->set_donttouchdata($len);
-
-   } else {
-
-      #  Special case: zero-length file
-      $_[0] = undef;
-   }
-
-   # PDLDEBUG_f(printf("PDL::MMap: mapped to %p\n",$pdl->data));
-   close $fh ;
+  my ($pdl,$name,$len,$shared,$writable,$creat,$perms,$trunc) = @_;
+  my $fh = _file_map_open($name,$len,$shared,$writable,$creat,$perms,$trunc);
+  return $_[0] = undef if !$len;
+  _file_map_sv($pdl->get_dataref,$fh,$len,$shared,$writable);
+  $pdl->upd_data(1);
+  $pdl->set_donttouchdata($len);
 }
 
 1;
