@@ -368,10 +368,18 @@ address(self)
 IV
 address_data(self)
   pdl *self;
-  CODE:
-    RETVAL = PTR2IV(self->data);
-  OUTPUT:
-    RETVAL
+CODE:
+  RETVAL = PTR2IV(self->data);
+OUTPUT:
+  RETVAL
+
+IV
+address_datasv(p)
+  pdl *p
+CODE:
+  RETVAL = PTR2IV(p->datasv);
+OUTPUT:
+  RETVAL
 
 PDL_Indx
 nelem_nophys(x)

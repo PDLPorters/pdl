@@ -2153,17 +2153,19 @@ Not exported, and not inserted into the C<PDL> namespace.
 sub pdump {
   my ($pdl) = @_;
   my @dims = $pdl->dims_nophys;
+  my $svaddr = $pdl->address_datasv;
   my @lines = (
     "State: ${\join '|', $pdl->flags}",
     "Dims: (@dims)",
     "BroadcastIds: (@{[$pdl->broadcastids_nophys]})",
+    !$svaddr ? () : sprintf("datasv: 0x%x, refcnt: %d", $svaddr, $pdl->datasv_refcount),
+    sprintf("data: 0x%x, nbytes: %d, nvals: %d", $pdl->address_data, $pdl->nbytes, $pdl->nelem_nophys),
   );
   push @lines, sprintf "Vaffine: 0x%x (parent)", $pdl->vaffine_from if $pdl->has_vafftrans;
   push @lines, !$pdl->badflag ? () : (
     "Badvalue (".($pdl->has_badvalue ? 'bespoke' : 'orig')."): " . $pdl->badvalue
     );
-  push @lines, !$pdl->allocated ? '(not allocated)' : join "\n  ",
-    sprintf("data: 0x%x, nbytes: %d, nvals: %d", $pdl->address_data, $pdl->nbytes, $pdl->nelem_nophys),
+  push @lines, !$pdl->allocated ? '(not allocated)' :
     "First values: (@{[$pdl->firstvals_nophys]})",
     ;
   if (my $trans = $pdl->trans_parent) {
