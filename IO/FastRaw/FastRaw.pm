@@ -415,6 +415,7 @@ sub PDL::mapfraw {
             ($opts->{Creat} || $opts->{Trunc} ? 1:0)
         );
 	$pdl->setdims($hdr->{Dims});
+	$pdl->set_donttouchdata;
 	_writefrawhdr($pdl,$name,$opts) if $opts->{Creat};
 	$pdl;
 }

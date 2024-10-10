@@ -84,6 +84,7 @@ SKIP:
 	# test creating a pdl via mapfraw
 	# First create and modify the ndarray
 	$x = mapfraw($name, {Creat => 1, Datatype => float, Dims => [3,2]});
+	ok $x->allocated, 'mapfraw-ed shows is allocated';
 	$x += xvals $x;
 	$x += 0.1 * yvals $x;
 	# save the contents
