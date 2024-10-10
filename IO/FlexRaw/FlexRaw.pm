@@ -161,7 +161,7 @@ WARNING: In later versions of perl (5.8 and up) you must
 be sure that your file is in "raw" mode (see the perlfunc
 man page entry for "binmode", for details).  Both readflex
 and writeflex automagically switch the file to raw mode for
-you -- but in code like the snipped above, you could end up
+you -- but in code like the snippet above, you could end up
 seeking the wrong byte if you forget to make the binmode() call.
 
 C<mapflex> memory maps, rather than reads, the data files.  Its interface
@@ -308,15 +308,13 @@ sub myhandler {
 }
 
 sub mapchunk {
-  my ($orig, $pdl, $len, $name, $offset) = @_;
-  # link $len at $offset from $orig to $pdl.
+  my ($orig, $pdl, $offset) = @_;
   $pdl->freedata;
   $pdl->set_data_by_offset($orig,$offset);
   local $flexmapok=1;
   local $SIG{BUS} = \&myhandler unless $^O =~ /MSWin32/i;
   local $SIG{FPE} = \&myhandler;
   eval {$pdl->flat->at(0)};
-  $_[4] += $len; # mutate input
   $flexmapok;
 }
 
@@ -570,7 +568,7 @@ sub mapflex {
   my ($h, $size);
   # reference to options array, with defaults
   my %opts = ( 'ReadOnly' => 0, 'Creat' => 0, 'Trunc' => 0 );
-  my ($hdr, $d, $pdl, $len, @out, $chunk, $chunkread);
+  my (@out, $chunk, $chunkread);
   my $offset = 0;
   my ($newfile, $swapbyte, $f77mode, $zipt) = (1,0,0,0);
   foreach (@_) {
@@ -587,7 +585,7 @@ sub mapflex {
       (!-e $name && (-e $name.'.gz' || -e $name.'.Z'));
   $h = _read_flexhdr("$name.hdr") if !defined $h;
   # Go through headers which reconfigure
-  foreach $hdr (@$h) {
+  for my $hdr (@$h) {
     my $type = $hdr->{Type};
     barf "Can't map byte swapped file" if $type eq 'swap';
     if ($type eq 'f77') {
@@ -602,11 +600,11 @@ sub mapflex {
   # setting $f77mode means that it will be 8 x n bigger in reality
   $size += 8 if $f77mode;
   if (!$opts{Creat}) {
-    my ($s) = $size;
+    my $s = $size;
     $size = (stat $name)[7];
     barf "File looks too small ($size cf header $s)" if $size < $s;
   }
-  $d = PDL->zeroes(byte());
+  my $d = PDL->zeroes(byte());
   $d->set_data_by_file_map($name,
     $size,
     1,
@@ -615,7 +613,7 @@ sub mapflex {
     (0644),
     ($opts{Creat} || $opts{Trunc} ? 1:0)
   );
-  READ: foreach $hdr (@$h) {
+  READ: for my $hdr (@$h) {
     my ($type) = $hdr->{Type};
     # Case convert when we have user data
     $type =~ tr/A-Z/a-z/ if @_ == 2;
@@ -632,8 +630,9 @@ sub mapflex {
       $type = $flextypes{$type};
     }
     my $pdl = PDL->zeroes(PDL::Type->new($type), ref $hdr->{Dims} ? @{$hdr->{Dims}} : $hdr->{Dims});
-    $len = length ${$pdl->get_dataref};
-    mapchunk($d,$pdl,$len,$name,$offset) or last READ;
+    my $len = length ${$pdl->get_dataref};
+    mapchunk($d,$pdl,$offset) or last READ;
+    $offset += $len;
     $chunkread += $len;
     if ($newfile && $f77mode) {
       if ($opts{Creat}) {
@@ -648,11 +647,12 @@ sub mapflex {
       $pdl->badflag($hdr->{BadFlag});
       $pdl->badvalue($hdr->{BadValue}) if defined $hdr->{BadValue};
     }
-    push (@out,$pdl);
+    push @out, $pdl;
     if ($f77mode && $chunk->at == $chunkread) {
       $chunkread = 0;
-      my ($check) = $chunk->copy;
-      mapchunk($d,$check,4,$name,$offset) or last READ;
+      my $check = $chunk->copy;
+      mapchunk($d,$check,$offset) or last READ;
+      $offset += 4;
       if ($opts{Creat}) {
         $check->set(0,$size-8);
       } else {
@@ -703,17 +703,17 @@ sub writeflex {
   my $name = shift;
   my $isname = 0;
   my $hdr;
-  my $d;
+  my $fh;
   # Test if $name is a file handle
   if (defined fileno($name)) {
-    $d = $name;
+    $fh = $name;
   } else {
     barf $usage if ref $name;
     $isname = 1;
     my $modename = ($name =~ /^[+]?[><|]/) ? $name : ">$name";
-    open $d, $modename or barf "Couldn't open '$name' for writing: $!";
+    open $fh, $modename or barf "Couldn't open '$name' for writing: $!";
   }
-  binmode $d;
+  binmode $fh;
   foreach my $pdl (@_) {
     barf $usage if !ref $pdl;
     push @$hdr, {
@@ -723,7 +723,7 @@ sub writeflex {
       BadFlag => $pdl->badflag,
       BadValue => (($pdl->badvalue == $pdl->orig_badvalue) ? undef : $pdl->badvalue),
     };
-    print $d ${$pdl->get_dataref};
+    print $fh ${$pdl->get_dataref};
   }
   if (defined wantarray) {
     # list or scalar context
