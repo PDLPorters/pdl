@@ -306,16 +306,17 @@ sub myhandler {
   $flexmapok = 0;
   barf "Data out of alignment, can't map further\n";
 }
-
 sub mapchunk {
-  my ($orig, $pdl, $offset) = @_;
+  my ($orig, $type, $dims, $offset) = @_;
+  my $pdl = PDL->zeroes(PDL::Type->new($type), ref $dims ? @$dims : $dims);
+  $pdl->get_dataref;
   $pdl->freedata;
   $pdl->set_data_by_offset($orig,$offset);
   local $flexmapok=1;
   local $SIG{BUS} = \&myhandler unless $^O =~ /MSWin32/i;
   local $SIG{FPE} = \&myhandler;
   eval {$pdl->flat->at(0)};
-  $flexmapok;
+  $flexmapok ? $pdl : undef;
 }
 
 =head2 glueflex
@@ -629,9 +630,9 @@ sub mapflex {
       barf "Bad typename '$type' in mapflex" if !defined $flextypes{$type};
       $type = $flextypes{$type};
     }
-    my $pdl = PDL->zeroes(PDL::Type->new($type), ref $hdr->{Dims} ? @{$hdr->{Dims}} : $hdr->{Dims});
-    my $len = length ${$pdl->get_dataref};
-    mapchunk($d,$pdl,$offset) or last READ;
+    my $len = _data_size_in_bytes($type, $hdr->{Dims});
+    my $pdl = mapchunk($d,$type,$hdr->{Dims},$offset);
+    last READ if !defined $pdl;
     $offset += $len;
     $chunkread += $len;
     if ($newfile && $f77mode) {
@@ -650,8 +651,8 @@ sub mapflex {
     push @out, $pdl;
     if ($f77mode && $chunk->at == $chunkread) {
       $chunkread = 0;
-      my $check = $chunk->copy;
-      mapchunk($d,$check,$offset) or last READ;
+      my $check = mapchunk($d,$type,$hdr->{Dims},$offset);
+      last READ if !defined $check;
       $offset += 4;
       if ($opts{Creat}) {
         $check->set(0,$size-8);
