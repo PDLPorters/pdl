@@ -206,7 +206,14 @@ is( pdl([-6,~0,-4])->setvaltobad(~0)->bandover(), -8, "bandover with BAD values"
 
 is ushort(65535)->max, 65535, 'max(highest ushort value) should not be BAD';
 
-# provide indepdent copies of test data.
+{
+  my $y = empty(indx)->long;
+  ok( $y->avg == 0,              "avg of long Empty" );
+  my $c = empty(indx)->double;
+  ok( !any isfinite $c->average, "isfinite of double Empty" );
+}
+
+# provide independent copies of test data.
 sub X { PDL->pdl( [ [ 5, 4, 3 ], [ 2, 3, 1.5 ] ] ) }
 
 ok( tapprox( X->average(),  PDL->pdl( [ 4,  2.16666 ] ) ), "average" );

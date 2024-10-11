@@ -108,6 +108,13 @@ subtest 'which' => sub {
             setbadat $y, 2;
             is( $y->which->nelem, 0, "only bad" );
         };
+
+        my $x = which ones(4) > 2;
+        ok( isempty $x,                "isempty" );
+        is $x->type, 'indx', 'which -> type indx';
+        is $x->ndims, 1, 'which 1D -> 1D';
+        $x = which ones(4,3) > 2;
+        is $x->ndims, 1, 'which 2D -> 1D';
     };
 
     subtest 'which_both' => sub {

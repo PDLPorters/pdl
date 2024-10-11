@@ -5,26 +5,6 @@ use PDL::Types;
 use lib 't/lib';
 use My::Test::Primitive;
 
-subtest 'why are these tested in Primitive?' => sub {
-
-    subtest 'xvals type' => sub {
-        my $xvals = ones( byte, 300 )->xvals;
-        is $xvals->at(280), 280,'non-overflow xvals from byte ndarray';
-        is xvals(short, 2)->type, 'short', 'xvals respects specified type';
-    };
-
-    subtest 'empty ndarray' => sub {
-        my $x = which ones(4) > 2;
-        my $y = $x->long;
-        my $c = $x->double;
-
-        ok( isempty $x,                "isempty" );
-        ok( $y->avg == 0,              "avg of Empty" );
-        ok( !any isfinite $c->average, "isfinite of Empty" );
-    };
-
-};
-
 subtest hist => sub {
   my $y = pdl( 0.7422, 0.0299, 0.6629, 0.9118, 0.1224, 0.6173, 0.9203, 0.9999,
     0.1480, 0.4297, 0.5000, 0.9637, 0.1148, 0.2922, 0.0846, 0.0954, 0.1379,
