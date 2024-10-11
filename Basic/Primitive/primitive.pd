@@ -3573,12 +3573,24 @@ pp_def('approx_artol',
   Pars => 'got(); expected(); sbyte [o] result()',
   OtherPars => 'double atol; double rtol',
   OtherParsDefaults => { atol => 1e-6, rtol => 0 },
+  GenericTypes => [ppdefs_all],
   ArgOrder => 1,
   Code => <<'EOF',
-double abs_diff = fabs($got() - $expected());
-if (abs_diff <= $COMP(atol))                     { $result() = 1; continue; }
-if (abs_diff <= fabs($COMP(rtol) * $expected())) { $result() = 1; continue; }
+double atol2 = $COMP(atol)*$COMP(atol), rtol2 = $COMP(rtol)*$COMP(rtol);
+broadcastloop %{
+$GENERIC() expctd = $expected(), diff = $got() - expctd;
+double abs_diff2 = PDL_IF_GENTYPE_REAL(
+  diff * diff,
+  (creall(diff) * creall(diff)) + (cimagl(diff) * cimagl(diff))
+);
+if (abs_diff2 <= atol2)                 { $result() = 1; continue; }
+double rel_diff2 = rtol2 * PDL_IF_GENTYPE_REAL(
+  expctd * expctd,
+  (creall(expctd) * creall(expctd)) + (cimagl(expctd) * cimagl(expctd))
+);
+if (abs_diff2 <= rel_diff2)             { $result() = 1; continue; }
 $result() = 0;
+%}
 EOF
   Doc => <<'EOF',
 =for ref
@@ -3588,6 +3600,10 @@ absolute or relative (C<rtol> * C<$expected()>) tolerances.
 
 Relative tolerance defaults to zero, and absolute tolerance defaults to
 C<1e-6>, for compatibility with L<PDL::Core/approx>.
+
+Works with complex numbers, and to avoid expensive C<sqrt>ing uses the
+squares of the input quantities and differences. Bear this in mind for
+numbers outside the range (for C<double>) of about C<1e-154..1e154>.
 
 Adapted from code by Edward Baudrez, test changed from C<< < >> to C<< <= >>.
 EOF

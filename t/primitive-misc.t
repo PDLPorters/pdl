@@ -70,6 +70,8 @@ subtest approx_artol => sub {
   my $exp_a_mask = pdl('0 1 1; 1 1 0');
   my $got_a = $fgot->approx_artol($fexpected, 1e-6);
   ok all($got_a == $exp_a_mask), 'atol right' or diag "got=$got_a\nexp=$exp_a_mask";
+  my $got_a_cplx = $fgot->r2C->approx_artol($fexpected, 1e-6);
+  ok all($got_a_cplx == $exp_a_mask), 'complex atol right' or diag "got=$got_a_cplx\nexp=$exp_a_mask";
   my $got_r = $fgot->approx_artol($fexpected, 0, 1e-6);
   my $exp_r_mask = pdl('0 0 0; 1 1 0');
   ok all($got_r == $exp_r_mask), 'rtol right' or diag "got=$got_r\nexp=$exp_r_mask";
