@@ -2407,7 +2407,7 @@ test for approximately equal values (relaxed C<==>)
 
 C<approx> is a relaxed form of the C<==> operator and
 often more appropriate for floating point types (C<float>
-and C<double>).
+C<double> and C<ldouble>).
 
 Usage:
 
@@ -2429,8 +2429,7 @@ sub PDL::approx {
   my ($x,$y,$eps) = @_;
   $eps = $approx unless defined $eps;  # the default eps
   $approx = $eps;    # remember last eps
-  # NOTE: ($x-$y)->abs breaks for non-ndarray inputs
-  return abs($x-$y) < $eps;
+  PDL->topdl($x)->approx_artol($y, $eps);
 }
 
 =head2 mslice
