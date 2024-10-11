@@ -3569,6 +3569,30 @@ By using L<PDL::Slices/xchg> etc. it is possible to use I<any> dimension.
 EOF
 );
 
+pp_def('approx_artol',
+  Pars => 'got(); expected(); sbyte [o] result()',
+  OtherPars => 'double atol; double rtol',
+  OtherParsDefaults => { atol => 1e-6, rtol => 0 },
+  ArgOrder => 1,
+  Code => <<'EOF',
+double abs_diff = fabs($got() - $expected());
+if (abs_diff <= $COMP(atol))                 { $result() = 1; continue; }
+if (abs_diff <= ($COMP(rtol) * $expected())) { $result() = 1; continue; }
+$result() = 0;
+EOF
+  Doc => <<'EOF',
+=for ref
+
+Returns C<sbyte> mask whether C<< abs($got()-$expected())> <= >> either
+absolute or relative (C<rtol> * C<$expected()>) tolerances.
+
+Relative tolerance defaults to zero, and absolute tolerance defaults to
+C<1e-6>, for compatibility with L<PDL::Core/approx>.
+
+Adapted from code by Edward Baudrez, test changed from C<< < >> to C<< <= >>.
+EOF
+);
+
 pp_add_exported("", 'where');
 pp_addpm(<<'EOD');
 =head2 where

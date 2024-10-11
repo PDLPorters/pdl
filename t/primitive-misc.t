@@ -55,7 +55,6 @@ subtest 'indadd' => sub {
     ok( tapprox( $sum->sum, 6 ), "indadd" );
 };
 
-# diag one2nd is undocumented.
 subtest 'one2nd' => sub {
     my $a1      = zeroes( 3, 4, 5 );
     my $indices = pdl( 0, 1, 4, 6, 23, 58, 59 );
@@ -63,6 +62,17 @@ subtest 'one2nd' => sub {
     ok tapprox( $x, pdl( 0, 1, 1, 0, 2, 1, 2 ) ), "one2nd x";
     ok tapprox( $y, pdl( 0, 0, 1, 2, 3, 3, 3 ) ), "one2nd y";
     ok tapprox( $z, pdl( 0, 0, 0, 0, 1, 4, 4 ) ), "one2nd z";
+};
+
+subtest approx_artol => sub {
+  my $fgot = pdl('1e-5 1e-6 1e-7; 1.00000005 1.0000001 1.00002');
+  my $fexpected = pdl('0 0 0; 1 1 1');
+  my $exp_a_mask = pdl('0 1 1; 1 1 0');
+  my $got_a = $fgot->approx_artol($fexpected, 1e-6);
+  ok all($got_a == $exp_a_mask), 'atol right' or diag "got=$got_a\nexp=$exp_a_mask";
+  my $got_r = $fgot->approx_artol($fexpected, 0, 1e-6);
+  my $exp_r_mask = pdl('0 0 0; 1 1 0');
+  ok all($got_r == $exp_r_mask), 'rtol right' or diag "got=$got_r\nexp=$exp_r_mask";
 };
 
 done_testing;
