@@ -65,8 +65,8 @@ subtest 'one2nd' => sub {
 };
 
 subtest approx_artol => sub {
-  my $fgot = pdl('1e-5 1e-6 1e-7; 1.00000005 1.0000001 1.00002');
-  my $fexpected = pdl('0 0 0; 1 1 1');
+  my $fgot = pdl('1e-5 1e-6 1e-7; 1.00000005 -1.0000001 1.00002');
+  my $fexpected = pdl('0 0 0; 1 -1 1');
   my $exp_a_mask = pdl('0 1 1; 1 1 0');
   my $got_a = $fgot->approx_artol($fexpected, 1e-6);
   ok all($got_a == $exp_a_mask), 'atol right' or diag "got=$got_a\nexp=$exp_a_mask";

@@ -3576,8 +3576,8 @@ pp_def('approx_artol',
   ArgOrder => 1,
   Code => <<'EOF',
 double abs_diff = fabs($got() - $expected());
-if (abs_diff <= $COMP(atol))                 { $result() = 1; continue; }
-if (abs_diff <= ($COMP(rtol) * $expected())) { $result() = 1; continue; }
+if (abs_diff <= $COMP(atol))                     { $result() = 1; continue; }
+if (abs_diff <= fabs($COMP(rtol) * $expected())) { $result() = 1; continue; }
 $result() = 0;
 EOF
   Doc => <<'EOF',
