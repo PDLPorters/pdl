@@ -65,16 +65,22 @@ subtest 'one2nd' => sub {
 };
 
 subtest approx_artol => sub {
-  my $fgot = pdl('1e-5 1e-6 1e-7; 1.00000005 -1.0000001 1.00002');
-  my $fexpected = pdl('0 0 0; 1 -1 1');
-  my $exp_a_mask = pdl('0 1 1; 1 1 0');
+  my $got_str = '1e-5 1e-6 1e-7 BAD 1; 1.00000005 -1.0000001 1.00002 NaN NaN';
+  my $fgot = pdl($got_str);
+  my $fexpected = pdl('0 0 0 BAD NaN; 1 -1 1 NaN 1');
+  my $exp_a_mask = pdl('0 1 1 1 0; 1 1 0 1 0');
   my $got_a = $fgot->approx_artol($fexpected, 1e-6);
   ok all($got_a == $exp_a_mask), 'atol right' or diag "got=$got_a\nexp=$exp_a_mask";
-  my $got_a_cplx = $fgot->r2C->approx_artol($fexpected, 1e-6);
+  (my $got_str_cplx = $got_str) =~ s/ /+0i /;
+  my $got_a_cplx = pdl($got_str_cplx)->approx_artol($fexpected, 1e-6);
   ok all($got_a_cplx == $exp_a_mask), 'complex atol right' or diag "got=$got_a_cplx\nexp=$exp_a_mask";
   my $got_r = $fgot->approx_artol($fexpected, 0, 1e-6);
-  my $exp_r_mask = pdl('0 0 0; 1 1 0');
+  my $exp_r_mask = pdl('0 0 0 1 0; 1 1 0 1 0');
   ok all($got_r == $exp_r_mask), 'rtol right' or diag "got=$got_r\nexp=$exp_r_mask";
+  my $fgot_badoff = $fgot->copy; $fgot_badoff->badflag(0);
+  my $exp_badoff_mask = pdl('0 1 1 0 0; 1 1 0 1 0');
+  my $got_badoff = $fgot_badoff->approx_artol($fexpected, 1e-6);
+  ok all($got_badoff == $exp_badoff_mask), 'atol right with badflag off' or diag "got=$got_badoff\nexp=$exp_badoff_mask";
 };
 
 done_testing;

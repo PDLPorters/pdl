@@ -3575,10 +3575,19 @@ pp_def('approx_artol',
   OtherParsDefaults => { atol => 1e-6, rtol => 0 },
   GenericTypes => [ppdefs_all],
   ArgOrder => 1,
+  HandleBad => 1,
   Code => <<'EOF',
 double atol2 = $COMP(atol)*$COMP(atol), rtol2 = $COMP(rtol)*$COMP(rtol);
+char got_badflag = !!$PDLSTATEISBAD(got), exp_badflag = !!$PDLSTATEISBAD(expected);
 broadcastloop %{
-$GENERIC() expctd = $expected(), diff = $got() - expctd;
+$GENERIC() expctd = $expected();
+if (PDL_ISNAN_$PPSYM()($got()) && PDL_ISNAN_$PPSYM()(expctd)) { $result() = 1; continue; }
+if (PDL_ISNAN_$PPSYM()($got()) || PDL_ISNAN_$PPSYM()(expctd)) { $result() = 0; continue; }
+PDL_IF_BAD(
+  if ((got_badflag && $ISBAD(got())) && (exp_badflag && $ISBADVAR(expctd,expected))) { $result() = 1; continue; }
+  if ((got_badflag && $ISBAD(got())) || (exp_badflag && $ISBADVAR(expctd,expected))) { $result() = 0; continue; }
+,)
+$GENERIC() diff = $got() - expctd;
 double abs_diff2 = PDL_IF_GENTYPE_REAL(
   diff * diff,
   (creall(diff) * creall(diff)) + (cimagl(diff) * cimagl(diff))
@@ -3605,7 +3614,14 @@ Works with complex numbers, and to avoid expensive C<sqrt>ing uses the
 squares of the input quantities and differences. Bear this in mind for
 numbers outside the range (for C<double>) of about C<1e-154..1e154>.
 
+Handles C<NaN>s by showing them approximately equal (i.e. true in the
+output) if both values are C<NaN>, and not otherwise.
+
 Adapted from code by Edward Baudrez, test changed from C<< < >> to C<< <= >>.
+EOF
+  BadDoc => <<'EOF',
+Handles bad values similarly to C<NaN>s, above. This includes if only
+one of the two input ndarrays has their badflag true.
 EOF
 );
 
