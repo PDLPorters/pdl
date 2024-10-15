@@ -81,6 +81,11 @@ subtest approx_artol => sub {
   my $exp_badoff_mask = pdl('0 1 1 0 0; 1 1 0 1 0');
   my $got_badoff = $fgot_badoff->approx_artol($fexpected, 1e-6);
   ok all($got_badoff == $exp_badoff_mask), 'atol right with badflag off' or diag "got=$got_badoff\nexp=$exp_badoff_mask";
+  $fexpected = long( 4,5,6,-1,8,9 )->inplace->setvaltobad(-1);
+  $fgot = long( 4,5,6,7,-1,9 )->inplace->setvaltobad(-1);
+  $got_a = $fgot->approx_artol($fexpected, 1e-6);
+  $exp_a_mask = pdl('1 1 1 0 0 1');
+  ok all($got_a == $exp_a_mask), 'bad values pattern' or diag "got=$got_a\nexp=$exp_a_mask";
 };
 
 done_testing;
