@@ -2200,7 +2200,7 @@ sub _prep_table {
   my @internaltype = (); # Gets flag for PDLhood
   my @fieldvars = ();    # Gets refs to all the fields of the hash.
 
-  if($tbl eq 'binary') {
+  if ($tbl eq 'binary') {
     $hdr{XTENSION} = 'BINTABLE';
     $hdr{BITPIX} = 8;
     $hdr{NAXIS} = 2;
@@ -2220,7 +2220,7 @@ sub _prep_table {
     #  Really ushort arrays should be written out using SCALE/ZERO
     #  so that it can be written as an Int2 rather than Int4
     #
-    for my $i(1..$cols) {
+    for my $i (1..$cols) {
       $fieldvars[$i] = $hash->{$keysbyname{$colnames[$i]}};
       my $var = $fieldvars[$i];
 
@@ -2231,14 +2231,12 @@ sub _prep_table {
       my $rpt;
       my $bytes;
 
-      if( UNIVERSAL::isa($var,'PDL') ) {
+      if (UNIVERSAL::isa($var,'PDL')) {
 
 	$internaltype[$i] = 'P';
 
-	my $t;
-
-	my $dims = pdl($var->dims);
-	($t = $dims->slice("(0)")) .= 1;
+	my $dims = $var->shape;
+	(my $t = $dims->slice("(0)")) .= 1;
 	$rpt = $dims->prod;
 
 =pod
@@ -2258,11 +2256,10 @@ sub _prep_table {
 
 	barf "Error: wfits() currently can not handle PDL::Complex arrays (column $colnames[$i])\n"
 	  if UNIVERSAL::isa($var,'PDL::Complex');
-	$t = $var->type;
 
-	$t = $bintable_types{$t};
+	$t = $bintable_types{$var->type};
 
-	unless(defined($t)) {
+	unless (defined $t) {
 	  print "Warning: converting unknown type $t (column $colnames[$i]) to double...\n"
 	    if($PDL::verbose);
 	  $t = $bintable_types{double};
@@ -2270,17 +2267,13 @@ sub _prep_table {
 
 	($tstr, $bytes, $converters[$i]) = @$t;
 
-      } elsif( ref $var eq 'ARRAY' ) {
+      } elsif (ref $var eq 'ARRAY') {
 
 	$internaltype[$i] = 'A';
 	$bytes = 1;
-
 	# Got an array (of strings) -- find the longest element
-	$rpt = 0;
-	for(@$var) {
-	  my $l = length($_);
-	  $rpt = $l if($l>$rpt);
-	}
+	require List::Util;
+	$rpt = List::Util::max(map length, @$var);
 	($tstr, $bytes, $converters[$i]) = ('A',1,undef);
 
       } elsif( ref $var ) {
@@ -2292,11 +2285,10 @@ sub _prep_table {
 	$rpt = length($var);
       }
 
-
       # Now check if it's a variable-length array and, if so, insert an
       # extra converter
       my $lname = "len_".$keysbyname{$colnames[$i]};
-      if(exists $hash->{$lname}) {
+      if (exists $hash->{$lname}) {
 	  my $lengths = $hash->{$lname};
 
 	  # Variable length array - add extra handling logic.
@@ -2329,17 +2321,14 @@ FOO
 	  # out how to do that.
 	  my $csub = $converters[$i];
 	  $converters[$i] = sub {
-	      my $var = shift;
-	      my $row = shift;
-	      my $col = shift;
-
+	      my ($var, $row, $col) = @_;
 	      my $len = $hash->{$lname};
 	      my $l;
-	      if(ref $len eq 'ARRAY') {
+	      if (ref $len eq 'ARRAY') {
 		  $l = $len->[$row];
-	      } elsif( UNIVERSAL::isa($len,'PDL') ) {
+	      } elsif ( UNIVERSAL::isa($len,'PDL') ) {
 		  $l = $len->dice_axis(0,$row)->sclr;
-	      } elsif( ref $len ) {
+	      } elsif ( ref $len ) {
 		  die "wfits: Couldn't understand length spec '$lname' in bintable output (length spec must be a PDL or array ref).\n";
 	      } else {
 		  $l = $len;
@@ -2347,19 +2336,15 @@ FOO
 	      # The standard says we should give a zero-offset
 	      # pointer if the current row is zero-length; hence
 	      # the ternary operator.
-	      my $ret = pdl( $l, $l ? length($heap) : 0)->long;
-
-	      if($l) {
+	      my $ret = pdl(long, $l, $l ? length($heap) : 0);
+	      if ($l) {
 		  # This echoes the normal-table swap and accumulation
 		  # stuff below, except we're accumulating into the heap.
 		  my $tmp = $csub ? &$csub($var, $row, $col) : $var;
 		  $tmp = $tmp->slice("0:".($l-1))->sever;
-
 		  $tmp->type->bswap->($tmp) if !isbigendian();
-		  my $t = $tmp->get_dataref;
-		  $heap .= $$t;
+		  $heap .= ${ $tmp->get_dataref };
 	      }
-
 	      return $ret;
 	  };
 
@@ -2370,10 +2355,9 @@ FOO
 	  $bytes = 8; # two longints per row in the main table.
       }
 
-
       $hdr{"TFORM$i"} = "$rpt$tstr";
 
-      if(UNIVERSAL::isa($var, 'PDL') and $var->ndims > 1) {
+      if (UNIVERSAL::isa($var, 'PDL') and $var->ndims > 1) {
 	  $hdr{"TDIM$i"} = "(".join(",",$var->slice("(0)")->dims).")";
       }
 
@@ -2385,31 +2369,25 @@ FOO
     ## Now accumulate the binary table
 
     my $table = "";
-
-    for my $r(0..$rows-1) {
+    for my $r (0..$rows-1) {
       my $row = "";
-      for my $c(1..$cols) {
+      for my $c (1..$cols) {
 	my $tmp;
 	my $x = $fieldvars[$c];
-
-	if($internaltype[$c] eq 'P') {  # PDL handling
+	if ($internaltype[$c] eq 'P') {  # PDL handling
 	  $tmp = $converters[$c]
-	    ? &{$converters[$c]}($x->slice("$r")->flat->sever, $r, $c)
-	      : $x->slice("$r")->flat->sever ;
-
+	    ? &{$converters[$c]}($x->slice($r)->flat->sever, $r, $c)
+	      : $x->slice($r)->flat->sever ;
 	  ## This would go faster if moved outside the loop but I'm too
 	  ## lazy to do it Right just now.  Perhaps after it actually works.
 	  $tmp->type->bswap->($tmp) if !isbigendian();
-	  my $t = $tmp->get_dataref;
-	  $tmp = $$t;
+	  $tmp = ${ $tmp->get_dataref };
 	} else {                                  # Only other case is ASCII just now...
 	  $tmp = ( ref $x eq 'ARRAY' ) ?          # Switch on array or string
 	    ( $#$x == 0 ? $x->[0] : $x->[$r] )    # broadcast arrays as needed
 	      : $x;
-
 	  $tmp .= " " x ($field_len[$c] - length($tmp));
 	}
-
 	# Now $tmp contains the bytes to be written out...
 	#
 	$row .= substr($tmp,0,$field_len[$c]);
@@ -2418,11 +2396,11 @@ FOO
     } # for: $r
 
     my $table_size = $rowlen * $rows;
-    if( (length $table) != $table_size ) {
+    if (length($table) != $table_size) {
       print "Warning: Table length is ".(length $table)."; expected $table_size\n";
     }
     return (\%hdr,$table, $heap);
-  } elsif($tbl eq 'ascii') {
+  } elsif ($tbl eq 'ascii') {
     barf "ASCII tables not yet supported...\n";
   } else {
     barf "unknown table type '$tbl' -- giving up.";
