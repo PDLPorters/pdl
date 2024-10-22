@@ -109,13 +109,14 @@ static int output_nbits(Buffer *buffer, int bits, int n);
  *
  */
 
-char *rcomp(void *a_v,		/* input array			*/
+int rcomp(char **ret,
+	  void *a_v,		/* input array			*/
 	  int bsize,            /* sample size (in bytes)       */
 	  int nx,		/* number of input pixels	*/
 	  unsigned char *c,	/* output buffer		*/
 	  int clen,		/* max length of output		*/
-	  int nblock,		/* coding block size		*/
-	  int *ret)		/* pointer to bytes		*/
+	  int nblock		/* coding block size		*/
+	  )
 {
 Buffer bufmem, *buffer = &bufmem;
 int *a = (int *)a_v;
@@ -129,7 +130,7 @@ unsigned int *diff;
 
  // Blocksize is picked so that boundaries lie on 64-bit word edges for all data types
  if(nblock & 0x7 )
-   return "rcomp: nblock must be divisible by 8";
+   { *ret = "rcomp: nblock must be divisible by 8"; return -1; }
 
  /* Magic numbers from fits_rcomp in CFITSIO; these have to match the ones in
  *  rdecomp, below
@@ -148,7 +149,7 @@ unsigned int *diff;
    fsmax = 25;
    break;
  default:
-   return "rcomp: bsize must be 1, 2, or 4 bytes";
+   { *ret = "rcomp: bsize must be 1, 2, or 4 bytes"; return -1; }
  }
 
  bbits = 1<<fsbits;
@@ -168,7 +169,8 @@ unsigned int *diff;
   */
  diff = (unsigned int *) malloc(nblock*sizeof(unsigned int));
  if (diff == (unsigned int *) NULL) {
-   return "rcomp: insufficient memory (allocating nblock ints for internal buffer)";
+   *ret = "rcomp: insufficient memory (allocating nblock ints for internal buffer)";
+   return -1;
  }
  /*
   * Code in blocks of nblock pixels
@@ -186,7 +188,8 @@ unsigned int *diff;
    }
    if (output_nbits(buffer, a0, bsize * 8)) {
      free(diff);
-     return "buffer overrun (1)";
+     *ret = "buffer overrun (1)";
+     return -1;
    }
  }
 
@@ -256,12 +259,14 @@ unsigned int *diff;
 	   */
 	  if (output_nbits(buffer, fsmax+1, fsbits) ) {
 	    free(diff);
-	    return "buffer overrun (2)";
+	    *ret = "buffer overrun (2)";
+	    return -1;
 	  }
 	  for (j=0; j<thisblock; j++) {
 	    if (output_nbits(buffer, diff[j], bbits) ) {
 	      free(diff);
-	      return "buffer overrun (3)";
+	      *ret = "buffer overrun (3)";
+	      return -1;
 	    }
 	  }
 	} else if (fs == 0 && pixelsum == 0) {
@@ -272,13 +277,15 @@ unsigned int *diff;
 	   */
 	  if (output_nbits(buffer, 0, fsbits) ) {
 	    free(diff);
-	    return NULL;
+	    *ret = "buffer overrun (6)";
+	    return -1;
 	  }
 	} else {
 	  /* normal case: not either very high or very low entropy */
 	  if (output_nbits(buffer, fs+1, fsbits) ) {
 	    free(diff);
-	    return NULL;
+	    *ret = "buffer overrun (5)";
+	    return -1;
 	  }
 	  fsmask = (1<<fs) - 1;
 	  /*
@@ -326,7 +333,8 @@ unsigned int *diff;
 	  /* check if overflowed output buffer */
 	  if (buffer->current > buffer->end) {
 	    free(diff);
-	    return "buffer overrun (4)";
+	    *ret = "buffer overrun (4)";
+	    return -1;
 	  }
 	  buffer->bitbuffer = lbitbuffer;
 	  buffer->bits_to_go = lbits_to_go;
@@ -337,8 +345,8 @@ unsigned int *diff;
  /*
   * return number of bytes used
   */
- *ret = buffer->current - buffer->start;
- return NULL;
+ *ret = NULL;
+ return buffer->current - buffer->start;
 }
 
 /*---------------------------------------------------------------------------*/
