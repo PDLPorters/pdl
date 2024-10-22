@@ -689,6 +689,7 @@ my $types = join '',ppdefs_all;
 
 sub new {
     my ($type, $pdl, $inds, $gentypes, $name) = @_;
+    my @normalised = map PDL::Type->new($_)->ppsym, @$gentypes;
     $pdl =~ /^\s*T([A-Z]+)\s*$/
       or confess("Macroaccess wrong in $name (allowed types $types): was '$pdl'\n");
     my @ilst = split '', $1;
@@ -696,8 +697,8 @@ sub new {
     confess "Macroaccess: different nos of args $pdl (@{[scalar @lst]}=@lst) vs (@{[scalar @ilst]}=@ilst)\n" if @lst != @ilst;
     my %type2value; @type2value{@ilst} = @lst;
     confess "$name has no Macro for generic type $_ (has $pdl)\n"
-	for grep !exists $type2value{$_}, @$gentypes;
-    my %gts; @gts{@$gentypes} = ();
+	for grep !exists $type2value{$_}, @normalised;
+    my %gts; @gts{@normalised} = ();
     warn "Macro for unsupported generic type identifier $_\n"
 	for grep !exists $gts{$_}, @ilst;
     bless [\%type2value, $name], $type;

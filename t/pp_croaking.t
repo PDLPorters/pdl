@@ -173,6 +173,8 @@ pp_def("rice_expand",
   Pars=>'in(n); [o]out(m);',
   OtherPars=>'IV dim0 => m; int blocksize',
   OtherParsDefaults=>{ blocksize=>32 },
+  GenericTypes=>['B','S','US','L'],
+  Code => 'fits_rcomp$TBSUL(_byte,_short,_short,)();',
 );
 };
 is $@, '';
