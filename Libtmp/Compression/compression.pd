@@ -150,8 +150,7 @@ EOD
 	CHeader => qq{#include "ricecomp.h"\n},
 	Code => <<'EOD',
 char *err = "error message not updated";
-$len() = rcomp(&err, $P(in),
-		      sizeof($GENERIC(in)),
+$len() = fits_rcomp$TBSUL(_byte,_short,_short,)(&err, $P(in),
 		      $SIZE(n),
 		      (unsigned char *)($P(out)),
 		      $SIZE(m) * sizeof($GENERIC(out)),
@@ -180,10 +179,9 @@ Unsquishes a PDL that has been squished by rice_compress.
 EOD
 	CHeader => qq{#include "ricecomp.h"\n},
 	Code=><<'EOD',
-char *err = rdecomp( (unsigned char *)($P(in)),
+char *err = fits_rdecomp$TBSUL(_byte,_short,_short,)( (unsigned char *)($P(in)),
 	 $len(),
 	 $P(out),
-	 sizeof($GENERIC(out)),
 	 $SIZE(m),
 	 $COMP(blocksize)
 	 );
