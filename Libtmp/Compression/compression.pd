@@ -164,7 +164,7 @@ EOD
 pp_def(
 	"rice_expand",
 	HandleBad=>0,
-	Pars=>'in(n); [o]out(m);',
+	Pars=>'in(n); indx len(); [o]out(m);',
 	OtherPars=>'IV dim0 => m; int blocksize',
 	OtherParsDefaults=>{ blocksize=>32 },
 	GenericTypes=>['B','S','US','L'],
@@ -181,7 +181,7 @@ EOD
 	CHeader => qq{#include "ricecomp.h"\n},
 	Code=><<'EOD',
 char *err = rdecomp( (unsigned char *)($P(in)),
-	 $SIZE(n) * sizeof($GENERIC(in)),
+	 $len(),
 	 $P(out),
 	 sizeof($GENERIC(out)),
 	 $SIZE(m),

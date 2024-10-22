@@ -1268,7 +1268,7 @@ our $tile_compressors = {
 	$c2->upd_data;
 	$compressed = $c2;
       }
-      $compressed->rice_expand( $tilesize, $params->{BLOCKSIZE} || 32);
+      $compressed->rice_expand($tbl->{len_COMPRESSED_DATA}, $tilesize, $params->{BLOCKSIZE} || 32);
     }
   ],
   'PLIO_1' => undef,

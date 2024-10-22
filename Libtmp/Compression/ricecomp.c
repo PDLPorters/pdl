@@ -683,5 +683,8 @@ char *rdecomp(unsigned char *c,		/* input buffer			    */
 	  return "rdecomp: decompression error: hit end of compressed byte stream";
 	}
     }
+    if (c < cend) {
+        return "decompression warning: unused bytes at end of compressed buffer";
+    }
     return NULL;
 }
