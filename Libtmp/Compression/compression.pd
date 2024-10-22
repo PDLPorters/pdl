@@ -78,7 +78,7 @@ EOD
 pp_def(
 	"rice_compress",
 	HandleBad => 0,
-	Pars => 'in(n); [o]out(m=CALC($SIZE(n))); int[o]len()',
+	Pars => 'in(n); [o]out(m=CALC(ceil($SIZE(n) * 1.01))); int[o]len()',
 	OtherPars => "int blocksize", # in OtherPars to avoid autopromotion
 	GenericTypes =>['B','S','US','L'],
 	Doc => <<'EOD',
