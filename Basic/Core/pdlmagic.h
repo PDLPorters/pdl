@@ -16,13 +16,13 @@ typedef struct pdl_magic_vtable {
  */
 } pdl_magic_vtable;
 
-#define PDL_MAGIC_MARKCHANGED 0x0001
-#define PDL_MAGIC_THREADING 0x0004
-#define PDL_MAGIC_DELETEDATA 0x0008
+#define PDL_MAGIC_MARKCHANGED     (1 << 0)
+#define PDL_MAGIC_THREADING       (1 << 2)
+#define PDL_MAGIC_DELETEDATA      (1 << 3)
 
-#define PDL_MAGIC_UNDESTROYABLE     0x4000 /* Someone is referring to this */
+#define PDL_MAGIC_UNDESTROYABLE   (1 << 14) /* Someone is referring to this */
 				/* when magic removed, call pdl_destroy */
-#define PDL_MAGIC_DELAYED     0x8000
+#define PDL_MAGIC_DELAYED         (1 << 15)
 
 #define PDL_MAGICSTART \
 		int what; /* when is this magic to be called */ \

@@ -1,9 +1,9 @@
 #ifndef __PDLTHREAD_H
 #define __PDLTHREAD_H
 
-#define PDL_BROADCAST_MAGICKED 0x0001
-#define PDL_BROADCAST_MAGICK_BUSY 0x0002
-#define PDL_BROADCAST_INITIALIZED 0x0004
+#define PDL_BROADCAST_MAGICKED        (1 << 0)
+#define PDL_BROADCAST_MAGICK_BUSY     (1 << 1)
+#define PDL_BROADCAST_INITIALIZED     (1 << 2)
 
 #define PDL_LIST_FLAGS_PDLBROADCAST(X) \
  X(PDL_BROADCAST_MAGICKED) \
@@ -84,7 +84,7 @@ static inline int pdl_broadcast_nd_step(
 }
 
 /* Broadcast per pdl flags */
-#define		PDL_BROADCAST_TEMP 	0x02
+#define		PDL_BROADCAST_TEMP 	(1 << 1)
 
 #define PDL_BISTEMP(flag) (flag & PDL_BROADCAST_TEMP)
 

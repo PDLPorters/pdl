@@ -1031,13 +1031,13 @@ sub reorder_args {
 # Parameters : $fulldoc
 # Throws     : never
 # Notes      : the signature must have the following form:
-#            : 
+#            :
 #            : =for sig
 #            : <blank>
 #            :   Signature: (<signature can
 #            :                be multiline>)
 #            : <blank>
-#            : 
+#            :
 #            : The two spaces before "Signature" are required, as are
 #            : the parentheses.
 sub extract_signature_from_fulldoc {
@@ -1113,7 +1113,7 @@ $PDL::PP::deftbl =
       #            : the part of the signature that specifies the ndarrays
       # Returns    : a string appropriate for the Pars key
       # Parameters : $fulldoc
-      # Throws     : if there is no signature 
+      # Throws     : if there is no signature
       #            : if there is no extractable Pars section
       #            : if some PDL arguments come after the OtherPars arguments start
       # Notes      : This is meant to be used directly in a Rule. Therefore, it
@@ -1177,19 +1177,19 @@ $PDL::PP::deftbl =
    ################################
    # Other Documentation Handling #
    ################################
-   
+
    # no docs by default
    PDL::PP::Rule::Returns->new("Doc", [], 'Sets the default doc string',
     "\n=for ref\n\ninfo not available\n"),
-   
+
    # try and automate the docs
    # could be really clever and include the sig to see about
    # input/output params, for instance
-   
+
    PDL::PP::Rule->new("BadDoc", [qw(BadFlag Name CopyBadStatusCode?)],
               'Sets the default documentation for handling of bad values',
       sub {
-         my ( $bf, $name, $code ) = @_;
+         my ($bf, $name, $code) = @_;
          my $str;
          if ( not defined($bf) ) {
             $str = "$name does not process bad values.\n";

@@ -2,7 +2,6 @@ use strict;
 use warnings;
 
 require './Types.pm';
-
 require './Config.pm';
 die "No PDL::Config found" unless %PDL::Config;
 my $mymalloc = $PDL::Config{MALLOCDBG}->{define} // '';
@@ -14,7 +13,6 @@ chmod 0644, $file;
 
 print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  __FILE__;
 print OUT <<'EOF';
-
 /*
  * THIS FILE IS GENERATED FROM pdl.h.PL! Do NOT edit!
  */
@@ -258,37 +256,37 @@ PDL_TYPELIST_ALL(X)
 
   /* data allocated for this pdl.  this implies that the data               */
   /* is up to date if !PDL_PARENTCHANGED                                    */
-#define  PDL_ALLOCATED           0x0001
+#define  PDL_ALLOCATED           (1 << 0)
   /* Parent data has been altered without changing this pdl                 */
-#define  PDL_PARENTDATACHANGED   0x0002
+#define  PDL_PARENTDATACHANGED   (1 << 1)
   /* Parent dims or incs has been altered without changing this pdl.        */
-#define  PDL_PARENTDIMSCHANGED   0x0004
+#define  PDL_PARENTDIMSCHANGED   (1 << 2)
   /* Physical data representation of the parent has changed (e.g.           */
   /* physical transposition), so incs etc. need to be recalculated.         */
 #define  PDL_ANYCHANGED          (PDL_PARENTDATACHANGED|PDL_PARENTDIMSCHANGED)
   /* Dataflow forward flag request        */
-#define  PDL_DATAFLOW_F          0x0010
+#define  PDL_DATAFLOW_F          (1 << 4)
   /* Was this PDL null originally?                                          */
-#define  PDL_NOMYDIMS            0x0040
+#define  PDL_NOMYDIMS            (1 << 6)
   /* Dims should be received via trans.                                     */
-#define  PDL_MYDIMS_TRANS        0x0080
+#define  PDL_MYDIMS_TRANS        (1 << 7)
   /* OK to attach a vaffine transformation (i.e. a slice)                   */
-#define  PDL_OPT_VAFFTRANSOK     0x0100
+#define  PDL_OPT_VAFFTRANSOK     (1 << 8)
 #define  PDL_OPT_ANY_OK          (PDL_OPT_VAFFTRANSOK)
   /* This is the hdrcpy flag                                                */
-#define  PDL_HDRCPY              0x0200
+#define  PDL_HDRCPY              (1 << 9)
   /* This is a badval flag for this PDL as set by "badflag"                 */
-#define  PDL_BADVAL              0x0400
+#define  PDL_BADVAL              (1 << 10)
   /* If ndarray was created by PDL API but then got SV attached             */
-#define  PDL_DYNLANG_NODESTROY   0x0800
+#define  PDL_DYNLANG_NODESTROY   (1 << 11)
   /* inplace flag                                                           */
-#define  PDL_INPLACE             0x1000
+#define  PDL_INPLACE             (1 << 12)
   /* Flag indicating destruction in progress                                */
-#define  PDL_DESTROYING          0x2000
+#define  PDL_DESTROYING          (1 << 13)
   /* If this flag is set, you must not alter the data pointer nor           */
   /* free this ndarray nor use datasv (which should be null).               */
   /* This means e.g. that the ndarray is mmapped from a file                */
-#define  PDL_DONTTOUCHDATA       0x4000
+#define  PDL_DONTTOUCHDATA       (1 << 14)
   /* whether the given pdl is getting its dims from the given trans */
 #define PDL_DIMS_FROM_TRANS(wtrans,pdl) (((pdl)->state & PDL_MYDIMS_TRANS) \
                 && (pdl)->trans_parent == (pdl_trans *)(wtrans))
@@ -319,17 +317,18 @@ PDL_TYPELIST_ALL(X)
  */
 
 /* Transformation flags */
-#define         PDL_TRANS_DO_BROADCAST     0x0001
-#define         PDL_TRANS_BADPROCESS       0x0002
-#define         PDL_TRANS_BADIGNORE        0x0004
-#define         PDL_TRANS_NO_PARALLEL      0x0008
-#define         PDL_TRANS_OUTPUT_OTHERPAR  0x0010
+#define         PDL_TRANS_DO_BROADCAST            (1 << 0)
+#define         PDL_TRANS_BADPROCESS              (1 << 1)
+#define         PDL_TRANS_BADIGNORE               (1 << 2)
+#define         PDL_TRANS_NO_PARALLEL             (1 << 3)
+#define         PDL_TRANS_OUTPUT_OTHERPAR         (1 << 4)
 
 #define PDL_LIST_FLAGS_PDLVTABLE(X) \
   X(PDL_TRANS_DO_BROADCAST) \
   X(PDL_TRANS_BADPROCESS) \
   X(PDL_TRANS_BADIGNORE) \
-  X(PDL_TRANS_NO_PARALLEL)
+  X(PDL_TRANS_NO_PARALLEL) \
+  X(PDL_TRANS_OUTPUT_OTHERPAR)
 
 typedef struct pdl_trans pdl_trans;
 
@@ -375,17 +374,17 @@ typedef struct pdl_transvtable {
 #define PDL_IND_ID(vtable, i, j) \
   ((vtable)->par_realdim_ind_ids[PDL_INC_ID(vtable, i, j)])
 
-#define PDL_PARAM_ISREAL             0x0001
-#define PDL_PARAM_ISCOMPLEX          0x0002
-#define PDL_PARAM_ISTYPED            0x0004
-#define PDL_PARAM_ISTPLUS            0x0008
-#define PDL_PARAM_ISCREAT            0x0010
-#define PDL_PARAM_ISCREATEALWAYS     0x0020
-#define PDL_PARAM_ISOUT              0x0040
-#define PDL_PARAM_ISTEMP             0x0080
-#define PDL_PARAM_ISWRITE            0x0100
-#define PDL_PARAM_ISPHYS             0x0200
-#define PDL_PARAM_ISIGNORE           0x0400
+#define PDL_PARAM_ISREAL             (1 << 0)
+#define PDL_PARAM_ISCOMPLEX          (1 << 1)
+#define PDL_PARAM_ISTYPED            (1 << 2)
+#define PDL_PARAM_ISTPLUS            (1 << 3)
+#define PDL_PARAM_ISCREAT            (1 << 4)
+#define PDL_PARAM_ISCREATEALWAYS     (1 << 5)
+#define PDL_PARAM_ISOUT              (1 << 6)
+#define PDL_PARAM_ISTEMP             (1 << 7)
+#define PDL_PARAM_ISWRITE            (1 << 8)
+#define PDL_PARAM_ISPHYS             (1 << 9)
+#define PDL_PARAM_ISIGNORE           (1 << 10)
 
 #define PDL_LIST_FLAGS_PARAMS(X) \
  X(PDL_PARAM_ISREAL) \
@@ -408,14 +407,12 @@ typedef struct pdl_transvtable {
         /* This is critical in routines that both input from and output to  */
         /* a non-single-valued pdl: updating must occur.  (Note that the    */
         /* transform is not necessarily mathematically reversible)          */
-#define  PDL_ITRANS_TWOWAY        0x0001
-        /* Whether, if a child is changed, this trans should be destroyed or not */
-        /* (flow if set; sever if clear) */
-#define  PDL_ITRANS_DO_DATAFLOW_F     0x0002
-#define  PDL_ITRANS_DO_DATAFLOW_B     0x0004
+#define  PDL_ITRANS_TWOWAY            (1 << 0)
+#define  PDL_ITRANS_DO_DATAFLOW_F     (1 << 1)
+#define  PDL_ITRANS_DO_DATAFLOW_B     (1 << 2)
 #define  PDL_ITRANS_DO_DATAFLOW_ANY   (PDL_ITRANS_DO_DATAFLOW_F|PDL_ITRANS_DO_DATAFLOW_B)
 
-#define  PDL_ITRANS_ISAFFINE          0x1000
+#define  PDL_ITRANS_ISAFFINE          (1 << 12)
 
 #define PDL_LIST_FLAGS_PDLTRANS(X) \
  X(PDL_ITRANS_TWOWAY) \
