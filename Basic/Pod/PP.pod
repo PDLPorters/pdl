@@ -1171,7 +1171,7 @@ I<TODO:> mention C<$PISBAD()> etc macros.
 
 If you want access to the value of the badflag for a given
 ndarray, you can use the PDL STATE macros,
-for use in L</CopyBadStatusCode> and L</FindBadStatusCode>.
+for use in L</CopyBadStatusCode>.
 
 =over 4
 
@@ -2443,7 +2443,7 @@ C<$BADFLAGCACHE()> is true after the code has been
 evaluated.  Sometimes C<CopyBadStatusCode> is set to an empty string,
 with the responsibility of setting the badflag of the output ndarray
 left to the C<BadCode> section (e.g. the C<xxxover> routines
-in F<Basic/Primitive/primitive.pd>).
+in F<Basic/Ufunc/ufunc.pd>).
 
 =head3 GenericTypes
 
@@ -2451,19 +2451,27 @@ An array reference. The array may contain any subset of the one-character
 strings given below, which specify which types your operation will
 accept. The meaning of each type is:
 
- B - signed byte (i.e. signed char)
+ A - signed byte (i.e. signed char)
+ B - unsigned byte (i.e. unsigned char)
  S - signed short (two-byte integer)
  U - unsigned short
- L - signed long (four-byte integer, int on 32 bit systems)
+ L - signed long (four-byte integer)
+ K - unsigned long (four-byte integer)
  N - signed integer for indexing ndarray elements (platform & Perl-dependent size)
+ P - unsigned long long (eight byte integer)
  Q - signed long long (eight byte integer)
  F - float
  D - double
+ E - long double
  G - complex float
  C - complex double
+ H - complex long double
 
 This is very useful (and important!) when interfacing an external library.
-Default: [qw/B S U L N Q F D/]
+Default: the output of L<PDL::Types/ppdefs_all>, i.e. all real types.
+
+You may also use the longer "identifiers" for these types, e.g. C<US>
+instead of C<U>.
 
 =head3 Inplace
 
