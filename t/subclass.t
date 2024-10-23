@@ -221,6 +221,8 @@ my $im = PDL::Derived4->new([
   [ 1,  3,  1,  3,  1],
   [10, 10,  2,  2,  2,]
 ]);
+isa_ok $im, 'PDL::Derived4';
+isa_ok $im->flat, 'PDL::Derived4';
 
 {
   my @w;
