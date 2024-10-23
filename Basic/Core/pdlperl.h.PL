@@ -18,6 +18,80 @@ print OUT <<'EOF';
 #ifndef __PDLPERL_H
 #define __PDLPERL_H
 
+#define PDL_XS_PREAMBLE(nret) \
+  char *objname = "PDL"; /* XXX maybe that class should actually depend on the value set \
+                            by pp_bless ? (CS) */ \
+  HV *bless_stash = 0; \
+  SV *parent = 0; \
+  int   nreturn = (nret); \
+  (void)nreturn; \
+  /* Check if you can get a package name for this input value. */ \
+  /* It can be either a PDL (SVt_PVMG) or a hash which is a */ \
+  /* derived PDL subclass (SVt_PVHV) */ \
+  do { \
+    if (SvROK(ST(0)) && ((SvTYPE(SvRV(ST(0))) == SVt_PVMG) || (SvTYPE(SvRV(ST(0))) == SVt_PVHV))) { \
+      parent = ST(0); \
+      if (sv_isobject(parent)){ \
+          bless_stash = SvSTASH(SvRV(ST(0))); \
+          objname = HvNAME((bless_stash)); /* The package to bless output vars into is taken from the first input var */ \
+      } \
+    } \
+  } while (0)
+
+static inline pdl *PDL_XS_pdlinit(pTHX_ char *objname, HV *bless_stash, SV *to_push, char *method, SV **svp, Core *core) {
+  dSP;
+  pdl *ret;
+  if (strcmp(objname,"PDL") == 0) { /* shortcut if just PDL */
+     ret = core->pdlnew();
+     if (!ret) core->pdl_barf("Error making null pdl");
+     if (svp) {
+       *svp = sv_newmortal();
+       core->SetSV_PDL(*svp, ret);
+       if (bless_stash) *svp = sv_bless(*svp, bless_stash);
+     }
+  } else {
+     PUSHMARK(SP);
+     XPUSHs(to_push);
+     PUTBACK;
+     perl_call_method(method, G_SCALAR);
+     SPAGAIN;
+     SV *sv = POPs;
+     PUTBACK;
+     ret = core->SvPDLV(sv);
+     if (svp) *svp = sv;
+  }
+  return ret;
+}
+#define PDL_XS_PERLINIT_init() \
+  PDL_XS_pdlinit(aTHX_ objname, bless_stash, sv_2mortal(newSVpv(objname, 0)), "initialize", NULL, PDL)
+#define PDL_XS_PERLINIT_initsv(sv) \
+  PDL_XS_pdlinit(aTHX_ objname, bless_stash, sv_2mortal(newSVpv(objname, 0)), "initialize", &sv, PDL)
+#define PDL_XS_PERLINIT_copy() \
+  PDL_XS_pdlinit(aTHX_ objname, bless_stash, parent, "copy", NULL, PDL)
+#define PDL_XS_PERLINIT_copysv(sv) \
+  PDL_XS_pdlinit(aTHX_ objname, bless_stash, parent, "copy", &sv, PDL)
+
+#define PDL_XS_RETURN(clause1) \
+    if (nreturn) { \
+      if (nreturn > 0) EXTEND (SP, nreturn); \
+      clause1; \
+      XSRETURN(nreturn); \
+    } else { \
+      XSRETURN(0); \
+    }
+
+#define PDL_IS_INPLACE(in) ((in)->state & PDL_INPLACE)
+#define PDL_XS_INPLACE(in, out, whichinit) \
+    if (PDL_IS_INPLACE(in)) { \
+        if (out ## _SV) barf("inplace input but different output given"); \
+        out ## _SV = sv_newmortal(); \
+        in->state &= ~PDL_INPLACE; \
+        out = in; \
+        PDL->SetSV_PDL(out ## _SV,out); \
+    } else \
+        out = out ## _SV ? PDL_CORE_(SvPDLV)(out ## _SV) : \
+          PDL_XS_PERLINIT_ ## whichinit ## sv(out ## _SV);
+
 #define PDL_XS_SCALAR(thistype, ppsym, val) \
   PDL_Anyval av = {PDL_CLD, {.H=0 + 0I}}; /* guarantee all bits set */ \
   av.type = thistype; av.value.ppsym=val; \
