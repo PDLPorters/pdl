@@ -417,8 +417,56 @@ C<LIBS>, C<AUTO_INCLUDE> and C<BOOT>.
 	   Code => '$pd() = poidev((float) $xm(), &$COMP(idum));',
    );
 
+=head1 MAKING AN INSTALLABLE MODULE
 
-=head1 Pdlpp Configuration Options
+It is possible, using L<Inline::Module>, to create an installable F<.pm>
+file with inline PDL code. L<PDLA::IO::HDF> is a working example. Here's
+how. You make a Perl module as usual, with a package declaration in
+the normal way. Then (assume your package is C<PDLA::IO::HDF::SD>):
+
+  package PDLA::IO::HDF::SD;
+  # ...
+  use FindBin;
+  use Alien::HDF4::Install::Files;
+  use PDLA::IO::HDF::SD::Inline Pdlapp => 'DATA',
+    package => __PACKAGE__, # if you have any pp_addxs - else don't bother
+    %{ Alien::HDF4::Install::Files->Inline('C') }, # EUD returns empty if !"C"
+    typemaps => "$FindBin::Bin/lib/PDLA/IO/HDF/typemap.hdf",
+    ;
+  # ...
+  1;
+  __DATA__
+  __Pdlapp__
+  pp_addhdr(<<'EOH');
+  /* ... */
+  EOH
+  use FindBin;
+  use lib "$FindBin::Bin/../../../../../../..";
+  require 'buildfunc.noinst';
+  # etc
+
+Note that for any files that you need to access for build purposes (they
+won't be touched during post-install runtime), L<FindBin> is useful,
+albeit slightly complicated.
+
+In the main F<.pm> body, L<FindBin> will find the build directory, as
+illustrated above. However, in the "inline" parts, C<FindBin> will be
+within the L<Inline::Module> build directory. At the time of writing,
+this is under F<.inline> within the build directory, in a subdirectory
+named after the package. The example shown above has seven F<..>: two
+for F<.inline/build>, and five more for F<PDLA/IO/HDF/SD/Inline>.
+
+The rest of the requirements are given in the L<Inline::Module>
+documentation.
+
+This technique avoids having to use L<PDL::Core::Dev>, create a
+F<Makefile.PL>, have one directory per F<.pd>, etc. It will even build
+/ install faster, since unlike a build of an L<ExtUtils::MakeMaker>
+distribution with multiple directories, it can be built in parallel. This
+is because the EUMM build changes into each directory, and waits for each
+one to complete. This technique can run concurrently without problems.
+
+=head1 PDLPP CONFIGURATION OPTIONS
 
 For information on how to specify Inline configuration options, see
 L<Inline>. This section describes each of the configuration options
@@ -592,13 +640,19 @@ Christian Soeller <soellermail@excite.com>
 
 =head1 SEE ALSO
 
-L<PDL>
+=over
 
-L<PDL::PP>
+=item L<PDL>
 
-L<Inline>
+=item L<PDL::PP>
 
-L<Inline::C>
+=item L<Inline>
+
+=item L<Inline::C>
+
+=item L<Inline::Module>
+
+=back
 
 =head1 COPYRIGHT
 
