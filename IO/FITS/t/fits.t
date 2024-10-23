@@ -339,15 +339,21 @@ ok( sum(abs(convert($x,short)-$y)) < 1.0e-5, "  and the values" );
 my $m51 = rfits('t/m51.fits.fz');
 is_deeply [$m51->dims], [384,384], 'right dims from compressed FITS file';
 (undef, my $fname) = File::Temp::tempfile( 'delmeXXXXX', SUFFIX => '.fits', %tmp_opts );
-my $m51_2;
 if ($PDL::Astro_FITS_Header) {
 my $m51_tbl = rfits('t/m51.fits.fz',{expand=>0});
 wfits($m51_tbl, $fname);
-$m51_2 = rfits($fname);
+my $m51_2 = rfits($fname);
 ok all(approx $m51, $m51_2), 'read back written-out bintable FITS file' or diag "got:", $m51_2->info;
 $m51->wfits($fname, {compress=>1});
 $m51_2 = rfits($fname);
 ok all(approx $m51, $m51_2), 'read back written-out compressed FITS file' or diag "got:", $m51_2->info;
+$m51_2->hdrcpy(1);
+$m51_2 = $m51_2->dummy(2,3)->sever;
+$m51_2->hdr->{NAXIS} = 3;
+$m51_2->hdr->{NAXIS3} = 3;
+$m51_2->wfits($fname, {compress=>1});
+my $m51_3 = rfits($fname);
+ok all(approx $m51_3, $m51_2), 'read back written-out compressed RGB FITS file' or diag "got:", $m51_3->info;
 }
 }
 

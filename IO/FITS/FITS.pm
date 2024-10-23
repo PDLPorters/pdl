@@ -1220,6 +1220,8 @@ our $tile_compressors = {
       die "rfits: error while loading PDL::Compression to pack tile-compressed image.\n\t$@\n" if $@;
       my ($tiles, $tbl, $params) = @_;
       my $blocksize = $params->{BLOCKSIZE} || 32;
+      my $tiles_ndims = $tiles->ndims;
+      $tiles = $tiles->clump(1..$tiles_ndims-1) if $tiles_ndims > 2;
       my ($compressed,undef,undef,$len) = $tiles->rice_compress($blocksize);
       $tbl->{ZNAME1} = "BLOCKSIZE";
       $tbl->{ZVAL1} = $blocksize;
