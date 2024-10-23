@@ -1230,9 +1230,7 @@ our $tile_compressors = {
 	my @dims = $compressed->dims;
 	$dims[0] *= $tbl->{ZVAL2};
 	my $cd2 = zeroes( byte, @dims );
-	my $cdr = $compressed->get_dataref;
-	my $cd2r = $cd2->get_dataref;
-	$$cd2r = $$cdr;
+	${ $cd2->get_dataref } = ${ $compressed->get_dataref };
 	$cd2->upd_data;
 	$compressed = $cd2;
       }
@@ -1784,7 +1782,7 @@ sub PDL::wfits {
       # Extra logic: if we got handed a vanilla hash that that is *not* an Astro::FITS::Header, but
       # looks like it's a FITS header encoded in a hash, then attempt to process it with
       # Astro::FITS::Header before writing it out -- this helps with cleanup of tags.
-      if($PDL::Astro_FITS_Header and
+      if ($PDL::Astro_FITS_Header and
 	 defined($h) and
 	 ref($h) eq 'HASH' and
 	 !defined( tied %$h )
@@ -1865,7 +1863,7 @@ sub PDL::wfits {
       # Check for tile-compression format for the image, and handle it.
       # We add the image-compression format tags and reprocess the whole
       # shebang as a binary table.
-      if(my $cmptype = $opt->{compress}) {
+      if (my $cmptype = $opt->{compress}) {
 	  $cmptype = 'RICE_1' if $cmptype eq '1';
 	  confess "wfits: given unknown compress '$cmptype'"
 	      unless my $tc = $tile_compressors->{$cmptype};
@@ -1874,7 +1872,6 @@ sub PDL::wfits {
 	  _k_add($ohash, $wfits_zpreserve{$_}, delete $ohdr{$_})
 	      for sort grep exists $ohdr{$_}, keys %wfits_zpreserve;
 	  _k_add($ohash, "ZNAXIS$_", $ohdr{"NAXIS$_"}) for 1..$pdl->getndims;
-#	  _k_add($ohash, "ZTILE$_", delete $ohdr{"NAXIS$_"}) for 1..$pdl->getndims;
 	  $tc->[0]->( $pdl, \%ohdr, $opt );
 	  my %tbl;
 	  $tbl{$_} = delete $ohdr{$_} for map $_."COMPRESSED_DATA", '', 'len_';
@@ -2067,12 +2064,18 @@ or by parameter.
 
 =cut
 
+# NOTE:
+#  the conversion from ushort to long below is a hack to work
+#  around the issue that otherwise perl treats it as a 2-byte
+#  NOT 4-byte string on writing out, which leads to data corruption
+#  Really ushort arrays should be written out using SCALE/ZERO
+#  so that it can be written as an Int2 rather than Int4
 our %bintable_types = (
   'byte'=>['B',1],
   'short'=>['I',2],
-  'ushort'=>['J',4, sub {return long shift;}],
+  'ushort'=>['J',4, sub {shift->long}],
   'long'=>['J',4],
-  'longlong'=>['D', 8, sub {return double shift;}],
+  'longlong'=>['D', 8, sub {shift->double}],
   'float'=>['E',4],
   'double'=>['D',8],
 #  'complex'=>['M',8]  # Complex doubles are supported (actually, they aren't at the moment)
@@ -2213,13 +2216,6 @@ sub _prep_table {
 
     my $rowlen = 0;
 
-    # NOTE:
-    #  the conversion from ushort to long below is a hack to work
-    #  around the issue that otherwise perl treats it as a 2-byte
-    #  NOT 4-byte string on writing out, which leads to data corruption
-    #  Really ushort arrays should be written out using SCALE/ZERO
-    #  so that it can be written as an Int2 rather than Int4
-    #
     for my $i (1..$cols) {
       $fieldvars[$i] = $hash->{$keysbyname{$colnames[$i]}};
       my $var = $fieldvars[$i];
