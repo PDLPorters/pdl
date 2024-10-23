@@ -24,7 +24,7 @@ sub register {
 	   };
 }
 
-# handle BLESS, INTERNAL, NOISY - pass everything else up to Inline::C
+# handle BLESS, INTERNAL - pass everything else up to Inline::C
 sub validate {
     my $o = shift;
     $o->{ILSM} ||= {};
@@ -46,18 +46,10 @@ sub validate {
 	    $o->{ILSM}{$key} = $value;
 	    next;
 	}
-	if ($key eq 'NOISY') {
-            $o->{CONFIG}{BUILD_NOISY} = $value;
-	    next;
-	}
 	push @pass_along, $key, $value;
     }
     $o->SUPER::validate(@pass_along);
 }
-
-sub add_list { goto &Inline::C::add_list }
-sub add_string { goto &Inline::C::add_string }
-sub add_text { goto &Inline::C::add_text }
 
 #==============================================================================
 # Parse and compile C code
@@ -84,10 +76,6 @@ The following PP code was generated (caution, can be long)...
 
 END
     return $txt . $o->pd_generate . "\n*** end PP file ****\n";
-}
-
-sub config {
-    my $o = shift;
 }
 
 #==============================================================================
