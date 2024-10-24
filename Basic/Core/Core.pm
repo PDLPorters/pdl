@@ -756,6 +756,16 @@ anyway.  (see L</get_dataref>.)
 
 sub topdl {PDL->topdl(@_)}
 
+####################### Subclass as hashref #######################
+{ package # hide from PAUSE
+    PDL::Hash;
+our @ISA = qw/PDL/;
+sub initialize {
+  my ($class) = @_;
+  bless { PDL => PDL->null }, ref $class || $class;
+}
+}
+
 ####################### Overloaded operators #######################
 
 { package # hide from MetaCPAN

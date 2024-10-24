@@ -72,7 +72,7 @@ undef $z;
 ##  First define a PDL-derived object:
 {
 package PDL::Derived3;
-our @ISA = qw/PDL/;
+our @ISA = qw/PDL::Hash/;
 sub new {
   my ($class, $data) = @_;
   return $class->SUPER::new($data) if ref($data) ne 'PDL'; # if not object, inherited constructor
@@ -83,7 +83,7 @@ sub new {
 ####### Initialize function. This over-ridden function is called by the PDL constructors
 sub initialize {
   my ($class) = @_;
-  my $self = bless { PDL => PDL->null }, ref $class || $class;
+  my $self = $class->SUPER::initialize;
   $self->{someThingElse} = 42,
   $self;
 }
@@ -159,7 +159,7 @@ $main::OVERRIDEWORKED = 0;
 ##  First define a PDL-derived object:
 {
 package PDL::Derived4;
-our @ISA = qw/PDL/;
+our @ISA = qw/PDL::Hash/;
 sub new {
   my ($class, $data) = @_;
   return $class->SUPER::new($data) if ref($data) ne 'PDL'; # if not object, inherited constructor
@@ -172,7 +172,7 @@ sub new {
 sub initialize {
   $::INIT_CALLED = 1;
   my $class = shift;
-  my $self = bless { PDL => PDL->null }, ref $class || $class;
+  my $self = $class->SUPER::initialize;
   $self->{someThingElse} = 42,
   $self;
 }
