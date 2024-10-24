@@ -207,13 +207,14 @@ my $pb = log(pdl(110,23)) / log(10);
 note "a: $pa\n";
 note "b: $pb\n";
 ok(all( approx( $pa, $pb)), 'log10 pdl');
+log10(pdl(110,23), my $pc=null);
+ok(all( approx( $pc, $pb)), '2-arg log10 pdl');
 # check inplace
 ok(all( approx( pdl(110,23)->inplace->log10(), $pb)), 'inplace pdl log10');
 if ($can_complex_power) {
   ok(all( approx( cdouble(110,23)->inplace->log()/log(10), $pb)), 'complex inplace pdl log10');
 }
 }
-
 }
 
 {

@@ -84,7 +84,8 @@ sub new {
 sub initialize {
   my ($class) = @_;
   my $self = $class->SUPER::initialize;
-  $self->{someThingElse} = 42,
+  # copy the other stuff:
+  $self->{someThingElse} = ref $class ? $class->{someThingElse} : 42;
   $self;
 }
 ###### Derived3 Object Needs to supply its own copy #####
@@ -92,8 +93,6 @@ sub copy {
   my $self = shift;
   my $new = $self->initialize;
   $new->{PDL} = $self->{PDL}->SUPER::copy;
-  # copy the other stuff:
-  $new->{someThingElse} = $self->{someThingElse};
   $new;
 }
 }
@@ -173,7 +172,8 @@ sub initialize {
   $::INIT_CALLED = 1;
   my $class = shift;
   my $self = $class->SUPER::initialize;
-  $self->{someThingElse} = 42,
+  # copy the other stuff:
+  $self->{someThingElse} = ref $class ? $class->{someThingElse} : 42;
   $self;
 }
 
@@ -183,8 +183,6 @@ sub copy {
   my $self = shift;
   my $new = $self->initialize;
   $new->{PDL} = $self->{PDL}->SUPER::copy;
-  # copy the other stuff:
-  $new->{someThingElse} = $self->{someThingElse};
   return $new;
 }
 
