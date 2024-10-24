@@ -32,7 +32,7 @@ print OUT <<'EOF';
     if (SvROK(ST(0)) && ((SvTYPE(SvRV(ST(0))) == SVt_PVMG) || (SvTYPE(SvRV(ST(0))) == SVt_PVHV))) { \
       parent = ST(0); \
       if (sv_isobject(parent)){ \
-          bless_stash = SvSTASH(SvRV(ST(0))); \
+          bless_stash = SvSTASH(SvRV(parent)); \
           objname = HvNAME((bless_stash)); /* The package to bless output vars into is taken from the first input var */ \
       } \
     } \
@@ -63,9 +63,9 @@ static inline pdl *PDL_XS_pdlinit(pTHX_ char *objname, HV *bless_stash, SV *to_p
   return ret;
 }
 #define PDL_XS_PERLINIT_init() \
-  PDL_XS_pdlinit(aTHX_ objname, bless_stash, sv_2mortal(newSVpv(objname, 0)), "initialize", NULL, PDL)
+  PDL_XS_pdlinit(aTHX_ objname, bless_stash, parent ? parent : sv_2mortal(newSVpv(objname, 0)), "initialize", NULL, PDL)
 #define PDL_XS_PERLINIT_initsv(sv) \
-  PDL_XS_pdlinit(aTHX_ objname, bless_stash, sv_2mortal(newSVpv(objname, 0)), "initialize", &sv, PDL)
+  PDL_XS_pdlinit(aTHX_ objname, bless_stash, parent ? parent : sv_2mortal(newSVpv(objname, 0)), "initialize", &sv, PDL)
 #define PDL_XS_PERLINIT_copy() \
   PDL_XS_pdlinit(aTHX_ objname, bless_stash, parent, "copy", NULL, PDL)
 #define PDL_XS_PERLINIT_copysv(sv) \
