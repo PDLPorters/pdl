@@ -204,6 +204,9 @@ new_from_specification(invoc, ...)
         XSRETURN(1);
       }
     }
+    IV i; for (i = 0; i < items; i++)
+      if (!SvOK(ST(i)))
+        barf("Arg %"IVdf" is undefined", i);
     IV argstart = 1, type = PDL_D;
     if (items > 1 && sv_derived_from(ST(1), "PDL::Type")) {
       argstart++;
