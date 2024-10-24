@@ -16,6 +16,7 @@
 - if $pdl->{PDL} is code ref, $pdl now passed as arg
 - add PDL::Hash to simplify hash-based PDL subclasses
 - now an error to pass any undefined values to PDL constructors
+- replace CallCopy mechanism with initialize called also as instance method
 
 2.093 2024-09-29
 - PDL.set_datatype now doesn't physicalise input, PDL.convert_type does

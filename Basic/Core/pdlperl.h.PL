@@ -62,14 +62,8 @@ static inline pdl *PDL_XS_pdlinit(pTHX_ char *objname, HV *bless_stash, SV *to_p
   }
   return ret;
 }
-#define PDL_XS_PERLINIT_init() \
-  PDL_XS_pdlinit(aTHX_ objname, bless_stash, parent ? parent : sv_2mortal(newSVpv(objname, 0)), "initialize", NULL, PDL)
 #define PDL_XS_PERLINIT_initsv(sv) \
   PDL_XS_pdlinit(aTHX_ objname, bless_stash, parent ? parent : sv_2mortal(newSVpv(objname, 0)), "initialize", &sv, PDL)
-#define PDL_XS_PERLINIT_copy() \
-  PDL_XS_pdlinit(aTHX_ objname, bless_stash, parent, "copy", NULL, PDL)
-#define PDL_XS_PERLINIT_copysv(sv) \
-  PDL_XS_pdlinit(aTHX_ objname, bless_stash, parent, "copy", &sv, PDL)
 
 #define PDL_XS_RETURN(clause1) \
     if (nreturn) { \
@@ -81,7 +75,7 @@ static inline pdl *PDL_XS_pdlinit(pTHX_ char *objname, HV *bless_stash, SV *to_p
     }
 
 #define PDL_IS_INPLACE(in) ((in)->state & PDL_INPLACE)
-#define PDL_XS_INPLACE(in, out, whichinit) \
+#define PDL_XS_INPLACE(in, out) \
     if (PDL_IS_INPLACE(in)) { \
         if (out ## _SV) barf("inplace input but different output given"); \
         out ## _SV = sv_newmortal(); \
@@ -90,7 +84,7 @@ static inline pdl *PDL_XS_pdlinit(pTHX_ char *objname, HV *bless_stash, SV *to_p
         PDL->SetSV_PDL(out ## _SV,out); \
     } else \
         out = out ## _SV ? PDL_CORE_(SvPDLV)(out ## _SV) : \
-          PDL_XS_PERLINIT_ ## whichinit ## sv(out ## _SV);
+          PDL_XS_PERLINIT_initsv(out ## _SV);
 
 #define PDL_XS_SCALAR(thistype, ppsym, val) \
   PDL_Anyval av = {PDL_CLD, {.H=0 + 0I}}; /* guarantee all bits set */ \

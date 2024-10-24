@@ -88,13 +88,6 @@ sub initialize {
   $self->{someThingElse} = ref $class ? $class->{someThingElse} : 42;
   $self;
 }
-###### Derived3 Object Needs to supply its own copy #####
-sub copy {
-  my $self = shift;
-  my $new = $self->initialize;
-  $new->{PDL} = $self->{PDL}->SUPER::copy;
-  $new;
-}
 }
 ## Now check to see if the different categories of primitive operations
 ##   return the PDL::Derived3 type.
@@ -177,15 +170,6 @@ sub initialize {
   $self;
 }
 
-###### Derived4 Object Needs to supply its own copy #####
-sub copy {
-  $::COPY_CALLED = 1;
-  my $self = shift;
-  my $new = $self->initialize;
-  $new->{PDL} = $self->{PDL}->SUPER::copy;
-  return $new;
-}
-
 ### Check of over-riding sumover
 ### This sumover should be called from PDL->sum.
 ###  If the result is different from the normal sumover by $self->{SomethingElse} (42) then
@@ -253,14 +237,12 @@ isa_ok $im->clip(5,7), "PDL::Derived4", "clip returns derived object";
 isa_ok $im->hclip(5), "PDL::Derived4", "hclip returns derived object";
 isa_ok $im->lclip(5), "PDL::Derived4", "lclip returns derived object";
 
-$::COPY_CALLED = $::INIT_CALLED = 0;
+$::INIT_CALLED = 0;
 my $im2 = $im + 1;
-ok !$::COPY_CALLED, 'no copy';
 ok $::INIT_CALLED, 'yes init';
 
-$::COPY_CALLED = $::INIT_CALLED = 0;
+$::INIT_CALLED = 0;
 $im++;
-ok !$::COPY_CALLED, 'no copy';
 ok !$::INIT_CALLED, 'no init';
 
 ######## Test of Subclassed-object copying for simple function cases ########

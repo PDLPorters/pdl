@@ -101,21 +101,21 @@ with a C<PDL> member. Make that package inherit from C<PDL>, and
 redefine the method C<initialize>.
 
   package FOO;
-  our ISA = qw(PDL);
+  our ISA = qw(PDL::Hash);
   sub initialize {
     my $class = shift;
-    my $self = {
-      creation_time => time(),  # necessary extension :-)
-      PDL => $class->SUPER::initialize, # used to store PDL object
-    };
-    bless $self, ref $class || $class;
+    my $self = $class->SUPER::initialize(@_);
+    $self->{creation_time} = time(); # necessary extension :-)
+    $self;
   }
 
 All PDL constructors will call initialize() to make sure that your
 extensions are added by I<all> PDL constructors automatically.
 
 Do remember that if you subclass a class that is subclassed from an ndarray,
-you need to call C<SUPER::initialize>.
+you need to call C<SUPER::initialize>. Make sure it is callable as
+an instance method, e.g. by copying data from C<$class> if C<ref
+$class> is true.
 
 =head2 Examples
 
@@ -124,43 +124,17 @@ test-case files. Look in F<t/subclass.t>.
 
 =head2 Output Auto-Creation and Subclassed Objects
 
-For PDL Functions where the output is created and returned, PDL will either
-call the subclassed object's C<initialize> or C<copy> method to create the
+For PDL Functions where the output is created and returned, PDL will
+call the subclassed object's C<initialize> method on either instance
+or class to create the
 output object. (See L<PDL::Indexing|PDL::Indexing/"Output auto-creation and PP-function calling conventions">
 for a discussion on Output Auto-Creation.) This behavior is summarized as follows:
 
-=over
-
-=item *
-
-For I<simple> functions, defined as having a signature of
-
- func( a(), [o]b() )
-
-PDL will call C<< $a->copy >> to create the output object.
-
+PDL will call C<initialize> on the first input argument if it is
+an object, else on C<PDL> to create the output object.
 In the spirit of the Perl philosophy of making I<Easy Things Easy>,
 this behavior enables PDL-subclassed objects to be written without having to
 overload the many simple PDL functions in this category.
-
-The file F<t/subclass.t> in the PDL Distribution tests for this behavior.
-See that file for an example.
-
-=item *
-
-For other functions, PDL will call C<< $class->initialize >> to
-create the output object.  Where C<$class> is the class name of the
-first argument supplied to the function.
-
-For these more complex cases, it is difficult to second-guess the
-subclassed object's designer to know if a C<copy> or a C<initialize>
-is appropriate. So for these cases, C<< $class->initialize >> is
-called by default. If this is not appropriate for you, overload the
-function in your subclass and do whatever is appropriate in the
-overloaded function's code.
-
-=back
-
 
 =head1 AUTHOR
 
