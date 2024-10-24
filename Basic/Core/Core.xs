@@ -1043,8 +1043,6 @@ SV *
 get_dataref(self)
 	pdl *self
 	CODE:
-	if(self->state & PDL_DONTTOUCHDATA)
-	  croak("Trying to get dataref to magical (mmaped?) pdl");
 	PDLDEBUG_f(printf("get_dataref %p\n", self));
 	pdl_barf_if_error(pdl_make_physical(self));
 	if (!self->datasv) {
