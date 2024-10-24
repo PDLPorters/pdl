@@ -38,7 +38,7 @@ package PDL::Derived2;
 our @ISA = qw/PDL/;
 sub new {
   my $class = shift;
-  bless {Coeff=>shift, PDL=>sub { return $_[0]->cache }, SomethingElse=>42}, $class;
+  bless {Coeff=>shift, PDL=>\&cache, SomethingElse=>42}, $class;
 }
 # Actualize the value (demonstrating cacheing)
 # One can imagine expiring the cache if say, Coeffs change

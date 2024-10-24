@@ -69,27 +69,22 @@ pdl* pdl_SvPDLV ( SV* sv ) {
       and allow normal PDL functions to still work so long
       as the {PDL} code returns a standard ndarray on
       demand - KGB */
-
       if (SvROK(*svp) && SvTYPE(SvRV(*svp)) == SVt_PVCV) {
          dSP;
-         ENTER ;
-         SAVETMPS ;
-         PUSHMARK(SP) ;
-
-         int count = perl_call_sv(*svp, G_SCALAR|G_NOARGS);
-
-         SPAGAIN ;
-
+         ENTER;
+         SAVETMPS;
+         PUSHMARK(SP);
+         XPUSHs(sv);
+         PUTBACK;
+         int count = perl_call_sv(*svp, G_SCALAR);
+         SPAGAIN;
          if (count != 1)
-            croak("Execution of PDL structure failed to return one value\n") ;
-
+            croak("Execution of PDL structure failed to return one value\n");
          sv=newSVsv(POPs);
-
-         PUTBACK ;
-         FREETMPS ;
-         LEAVE ;
-      }
-      else {
+         PUTBACK;
+         FREETMPS;
+         LEAVE;
+      } else {
          sv = *svp;
       }
 
