@@ -85,6 +85,7 @@ Basic/PDL.pm
 Basic/Pod/API.pod
 Basic/Pod/BadValues.pod
 Basic/Pod/Broadcasting.pod
+Basic/Pod/Bugs.pod
 Basic/Pod/Course.pod
 Basic/Pod/Dataflow.pod
 Basic/Pod/DeveloperGuide.pod
@@ -122,7 +123,6 @@ Basic/SourceFilter/t/niceslice-utilcall.t
 Basic/SourceFilter/t/niceslice.t
 Basic/Ufunc/Makefile.PL
 Basic/Ufunc/ufunc.pd
-Bugs.pod
 Changes
 COPYING
 cygwin/fix-max-memory.txt
