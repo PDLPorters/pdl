@@ -85,11 +85,12 @@ See the documentation for the OpenGL module.
 More details to follow as the refactored TriD module
 interface and build environment matures
 
+=head1 CONFIG
+
+Defaults to using L<OpenGL::GLUT> - override by setting the environment
+variable C<POGL_WINDOW_TYPE> to C<x11> (the default is C<glut>).
+
 =head1 FUNCTIONS
-
-=head2 TBD
-
-=cut
 
 =head2 TBD
 
@@ -164,7 +165,7 @@ sub new {
    }
 
    # Use GLUT windows and event handling as the TriD default
-   $window_type ||= $PDL::Config{POGL_WINDOW_TYPE};
+   $window_type ||= $ENV{POGL_WINDOW_TYPE} || 'glut';
    # $window_type ||= 'x11';       # use X11 default until glut code is ready
 
    my $self;
