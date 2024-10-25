@@ -35,7 +35,7 @@ PDL::IO::FITS - Simple FITS support for PDL
 This module provides basic FITS support for PDL, in the sense of
 reading and writing whole FITS files. For more complex operations,
 such as prefiltering rows out of tables or performing operations on
-the FITS file in-place on disk, you can use the Astro::FITS::CFITSIO
+the FITS file in-place on disk, you can use the L<Astro::FITS::CFITSIO>
 module that is available on CPAN.
 
 Basic FITS image files are supported, along with BINTABLE and IMAGE extensions.
@@ -68,21 +68,11 @@ PDL distribution, the copyright notice should be pasted into in this file.
 =cut
 
 # Check if there's Astro::FITS::Header support, and set flag.
-# Kludgy but it only has to run once, on first load.  --CED
 $PDL::Astro_FITS_Header = eval {
     require Astro::FITS::Header;
     Astro::FITS::Header->VERSION(1.12);
     1;
 };
-warn <<'EOF' if !$PDL::Astro_FITS_Header and !($ENV{PDL_FITS_LEGACY} || $PDL::Config{FITS_LEGACY});
-WARNING: Can't find the Astro::FITS::Header module, limiting FITS support.
-  PDL will use the deprecated legacy perl hash handling code but will not
-  properly support tables, FITS extensions, or COMMENT cards. You really
-  ought to install the Astro::FITS::Header module, available from
-  'http://www.cpan.org'.  (You can also get rid of this message by setting
-  the environment variable 'PDL_FITS_LEGACY' or the global PDL config
-  value (in perldl.conf) $PDL::Config{FITS_LEGACY} to 1.
-EOF
 
 =head2 rfits()
 

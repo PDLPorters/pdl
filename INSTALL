@@ -169,9 +169,6 @@ a bug report (see the BUGS file for directions).
   files.  They are typically in a directory like
   /usr/share/proj and contain files with names like:
   epsg, nad27, nad83, conus,...
-  
-  If you find such a directory, try setting the PROJ_LIB
-  environment variable to that location.
 
   If you do not have that directory, you may need to use
   your platform's package manager to install the missing
