@@ -392,8 +392,7 @@ specs have been processed by MakeMaker.
 =item Hide
 
 Controls if linking output etc is hidden from the user or not.
-On by default except within the build of the PDL distribution
-where the config value set in F<perldl.conf> prevails.
+On by default but overridable with environment variable C<HIDE_TRYLINK> if set.
 
 =item Clean
 
@@ -420,8 +419,7 @@ sub trylink {
   # check if MakeMaker should be used to preprocess the libs
   for my $key(keys %$opt) {$opt->{lc $key} = $opt->{$key}}
   my $mmprocess = exists $opt->{makemaker} && $opt->{makemaker};
-  my $hide = exists $opt->{hide} ? $opt->{hide} :
-    exists $PDL::Config{HIDE_TRYLINK} ? $PDL::Config{HIDE_TRYLINK} : 1;
+  my $hide = $opt->{hide} // $ENV{HIDE_TRYLINK} // 1;
   my $clean = exists $opt->{clean} ? $opt->{clean} : 1;
   if ($mmprocess) {
       require ExtUtils::MakeMaker;
