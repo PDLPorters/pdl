@@ -71,7 +71,6 @@ sub apply_profile {
    $repl->eval('package main');
 
    $repl->eval('use PDL');
-   $repl->eval('use PDL::Config');
    $repl->eval('use PDL::Dbg');
    $repl->eval('use PDL::Doc::Perldl');
    $repl->eval('use PDL::IO::Dumper');

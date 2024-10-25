@@ -4,6 +4,7 @@ Basic/Bad/Makefile.PL
 Basic/Constants.pm
 Basic/Core/Basic.pm
 Basic/Core/Char.pm
+Basic/Core/Config.pm
 Basic/Core/Core.pm
 Basic/Core/Core.xs
 Basic/Core/Dbg.pm
@@ -591,7 +592,6 @@ Makefile.PL
 MANIFEST			This list of files
 MANIFEST.SKIP
 PDLdb.pl
-perldl.conf
 Perldl2/Makefile.PL
 Perldl2/pdl2
 Perldl2/Plugin/CleanErrors.pm

@@ -42,7 +42,6 @@ RCS
 ^Basic/Bad/Bad\.c$
 ^Basic/Bad/Bad\.pm$
 ^Basic/Bad/Bad\.xs$
-^Basic/Core/Config\.pm
 ^Basic/Core/Core\.c$
 ^Basic/Core/Types\.pm$
 ^Basic/Core/pdl\.h$

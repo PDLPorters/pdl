@@ -8,9 +8,9 @@ use Text::ParseWords qw(shellwords);
 my $msg = "";
 my ($f77);
 
-if (exists $PDL::Config{F77CONF} && -f $PDL::Config{F77CONF}) {
-  print "Loading F77 configuration from $PDL::Config{F77CONF}...\n";
-  eval { require $PDL::Config{F77CONF} };
+if (exists $ENV{F77CONF} && -f $ENV{F77CONF}) {
+  print "Loading F77 configuration from $ENV{F77CONF}...\n";
+  eval { require $ENV{F77CONF} };
   if ($@ ne "") {
     $msg = "F77CONF file not loaded: $@\nOught not build PDL::Slatec\n";
     goto skip;
@@ -28,7 +28,7 @@ if (exists $PDL::Config{F77CONF} && -f $PDL::Config{F77CONF}) {
       goto skip;
     }
   }  # end if ($@ ne "")
-} # if (exists $PDL::Config{F77CONF}...
+} # if (exists $ENV{F77CONF}...
 
 my $compiler_available = $f77->testcompiler;
 

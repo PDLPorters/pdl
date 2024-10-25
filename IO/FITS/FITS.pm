@@ -9,7 +9,6 @@ our %EXPORT_TAGS = (Func=>[@EXPORT_OK]);
 our @ISA = ('PDL::Exporter');
 
 use PDL::Core;
-use PDL::Config;
 use PDL::IO::Misc;
 use PDL::Exporter;
 use PDL::Primitive;

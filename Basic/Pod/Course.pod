@@ -365,11 +365,6 @@ external function.  PDL::PP is generally the recommended
 way to interface your code with PDL, but it wouldn't be Perl
 if there wasn't another way to do it.
 
-=item * PDL::Config
-
-Defines the C<%PDL::Config> hash, which has lots of useful
-information pertinent to your PDL build.
-
 =item * L<PDL::Doc>
 
 Explanation of the PDL documentation conventions, and an

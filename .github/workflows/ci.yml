@@ -120,8 +120,6 @@ jobs:
           test-enable-coverage: ${{ matrix.coverage }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - run: perl -Iblib/lib -MData::Dumper -e 'eval { require PDL::Config }; $Data::Dumper::Sortkeys = 1; print Dumper \%PDL::Config'
-
   cygwin:
     env:
       PERL5LIB: /cygdrive/c/cx/lib/perl5:/cygdrive/c/cx/lib/perl5/MSWin32-x64-multi-thread
@@ -193,7 +191,6 @@ jobs:
       - run: |
           export PATH="/cygdrive/c/cx/bin:$PATH"
           cd $( cygpath -u $GITHUB_WORKSPACE )
-          perl -Mblib -MPDL::Config -MData::Dumper -e '$Data::Dumper::Sortkeys = 1; print Dumper \%PDL::Config'
       - name: CPAN log
         if: ${{ failure() }}
         run: |

@@ -88,16 +88,6 @@ my $MY_DIR2 = dirname(dirname($MY_FILE));
 my $IS_INST = $MY_DIR2 =~ /PDL\W*$/i;
 sub whereami_any { $MY_DIR2 } # something containing "Core/Dev.pm"
 
-# To access PDL's configuration use %PDL::Config. Makefile.PL has been set up
-# to create this variable so it is available during 'perl Makefile.PL' and
-# it can be eval-ed during 'make'
-unless ( %PDL::Config ) {
-  require File::Spec::Functions;
-  my $dir = File::Spec::Functions::catdir($MY_DIR2, $IS_INST ? () : qw(Core));
-  eval { require "$dir/Config.pm" };
-  die "Unable to find PDL's configuration info\n [$@]" if $@;
-}
-
 =head2 isbigendian
 
 =for ref

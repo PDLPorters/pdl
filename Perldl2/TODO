@@ -94,9 +94,7 @@ Last saved: Tue 09 Jul 2013 09:05:18 AM
 
   Add runtime PDL module load list so you know what has been
   loaded with use/require.  Maybe a pop-up info window would
-  work here (curses based or GUI based).  Maybe there could
-  be a runtime list/variable in PDL::Config that is updated
-  as each module is loaded.  Override '*CORE::GLOBAL::use'?
+  work here (curses based or GUI based). Override '*CORE::GLOBAL::use'?
   It would also be possible to use MOP features of Moose.
  
   Review and integrate $PERLDL::XX parameters.  Some are not

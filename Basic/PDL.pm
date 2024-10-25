@@ -187,7 +187,6 @@ use PDL::IO::Misc;          # Misc IO (Ascii)
 use PDL::IO::FITS;          # FITS IO (rfits/wfits; used by rpic/wpic too)
 use PDL::IO::Pic;           # rpic/wpic
 
-use PDL::Config; # so config/install info is available
 use PDL::IO::Storable; # to avoid mysterious Storable segfaults
 
 EOD

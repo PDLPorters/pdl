@@ -43,7 +43,6 @@ use PDL::Types;
 use PDL::ImageRGB;
 use PDL::IO::Pnm;
 use PDL::Options;
-use PDL::Config;
 use File::Basename;
 use File::Spec;
 use Text::ParseWords qw(shellwords);

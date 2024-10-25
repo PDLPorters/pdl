@@ -38,7 +38,6 @@ use warnings;
 use PDL::Core '';  # barf
 use PDL::Graphics::VRML;
 use PDL::LiteF;
-use PDL::Config;
 PDL::Graphics::VRMLNode->import();
 PDL::Graphics::VRMLProto->import();
 

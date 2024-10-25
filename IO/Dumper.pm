@@ -61,7 +61,6 @@ use File::Temp;
 use Exporter ();
 use PDL;
 use PDL::Exporter;
-use PDL::Config;
 use Data::Dumper 2.121;
 use Carp;
 
