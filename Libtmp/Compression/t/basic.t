@@ -5,7 +5,7 @@ use PDL::LiteF;
 use PDL::Compression;
 use PDL::IO::FITS;
 
-my $m51 = rfits('../../m51.fits');
+my $m51 = rfits('../../Basic/m51.fits');
 
 my ($y, $xsize, undef, $len) = $m51->rice_compress;
 is $len->max->sclr, 373, 'right maximum length';

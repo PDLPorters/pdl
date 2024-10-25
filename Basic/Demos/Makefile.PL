@@ -7,7 +7,7 @@ use ExtUtils::MakeMaker;
 #   install that into the demos directory
 WriteMakefile(
   NAME => 'PDL::Demos',
-  VERSION_FROM => '../Basic/PDL.pm',
+  VERSION_FROM => '../PDL.pm',
   PM => {
     'General.pm'  => '$(INST_LIBDIR)/Demos/General.pm',
     'Demos.pm'    => '$(INST_LIBDIR)/Demos.pm',

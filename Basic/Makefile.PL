@@ -22,13 +22,13 @@ my %man3pods = map { my $h = '$(INST_MAN3DIR)/';
 		 } @pm_names;
 
 WriteMakefile(
-	      'NAME'	=> 'PDL',
-	      'VERSION_FROM' => 'PDL.pm',
-	      'PM'       => \%pm,
-	      'MAN3PODS' => \%man3pods,
-     'DIR'      => ['Pod','Gen','SourceFilter','Core','Bad','Ops','Ufunc',
-		    'Primitive','Slices','Math','MatrixOps'],
-	      NO_MYMETA => 1,
+  NAME	=> 'PDL',
+  VERSION_FROM => 'PDL.pm',
+  PM       => \%pm,
+  MAN3PODS => \%man3pods,
+  DIR      => [qw(Pod Gen SourceFilter Core Bad Ops Ufunc
+		    Primitive Slices Math MatrixOps Demos)],
+  NO_MYMETA => 1,
 );
 
 # modify clean method not to delete files named 'core'

@@ -29,6 +29,13 @@ Basic/Core/ppport.h
 Basic/Core/typemap
 Basic/Core/Types.pm.PL
 Basic/default.perldlrc
+Basic/Demos/BAD_demo.pm
+Basic/Demos/Demos.pm
+Basic/Demos/General.pm
+Basic/Demos/harness
+Basic/Demos/Makefile.PL
+Basic/Demos/Sound.pm
+Basic/Demos/t/demos.t
 Basic/Gen/Inline/Makefile.PL
 Basic/Gen/Inline/MakePdlppInstallable.pm
 Basic/Gen/Inline/Pdlpp.pm
@@ -44,6 +51,7 @@ Basic/Gen/pptemplate
 Basic/Lite.pm
 Basic/LiteF.pm
 Basic/Lvalue.pm
+Basic/m51.fits
 Basic/Makefile.PL
 Basic/Math/const.c
 Basic/Math/cpoly.c
@@ -131,13 +139,6 @@ cygwin/INSTALL
 cygwin/max_memory.c
 cygwin/README
 cygwin/tmalloc.pl
-Demos/BAD_demo.pm
-Demos/Demos.pm
-Demos/General.pm
-Demos/harness
-Demos/Makefile.PL
-Demos/Sound.pm
-Demos/t/demos.t
 DEPENDENCIES
 Doc/Doc.pm
 Doc/Doc/Config.pm.PL
@@ -582,7 +583,6 @@ Libtmp/Transform/Proj4/t/proj_transform.t
 Libtmp/Transform/t/transform.t
 Libtmp/Transform/transform.pd
 Libtmp/Transform/Transform_demo.pm
-m51.fits
 macosx/README
 Makefile.PL
 MANIFEST			This list of files

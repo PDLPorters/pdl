@@ -336,6 +336,8 @@ my @basics; BEGIN { @basics = (
   [qw(Libtmp Image2D)],
   [qw(Libtmp ImageND)],
   [qw(Libtmp FFT)],
+  [qw(Basic Demos)],
+  [qw(Doc)],
 ) }
 sub coretarget {
     my ($self) = @_;
