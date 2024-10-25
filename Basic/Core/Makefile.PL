@@ -7,19 +7,8 @@ use ExtUtils::MakeMaker;
 my $malloclib = $PDL::Config{MALLOCDBG}->{libs};
 my $mallocinc = $PDL::Config{MALLOCDBG}->{include};
 
-my $pthread_include = '';
-if ( defined $PDL::Config{POSIX_THREADS_INC} ) {
-    $pthread_include = $PDL::Config{POSIX_THREADS_INC};
-}
-my $pthread_library = '-lpthread';
-if ( defined $PDL::Config{POSIX_THREADS_LIBS} ) {
-    $pthread_library = $PDL::Config{POSIX_THREADS_LIBS};
-}
-my $pthread_conf = $PDL::Config{WITH_POSIX_THREADS};
-if (defined $pthread_conf and !$pthread_conf) {
-    print "\tpthread disabled in perldl.conf\n";
-    $pthread_library = '';
-}
+my $pthread_include = $PDL::Config{POSIX_THREADS_INC} // '';
+my $pthread_library = $PDL::Config{POSIX_THREADS_LIBS} // '-lpthread';
 if ($pthread_library) {
     (my $libname = $pthread_library) =~ s/^-l//;
     if (!eval { check_lib(lib=>$libname,header=>'pthread.h',incpath=>$pthread_include) }) {
@@ -27,13 +16,10 @@ if ($pthread_library) {
         $pthread_library = '';
     }
 }
-if ($pthread_library) {
-    $PDL::Config{WITH_POSIX_THREADS} = 1;
-} else {
+if (!$pthread_library) {
     print "PDL will be built without POSIX thread support.\n";
     print "\t==> *NOTE*: PDL threads are unrelated to perl threads (usethreads=y)!\n";
     print "\t==> Enabling perl threads will not help!\n";
-    $PDL::Config{WITH_POSIX_THREADS} = 0;
 }
 my $pthread_define  = $pthread_library ? ' -DPDL_PTHREAD ' : '';
 

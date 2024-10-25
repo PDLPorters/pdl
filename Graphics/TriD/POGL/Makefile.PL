@@ -10,7 +10,7 @@ WriteMakefile(
     'PL_FILES'            => {},
     'PREREQ_PM' => {
         'Test::More' => 0,
-        'OpenGL' => 0.58004, # TODO: this should be from perldl.conf value
+        'OpenGL' => 0.58004,
     },
     'dist'                => { 'COMPRESS' => 'gzip -9f', 'SUFFIX' => 'gz', },
     'clean'               => { 'FILES' => 'PDL-Graphics-OpenGL-Perl-OpenGL-*' },
