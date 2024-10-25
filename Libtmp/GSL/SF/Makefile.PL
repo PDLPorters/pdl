@@ -25,9 +25,8 @@ if (!gsl_sf_links_ok($GSL_libs, $GSL_includes)) {
 }
 
 WriteMakefile(
-	'NAME' => 'PDL::GSLSF',
-	VERSION => '0.5',
-	# VERSION_FROM => '../../Basic/PDL.pm',
-       #DIR =>  [ qw/airy bessel chebyshev clausen coulomb coupling dawson debye dilog elementary ellint elljac erf exp expint fermi_dirac gamma gegenbauer hyperg laguerre legendre log poly pow_int psi synchrotron transport trig zeta/ ],
-	NO_MYMETA => 1,
+  NAME => 'PDL::GSLSF',
+  VERSION => '0.5',
+  # VERSION_FROM => '../../Basic/PDL.pm',
+  NO_MYMETA => 1,
 );
