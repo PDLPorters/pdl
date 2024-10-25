@@ -150,6 +150,7 @@ Basic/Ops/Makefile.PL
 Basic/Ops/ops.pd
 Basic/Options.pm
 Basic/PDL.pm
+Basic/PDLdb.pl
 Basic/Pod/API.pod
 Basic/Pod/BadValues.pod
 Basic/Pod/Broadcasting.pod
@@ -637,7 +638,6 @@ macosx/README
 Makefile.PL
 MANIFEST			This list of files
 MANIFEST.SKIP
-PDLdb.pl
 Perldl2/Makefile.PL
 Perldl2/pdl2
 Perldl2/Plugin/CleanErrors.pm

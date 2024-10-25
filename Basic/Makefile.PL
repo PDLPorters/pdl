@@ -9,6 +9,7 @@ my %pm = map { my $h = '$(INST_LIBDIR)/';
 	       $h .= 'PDL/' if $_ !~ /PDL.pm$/;
 	       ( $_, $h . $_ );
 	   } ( @pm_names, 'default.perldlrc' );
+$pm{'PDLdb.pl'} = '$(INST_LIB)/PDLdb.pl';
 
 my %man3pods = map { my $h = '$(INST_MAN3DIR)/';
 		     $h .= 'PDL::' if $_ !~ /PDL.pm$/;
