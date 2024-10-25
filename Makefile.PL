@@ -208,7 +208,6 @@ my @basics; BEGIN { @basics = (
   [qw(Libtmp Compression)],
   [qw(Libtmp FFT)],
   [qw(Libtmp ImageRGB)],
-  [qw(Libtmp Image2D)],
   [qw(Libtmp ImageND)],
 ) }
 sub coretarget {

@@ -4,6 +4,41 @@ use Test::More;
 use Test::Exception;
 use PDL;
 use PDL::Image2D;
+use PDL::FFT;
+
+sub tapprox {
+  my($pa,$pb) = @_;
+  all approx $pa, $pb, 0.01;
+}
+
+# compare fft convolutions with direct method
+{
+my $pa = rfits("../../Basic/m51.fits");
+{
+my $pk = ones(5,5);
+my $pb = conv2d($pa,$pk);
+my $kk = kernctr($pa,$pk);
+fftconvolve( my $pi=$pa->copy, $kk );
+ok ( tapprox($kk,0), "kernctr");
+ok ( tapprox($pi,$pb), "fftconvolve" );
+}
+{
+my $pk = pdl[
+ [ 0.51385498,  0.17572021,  0.30862427],
+ [ 0.53451538,  0.94760132,  0.17172241],
+ [ 0.70220947,  0.22640991,  0.49475098],
+ [ 0.12469482, 0.083892822,  0.38961792],
+ [ 0.27722168,  0.36804199,  0.98342896],
+ [ 0.53536987,  0.76565552,  0.64645386],
+ [ 0.76712036,   0.7802124,  0.82293701]
+];
+my $pb = conv2d($pa,$pk);
+my $kk = kernctr($pa,$pk);
+fftconvolve( my $pi=$pa->copy, $kk );
+ok ( tapprox($kk,0), "kernctr weird kernel");
+ok ( tapprox($pi,$pb), "fftconvolve weird kernel");
+}
+}
 
 my $mask = pdl(
   [[0,0,0,0,0],[0,0,1,1,0],[0,0,0,0,0],[0,0,1,1,0],[0,0,0,0,0]],
