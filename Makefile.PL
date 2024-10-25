@@ -92,7 +92,7 @@ my %makefile_hash = (
         },
         x_IRC => 'irc://irc.perl.org/#pdl',
      },
-     no_index => { file => ['Doc/scantree.pl'] },
+     no_index => { file => ['Basic/Doc/scantree.pl'] },
      prereqs => {
         configure => {
            recommends => {
