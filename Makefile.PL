@@ -183,7 +183,7 @@ my $coretest = join ' ', map File::Spec->catfile('t', $_.'.t'), qw(
 $text .= <<EOF;
 
 coretest : core
-	\$(FULLPERLRUN) "$::Config{bin}/prove" -b $coretest
+	cd Basic && \$(FULLPERLRUN) "$::Config{bin}/prove" -I ../blib/lib -I ../blib/arch $coretest
 EOF
 
 $text .= <<EOF;

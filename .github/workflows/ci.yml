@@ -110,7 +110,7 @@ jobs:
           make install
           make clean # clean is to ensure no blib
           mv Basic Basic.x # ensure doesn't think is in repo!
-          prove -j4 t
+          cd Basic.x && prove -j4 -I ../blib/lib -I ../blib/arch t
 
       - name: 'ci-dist: target-test (with coverage)'
         uses: PDLPorters/devops/github-actions/ci-dist@master
