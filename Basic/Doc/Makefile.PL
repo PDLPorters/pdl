@@ -6,11 +6,9 @@ WriteMakefile(
     NAME         => 'PDL::Doc',
     VERSION_FROM => '../PDL.pm',
     PM           => { 'Doc.pm' => '$(INST_LIB)$(DFSEP)PDL$(DFSEP)Doc.pm',
-                      'Doc$(DFSEP)Config.pm' => '$(INST_LIB)$(DFSEP)PDL$(DFSEP)Doc$(DFSEP)Config.pm', # left side must be same as PL_FILES right side
+                      'Doc$(DFSEP)Config.pm' => '$(INST_LIB)$(DFSEP)PDL$(DFSEP)Doc$(DFSEP)Config.pm',
                       'Doc$(DFSEP)Perldl.pm' => '$(INST_LIB)$(DFSEP)PDL$(DFSEP)Doc$(DFSEP)Perldl.pm',
     },
-    PL_FILES     => {q[Doc$(DFSEP)Config.pm.PL]=>q[Doc$(DFSEP)Config.pm]},
-    clean        => { FILES => q[Doc/Config.pm] },
     NO_MYMETA => 1,
 );
 

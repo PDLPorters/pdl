@@ -37,7 +37,7 @@ Basic/Demos/Makefile.PL
 Basic/Demos/Sound.pm
 Basic/Demos/t/demos.t
 Basic/Doc/Doc.pm
-Basic/Doc/Doc/Config.pm.PL
+Basic/Doc/Doc/Config.pm
 Basic/Doc/Doc/Perldl.pm
 Basic/Doc/Makefile.PL
 Basic/Doc/mkpdlfuncpod
