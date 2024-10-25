@@ -10,16 +10,11 @@ sub get_gsl_config {
 
 # the real stuff happens in the subdirs
 sub get_gsl_libs {
-  warn << 'EOW' if ref $PDL::Config{GSL_LIBS};
- The GSL_LIBS config variable must be a string (!)
- not a reference. You should probably leave it undefined
- and rely on gsl-config. Build will likely fail.
-EOW
-  my $lib = ($PDL::Config{GSL_LIBS} or
-	  get_gsl_config('--libs') or
+  my $lib = ($ENV{GSL_LIBS} ||
+	  get_gsl_config('--libs') ||
 	  warn "\tno GSL link info (libgsl probably not available)\n");
-  my $inc = ($PDL::Config{GSL_INC} or
-	  get_gsl_config('--cflags') or 
+  my $inc = ($ENV{GSL_INC} ||
+	  get_gsl_config('--cflags') ||
 	  warn "\tno GSL include info (libgsl probably not available)\n\n");
   chomp $lib; chomp $inc;
   return ($inc,$lib);
