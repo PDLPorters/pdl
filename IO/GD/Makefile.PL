@@ -10,9 +10,8 @@ my $package_name = "PDL::IO::GD";
 my $lib_name = "GD";
 my @find_libs = ( 'libgd.so', 'libgd.a', 'libgd.dll.a', 'bgd.dll' );
 my @find_incs = ( 'gd.h' );
-my $config_libs = 'GD_LIBS';
-my $config_incs = 'GD_INC';
-my @lib_locations = (
+my @lib_locations = grep defined, (
+    $ENV{GD_LIBS},
     '/usr/lib64',
     '/usr/local/lib64',
     '/lib64',
@@ -25,7 +24,8 @@ my @lib_locations = (
         )
         : shellwords($Config{libpth})),
 );
-my @inc_locations = (
+my @inc_locations = grep defined, (
+    $ENV{GD_INC},
     '/usr/include',
     '/usr/local/include',
     $Config{usrinc},
@@ -37,16 +37,6 @@ my @inc_locations = (
 my $msg = "";
 
 # Look for GD includes/libs
-
-# get locations from perldl.conf, if specified there:
-@lib_locations = @{$PDL::Config{$config_libs}}
-    if( defined $PDL::Config{$config_libs} );
-@inc_locations = @{$PDL::Config{$config_incs}}
-    if( defined $PDL::Config{$config_incs} );
-
-#
-# Do the search:
-#
 # Look for the libs:
 foreach my $libdir ( @lib_locations ) {
     my $found = 0;
@@ -92,7 +82,7 @@ if (!(defined $include_path && defined $lib_path)) {
 my $package = [$ppfile, $lib_name, $package_name];
 my %hash = pdlpp_stdargs_int($package);
 $hash{VERSION_FROM} = $ppfile;
-$hash{DEFINE} = $PDL::Config{GD_DEFINE};
+$hash{DEFINE} = $ENV{GD_DEFINE};
 $hash{LIBS} = [qq{-L"$lib_path" -l$linkname}];
 $hash{INC} = PDL_INCLUDE() . qq{ -I"$include_path"};
 push( @{ $hash{TYPEMAPS} }, 'typemap' );
