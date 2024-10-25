@@ -69,6 +69,5 @@ nytprof*
 .inlinewith
 .pptest
 _Inline/
-pdl
 t/*.dll*
 pp-*.c
