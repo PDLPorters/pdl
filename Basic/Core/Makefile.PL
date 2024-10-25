@@ -4,9 +4,6 @@ eval { require Devel::CheckLib; Devel::CheckLib->import; };
 use ExtUtils::MakeMaker::Config;
 use ExtUtils::MakeMaker;
 
-my $malloclib = $PDL::Config{MALLOCDBG}->{libs};
-my $mallocinc = $PDL::Config{MALLOCDBG}->{include};
-
 my $pthread_include = $ENV{POSIX_THREADS_INC} // '';
 my $pthread_library = $ENV{POSIX_THREADS_LIBS} // '-lpthread';
 if ($pthread_library) {
@@ -25,7 +22,7 @@ my $pthread_define  = $pthread_library ? ' -DPDL_PTHREAD ' : '';
 
 sub nopl { my $txt = shift; $txt =~ s/[.]PL$//; return $txt}
 
-my $libs_string = "$pthread_library $malloclib -lm";
+my $libs_string = "$pthread_library -lm";
 
 undef &MY::postamble; # suppress warning
 *MY::postamble = sub {
@@ -70,7 +67,7 @@ WriteMakefile(
 		   },
   INC          => join(' ',
     PDL::Core::Dev::PDL_INCLUDE(),
-    map {length($_) ? qq{"$_"} : ()} $pthread_include, $mallocinc
+    map {length($_) ? qq{"$_"} : ()} $pthread_include
   ),
   depend => {
     'Core$(OBJ_EXT)' => '$(INST_ARCHLIB)$(DFSEP).exists pm_to_blib pdl.h pdlperl.h pdlcore.h',

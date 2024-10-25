@@ -34,22 +34,6 @@ sub getpdl_config {
   # read in distribution config file
   our %PDL_CONFIG;
   require './perldl.conf';
-
-  # set up the default MALLOCDBG information (if not specified)
-  #
-  if ( exists $PDL_CONFIG{MALLOCDBG} and defined $PDL_CONFIG{MALLOCDBG} ) {
-      my $val = $PDL_CONFIG{MALLOCDBG};
-      my $rval = ref($val);
-      die "ERROR: MALLOCDBG must be set to an associative array, not to a " .
-	( $rval ? $rval : "SCALAR" ) unless $rval eq "HASH";
-  } else {
-      $PDL_CONFIG{MALLOCDBG} = undef; # exists but undef
-  }
-  foreach my $item ( qw( libs include ) ) {
-      $PDL_CONFIG{MALLOCDBG}->{$item} = ""
-	unless exists $PDL_CONFIG{MALLOCDBG}->{$item};
-  }
-
   # create a PDL::Config variable matching the PDL_CONFIG structure
   # and convert yes/no answers to 1/0
   #
@@ -59,7 +43,6 @@ sub getpdl_config {
       $val =~ s/^n.*/0/i if defined $val;
       $PDL::Config{$key} = $val;
   }
-
   # destroy PDL_CONFIG so that we can catch any accesses
   # to them in other Makefile.PL's
   #

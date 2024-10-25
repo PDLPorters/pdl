@@ -2,9 +2,6 @@ use strict;
 use warnings;
 
 require './Types.pm';
-require './Config.pm';
-die "No PDL::Config found" unless %PDL::Config;
-my $mymalloc = $PDL::Config{MALLOCDBG}->{define} // '';
 
 my $file = shift @ARGV;
 print "Extracting $file\n";
@@ -118,7 +115,6 @@ extern int pdl_autopthread_actual;
 extern int pdl_autopthread_size;
 extern PDL_Indx pdl_autopthread_dim;
 EOF
-print OUT "$mymalloc\n";
 
 print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  __FILE__;
 print OUT <<'EOF';

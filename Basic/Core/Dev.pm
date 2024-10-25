@@ -98,9 +98,6 @@ unless ( %PDL::Config ) {
   die "Unable to find PDL's configuration info\n [$@]" if $@;
 }
 
-my $inc = $PDL::Config{MALLOCDBG}{include} || '';
-my $libs = $PDL::Config{MALLOCDBG}{libs} || '';
-
 =head2 isbigendian
 
 =for ref
@@ -230,8 +227,8 @@ sub _stdargs {
     OBJECT       => join(' ', @objs),
     PM 	=> {"$pref.pm" => "\$(INST_LIBDIR)/$pref.pm"},
     MAN3PODS => {"$pref.pm" => "\$(INST_MAN3DIR)/$mod.\$(MAN3EXT)"},
-    INC          => PDL_INCLUDE()." $inc",
-    LIBS         => [$libs],
+    INC          => PDL_INCLUDE(),
+    LIBS         => [''],
     clean        => {FILES => "$pref.pm @cfiles"},
     ($internal
       ? (NO_MYMETA => 1)
@@ -274,7 +271,7 @@ sub pdlpp_mkgen {
     push @pairs, [$_, $name];
   }
   my %added = ();
-  my @in = map "-I".File::Spec::Functions::rel2abs($_), @INC, 'inc';
+  my @in = map "-I".File::Spec::Functions::rel2abs($_), @INC;
   for (@pairs) {
     my ($pd, $mod) = @$_;
     (my $prefix = $mod) =~ s|::|/|g;
@@ -338,7 +335,7 @@ a perl configure clone
     $have_GL = 0;
   }
   $maybe =
-    trylink 'libwhatever', $inc, $body, $libs, $cflags,
+    trylink 'libwhatever', '', $body, $libs, $cflags,
         {MakeMaker=>1, Hide=>0, Clean=>1};
 
 Try to link some C-code making up the body of a function
