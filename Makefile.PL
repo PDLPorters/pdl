@@ -160,8 +160,6 @@ if($Config{archname}=~m/amd64|i686|x86_64/) {
 # create GENERATED subdir with *.pm files during 'make dist' (to make metacpan.org happy)
 my $preop = '$(PERLRUNINST) -MPDL::Core::Dev -e pdlpp_mkgen $(DISTVNAME)';
 
-my @optimize = (OPTIMIZE => $PDL::Config{OPTIMIZE}) if $PDL::Config{OPTIMIZE};
-
 my %makefile_hash = (
   PREREQ_PM => { @prereq },
   LICENSE => 'perl',
@@ -217,7 +215,6 @@ my %makefile_hash = (
         },
      },
   },
-  @optimize,
   CCFLAGS => $ccflags,
   dist => { COMPRESS => 'gzip', SUFFIX => 'gz', PREOP => $preop },
   clean => {
