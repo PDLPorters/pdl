@@ -23,6 +23,7 @@ WriteMakefile(
   DIR      => [qw(
     Gen Core Bad Ops Ufunc Primitive Slices Math MatrixOps
     IO-FITS IO-FastRaw IO-FlexRaw IO-Misc IO-Pnm IO-Storable
+    Lib-Compression Lib-FFT Lib-ImageND Lib-ImageRGB
     SourceFilter Pod Demos Doc
   )],
   NO_MYMETA => 1,

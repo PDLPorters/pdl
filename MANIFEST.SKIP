@@ -50,6 +50,13 @@ RCS
 ^Basic/Gen/PP/Dump\.pm$
 ^Basic/Gen/PP/Dump\.pm\.tmp$
 ^Basic/Gen/pptemplate.pod$
+^Basic/IO-Misc/Misc.*
+^Basic/IO-Pnm/Pnm\..*
+^Basic/IO-Storable/Storable\..*
+^Basic/Lib-Compression/Compression\..*
+^Basic/Lib-FFT/FFT\.*
+^Basic/Lib-ImageND/ImageND\..*
+^Basic/Lib-ImageRGB/ImageRGB\..*
 ^Basic/Math/Math\.c$
 ^Basic/Math/Math\.pm$
 ^Basic/Math/Math\.xs$
@@ -92,14 +99,7 @@ RCS
 ^IO/HDF/VS/VS\.c
 ^IO/HDF/VS/VS\.pm
 ^IO/HDF/VS/VS\.xs
-^Basic/IO-Misc/Misc.*
-^Basic/IO-Pnm/Pnm\..*
-^Basic/IO-Storable/Storable\..*
 ^Libtmp/CallExt/CallExt\.c$
-^Libtmp/Compression/Compression.c
-^Libtmp/Compression/Compression.pm
-^Libtmp/Compression/Compression.xs
-^Libtmp/FFT/FFT\.*
 ^Libtmp/Fit/Gaussian/Gaussian\.c
 ^Libtmp/Fit/Gaussian/Gaussian\.pm
 ^Libtmp/Fit/Gaussian/Gaussian\.xs
@@ -117,8 +117,6 @@ RCS
 ^Libtmp/GSL/RNG\.(pm|xs|c)
 ^Libtmp/GSL/SF/.*\.c$
 ^Libtmp/Image2D/Image2D\..*
-^Libtmp/ImageND/ImageND\..*
-^Libtmp/ImageRGB/ImageRGB\..*
 ^Libtmp/LegacyComplex/Complex\..*
 ^Libtmp/Slatec/Slatec.c
 ^Libtmp/Slatec/Slatec.pm

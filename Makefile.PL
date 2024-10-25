@@ -205,10 +205,10 @@ my @basics; BEGIN { @basics = (
   [qw(Basic IO-Misc)],
   [qw(Basic IO-Pnm)],
   [qw(Basic IO-Storable)],
-  [qw(Libtmp Compression)],
-  [qw(Libtmp FFT)],
-  [qw(Libtmp ImageRGB)],
-  [qw(Libtmp ImageND)],
+  [qw(Basic Lib-Compression)],
+  [qw(Basic Lib-FFT)],
+  [qw(Basic Lib-ImageND)],
+  [qw(Basic Lib-ImageRGB)],
 ) }
 sub coretarget {
     my ($self) = @_;
