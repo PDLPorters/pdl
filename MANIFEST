@@ -133,8 +133,6 @@ cygwin/README
 cygwin/tmalloc.pl
 Demos/BAD_demo.pm
 Demos/Demos.pm
-Demos/earth-interp.pl
-Demos/earth.txt
 Demos/General.pm
 Demos/harness
 Demos/Makefile.PL
@@ -573,6 +571,8 @@ Libtmp/Transform/Cartography/earth_night.jpg
 Libtmp/Transform/Cartography/earth_water-2048x1024.png
 Libtmp/Transform/Cartography/Makefile.PL
 Libtmp/Transform/Cartography_demo.pm
+Libtmp/Transform/earth-interp.pl
+Libtmp/Transform/earth.txt
 Libtmp/Transform/Makefile.PL
 Libtmp/Transform/Proj4/Demo.pm
 Libtmp/Transform/Proj4/Makefile.PL
