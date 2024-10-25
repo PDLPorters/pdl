@@ -9,7 +9,6 @@ use namespace::clean -except => [ qw(meta) ];
 extends 'Devel::REPL::Script';
 
 sub _startup_def {
-   return "PDL/default.pdl" if $^O =~ /win32/i;
    return "PDL/default.perldlrc";
 }
 

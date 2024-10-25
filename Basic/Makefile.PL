@@ -2,19 +2,13 @@ use strict;
 use warnings;
 use ExtUtils::MakeMaker;
 
-my $defstartup = 'default.perldlrc';
-if ($^O =~ /win32/i) {
-  $defstartup = 'default.pdl';
-  system("copy default.perldlrc $defstartup");
-}
-
 my @pm_names = qw ( PDL.pm Lite.pm LiteF.pm AutoLoader.pm Options.pm
 		    Matrix.pm Reduce.pm Lvalue.pm Constants.pm);
 
 my %pm = map { my $h = '$(INST_LIBDIR)/';
 	       $h .= 'PDL/' if $_ !~ /PDL.pm$/;
 	       ( $_, $h . $_ );
-	   } ( @pm_names, $defstartup );
+	   } ( @pm_names, 'default.perldlrc' );
 
 my %man3pods = map { my $h = '$(INST_MAN3DIR)/';
 		     $h .= 'PDL::' if $_ !~ /PDL.pm$/;
