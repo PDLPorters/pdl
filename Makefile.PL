@@ -148,11 +148,9 @@ for my $opt_dep (sort keys %min_version) {
   push @prereq, $opt_dep => $min_version{$opt_dep};
 }
 
-my @exe_files = qw(perldl pdldoc);
+my @exe_files = qw(perldl);
 push @exe_files, "pdl$Config{exe_ext}" if $^O !~ /MSWin/;
-my @cleanup = ("pdl$Config{exe_ext}", qw(
-  pdldoc.db pdldoc.pod perldl.pod
-));
+my @cleanup = "pdl$Config{exe_ext}";
 
 ##############################
 # Hack to include fPIC on x86_64 systems -

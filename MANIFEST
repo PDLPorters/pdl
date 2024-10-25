@@ -41,6 +41,7 @@ Basic/Doc/Doc/Config.pm
 Basic/Doc/Doc/Perldl.pm
 Basic/Doc/Makefile.PL
 Basic/Doc/mkpdlfuncpod
+Basic/Doc/pdldoc
 Basic/Doc/README
 Basic/Doc/scantree.pl
 Basic/Gen/Inline/Makefile.PL
@@ -589,7 +590,6 @@ MANIFEST			This list of files
 MANIFEST.SKIP
 pdl.c
 PDLdb.pl
-pdldoc
 perldl
 perldl.conf
 Perldl2/Makefile.PL
