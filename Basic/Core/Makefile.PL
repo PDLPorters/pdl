@@ -7,8 +7,8 @@ use ExtUtils::MakeMaker;
 my $malloclib = $PDL::Config{MALLOCDBG}->{libs};
 my $mallocinc = $PDL::Config{MALLOCDBG}->{include};
 
-my $pthread_include = $PDL::Config{POSIX_THREADS_INC} // '';
-my $pthread_library = $PDL::Config{POSIX_THREADS_LIBS} // '-lpthread';
+my $pthread_include = $ENV{POSIX_THREADS_INC} // '';
+my $pthread_library = $ENV{POSIX_THREADS_LIBS} // '-lpthread';
 if ($pthread_library) {
     (my $libname = $pthread_library) =~ s/^-l//;
     if (!eval { check_lib(lib=>$libname,header=>'pthread.h',incpath=>$pthread_include) }) {
