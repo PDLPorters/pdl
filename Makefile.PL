@@ -150,29 +150,6 @@ doc_perl_install ::
 	$(NOECHO) $(PERLRUNINST) Basic$(DFSEP)Doc$(DFSEP)scantree.pl "$(DESTDIR)$(INSTALLARCHLIB)"
 ';
 
-$text .= << 'EOT' if $^O =~ /MSWin/;
-
-DISTWIN32NAME=$(DISTVNAME)-win32
-
-ppm : doctest ppd
-	$(MV) blib$(DFSEP)lib$(DFSEP)PDL$(DFSEP)HtmlDocs$(DFSEP)PDL blib$(DFSEP)html$(DFSEP)lib$(DFSEP)PDL
-	$(COMPRESS) -dc win32$(DFSEP)pbmwin32.tar.gz | $(TAR) xf -
-	$(MKPATH) $(DISTWIN32NAME)
-	$(CP) win32$(DFSEP)Readme $(DISTWIN32NAME)
-	$(CP) win32$(DFSEP)install.ppm .
-	$(PERL) -pe "s|<\x{2f}IMPLEMENTATION>|<INSTALL EXEC=\"perl\">install.ppm<\x{2f}INSTALL><\x{2f}IMPLEMENTATION>|" PDL.ppd > PDL.ppd.new
-	$(RM) PDL.ppd
-	$(MV) PDL.ppd.new PDL.ppd
-	$(CP) PDL.ppd $(DISTWIN32NAME)
-	$(TAR) cf $(DISTWIN32NAME)$(DFSEP)PDL.tar blib install.ppm
-	cd $(DISTWIN32NAME)
-	$(COMPRESS) PDL.tar
-	$(ZIP) $(DISTWIN32NAME).zip *
-	$(MV) $(DISTWIN32NAME).zip ..
-	cd ..
-	$(RM_RF) $(DISTWIN32NAME)
-EOT
-
 $text .= "\n" . ::coretarget($self);
 my $coretest = join ' ', map File::Spec->catfile('t', $_.'.t'), qw(
   01-pptest autoload bad basic bool clump constructor core croak lvalue
