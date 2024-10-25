@@ -45,8 +45,7 @@ capabilities.
 +-----------------------------------------------------------+
 
   By default, the Perldl2 shell is always built and the
-  pdl2 script installed.  To disable this, edit the
-  WITH_DEVEL_REPL option in the perldl.conf file.
+  pdl2 script installed.
 
   You will need to install Devel::REPL version 1.003011
   or greater and either of Term::ReadLine::Gnu or

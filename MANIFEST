@@ -613,7 +613,6 @@ t/basic.t
 t/bigmem.t
 t/bool.t
 t/clump.t
-t/config.t
 t/constants.t
 t/constructor.t
 t/core.t
