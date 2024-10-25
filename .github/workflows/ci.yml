@@ -23,7 +23,8 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        perl-version: ['5.10']
+        perl-version: ['5.14.0']
+        perl-threaded: [false]
         include:
           - perl-version: '5.30'
             os: ubuntu-latest
@@ -32,6 +33,9 @@ jobs:
           - perl-version: '5.30'
             os: ubuntu-latest
             disttest: true
+          - perl-version: '5.14.0'
+            os: ubuntu-latest
+            perl-threaded: true
           - perl-version: '5.30'
             os: ubuntu-latest
             eumm-blead: 1
@@ -55,6 +59,7 @@ jobs:
         with:
           target-setup-perl: true
           perl-version: ${{ matrix.perl-version }}
+          perl-threaded: ${{ matrix.perl-threaded }}
 
       # conditional config
       - name: Maybe gfortran

@@ -58,6 +58,10 @@ Basic/examples/InlinePdlpp/inlppminimal.pl
 Basic/examples/InlinePdlpp/Module/Makefile.PL
 Basic/examples/InlinePdlpp/Module/MyInlineMod.pm
 Basic/examples/InlinePdlpp/Module/t/myinlinemod.t
+Basic/examples/PDL-Parallel-threads/barrier-sync.pl
+Basic/examples/PDL-Parallel-threads/perl-barrier.pl
+Basic/examples/PDL-Parallel-threads/simple-parallelize.pl
+Basic/examples/PDL-Parallel-threads/test-memory-consumption.pl
 Basic/Gen/Inline/Makefile.PL
 Basic/Gen/Inline/MakePdlppInstallable.pm
 Basic/Gen/Inline/Pdlpp.pm
@@ -203,6 +207,7 @@ Basic/Primitive/Makefile.PL
 Basic/Primitive/primitive.pd
 Basic/Primitive/xoshiro256plus.c
 Basic/Reduce.pm
+Basic/SIMD.pm
 Basic/Slices/Makefile.PL
 Basic/Slices/slices.pd
 Basic/SourceFilter/Changes
@@ -242,6 +247,13 @@ Basic/t/pdl_from_string.t
 Basic/t/pdlchar.t
 Basic/t/pp_croaking.t
 Basic/t/pp_line_numbers.t
+Basic/t/ppt-01_ref_counting.t
+Basic/t/ppt-02_non_threaded.t
+Basic/t/ppt-03_name_munging.t
+Basic/t/ppt-10_physical_piddles.t
+Basic/t/ppt-11_memory_mapped.t
+Basic/t/ppt-20_simd.t
+Basic/t/ppt-30_sharing_from_threads.t
 Basic/t/primitive-append.t
 Basic/t/primitive-clip.t
 Basic/t/primitive-interpolate.t
@@ -261,6 +273,7 @@ Basic/t/subclass.t
 Basic/t/thread.t
 Basic/t/thread_def.t
 Basic/t/ufunc.t
+Basic/threads.pm
 Basic/Ufunc/Makefile.PL
 Basic/Ufunc/ufunc.pd
 Basic/utils/address-pseudonymise

@@ -77,7 +77,7 @@ my %makefile_hash = (
     'Pod::Select'         => 0,
     'ExtUtils::ParseXS'   => '3.21', # ExtUtils::Typemaps::tidy_type
   },
-  MIN_PERL_VERSION => '5.010',
+  MIN_PERL_VERSION => '5.014',
   NAME => 'PDL',
   VERSION_FROM => 'Basic/PDL.pm',
   META_MERGE => {
@@ -154,7 +154,7 @@ $text .= "\n" . ::coretarget($self);
 my $coretest = join ' ', map File::Spec->catfile('t', $_.'.t'), qw(
   01-pptest autoload bad basic bool clump constructor core croak lvalue
   math matrix matrixops nat_complex ops-bitwise ops pdl_from_string
-  pdlchar pp_croaking pp_line_numbers primitive-* pthread reduce
+  pdlchar pp_croaking pp_line_numbers primitive-* ppt-* pthread reduce
   slice subclass thread thread_def ufunc
 );
 $text .= <<EOF;
@@ -212,7 +212,7 @@ sub coretarget {
                     [ qw(pure_all) ],
                     [ 'coregen' ],
                 # the modules in PDL::LiteF, used in t/core.t
-                ], qw(Core Ops Primitive Ufunc Slices Bad Math MatrixOps),
+                ], qw(Core Ops Primitive Ufunc Slices Bad Math MatrixOps IO-FastRaw),
             ]
         ],
         [
