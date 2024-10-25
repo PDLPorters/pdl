@@ -252,23 +252,23 @@ sub MY::postamble {
   my  $text =
 '
 doctest ::
-	cd Doc && make test
+	cd Basic$(DFSEP)Doc && make test
 	$(NOECHO) $(ECHO) "doctest: Building PDL documentation database in blib ..."
-	$(NOECHO) $(PERLRUNINST) Doc$(DFSEP)scantree.pl
+	$(NOECHO) $(PERLRUNINST) Basic$(DFSEP)Doc$(DFSEP)scantree.pl
 
 doc_site_install :: doc_pdldoc_install
 
 doc_pdldoc_install :: pure_install # needs installed .../PDL dir to exist
 	$(NOECHO) $(ECHO) "doc_site_install: Building PDL documentation database ..."
-	$(NOECHO) $(PERLRUNINST) Doc$(DFSEP)scantree.pl "$(DESTDIR)$(INSTALLSITEARCH)"
+	$(NOECHO) $(PERLRUNINST) Basic$(DFSEP)Doc$(DFSEP)scantree.pl "$(DESTDIR)$(INSTALLSITEARCH)"
 
 doc_vendor_install ::
 	$(NOECHO) $(ECHO) "doc_vendor_install: Building PDL documentation database ..."
-	$(NOECHO) $(PERLRUNINST) Doc$(DFSEP)scantree.pl "$(DESTDIR)$(INSTALLVENDORARCH)"
+	$(NOECHO) $(PERLRUNINST) Basic$(DFSEP)Doc$(DFSEP)scantree.pl "$(DESTDIR)$(INSTALLVENDORARCH)"
 
 doc_perl_install ::
 	$(NOECHO) $(ECHO) "doc_perl_install: Building PDL documentation database ..."
-	$(NOECHO) $(PERLRUNINST) Doc$(DFSEP)scantree.pl "$(DESTDIR)$(INSTALLARCHLIB)"
+	$(NOECHO) $(PERLRUNINST) Basic$(DFSEP)Doc$(DFSEP)scantree.pl "$(DESTDIR)$(INSTALLARCHLIB)"
 ';
 
 # Here, `pdl.c` is used directly because some makes (e.g., on Solaris) do not
@@ -337,7 +337,7 @@ my @basics; BEGIN { @basics = (
   [qw(Libtmp ImageND)],
   [qw(Libtmp FFT)],
   [qw(Basic Demos)],
-  [qw(Doc)],
+  [qw(Basic Doc)],
 ) }
 sub coretarget {
     my ($self) = @_;

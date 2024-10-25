@@ -36,6 +36,13 @@ Basic/Demos/harness
 Basic/Demos/Makefile.PL
 Basic/Demos/Sound.pm
 Basic/Demos/t/demos.t
+Basic/Doc/Doc.pm
+Basic/Doc/Doc/Config.pm.PL
+Basic/Doc/Doc/Perldl.pm
+Basic/Doc/Makefile.PL
+Basic/Doc/mkpdlfuncpod
+Basic/Doc/README
+Basic/Doc/scantree.pl
 Basic/Gen/Inline/Makefile.PL
 Basic/Gen/Inline/MakePdlppInstallable.pm
 Basic/Gen/Inline/Pdlpp.pm
@@ -140,13 +147,6 @@ cygwin/max_memory.c
 cygwin/README
 cygwin/tmalloc.pl
 DEPENDENCIES
-Doc/Doc.pm
-Doc/Doc/Config.pm.PL
-Doc/Doc/Perldl.pm
-Doc/Makefile.PL
-Doc/mkpdlfuncpod
-Doc/README
-Doc/scantree.pl
 Example/address-pseudonymise
 Example/Benchmark/Bench.pm
 Example/Benchmark/Bench.xs
