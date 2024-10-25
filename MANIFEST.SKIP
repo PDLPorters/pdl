@@ -57,6 +57,7 @@ RCS
 ^Basic/Lib-FFT/FFT\.*
 ^Basic/Lib-ImageND/ImageND\..*
 ^Basic/Lib-ImageRGB/ImageRGB\..*
+^Basic/Lib-Transform/Transform\..*
 ^Basic/Math/Math\.c$
 ^Basic/Math/Math\.pm$
 ^Basic/Math/Math\.xs$
@@ -123,15 +124,7 @@ RCS
 ^Libtmp/Slatec/Slatec.xs
 ^Libtmp/Slatec/SlatecProtos.h$
 ^Libtmp/Slatec/slatec/.*\.c$
-^Libtmp/Transform/Cartography/earth_day.ppm
-^Libtmp/Transform/Cartography/earth_night.ppm
-^Libtmp/Transform/Proj4/Makefile.PL-gis$
-^Libtmp/Transform/Proj4/Proj4\.c
-^Libtmp/Transform/Proj4/Proj4\.pm
-^Libtmp/Transform/Proj4/Proj4\.xs
-^Libtmp/Transform/Transform\.c
-^Libtmp/Transform/Transform\.pm
-^Libtmp/Transform/Transform\.xs
+^Libtmp/Transform-Proj4/Proj4\..*
 ^Perldl2/logo3d.pdl
 ^Perldl2/pdl2.pod$
 ^Perldl2/tctrl-c.pl
