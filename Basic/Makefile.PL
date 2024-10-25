@@ -20,8 +20,11 @@ WriteMakefile(
   VERSION_FROM => 'PDL.pm',
   PM       => \%pm,
   MAN3PODS => \%man3pods,
-  DIR      => [qw(Pod Gen SourceFilter Core Bad Ops Ufunc
-		    Primitive Slices Math MatrixOps Demos Doc)],
+  DIR      => [qw(
+    Gen Core Bad Ops Ufunc Primitive Slices Math MatrixOps
+    IO-FITS IO-FastRaw IO-FlexRaw IO-Misc IO-Pnm IO-Storable
+    SourceFilter Pod Demos Doc
+  )],
   NO_MYMETA => 1,
 );
 

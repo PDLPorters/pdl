@@ -92,13 +92,9 @@ RCS
 ^IO/HDF/VS/VS\.c
 ^IO/HDF/VS/VS\.pm
 ^IO/HDF/VS/VS\.xs
-^IO/Misc/Misc.*
-^IO/NDF/NDF.pm$
-^IO/Pnm/Pnm\..*
-^IO/Storable/Storable\.c
-^IO/Storable/Storable\.pm
-^IO/Storable/Storable\.xs
-^Image2D/Image2D\..*
+^Basic/IO-Misc/Misc.*
+^Basic/IO-Pnm/Pnm\..*
+^Basic/IO-Storable/Storable\..*
 ^Libtmp/CallExt/CallExt\.c$
 ^Libtmp/Compression/Compression.c
 ^Libtmp/Compression/Compression.pm

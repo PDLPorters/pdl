@@ -199,17 +199,17 @@ return $text
 
 # the modules to test the ones in full PDL
 my @basics; BEGIN { @basics = (
-  [qw(IO Misc)],
-  [qw(Libtmp Compression)],
-  [qw(IO FITS)],
-  [qw(Libtmp ImageRGB)],
-  [qw(IO Pnm)],
-  [qw(IO Storable)],
-  [qw(Libtmp Image2D)],
-  [qw(Libtmp ImageND)],
-  [qw(Libtmp FFT)],
   [qw(Basic Demos)],
   [qw(Basic Doc)],
+  [qw(Basic IO-FITS)],
+  [qw(Basic IO-Misc)],
+  [qw(Basic IO-Pnm)],
+  [qw(Basic IO-Storable)],
+  [qw(Libtmp Compression)],
+  [qw(Libtmp FFT)],
+  [qw(Libtmp ImageRGB)],
+  [qw(Libtmp Image2D)],
+  [qw(Libtmp ImageND)],
 ) }
 sub coretarget {
     my ($self) = @_;
