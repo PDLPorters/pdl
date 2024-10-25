@@ -148,10 +148,6 @@ for my $opt_dep (sort keys %min_version) {
   push @prereq, $opt_dep => $min_version{$opt_dep};
 }
 
-my @exe_files = qw(perldl);
-push @exe_files, "pdl$Config{exe_ext}" if $^O !~ /MSWin/;
-my @cleanup = "pdl$Config{exe_ext}";
-
 ##############################
 # Hack to include fPIC on x86_64 systems -
 # use similar mods to affect CCFLAGS on other systems as needed...
@@ -192,7 +188,6 @@ my %makefile_hash = (
   MIN_PERL_VERSION => '5.010',
   NAME => 'PDL',
   VERSION_FROM => 'Basic/PDL.pm',
-  EXE_FILES => \@exe_files,
   META_MERGE => {
      "meta-spec" => { version => 2 },
      resources => {
@@ -226,7 +221,7 @@ my %makefile_hash = (
   CCFLAGS => $ccflags,
   dist => { COMPRESS => 'gzip', SUFFIX => 'gz', PREOP => $preop },
   clean => {
-    FILES => join ' ', @cleanup, qw(
+    FILES => join ' ', qw(
       MANIFEST.bak tmp1* tmpraw* t/tmpraw* t/tmp1*
       _Inline/ .inlinepdlpp/ .inline-ct/ .inlinewith/ .pptest/ *.xfig
     ),
@@ -268,13 +263,6 @@ doc_perl_install ::
 	$(NOECHO) $(ECHO) "doc_perl_install: Building PDL documentation database ..."
 	$(NOECHO) $(PERLRUNINST) Basic$(DFSEP)Doc$(DFSEP)scantree.pl "$(DESTDIR)$(INSTALLARCHLIB)"
 ';
-
-# Here, `pdl.c` is used directly because some makes (e.g., on Solaris) do not
-# support the `$<` variable in explicit rules
-$text .= <<EOT if $^O !~ /MSWin/;
-pdl$::Config{exe_ext} : pdl.c
-	\$(CC) \$(CFLAGS) \$(LDFLAGS) \$(CCCDLFLAGS) pdl.c -o \$\@
-EOT
 
 $text .= << 'EOT' if $^O =~ /MSWin/;
 
@@ -359,7 +347,7 @@ sub coretarget {
                 [ [ qw(Basic SourceFilter) ], [ qw(pm_to_blib) ], ],
                 map [
                     [ 'Basic', $_ ],
-                    [ qw(pm_to_blib dynamic) ],
+                    [ qw(pure_all) ],
                     [ 'coregen' ],
                 # the modules in PDL::LiteF, used in t/core.t
                 ], qw(Core Ops Primitive Ufunc Slices Bad Math MatrixOps),
@@ -429,13 +417,4 @@ sub parallel_target_mangle {
     my $target = join '_', @$dir, @$targets;
     $target =~ s#[/\\]#_#g; # avoid ambiguity with filenames
     $target;
-}
-
-# remove pdl.c from making EUMM think this dir has XS in it
-sub MY::init_dirscan {
-    package MY;
-    my ($self) = @_;
-    $self->SUPER::init_dirscan;
-    $self->{C} = [];
-    $self->{O_FILES} = [];
 }

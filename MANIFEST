@@ -12,6 +12,7 @@ Basic/Core/Exporter.pm
 Basic/Core/IFiles.pm
 Basic/Core/Makefile.PL
 Basic/Core/Overloads.pm
+Basic/Core/pdl.c
 Basic/Core/pdl.h.PL
 Basic/Core/pdlaffine.c
 Basic/Core/pdlapi.c
@@ -25,6 +26,7 @@ Basic/Core/pdlmagic.h
 Basic/Core/pdlperl.h.PL
 Basic/Core/pdlsimple.h.PL
 Basic/Core/pdlutil.c
+Basic/Core/perldl
 Basic/Core/ppport.h
 Basic/Core/typemap
 Basic/Core/Types.pm.PL
@@ -588,9 +590,7 @@ macosx/README
 Makefile.PL
 MANIFEST			This list of files
 MANIFEST.SKIP
-pdl.c
 PDLdb.pl
-perldl
 perldl.conf
 Perldl2/Makefile.PL
 Perldl2/pdl2
