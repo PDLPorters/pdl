@@ -10,7 +10,6 @@ my $package_name = "PDL::IO::GD";
 my $lib_name = "GD";
 my @find_libs = ( 'libgd.so', 'libgd.a', 'libgd.dll.a', 'bgd.dll' );
 my @find_incs = ( 'gd.h' );
-my $config_flag = 'WITH_GD';
 my $config_libs = 'GD_LIBS';
 my $config_incs = 'GD_INC';
 my @lib_locations = (
@@ -36,19 +35,6 @@ my @inc_locations = (
 );
 
 my $msg = "";
-my $forcebuild=0;
-
-if (defined $PDL::Config{$config_flag} && $PDL::Config{$config_flag}==0)
-{
-    $msg = "Will skip build of $package_name on this system\n";
-    goto skip;
-}
-
-if (defined $PDL::Config{$config_flag} && $PDL::Config{$config_flag}==1)
-{
-    print "Will try and build $package_name on this system\n";
-    $forcebuild=1;
-}
 
 # Look for GD includes/libs
 
@@ -96,32 +82,12 @@ unless( defined( $include_path ) ) {
           . "Please add the correct library path to Makefile.PL or install $lib_name.\n";
 }
 
-#
 # Make sure everything we wanted is found:
-#
-my $donot = 1;
-if( defined( $include_path ) && defined( $lib_path ) ) {
-    $donot = 0;
-}
-
-$donot = 0 if( $forcebuild );
-
-if ( $donot )
-{
+if (!(defined $include_path && defined $lib_path)) {
     $msg .= "Skipping build of $package_name.\n";
-}
-
-skip:
-
-if ($msg ne "" && $forcebuild==0) {
     write_dummy_make( $msg );
-    $donot = 1;
-    $PDL::Config{$config_flag}=0;
-} else {
-    $PDL::Config{$config_flag}=1;
+    return;
 }
-
-return if $donot;
 
 my $package = [$ppfile, $lib_name, $package_name];
 my %hash = pdlpp_stdargs_int($package);

@@ -250,7 +250,6 @@ IO/GD/GD.pd
 IO/GD/Makefile.PL
 IO/GD/t/gd_oo_tests.t
 IO/GD/t/gd_tests.t
-IO/GD/TODO
 IO/GD/typemap
 IO/HDF/buildfunc.pm
 IO/HDF/Changes
