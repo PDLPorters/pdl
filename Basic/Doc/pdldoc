@@ -3,14 +3,7 @@
 use strict;
 $|++;
 
-use PDL::Config;
-
-BEGIN {
-   if ( not $PDL::Config{PDLDOC_IGNORE_AUTOLOADER} ) {
-      require PDL::AutoLoader;
-   }
-}
-
+use PDL::AutoLoader;
 use PDL::Doc::Perldl;
 use File::Basename;
 
@@ -70,8 +63,10 @@ The aim of B<pdldoc> is to provide the same functionality
 as the C<apropos>, C<help>, C<sig>, C<badinfo>,
 and C<usage> commands available in the L<perldl|PDL::perldl>
 and L<pdl2> shells.
+It searches for L<PDL::AutoLoader> functions also.
 
 Think of it as the PDL equivalent of C<perldoc -f>.
+
 
 =head1 OPTIONS
 
@@ -97,12 +92,6 @@ prints signature of PDL function.
 =item B<-u> usage
 
 Prints usage information for a PDL function.
-
-=item C<$PDL::Config{PDLDOC_IGNORE_AUTOLOADER}>
-
-This PDL configuration variable may be set in the perldl.conf
-file to disable runtime search for documentation in
-L<PDL::AutoLoader> files.
 
 =back
 
