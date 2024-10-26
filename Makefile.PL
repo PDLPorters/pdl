@@ -33,7 +33,7 @@ my %min_version = (
   'Inline::C' => '0.62',
   'Term::ReadKey' => '2.34', #for perldl shell
   'PGPLOT' => '2.29',
-  'Alien::proj' => '1.27', # Transform::Proj4
+  'Alien::proj' => '1.29', # min PROJ 7.1 as T:Proj4 needs degree_output
 );
 for my $opt_dep (sort keys %min_version) {
   (my $file = $opt_dep) =~ s#::#/#g;
