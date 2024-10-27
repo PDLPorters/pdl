@@ -177,7 +177,7 @@ precision."
 } # foreach: my $func
 
 %over = (
-     firstnonzeroover => { def=>'$GENERIC() tmp', txt => 'first non-zero value', init => '0',
+     firstnonzeroover => { def=>'$GENERIC() tmp', txt => 'first non-zero value', init => '0', alltypes => 1,
 		   otype => '', op => 'tmp = $a();', leftzero => 'tmp' },
      zcover   => { def=>'char tmp', txt => '== 0', init => 1, alltypes => 1,
 		   otype => 'int+', op => 'tmp &= ($a() == 0);', leftzero => '!tmp' },
@@ -197,14 +197,10 @@ foreach my $func ( sort keys %over ) {
     my $otype = $over{$func}{otype};
     my $op    = $over{$func}{op};
     my $leftzero = $over{$func}{leftzero};
-    my %extra;
-    unless ( $over{$func}{alltypes} ) {
-	$extra{GenericTypes} = $T,
-    }
     pp_def(
 	   $func,
 	   HandleBad => 1,
-	   %extra,
+	   GenericTypes => $over{$func}{alltypes} ? [ppdefs_all] : $T,
 	   Pars => 'a(n); ' . $otype . ' [o]b();',
            Code => <<EOF,
 $def = $init;
