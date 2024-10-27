@@ -107,7 +107,7 @@ EOD
 
 # it's a bit unclear what to do with the comparison operators,
 # since the return value could be bad because all elements are bad,
-# which needs checking for since the bad value could evaluate to 
+# which needs checking for since the bad value could evaluate to
 # true or false (eg if the user has set it to 0)
 #
 # This may NOT be sensible. Only time, and comments, will tell...
@@ -177,15 +177,17 @@ precision."
 } # foreach: my $func
 
 %over = (
+     firstnonzeroover => { def=>'$GENERIC() tmp', txt => 'first non-zero value', init => '0',
+		   otype => '', op => 'tmp = $a();', leftzero => 'tmp' },
      zcover   => { def=>'char tmp', txt => '== 0', init => 1, alltypes => 1,
 		   otype => 'int+', op => 'tmp &= ($a() == 0);', leftzero => '!tmp' },
-     andover  => { def=>'char tmp', txt => 'and', init => 1, alltypes => 1, 
+     andover  => { def=>'char tmp', txt => 'and', init => 1, alltypes => 1,
 		   otype => 'int+', op => 'tmp &=  ($a() != 0);', leftzero => '!tmp' },
-     bandover => { def=>'$GENERIC() tmp', txt => 'bitwise and', init => '~0', 
+     bandover => { def=>'$GENERIC() tmp', txt => 'bitwise and', init => '~0',
 		   otype => '', op => 'tmp &= $a();', leftzero => '!tmp' },
-     orover   => { def=>'char tmp', txt => 'or', init => 0, alltypes => 1, 
+     orover   => { def=>'char tmp', txt => 'or', init => 0, alltypes => 1,
 		   otype => 'int+', op => 'tmp |= ($a() != 0);', leftzero => 'tmp' },
-     borover  => { def=>'$GENERIC() tmp', txt => 'bitwise or', init => 0, 
+     borover  => { def=>'$GENERIC() tmp', txt => 'bitwise or', init => 0,
 		   otype => '', op => 'tmp |= $a() ;', leftzero => '!~tmp' },
 );
 foreach my $func ( sort keys %over ) {
@@ -215,9 +217,9 @@ loop(n) %{
 PDL_IF_BAD(if (!flag) { \$SETBAD(b()); \$PDLSTATESETBAD(b); } else,)
 \$b() = tmp;
 EOF
-	   Doc => projectdocs( $txt, $func,''), 
-       BadDoc => 
-'If C<a()> contains only bad data (and its bad flag is set), 
+	   Doc => projectdocs( $txt, $func,''),
+       BadDoc =>
+'If C<a()> contains only bad data (and its bad flag is set),
 C<b()> is set bad. Otherwise C<b()> will have its bad flag cleared,
 as it will not contain any bad values.',
 	   );
@@ -808,7 +810,7 @@ my $copy_to_temp = '
         if ($PDL(a)->nvals == 0)
           $CROAK("cannot process empty ndarray");
         PDL_Indx nn = PDL_IF_BAD(0,$SIZE(n)-1);
-	loop(n) %{ 
+	loop(n) %{
            PDL_IF_BAD(if ( $ISGOOD(a()) ) { $tmp(n=>nn) = $a(); nn++; },
 	   $tmp() = $a();)
         %}
@@ -858,7 +860,7 @@ pp_def('modeover',
        Pars => 'data(n); [o]out(); [t]sorted(n);',
        GenericTypes=>$T,
        Doc=>projectdocs('mode','modeover','
-The mode is the single element most frequently found in a 
+The mode is the single element most frequently found in a
 discrete data set.
 
 It I<only> makes sense for integer data types, since
@@ -877,7 +879,7 @@ BAD is the most common element, the returned value is also BAD.
                /* Copy input to buffer for sorting, and sort it */
                loop(n) %{ $sorted() = $data(); %}
                qsort_$PPSYM()($P(sorted),0,$SIZE(n)-1);
-      
+
                /* Walk through the sorted data and find the most common elemen */
                loop(n) %{
                    if( n==0 || curval != $sorted() ) {
@@ -1002,7 +1004,7 @@ pp_def(
     'register PDL_Indx nn = 0;
      PDL_IF_BAD(register PDL_Indx nb = $SIZE(n) - 1;,)
      '.qsort_croak('b',0,0).'
-     loop(n) %{ 
+     loop(n) %{
         PDL_IF_BAD(if ($ISBAD(a())) { $SETBAD(b(n=>nb)); nb--; }
         else,)                      { $b(n=>nn) = $a(); nn++; }
      %}
@@ -1051,7 +1053,7 @@ pp_def(
         %}
         PDL_IF_BAD(if ( nn == 0 ) continue; nn -= 1;,)
         ' . generic_qsort_ind(),
-       BadDoc => 
+       BadDoc =>
 'Bad elements are moved to the end of the array:
 
  pdl> p $y
@@ -1137,7 +1139,7 @@ the 1st dimension is list order.  Higher dimensions are broadcasted over.
   [  3   5]
   [  4   2]
  ]
- 
+
 =cut
 ',
     BadDoc => '
@@ -1187,11 +1189,11 @@ Sort a list of vectors lexicographically, returning the indices of the
 sorted vectors rather than the sorted list itself.
 
 As with C<qsortvec>, the input PDL should be an NxM array containing M
-separate N-dimensional vectors.  The return value is an integer M-PDL 
+separate N-dimensional vectors.  The return value is an integer M-PDL
 containing the M-indices of original array rows, in sorted order.
 
 As with C<qsortvec>, the zeroth element of the vectors runs slowest in the
-sorted list.  
+sorted list.
 
 Additional dimensions are broadcasted over: each plane is sorted separately,
 so qsortveci may be thought of as a collapse operator of sorts (groan).
@@ -1202,7 +1204,7 @@ so qsortveci may be thought of as a collapse operator of sorts (groan).
 Vectors with bad components are moved to the end of the array as
 for L</qsortvec>.
 ',
-    ); 
+    );
 
 pp_def('magnover',
   HandleBad => 1,

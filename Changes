@@ -20,6 +20,7 @@
 - drop WITH_HDF, WITH_GD, WITH_DEVEL_REPL config; just try building
 - removed PDL::Config mechanism, leave vestigial file for back-compat and use env vars for libs/incs
 - incorporate PDL::Parallel::threads
+- Ufunc::firstnonzeroover added - thanks @guillepo for inspiration
 
 2.093 2024-09-29
 - PDL.set_datatype now doesn't physicalise input, PDL.convert_type does

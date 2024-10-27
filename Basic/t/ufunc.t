@@ -320,4 +320,9 @@ subtest intover => sub {
   }
 };
 
+subtest firstnonzeroover => sub {
+  my $a = pdl '0 0 3 4; 0 5 0 1';
+  ok tapprox($a->firstnonzeroover, pdl(3, 5)), "firstnonzeroover";
+};
+
 done_testing;
