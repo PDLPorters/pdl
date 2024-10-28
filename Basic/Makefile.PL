@@ -12,6 +12,8 @@ my %pm = map { my $h = '$(INST_LIBDIR)/';
 $pm{'PDLdb.pl'} = '$(INST_LIB)/PDLdb.pl';
 $pm{'threads.pm'} = '$(INST_LIB)/PDL/Parallel/threads.pm';
 $pm{'SIMD.pm'} = '$(INST_LIB)/PDL/Parallel/threads/SIMD.pm';
+$pm{'TestPDL.pm'} = '$(INST_LIB)/Test/PDL.pm';
+$pm{'TestDeepPDL.pm'} = '$(INST_LIB)/Test/Deep/PDL.pm';
 
 my %man3pods = map { my $h = '$(INST_MAN3DIR)/';
 		     $h .= 'PDL::' if $_ !~ /PDL.pm$/;

@@ -70,6 +70,7 @@ my %makefile_hash = (
     'IPC::Cmd' => '0.72',
     'Test::Exception' => 0,
     'Test::Warn' => 0,  # for t/pptest.t
+    "Test::Deep" => 0, # for Test::Deep::PDL tests
   },
   BUILD_REQUIRES => {
     'ExtUtils::MakeMaker' => 0,

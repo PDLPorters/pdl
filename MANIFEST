@@ -272,7 +272,14 @@ Basic/t/slice.t
 Basic/t/subclass.t
 Basic/t/thread.t
 Basic/t/thread_def.t
+Basic/t/tp-deep.t
+Basic/t/tp-eq_pdl.t
+Basic/t/tp-eq_pdl_clean.t
+Basic/t/tp-import_options.t
+Basic/t/tp-is_pdl.t
 Basic/t/ufunc.t
+Basic/TestDeepPDL.pm
+Basic/TestPDL.pm
 Basic/threads.pm
 Basic/Ufunc/Makefile.PL
 Basic/Ufunc/ufunc.pd
