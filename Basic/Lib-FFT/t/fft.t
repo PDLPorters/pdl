@@ -4,11 +4,7 @@ use PDL;
 use PDL::FFT;
 use Test::More;
 use Test::Exception;
-
-sub tapprox {
-        my($pa,$pb) = @_;
-	all approx $pa, $pb, 0.01;
-}
+use Test::PDL -atol => 0.01, -require_equal_types => 0;
 
 foreach my $type(double,float,cdouble,cfloat){
   my $pa = pdl($type,1,-1,1,-1);
@@ -29,9 +25,9 @@ fft($pb,$pc);
 ifft($pb,$pc);
 fft($pd);
 ifft($pd);
-ok (tapprox($pc,0), "fft zeroes");
-ok (tapprox($pd->im,0), "fft zeroes using complex ndarrays");
-ok (tapprox($pa,$pb), "original image recovered");
+is_pdl $pc, $pb->zeroes, "fft zeroes";
+is_pdl $pd->im, $pb->zeroes, "fft zeroes using complex ndarrays";
+is_pdl $pa, $pb, "original image recovered";
 }
 
 {
@@ -39,17 +35,17 @@ my $pb = $pa->copy;
 my $pc = $pb->zeroes;
 my $pd=czip($pb, $pc);
 fftnd($pb,$pc); ifftnd($pb,$pc);
-ok ( tapprox($pc,0), "fftnd zeroes");
-ok ( tapprox($pa,$pb), "fftnd real image");
+is_pdl $pc, $pb->zeroes, "fftnd zeroes";
+is_pdl $pa, $pb, "fftnd real image";
 fftnd($pd); ifftnd($pd);
-ok ( tapprox($pd,$pb), "fftnd native complex image with imag zeroes");
+is_pdl $pd, $pb, "fftnd native complex image with imag zeroes";
 }
 
 {
 my $pb = $pa->slice("1:35,1:69");
 my $pc = $pb->copy; fftnd($pb,$pc); ifftnd($pb,$pc);
-ok ( tapprox($pc,$pb), "fftnd real and imaginary");
-ok ( tapprox($pa->slice("1:35,1:69"),$pb), "fftnd original restored");
+is_pdl $pc, $pb, "fftnd real and imaginary";
+is_pdl $pa->slice("1:35,1:69"), $pb, "fftnd original restored";
 }
 
 {
@@ -57,7 +53,7 @@ my $pb = $pa->copy;
 # Test real ffts
 realfft($pb);
 realifft($pb);
-ok( tapprox($pa,$pb), "realfft");
+is_pdl $pa, $pb, "realfft";
 }
 
 # Test that errors are properly caught
