@@ -4,6 +4,7 @@ use PDL::LiteF;
 use PDL::IO::FlexRaw;
 use Config;
 use Test::More;
+use Test::PDL;
 use File::Temp qw(tempfile);
 use File::Spec;
 use File::Which ();
@@ -41,13 +42,6 @@ if ($ExtUtils::F77::VERSION > 1.03) {
 } else {
     $F77 = 'f77';
     $F77flags = '';
-}
-
-sub tapprox {
-    my ($x,$y) = @_;
-    my $c = abs($x->flat-$y->flat);
-    my $d = max($c);
-    $d < 0.01;
 }
 
 sub byte4swap {
@@ -268,9 +262,9 @@ EOT
 	
     my @a = readflex($data);
     # print "@a\n";
-    my $ok = ($a[0]->at(0) == $ndata);
+    ok my $ok = ($a[0]->at(0) == $ndata);
     my $res = eval "$pdltype $exprp";
-    ok( $ok && tapprox($res,$a[1]), "readflex $pdltype w hdr file" );
+    is_pdl $res, $a[1], "readflex $pdltype w hdr file";
 
     open(FILE,">$hdr");
     print FILE <<"EOT";
@@ -289,9 +283,9 @@ EOT
 
     unlink $hdr;
 
-    $ok = ($a[0]->at(0) == $ndata);
+    ok $ok = ($a[0]->at(0) == $ndata);
     $res = eval "$pdltype $exprp";
-    ok( $ok && tapprox($res,$a[1]), "readflex $pdltype w hdr file (explicit swap)" );
+    is_pdl $res, $a[1], "readflex $pdltype w hdr file (explicit swap)";
 
 # Now try header array
     $ok = 1;
@@ -300,10 +294,9 @@ EOT
 		   {Type => $pdltype, NDims => 1, Dims => [ $ndata ] } ];
     @a = readflex($data,$header);
     unlink $data;
-    $ok = ($a[0]->at(0) == $ndata);
+    ok $ok = ($a[0]->at(0) == $ndata);
     $res = eval "$pdltype $exprp";
-    ok( $ok && tapprox($res,$a[1]), "readflex $pdltype w hdr array" );
-    # print $a[1]->getndims()," [",$a[1]->dims,"]\n";
+    is_pdl $res, $a[1], "readflex $pdltype w hdr array";
 
 } # foreach: $pdltype == 'float', 'double'
 
@@ -350,9 +343,9 @@ EOT
     # print "@a\n";
     unlink $data, $hdr;
 
-    my $ok = ($a[0]->at(0) == $ndata);
+    ok my $ok = ($a[0]->at(0) == $ndata);
     my $res = eval "$pdltype $exprp";
-    ok($ok && tapprox($res,$a[1]), "f77 1D $pdltype data");
+    is_pdl $res, $a[1], "f77 1D $pdltype data";
     # print $a[1]->getndims()," [",$a[1]->dims,"]\n";
 
 } # foreach: $pdltype ( keys %types )
@@ -405,9 +398,9 @@ EOT
     # print "@a\n";
     unlink $data, $hdr;
 
-    my $ok = ($a[1]->at(0) == $ndata);
+    ok my $ok = ($a[1]->at(0) == $ndata);
     my $res = eval "$pdltype $exprp";
-    ok( $ok && tapprox($res,$a[2]), "no f77, 1D $pdltype data");
+    is_pdl $res,$a[2], "no f77, 1D $pdltype data";
     # print $a[2]->getndims()," [",$a[2]->dims,"]\n";
 }
 
@@ -458,9 +451,9 @@ EOT
 #    }
     unlink $data, $hdr;
 
-    my $ok = ($a[0]->at(0) == $ndata);
+    ok my $ok = ($a[0]->at(0) == $ndata);
     my $res = eval "$pdltype $expr2p";
-    ok( $ok && tapprox($res,$a[1]), "f77 format 2D $pdltype data");
+    is_pdl $res, $a[1], "f77 format 2D $pdltype data";
     # print $a[1]->getndims()," [",$a[1]->dims,"]\n";
 }
 
@@ -516,12 +509,10 @@ my $l = long (10**$f);
 $i = short ($l);
 my $x = byte (32);
 my @req = ($x,$i,$l,$f,$d);
-my $ok = 1;
 foreach (@req) {
     my $h = shift @a;
-    $ok &&= tapprox($_,$h);
+    is_pdl $h, $_, "readflex combined types";
 }
-ok( $ok, "readflex combined types" );
 
 SKIP: {
    my $compress = File::Which::which('compress') ? 'compress' : 'gzip'; # some linuxes don't have compress
@@ -532,20 +523,19 @@ SKIP: {
    }
 
 # Try compressed data
-   $ok = 1;
    0 == system "$compress -c $data > ${data}.Z" or diag "system $compress -c $data >${data}.Z failed: $?";
    unlink( $data );
    @a = readflex($data);
-   $ok &&= $#a==6;
+   ok $#a==6;
    @a = readflex("${data}.Z");
-   $ok &&= $#a==6;
+   ok $#a==6;
    my $NULL = File::Spec->devnull();
    0 == system "gunzip -q ${data}.Z >$NULL 2>&1" or diag "system gunzip -q ${data}.Z failed: $?";
    0 == system "gzip -q $data >$NULL 2>&1" or diag "system gzip -q $data failed: $?";
    @a = readflex($data);
-   $ok &&= $#a==6;
+   ok $#a==6;
    @a = readflex("${data}.gz");
-   $ok &&= $#a==6;
+   ok $#a==6;
    shift @a;
    unlink "${data}.gz", $hdr;
    $d = double pdl (4*atan2(1,1));
@@ -556,9 +546,8 @@ SKIP: {
    @req = ($x,$i,$l,$f,$d);
    foreach (@req) {
       my $h = shift @a;
-      $ok &&= tapprox($_,$h);
+      is_pdl $h, $_, "readflex compressed data";
    }
-   ok( $ok, "readflex compressed data" );
 }
 
 # Try writing data
@@ -566,19 +555,13 @@ my $flexhdr = writeflex($data,@req);
 writeflexhdr($data,$flexhdr) unless $PDL::IO::FlexRaw::writeflexhdr;
 @a = readflex($data);
 unlink $hdr;
-$ok = 1;
 foreach (@req) {
-    # print "$_ vs ",@a[0],"\n";
-    $ok &&= tapprox($_,shift @a);
+    is_pdl shift @a, $_, "writeflex combined data types, hdr file";
 }
-ok( $ok, "writeflex combined data types, hdr file" );
 @a = readflex($data, $flexhdr);
-$ok = 1;
 foreach (@req) {
-    # print "$_ vs ",@a[0],"\n";
-    $ok &&= tapprox($_,shift @a);
+    is_pdl shift @a, $_, "writeflex combined data types, readflex hdr array";
 }
-ok( $ok, "writeflex combined data types, readflex hdr array" );
 unlink $data;
 
 $#a = -1;
@@ -593,12 +576,9 @@ $flexhdr = [ {Type => 'byte',   NDims => 1, Dims => 10},
 	     {Type => 'double', NDims => 1, Dims => 10} ];
 @a = readflex($data, $flexhdr);
 unlink $data;
-$ok = 1;
 foreach (@req) {
-    # print "$_ vs ",@a[0],"\n";
-    $ok &&= tapprox($_,slice(shift @a,"(0)"));
+    is_pdl slice(shift @a,"(0)"), $_, "writeflex combined types[10], readflex explicit hdr array";
 }
-ok( $ok, "writeflex combined types[10], readflex explicit hdr array");
 
 # Writing multidimensional data
 map {$_ = $_->dummy(0,10)} @req;
@@ -607,12 +587,9 @@ writeflexhdr($data,$flexhdr) unless $PDL::IO::FlexRaw::writeflexhdr;
 @a = readflex($data);
 unlink $data;
 unlink $hdr;
-$ok = 1;
 foreach (@req) {
-    # print "$_ vs ",@a[0],"\n";
-    $ok &&= tapprox($_,shift @a);
+    is_pdl shift @a, $_, "multidimensional data";
 }
-ok( $ok, "multidimensional data" );
 
 # Use readflex with an open file handle
 @req = (byte(1..3),
@@ -623,26 +600,20 @@ $flexhdr = writeflex($data, @req);
 
 open(IN, $data);
 @a = readflex(\*IN, $flexhdr);
-$ok = 1;
 foreach (@req) {
-    # print "$_ vs ",@a[0],"\n";
-    $ok &&= tapprox($_,shift @a);
+    is_pdl shift @a, $_, "readflex with file handle";
 }
 close(IN);
 unlink $data;
-ok( $ok, "readflex with file handle" );
 
 # use writeflex with an open file handle
 open(OUT, ">$data");
 $flexhdr = writeflex(\*OUT, @req);
 close(OUT);
 @a = readflex($data, $flexhdr);
-$ok = 1;
 foreach (@req) {
-    # print "$_ vs ",@a[0],"\n";
-    $ok &&= tapprox($_,shift @a);
+    is_pdl shift @a, $_, "writeflex with file handle";
 }
 unlink $data;
-ok( $ok, "writeflex with file handle" );
 
 done_testing;

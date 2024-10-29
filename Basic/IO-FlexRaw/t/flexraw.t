@@ -10,7 +10,6 @@ use strict;
 use warnings;
 
 use Test::More;
-use PDL::LiteF;
 use File::Temp qw(tempdir);
 use File::Spec::Functions;
 use PDL::IO::FlexRaw;

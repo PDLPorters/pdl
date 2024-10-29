@@ -2,6 +2,7 @@ use strict;
 use warnings;
 use Test::More;
 use PDL::LiteF;
+use Test::PDL;
 use File::Temp qw(tempdir);
 use File::Spec::Functions;
 use PDL::IO::FastRaw;
@@ -13,11 +14,6 @@ my $name = catfile($tmpdir, "tmp0");
 my $name_hdr = "$name.hdr";
 my $header = catfile($tmpdir, "headerfile" . $$);
 
-sub tapprox {
-	my($x,$y) = @_;
-	my $c = abs($x-$y);
-	return (max($c) < 0.01);
-}
 sub startdata { pdl [2,3],[4,5],[6,7] }
 sub cleanfiles { unlink for grep -f, $name, $name_hdr, $header }
 
@@ -28,7 +24,7 @@ ok((-f $name and -f ($name_hdr)), "Writing should create a file and header file"
 
 # read it back, and make sure it gives the same ndarray
 my $y = readfraw($name);
-ok(tapprox($x,$y), "A ndarray and its saved copy should be about equal");
+is_pdl $x, $y, "A ndarray and its saved copy should be about equal";
 
 # Clean things up a bit
 undef $x; undef $y;
@@ -40,8 +36,7 @@ writefraw($x,"$name.g");
 my $x1 = pdl [10,11];
 gluefraw($x1,"$name.g");
 $y = readfraw("$name.g");
-ok(tapprox($y, pdl([2,3],[4,5],[6,7],[10,11])), "glued data correct")
-  or diag "got:$y";
+is_pdl $y, pdl([2,3],[4,5],[6,7],[10,11]), "glued data correct";
 unlink "$name.g", "$name.g.hdr";
 # Clean things up a bit
 undef $x; undef $y;
@@ -53,7 +48,7 @@ ok -f $header, "writefraw should create the special header file when specified";
 
 # test the use of a custom header for reading
 $y = readfraw($name,{Header => $header});
-ok tapprox($x,$y), "Should be able to read given a specified header";
+is_pdl $x, $y, "Should be able to read given a specified header";
 
 # some mapfraw tests
 SKIP:
@@ -68,13 +63,13 @@ SKIP:
         }
 
 	# compare mapfraw ndarray with original ndarray
-	ok(tapprox($x,$c), "A ndarray and its mapfraw representation should be about equal");
+	is_pdl $x, $c, "A ndarray and its mapfraw representation should be about equal";
 
 	# modifications should be saved when $c goes out of scope
 	$c += 1;
 	undef $c;
 	$y = readfraw($name);
-	ok(tapprox($x+1,$y), "Modifications to mapfraw should be saved to disk no later than when the ndarray ceases to exist");
+	is_pdl $x+1,$y, "Modifications to mapfraw should be saved to disk no later than when the ndarray ceases to exist";
 
 	# We're starting a new test, so we'll remove the files we've created so far
 	# and clean up the memory, just to be super-safe
@@ -91,8 +86,8 @@ SKIP:
 	undef $x; undef $y;
 	# Load it back up and see if the values are what we expect
 	$y = readfraw($name);
-	ok(tapprox($y, PDL->pdl([[0,1,2],[0.1,1.1,2.1]])),
-		"mapfraw should be able to create new ndarrays");
+	is_pdl $y, float([[0,1,2],[0.1,1.1,2.1]]),
+		"mapfraw should be able to create new ndarrays";
 
 	# test the created type
 	ok($y->type == float, 'type should be of the type we specified (float)');
@@ -115,7 +110,7 @@ SKIP:
         }
 
 	# test custom headers for mapfraw
-	ok(tapprox($x,$c), "mapfraw should be able to work with a specified header");
+	is_pdl $x, $c, "mapfraw works with a specified header";
 }
 
 done_testing;
