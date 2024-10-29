@@ -3,18 +3,13 @@ use warnings;
 use Test::More;
 use Test::Exception;
 use PDL::LiteF;
+use Test::PDL;
 use PDL::Math; # for polyroots with [phys] params, for dim compat tests
 use PDL::MatrixOps; # for simq with [phys] params, for dim compat tests
 use Config;
 use PDL::Types;
 use Math::Complex ();
 use Devel::Peek;
-
-sub tapprox ($$) {
-    my ( $x, $y ) = @_;
-    my $d = abs( $x - $y );
-    return $d <= 0.0001;
-}
 
 for my $type (PDL::Types::types()) {
    ok defined pdl($type, 0), "constructing PDL of type $type";
@@ -139,7 +134,7 @@ my $b_dbl  = $a_dbl->slice('5');
 my $c_long = $a_long->slice('4:7');
 my $c_dbl  = $a_dbl->slice('4:7');
 is $b_long->sclr, 5, "sclr test of 1-elem pdl (long)";
-ok tapprox( $b_dbl->sclr, 5 ), "sclr test of 1-elem pdl (dbl)";
+ok approx( $b_dbl->sclr, 5 ), "sclr test of 1-elem pdl (dbl)";
 eval { $c_long->sclr };
 like $@, qr/multielement ndarray in 'sclr' call/, "sclr failed on multi-element ndarray (long)";
 eval { $c_dbl->sclr };
@@ -198,13 +193,13 @@ eval {empty->copy->make_physical};
 is $@, '', 'can physicalise the copy of an empty';
 
 # capture ancient pptest.t test for Solaris segfault
-ok all(tapprox(norm(pdl 3,4), pdl(0.6,0.8))), 'vector quasi-copy works';
+is_pdl norm(pdl 3,4), pdl(0.6,0.8), 'vector quasi-copy works';
 # pptest for null input
 eval {(my $tmp=null) .= null}; like $@, qr/input.*null/;
 # pptest for OtherPars=>named dim
-ok all(tapprox((5*sequence(5))->maximum_n_ind(3), pdl(4,3,2))), 'named dim';
+is_pdl +(5*sequence(5))->maximum_n_ind(3), indx(4,3,2), 'named dim';
 # pptest for dim with fixed value
-ok all(tapprox(crossp([1..3],[4..6]), pdl(-3,6,-3))), 'named dim=3';
+is_pdl crossp([1..3],[4..6]), longlong(-3,6,-3), 'named dim=3';
 
 subtest 'dim compatibility' => sub {
   for (
@@ -213,7 +208,7 @@ subtest 'dim compatibility' => sub {
     [\&append, [pdl(1), pdl(2), null], 2, [ 1, 2 ], 'output=null; required [2]'],
     [\&append, [pdl(1), pdl(2), zeroes(2)], 2, [ 1, 2 ], 'output=[2]; required [2]'],
     [\&append, [zeroes(1), zeroes(1), zeroes(3)], 2, qr/dim has size 3/, 'output=[3]; required [2]. output too large'],
-    [\&append, [zeroes(1), zeroes(0), zeroes()], 2, [0], 'output=scalar; required [1]'],
+    [\&append, [zeroes(1), zeroes(0), zeroes()], 2, 0, 'output=scalar; required [1]'],
     [\&append, [zeroes(1), zeroes(1), zeroes()], 2, qr/can't broadcast/, 'output=scalar; required [2]. output too small'],
     [\&append, [zeroes(1), zeroes(1), zeroes(1,1)], 2, qr/dim has size 1/, 'output=[1,1]; required [2]. output too small'],
     [\&append, [pdl(1),    pdl(2),    zeroes(2,1)], 2, [[ 1, 2 ]], 'output=[2,1]; required [2]'],
@@ -249,7 +244,7 @@ subtest 'dim compatibility' => sub {
     } else {
       $func->( @$args );
       my $got = $args->[$exp_index];
-      ok all(tapprox $got, pdl($exp)), $label or diag $got;
+      is_pdl $got, pdl($exp), $label;
     }
   }
 };
@@ -769,8 +764,9 @@ for (['ones', 1], ['zeroes', 0], ['nan', '.*NaN'], ['inf', '.*Inf'], ['i', 'i', 
   $w = $name->($y); is_deeply [$w->dims], \@dims;
   $w = $y->$name; is_deeply [$w->dims], \@dims;
   next if $val =~ /\D/;
-  $w = $y->copy; $name->(inplace $w); ok all tapprox $w, pdl($val) or diag "$name got:$w";
-  $w = $y->copy; $w->inplace->$name; ok all tapprox $w, pdl($val);
+  my $exp = pdl($val)->slice('*1,*2,*3');
+  $w = $y->copy; $name->(inplace $w); is_pdl $w, $exp, $name;
+  $w = $y->copy; $w->inplace->$name; is_pdl $w, $exp, $name;
 }
 
 is short(1)->zeroes->type, 'short', '$existing->zeroes right type';

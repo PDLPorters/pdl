@@ -3,54 +3,55 @@ use warnings;
 use Test::More;
 use PDL::LiteF;
 use PDL::Math;
+use Test::PDL -atol => 0.01;
 use Config;
 
-sub tapprox {
-        my($pa,$pb) = @_;
-	all approx $pa, $pb, 0.01;
-}
-
-ok( tapprox(bessj0(0.5),0.9384) && tapprox(bessj0(0),1) ,"bessj0");
-ok( tapprox(bessj1(0.1),0.0499) && tapprox(bessj1(0),0) ,"bessj1");
-ok( tapprox(bessjn(0.8,3),0.010) && tapprox(bessyn(0.2,2),-32.15714) ,"bessjn");
+is_pdl bessj0(0.5), pdl(0.9384), "bessj0";
+is_pdl bessj0(0), ldouble(1), "bessj0";
+is_pdl bessj1(0.1), pdl(0.0499), "bessj1";
+is_pdl bessj1(0), ldouble(0) ,"bessj1";
+is_pdl bessjn(0.8,3), pdl(0.010), "bessjn";
+is_pdl bessyn(0.2,2), pdl(-32.15714) ,"bessyn";
 
 {
 # test inplace
 my $pa = pdl(0.5,0.0);
 $pa->inplace->bessj0;
+is_pdl $pa, pdl(0.9384,1), "bessj0 inplace";
 eval { $pa->inplace->bessj0(PDL->null) };
 isnt $@, '', 'check providing explicit output arg to inplace throws exception';
-ok( tapprox($pa,pdl(0.9384,1)), "bessj0 inplace" );
 }
 
 {
 my $pa = pdl(0.2);
 $pa->inplace->bessyn(2);
-ok( tapprox( $pa, -32.15714 ), "bessyn inplace" );
+is_pdl $pa, pdl(-32.15714), "bessyn inplace";
 }
 
-ok( tapprox( pow(2,3),8), "pow");
-ok( tapprox(erf(0.),0.) && tapprox(erf(30.),1.),"erf(0), erf(30)");
-ok( tapprox(erf(0.5),1.-erfc(0.5)), "erf and erfc");
-ok( tapprox(erf(erfi(0.5)),0.5) && tapprox(erfi(erf(0.5)),0.5), "erfi (both ways)");
+is_pdl pow(2,3), sbyte(8), "pow";
+is_pdl erf(0.), pdl(0.),"erf(0)";
+is_pdl erf(30.), pdl(1.),"erf(30)";
+is_pdl erf(0.5), pdl(1.-erfc(0.5)), "erf and erfc";
+is_pdl erf(erfi(0.5)), pdl(0.5), "erfi (both ways)";
+is_pdl erfi(erf(0.5)), pdl(0.5), "erfi (both ways)";
 
 {
 my $pa = pdl(0.0,30.0);
 $pa->inplace->erf;
-ok( tapprox( $pa, pdl(0.0,1.0) ), "erf inplace" );
+is_pdl $pa, pdl(0.0,1.0), "erf inplace";
 }
 
 {
 my $pa = pdl(0.5);
 $pa->inplace->erfc;
-ok( tapprox( 1.0-$pa, erf(0.5) ), "erfc inplace" );
+is_pdl 1.0-$pa, erf(0.5), "erfc inplace";
 }
 
 {
 my $pa = pdl( 0.01, 0.0 );
-ok( all( approx( erfi($pa), pdl(0.00886,0.0) )), "erfi" );
+is_pdl erfi($pa), my $exp = pdl(0.00886,0.0), "erfi";
 $pa->inplace->erfi;
-ok( all( approx( $pa, pdl(0.00886,0.0) )), "erfi inplace" );
+is_pdl $pa, $exp, "erfi inplace";
 }
 
 eval {polyroots(1,0)};
@@ -90,15 +91,18 @@ my $ans_rint = pdl(-5,-5,-4,-4,-4,-4,-4,-3,-3,-3,-2,-2,-2,-2,-2,
 ok(all(rint($pa)==$ans_rint),"rint");
 }
 
-ok( tapprox(sinh(0.3),0.3045) && tapprox(acosh(42.1),4.43305), "sinh, acosh");
-ok( tapprox(acos(0.3),1.2661) && tapprox(tanh(0.4),0.3799), "acos, tanh");
-ok( tapprox(cosh(2.0),3.7621) && tapprox(atan(0.6),0.54041), "cosh, atan");
+is_pdl sinh(0.3), pdl(0.3045), "sinh";
+is_pdl acosh(42.1), pdl(4.43305), "acosh";
+is_pdl acos(0.3), pdl(1.2661), "acos";
+is_pdl tanh(0.4), pdl(0.3799), "tanh";
+is_pdl cosh(2.0), pdl(3.7621), "cosh";
+is_pdl atan(0.6), pdl(0.54041), "atan";
 
 {
 # inplace
 my $pa = pdl(0.3);
 $pa->inplace->sinh;
-ok( tapprox($pa, pdl(0.3045)), "sinh inplace" );
+is_pdl $pa, pdl(0.3045), "sinh inplace";
 }
 
 if ($Config{cc} ne 'cl') {

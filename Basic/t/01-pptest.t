@@ -395,6 +395,7 @@ BEGIN { $ENV{PDL_AUTOPTHREAD_TARG} = 1 } # for continue-in-broadcastloop test
 use PDL::LiteF;
 use PDL::Types;
 use PDL::Dbg;
+use Test::PDL -require_equal_types => 0;
 
 BEGIN {
   warning_like{ require PDL::Tests; PDL::Tests->import; }
@@ -402,30 +403,19 @@ BEGIN {
     "PP deprecation should emit warnings";
 }
 
-# Is there any good reason we don't use PDL's approx function?
-sub tapprox {
-    my($x,$y) = @_;
-    my $c = abs($x-$y);
-    my $d = max($c);
-    return $d < 0.01;
-}
-
 my $x = xvals(zeroes(byte, 2, 4));
 my $y;
 
 # $P() affine tests
 foop($x,($y=null));
-ok( tapprox($x,$y) )
-  or diag $y;
+is_pdl $x,$y;
 
 foop($x->transpose,($y=null));
-ok( tapprox($x->transpose,$y) )
-  or diag $y;
+is_pdl $x->transpose,$y;
 
 my $vaff = $x->dummy(2,3)->xchg(1,2);
 foop($vaff,($y=null));
-ok( tapprox($vaff,$y) )
-  or diag ($vaff, $vaff->dump);
+is_pdl $vaff,$y;
 
 eval { foop($x,($y=pdl([1]))) };
 isnt $@, '', '[phys] with multi-used mismatched dim of 1 throws exception';
@@ -465,11 +455,8 @@ is_deeply \@msg, [], 'no warnings' or diag explain \@msg;
     my $exp = $in->copy;
     my $tmp = $exp->where( ! ($in % 2) );
     $tmp .= 0;
-
     broadcastloop_continue( $in, $got );
-
-    ok( tapprox( $got, $exp ), "continue works in broadcastloop" )
-      or do { diag "got     : $got"; diag "expected: $exp" };
+    is_pdl $got, $exp, "continue works in broadcastloop";
 }
 
 polyfill_pp(zeroes(5,5), ones(2,3), 1);
