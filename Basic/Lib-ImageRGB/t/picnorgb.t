@@ -1,19 +1,14 @@
+use strict;
+use warnings;
+
 use PDL::LiteF;
 use PDL::IO::Pic;
 use PDL::ImageRGB;
 use PDL::Dbg;
 use File::Temp qw(tempdir);
 use File::Spec;
-
-use strict;
-use warnings;
-
 use Test::More;
-
-sub tapprox {
-	my($pa,$pb,$mdiff) = @_;
-	all approx($pa, $pb,$mdiff || 0.01);
-}
+use Test::PDL;
 
 sub rpic_unlink {
   my $file = shift;
@@ -69,7 +64,6 @@ if ($PDL::debug) {
 # for some reason the pnmtotiff converter coredumps when trying
 # to do the conversion for the ushort data, haven't yet tried to
 # figure out why
-my $usherr = 0;
 my $tmpdir = tempdir( CLEANUP => 1 );
 sub tmpfile { File::Spec->catfile($tmpdir, $_[0]); }
 foreach my $format (sort @allowed) {
@@ -91,23 +85,23 @@ foreach my $format (sort @allowed) {
         $im2->wpic($tbyte,{IFORM => "$iform"});
         $im3->wpic($tbin,{COLOR => 'bw', IFORM => "$iform"});
         my $in1 = rpic_unlink($tushort) unless
-            $usherr || $format eq 'TIFF';
+            $format eq 'TIFF';
         my $in2 = rpic_unlink($tbyte);
         my $in3 = rpic_unlink($tbin);
 
         if ($format ne 'TIFF') {
           my $scale = ($form->[2] || rgb($in1) ? $im1->dummy(0,3) : $im1);
           my $comp = $scale / PDL::ushort($form->[1]);
-          ok($usherr || tapprox($comp,$in1,$form->[3]));
+          is_pdl $comp,$in1,$form->[3];
         }
         {
         my $comp = ($form->[2] || rgb($in2) ? $im2->dummy(0,3) : $im2);
-        ok(tapprox($comp,$in2));
+        is_pdl $comp,$in2;
         }
         {
         my $comp = ($form->[2] || rgb($in3) ? ($im3->dummy(0,3)>0)*255 : ($im3 > 0));
         $comp = $comp->ushort*$in3->max if $format eq 'SGI' && $in3->max > 0;
-        ok(tapprox($comp,$in3));
+        is_pdl $comp,$in3;
         }
 
         if ($PDL::debug) {

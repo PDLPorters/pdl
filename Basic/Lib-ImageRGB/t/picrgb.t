@@ -2,16 +2,12 @@ use strict;
 use warnings;
 use Test::More;
 use PDL::LiteF;
+use Test::PDL;
 use PDL::IO::Pic;
 use PDL::ImageRGB;
 use PDL::Dbg;
 use File::Temp qw(tempdir);
 use File::Spec;
-
-sub tapprox {
-	my($pa,$pb,$mdiff) = @_;
-	all approx($pa, $pb,$mdiff || 0.01);
-}
 
 sub rpic_unlink {
   my $file = shift;
@@ -68,7 +64,6 @@ if ($PDL::debug){
    note $im2;
 }
 
-my $usherr = 0;
 my $tmpdir = tempdir( CLEANUP => 1 );
 sub tmpfile { File::Spec->catfile($tmpdir, $_[0]); }
 foreach my $form (sort @allowed) {
@@ -91,16 +86,15 @@ foreach my $form (sort @allowed) {
 	my $determined_format;
 	$determined_format = imageformat($tushort);
 	is($determined_format, $form, "image $tushort is format $form");
-        my $in1 = rpic_unlink($tushort) unless $usherr;
+        my $in1 = rpic_unlink($tushort);
 
 	$determined_format = imageformat($tbyte);
 	is($determined_format, $form, "image $tbyte is format $form");
         my $in2 = rpic_unlink($tbyte);
 
         my $comp = $im1 / PDL::ushort(mmax(depends_on($form),$arr->[1]));
-        ok($usherr || tapprox($in1,$comp,$arr->[3]), $form)
-          or diag "got=$in1\nexpected:$comp";
-        ok(tapprox($in2,$im2));
+        is_pdl $in1, $comp, {atol=>$arr->[3], test_name=>$form, require_equal_types => 0};
+        is_pdl $in2, $im2;
 
         if ($PDL::debug) {
           note $in1->px;
