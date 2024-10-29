@@ -4,13 +4,7 @@ use PDL::LiteF;
 use PDL::IO::Misc;
 use File::Temp qw( tempfile tempdir );
 use Test::More;
-
-sub tapprox {
-        my($x,$y) = @_;
-        my $c = abs($x-$y);
-        my $d = max($c);
-        $d < 0.0001;
-}
+use Test::PDL;
 
 my $tempd = tempdir( CLEANUP => 1 ) or die "Couldn't get tempdir\n";
 my ($fileh,$file) = tempfile( DIR => $tempd );
@@ -154,38 +148,36 @@ EOD
 close($fileh);
 
 ($x,$y) = rcols $file,0,1;
-is( $x->nelem==4 && sum($x)==6 && sum($y)==20, 1,
-    "rcols: default" );
+is_pdl $x, pdl(1,3,-5,7), "rcols: default";
+is_pdl $y, pdl(2,4,6,8), "rcols: default";
 
 ($x,$y) = rcols \*DATA,0,1;
-is( $x->nelem==4 && sum($x)==6 && sum($y)==20, 1,
-    "rcols: pipe" );
+is_pdl $x, pdl(1,3,-5,7), "rcols: fh";
+is_pdl $y, pdl(2,4,6,8), "rcols: fh";
 
 ($x,$y) = rcols $file,0,1, { INCLUDE => '/^-/' };
-is( $x->nelem==1 && $x->at(0)==-5 && $y->at(0)==6, 1,
-    "rcols: include pattern" );
+is_pdl $x, pdl([-5]), "rcols: include pattern";
+is_pdl $y, pdl([6]), "rcols: include pattern";
 
 ($x,$y) = rcols $file,0,1, { LINES => '-2:0' };
-is( $x->nelem==3 && tapprox($x,pdl(-5,3,1)) && tapprox($y,pdl(6,4,2)), 1,
-    "rcols: lines option" );
+is_pdl $x, pdl(-5,3,1), "rcols: lines option";
+is_pdl $y, pdl(6,4,2), "rcols: lines option";
 
 use PDL::Types;
 ($x,$y) = rcols $file, { DEFTYPE => long };
-is( $x->nelem==4 && $x->get_datatype==$PDL_L && $y->get_datatype==$PDL_L, 1,
-    "rcols: deftype option" );
+is_pdl $x, long(1,3,-5,7), "rcols: deftype option";
+is_pdl $y, long(2,4,6,8), "rcols: deftype option";
 
 ($x,$y) = rcols $file, { TYPES => [ ushort ] };
-is( $x->nelem==4 && $x->get_datatype==$PDL_US && $y->get_datatype==$PDL_D, 1,
-    "rcols: types option" );
+is_pdl $x, ushort(1,3,-5,7), "rcols: types option";
+is_pdl $y, double(2,4,6,8), "rcols: types option";
 
-is( UNIVERSAL::isa($PDL::IO::Misc::deftype,"PDL::Type"), 1,
-    "PDL::IO::Misc::deftype is a PDL::Type object" );
-is( $PDL::IO::Misc::deftype->[0], double->[0],
-    "PDL::IO::Misc::deftype check" );
+isa_ok $PDL::IO::Misc::deftype, "PDL::Type", "PDL::IO::Misc::deftype";
+is $PDL::IO::Misc::deftype, 'double', "PDL::IO::Misc::deftype check";
 
 $PDL::IO::Misc::deftype = short;
 ($x,$y) = rcols $file;
-is( $x->get_datatype, short->[0], "rcols: can read in as 'short'" );
+is( $x->get_datatype, short->enum, "rcols: can read in as 'short'" );
 
 unlink $file || warn "Could not unlink $file: $!";
 

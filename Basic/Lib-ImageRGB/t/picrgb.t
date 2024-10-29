@@ -8,8 +8,6 @@ use PDL::Dbg;
 use File::Temp qw(tempdir);
 use File::Spec;
 
-# we need tests with index shuffling once vaffines are fixed
-
 sub tapprox {
 	my($pa,$pb,$mdiff) = @_;
 	all approx($pa, $pb,$mdiff || 0.01);

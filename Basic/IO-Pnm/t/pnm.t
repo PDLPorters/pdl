@@ -7,13 +7,7 @@ use PDL::Dbg;
 use File::Temp qw(tempdir);
 use File::Spec;
 use Test::More;
-
-# we need tests with index shuffling once vaffines are fixed
-
-sub tapprox {
-	my($pa,$pb,$mdiff) = @_;
-	all approx($pa, $pb,$mdiff || 0.01);
-}
+use Test::PDL;
 
 my $tmpdir = tempdir( CLEANUP => 1 );
 sub rpnm_unlink {
@@ -63,18 +57,16 @@ for my $raw (0,1) {
   foreach my $form (@formats) {
     my $in = rpnm_unlink($im2, $form->[1], 'PGM', $raw);
     my $comp = ($form->[3] ? $im2->dummy(0,3) : $im2);
-    ok(tapprox($in,$comp)) or diag "got=$in\nexpected=$comp";
+    is_pdl $in,$comp;
     $comp = $form->[3] ? ($im3->dummy(0,3)>0)*255 : ($im3 > 0);
     $comp = $comp->ushort*65535 if $form->[0] eq 'SGI'; # yet another format quirk
     $in = rpnm_unlink($im3, $form->[1], 'PBM', $raw);
-    ok(tapprox($in,$comp)) or diag "got=$in\nexpected=$comp";
+    is_pdl $in,$comp;
     next if $form->[0] eq 'GIF';
     $in = rpnm_unlink($im1, $form->[1], 'PGM', $raw);
     my $scale = $form->[3] ? $im1->dummy(0,3) : $im1;
     $comp = $scale / $form->[2];
-    ok(tapprox($in,$comp,$form->[4]), $form->[0])
-      or diag "got=$in\nexpected=$comp", $in->info;
-    note $in->px if $PDL::debug and $form->[0] ne 'TIFF';
+    is_pdl $in, $comp, {atol=>$form->[4], test_name=>$form->[0]};
   }
 }
 

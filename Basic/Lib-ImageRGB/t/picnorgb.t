@@ -8,7 +8,6 @@ use File::Spec;
 use strict;
 use warnings;
 
-# we need tests with index shuffling once vaffines are fixed
 use Test::More;
 
 sub tapprox {
