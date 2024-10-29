@@ -3,8 +3,7 @@ use warnings;
 use Test::More;
 use Test::Exception;
 use PDL::LiteF;
-use lib 't/lib';
-use My::Test::Primitive;
+use Test::PDL;
 
 TODO: { local $TODO = 'Some CPAN Testers fails for OpenBSD'; subtest 'random' => sub {
 
@@ -16,7 +15,7 @@ TODO: { local $TODO = 'Some CPAN Testers fails for OpenBSD'; subtest 'random' =>
         my $r1 = random 10;
         srandom 5;
         my $r2 = random 10;
-        ok( tapprox( $r1, $r2 ), "random and srandom" );
+        is_pdl $r1, $r2, "random and srandom";
     };
 
     subtest 'grandom and srandom' => sub {
@@ -24,7 +23,7 @@ TODO: { local $TODO = 'Some CPAN Testers fails for OpenBSD'; subtest 'random' =>
         my $r1 = grandom 10;
         srandom 10;
         my $r2 = grandom 10;
-        ok( tapprox( $r1, $r2 ), "grandom and srandom" );
+        is_pdl $r1, $r2, "grandom and srandom";
     };
 }; }
 

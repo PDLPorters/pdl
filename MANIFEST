@@ -235,7 +235,6 @@ Basic/t/croak.t
 Basic/t/func.pdl
 Basic/t/inline-with.t
 Basic/t/inlinepdlpp.t
-Basic/t/lib/My/Test/Primitive.pm
 Basic/t/lvalue.t
 Basic/t/math.t
 Basic/t/matrix.t

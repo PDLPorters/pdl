@@ -1,10 +1,8 @@
 use strict;
 use warnings;
 use Test::More;
-
 use PDL::LiteF;
-use lib 't/lib';
-use My::Test::Primitive;
+use Test::PDL -atol => 1e-3;
 
 # provide independent copies of test data.
 sub IM {
@@ -19,39 +17,36 @@ sub IM {
     );
 }
 
-
 subtest 'default type' => sub {
     my @statsRes = IM->stats;
-    ok( tapprox( $statsRes[0], 5.36 ),  "mean" );
-    ok( tapprox( $statsRes[1], 4.554 ), "prms" );
-    ok( tapprox( $statsRes[2], 3 ),     "median" );
-    ok( tapprox( $statsRes[3], 1 ),     "min" );
-    ok( tapprox( $statsRes[4], 13 ),    "max" );
-    ok( tapprox( $statsRes[6], 4.462 ), "rms" );
+    is_pdl $statsRes[0], pdl( 5.36 ),  "mean";
+    is_pdl $statsRes[1], pdl( 4.554 ), "prms";
+    is_pdl $statsRes[2], pdl( 3 ),     "median";
+    is_pdl $statsRes[3], pdl( 1 ),     "min";
+    is_pdl $statsRes[4], pdl( 13 ),    "max";
+    is_pdl $statsRes[6], pdl( 4.462 ), "rms";
 };
 
 subtest 'short' => sub {
     my @statsRes =
       IM->short->stats;    # Make sure that stats are promoted to floating-point
-    ok( tapprox( $statsRes[0], 5.36 ),  "short mean" );
-    ok( tapprox( $statsRes[1], 4.554 ), "short prms" );
-    ok( tapprox( $statsRes[2], 3 ),     "short median" );
-    ok( tapprox( $statsRes[3], 1 ),     "short min" );
-    ok( tapprox( $statsRes[4], 13 ),    "short max" );
-    ok( tapprox( $statsRes[6], 4.462 ), "short rms" );
-
+    is_pdl $statsRes[0], float( 5.36 ),  "short mean";
+    is_pdl $statsRes[1], float( 4.554 ), "short prms";
+    is_pdl $statsRes[2], short( 3 ),     "short median";
+    is_pdl $statsRes[3], long( 1 ),      "short min";
+    is_pdl $statsRes[4], long( 13 ),     "short max";
+    is_pdl $statsRes[6], float( 4.462 ), "short rms";
 };
 
 subtest 'weights' => sub {
     my $ones     = ones( 5, 5 );
     my @statsRes = IM->stats($ones);
-    ok( tapprox( $statsRes[0], 5.36 ),  "trivial weights mean" );
-    ok( tapprox( $statsRes[1], 4.554 ), "trivial weights prms" );
-    ok( tapprox( $statsRes[2], 3 ),     "trivial weights median" );
-    ok( tapprox( $statsRes[3], 1 ),     "trivial weights min" );
-    ok( tapprox( $statsRes[4], 13 ),    "trivial weights max" );
-    ok( tapprox( $statsRes[6], 4.462 ), "trivial weights rms" );
-
+    is_pdl $statsRes[0], pdl( 5.36 ),  "trivial weights mean";
+    is_pdl $statsRes[1], pdl( 4.554 ), "trivial weights prms";
+    is_pdl $statsRes[2], pdl( 3 ),     "trivial weights median";
+    is_pdl $statsRes[3], pdl( 1 ),     "trivial weights min";
+    is_pdl $statsRes[4], pdl( 13 ),    "trivial weights max";
+    is_pdl $statsRes[6], pdl( 4.462 ), "trivial weights rms";
 };
 
 done_testing;

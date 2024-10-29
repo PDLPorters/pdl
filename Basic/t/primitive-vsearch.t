@@ -3,8 +3,7 @@ use warnings;
 use Test::More;
 use Test::Exception;
 use PDL::LiteF;
-use lib 't/lib';
-use My::Test::Primitive;
+use Test::PDL;
 
 # Some of these tests are based upon those in Chapter 5 of Programming
 # Pearls, by J. Bentley
@@ -13,7 +12,7 @@ use My::Test::Primitive;
 my $N = 723;
 
 my $ones = ones($N);
-my $idx  = sequence($N);
+my $idx  = sequence(indx,$N);
 my $x    = $idx * 10;
 
 # create ordered duplicates so can test insertion points. This creates
@@ -369,26 +368,24 @@ for my $mode ( sort keys %search ) {
                 my $so = $data->{$sort_direction}
                   or plan( skip_all => "not testing $sort_direction!\n" );
 
-                ok tapprox( vsearch( $so->{x}, $so->{x}, { mode => $mode } ),
-                    $so->{equal} ),
+                is_pdl vsearch( $so->{x}, $so->{x}, { mode => $mode } ),
+                  $so->{equal},
                   'equal elements';
 
                 my $badmask = $so->{x}->random < 0.25;
                 my $badx = $so->{x}->setbadif( $badmask );
                 my $bad_eq = $so->{equal}->setbadif( $badmask );
 
-                ok tapprox( vsearch( $badx, $so->{x}, { mode => $mode } ),
-                    $bad_eq ),
+                is_pdl vsearch( $badx, $so->{x}, { mode => $mode } ),
+                  $bad_eq,
                   'equal elements w/ bad vals';
 
-                ok tapprox(
-                    vsearch( $so->{x} - 5, $so->{x}, { mode => $mode } ),
-                    $so->{nequal_m} ),
+                is_pdl vsearch( $so->{x} - 5, $so->{x}, { mode => $mode } ),
+                  $so->{nequal_m},
                   'non-equal elements x[i] < xs[i] (check lower bound)';
 
-                ok tapprox(
-                    vsearch( $so->{x} + 5, $so->{x}, { mode => $mode } ),
-                    $so->{nequal_p} ),
+                is_pdl vsearch( $so->{x} + 5, $so->{x}, { mode => $mode } ),
+                  $so->{nequal_p},
                   'non-equal elements x[i] > xs[i] (check upper bound)';
 
                 # duplicate testing.
@@ -396,26 +393,22 @@ for my $mode ( sort keys %search ) {
                 # check for values. note that the rightmost routine returns
                 # the index of the element *after* the last duplicate
                 # value, so we need an offset
-                ok tapprox(
-                    $so->{xdup}{set}->index(
-                        vsearch(
-                            $so->{xdup}{values}, $so->{xdup}{set},
-                            { mode => $mode }
-                        ) + ( $so->{xdup}{idx_offset} || 0 )
-                    ),
-                    $so->{xdup}{values}
+                is_pdl $so->{xdup}{set}->index(
+                    vsearch(
+                      $so->{xdup}{values}, $so->{xdup}{set},
+                      { mode => $mode }
+                    ) + ( $so->{xdup}{idx_offset} || 0 )
                   ),
+                  $so->{xdup}{values},
                   'duplicates values';
 
           # if there are guarantees about which duplicates are returned, test it
                 if ( exists $so->{xdup}{idx} ) {
-                    ok tapprox(
-                        vsearch(
-                            $so->{xdup}{values}, $so->{xdup}{set},
-                            { mode => $mode }
-                        ),
-                        $so->{xdup}{idx}
+                    is_pdl vsearch(
+                        $so->{xdup}{values}, $so->{xdup}{set},
+                        { mode => $mode }
                       ),
+                      $so->{xdup}{idx},
                       'duplicate indices';
                 }
                 if ( exists $so->{docs} ) {
@@ -434,29 +427,26 @@ for my $mode ( sort keys %search ) {
             };
         }
 
-        ok tapprox( vsearch( $ones, $ones, { mode => $mode } )->uniq->squeeze,
-            $data->{all_the_same_element} ),
+        is_pdl vsearch( $ones, $ones, { mode => $mode } )->uniq->squeeze,
+          pdl($data->{all_the_same_element}),
           'all the same element';
     };
 }
 
 # test vsearch API to ensure backwards compatibility
 {
-    my $vals = random(100);
-    my $xs   = sequence(100) / 99;
-
-    # implicit output ndarray
-    my $indx0 = vsearch( $vals, $xs );
-    my $ret   = vsearch( $vals, $xs, my $indx1 = PDL->null() );
-    is( $ret, undef, "no return from explicit output ndarray" );
-    ok tapprox( $indx0, $indx1 ), 'explicit ndarray == implicit ndarray';
+  my $vals = random(100);
+  my $xs   = sequence(100) / 99;
+  # implicit output ndarray
+  my $indx0 = vsearch( $vals, $xs );
+  my $ret   = vsearch( $vals, $xs, my $indx1 = PDL->null() );
+  is( $ret, undef, "no return from explicit output ndarray" );
+  is_pdl $indx0, $indx1, 'explicit ndarray == implicit ndarray';
 }
 
 subtest regressions => sub {
-
     subtest '$xs->is_empty' => sub {
         lives_ok { pdl( [0] )->vsearch_bin_inclusive( pdl( [] ) ) };
     };
-
 };
 done_testing;

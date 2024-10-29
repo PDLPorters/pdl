@@ -193,8 +193,9 @@ sub is_pdl {
   if (defined $mask) {
     my $coords = defined $mask ? $mask->not->whichND : undef;
     $coords = $coords->slice(',0:4') if defined $coords and $coords->dim(1) > 5;
+    my $cstr = $coords->string; $cstr =~ s#\n+\z##;
     push @mismatch, (
-      "\nFirst <=5 values differ at:", $coords,
+      "\nFirst <=5 values differ at: $cstr\n",
       "Those 'got' values: ", $got->indexND($coords),
       "\nThose 'expected' values: ", $expected->indexND($coords),
     );

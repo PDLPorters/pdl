@@ -4,12 +4,6 @@ use Test::More;
 use PDL::LiteF;
 use Test::PDL;
 
-sub tapprox {
-    my($x,$y) = @_;
-    my $d = max( abs($x-$y) );
-    $d < 1.0e-6;
-}
-
 my $x0 = pdl( [ 2, 1, 2 ], [ 1, 0, 1 ], [ 2, 1, 2 ] );
 is_pdl rvals(3,3), $x0->sqrt, "centered rvals";
 is_pdl rvals(3,3,{squared=>1}), $x0, "centered rvals squared";

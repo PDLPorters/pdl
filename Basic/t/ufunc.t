@@ -3,8 +3,7 @@ use warnings;
 use Test::More;
 use PDL::LiteF;
 use PDL::Types;
-use lib 't/lib';
-use My::Test::Primitive;
+use Test::PDL;
 
 my $p = pdl([]); $p->setdims([1,0]); $p->qsortvec; # shouldn't segfault!
 my $p2d  = pdl([[1,2],[3,4],[1,3],[1,2],[3,3]]);
@@ -34,23 +33,19 @@ eval { sequence(3, 3)->medover(my $o = null, my $t = null); };
 isnt $@, '', 'a [t] Par cannot be passed';
 
 my $med_dim = 5;
-ok tapprox(sequence(10,$med_dim,$med_dim)->medover, sequence($med_dim,$med_dim)*10+4.5), 'medover';
+is_pdl sequence(10,$med_dim,$med_dim)->medover, sequence($med_dim,$med_dim)*10+4.5, 'medover';
 
 # Test a range of values
-ok( tapprox($x->pctover(-0.5), $a_sort->at(0)), "pct below 0 for 25-elem pdl" );
-ok( tapprox($x->pctover( 0.0), $a_sort->at(0)), "pct equal 0 for 25-elem pdl" );
-ok( tapprox($x->pctover( 0.9),             17), "pct equal 0.9 for 25-elem pdl [SF bug 2019651]" );
-ok( tapprox($x->pctover( 1.0), $a_sort->at($x->dim(0)-1)), "pct equal 1 for 25-elem pdl" );
-ok( tapprox($x->pctover( 2.0), $a_sort->at($x->dim(0)-1)), "pct above 1 for 25-elem pdl" );
+is_pdl $x->pctover(-0.5), pdl(0), "pct below 0 for 25-elem pdl";
+is_pdl $x->pctover( 0.0), pdl(0), "pct equal 0 for 25-elem pdl";
+is_pdl $x->pctover( 0.9), pdl(17), "pct equal 0.9 for 25-elem pdl [SF bug 2019651]";
+is_pdl $x->pctover( 1.0), pdl(101), "pct equal 1 for 25-elem pdl";
+is_pdl $x->pctover( 2.0), pdl(101), "pct above 1 for 25-elem pdl";
 
-# test for sf.net bug report 2753869
-#
 $x = sequence(10);
-ok( tapprox($x->pctover(0.2 ), 1.8 ), "20th percentile of 10-elem ndarray [SF bug 2753869]");
-ok( tapprox($x->pctover(0.23), 2.07), "23rd percentile of 10-elem ndarray [SF bug 2753869]");
+is_pdl $x->pctover(0.2 ), pdl(1.8), "20th percentile of 10-elem ndarray [SF bug 2753869]";
+is_pdl $x->pctover(0.23), pdl(2.07), "23rd percentile of 10-elem ndarray [SF bug 2753869]";
 
-# test for sf.net bug report 2110074
-#
 ok( ( eval { pdl([])->qsorti }, $@ eq '' ), "qsorti coredump,[SF bug 2110074]");
 
 $d->inplace->qsort;
@@ -132,10 +127,9 @@ ok( $x->isbad, "bad flag gets set on max over an empty dim");
 $x = $empty->magnover;
 ok( $x->isbad, "bad flag gets set on empty magnover");
 
-my $got;
-ok tapprox($got = zeroes(4)->magnover, 0), 'magnover correct for real zeroes' or diag "got=$got";
-ok tapprox($got = sequence(4)->magnover, 3.741657), 'magnover correct for real sequence' or diag "got=$got";
-ok tapprox($got = (sequence(4)+i())->magnover, 4.242640), 'magnover correct for complex' or diag "got=$got";
+is_pdl zeroes(4)->magnover, pdl(0), 'magnover correct for real zeroes';
+is_pdl sequence(4)->magnover, pdl(3.741657), 'magnover correct for real sequence';
+is_pdl +(sequence(4)+i())->magnover, cdouble(4.242640), 'magnover correct for complex';
 
 #Test subroutines directly.
 
@@ -147,16 +141,14 @@ my $i=pdl (1,0);
 my $j=pdl(-3, 3, -5, 10);
 
 #Test percentile routines
-#Test PDL::pct
-ok (tapprox(PDL::pct($f, .5),     3), 'PDL::pct 50th percentile');
-ok (tapprox(PDL::pct($g, .76), 0.76), 'PDL::pct interpolation test');
-ok (tapprox(PDL::pct($i, .76), 0.76), 'PDL::pct interpolation not in order test');
+is_pdl PDL::pct($f,.5), pdl(3), 'PDL::pct 50th percentile';
+is_pdl PDL::pct($g,.76), pdl(0.76), 'PDL::pct interpolation test';
+is_pdl PDL::pct($i,.76), pdl(0.76), 'PDL::pct interpolation not in order test';
 
-#Test PDL::oddpct
-ok (tapprox(PDL::oddpct($f, .5),  3), 'PDL::oddpct 50th percentile');
-ok (tapprox(PDL::oddpct($f, .79), 4), 'PDL::oddpct intermediate value test');
-ok (tapprox(PDL::oddpct($h, .5),  0), 'PDL::oddpct 3-member 50th percentile with negative value');
-ok (tapprox(PDL::oddpct($j, .1), -5), 'PDL::oddpct negative values in-between test');
+is_pdl PDL::oddpct($f, .5), pdl(3), 'PDL::oddpct 50th percentile';
+is_pdl PDL::oddpct($f, .79), pdl(4), 'PDL::oddpct intermediate value test';
+is_pdl PDL::oddpct($h, .5), pdl(0), 'PDL::oddpct 3-member 50th percentile with negative value';
+is_pdl PDL::oddpct($j, .1), pdl(-5), 'PDL::oddpct negative values in-between test';
 
 #Test oddmedian
 ok (PDL::oddmedian($g) ==  0, 'Oddmedian 2-value ndarray test');
@@ -165,8 +157,8 @@ ok (PDL::oddmedian($j) == -3, 'Oddmedian negative values even cardinality test')
 
 #Test mode and modeover
 $x = pdl([1,2,3,3,4,3,2],1);
-ok( $x->mode == 0, "mode test" );
-ok( all($x->modeover == pdl(3,0)), "modeover test");
+ok $x->mode == 0, "mode test";
+ok all($x->modeover == pdl(3,0)), "modeover test";
 
 
 #the next 4 tests address GitHub issue #248.
@@ -174,7 +166,7 @@ ok( all($x->modeover == pdl(3,0)), "modeover test");
 #   .... 0000 1010
 #   .... 1111 1100
 #OR:.... 1111 1110 = -2
-is( pdl([10,0,-4])->borover(), -2, "borover with no BAD values");
+is pdl([10,0,-4])->borover(), -2, "borover with no BAD values";
 
 #     .... 1111 1111
 #     .... 1111 1010
@@ -216,9 +208,9 @@ is ushort(65535)->max, 65535, 'max(highest ushort value) should not be BAD';
 # provide independent copies of test data.
 sub X { PDL->pdl( [ [ 5, 4, 3 ], [ 2, 3, 1.5 ] ] ) }
 
-ok( tapprox( X->average(),  PDL->pdl( [ 4,  2.16666 ] ) ), "average" );
-ok( tapprox( X->sumover(),  PDL->pdl( [ 12, 6.5 ] ) ),     "sumover" );
-ok( tapprox( X->prodover(), PDL->pdl( [ 60, 9 ] ) ),       "prodover" );
+is_pdl X->average(),  PDL->pdl( [ 4,  2.1666666 ] ), "average";
+is_pdl X->sumover(),  PDL->pdl( [ 12, 6.5 ] ),     "sumover";
+is_pdl X->prodover(), PDL->pdl( [ 60, 9 ] ),       "prodover";
 
 # provide independent copies of test data.
 sub IM {
@@ -253,11 +245,11 @@ subtest 'minimum_n_ind' => sub {
         my $p = pdl [ 1, 2, 3, 4, 7, 9, 1, 1, 6, 2, 5 ];
         my $q = zeroes 5;
         minimum_n_ind $p, $q;
-        ok( tapprox( $q, pdl( 0, 6, 7, 1, 9 ) ), "usage 1" );
+        is_pdl $q, pdl(indx, 0, 6, 7, 1, 9), "usage 1";
         $q = minimum_n_ind( $p, 5 );
-        ok( tapprox( $q, pdl( 0, 6, 7, 1, 9 ) ), "usage 2" );
+        is_pdl $q, pdl(indx, 0, 6, 7, 1, 9), "usage 2";
         minimum_n_ind( $p, $q = null, 5 );
-        ok( tapprox( $q, pdl( 0, 6, 7, 1, 9 ) ), "usage 3" );
+        is_pdl $q, pdl(indx, 0, 6, 7, 1, 9), "usage 3";
     };
 
     subtest 'BAD' => sub {
@@ -284,9 +276,9 @@ subtest 'minimum_n_ind' => sub {
 
 subtest diffover => sub {
   my $a = sequence(5) + 2;
-  ok tapprox($a->diffover, pdl(0, 1, 1, 1, 1)), "diffover";
+  is_pdl $a->diffover, pdl(0, 1, 1, 1, 1), "diffover";
   $a->inplace->diffover;
-  ok tapprox($a, pdl(0, 1, 1, 1, 1)), "diffover inplace";
+  is_pdl $a, pdl(0, 1, 1, 1, 1), "diffover inplace";
 };
 
 subtest diff2 => sub {
@@ -322,7 +314,7 @@ subtest intover => sub {
 
 subtest firstnonzeroover => sub {
   my $a = pdl '0 0 3 4; 0 5 0 1';
-  ok tapprox($a->firstnonzeroover, pdl(3, 5)), "firstnonzeroover";
+  is_pdl $a->firstnonzeroover, pdl(3, 5), "firstnonzeroover";
 };
 
 done_testing;
