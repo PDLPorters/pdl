@@ -2,6 +2,7 @@ use strict;
 use warnings;
 use PDL::LiteF;
 use Test::More;
+use Test::PDL;
 BEGIN {
 diag "ENV $_ = ", explain $ENV{$_}
   for qw(LD_LIBRARY_PATH DYLD_LIBRARY_PATH LDFLAGS CFLAGS CXXFLAGS LD_RUN_PATH
@@ -10,16 +11,6 @@ diag "ENV $_ = ", explain $ENV{$_}
 use PDL::Transform::Proj4;
 use Alien::proj;
 diag "Alien::proj version $Alien::proj::VERSION";
-
-sub tapprox
-{
-    my $x = shift;
-    my $y = shift;
-    my $d = abs($x - $y);
-    my $res = all($d < 1.0e-5);
-    diag "got:$x\nexpected:$y" if !$res;
-    $res;
-}
 
 my @version = eval { PDL::Transform::Proj4::proj_version() };
 is $@, '', 'proj_version no die';
@@ -38,10 +29,10 @@ my $xy_exp = double [
 ];
 
 my ($xy) = PDL::Transform::Proj4::fwd_transform($lonlat, $proj);
-ok( tapprox( $xy, $xy_exp ) );
+is_pdl $xy, $xy_exp;
 
 my ($lonlat2) = PDL::Transform::Proj4::inv_transform($xy, $proj);
-ok( tapprox( $lonlat2, $lonlat ) );
+is_pdl $lonlat2, $lonlat;
 
 # Do the corners of a cyl eq map, and see what we get...
 my $cyl_eq = "+proj=eqc +lon_0=0 +datum=WGS84";
@@ -54,7 +45,7 @@ my $xy3_exp = double [
 ];
 
 my ($xy3) = PDL::Transform::Proj4::fwd_transform($lonlat3, $cyl_eq);
-ok( tapprox( $xy3, $xy3_exp ) );
+is_pdl $xy3, $xy3_exp;
 
 $lonlat = ((xvals( double, 35, 17 ) - 17.0) * 10.0)->cat(
   (yvals( double, 35, 17 ) - 8.0) * 10.0)->mv(2,0);
