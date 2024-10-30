@@ -10,6 +10,7 @@ use strict;
 use warnings;
 
 use Test::More;
+use Test::PDL;
 use File::Temp qw(tempdir);
 use File::Spec::Functions;
 use PDL::IO::FlexRaw;
@@ -32,7 +33,7 @@ my $header_bis = [ { %{$header->[0]}, Dims => [2, undef] } ];
 eval { readflex($name, [@$header_bis, @$header_bis]) };
 like $@, qr/>1 header/, 'readflex only allows undef dim when only one hash';
 my $x_bis = readflex($name, $header_bis);
-ok(all(approx($x_bis,$x)), "read back with undef highest dim correct");
+is_pdl $x_bis, $x, "read back with undef highest dim correct";
 
 # **TEST 3** save a header to disk
 eval { writeflexhdr($name, $header) };
@@ -40,7 +41,7 @@ ok(-f "$name.hdr", "writeflexhdr should create a header file");
 
 # **TEST 4** read it back, and make sure it gives the same ndarray
 my $y = eval { readflex($name) };
-ok(all(approx($x,$y)), "A ndarray and its saved copy should be about equal");
+is_pdl $x, $y, "A ndarray and its saved copy should be about equal";
 
 # **TEST 5** save two ndarrays to disk
 my ($c1, $c2) = ([0,0,0,0],[0,0,0,0]);
@@ -49,16 +50,15 @@ my $d = pdl [1,1,1];
 my $cdname = $name . 'cd';
 $header = eval { writeflex($cdname, $c, $d) };
 ok((-f $cdname), "writeflex saves 2 pdls to a file");
-
 # **TEST 6** save a header to disk
 eval { writeflexhdr($cdname, $header) };
 ok(-f "$cdname.hdr", "writeflexhdr create a header file");
-
 # **TEST 7** read it back, and make sure it gives the same ndarray
 # This is sf.net bug #3375837 "_read_flexhdr state machine fails"
 my (@cd) = eval { no warnings; readflex($cdname) };
-ok( (scalar(@cd)==2 and all(approx($cd[0],$c)) and all(approx($cd[1],$d)) ), 'sf.net bug 3375837');
-
+is 0+@cd, 2, 'sf.net bug 3375837';
+is_pdl $cd[0], $c, 'sf.net bug 3375837';
+is_pdl $cd[1], $d, 'sf.net bug 3375837';
 # Clean up for another test
 unlink $cdname, $cdname . '.hdr';	# just to be absolutely sure
 
@@ -67,14 +67,14 @@ my $gname = $name.'g';
 local $PDL::IO::FlexRaw::writeflexhdr = 1;
 eval { writeflex($gname, $d, $c) }; # 2D last so can append
 my @dc = eval { readflex($gname) };
-ok all(approx $dc[0], $d);
-ok all(approx $dc[1], $c);
+is_pdl $dc[0], $d;
+is_pdl $dc[1], $c;
 my $e = pdl(2,2,2,2);
 eval { glueflex($gname, $e) };
 is $@, '', 'no error glueflex';
 @dc = eval { readflex($gname) };
-ok all(approx $dc[0], $d);
-ok all(approx $dc[1], pdl($c1,$c2,$e));
+is_pdl $dc[0], $d;
+is_pdl $dc[1], pdl($c1,$c2,$e);
 }
 
 # some mapflex tests
@@ -89,7 +89,7 @@ SKIP: {
    }
 
    # **TEST 8** compare mapfraw ndarray with original ndarray	
-   ok(all(approx($x,$c)), "An ndarray and its mapflex representation should be about equal");
+   is_pdl $x, $c, "An ndarray and its mapflex representation should be about equal";
 
    # **TEST 9** modifications should be saved when $c goes out of scope
    # THIS TEST FAILS.
@@ -100,7 +100,7 @@ SKIP: {
    $c += 1;
    undef $c;
    $y = readflex($name);
-   ok(all(approx($x+1,$y)), "Modifications to mapfraw should be saved to disk no later than when the ndarray ceases to exist");
+   is_pdl $x+1, $y, "Modifications to mapfraw should be saved to disk no later than when the ndarray ceases to exist";
 
    # We're starting a new test, so we'll remove the files we've created so far
    # and clean up the memory, just to be super-safe
@@ -124,11 +124,8 @@ SKIP: {
    # Load it back up and see if the values are what we expect
    $y = readflex($name);
    # **TEST 11**
-   ok(all(approx($y, PDL->pdl([[0,1,2],[0.1,1.1,2.1]]))),
-      "mapfraw should be able to create new ndarrays");
-
-   # **TEST 12** test the created type
-   ok($y->type->[0] == (&float)->[0], 'type should be of the type we specified (float)');
+   is_pdl $y, float([[0,1,2],[0.1,1.1,2.1]]),
+      "mapfraw should be able to create new ndarrays";
 
    undef $x; undef $y; # cleanup
    # test for bug mentioned in https://perlmonks.org/?node_id=387256

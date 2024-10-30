@@ -2,6 +2,7 @@ use strict;
 use warnings;
 use PDL::IO::Dumper;
 use Test::More;
+use Test::PDL;
 use Config;
 use PDL::LiteF;
 
@@ -39,7 +40,7 @@ is $@, '', 'Can eval dumped 25x25 PDL' or diag 'string: ', $s;
 ok((ref $x eq 'HASH'), 'HASH structure for uuencoded 25x25 PDL restored');
 isa_ok $x->{e}, 'PDL';
 is $x->{e}->nelem, 625;
-ok all(approx $x->{e}, xvals(25,25)), 'Verify 25x25 PDL restored data';
+is_pdl $x->{e}, xvals(25,25), 'Verify 25x25 PDL restored data';
 
 ########## Check header dumping...
 my $y;
