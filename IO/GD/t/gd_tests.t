@@ -6,16 +6,9 @@ use strict;
 use warnings;
 use PDL;
 use Test::More;
+use Test::PDL;
 use File::Temp qw(tempdir);
 use PDL::IO::GD;
-
-sub tapprox {
-    my $x = shift;
-    my $y = shift;
-    my $d = abs($x - $y);
-    #ok( all($d < 1.0e-5) );
-    return all($d < 1.0e-5);
-}
 
 # Test Files:
 my $tempdir = tempdir( CLEANUP=>1 );
@@ -34,24 +27,16 @@ ok( ($lut->dim(0) == 3 && $lut->dim(1) == 256) );
 
 eval {write_png( sequence(16,16), sequence(255)->dummy(0,3), $testfile1 )};
 like $@, qr/exceeded LUT size/, 'too-short LUT throws exception';
-
 my $pdl = sequence(byte, 30, 30);
 write_png( $pdl, $lut, $testfile1 );
+is_pdl read_png($testfile1), $pdl->long;
+eval {read_true_png($testfile1)};
+like $@, qr/Tried to read a non-truecolour/, 'right error instead of segfault';
+is_pdl read_png_lut( $testfile1 ), $lut;
 
 my $tc_pdl = sequence(byte, 100, 100, 3);
 write_true_png( $tc_pdl, $testfile2 );
-
-my $image = read_png($testfile1);
-ok( tapprox( $pdl, $image ) );
-$image = null;
-
-$image = read_true_png( $testfile2 );
-ok( tapprox( $image, $tc_pdl ) );
-eval {read_true_png($testfile1)};
-like $@, qr/Tried to read a non-truecolour/, 'right error instead of segfault';
-
-my $lut2 = read_png_lut( $testfile1 );
-ok( tapprox( $lut, $lut2 ) );
+is_pdl read_true_png( $testfile2 ), $tc_pdl;
 
 $pdl = sequence(byte, 30, 30);
 write_png_ex($pdl, $lut, $testfile3, 0);
@@ -64,7 +49,7 @@ write_true_png_ex($pdl, $testfile3, 9);
 write_true_png_best($pdl, $testfile3 );
 
 recompress_png_best( $testfile3 );
-ok( tapprox( read_png( $testfile4 ), read_png( $testfile3 ) ) );
+is_pdl read_png( $testfile4 ), read_png( $testfile3 );
 
 done_testing;
 

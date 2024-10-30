@@ -6,16 +6,9 @@ use strict;
 use warnings;
 use PDL;
 use Test::More;
+use Test::PDL;
 use File::Temp qw(tempdir);
 use PDL::IO::GD;
-
-sub tapprox {
-    my $x = shift;
-    my $y = shift;
-    my $d = abs($x - $y);
-    #ok( all($d < 1.0e-5) );
-    return all($d < 1.0e-5);
-}
 
 my $tempdir = tempdir( CLEANUP => 1 );
 my $lutfile = "$tempdir/default.rcols";
@@ -26,7 +19,6 @@ my $testfile_true = "$tempdir/test3.png";
 # Write out the lutfile below, so we don't have to include it in the distro:
 write_lut($lutfile);
 
-#diag "Test writing byte (8bit) PNG image...\n";
 my $pdl = sequence(byte, 30, 30);
 
 my $lut = load_lut( $lutfile );
@@ -39,21 +31,13 @@ write_true_png(sequence(100, 100, 3), $testfile_true);
 eval {PDL::IO::GD->new( { filename => "$tempdir/notthere.png" } )};
 like $@, qr/Error/, 'exception not segfault on non-existent file';
 my $gd = PDL::IO::GD->new( { filename => $testfile_lut } );
-#diag "Object created!\n";
 ok( defined( $gd ), 'Object created' );
 
-my $x = $gd->gdImageSX();
-ok( $x, 'query X dim' );
-my $y = $gd->gdImageSY();
-ok( $y, 'query Y dim' );
+is $gd->gdImageSX, 30, 'query X dim';
+is $gd->gdImageSY, 30, 'query Y dim';
 
-my $pdl2 = $gd->to_pdl;
-ok( tapprox( $pdl, $pdl2 ), 'image matches original pdl' );
-
-my $pdl3 = $gd->to_rpic->slice(',-1:0');
-ok( tapprox( $pdl3, $pdl ), 'rpic image matches original pdl' )
-  or diag 'orig(0:3,0:3)=', $pdl->slice('0:3,0:3'),
-    'new(0:3,0:3)=', $pdl3->slice('0:3,0:3');
+is_pdl $gd->to_pdl, $pdl->long, 'image matches original pdl';
+is_pdl $gd->to_rpic->slice(',-1:0'), $pdl->long, 'rpic image matches original pdl';
 
 undef $gd;
 
