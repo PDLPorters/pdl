@@ -1,6 +1,7 @@
 use strict;
 use warnings;
 use Test::More;
+use Test::PDL;
 use PDL;
 use PDL::Graphics::Limits;
 
@@ -84,7 +85,7 @@ my @tests = (
 foreach my $test ( @tests ) {
   my ( $msg, $limits, $exp ) = @$test;
   my $range = pdl limits( @udsets_arr, { %attr, Limits => $limits } );
-  ok( all(approx $range, pdl $exp), "array: $msg" );
+  is_pdl $range, pdl($exp), "array: $msg";
 }
 
 @tests = ( 
@@ -133,7 +134,7 @@ foreach my $test ( @tests ) {
 foreach my $test ( @tests ) {
   my ( $msg, $limits, $exp ) = @$test;
   my $range = pdl limits( @udsets_hash, { %attr, Limits => $limits,  VecKeys => [ qw/ x y / ] } );
-  ok( all(approx $range, pdl $exp), "hash: $msg" );
+  is_pdl $range, pdl($exp), "hash: $msg";
 }
 
 #############################################################
@@ -189,7 +190,7 @@ foreach my $test ( @tests ) {
 foreach my $test ( @tests ) {
   my ( $msg, $limits, $exp ) = @$test;
   my $range = pdl limits( @udsets_arr, { %attr, Limits => $limits } );
-  ok( all(approx $range, pdl $exp), "array: $msg" ) or diag "($range), [@$exp]\n";
+  is_pdl $range, pdl($exp), "array: $msg";
 }
 
 done_testing;

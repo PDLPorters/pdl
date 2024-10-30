@@ -1,6 +1,7 @@
 use strict;
 use warnings;
 use Test::More;
+use Test::PDL;
 use PDL;
 use PDL::Graphics::Limits;
 
@@ -34,7 +35,7 @@ $x1 = pdl( 1, 2, 3, 4 );
 $y1 = pdl( 0, 10, 3, 4 );
 
 @range = limits( [ $x1, $y1 ], { Bounds => 'Zscale', Clean => 'None' } );
-ok( all(approx( pdl(@range), pdl ( 1, 4, -0.4, 8.9 ) )), 'Zscale, None' ) or diag explain \@range;
+is_pdl pdl(@range), pdl(1, 4, -0.4, 8.9), 'Zscale, None';
 
 @range = limits( [ 1, 2 ], [ 3, 4 ], { Bounds => 'MinMax', Clean => 'None' } );
 is_deeply \@range, [ 1, 3, 2, 4 ], "scalars in the mix " or diag explain \@range;

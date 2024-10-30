@@ -2,6 +2,7 @@ use strict;
 use warnings;
 use PDL::LiteF;
 use Test::More;
+use Test::PDL;
 use PDL::Graphics::Limits;
 use Config;
 
@@ -55,11 +56,10 @@ my @round_tests =
 
 for my $test ( @round_tests )
 {
-  my $down = round_pow( down => $test->[0] );
-  my $up   = round_pow( up   => $test->[0] );
-  my $eps  = abs($test->[0]) > 1 ? abs($test->[0])/1.0e-6 : 1.0e-6;
-
-  ok( approx($test->[1],$down,$eps) && approx($test->[2],$up,$eps), 'round_pow('. $test->[0] .')' );
+  my $down = pdl round_pow( down => $test->[0] );
+  my $up   = pdl round_pow( up   => $test->[0] );
+  is_pdl $down, pdl($test->[1]), "round_pow($test->[0])";
+  is_pdl $up, pdl($test->[2]), "round_pow($test->[0])";
 }
 
 done_testing;
