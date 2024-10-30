@@ -174,8 +174,9 @@ Named after is() from L<Test::More>.
 
 sub is_pdl {
   require Test::Builder;
-  my ( $got, $expected, $arg ) = @_;
   my $tb = Test::Builder->new;
+  $tb->croak('error in arguments: > 3 given') if @_ > 3;
+  my ( $got, $expected, $arg ) = @_;
   $tb->croak('error in arguments: third argument is an ndarray')
     if eval { $arg->isa('PDL') };
   my $opt = { %DEFAULTS };
