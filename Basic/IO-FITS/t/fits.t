@@ -4,6 +4,7 @@ use File::Basename;
 use PDL::LiteF;
 use PDL::Core ':Internal'; # For howbig()
 use Test::More;
+use Test::PDL;
 use Test::Exception;
 use PDL::IO::FITS;
 require File::Spec;
@@ -21,24 +22,17 @@ my $t = long xvals(zeroes(11,20))-5;
 wfits($t, $file); # without a header
 my $t2 = rfits $file;
 unlike $t2->hdr->{COMMENT}, qr/HASH/, 'no "HASH" garbage in written header';
-
 # note: keywords are converted to uppercase
 my %hdr = ('Foo'=>'foo', 'Bar'=>42, 'NUM'=>'0123',NUMSTR=>['0123']);
 $t->sethdr(\%hdr);
-
 wfits($t, $file);
 $t2 = rfits $file;
-
-is( sum($t->slice('0:4,:')), -sum($t2->slice('5:-1,:')),
-    "r/wfits: slice check" );
-
+is_pdl $t2, $t, 'w/rfits round-trip';
 my $h = $t2->gethdr;
 ok( $$h{FOO} eq "foo" && $$h{BAR} == 42,
     "header check on FOO/BAR" );
-
 ok( $$h{'NUM'}+1 == 124 && $$h{'NUMSTR'} eq '0123',
     "header check on NUM/NUMSTR" );
-
 unlink $file;
 
 SKIP: {
@@ -53,28 +47,6 @@ SKIP: {
 #   instead they write out a file, read it back in, and
 #   compare to the data used to create the file.
 #   So it is more of a "self consistent" test.
-#
-sub compare_ndarrays ($$$) {
-    my $orig  = shift;
-    my $new   = shift;
-    my $label = shift;
-
-    TODO: {
-       local $TODO = "Need to fix alias between PDL_IND and PDL_L or PDL_LL";
-
-       is( $new->type->symbol, $orig->type->symbol, "$label has the correct type" );
-    }
-    is( $new->nelem, $orig->nelem, "  and the right number of elements" );
-    is( $new->ndims, $orig->ndims, "  and the right number of dimensions" );
-
-    my $flag;
-    if ( $orig->type() < float() ) {
-	$flag = all( $new == $orig );
-    } else {
-	$flag = all( approx( $orig, $new ) );
-    }
-    ok( $flag, "  and all the values agree" );
-}
 
 unless($PDL::Astro_FITS_Header) {
  # Astro::FITS::Header is not present, ignore table tests
@@ -99,8 +71,8 @@ unless($PDL::Astro_FITS_Header) {
 	is( $$table2{hdr}{TTYPE2}, "COLB", "column #2 is COLB" );	  #11
 	is( $$table2{hdr}{TFORM2}, "1D", "  stored as 1D" );		  #12
 
-	compare_ndarrays $x, $$table2{COLA}, "COLA";			#13-16
-	compare_ndarrays $y, $$table2{COLB}, "COLB";			#17-20
+	is_pdl $x, $$table2{COLA}, "COLA";			#13-16
+	is_pdl $y, $$table2{COLB}, "COLB";			#17-20
 
 	$table = { BAR => $x, FOO => $y,
 		   hdr => { TTYPE1 => 'FOO', TTYPE2 => 'BAR' } };
@@ -116,8 +88,8 @@ unless($PDL::Astro_FITS_Header) {
 	is( $$table2{hdr}{TTYPE2}, "BAR", "column #2 is BAR" );	       #24
 	is( $$table2{hdr}{TFORM2}, "1J", "  stored as 1J" );	       #25
 
-	compare_ndarrays $x, $$table2{BAR}, "BAR";			#26-29
-	compare_ndarrays $y, $$table2{FOO}, "FOO";			#30-33
+	is_pdl $x, $$table2{BAR}, "BAR";			#26-29
+	is_pdl $y, $$table2{FOO}, "FOO";			#30-33
 
 	# try out more "exotic" data types
 
@@ -139,12 +111,8 @@ unless($PDL::Astro_FITS_Header) {
 	ok( defined $table2 && ref($table2) eq "HASH" && $$table2{tbl} eq "binary",
 	    "Read in the third binary table" );			       #34
 	my @elem = sort keys %$table2;
-	##my @expected = sort( qw( ACOL BCOL CCOL DCOL ECOL FCOL hdr tbl ) );
-	##is ( $#elem+1, 8, "hash contains 8 elements" );
 	my @expected = sort( qw( ACOL BCOL CCOL DCOL ECOL hdr tbl ) );
-	is ( $#elem+1, 7, "hash contains 7 elements" );			#35
-	ok( eq_array( \@elem, \@expected ), "hash contains expected
-	    keys" );							#36
+	is_deeply \@elem, \@expected, "hash contains expected keys";
 
 	# convert the string array so that each element has the same length
 	# (and calculate the maximum length to use in the check below)
@@ -173,13 +141,12 @@ unless($PDL::Astro_FITS_Header) {
 	  is( $$table2{hdr}{"TFORM$i"}, $$colinfo[1], "  and is stored as $$colinfo[1]" ); #38,44,50,56,59
 	  my $col = $$table2{$$colinfo[0]};
 	  if ( UNIVERSAL::isa($col,"PDL") ) {
-	    compare_ndarrays $col, $$colinfo[2], $$colinfo[0]; #39-42,45-48,51-54,60-63
+	    is_pdl $col, $$colinfo[2], $$colinfo[0]; #39-42,45-48,51-54,60-63
 	  } else {
 	    # Need to somehow handle the arrays since the data read in from the
 	    # file all have 15-character length strings (or whatever the length is)
 	    #
-	    ok( eq_array($col, $$colinfo[2]),
-		"  $$colinfo[0] values agree (as an array reference)" );#57
+	    is_deeply $col, $$colinfo[2], "$$colinfo[0] values agree (as an array reference)";
 	  }
 	  $i++;
 	}
@@ -321,39 +288,34 @@ if(-w dirname($tildefile)) {
 {
 (undef, my $fname) = File::Temp::tempfile( 'delmeXXXXX', SUFFIX => '.fits', %tmp_opts );
 my $x = sequence(10)->setbadat(0);
-#diag "Writing to fits: $x  type = (", $x->get_datatype, ")\n";
 $x->wfits($fname);
 my $y = rfits($fname);
-#diag "Read from fits:  $y  type = (", $y->get_datatype, ")\n";
-ok( $y->slice('0:0')->isbad, "rfits/wfits propagated bad flag" );
-ok( sum(abs($x-$y)) < 1.0e-5, "  and values" );
+is_pdl $y, $x, "wfits/rfits propagated bad flag and values";
 # now force to integer
 $x->wfits($fname,16);
 $y = rfits($fname);
-my $got = $y->slice('0:0');
-ok( $got->isbad, "wfits coerced bad flag with integer datatype" ) or diag "got: $got (from $y)";
-ok( sum(abs(convert($x,short)-$y)) < 1.0e-5, "  and the values" );
+is_pdl $y, $x->short, "integer wfits/rfits propagated bad flag and values";
 }
 
 {
 my $m51 = rfits('t/m51.fits.fz');
-is_deeply [$m51->dims], [384,384], 'right dims from compressed FITS file';
+is_pdl $m51->shape, indx([384,384]), 'right dims from compressed FITS file';
 (undef, my $fname) = File::Temp::tempfile( 'delmeXXXXX', SUFFIX => '.fits', %tmp_opts );
 if ($PDL::Astro_FITS_Header) {
 my $m51_tbl = rfits('t/m51.fits.fz',{expand=>0});
 wfits($m51_tbl, $fname);
 my $m51_2 = rfits($fname);
-ok all(approx $m51, $m51_2), 'read back written-out bintable FITS file' or diag "got:", $m51_2->info;
+is_pdl $m51_2, $m51, 'read back written-out bintable FITS file';
 $m51->wfits($fname, {compress=>1});
 $m51_2 = rfits($fname);
-ok all(approx $m51, $m51_2), 'read back written-out compressed FITS file' or diag "got:", $m51_2->info;
+is_pdl $m51_2, $m51, 'read back written-out compressed FITS file';
 $m51_2->hdrcpy(1);
 $m51_2 = $m51_2->dummy(2,3)->sever;
 $m51_2->hdr->{NAXIS} = 3;
 $m51_2->hdr->{NAXIS3} = 3;
 $m51_2->wfits($fname, {compress=>1});
 my $m51_3 = rfits($fname);
-ok all(approx $m51_3, $m51_2), 'read back written-out compressed RGB FITS file' or diag "got:", $m51_3->info;
+is_pdl $m51_3, $m51_2, 'read back written-out compressed RGB FITS file';
 }
 }
 
