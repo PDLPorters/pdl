@@ -3587,6 +3587,7 @@ PDL_IF_BAD(
   if ((got_badflag && $ISBAD(got())) && (exp_badflag && $ISBADVAR(expctd,expected))) { $result() = 1; continue; }
   if ((got_badflag && $ISBAD(got())) || (exp_badflag && $ISBADVAR(expctd,expected))) { $result() = 0; continue; }
 ,)
+if ($got() == expctd) { $result() = 1; continue; }
 $GENERIC() diff = $got() - expctd;
 double abs_diff2 = PDL_IF_GENTYPE_REAL(
   diff * diff,

@@ -378,9 +378,9 @@ is_pdl pdl([1], pdl[2,3,4], pdl[5]), pdl([[[1,0,0],[0,0,0]],[[2,3,4],[5,0,0]]]),
     is_pdl $c, pdl([1,0,0],[2,3,4]), "implicit, undefval of undef falls back to 0";
     $PDL::undefval = inf;
     $c = pdl undef;
-    ok all($c == inf), "explicit, undefval of PDL scalar works" or diag("c=$c\n");
+    is_pdl $c, inf, "explicit, undefval of PDL scalar works";
     $c = pdl [1], [2,3,4];
-    ok all($c == pdl([1,inf,inf],[2,3,4])), "implicit, undefval of a PDL scalar works" or diag("c=$c\n");
+    is_pdl $c, pdl([1,inf,inf],[2,3,4]), {rtol=>0, test_name=>"implicit, undefval of a PDL scalar works"};
 }
 
 {

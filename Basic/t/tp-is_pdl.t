@@ -203,6 +203,8 @@ test_test( 'custom test name is also displayed correctly when supplied as an opt
 # error is raised.
 throws_ok { is_pdl( $got, $expected, pdl(1,1,1,1) ) }
 	qr/^error in arguments: third argument is an ndarray at /, 'third argument is an ndarray';
+throws_ok { is_pdl( $got, $expected, 1e-4, "label" ) }
+	qr/^error in arguments: > 3 given/, '>3 argument given';
 
 $expected = long( 4,5,6,7,8,9 );
 $expected->badflag( 1 );

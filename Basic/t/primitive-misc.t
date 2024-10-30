@@ -76,6 +76,12 @@ subtest approx_artol => sub {
   $got_a = $fgot->approx_artol($fexpected, 1e-6);
   $exp_a_mask = pdl('1 1 1 0 0 1');
   ok all($got_a == $exp_a_mask), 'bad values pattern' or diag "got=$got_a\nexp=$exp_a_mask";
+  $got_a = inf(1)->approx_artol(inf(1));
+  $exp_a_mask = pdl([1]);
+  ok all($got_a == $exp_a_mask), 'inf matches inf' or diag "got=$got_a\nexp=$exp_a_mask";
+  $got_a = pdl('inf bad')->approx_artol(pdl('inf bad'));
+  $exp_a_mask = pdl([1,1]);
+  ok all($got_a == $exp_a_mask), 'inf,bad matches inf,bad' or diag "got=$got_a\nexp=$exp_a_mask";
 };
 
 done_testing;
