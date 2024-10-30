@@ -49,15 +49,14 @@ is_pdl $x->pctover(0.23), pdl(2.07), "23rd percentile of 10-elem ndarray [SF bug
 ok( ( eval { pdl([])->qsorti }, $@ eq '' ), "qsorti coredump,[SF bug 2110074]");
 
 $d->inplace->qsort;
-ok(all($d == $d_sort), "inplace sorting");
-
+is_pdl $d, $d_sort, "inplace sorting";
 $d->setbadat(3);
 $d_sort = $d->qsort;
 $d->inplace->qsort;
 ok(all($d == $d_sort), "inplace sorting with bad values");
 
 $e->inplace->qsortvec;
-ok(all($e == $e_sort), "inplace lexicographical sorting");
+is_pdl $e, $e_sort, "inplace lexicographical sorting";
 
 my $ei = $e->copy;
 $ei->setbadat(1,3);
@@ -68,7 +67,7 @@ is $ei_sort."", '[0 1 2 4 5 3]', "qsortveci with bad values"
 $e->setbadat(1,3);
 $e_sort = $e->qsortvec;
 $e->inplace->qsortvec;
-ok(all($e == $e_sort), "inplace lexicographical sorting with bad values") or diag "inplace=$e\nnormal=$e_sort";
+is_pdl $e, $e_sort, "inplace lexicographical sorting with bad values";
 
 # Test sf.net bug 379 "Passing qsort an extra argument causes a segfault"
 # (also qsorti, qsortvec, qsortveci)
@@ -81,10 +80,10 @@ isnt($@, '', "qsortvec extra argument");
 eval {random(10,4)->qsortveci(2); };
 isnt($@, '', "qsortveci extra argument");
 #but the dimension size checks for those cases shouldn't derail trivial qsorts:
-is(pdl(5)->qsort,pdl(5),'trivial qsort');
-is(pdl(8)->qsorti,pdl(0),'trivial qsorti');
-ok(all(pdl(42,41)->qsortvec == pdl(42,41)->dummy(1)),'trivial qsortvec');
-is(pdl(53,35)->qsortveci,pdl(0),'trivial qsortveci');
+is_pdl pdl(5)->qsort, pdl([5]),'trivial qsort';
+is_pdl pdl(8)->qsorti, indx([0]),'trivial qsorti';
+is_pdl pdl(42,41)->qsortvec, pdl(42,41)->dummy(1),'trivial qsortvec';
+is_pdl pdl(53,35)->qsortveci,indx([0]),'trivial qsortveci';
 
 # test qsort moves vectors with BAD components to end
 is pdl("0 -100 BAD 100")->qsort."", '[-100 0 100 BAD]', 'qsort moves BAD elts to end';
@@ -116,16 +115,11 @@ EOF
  is join(" ", $y->minmax), '0 2', 'minmax trailing nan';
 }
 my $empty = empty();
-$x = $empty->maximum;
-ok( $x->nelem==1, "maximum over an empty dim yields 1 value");
-is $x.'', 'BAD', "max of empty nonbad float gives BAD";
-
+is_pdl $empty->maximum, sbyte('BAD'), "max of empty nonbad float gives BAD";
 # test bad value handling with max
 $empty->badflag(1);
-$x = $empty->maximum;
-ok( $x->isbad, "bad flag gets set on max over an empty dim");
-$x = $empty->magnover;
-ok( $x->isbad, "bad flag gets set on empty magnover");
+is_pdl $empty->maximum, sbyte('BAD'), "bad flag gets set on max over an empty dim";
+is_pdl $empty->magnover, float('BAD'), "bad flag gets set on empty magnover";
 
 is_pdl zeroes(4)->magnover, pdl(0), 'magnover correct for real zeroes';
 is_pdl sequence(4)->magnover, pdl(3.741657), 'magnover correct for real sequence';
@@ -141,25 +135,24 @@ my $i=pdl (1,0);
 my $j=pdl(-3, 3, -5, 10);
 
 #Test percentile routines
-is_pdl PDL::pct($f,.5), pdl(3), 'PDL::pct 50th percentile';
-is_pdl PDL::pct($g,.76), pdl(0.76), 'PDL::pct interpolation test';
-is_pdl PDL::pct($i,.76), pdl(0.76), 'PDL::pct interpolation not in order test';
+is_pdl $f->pct(.5), pdl(3), 'PDL::pct 50th percentile';
+is_pdl $g->pct(.76), pdl(0.76), 'PDL::pct interpolation test';
+is_pdl $i->pct(.76), pdl(0.76), 'PDL::pct interpolation not in order test';
 
-is_pdl PDL::oddpct($f, .5), pdl(3), 'PDL::oddpct 50th percentile';
-is_pdl PDL::oddpct($f, .79), pdl(4), 'PDL::oddpct intermediate value test';
-is_pdl PDL::oddpct($h, .5), pdl(0), 'PDL::oddpct 3-member 50th percentile with negative value';
-is_pdl PDL::oddpct($j, .1), pdl(-5), 'PDL::oddpct negative values in-between test';
+is_pdl $f->oddpct(.5), pdl(3), 'PDL::oddpct 50th percentile';
+is_pdl $f->oddpct(.79), pdl(4), 'PDL::oddpct intermediate value test';
+is_pdl $h->oddpct(.5), pdl(0), 'PDL::oddpct 3-member 50th percentile with negative value';
+is_pdl $j->oddpct(.1), pdl(-5), 'PDL::oddpct negative values in-between test';
 
 #Test oddmedian
-ok (PDL::oddmedian($g) ==  0, 'Oddmedian 2-value ndarray test');
-ok (PDL::oddmedian($h) ==  0, 'Oddmedian 3-value not in order test');
-ok (PDL::oddmedian($j) == -3, 'Oddmedian negative values even cardinality test');
+is_pdl $g->oddmedian, pdl(0), 'Oddmedian 2-value ndarray test';
+is_pdl $h->oddmedian, pdl(0), 'Oddmedian 3-value not in order test';
+is_pdl $j->oddmedian, pdl(-3), 'Oddmedian negative values even cardinality';
 
 #Test mode and modeover
 $x = pdl([1,2,3,3,4,3,2],1);
-ok $x->mode == 0, "mode test";
-ok all($x->modeover == pdl(3,0)), "modeover test";
-
+is_pdl $x->mode, longlong(0), "mode";
+is_pdl $x->modeover, longlong(3,0), "modeover";
 
 #the next 4 tests address GitHub issue #248.
 
@@ -199,10 +192,8 @@ is( pdl([-6,~0,-4])->setvaltobad(~0)->bandover(), -8, "bandover with BAD values"
 is ushort(65535)->max, 65535, 'max(highest ushort value) should not be BAD';
 
 {
-  my $y = empty(indx)->long;
-  ok( $y->avg == 0,              "avg of long Empty" );
-  my $c = empty(indx)->double;
-  ok( !any isfinite $c->average, "isfinite of double Empty" );
+  is_pdl empty(indx)->long->avg, long(0), "avg of long Empty";
+  is_pdl empty(indx)->double->average, nan(), "average double Empty";
 }
 
 # provide independent copies of test data.
@@ -227,17 +218,11 @@ sub IM {
 
 subtest 'minmax' => sub {
     my @minMax = IM->minmax;
-    ok( $minMax[0] == 1,  "minmax min" );
-    ok( $minMax[1] == 13, "minmax max" );
+    is $minMax[0], 1,  "minmax min";
+    is $minMax[1], 13, "minmax max";
 };
 
-subtest dsumover => sub {
-    my $x = ones( byte, 3000 );
-    my $y;
-    dsumover( $x, ( $y = null ) );
-    is( $y->get_datatype, $PDL_D, "get_datatype" );
-    is( $y->at,           3000,   "at" );
-};
+is_pdl ones(byte, 3000)->dsumover, pdl(3000);
 
 subtest 'minimum_n_ind' => sub {
 
@@ -306,9 +291,8 @@ subtest diff2 => sub {
 
 subtest intover => sub {
   for ([1,0], [2,0.5], [3,2], [4,4.5], [5,8], [6,12.5], [7,18]) {
-    my ($size, $exp, $got) = @$_;
-    ok approx($got=sequence($size)->intover, $exp), "intover $size"
-      or diag "got=$got\nexp=$exp";
+    my ($size, $exp) = @$_;
+    is_pdl sequence($size)->intover, pdl($exp), "intover $size";
   }
 };
 

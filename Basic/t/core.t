@@ -134,7 +134,7 @@ my $b_dbl  = $a_dbl->slice('5');
 my $c_long = $a_long->slice('4:7');
 my $c_dbl  = $a_dbl->slice('4:7');
 is $b_long->sclr, 5, "sclr test of 1-elem pdl (long)";
-ok approx( $b_dbl->sclr, 5 ), "sclr test of 1-elem pdl (dbl)";
+is $b_dbl->sclr, 5, "sclr test of 1-elem pdl (dbl)";
 eval { $c_long->sclr };
 like $@, qr/multielement ndarray in 'sclr' call/, "sclr failed on multi-element ndarray (long)";
 eval { $c_dbl->sclr };
@@ -162,18 +162,18 @@ ok eq_array( [ $y->dims ], [3,4] ), "reshape()";
 my $x = ones 3,1,4;
 my $y = $x->reshape(-1);
 my $c = $x->squeeze;
-ok eq_array( [ $y->dims ], [3,4] ), "reshape(-1)";
-ok all( $y == $c ), "squeeze";
+is_pdl $y->shape, indx([3,4]), "reshape(-1)";
+is_pdl $y, $c, "squeeze";
 $c++; # check dataflow in reshaped PDL
-ok all( $y == $c ), "dataflow"; # should flow back to y
-ok all( $x == 2 ), "dataflow";
+is_pdl $y, $c, "dataflow"; # should flow back to y
+is_pdl $x, pdl(2)->slice('*3,*1,*4'), "dataflow";
 }
 
 {
 my $d = pdl(5); # zero dim ndarray and reshape/squeeze
-ok $d->reshape(-1)->ndims==0, "reshape(-1) on 0-dim PDL gives 0-dim PDL";
-ok $d->reshape(1)->ndims==1, "reshape(1) on 0-dim PDL gives 1-dim PDL";
-ok $d->reshape(1)->reshape(-1)->ndims==0, "reshape(-1) on 1-dim, 1-element PDL gives 0-dim PDL";
+is_pdl $d->reshape(-1)->shape, empty(indx), "reshape(-1) on 0-dim PDL gives 0-dim PDL";
+is_pdl $d->reshape(1)->shape, indx([1]), "reshape(1) on 0-dim PDL gives 1-dim PDL";
+is_pdl $d->reshape(1)->reshape(-1)->shape, empty(indx), "reshape(-1) on 1-dim, 1-element PDL gives 0-dim PDL";
 }
 
 {
@@ -260,11 +260,10 @@ my $subobj = PDL::Trivial->new(6);
 isa_ok $subobj, 'PDL::Trivial';
 isa_ok +PDL->topdl($subobj), 'PDL::Trivial';
 isa_ok $subobj->inplace, 'PDL::Trivial';
-isa_ok( PDL->topdl(1),       "PDL", "topdl(1) returns an ndarray" );
-isa_ok( PDL->topdl([1,2,3]), "PDL", "topdl([1,2,3]) returns an ndarray" );
-isa_ok( PDL->topdl(1,2,3),   "PDL", "topdl(1,2,3) returns an ndarray" );
-my $x=PDL->topdl(1,2,3);
-ok (($x->nelem == 3  and  all($x == pdl(1,2,3))), "topdl(1,2,3) returns a 3-ndarray containing (1,2,3)");
+isa_ok +PDL->topdl(1),       "PDL", "topdl(1) returns an ndarray";
+isa_ok +PDL->topdl([1,2,3]), "PDL", "topdl([1,2,3]) returns an ndarray";
+isa_ok +PDL->topdl(1,2,3),   "PDL", "topdl(1,2,3) returns an ndarray";
+is_pdl +PDL->topdl(1,2,3), pdl(1,2,3), "topdl(1,2,3) returns a 3-ndarray containing (1,2,3)";
 eval {PDL->topdl({})};
 isnt $@, '', 'topdl({}) no segfault';
 }
@@ -331,63 +330,52 @@ is $PDL::undefval, 0, "default value of \$PDL::undefval is 0";
 
 {
 my $x = [ [ 2, undef ], [3, 4 ] ];
-my $y = pdl( $x );
-my $c = pdl( [ 2, 0, 3, 4 ] )->reshape(2,2);
-ok all( $y == $c ), "undef converted to 0 (dbl)";
-ok eq_array( $x, [[2,undef],[3,4]] ), "pdl() has not changed input array";
-$y = pdl( long, $x );
-$c = pdl( long, [ 2, 0, 3, 4 ] )->reshape(2,2);
-ok all( $y == $c ), "undef converted to 0 (long)";
+my $y = pdl($x);
+my $c = pdl([[2, 0],[3, 4]]);
+is_pdl $y, $c, "undef converted to 0 (dbl)";
+is_deeply $x, [[2,undef],[3,4]], "pdl() has not changed input array";
+is_pdl long($x), long($c), "undef converted to 0 (long)";
 }
 
 {
-    local($PDL::undefval) = -999;
-    my $x = [ [ 2, undef ], [3, 4 ] ];
-    my $y = pdl( $x );
-    my $c = pdl( [ 2, -999, 3, 4 ] )->reshape(2,2);
-    ok all( $y == $c ), "undef converted to -999 (dbl)";
-    $y = pdl( long, $x );
-    $c = pdl( long, [ 2, -999, 3, 4 ] )->reshape(2,2);
-    ok all( $y == $c ), "undef converted to -999 (long)";
+local($PDL::undefval) = -999;
+my $x = [ [ 2, undef ], [3, 4 ] ];
+my $y = pdl($x);
+my $c = pdl('2 -999; 3 4');
+is_pdl $y, $c, "undef converted to -999 (dbl)";
+is_pdl long($x), long($c), "undef converted to -999 (long)";
 };
 
 {
 # Funky constructor cases
 # pdl of a pdl
-my $x = pdl(pdl(5));
-ok all( $x== pdl(5)), "pdl() can piddlify an ndarray";
-$x = pdl(null);
-ok $x->isnull, 'pdl(null) gives null' or diag "x(", $x->info, ")";
+is_pdl pdl(pdl(5)), pdl(5), "pdl() can piddlify an ndarray";
+is_pdl pdl(null), null, 'pdl(null) gives null';
 
-$x = pdl(null, null);
-is_deeply [$x->dims], [0,2], 'pdl(null, null) gives empty' or diag "x(", $x->info, ")";
-ok !$x->isnull, 'pdl(null, null) gives non-null' or diag "x(", $x->info, ")";
+is_pdl pdl(null, null), zeroes(0,2), 'pdl(null, null) gives empty';
 
 # pdl of mixed-dim pdls: pad within a dimension
-$x = pdl( zeroes(5), ones(3) );
-ok all($x == pdl([0,0,0,0,0],[1,1,1,0,0])),"Piddlifying two ndarrays concatenates them and pads to length" or diag("x=$x\n");
+is_pdl pdl( zeroes(5), ones(3) ), pdl([0,0,0,0,0],[1,1,1,0,0]),"Piddlifying two ndarrays concatenates them and pads to length";
 
 # pdl of mixed-dim pdls: pad a whole dimension
-$x = pdl( [[9,9],[8,8]], xvals(3)+1 );
-ok all($x == pdl([[[9,9],[8,8],[0,0]] , [[1,0],[2,0],[3,0]] ])),"can concatenate mixed-dim ndarrays" or diag("x=$x\n");
+is_pdl pdl( [[9,9],[8,8]], xvals(3)+1 ), pdl([[[9,9],[8,8],[0,0]] , [[1,0],[2,0],[3,0]] ]),"can concatenate mixed-dim ndarrays";
 
 # pdl of mixed-dim pdls: a hairier case
-my $c = pdl [1], pdl[2,3,4], pdl[5];
-ok all($c == pdl([[[1,0,0],[0,0,0]],[[2,3,4],[5,0,0]]])),"Can concatenate mixed-dim ndarrays: hairy case" or diag("c=$c\n");
+is_pdl pdl([1], pdl[2,3,4], pdl[5]), pdl([[[1,0,0],[0,0,0]],[[2,3,4],[5,0,0]]]),"Can concatenate mixed-dim ndarrays: hairy case";
 }
 
 # same thing, with undefval set differently
 {
     local($PDL::undefval) = 99;
     my $c = pdl undef;
-    ok all($c == pdl(99)), "explicit, undefval of 99 works" or diag("c=$c\n");
+    is_pdl $c, pdl(99), "explicit, undefval of 99 works";
     $c = pdl [1], pdl[2,3,4], pdl[5];
-    ok all($c == pdl([[[1,99,99],[99,99,99]],[[2,3,4],[5,99,99]]])), "implicit, undefval works for padding" or diag("c=$c\n");
+    is_pdl $c, pdl([[[1,99,99],[99,99,99]],[[2,3,4],[5,99,99]]]), "implicit, undefval works for padding";
     $PDL::undefval = undef;
     $c = pdl undef;
-    ok all($c == pdl(0)), "explicit, undefval of undef falls back to 0" or diag("c=$c\n");
+    is_pdl $c, pdl(0), "explicit, undefval of undef falls back to 0";
     $c = pdl [1], [2,3,4];
-    ok all($c == pdl([1,0,0],[2,3,4])), "implicit, undefval of undef falls back to 0" or diag("c=$c\n");
+    is_pdl $c, pdl([1,0,0],[2,3,4]), "implicit, undefval of undef falls back to 0";
     $PDL::undefval = inf;
     $c = pdl undef;
     ok all($c == inf), "explicit, undefval of PDL scalar works" or diag("c=$c\n");
@@ -400,22 +388,17 @@ ok all($c == pdl([[[1,0,0],[0,0,0]],[[2,3,4],[5,0,0]]])),"Can concatenate mixed-
 my $x = eval {zeroes(2,0,1);};
 is($@, '', "zeroes accepts empty PDL specification");
 
-my $y = eval { pdl($x,sequence(2,0,1)); };
-is $@, '';
-ok all(pdl($y->dims) == pdl(2,0,1,2)), "concatenating two empties gives an empty";
+my $y = pdl($x,sequence(2,0,1));
+is_pdl $y->shape, indx(2,0,1,2), "concatenating two empties gives an empty";
 
-eval { $y = pdl($x,sequence(2,1,1)); };
-is $@, '';
-ok all(pdl($y->dims) == pdl(2,1,1,2)), "concatenating an empty and a nonempty treats the empty as a filler";
+$y = pdl($x,sequence(2,1,1));
+is_pdl $y->shape, indx(2,1,1,2), "concatenating an empty and a nonempty treats the empty as a filler";
 
-eval { $y = pdl($x,5) };
-is $@, '';
-ok all(pdl($y->dims)==pdl(2,1,1,2)), "concatenating an empty and a scalar on the right works";
+$y = pdl($x,5);
+is_pdl $y->shape, indx(2,1,1,2), "concatenating an empty and a scalar on the right works";
 
-eval { $y = pdl(5,$x) };
-is $@, '';
-ok all(pdl($y->dims)==pdl(2,1,1,2)), "concatenating an empty and a scalar on the left works";
-ok( all($y==pdl([[[5,0]]],[[[0,0]]])), "concatenating an empty and a scalar on the left gives the right answer");
+$y = pdl(5,$x);
+is_pdl $y, pdl([[[5,0]]],[[[0,0]]]), "concatenating an empty and a scalar on the left gives the right answer";
 }
 
 # cat problems
@@ -445,12 +428,7 @@ like($@, qr/\(argument 1\)/,
 	'cat properly identifies the first actual ndarray in combined screw-ups');
 }
 
-{
-my $x = eval {cat(pdl(1),pdl(2,3));};
-is($@, '', 'cat(pdl(1),pdl(2,3)) succeeds');
-is_deeply [$x->dims], [2,2], 'weird cat case has the right shape';
-ok( all( $x == pdl([1,1],[2,3]) ), "cat does the right thing with catting a 0-pdl and 2-pdl together");
-}
+is_pdl cat(pdl(1),pdl(2,3)), pdl([1,1],[2,3]), "cat does the right thing with catting a 0-pdl and 2-pdl together";
 
 {
 my $lo=sequence(long,5)+32766;
@@ -460,13 +438,13 @@ my $by=sequence(byte,5)+253;
 my @list = ($lo,$so,$fl,$by);
 my $c2 = cat(@list);
 is($c2->type,'float','concatenating different datatypes returns the highest type');
-ok(all($_==shift @list),"cat/dog symmetry for values") for $c2->dog;
+is_pdl $_, shift @list, {require_equal_types=>0, test_name=>"cat/dog symmetry for values"} for $c2->dog;
 my ($dogcopy) = $c2->dog({Break=>1});
 $dogcopy++;
-ok all($dogcopy != $c2->slice(':,(0)')), 'Break means copy'; # not lo as cat no flow
+is_pdl $dogcopy, $c2->slice(':,(0)')+1, 'Break means copy'; # not lo as cat no flow
 my ($dogslice) = $c2->dog;
 $dogslice++;
-ok all($dogslice == $c2->slice(':,(0)')), 'no Break means dataflow' or diag "got=$dogslice\nexpected=$lo";
+is_pdl $dogslice, $c2->slice(':,(0)'), 'no Break means dataflow';
 eval {pdl([3])->dog(5)};
 like $@, qr/Usage/, "error if excess args";
 for ([[], qr/at least/], [[5]], [[4,5]]) {
@@ -489,27 +467,27 @@ my $y = $x->copy;
 ok $x->is_inplace,"original item true inplace flag after copy";
 ok !$y->is_inplace,"copy has false inplace flag";
 $y++;
-ok all($y!=sequence(byte,5)),"copy returns severed copy of the original thing if inplace is set";
+is_pdl $y, sequence(byte,5)+1,"copy returns severed copy of the original thing if inplace is set";
 ok $x->is_inplace,"original item still true inplace flag";
 ok !$y->is_inplace,"copy still false inplace flag";
-ok all($x==sequence(byte,5)),"copy really is severed";
+is_pdl $x, sequence(byte,5),"copy really is severed";
 }
 
 {
 # new_or_inplace
 my $x = sequence(byte,5);
 my $y = $x->new_or_inplace;
-ok( all($y==$x) && ($y->get_datatype ==  $x->get_datatype), "new_or_inplace with no pref returns something like the orig.");
+is_pdl $y, $x, "new_or_inplace with no pref returns something like the orig.";
 $y++;
-ok(all($y!=$x),"new_or_inplace with no inplace flag returns something disconnected from the orig.");
+is_pdl $y, $x+1, "new_or_inplace with no inplace flag returns something disconnected from the orig.";
 
 $y = $x->new_or_inplace("float,long");
-ok($y->type eq 'float',"new_or_inplace returns the first type in case of no match");
+is $y->type, 'float',"new_or_inplace returns first type in case of no match";
 
 $y = $x->inplace->new_or_inplace;
 $y++;
-ok(all($y==$x),"new_or_inplace returns the original thing if inplace is set");
-ok(!($y->is_inplace),"new_or_inplace clears the inplace flag");
+is_pdl $y, $x, "new_or_inplace returns the original thing if inplace is set";
+ok !$y->is_inplace,"new_or_inplace clears the inplace flag";
 }
 
 {
@@ -517,8 +495,8 @@ ok(!($y->is_inplace),"new_or_inplace clears the inplace flag");
 my $empty = empty();
 is $empty->type->enum, 0, 'empty() gives lowest-numbered type';
 is empty(float)->type, 'float', 'empty(float) works';
-ok($empty->nelem==0,"you can make an empty PDL with zeroes(0)");
-ok("$empty" =~ m/Empty/, "an empty PDL prints 'Empty'");
+is $empty->nelem, 0, "you can make an empty PDL with zeroes(0)";
+like "$empty", qr/Empty/, "an empty PDL prints 'Empty'";
 }
 
 {
@@ -545,11 +523,10 @@ like $@, qr/null/, 'null->long gives right error';
 }
 
 {
-my $x = short pdl(3,4,5,6);
+my $x = short(3,4,5,6);
 eval { $x->reshape(2,2);};
 is($@, '', "reshape succeeded in the normal case");
-ok( ( $x->ndims==2 and $x->dim(0)==2 and $x->dim(1)==2 ), "reshape did the right thing");
-ok(all($x == short pdl([[3,4],[5,6]])), "reshape moved the elements to the right place");
+is_pdl $x, short([[3,4],[5,6]]), "reshape moved the elements to the right place";
 my $y = $x->slice(":,:");
 eval { $y->reshape(4); };
 unlike $@, qr/Can't/, "reshape doesn't fail on a PDL with a parent";
@@ -584,9 +561,8 @@ SKIP: {
   my $neg = -684394069604;
   my $straight_pdl = pdl($neg);
   my $multed = pdl(1) * $neg;
-  ok $straight_pdl == $multed, 'upgrade of large negative SV to ndarray'
-    or diag "straight=$straight_pdl mult=$multed\n",
-      "straight:", $straight_pdl->info, " mult:", $multed->info;
+  is $straight_pdl, $multed, 'upgrade of large negative SV to ndarray'
+    or diag "straight:", $straight_pdl->info, " mult:", $multed->info;
   }
   {
   my $fromuv_r = pdl('10223372036854775507');
