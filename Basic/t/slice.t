@@ -2,7 +2,7 @@ use strict;
 use warnings;
 use Test::More;
 use PDL::LiteF;
-use PDL::Dbg;
+use Test::PDL;
 
 # PDL::Core::set_debugging(1);
 
@@ -13,23 +13,14 @@ use PDL::Dbg;
 #    kill INT,$$  if $ENV{UNDER_DEBUGGER};
 #}
 
-sub tapprox ($$) {
-    my $x = shift;
-    my $y = shift;
-    return 1 if $x->isempty and $y->isempty;
-    my $maxdiff = abs($x-$y)->max;
-    return $maxdiff < 0.01;
-}
-
 my $x = (1+(xvals zeroes 4,5) + 10*(yvals zeroes 4,5));
 
 is($x->at(2,2), 23, "x location (2,2) is 23");
 
 my $y = $x->slice('1:3:2,2:4:2');
-ok(tapprox($y,pdl([[22,24],[42,44]])));
-
+is_pdl $y,pdl([[22,24],[42,44]]);
 $y .= 0.5;
-ok(tapprox($y,pdl([[0.5,0.5],[0.5,0.5]])));
+is_pdl $y,pdl([[0.5,0.5],[0.5,0.5]]);
 is($x->at(1,2), 0.5);
 is($x->at(2,2), 23); # Check that nothing happened to other elems
 
@@ -41,47 +32,37 @@ is("$line", '[1 1 1]', 'right value after collapsing slice (0)');
 
 my $im = byte [[0,1,255],[0,0,0],[1,1,1]];
 (my $im1 = null) .= $im->dummy(0,3);
-my $im2 = $im1->clump(2)->slice(':,0:2');
-ok(!tapprox(ones(byte,9,3),$im2));
+is_pdl $im1->clump(2)->slice(':,0:2'), byte('0 0 0 1 1 1 255 255 255; 0 0 0 0 0 0 0 0 0; 1 1 1 1 1 1 1 1 1');
 
 # here we encounter the problem
-$im2 = $im1->clump(2)->slice(':,-1:0');
-ok(!tapprox(ones(byte,9,3),$im2));
+is_pdl $im1->clump(2)->slice(':,-1:0'), byte('1 1 1 1 1 1 1 1 1; 0 0 0 0 0 0 0 0 0; 0 0 0 1 1 1 255 255 255');
 
-$x = xvals( zeroes 10,10) + 0.1*yvals(zeroes 10,10);
-ok(tapprox($x->mslice('X',[6,7]),
-	   pdl([
-		[0.6, 1.6, 2.6, 3.6, 4.6, 5.6, 6.6, 7.6, 8.6, 9.6],
-		[0.7, 1.7, 2.7, 3.7, 4.7, 5.7, 6.7, 7.7, 8.7, 9.7]
-	       ])));
+is_pdl +(xvals(10,10) + 0.1*yvals(10,10))->mslice('X',[6,7]), pdl([
+  [0.6, 1.6, 2.6, 3.6, 4.6, 5.6, 6.6, 7.6, 8.6, 9.6],
+  [0.7, 1.7, 2.7, 3.7, 4.7, 5.7, 6.7, 7.7, 8.7, 9.7]
+]);
 
 my $lut = pdl [[1,0],[0,1]];
 $im = pdl indx, [1];
 my $in = $lut->transpose->index($im->dummy(0));
-is("$in", "\n[\n [0 1]\n]\n");
+is_pdl $in, pdl([[0,1]]);
 $in .= pdl 1;
-is("$in", "\n[\n [1 1]\n]\n");
-my $expected = pdl([[1,0],[1,1]]);
-ok(tapprox($lut, $expected)) or diag "lut=$lut exp=$expected";
+is_pdl $in, pdl([[1,1]]);
+is_pdl $lut, pdl([[1,0],[1,1]]);
 
 # Test of dice and dice_axis
 $x = sequence(10,4);
 is($x->dice([1,2],[0,3])->sum, 66, "dice");
 is($x->dice([0,1],'X')->sum, 124, "dice 'X'");
 
-my $got;
 # Test of dice clump compatibility
 my $xxx = PDL->new([[[0,0]],[[1,1]],[[2,2]]]);
-is_deeply($xxx->where($xxx == 0)->unpdl,[0,0],"dice clump base zero");
+is_pdl $xxx->where($xxx == 0), pdl([0,0]), "dice clump base zero";
 my $dice = $xxx->dice("X","X",[1,0]);
-is_deeply($got=$dice->clump(-1)->unpdl,[1,1,0,0],"dice clump correct") or diag "got=", explain $got;
-is_deeply($dice->where($dice == 0)->unpdl,[0,0],"dice clump where zero");
+is_pdl $dice->clump(-1), pdl([1,1,0,0]), "dice clump correct";
+is_pdl $dice->where($dice == 0), pdl([0,0]), "dice clump where zero";
 
-$x = sequence(5,3,2);
-my @newDimOrder = (2,1,0);
-$y = $x->reorder(@newDimOrder);
-$got = [$y->dims];
-is_deeply($got, [2,3,5], "Test of reorder") or diag explain $got;
+is_pdl zeroes(5,3,2)->reorder(2,1,0)->shape, indx([2,3,5]), "reorder";
 
 $x = zeroes(3,4);
 $y = $x->dummy(-1,2);
@@ -93,17 +74,17 @@ for my $in (
   $x->cat(map $x->rotate($_), 1..4)
 ) {
   rle($in,my $y=null,my $z=null);
-  ok(tapprox(rld($y,$z), $in),"rle with null input");
+  is_pdl rld($y,$z), $in,"rle with null input";
   ($y,$z) = rle($in);
-  ok(tapprox(rld($y,$z), $in),"rle with return vals");
+  is_pdl rld($y,$z), $in,"rle with return vals";
 }
 
 $y = $x->mslice(0.5);
-ok(tapprox($y, 1), "mslice 1");
+is_pdl $y, pdl([1]), "mslice 1";
 $y = mslice($x, 0.5);
-ok(tapprox($y, 1), "func mslice 1");
+is_pdl $y, pdl([1]), "func mslice 1";
 $y = $x->mslice([0.5,2.11]);
-is("$y", "[1 1 1]", "mslice 2");
+is_pdl $y, pdl("[1 1 1]"), "mslice 2";
 
 $x = zeroes(3,3);
 $y = $x->splitdim(3,3);
@@ -173,7 +154,7 @@ for (
   is_deeply([$y->dims], ref($exp) eq 'ARRAY' ? $exp : [$exp->dims], "$label dims right") or diag explain [$y->dims];
   next if ref($exp) eq 'ARRAY';
   is $y->nelem, $exp->nelem, "$label works right";
-  ok tapprox($y, $exp), "$label works right";
+  is_pdl $y, $exp, "$label works right";
 }
 
 my $d = eval { $x2->slice("0:1,2:3,0")->xchg(0,2)->make_physical };
@@ -192,14 +173,14 @@ my $source = 10*xvals(10,10) + yvals(10,10);
 my $index  = pdl([[2,3],[4,5]],[[6,7],[8,9]]);
 eval { $x = $source->indexND( $index ) };
 is $@, '';
-ok(tapprox($x, pdl([23,45],[67,89])));
+is_pdl $x, pdl([23,45],[67,89]);
 
 # Broadcast indexND operation
 $source = 100*xvals(10,10,2)+10*yvals(10,10,2)+zvals(10,10,2);
 $index  = pdl([[2,3],[4,5]],[[6,7],[8,9]]);
 eval { $x = $source->indexND($index) };
 is $@, '';
-ok(tapprox($x, pdl([[230,450],[670,890]],[[231,451],[671,891]])));
+is_pdl $x, pdl([[230,450],[670,890]],[[231,451],[671,891]]);
 
 # Tests of range operator
 $source = 10*xvals(10,10) + yvals(10,10);
@@ -216,7 +197,7 @@ for (
   [$source, [$index,3,["e","p"]], [2,2,3,3], pdl([[89,99,99],[80,90,90],[81,91,91]]), "extension+periodic list syntax size 3", sub {shift->slice("(1),(1)")}],
   [$dex, [$mt], [0], pdl([]), "scalar Empty[0] indices"],
   [$dex, [zeroes(1,0)], [0], pdl([]), "Empty[1,0] indices"],
-  [$mt, [$dex,undef,'e'], [], pdl(0), "empty source"],
+  [$mt, [$dex,undef,'e'], [], indx(0), "empty source"],
   [$mt, [$mt], [0], pdl([]), "empty source and index"],
   [pdl(5,5,5,5), [$mt], [0], pdl([]), "non-empty source, empty index", sub {$_[0] .= 2}],
 ) {
@@ -231,11 +212,11 @@ for (
   is $@, '', "$label works 2";
   $y = $exp_mod->($y) if $exp_mod;
   is $y->nelem, $exp->nelem, "$label nelem right";
-  ok tapprox($y, $exp), "$label right data" or diag "got=$y\nexp=$exp";
-  ok tapprox($src, $src_copy), "$label source not mutated";
+  is_pdl $y, $exp, "$label right data";
+  is_pdl $src, $src_copy, "$label source not mutated";
   next if !$mutate;
   $mutate->($y);
-  ok tapprox($src, $mutate_exp), "$label src right data after mutation" or diag "got=$src";
+  is_pdl $src, pdl($mutate_exp), "$label src right data after mutation";
 }
 
 # range on higher-dimensional
@@ -352,12 +333,12 @@ $root .= 3;
 vafftest(\%addr2label, $all, [[0,1,0,0],[1,1,0,0],[1,1,0,0]], "root assigned to");
 $clumped2->make_physvaffine;
 vafftest(\%addr2label, $all, [[0,1,0,0],[0,1,0,0],[0,1,0,0]], "clumped2 physvaff 2");
-is "@{$clumped2->unpdl}", "3 3 3 3 3 3 3 3";
+is_pdl $clumped2, pdl("3 3 3 3 3 3 3 3");
 
 # Make sure that vaffining is properly working:
 my $y = xvals(5,6,2) + 0.1 * yvals(5,6,2) + 0.01 * zvals(5,6,2);
 my $c = $y->copy->slice("2:3");
-ok tapprox $c, $c->copy;
+is_pdl $c, $c->copy;
 for ([0,1], [1,0], [1,1]) {
   my ($mv, $mult) = @$_;
   my $x_orig = pdl [1..4];
@@ -365,13 +346,10 @@ for ([0,1], [1,0], [1,1]) {
   my $x_slice = $x_mv->slice("0:2");
   $x_slice->make_physvaffine;
   $x_slice *= 100 if $mult;
-  my $y = PDL::_clump_int($x_slice,-1);
-  $y->make_physvaffine;
-  my $got = [$x_slice->firstvals_nophys];
-  my $exp = [map $_*($mult ? 100 : 1), 1..3];
-  is_deeply $got, $exp, "mv=$mv mult=$mult firstvals_nophys" or diag explain $got;
-  $got = $y->unpdl;
-  is_deeply $got, $exp, "mv=$mv mult=$mult clump" or diag explain $got;
+  my $y = PDL::_clump_int($x_slice,-1)->make_physvaffine;
+  my $exp = pdl(map $_*($mult ? 100 : 1), 1..3);
+  is_pdl pdl($x_slice->firstvals_nophys), $exp, "mv=$mv mult=$mult firstvals_nophys";
+  is_pdl $y, $exp, "mv=$mv mult=$mult clump";
 }
 # test the bug alluded to in the comments in pdl_changed (pdlapi.c)
 # used to segfault
@@ -382,12 +360,9 @@ my $sl2 = $xx->slice('(1)');
 my $sl22 = $sl2->slice('');
 my $roots = pdl '[1 -2396-2796i -778800+5024412i 2652376792-1643494392i -684394069604-217389559200i]'; # gives 4 roots of 599+699i
 PDL::polyroots($roots->re, $roots->im, $sl11, $sl22);
-my $got;
-ok all(approx $got=$xx->slice('(0)'), 599), "col=0"
-  or diag "roots=$roots\n",
-  "roots:", PDL::Core::pdump($roots),
-  "got=$got\n", "return=", PDL::polyroots($roots->re, $roots->im);
-ok all(approx $got=$xx->slice('(1)'), 699), "col=1" or diag "got=$got";
+is_pdl $xx->slice('(0)'), pdl(599)->dummy(0,4), "col=0"
+  or diag "roots=$roots\n", "roots:", PDL::Core::pdump($roots);
+is_pdl $xx->slice('(1)'), pdl(699)->dummy(0,4), "col=1";
 
 eval {(my $y = zeroes(3,6)) += sequence(6,6)->mv(1,0)->slice("1:-1:2")};
 is $@, '', 'can += an mv->slice';
@@ -400,12 +375,9 @@ for ([0,0], [0,1], [1,0], [1,1]) {
   my $clump = $orig->clump(1,2);
   $clump->make_physvaffine if $phys_clump;
   ($mutate_orig ? $orig : $clump) .= 3;
-  my $got = $orig->unpdl;
-  is_deeply $got, [[[(3)x3],[(3)x3]]], "phys_clump=$phys_clump mutate_orig=$mutate_orig orig" or diag explain $got;
-  $got = $clump->unpdl;
-  is_deeply $got, [[(3)x3],[(3)x3]], "phys_clump=$phys_clump mutate_orig=$mutate_orig clump" or diag explain $got;
-  $got = $clump->uniqvec->unpdl;
-  is_deeply $got, [[(3)x3]], "phys_clump=$phys_clump mutate_orig=$mutate_orig uniqvec" or diag explain $got;
+  is_pdl $orig, pdl([[[(3)x3],[(3)x3]]]), "phys_clump=$phys_clump mutate_orig=$mutate_orig orig";
+  is_pdl $clump, pdl([[(3)x3],[(3)x3]]), "phys_clump=$phys_clump mutate_orig=$mutate_orig clump";
+  is_pdl $clump->uniqvec, pdl([[(3)x3]]), "phys_clump=$phys_clump mutate_orig=$mutate_orig uniqvec";
 }
 
 my $pa = zeroes(7, 7); $pa->set(3, 4, 1);
@@ -425,28 +397,20 @@ is $@, '', 'no error assigning $x->index(..) to $x';
 ## rlevec(), rldvec(): 2d ONLY
 my $p = pdl([[1,2],[1,2],[1,2],[3,4],[3,4],[5,6]]);
 my ($pf,$pv)  = rlevec($p);
-my $pf_expect = pdl(long,[3,2,1,0,0,0]);
-my $pv_expect = pdl([[1,2],[3,4],[5,6],[0,0],[0,0],[0,0]]);
-ok all(approx($pf, $pf_expect)), "rlevec():counts";
-ok all(approx($pv, $pv_expect)), "rlevec():elts";
+is_pdl $pf, my $pf_expect = indx([3,2,1,0,0,0]), "rlevec():counts";
+is_pdl $pv, my $pv_expect = pdl([[1,2],[3,4],[5,6],[0,0],[0,0],[0,0]]), "rlevec():elts";
 
 my $pd = rldvec($pf,$pv);
-ok all(approx($pd, $p)), "rldvec()";
+is_pdl $pd, $p, "rldvec()";
+is_pdl enumvec($p), indx([0,1,2,0,1,0]), "enumvec()";
+is_pdl enumvecg($p), indx([0,0,0,1,1,2]), "enumvecg()";
 
-my $pk = enumvec($p);
-ok all(approx($pk, pdl(long,[0,1,2,0,1,0]))), "enumvec()";
-
-$pk = enumvecg($p);
-ok all(approx($pk, pdl(long,[0,0,0,1,1,2]))), "enumvecg()";
-
-## 6..7: test rleND(): 2d
 ($pf,$pv) = rleND($p);
-ok all(approx($pf, $pf_expect)), "rleND():2d:counts";
-ok all(approx($pv, $pv_expect)), "rleND():2d:elts";
+is_pdl $pf, $pf_expect, "rleND():2d:counts";
+is_pdl $pv, $pv_expect, "rleND():2d:elts";
 
-## 8..8: test rldND(): 2d
 $pd = rldND($pf,$pv);
-ok all(approx($pd, $p)), "rldND():2d";
+is_pdl $pd, $p, "rldND():2d";
 
 ## rleND, rldND: Nd
 my $pnd1 = (1  *(sequence(long, 2,3  )+1))->slice(",,*3");
@@ -454,59 +418,49 @@ my $pnd2 = (10 *(sequence(long, 2,3  )+1))->slice(",,*2");
 my $pnd3 = (100*(sequence(long, 2,3,2)+1));
 my $p_nd = $pnd1->mv(-1,0)->append($pnd2->mv(-1,0))->append($pnd3->mv(-1,0))->mv(0,-1);
 
-my $pf_expect_nd = pdl(long,[3,2,1,1,0,0,0]);
+my $pf_expect_nd = indx([3,2,1,1,0,0,0]);
 my $pv_expect_nd = zeroes($p_nd->type, $p_nd->dims);
 (my $tmp=$pv_expect_nd->slice(",,0:3")) .= $p_nd->dice_axis(-1,[0,3,5,6]);
 
 ## 9..10: test rleND(): Nd
 my ($pf_nd,$pv_nd) = rleND($p_nd);
-ok all(approx($pf_nd, $pf_expect_nd)), "rleND():Nd:counts";
-ok all(approx($pv_nd, $pv_expect_nd)), "rleND():Nd:elts";
+is_pdl $pf_nd, $pf_expect_nd, "rleND():Nd:counts";
+is_pdl $pv_nd, $pv_expect_nd, "rleND():Nd:elts";
 
 ## 11..11: test rldND(): Nd
 my $pd_nd = rldND($pf_nd,$pv_nd);
-ok all(approx($pd_nd, $p_nd)), "rldND():Nd";
+is_pdl $pd_nd, $p_nd, "rldND():Nd";
 
 ## 12..12: test enumvec(): nd
 my $v_nd = $p_nd->clump(2);
 my $k_nd = $v_nd->enumvec();
-ok all(approx($k_nd, pdl(long,[0,1,2,0,1,0,0]))), "enumvec():Nd";
+is_pdl $k_nd, indx([0,1,2,0,1,0,0]), "enumvec():Nd";
 
 # from PDL::CCS tests revealing enumvec bug
 my $col = pdl("[5 5 4 4 4 3 3 3 3 2 2 2 1 1 0]")->transpose;
-$got = $col->enumvec;
-ok all(approx($got, pdl('[0 1 0 1 2 0 1 2 3 0 1 2 0 1 0]'))), 'enumvec'
-  or diag "got=$got";
+is_pdl $col->enumvec, indx('[0 1 0 1 2 0 1 2 3 0 1 2 0 1 0]'), 'enumvec';
 $col = pdl("[0 0 1 1 2 2 2 3 3 3 3 4 4 4 5 5]")->transpose;
-$got = $col->enumvec;
-ok all(approx($got, pdl('[0 1 0 1 0 1 2 0 1 2 3 0 1 2 0 1]'))), 'enumvec 2'
-  or diag "got=$got";
+is_pdl $col->enumvec, indx('[0 1 0 1 0 1 2 0 1 2 3 0 1 2 0 1]'), 'enumvec 2';
 $col = pdl("[0 0 1 1 2 2 2 3 3 3 3 4 4 4 5 5 6]")->transpose;
-$got = $col->enumvec;
-ok all(approx($got, pdl('[0 1 0 1 0 1 2 0 1 2 3 0 1 2 0 1 0]'))), 'enumvec 3'
-  or diag "got=$got";
+is_pdl $col->enumvec, indx('[0 1 0 1 0 1 2 0 1 2 3 0 1 2 0 1 0]'), 'enumvec 3';
 
 ## 13..17: test rldseq(), rleseq()
-my $lens = pdl(long,[qw(3 0 1 4 2)]);
+my $lens = indx([qw(3 0 1 4 2)]);
 my $offs = (($lens->xvals+1)*100)->short;
 my $seqs = zeroes(short, 0);
 $seqs  = $seqs->append(sequence(short,$_)) foreach ($lens->list);
 $seqs += $lens->rld($offs);
-
-my $seqs_got = $lens->rldseq($offs);
-is $seqs_got->type, $seqs->type, "rldseq():type";
-ok all(approx($seqs_got, $seqs)), "rldseq():data";
-
+is_pdl $lens->rldseq($offs), $seqs, "rldseq():data";
 my ($len_got,$off_got) = $seqs->rleseq();
 is $off_got->type, $seqs->type, "rleseq():type";
-ok all(approx($len_got->where($len_got), $lens->where($lens))), "rleseq():lens";
-ok all(approx($off_got->where($len_got), $offs->where($lens))), "rleseq():offs";
+is_pdl $len_got->where($len_got), $lens->where($lens), "rleseq():lens";
+is_pdl $off_got->where($len_got), $offs->where($lens), "rleseq():offs";
 
 eval {meshgrid(sequence(2,2))};
 like $@, qr/1-dimensional/, 'meshgrid rejects >1-D';
 my @vecs = (xvals(3), xvals(4)+5, xvals(2)+10);
 my @mesh_got = meshgrid(@vecs);
-is_deeply [$_->dims], [3,4,2] for @mesh_got;
-ok all($mesh_got[$_]->mv($_,0)->slice(',(0),(0)')==$vecs[$_]), "meshgrid $_" for 0..$#vecs;
+is_pdl $_->shape, indx([3,4,2]) for @mesh_got;
+is_pdl $mesh_got[$_]->mv($_,0)->slice(',(0),(0)'), $vecs[$_], "meshgrid $_" for 0..$#vecs;
 
 done_testing;
