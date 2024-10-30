@@ -1,50 +1,30 @@
-#!/usr/local/bin/perl
-
-END { unlink 't/callext.pdb';}; # In case we build a 2nd time,
-                                # but using a different Microsoft compiler
-
 # Example of how to use callext() - also see callext.c
 
 use strict;
 use warnings;
 use Test::More;
-use Config;
 use PDL;
 use PDL::CallExt;
-use PDL::Core ':Internal'; # For topdl()
 use PDL::Core::Dev;
 use Config;
 use File::Spec;
+use Test::PDL;
 
 kill 'INT',$$ if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
-
-sub tapprox {
-	my($pa,$pb) = @_;
-	all approx($pa, $pb, 0.01);
-}
 
 # Create the filenames
 my $cfile = File::Spec->catfile('t', 'callext.c');
 my $out   = File::Spec->catfile('t', 'callext.'.$Config{dlext});
+my $obj   = File::Spec->catfile('t', 'callext'.$Config{obj_ext});
 
-# Compile the code
-
-my @cleanup = ();
-END { unlink @cleanup; }
-push @cleanup, File::Spec->catfile('t', 'callext'.$Config{obj_ext}), $out;
-eval { callext_cc($cfile, PDL_INCLUDE(), '', $out) };
+END { unlink File::Spec->catfile(qw(t callext.pdb)), $obj, $out } # MS compiler
+eval { callext_cc($cfile, PDL_INCLUDE(), '', $out) }; # Compile the code
 
 SKIP: {
 is $@, '', 'callext_cc no error' or skip 'callext_cc failed', 1;
 my $y = sequence(5,4)+2;  # Create PDL
 my $x = $y*20+100;        # Another
-
-my $try    = loglog($x,$y);
-my $correct = log(float($x))/log(float($y));
-
-note "Try = $try\n";
-note "Correct = $correct\n";
-ok tapprox($try, $correct), 'tapprox';
+is_pdl loglog($x,$y), log(float($x))/log(float($y));
 }
 
 done_testing;
@@ -53,26 +33,9 @@ done_testing;
 # perl wrapper makes this nice and easy to use.
 
 sub loglog {
-
-	die 'Usage: loglog($x,$y)' if scalar(@_)!=2;
-
-	# Tips:
-	#
-	# (i)  topdl() forces arguments to be pdl vars even
-	#      if ordinary numbers are passed
-	#
-	# (ii) float() forces the pdl vars to be float precision
-	#      thus matching the C routine.
-
-	my $x = float(topdl(shift));
-	my $y = float(topdl(shift));
-
-	my $ret = $x->copy; # Make copy of $x to return
-
-	note "X = $x\n";
-	note "Y = $y\n";
-
-	callext(File::Spec->rel2abs($out), "loglog_ext", $ret, $y);
-
-	return $ret;
+  die 'Usage: loglog($x,$y)' if scalar(@_)!=2;
+  my ($x, $y) = map float(PDL->topdl($_)), @_;
+  my $ret = $x->copy; # Make copy of $x to return
+  callext(File::Spec->rel2abs($out), "loglog_ext", $ret, $y);
+  return $ret;
 }
