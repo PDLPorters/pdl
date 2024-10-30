@@ -7,16 +7,9 @@ use strict;
 use warnings;
 use PDL;
 use Test::More;
+use Test::PDL;
 use PDL::IO::HDF::VS;
 use File::Temp qw(tempdir);
-
-sub tapprox {
-    my $x = shift;
-    my $y = shift;
-    my $d = abs($x - $y);
-    #ok( all($d < 1.0e-5) );
-    return all($d < 1.0e-5);
-}
 
 # Vdata test suite
 my $tmpdir = tempdir( CLEANUP => 1 );
@@ -73,9 +66,7 @@ my @tfields = split(",",$fields);
 my $data_type = PDL::IO::HDF::VS::_VFfieldtype( $vdata_id, 0 );
 $data = ones( $PDL::IO::HDF::SDinvtypeTMAP2->{$data_type}, 10 );
 ok( PDL::IO::HDF::VS::_VSread( $vdata_id, $data, $n_records, $interlace ) );
-
-my $expected_data = sequence(10);
-ok( sub { tapprox( $data, $expected_data ) } );
+is_pdl $data, sequence(float, 10);
 
 PDL::IO::HDF::VS::_VSdetach( $vdata_id );
 PDL::IO::HDF::VS::_Vend( $Hid );

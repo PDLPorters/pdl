@@ -7,16 +7,9 @@ use strict;
 use warnings;
 use PDL;
 use Test::More;
+use Test::PDL;
 use File::Temp qw(tempdir);
 use PDL::IO::HDF::SD;
-
-sub tapprox {
-    my $x = shift;
-    my $y = shift;
-    my $d = abs($x - $y);
-    #ok( all($d < 1.0e-5) );
-    return all($d < 1.0e-5);
-}
 
 my $tmpdir = tempdir( CLEANUP => 1 );
 my $testfile = "$tmpdir/sdtest.hdf";
@@ -126,7 +119,7 @@ ok( $good, 'SDget() (unchunked)' );
 my $do_skip = $good ? '' : 'Skip if failed previous test!';
 SKIP: {
     skip( "Previous test failed!", 1 ) if $do_skip;
-    ok( tapprox( $dataset, $dataset_test ), 'comparing datasets written out and read in (unchunked)' );
+    is_pdl $dataset, $dataset_test, 'comparing datasets written out and read in (unchunked)';
 }
 
 $hdf->close();
@@ -157,7 +150,7 @@ ok( $good, 'SDget() (chunked, 2D)' );
 $do_skip = $good ? '' : 'Skip if failed previous test!';
 SKIP: {
     skip( "Previous test failed!", 1 ) if $do_skip;
-    ok( tapprox( $dataset2d, $dataset2d_test ), 'comparing datasets written out and read in (chunked, 2D)' );
+    is_pdl $dataset2d_test, $dataset2d, 'comparing datasets written out and read in (chunked, 2D)';
 }
 
 my $dataset3d_test = $hdf->SDget( "CHUNK_3D" );
@@ -166,7 +159,7 @@ ok( $good, 'SDget() (chunked, 3D)' );
 $do_skip = $good ? '' : 'Skip if failed previous test!';
 SKIP: {
     skip( "Previous test failed!", 1 ) if $do_skip;
-    ok( tapprox( $dataset3d, $dataset3d_test ), 'comparing datasets written out and read in (chunked, 3D)' );
+    is_pdl $dataset3d_test, $dataset3d, 'comparing datasets written out and read in (chunked, 3D)';
 }
 
 $hdf->close();
