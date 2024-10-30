@@ -3,6 +3,7 @@ use warnings;
 use Test::More;
 use PDL::Fit::Linfit;
 use PDL::LiteF;
+use Test::PDL;
 
 {
 # Simple Test Case:
@@ -20,7 +21,7 @@ my ($yfit, $coeffs) = PDL::linfit1d($data, $fitFuncs);
 
 my @coefs = $coeffs->list;
 
-ok all approx( $coeffs, pdl([3,2,3]) );
+is_pdl $coeffs, pdl([3,2,3]);
 }
 
 {
@@ -92,7 +93,7 @@ my ($yfit, $coeffs) = linfit1d($data, $fitFuncs);
 
 my @coefs = $coeffs->list;
 
-ok all approx( $coeffs, pdl( \@expectedCoefs ) );
+is_pdl $coeffs, pdl( \@expectedCoefs );
 }
 
 done_testing;

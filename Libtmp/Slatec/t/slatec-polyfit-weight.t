@@ -3,6 +3,7 @@ use warnings;
 use Test::More;
 use Test::Exception;
 use PDL::LiteF;
+use Test::PDL;
 use PDL::Slatec;
 
 ## Issue information
@@ -25,13 +26,13 @@ lives_ok { $polyfit_orig = polyfit( $x, $y, $x->ones, 4, .0001 ); } 'polyfit() w
 subtest 'Passing the weight in a PDL of length 1' => sub {
 	my $polyfit_pdl_len_one;
 	lives_ok { $polyfit_pdl_len_one = polyfit( $x, $y, pdl(1), 4, .0001 ); };
-	ok( approx($polyfit_orig, $polyfit_pdl_len_one)->all, 'passing a PDL of length 1 expands to the correct length' );
+	is_pdl $polyfit_orig, $polyfit_pdl_len_one, 'passing a PDL of length 1 expands to the correct length';
 };
 
 subtest 'Passing the weight in a Perl scalar' => sub {
 	my $polyfit_perl_scalar;
 	lives_ok { $polyfit_perl_scalar = polyfit( $x, $y, 1, 4, .0001 ) };
-	ok( approx($polyfit_orig, $polyfit_perl_scalar)->all, 'passing a Perl scalar expands to the correct length' );
+	is_pdl $polyfit_orig, $polyfit_perl_scalar, 'passing a Perl scalar expands to the correct length';
 };
 
 done_testing;
