@@ -8,6 +8,7 @@
 use strict;
 use warnings;
 use Test::More;
+use Test::PDL;
 use PDL::LiteF;
 use PDL::GSLSF::AIRY;
 use PDL::GSLSF::BESSEL;
@@ -38,18 +39,14 @@ use PDL::GSLSF::TRANSPORT;
 use PDL::GSLSF::TRIG;
 use PDL::GSLSF::ZETA;
 
-my $arg = 5.0;
-my $expected = -0.17759677131433830434739701;
-
-my ($y,$err) = gsl_sf_bessel_Jn($arg, 0);
-
-ok(abs($y-$expected) < 1e-6,"GSL SF Bessel function");
+my ($y,$err) = gsl_sf_bessel_Jn(5.0, 0);
+is_pdl $y, pdl(-0.17759677131433830434739701), "GSL SF Bessel function";
 
 chomp(my $version = `gsl-config --version`);
 if ((split /\./, $version)[0] >= 2) {
   my $Ylm = gsl_sf_legendre_array(xvals(21)/10-1,'Y',4,-1);
   ok($Ylm->slice("(0)")->uniq->nelem == 1, "Legendre Y00 is constant");
-  ok(approx($Ylm->slice("(0),(0)"),0.5/sqrt(3.141592654),1E-6), "Y00 value is corect");
+  is_pdl $Ylm->slice("(0),(0)"), pdl(0.5/sqrt(3.141592654)), "Y00 value is correct";
 }
 
 {
@@ -63,7 +60,7 @@ ok !@warning, 'no warnings' or diag explain \@warning;
 }
 
 ($y, my $e) = gsl_sf_airy_Ai(sequence(4));
-ok all approx($y, pdl([0.35502805, 0.13529242, 0.03492413, 0.0065911394]));
-ok all approx($e, pdl([8.3366727e-17, 5.6151774e-17, 3.9261626e-17, 1.0852712e-17]));
+is_pdl $y, pdl([0.35502805, 0.13529242, 0.03492413, 0.0065911394]);
+is_pdl $e, pdl([8.3366727e-17, 5.6151774e-17, 3.9261626e-17, 1.0852712e-17]);
 
 done_testing;
