@@ -3,22 +3,15 @@ use warnings;
 use Test::More;
 use PDL::LiteF;
 use PDL::GSL::CDF;
+use Test::PDL;
 
-sub tapprox {
-  my($a,$b) = @_;
-  my $diff = abs($a-$b);
-    # use max to make it perl scalar
-  ref $diff eq 'PDL' and $diff = $diff->max;
-  return $diff < 1.0e-6;
-}
 {
   my $a = sequence 5;
-  my $a_bad = sequence 6;
-  $a_bad->setbadat(-1);
-  is( tapprox( $a->gsl_cdf_tdist_P(1999)->sum, 4.31706715604714 ), 1 );
-  is( tapprox( $a_bad->gsl_cdf_tdist_P(1999)->sum, 4.31706715604714 ), 1 );
-  is( tapprox( $a->gsl_cdf_fdist_P(1,1999)->sum, 3.39605941459337 ), 1 );
-  is( tapprox( $a_bad->gsl_cdf_fdist_P(1,1999)->sum, 3.39605941459337 ), 1 );
+  my $a_bad = $a->append(pdl 'BAD');
+  is_pdl $a->gsl_cdf_tdist_P(1999), my $texp = pdl('0.5 0.841284230695725 0.977182329566921 0.998633419750658 0.999967176033837');
+  is_pdl $a_bad->gsl_cdf_tdist_P(1999), $texp->append(pdl 'BAD');
+  is_pdl $a->gsl_cdf_fdist_P(1,1999), my $fexp = pdl('0 0.682568461391451 0.842545068166059 0.916581225902023 0.95436465913384');
+  is_pdl $a_bad->gsl_cdf_fdist_P(1,1999), $fexp->append(pdl 'BAD');
 }
 {
   my $x = pdl('[0.185 0.242 0.385 0.528 0.671 0.814]');
