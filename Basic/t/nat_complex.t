@@ -5,13 +5,7 @@ use PDL::Core::Dev;
 use PDL::Types qw(ppdefs ppdefs_complex ppdefs_all);
 
 use Test::More;
-
-sub tapprox {
-        my($x,$y) = @_;
-        my $c = abs($x-$y);
-        my $d = max($c);
-        $d < 0.0001;
-}
+use Test::PDL;
 
 is_deeply [ ppdefs() ], [qw(A B S U L K N P Q F D E)];
 is_deeply [ ppdefs_complex() ], [qw(G C H)];
@@ -22,7 +16,7 @@ my $ref2 = squeeze(czip($ref->slice("0,"), $ref->slice("1,")));
 my $x = i() -pdl (-2, -3);
 
 is($x->type, 'cdouble', 'type promotion i - ndarray');
-ok(tapprox($x->im,$ref->slice("1,:")), 'value from i - ndarray');
+is_pdl $x->im, $ref->slice("(1),:"), 'value from i - ndarray';
 ok !$x->type->real, 'complex type not real';
 ok double->real, 'real type is real';
 ok !$x->sumover->type->real, 'sumover type=complex';
@@ -34,7 +28,7 @@ is $x->re->type, 'double', 'real real part';
 my $y=cfloat($x);
 is type($y), 'cfloat', 'type conversion to cfloat';
 is $y->re->type, 'float', 'real real part';
-ok(tapprox($x->im,$ref->slice("0,1")), 'value from ndarray - i') or diag 'got: ', $x->im;
+is_pdl $x->im, $ref->slice("(0),(1),*2"), 'value from ndarray - i';
 is zeroes($_->[0], 2)->r2C->type, $_->[1], "r2C $_->[0] -> $_->[1]"
   for [byte, 'cdouble'], [long, 'cdouble'],
     [float, 'cfloat'], [cfloat, 'cfloat'],
@@ -69,16 +63,13 @@ for (float, double, ldouble, cfloat, cdouble, cldouble) {
 # dataflow from complex to real
 my $ar = $x->re;
 $ar++;
-ok(tapprox($x->re, -$ref->slice("0,")->squeeze + 1), 'complex to real dataflow') or diag "got=".$x->re, "expected=".(-$ref->slice("0,")->squeeze + 1);
+is_pdl $x->re, -$ref->slice("0,")->squeeze + 1, 'complex to real dataflow';
 my $ai = $x->im;
 $x+=i;
 my $expected = pdl(-2, -2);
-ok(tapprox($x->im, $expected), 'dataflow after conversion')
-  or diag "got=".$x->im, "\nexpected=$expected";
+is_pdl $x->im, $expected, 'dataflow after conversion';
 $ai++;
-$expected++;
-ok(tapprox($x->im, $expected), 'dataflow after change ->im')
-  or diag "got=".$x->im, "\nexpected=$expected";
+is_pdl $x->im, $expected+1, 'dataflow after change ->im';
 }
 
 # Check that converting from re/im to mag/ang and
@@ -86,47 +77,31 @@ ok(tapprox($x->im, $expected), 'dataflow after change ->im')
 $x = $ref2->copy;
 my $a=abs($x);
 my $p=carg($x)->double; # force to double to avoid glibc bug 18594
-
-$y = czip($a*cos($p), $a*sin($p));
-ok(tapprox($x-$y, 0.), 'check re/im and mag/ang equivalence')
-  or diag "For ($x), got: ($y) from a=($a) p=($p) cos(p)=(", cos($p), ") sin(p)=(", sin($p), ")";
+is_pdl czip($a*cos($p), $a*sin($p)), $x, 'check re/im and mag/ang equivalence';
 
 # Catan, Csinh, Ccosh, Catanh, Croots
 
 my $cabs = sqrt($x->re**2+$x->im**2);
 
 ok(abs($x)->type->real, 'Cabs type real');
-ok(tapprox(abs $x, $cabs), 'Cabs value') or diag "got: (@{[abs $x]}), expected ($cabs)";
-ok(tapprox(abs2($x), $cabs**2), 'Cabs2 value') or diag "got: (@{[abs2 $x]}), expected (", $cabs**2, ")";
+is_pdl abs $x, $cabs, 'Cabs value';
+is_pdl abs2($x), $cabs**2, 'Cabs2 value';
 ok abs2(cdouble(5))->type->real, 'abs2 always real';
 ok(carg($x)->type->real, 'Carg type real');
-ok(tapprox(carg($x), atan2($x->im, $x->re)), 'Carg value');
+is_pdl carg($x), atan2($x->im, $x->re), 'Carg value';
 
-{
-# Check cat'ing
-$y = $x->re->copy + 1;
-my $bigArray = $x->cat($y);
-my $sum = $bigArray->sum;
-my $cz = czip(8, -2);
-my $abs = abs($sum + $cz);
-ok(all($abs < .0001), 'check cat for complex') or diag "got:$abs from cat(x=$x y=$y): $bigArray";
-}
+is_pdl $x->cat($x->re->copy + 1), pdl('-2+i -3+i; -1 -2'), 'cat for complex';
 
 if (PDL::Core::Dev::got_complex_version('pow', 2)) {
-  ok(tapprox($x**2, $x * $x), '** op complex')
-    or diag "For ($x), got: ", $x**2, ", expected: ", $x * $x;
-  ok(tapprox($x->pow(2), $x * $x), 'complex pow')
-    or diag "Got: ", $x->pow(2), ", expected: ", $x * $x;
-  ok(tapprox($x->power(2, 0), $x * $x), 'complex power')
-    or diag "Got: ", $x->power(2, 0), ", expected: ", $x * $x;
+  is_pdl $x**2, $x * $x, '** op complex';
+  is_pdl $x->pow(2), $x * $x, 'complex pow';
+  is_pdl $x->power(2, 0), $x * $x, 'complex power';
   my $z = pdl(0) + i()*pdl(0);
   $z **= 2;
-  ok(tapprox($z, i2C(0)), 'check that 0 +0i exponentiates correctly'); # Wasn't always so.
+  is_pdl $z, i2C(0), 'check that 0 +0i exponentiates correctly'; # Wasn't always so.
   my $r = r2C(-10);
   $r **= 2;
-  ok(tapprox($r, r2C(100)),
-    'check that imaginary part is exactly zero') # Wasn't always so
-    or diag "got: ", $r;
+  is_pdl $r, r2C(100), 'check imaginary part exactly zero'; # Wasn't always so
 }
 
 my $asin_2 = PDL::asin(2)."";
