@@ -3,9 +3,38 @@ package PDL;
 use strict;
 use warnings;
 
+# set the version:
+our $VERSION = '2.093';
+
 =head1 NAME
 
 PDL - the Perl Data Language
+
+=head1 SYNOPSIS
+
+  use PDL;
+  $x = zeroes 3,3; # 3x3 matrix
+  $y = $x + 0.1 * xvals($x) + 0.01 * yvals($x);
+  print $y;
+  print $y->slice(":,1");  # row 2
+  print $diag = $y->diagonal(0,1), "\n"; # 0 and 1 are the dimensions
+  $diag += 100;
+  print "AFTER, y=$y";
+  [
+   [   0  0.1  0.2]
+   [0.01 0.11 0.21]
+   [0.02 0.12 0.22]
+  ]
+  [
+   [0.01 0.11 0.21]
+  ]
+  [0 0.11 0.22]
+  AFTER, y=
+  [
+   [   100    0.1    0.2]
+   [  0.01 100.11   0.21]
+   [  0.02   0.12 100.22]
+  ]
 
 =head1 DESCRIPTION
 
@@ -18,14 +47,12 @@ handling, plus several paths for device-independent graphics output.
 
 PDL is fast, comparable and often outperforming IDL and MATLAB in real
 world applications. PDL allows large N-dimensional data sets such as large
-images, spectra, etc to be stored efficiently and manipulated quickly. 
+images, spectra, etc to be stored efficiently and manipulated quickly.
 
-
-=head1 VECTORIZATION 
+=head1 VECTORIZATION
 
 For a description of the vectorization (also called "broadcasting"), see
 L<PDL::Core>.
-
 
 =head1 INTERACTIVE SHELL
 
@@ -53,7 +80,6 @@ To learn more about the PDL shell, see L<perldl> or L<pdl2>.
 Most PDL documentation describes the language features. The number of
 PDL pages is too great to list here. The following pages offer some
 guidance to help you find the documentation you need.
-
 
 =over 5
 
@@ -110,37 +136,6 @@ Some notes:
 
 =item Modules loaded by default
 
-See the SYNOPSIS section at the end of this document for a list of
-modules loaded by default.
-
-=item L<PDL::Lite> and L<PDL::LiteF>
-
-These are lighter-weight alternatives to the standard PDL module.
-Consider using these modules if startup time becomes an issue.
-
-=item Exports
-
-C<use PDL;> exports a large number of routines into the calling
-namespace.  If you want to avoid namespace pollution, you must instead 
-C<use PDL::Lite>, and include any additional modules explicitly.
-
-=item L<PDL::NiceSlice>
-
-Note that the L<PDL::NiceSlice> syntax is NOT automatically
-loaded by C<use PDL;>.  If you want to use the extended slicing syntax in 
-a standalone script, you must also say C<use PDL::NiceSlice;>.
-
-=item L<PDL::Math>
-
-The L<PDL::Math> module has been added to the list of modules
-for versions later than 2.3.1. Note that PDL::Math is still
-I<not> included in the L<PDL::Lite> and L<PDL::LiteF>
-start-up modules.
-
-=back
-
-=head1 SYNOPSIS
-
  use PDL; # Is equivalent to the following:
 
    use PDL::Core;
@@ -160,9 +155,6 @@ start-up modules.
 
 =cut
 
-# set the version:
-our $VERSION = '2.093';
-
 # Main loader of standard PDL package
 
 sub import {
@@ -178,20 +170,44 @@ use PDL::Ufunc;
 use PDL::Basic;
 use PDL::Slices;
 use PDL::Bad;
-use PDL::Math;
 use PDL::MatrixOps;
-use PDL::Lvalue;
-
+use PDL::Math;
 # for TPJ compatibility
 use PDL::IO::Misc;          # Misc IO (Ascii)
 use PDL::IO::FITS;          # FITS IO (rfits/wfits; used by rpic/wpic too)
 use PDL::IO::Pic;           # rpic/wpic
-
+# end TPJ bit
 use PDL::IO::Storable; # to avoid mysterious Storable segfaults
+use PDL::Lvalue;
 
 EOD
   die $@ if $@;
 }
+
+=item L<PDL::Lite> and L<PDL::LiteF>
+
+These are lighter-weight alternatives to the standard PDL module.
+Consider using these modules if startup time becomes an issue.
+
+Note that L<PDL::Math> and L<PDL::MatrixOps> are
+I<not> included in the L<PDL::Lite> and L<PDL::LiteF>
+start-up modules.
+
+=item Exports
+
+C<use PDL;> exports a large number of routines into the calling
+namespace.  If you want to avoid namespace pollution, you must instead
+C<use PDL::Lite>, and include any additional modules explicitly.
+
+=item L<PDL::NiceSlice>
+
+Note that the L<PDL::NiceSlice> syntax is NOT automatically
+loaded by C<use PDL;>.  If you want to use the extended slicing syntax in
+a standalone script, you must also say C<use PDL::NiceSlice;>.
+
+=back
+
+=cut
 
 # support: use Inline with => 'PDL';
 # Returns a hash containing parameters accepted by recent versions of

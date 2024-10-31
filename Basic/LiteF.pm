@@ -7,13 +7,6 @@ use warnings;
 
 PDL::LiteF - minimum PDL module function loader
 
-=head1 DESCRIPTION
-
-Loads the smallest possible set of modules for
-PDL to work, making the functions available in
-the current namespace. If you want something even
-smaller see the L<PDL::Lite> module.
-
 =head1 SYNOPSIS
 
  use PDL::LiteF; # Is equivalent to the following:
@@ -26,6 +19,16 @@ smaller see the L<PDL::Lite> module.
    use PDL::Slices;
    use PDL::Bad;
    use PDL::Lvalue;
+
+=head1 DESCRIPTION
+
+Loads the smallest possible set of modules for
+PDL to work, making the functions available in
+the current namespace. If you want something even
+smaller see the L<PDL::Lite> module.
+
+Note that unlike L<PDL>, this does I<not> load L<PDL::Math> or
+L<PDL::MatrixOps>, nor any IO modules.
 
 =cut
 

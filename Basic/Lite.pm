@@ -2,6 +2,19 @@
 
 PDL::Lite - minimum PDL module OO loader
 
+=head1 SYNOPSIS
+
+ use PDL::Lite; # Is equivalent to the following:
+
+   use PDL::Core '';
+   use PDL::Ops '';
+   use PDL::Primitive '';
+   use PDL::Ufunc '';
+   use PDL::Basic '';
+   use PDL::Slices '';
+   use PDL::Bad '';
+   use PDL::Lvalue;
+
 =head1 DESCRIPTION
 
 Loads the smallest possible set of modules for
@@ -15,18 +28,8 @@ Access to other functions is by method syntax, viz:
   $x = PDL->pdl(1, 2, 3, 4, 5);
   $x->wibble(42);
 
-=head1 SYNOPSIS
-
- use PDL::Lite; # Is equivalent to the following:
-
-   use PDL::Core '';
-   use PDL::Ops '';
-   use PDL::Primitive '';
-   use PDL::Ufunc '';
-   use PDL::Basic '';
-   use PDL::Slices '';
-   use PDL::Bad '';
-   use PDL::Lvalue;
+Note that unlike L<PDL>, this does I<not> load L<PDL::Math> or
+L<PDL::MatrixOps>, nor any IO modules.
 
 =cut
 
