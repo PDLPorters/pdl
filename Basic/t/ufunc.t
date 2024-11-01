@@ -26,6 +26,7 @@ my $c = cat($x,$x);
 my $c_sort = $c->qsort;
 my $d = sequence(10)->rotate(1);
 my $d_sort = $d->qsort;
+is_pdl $d_sort, sequence(10);
 my $e = pdl([[1,2],[0,500],[2,3],[4,2],[3,4],[3,5]]);
 my $e_sort = $e->qsortvec;
 
@@ -51,7 +52,10 @@ ok( ( eval { pdl([])->qsorti }, $@ eq '' ), "qsorti coredump,[SF bug 2110074]");
 $d->inplace->qsort;
 is_pdl $d, $d_sort, "inplace sorting";
 $d->setbadat(3);
+is_pdl $d, pdl('0 1 2 BAD 4 5 6 7 8 9');
 $d_sort = $d->qsort;
+is_pdl $d_sort, pdl('0 1 2 4 5 6 7 8 9 BAD');
+is_pdl $d_sort->qsort, pdl('0 1 2 4 5 6 7 8 9 BAD'), 'qsort with bad already end';
 $d->inplace->qsort;
 ok(all($d == $d_sort), "inplace sorting with bad values");
 

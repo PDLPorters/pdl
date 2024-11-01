@@ -3554,7 +3554,7 @@ Summary of Changes:
            (help setops).
 
          * PDL::IO::GD module interface to the GD runtime image
-           libaray (http://www.boutell.com/gd/) has been integrated.
+           library (http://www.boutell.com/gd/) has been integrated.
 
          * The PDL::GIS::Proj and PDL::Transform::Proj4 modules
            to interface to the PROJ4 Cartographic Projections

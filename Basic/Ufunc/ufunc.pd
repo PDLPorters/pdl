@@ -981,14 +981,7 @@ sub PDL::$_->[0]pct {
 EOD
 }
 
-sub qsort_croak {
-    my ($out, $insizedim, $outsizedim) = @_;
-    'if ($PDL(a)->dims['.$insizedim.'] != $PDL('.$out.')->dims['.$outsizedim.'] && $PDL(a)->dims['.$insizedim.'] > 1)
-        /* last term detects non-trivial sort */
-        $CROAK("You likely passed a scalar argument, when you should have passed an ndarray (or nothing at all)");
-     if ($PDL(a)->nvals == 0) return PDL_err;
-    '
-}
+sub qsort_returnempty { 'if ($PDL(a)->nvals == 0) return PDL_err;' }
 
 # move all bad values to the end of the array
 pp_def(
@@ -999,7 +992,7 @@ pp_def(
     Code =>
     'register PDL_Indx nn = 0;
      PDL_IF_BAD(register PDL_Indx nb = $SIZE(n) - 1;,)
-     '.qsort_croak('b',0,0).'
+     '.qsort_returnempty().'
      loop(n) %{
         PDL_IF_BAD(if ($ISBAD(a())) { $SETBAD(b(n=>nb)); nb--; }
         else,)                      { $b(n=>nn) = $a(); nn++; }
@@ -1040,8 +1033,7 @@ pp_def(
        Pars => 'a(n); indx [o]indx(n);',
        Code =>
        'register PDL_Indx nn = PDL_IF_BAD(0,$SIZE(n)-1), nb = $SIZE(n) - 1;
-        if ($SIZE(n) == 0) return PDL_err;
-        '.qsort_croak('indx',0,0).'
+        '.qsort_returnempty().'
         loop(n) %{
            PDL_IF_BAD(if ($ISBAD(a())) { $indx(n=>nb) = n; nb--; }
            else                        { $indx(n=>nn) = n; nn++; } /* play safe since nn used more than once */
@@ -1082,7 +1074,7 @@ pp_def(
     'register PDL_Indx nn = PDL_IF_BAD(0,$SIZE(m)-1), nb = $SIZE(m) - 1;
      char is_inplace = ($P(a) == $P(b));
      PDL_Indx nd = $SIZE(n);
-     '.qsort_croak('b',1,1).'
+     '.qsort_returnempty().'
      PDL_IF_BAD(loop(m) %{
        char allgood_a = 1;
        loop(n) %{ if ( $ISBAD(a()) ) { allgood_a = 0; break; } %}
@@ -1165,7 +1157,7 @@ pp_def(
     Code =>
 'register PDL_Indx nn = PDL_IF_BAD(0,$SIZE(m)-1), nb = $SIZE(m) - 1;
 PDL_Indx nd = $SIZE(n);
-'.qsort_croak('indx',1,0).'
+'.qsort_returnempty().'
 loop(m) %{
   PDL_IF_BAD(
   char allgood_a = 1;
