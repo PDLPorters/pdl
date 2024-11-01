@@ -16,26 +16,13 @@ is $ind_double.'', '[3 0 2 4 1]';
 eval { empty()->medover }; # shouldn't segfault
 isnt $@, '', 'exception for percentile on empty ndarray';
 
-# set up test arrays
-#
-my $x = pdl(0,0,6,3,5,0,7,14,94,5,5,8,7,7,1,6,7,13,10,2,101,19,7,7,5);  # sf.net bug #2019651
-my $a_sort = $x->qsort;
-my $y = pdl(55);
-my $b_sort = $y->qsort;
-my $c = cat($x,$x);
-my $c_sort = $c->qsort;
-my $d = sequence(10)->rotate(1);
-my $d_sort = $d->qsort;
-is_pdl $d_sort, sequence(10);
-my $e = pdl([[1,2],[0,500],[2,3],[4,2],[3,4],[3,5]]);
-my $e_sort = $e->qsortvec;
-
 eval { sequence(3, 3)->medover(my $o = null, my $t = null); };
 isnt $@, '', 'a [t] Par cannot be passed';
 
 my $med_dim = 5;
 is_pdl sequence(10,$med_dim,$med_dim)->medover, sequence($med_dim,$med_dim)*10+4.5, 'medover';
 
+my $x = pdl(0,0,6,3,5,0,7,14,94,5,5,8,7,7,1,6,7,13,10,2,101,19,7,7,5);  # sf.net bug #2019651
 # Test a range of values
 is_pdl $x->pctover(-0.5), pdl(0), "pct below 0 for 25-elem pdl";
 is_pdl $x->pctover( 0.0), pdl(0), "pct equal 0 for 25-elem pdl";
@@ -43,35 +30,38 @@ is_pdl $x->pctover( 0.9), pdl(17), "pct equal 0.9 for 25-elem pdl [SF bug 201965
 is_pdl $x->pctover( 1.0), pdl(101), "pct equal 1 for 25-elem pdl";
 is_pdl $x->pctover( 2.0), pdl(101), "pct above 1 for 25-elem pdl";
 
-$x = sequence(10);
-is_pdl $x->pctover(0.2 ), pdl(1.8), "20th percentile of 10-elem ndarray [SF bug 2753869]";
-is_pdl $x->pctover(0.23), pdl(2.07), "23rd percentile of 10-elem ndarray [SF bug 2753869]";
+is_pdl sequence(10)->pctover(0.2 ), pdl(1.8), "20th percentile of 10-elem ndarray [SF bug 2753869]";
+is_pdl sequence(10)->pctover(0.23), pdl(2.07), "23rd percentile of 10-elem ndarray [SF bug 2753869]";
 
 ok( ( eval { pdl([])->qsorti }, $@ eq '' ), "qsorti coredump,[SF bug 2110074]");
 
-$d->inplace->qsort;
-is_pdl $d, $d_sort, "inplace sorting";
-$d->setbadat(3);
-is_pdl $d, pdl('0 1 2 BAD 4 5 6 7 8 9');
-$d_sort = $d->qsort;
-is_pdl $d_sort, pdl('0 1 2 4 5 6 7 8 9 BAD');
-is_pdl $d_sort->qsort, pdl('0 1 2 4 5 6 7 8 9 BAD'), 'qsort with bad already end';
-$d->inplace->qsort;
-ok(all($d == $d_sort), "inplace sorting with bad values");
-
-$e->inplace->qsortvec;
-is_pdl $e, $e_sort, "inplace lexicographical sorting";
-
-my $ei = $e->copy;
-$ei->setbadat(1,3);
-my $ei_sort = $ei->qsortveci;
-is $ei_sort."", '[0 1 2 4 5 3]', "qsortveci with bad values"
-  or diag "got:$ei_sort";
-
-$e->setbadat(1,3);
-$e_sort = $e->qsortvec;
-$e->inplace->qsortvec;
-is_pdl $e, $e_sort, "inplace lexicographical sorting with bad values";
+for (
+  [
+    pdl(0,0,6,3,5,0,7,14,94,5,5,8,7,7,1,6,7,13,10,2,101,19,7,7,5),
+    pdl('0 0 0 1 2 3 5 5 5 5 6 6 7 7 7 7 7 7 8 10 13 14 19 94 101'),
+  ], # sf.net bug #2019651
+  [ pdl([55]), pdl([55]) ],
+  [ pdl(55,55), pdl(55,55) ],
+  [ sequence(10)->rotate(1), sequence(10) ],
+  [ pdl('0 1 2 BAD 4 5 6 7 8 9'), pdl('0 1 2 4 5 6 7 8 9 BAD') ],
+  [ pdl('0 BAD 4'), pdl('0 4 BAD') ],
+  [ pdl('BAD 4'), pdl('4 BAD') ],
+  [ pdl('[BAD]'), pdl('[BAD]') ],
+  [ pdl("0 -100 BAD 100"), pdl('-100 0 100 BAD') ], # test qsort moves values with BAD components to end
+  [ pdl('1 2;0 500;2 3;4 2;3 4;3 5'), pdl('0 500;1 2;2 3;3 4;3 5;4 2') ],
+  [ pdl('1 2;0 500;2 3;4 BAD;3 4;3 5'), pdl('0 500;1 2;2 3;3 4;3 5;4 BAD') ],
+  [ pdl("0 0;-100 0;BAD 0;100 0"), pdl('-100 0; 0 0; 100 0; BAD 0') ], # test qsortvec moves vectors with BAD components to end - GH#252
+) {
+  my ($in, $exp) = @$_;
+  my $meth = $in->ndims > 1 ? 'qsortvec' : 'qsort'; # assume broadcast works
+  is_pdl $in->copy->$meth, $exp, "non-inplace qsort $in";
+  my $in_copy = $in->copy;
+  $in_copy->inplace->$meth;
+  is_pdl $in_copy, $exp, "inplace qsort $in";
+  $meth .= "i";
+  my $inds = $in->$meth;
+  is_pdl $in->dice_axis(-1, $inds), $exp, "$in $meth";
+}
 
 # Test sf.net bug 379 "Passing qsort an extra argument causes a segfault"
 # (also qsorti, qsortvec, qsortveci)
@@ -88,20 +78,6 @@ is_pdl pdl(5)->qsort, pdl([5]),'trivial qsort';
 is_pdl pdl(8)->qsorti, indx([0]),'trivial qsorti';
 is_pdl pdl(42,41)->qsortvec, pdl(42,41)->dummy(1),'trivial qsortvec';
 is_pdl pdl(53,35)->qsortveci,indx([0]),'trivial qsortveci';
-
-# test qsort moves vectors with BAD components to end
-is pdl("0 -100 BAD 100")->qsort."", '[-100 0 100 BAD]', 'qsort moves BAD elts to end';
-
-# test qsortvec moves vectors with BAD components to end - GH#252
-is pdl("[0 0] [-100 0] [BAD 0] [100 0]")->qsortvec."", <<'EOF', 'qsortvec moves vectors with BAD components to end';
-
-[
- [-100    0]
- [   0    0]
- [ 100    0]
- [ BAD    0]
-]
-EOF
 
 # test for sf.net bug report 3234141 "max() fails on nan"
 #   NaN values are handled inconsistently by min, minimum, max, maximum...

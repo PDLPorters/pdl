@@ -983,19 +983,30 @@ EOD
 
 sub qsort_returnempty { 'if ($PDL(a)->nvals == 0) return PDL_err;' }
 
-# move all bad values to the end of the array
 pp_def('qsort',
     HandleBad => 1,
     Inplace => 1,
     Pars => 'a(n); [o]b(n);',
     Code => '
-register PDL_Indx nn = 0;
+register PDL_Indx nn = PDL_IF_BAD(0,$SIZE(n));
+char is_inplace = ($P(a) == $P(b));
 PDL_IF_BAD(register PDL_Indx nb = $SIZE(n) - 1;,)
 '.qsort_returnempty().'
+PDL_IF_BAD(
 loop(n) %{
-  PDL_IF_BAD(if ($ISBAD(a())) { $SETBAD(b(n=>nb)); nb--; continue; },)
-  $b(n=>nn) = $a(); nn++;
+  if ($ISGOOD(a())) {
+    if (!is_inplace) $b(n=>nn) = $a();
+    nn++;
+    continue;
+  }
+  while (is_inplace && $ISBAD(b(n=>nb)) && nb > n) nb--;
+  if (nb > n && is_inplace) { $a() = $b(n=>nb); nn++; }
+  if (nb > n || !is_inplace) { $SETBAD(b(n=>nb)); nb--; }
+  if (nb < n) break;
 %}
+,
+if (!is_inplace) loop(n) %{ $b() = $a(); %}
+)
 if ( nn == 0 ) continue; nn -= 1;
 ' . generic_qsort('b'),
     Doc => '
