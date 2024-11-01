@@ -984,22 +984,20 @@ EOD
 sub qsort_returnempty { 'if ($PDL(a)->nvals == 0) return PDL_err;' }
 
 # move all bad values to the end of the array
-pp_def(
-    'qsort',
+pp_def('qsort',
     HandleBad => 1,
     Inplace => 1,
     Pars => 'a(n); [o]b(n);',
-    Code =>
-    'register PDL_Indx nn = 0;
-     PDL_IF_BAD(register PDL_Indx nb = $SIZE(n) - 1;,)
-     '.qsort_returnempty().'
-     loop(n) %{
-        PDL_IF_BAD(if ($ISBAD(a())) { $SETBAD(b(n=>nb)); nb--; }
-        else,)                      { $b(n=>nn) = $a(); nn++; }
-     %}
-     if ( nn != 0 ) {
-        nn -= 1;
-     ' . generic_qsort('b') . ' }',
+    Code => '
+register PDL_Indx nn = 0;
+PDL_IF_BAD(register PDL_Indx nb = $SIZE(n) - 1;,)
+'.qsort_returnempty().'
+loop(n) %{
+  PDL_IF_BAD(if ($ISBAD(a())) { $SETBAD(b(n=>nb)); nb--; continue; },)
+  $b(n=>nn) = $a(); nn++;
+%}
+if ( nn == 0 ) continue; nn -= 1;
+' . generic_qsort('b'),
     Doc => '
 =for ref
 
@@ -1020,27 +1018,26 @@ Bad values are moved to the end of the array:
  pdl> p qsort($y)
  [22 25 32 32 41 42 47 59 74 76 76 79 96 96 96 98 BAD BAD BAD BAD]
 ',
-    ); # pp_def qsort
+);
 
 sub generic_qsort_ind {
     'qsort_ind_$PPSYM() ($P(a), $P(indx),
             0, nn);';
 }
 
-pp_def(
-       'qsorti',
+pp_def('qsorti',
        HandleBad => 1,
        Pars => 'a(n); indx [o]indx(n);',
-       Code =>
-       'register PDL_Indx nn = PDL_IF_BAD(0,$SIZE(n)-1), nb = $SIZE(n) - 1;
-        '.qsort_returnempty().'
-        loop(n) %{
-           PDL_IF_BAD(if ($ISBAD(a())) { $indx(n=>nb) = n; nb--; }
-           else                        { $indx(n=>nn) = n; nn++; } /* play safe since nn used more than once */
-           ,$indx() = n;)
-        %}
-        PDL_IF_BAD(if ( nn == 0 ) continue; nn -= 1;,)
-        ' . generic_qsort_ind(),
+       Code => '
+register PDL_Indx nn = PDL_IF_BAD(0,$SIZE(n)-1), nb = $SIZE(n) - 1;
+'.qsort_returnempty().'
+loop(n) %{
+  PDL_IF_BAD(if ($ISBAD(a())) { $indx(n=>nb) = n; nb--; }
+  else                        { $indx(n=>nn) = n; nn++; } /* play safe since nn used more than once */
+  ,$indx() = n;)
+%}
+PDL_IF_BAD(if ( nn == 0 ) continue; nn -= 1;,)
+' . generic_qsort_ind(),
        BadDoc =>
 'Bad elements are moved to the end of the array:
 
@@ -1061,53 +1058,49 @@ Quicksort a vector and return index of elements in ascending order.
 
 =cut
 '
-       ); # pp_def: qsorti
+);
 
 # move all bad values to the end of the array
 #
-pp_def(
-    'qsortvec',
+pp_def('qsortvec',
     HandleBad => 1,
     Inplace => 1,
     Pars => 'a(n,m); [o]b(n,m);',
-    Code =>
-    'register PDL_Indx nn = PDL_IF_BAD(0,$SIZE(m)-1), nb = $SIZE(m) - 1;
-     char is_inplace = ($P(a) == $P(b));
-     PDL_Indx nd = $SIZE(n);
-     '.qsort_returnempty().'
-     PDL_IF_BAD(loop(m) %{
-       char allgood_a = 1;
-       loop(n) %{ if ( $ISBAD(a()) ) { allgood_a = 0; break; } %}
-       PDL_Indx copy_dest = allgood_a ? nn++ : nb--;
-       if (is_inplace) {
-         if (allgood_a) continue; /* nothing to do */
-         char anybad_b = 0;
-         do {
-           anybad_b = 0;
-           loop(n) %{ if ($ISBAD(b(m=>copy_dest))) { anybad_b = 1; break; } %}
-           if (anybad_b) copy_dest = nb--;
-         } while (anybad_b);
-         if (m != copy_dest)
-           loop(n) %{
-             /* as in-place we know same badval source and dest */
-             $GENERIC() tmp = $b(m=>copy_dest);
-             $b(m=>copy_dest) = $a();
-             $a() = tmp;
-           %}
-         if (m >= nb-1) { nn = nb+1; break; } /* run out of "good" vectors */
-       } else {
-         loop(n) %{
-           if ($ISBAD(a())) $SETBAD(b(m=>copy_dest));
-           else             $b(m=>copy_dest) = $a();
-         %}
-       }
-     %}
-     if ( nn != 0 ) {
-       nn -= 1;,
-       if (!is_inplace) { loop(n,m) %{ $b() = $a(); %} }
-       {)' .
-       generic_qsortvec('b','nd') .'
-     }',
+    Code => '
+register PDL_Indx nn = PDL_IF_BAD(0,$SIZE(m)-1), nb = $SIZE(m) - 1;
+char is_inplace = ($P(a) == $P(b));
+PDL_Indx nd = $SIZE(n);
+'.qsort_returnempty().'
+PDL_IF_BAD(loop(m) %{
+  char allgood_a = 1;
+  loop(n) %{ if ( $ISBAD(a()) ) { allgood_a = 0; break; } %}
+  PDL_Indx copy_dest = allgood_a ? nn++ : nb--;
+  if (is_inplace) {
+    if (allgood_a) continue; /* nothing to do */
+    char anybad_b = 0;
+    do {
+      anybad_b = 0;
+      loop(n) %{ if ($ISBAD(b(m=>copy_dest))) { anybad_b = 1; break; } %}
+      if (anybad_b) copy_dest = nb--;
+    } while (anybad_b);
+    if (m != copy_dest)
+      loop(n) %{
+        /* as in-place we know same badval source and dest */
+        $GENERIC() tmp = $b(m=>copy_dest);
+        $b(m=>copy_dest) = $a();
+        $a() = tmp;
+      %}
+    if (m >= nb-1) { nn = nb+1; break; } /* run out of "good" vectors */
+  } else {
+    loop(n) %{
+      if ($ISBAD(a())) $SETBAD(b(m=>copy_dest));
+      else             $b(m=>copy_dest) = $a();
+    %}
+  }
+%}
+if ( nn == 0 ) continue; nn -= 1;,
+if (!is_inplace) { loop(n,m) %{ $b() = $a(); %} }
+)' . generic_qsortvec('b','nd'),
     Doc => '
 =for ref
 
@@ -1142,7 +1135,7 @@ Vectors with bad components are moved to the end of the array:
    [ BAD    0]
   ]
 ',
-    ); # pp_def qsortvec
+);
 
 sub generic_qsortvec_ind {
     my $pdl = shift;
@@ -1150,8 +1143,7 @@ sub generic_qsortvec_ind {
     'pdl_qsortvec_ind_$PPSYM() ($P(' . $pdl . '), $P(indx), '. $ndim.', 0, nn);';
 }
 
-pp_def(
-    'qsortveci',
+pp_def('qsortveci',
     HandleBad => 1,
     Pars => 'a(n,m); indx [o]indx(m);',
     Code =>
@@ -1192,7 +1184,7 @@ so qsortveci may be thought of as a collapse operator of sorts (groan).
 Vectors with bad components are moved to the end of the array as
 for L</qsortvec>.
 ',
-    );
+);
 
 pp_def('magnover',
   HandleBad => 1,
