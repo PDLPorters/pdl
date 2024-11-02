@@ -1,3 +1,4 @@
+2.094 2024-11-02
 - split Graphics/IIS out to separate PDL::Graphics::IIS distro
 - split Libtmp/Minuit out to separate PDL::Minuit distro
 - Transform::Proj4 add NoPthread as using non-thread-safe API
