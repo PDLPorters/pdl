@@ -5,6 +5,8 @@ package Test::Deep::PDL;
 
 # ABSTRACT: Test ndarrays inside data structures with Test::Deep
 
+our $VERSION = '0.22';
+
 =for Pod::Coverage init descend diag_message renderExp renderGot
 
 =cut
