@@ -316,7 +316,7 @@ void pdl__removetrans_children(pdl *it,pdl_trans *trans)
 	/* this might be due to a croak when performing the trans; so
 	   warn only for now, otherwise we leave trans undestructed ! */
 	if(!flag)
-		pdl_pdl_warn("Child not found for pdl %p, trans %p\n",it, trans);
+		pdl_pdl_warn("Child not found for pdl %p, trans %p=%s\n",it, trans, trans->vtable->name);
 }
 
 /* NULL out the trans's nth pdl in/output, and this trans as pdl's
