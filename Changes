@@ -1,3 +1,4 @@
+2.095 2024-11-03
 - add PDL_GENTYPE_IS_{REAL,FLOATREAL,COMPLEX,SIGNED,UNSIGNED}_##ppsym (#502)
 - fix some architectures convert()ing -5 to ushort as 0 (#502) - thanks @sebastic for report
 
