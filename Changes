@@ -1,4 +1,5 @@
 - add PDL_GENTYPE_IS_{REAL,FLOATREAL,COMPLEX,SIGNED,UNSIGNED}_##ppsym (#502)
+- fix some architectures convert()ing -5 to ushort as 0 (#502) - thanks @sebastic for report
 
 2.094 2024-11-02
 - split Graphics/IIS out to separate PDL::Graphics::IIS distro

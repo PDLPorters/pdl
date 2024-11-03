@@ -82,13 +82,17 @@ pdl_error pdl_converttype( pdl* a, int targtype ) {
       ctype_to to_badval = defbval_to; \
       a->has_badvalue = 0; \
       while (i--) { \
-        *data_to_typed-- = THIS_ISBAD(from_badval_isnan, from_badval, *data_from_typed) \
-          ? to_badval : (ctype_to) *data_from_typed; \
+        *data_to_typed-- = \
+          THIS_ISBAD(from_badval_isnan, from_badval, *data_from_typed) ? to_badval : \
+          PDL_GENTYPE_IS_UNSIGNED_##ppsym_to ? (ctype_to)(intmax_t) *data_from_typed : \
+          (ctype_to) *data_from_typed; \
         data_from_typed--; \
       } \
     } else \
       while (i--) \
-        *data_to_typed-- = (ctype_to) *data_from_typed--;
+        *data_to_typed-- = \
+          PDL_GENTYPE_IS_UNSIGNED_##ppsym_to ? (ctype_to)(intmax_t) *data_from_typed-- : \
+          (ctype_to) *data_from_typed--;
     PDL_GENERICSWITCH2(
       PDL_TYPELIST_ALL, intype, X_OUTER, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", intype),
       PDL_TYPELIST_ALL_, targtype, X_INNER, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", targtype))
@@ -156,15 +160,18 @@ pdl_error pdl_converttypei_redodims(pdl_trans *trans) {
   return PDL_err;
 }
 
-#define COPYCONVERT(from, to) \
+#define COPYCONVERT(from, to, ppsym_to, ctype_to) \
   PDL_Indx i, nvals = trans->pdls[1]->nvals; \
   if (trans->bvalflag) \
     for (i=0; i<nvals; i++) \
-      to ## _datap[i] = THIS_ISBAD(from ## _badval_isnan, from ## _badval, from ## _datap[i]) \
-        ? to ## _badval \
-        : from ## _datap[i]; \
+      to ## _datap[i] = \
+        THIS_ISBAD(from ## _badval_isnan, from ## _badval, from ## _datap[i]) ? to ## _badval : \
+        PDL_GENTYPE_IS_UNSIGNED_##ppsym_to ? (ctype_to)(intmax_t) from ## _datap[i] : \
+        from ## _datap[i]; \
   else \
-    for (i=0; i<nvals; i++) to ## _datap[i] = from ## _datap[i];
+    for (i=0; i<nvals; i++) to ## _datap[i] = \
+      PDL_GENTYPE_IS_UNSIGNED_##ppsym_to ? (ctype_to)(intmax_t) from ## _datap[i] : \
+      from ## _datap[i];
 
 pdl_error pdl_converttypei_readdata(pdl_trans *trans) {
   pdl_error PDL_err = {0, NULL, 0};
@@ -176,14 +183,14 @@ pdl_error pdl_converttypei_readdata(pdl_trans *trans) {
   PDLDEBUG_f(printf("pdl_converttypei_readdata %s=%p from parent to type=%d: ", trans->vtable->name, trans, totype); pdl_dump(trans->pdls[0]));
 #define FROMpdl_indx 0
 #define TOpdl_indx 1
-#define X_OUTER(datatype_to, ctype_to, ppsym_to, ...) \
-  PDL_DECLARE_PARAMETER_BADVAL(ctype_to, TOpdl, (trans->pdls[TOpdl_indx]), 1, ppsym_to)
-#define X_INNER(datatype_from, ctype_from, ppsym_from, ...) \
-  PDL_DECLARE_PARAMETER_BADVAL(ctype_from, FROMpdl, (trans->pdls[FROMpdl_indx]), 1, ppsym_from) \
-  COPYCONVERT(FROMpdl, TOpdl)
+#define X_OUTER(datatype_from, ctype_from, ppsym_from, ...) \
+  PDL_DECLARE_PARAMETER_BADVAL(ctype_from, FROMpdl, (trans->pdls[FROMpdl_indx]), 1, ppsym_from)
+#define X_INNER(datatype_to, ctype_to, ppsym_to, ...) \
+  PDL_DECLARE_PARAMETER_BADVAL(ctype_to, TOpdl, (trans->pdls[TOpdl_indx]), 1, ppsym_to) \
+  COPYCONVERT(FROMpdl, TOpdl, ppsym_to, ctype_to)
   PDL_GENERICSWITCH2(
-    PDL_TYPELIST_ALL, totype, X_OUTER, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", totype),
-    PDL_TYPELIST_ALL_, fromtype, X_INNER, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", fromtype))
+    PDL_TYPELIST_ALL, fromtype, X_OUTER, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", fromtype),
+    PDL_TYPELIST_ALL_, totype, X_INNER, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", totype))
   pdl *TOpdl = trans->pdls[TOpdl_indx];
 #undef FROMpdl_indx
 #undef TOpdl_indx
@@ -204,8 +211,8 @@ pdl_error pdl_converttypei_writebackdata(pdl_trans *trans) {
 #define FROMpdl_indx 1
 #define TOpdl_indx 0
   PDL_GENERICSWITCH2(
-    PDL_TYPELIST_ALL, totype, X_OUTER, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", totype),
-    PDL_TYPELIST_ALL_, fromtype, X_INNER, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", fromtype))
+    PDL_TYPELIST_ALL, fromtype, X_OUTER, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", fromtype),
+    PDL_TYPELIST_ALL_, totype, X_INNER, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", totype))
 #undef X_INNER
 #undef X_OUTER
   pdl *TOpdl = trans->pdls[TOpdl_indx];

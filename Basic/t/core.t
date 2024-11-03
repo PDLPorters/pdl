@@ -704,10 +704,19 @@ for my $type (
   my $pdl = $type->{typefunc}(42); # build a PDL with datatype $type->{type}
   is( PDL::Core::howbig( $pdl->get_datatype ), $type->{size} );
   is $pdl->type, $type->{typefunc}->().'', 'pdl has right type';
-  is $pdl->convert(longlong).'', 42, 'converted to longlong same value';
+  is_pdl $pdl->convert(longlong), longlong(42), 'converted to longlong same value';
   $pdl->inplace->convert(longlong);
-  is $pdl->type, 'longlong', 'pdl has new right type, inplace convert worked';
+  is_pdl $pdl, longlong(42), 'inplace convert worked';
 }
+}
+
+{
+is_pdl pdl(-3)->ushort, ushort(-3), 'convert negative to ushort right';
+ok pdl(-3)->ushort, 'convert negative to ushort non-zero';
+my $p = pdl(-3);
+$p->inplace->convert(ushort);
+is_pdl $p, ushort(-3), 'inplace convert negative to ushort right';
+ok $p, 'inplace convert negative to ushort non-zero';
 }
 
 for (['ones', 1], ['zeroes', 0], ['nan', '.*NaN'], ['inf', '.*Inf'], ['i', 'i', 'cdouble']) {
