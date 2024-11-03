@@ -2,6 +2,7 @@
 #define PDL_IN_CORE
 #include "pdlcore.h"
 
+/* also in pdlconv.c */
 #define PDL_ALL_GENTYPES { PDL_SB, PDL_B, PDL_S, PDL_US, PDL_L, PDL_UL, PDL_IND, PDL_ULL, PDL_LL, PDL_F, PDL_D, PDL_LD, PDL_CF, PDL_CD, PDL_CLD, -1 }
 
 /* delete these in CORE21 */
@@ -135,140 +136,6 @@ pdl_error pdl_affine_new(pdl *PARENT,pdl *CHILD,PDL_Indx offset,PDL_Indx *dims,P
     params->sdims[i] = dims[i];
     params->sincs[i] = incs[i];
   }
-  PDL_RETERROR(PDL_err, pdl_make_trans_mutual((pdl_trans *)trans));
-  if (badflag_cache)
-    CHILD->state |= PDL_BADVAL;
-  return PDL_err;
-}
-
-/* generated from:
-pp_def(
-        'converttypei',
-        GlobalNew => 'converttypei_new',
-        OtherPars => 'int totype;',
-        Identity => 1,
-# Forced types
-        FTypes => {CHILD => '$COMP(totype)'},
-        Doc => 'internal',
-);
-*/
-
-typedef struct pdl_params_converttypei {
-  int  totype;
-} pdl_params_converttypei;
-
-pdl_error pdl_converttypei_redodims(pdl_trans *trans) {
-  pdl_error PDL_err = {0, NULL, 0};
-  pdl *__it = trans->pdls[1];
-  pdl_hdr_childcopy(trans);
-  PDL_Indx i;
-  PDL_RETERROR(PDL_err, pdl_reallocdims(__it, trans->pdls[0]->ndims));
-  for (i=0; i<trans->pdls[1]->ndims; i++)
-    trans->pdls[1]->dims[i] = trans->pdls[0]->dims[i];
-  PDL_RETERROR(PDL_err, pdl_setdims_careful(__it));
-  pdl_reallocbroadcastids(trans->pdls[1], trans->pdls[0]->nbroadcastids);
-  for (i=0; i<trans->pdls[0]->nbroadcastids; i++)
-    trans->pdls[1]->broadcastids[i] = trans->pdls[0]->broadcastids[i];
-  trans->dims_redone = 1;
-  return PDL_err;
-}
-
-#define COPYCONVERT(from, to, from_ppsym) \
-  PDL_Indx i, nvals = trans->pdls[1]->nvals; \
-  if (trans->bvalflag) \
-    for (i=0; i<nvals; i++) \
-      to ## _datap[i] = PDL_ISBAD2(from ## _datap[i], from ## _badval, from_ppsym, from ## _badval_isnan) \
-        ? to ## _badval \
-        : from ## _datap[i]; \
-  else \
-    for (i=0; i<nvals; i++) to ## _datap[i] = from ## _datap[i];
-
-pdl_error pdl_converttypei_readdata(pdl_trans *trans) {
-  pdl_error PDL_err = {0, NULL, 0};
-  pdl_params_converttypei *params = trans->params;
-  int fromtype = trans->__datatype, totype = params->totype;
-  extern struct Core PDL;
-  struct Core *PDLptr = &PDL;
-#define PDL PDLptr /* so PDL_DECLARE_PARAMETER_BADVAL can get bvals */
-  PDLDEBUG_f(printf("pdl_converttypei_readdata %s=%p from parent to type=%d: ", trans->vtable->name, trans, totype); pdl_dump(trans->pdls[0]));
-#define FROMpdl_indx 0
-#define TOpdl_indx 1
-#define X_OUTER(datatype_to, ctype_to, ppsym_to, ...) \
-  PDL_DECLARE_PARAMETER_BADVAL(ctype_to, TOpdl, (trans->pdls[TOpdl_indx]), 1, ppsym_to)
-#define X_INNER(datatype_from, ctype_from, ppsym_from, ...) \
-  PDL_DECLARE_PARAMETER_BADVAL(ctype_from, FROMpdl, (trans->pdls[FROMpdl_indx]), 1, ppsym_from) \
-  COPYCONVERT(FROMpdl, TOpdl, ppsym_from)
-  PDL_GENERICSWITCH2(
-    PDL_TYPELIST_ALL, totype, X_OUTER, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", totype),
-    PDL_TYPELIST_ALL_, fromtype, X_INNER, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", fromtype))
-  pdl *TOpdl = trans->pdls[TOpdl_indx];
-#undef FROMpdl_indx
-#undef TOpdl_indx
-#undef PDL
-  if (TOpdl->has_badvalue && TOpdl->badvalue.type != TOpdl->datatype)
-    return pdl_make_error(PDL_EUSERERROR, "Badvalue has type=%d != pdltype=%d", TOpdl->badvalue.type, TOpdl->datatype);
-  return PDL_err;
-}
-
-pdl_error pdl_converttypei_writebackdata(pdl_trans *trans) {
-  pdl_error PDL_err = {0, NULL, 0};
-  pdl_params_converttypei *params = trans->params;
-  int fromtype = params->totype, totype = trans->__datatype;
-  extern struct Core PDL;
-  struct Core *PDLptr = &PDL;
-#define PDL PDLptr /* so PDL_DECLARE_PARAMETER_BADVAL can get bvals */
-  PDLDEBUG_f(printf("pdl_converttypei_writebackdata %s=%p from child to type=%d: ", trans->vtable->name, trans, totype); pdl_dump(trans->pdls[1]));
-#define FROMpdl_indx 1
-#define TOpdl_indx 0
-  PDL_GENERICSWITCH2(
-    PDL_TYPELIST_ALL, totype, X_OUTER, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", totype),
-    PDL_TYPELIST_ALL_, fromtype, X_INNER, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", fromtype))
-#undef X_INNER
-#undef X_OUTER
-  pdl *TOpdl = trans->pdls[TOpdl_indx];
-#undef FROMpdl_indx
-#undef TOpdl_indx
-#undef PDL
-  if (TOpdl->has_badvalue && TOpdl->badvalue.type != TOpdl->datatype)
-    return pdl_make_error(PDL_EUSERERROR, "Badvalue has type=%d != pdltype=%d", TOpdl->badvalue.type, TOpdl->datatype);
-  return PDL_err;
-}
-
-static pdl_datatypes pdl_converttypei_vtable_gentypes[] = PDL_ALL_GENTYPES;
-static char pdl_converttypei_vtable_flags[] = { 0, 0 }; /*CORE21*/
-static PDL_Indx pdl_converttypei_vtable_realdims[] = { 0, 0 };
-static char *pdl_converttypei_vtable_parnames[] = { "PARENT","CHILD" };
-static short pdl_converttypei_vtable_parflags[] = {
-  PDL_PARAM_ISPHYS,
-  PDL_PARAM_ISCREAT|PDL_PARAM_ISCREATEALWAYS|PDL_PARAM_ISIGNORE|PDL_PARAM_ISOUT|PDL_PARAM_ISPHYS|PDL_PARAM_ISWRITE
-};
-static pdl_datatypes pdl_converttypei_vtable_partypes[] = { -1, -1 };
-static PDL_Indx pdl_converttypei_vtable_realdims_starts[] = { 0, 0 };
-static PDL_Indx pdl_converttypei_vtable_realdims_ind_ids[] = { 0 };
-static char *pdl_converttypei_vtable_indnames[] = { "" };
-pdl_transvtable pdl_converttypei_vtable = {
-  PDL_TRANS_BADPROCESS, PDL_ITRANS_TWOWAY|PDL_ITRANS_DO_DATAFLOW_ANY, pdl_converttypei_vtable_gentypes, 1, 2, pdl_converttypei_vtable_flags /*CORE21*/,
-  pdl_converttypei_vtable_realdims, pdl_converttypei_vtable_parnames,
-  pdl_converttypei_vtable_parflags, pdl_converttypei_vtable_partypes,
-  pdl_converttypei_vtable_realdims_starts, pdl_converttypei_vtable_realdims_ind_ids, 0,
-  0, pdl_converttypei_vtable_indnames,
-  pdl_converttypei_redodims, pdl_converttypei_readdata, pdl_converttypei_writebackdata,
-  NULL,
-  sizeof(pdl_params_converttypei),"converttypei_new"
-};
-
-pdl_error pdl_converttypei_new(pdl  *PARENT,pdl  *CHILD,int  totype) {
-  pdl_error PDL_err = {0, NULL, 0};
-  pdl_trans *trans = (void *)pdl_create_trans(&pdl_converttypei_vtable);
-  pdl_params_converttypei *params = trans->params;
-  trans->pdls[0] = PARENT;
-  trans->pdls[1] = CHILD;
-  PDL_RETERROR(PDL_err, pdl_trans_check_pdls(trans));
-  char badflag_cache = pdl_trans_badflag_from_inputs((pdl_trans *)trans);
-  pdl_type_coerce((pdl_trans *)trans);
-  PARENT = trans->pdls[0];
-  CHILD = trans->pdls[1];
-  CHILD->datatype = params->totype = totype;
   PDL_RETERROR(PDL_err, pdl_make_trans_mutual((pdl_trans *)trans));
   if (badflag_cache)
     CHILD->state |= PDL_BADVAL;
