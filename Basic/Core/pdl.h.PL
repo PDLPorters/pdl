@@ -37,27 +37,37 @@ typedef struct pdl pdl;
 EOF
 
 my @methods = qw(symbol ctype ppsym shortctype defbval realctype);
-sub makeg { map { my $t = $_; [map $t->$_, @methods] } grep $_[0]->($_), PDL::Types::types() }
 sub makelister {
-  my ($name, $underscore, @list) = @_;
+  my ($name, $underscore, $pred) = @_;
+  my @list = map { my $t = $_; [map $t->$_, @methods] } grep $pred->($_), PDL::Types::types();
   $underscore = $underscore ? '_' : '';
   ("#define PDL_TYPELIST_$name$underscore(X, ...) \\\n",
     (map " X(__VA_ARGS__ ".join(',', @$_).")\\\n", @list), "\n\n");
 }
-my @generics = makeg(sub {1});
-my @generics_real = makeg(sub {$_[0]->real});
-my @generics_floatreal = makeg(sub {$_[0]->real && !$_[0]->integer});
-my @generics_complex = makeg(sub {!$_[0]->real});
-my @generics_signed = makeg(sub {$_[0]->integer && !$_[0]->unsigned});
-my @generics_unsigned = makeg(sub {$_[0]->unsigned});
-print OUT makelister('ALL', 0, @generics);
+my $pred_all = sub {1};
+my $pred_real = sub {$_[0]->real};
+my $pred_floatreal = sub {$_[0]->real && !$_[0]->integer};
+my $pred_complex = sub {!$_[0]->real};
+my $pred_signed = sub {$_[0]->integer && !$_[0]->unsigned};
+my $pred_unsigned = sub {$_[0]->unsigned};
+print OUT makelister('ALL', 0, $pred_all);
 # extra as macro gets expanded twice, gets painted blue
-print OUT makelister('ALL', 1, @generics);
-print OUT makelister('REAL', 0, @generics_real);
-print OUT makelister('FLOATREAL', 0, @generics_floatreal);
-print OUT makelister('COMPLEX', 0, @generics_complex);
-print OUT makelister('SIGNED', 0, @generics_signed);
-print OUT makelister('UNSIGNED', 0, @generics_unsigned);
+print OUT makelister('ALL', 1, $pred_all);
+print OUT makelister('REAL', 0, $pred_real);
+print OUT makelister('FLOATREAL', 0, $pred_floatreal);
+print OUT makelister('COMPLEX', 0, $pred_complex);
+print OUT makelister('SIGNED', 0, $pred_signed);
+print OUT makelister('UNSIGNED', 0, $pred_unsigned);
+
+sub makepredicate {
+  my ($name, $pred) = @_;
+  map "#define PDL_GENTYPE_IS_${name}_".$_->ppsym." ".(0+$pred->($_))."\n", PDL::Types::types();
+}
+print OUT makepredicate('REAL', $pred_real);
+print OUT makepredicate('FLOATREAL', $pred_floatreal);
+print OUT makepredicate('COMPLEX', $pred_complex);
+print OUT makepredicate('SIGNED', $pred_signed);
+print OUT makepredicate('UNSIGNED', $pred_unsigned);
 
 print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  __FILE__;
 print OUT <<'EOF';
