@@ -44,7 +44,6 @@ RCS
 ^Basic/Core/Types\.pm$
 ^Basic/Core/pdl\.h$
 ^Basic/Core/pdlperl\.h$
-^Basic/Core/pdlsimple\.h$
 ^Basic/Gen/PP/Dump\.pm$
 ^Basic/Gen/PP/Dump\.pm\.tmp$
 ^Basic/Gen/pptemplate.pod$
@@ -79,7 +78,6 @@ RCS
 ^IO/GD/GD\.(pm|xs|c)$
 ^IO/HDF/SD/SD\.(pm|xs|c)$
 ^IO/HDF/VS/VS\.(pm|xs|c)$
-^Libtmp/CallExt/CallExt\.c$
 ^Libtmp/Fit/Gaussian/Gaussian\..*
 ^Libtmp/GSL/.*/[A-Z_]*\.pm$
 ^Libtmp/GSL/.*\.xs$

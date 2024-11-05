@@ -25,7 +25,6 @@ Basic/Core/pdlcore.h
 Basic/Core/pdlmagic.c
 Basic/Core/pdlmagic.h
 Basic/Core/pdlperl.h.PL
-Basic/Core/pdlsimple.h.PL
 Basic/Core/pdlutil.c
 Basic/Core/perldl
 Basic/Core/ppport.h
@@ -399,11 +398,6 @@ IO/STL/t/basic.t
 IO/STL/t/cube.stl
 IO/STL/t/cube_binary.stl
 IO/t/dumper.t
-Libtmp/CallExt/CallExt.pm
-Libtmp/CallExt/CallExt.xs
-Libtmp/CallExt/Makefile.PL
-Libtmp/CallExt/t/callext.c
-Libtmp/CallExt/t/callext.t
 Libtmp/DiskCache.pm
 Libtmp/Filter/Linear.pm
 Libtmp/Filter/Makefile.PL

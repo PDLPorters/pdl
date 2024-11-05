@@ -140,10 +140,6 @@ L<PDL::Basic> - Basic utility functions for PDL
 
 =item *
 
-L<PDL::CallExt> - call functions in external shared libraries
-
-=item *
-
 L<PDL::Char> - PDL subclass which allows reading and writing of fixed-length character strings as byte PDLs
 
 =item *

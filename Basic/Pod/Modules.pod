@@ -407,13 +407,9 @@ PDL debugger.
 
 Manage many ndarrays through a disk cache.
 
-=item L<PDL::CallExt>
-
-Call external functions.
-
 =item L<PDL::Objects>
 
-If you want to sub-class from PDL (note: incomplete).
+If you want to sub-class from PDL.
 
 =back
 

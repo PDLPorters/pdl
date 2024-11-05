@@ -354,17 +354,6 @@ library written in C, look no further.
 A script that automates the creation of modules that use L<PDL::PP>,
 which should make your life as a module author a bit simpler.
 
-=item * L<PDL::CallExt>
-
-Allows you to call functions using external shared
-libraries.  This is an alternative to using L<PDL::PP>.
-The major difference between PDL::PP and PDL::CallExt is
-that the former will handle broadcasting over implicit broadcast
-dimensions for you, whereas PDL::CallExt simply calls an
-external function.  PDL::PP is generally the recommended
-way to interface your code with PDL, but it wouldn't be Perl
-if there wasn't another way to do it.
-
 =item * L<PDL::Doc>
 
 Explanation of the PDL documentation conventions, and an

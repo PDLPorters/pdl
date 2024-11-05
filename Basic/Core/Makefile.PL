@@ -27,7 +27,7 @@ my $libs_string = "$pthread_library -lm";
 undef &MY::postamble; # suppress warning
 *MY::postamble = sub {
   my $text = join '', map "$_ :: $_.PL Types.pm\n\t\$(PERLRUN) $_.PL $_\n",
-    qw(pdlsimple.h pdl.h pdlperl.h);
+    qw(pdl.h pdlperl.h);
   # Here, `pdl.c` is used directly because some makes (e.g., on Solaris) do not
   # support the `$<` variable in explicit rules
 $text .= <<EOT if $^O !~ /MSWin/;
@@ -51,7 +51,7 @@ WriteMakefile(
       qw/Core.pm Basic.pm Types.pm Dbg.pm Exporter.pm Config.pm Char.pm/
     ),
     (map +($_,'$(INST_LIBDIR)/Core/'.$_),
-            qw/Dev.pm typemap pdl.h pdlperl.h pdlcore.h pdlmagic.h pdlsimple.h
+            qw/Dev.pm typemap pdl.h pdlperl.h pdlcore.h pdlmagic.h
             pdlbroadcast.h ppport.h/
     ),
     qq/IFiles.pm/,'$(INST_LIBDIR)/Install/Files.pm',
@@ -63,7 +63,7 @@ WriteMakefile(
   DEFINE 	=> $pthread_define,
   LIBS         => [$libs_string],
   clean        => {'FILES'  =>
-		   "pdl.h pdlperl.h pdlsimple.h Types.pm Core.c @cleanup"
+		   "pdl.h pdlperl.h Types.pm Core.c @cleanup"
 		   },
   INC          => join(' ',
     PDL::Core::Dev::PDL_INCLUDE(),
