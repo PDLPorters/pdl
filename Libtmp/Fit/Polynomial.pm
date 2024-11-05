@@ -9,8 +9,20 @@ polynomial fits to data
 
 =head1 SYNOPSIS
 
-    $yfit = fitpoly1d $data;
+  $x = sequence(20)-10;
+  $coeff_orig = cdouble(30,-2,3,-2); # order used in this module
+  $y = 30-2*$x+3*$x**2-2*$x**3; # or: $y = polyval($coeff_orig->slice("-1:0"), $x->r2C);
+  $y += ($x->grandom - 0.5) * 100;
+  ($yfit, $coeff) = fitpoly1d($x,$y,4);
+  use PDL::Graphics::Simple;
+  $w = pgswin();
+  $xi = zeroes(100)->xlinvals(-10,9);
+  $yi = polyval($coeff->r2C->slice("-1:0"), $xi->r2C);
+  $w->plot(with=>'points',$x,$y,
+    with=>'points',$x,$yfit, with=>'line',$xi,$yi);
 
+  $yfit = fitpoly1d $data,2; # Least-squares line fit
+  ($yfit, $coeffs) = fitpoly1d $x, $y, 4; # Fit a cubic
 
 =head1 FUNCTIONS
 
@@ -32,7 +44,8 @@ Uses a standard matrix inversion method to do a least
 squares/min chi^2 polynomial fit to data. Order=2 is a linear
 fit (two parameters).
 
-Returns the fitted data and optionally the coefficients.
+Returns the fitted data and optionally the coefficients (in ascending
+order of degree, unlike L<PDL::Math/polyval>).
 
 One can broadcast over extra dimensions to do multiple fits (except
 the order can not be broadcasted over - i.e. it must be one fixed
@@ -76,7 +89,7 @@ our @ISA    = qw( PDL::Exporter );
 sub PDL::fitpoly1d {
    my $opthash = ref($_[-1]) eq "HASH" ? pop(@_) : {} ; 
    my %opt = parse( { Weights=>ones(1) }, $opthash ) ;
-   barf "Usage: fitpoly1d incorrect args\n" if $#_<1 or $#_ > 2;
+   barf "Usage: fitpoly1d [\$x,] \$y, \$order\n" if @_<2 or @_ > 3;
    my ($x, $y, $order) = @_;
    if ($#_ == 1) {
       ($y, $order) = @_;
