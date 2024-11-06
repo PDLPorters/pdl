@@ -135,6 +135,7 @@ sub _oneliner {
 # The idea is to support in future several packages in same dir - EUMM
 #   7.06 supports
 
+my %flist_cache;
 sub _pp_call_arg {
   "-MPDL::PP=".join ',', @_
 }
@@ -144,8 +145,9 @@ sub _postamble {
   $w = dirname($w);
   my $perlrun = $internal ? '$(PERLRUNINST)' : "\$(PERL) \"-I$w\"";
   my ($pmdep, $install, $cdep) = ($src, '', '');
-  my @cbase = $multi_c ? map "pp-$_", _pp_list_functions($src, $internal) : ();
-  my @objs = map "$_\$(OBJ_EXT)", $pref, @cbase;
+  my ($ppc, $ppo) = ($multi_c && $flist_cache{File::Spec::Functions::rel2abs($src)})
+    ? map "\$($_)", _mod_vars($mod)
+    : _mod_values($internal, $src, $pref, $multi_c);
   if ($internal) {
     require File::Spec::Functions;
     my $top = File::Spec::Functions::abs2rel($w);
@@ -154,13 +156,12 @@ sub _postamble {
       File::Spec::Functions::catfile($top, qw(Basic Gen pm_to_blib)),
       File::Spec::Functions::catfile($core, qw(pm_to_blib)),
       ;
-    $cdep .= join ' ', @objs, ':', map File::Spec::Functions::catfile($core, $_),
+    $cdep .= join ' ', $ppo, ':', map File::Spec::Functions::catfile($core, $_),
       qw(pdl.h pdlcore.h pdlbroadcast.h pdlmagic.h);
   } else {
     my $oneliner = _oneliner(qq{exit if \$ENV{DESTDIR}; use PDL::Doc; eval { PDL::Doc::add_module(q{$mod}); }});
     $install = qq|\ninstall ::\n\t\@echo "Updating PDL documentation database...";\n\t$oneliner\n|;
   }
-  my @generanda = ("$pref.xs", map "$_.c", @cbase);
   my $pp_call_arg = _pp_call_arg($mod, $mod, $pref, $callpack, $multi_c||'');
 qq|
 
@@ -168,7 +169,7 @@ $pref.pm : $pmdep
 	$perlrun \"$pp_call_arg\" $src
 	\$(TOUCH) $pref.pm
 
-@generanda : $pref.pm
+$ppc : $pref.pm
 	\$(NOECHO) \$(NOOP)
 
 $cdep
@@ -187,7 +188,6 @@ sub pdlpp_postamble {
   join '', map _postamble($w, 0, @$_), @_;
 }
 
-my %flist_cache;
 sub _pp_list_functions {
   require File::Spec::Functions;
   my ($src, $internal) = @_;
@@ -204,22 +204,45 @@ sub _pp_list_functions {
   @{ $flist_cache{$abs_src} };
 }
 
+sub _mod_vars {
+  my @parts = split /::/, $_[0];
+  shift @parts if $parts[0] eq 'PDL';
+  my $mangled = join '_', @parts;
+  map "PDL_MULTIC_${mangled}_$_", qw(C O);
+}
+sub _mod_values {
+  my ($internal, $src, $pref, $multi_c) = @_;
+  return ("$pref.xs", "$pref\$(OBJ_EXT)") if !$multi_c;
+  my @cbase = map "pp-$_", _pp_list_functions($src, $internal);
+  (join(' ', "$pref.xs", map "$_.c", @cbase),
+    join(' ', map "$_\$(OBJ_EXT)", $pref, @cbase));
+}
 sub _stdargs {
   my ($w, $internal, $src, $pref, $mod, $callpack, $multi_c) = @_;
-  my @cbase = $pref;
-  push @cbase, map "pp-$_", _pp_list_functions($src, $internal) if $multi_c;
-  my @cfiles = ("$pref.xs", map "$_.c", @cbase);
-  my @objs = map "$_\$(OBJ_EXT)", @cbase;
+  my ($clean, %hash) = '';
+  if ($multi_c) {
+    my ($mangled_c, $mangled_o) = _mod_vars($mod);
+    my ($mangled_c_val, $mangled_o_val) = _mod_values($internal, $src, $pref, $multi_c);
+    %hash = (%hash,
+      macro        => {
+        $mangled_c => $mangled_c_val, $mangled_o => $mangled_o_val,
+      },
+      OBJECT       => "\$($mangled_o)",
+    );
+    $clean .= " \$($mangled_c)";
+  } else {
+    %hash = (%hash, OBJECT => "$pref\$(OBJ_EXT)");
+  }
   (
     NAME  	=> $mod,
     VERSION_FROM => ($internal ? "$w/Basic/PDL.pm" : $src),
     TYPEMAPS     => [PDL_TYPEMAP()],
-    OBJECT       => join(' ', @objs),
     PM 	=> {"$pref.pm" => "\$(INST_LIBDIR)/$pref.pm"},
     MAN3PODS => {"$pref.pm" => "\$(INST_MAN3DIR)/$mod.\$(MAN3EXT)"},
     INC          => PDL_INCLUDE(),
     LIBS         => [''],
-    clean        => {FILES => "$pref.pm @cfiles"},
+    clean        => {FILES => "$pref.pm $pref.c$clean"},
+    %hash,
     ($internal
       ? (NO_MYMETA => 1)
       : (dist => {PREOP => '$(PERLRUNINST) -MPDL::Core::Dev -e pdlpp_mkgen $(DISTVNAME)' })
