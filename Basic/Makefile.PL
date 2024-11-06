@@ -32,6 +32,9 @@ WriteMakefile(
     Lib-Transform
     SourceFilter Pod Demos Doc
   )],
+  clean => { FILES => join ' ',
+    qw(MANIFEST.bak _Inline/ .inlinepdlpp/ .inlinewith/ .pptest/),
+  },
   NO_MYMETA => 1,
 );
 

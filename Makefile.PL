@@ -112,12 +112,7 @@ my %makefile_hash = (
   },
   CCFLAGS => $ccflags,
   dist => { COMPRESS => 'gzip', SUFFIX => 'gz', PREOP => $preop },
-  clean => {
-    FILES => join ' ', qw(
-      MANIFEST.bak tmp1* tmpraw* t/tmpraw* t/tmp1*
-      _Inline/ .inlinepdlpp/ .inline-ct/ .inlinewith/ .pptest/ *.xfig
-    ),
-  },
+  clean => { FILES => 'MANIFEST.bak _Inline/' },
   AUTHOR => 'PerlDL Developers <pdl-general@lists.sourceforge.net>',
   ABSTRACT => 'Perl Data Language',
   BINARY_LOCATION => 'PDL.tar.gz',
