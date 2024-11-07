@@ -14,6 +14,7 @@ $pm{'threads.pm'} = '$(INST_LIB)/PDL/Parallel/threads.pm';
 $pm{'SIMD.pm'} = '$(INST_LIB)/PDL/Parallel/threads/SIMD.pm';
 $pm{'TestPDL.pm'} = '$(INST_LIB)/Test/PDL.pm';
 $pm{'TestDeepPDL.pm'} = '$(INST_LIB)/Test/Deep/PDL.pm';
+$pm{'Dumper.pm'} = '$(INST_LIB)/PDL/IO/Dumper.pm';
 
 my %man3pods = map { my $h = '$(INST_MAN3DIR)/';
 		     $h .= 'PDL::' if $_ !~ /PDL.pm$/;

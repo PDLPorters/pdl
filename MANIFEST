@@ -46,6 +46,7 @@ Basic/Doc/mkpdlfuncpod
 Basic/Doc/pdldoc
 Basic/Doc/README
 Basic/Doc/scantree.pl
+Basic/Dumper.pm
 Basic/examples/Benchmark/Bench.pm
 Basic/examples/Benchmark/Bench.xs
 Basic/examples/Benchmark/Makefile.PL
@@ -232,6 +233,7 @@ Basic/t/constants.t
 Basic/t/constructor.t
 Basic/t/core.t
 Basic/t/croak.t
+Basic/t/dumper.t
 Basic/t/func.pdl
 Basic/t/inline-with.t
 Basic/t/inlinepdlpp.t
@@ -362,7 +364,6 @@ IO/Browser/browser.pd
 IO/Browser/Makefile.PL
 IO/Dicom/Dicom.pm
 IO/Dicom/Makefile.PL
-IO/Dumper.pm
 IO/ENVI/readenvi.pdl
 IO/GD/Changes
 IO/GD/GD.pd
@@ -397,7 +398,6 @@ IO/STL/STL.pm
 IO/STL/t/basic.t
 IO/STL/t/cube.stl
 IO/STL/t/cube_binary.stl
-IO/t/dumper.t
 Libtmp/DiskCache.pm
 Libtmp/Filter/Linear.pm
 Libtmp/Filter/Makefile.PL
