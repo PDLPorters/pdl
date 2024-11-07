@@ -1,6 +1,6 @@
 =head1 NAME
 
-PDL::IO - An overview of the modules in the PDL::IO namespace.
+PDL::IO - An overview of some modules in the PDL::IO namespace.
 
 =head1 SYNOPSIS
 
@@ -13,6 +13,7 @@ PDL::IO - An overview of the modules in the PDL::IO namespace.
 =head1 DESCRIPTION
 
 PDL contains many modules for displaying, loading, and saving data.
+This list may be incomplete, if others make new ones.
 
 =over
 

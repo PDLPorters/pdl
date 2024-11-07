@@ -191,6 +191,7 @@ Basic/Pod/Graphics.pod
 Basic/Pod/Index.pod
 Basic/Pod/Indexing.pod
 Basic/Pod/Internals.pod
+Basic/Pod/IO.pod
 Basic/Pod/Makefile.PL
 Basic/Pod/MATLAB.pod
 Basic/Pod/Modules.pod
@@ -389,7 +390,6 @@ IO/IDL/Makefile.PL
 IO/IDL/README
 IO/IDL/t/basic.t
 IO/IDL/t/test.sav
-IO/IO.pod
 IO/Makefile.PL
 IO/STL/Makefile.PL
 IO/STL/owl.stl
