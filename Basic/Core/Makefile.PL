@@ -47,15 +47,11 @@ WriteMakefile(
   NAME	        => 'PDL::Core',
   VERSION_FROM => '../lib/PDL.pm',
   PM          => {
-    (map +($_,'$(INST_LIBDIR)/'.$_),
-      qw/Core.pm Basic.pm Types.pm Dbg.pm Exporter.pm Config.pm Char.pm/
-    ),
+    (map +($_,'$(INST_LIBDIR)/'.$_), qw/Core.pm Types.pm/),
     (map +($_,'$(INST_LIBDIR)/Core/'.$_),
             qw/Dev.pm typemap pdl.h pdlperl.h pdlcore.h pdlmagic.h
             pdlbroadcast.h ppport.h/
     ),
-    qq/IFiles.pm/,'$(INST_LIBDIR)/Install/Files.pm',
-    (map +($_=>'$(INST_LIBDIR)/Complex/'.$_), qw(Overloads.pm)),
   },
   EXE_FILES => \@exe_files,
   PL_FILES     => {map +($_ => nopl $_), grep !/^Makefile.PL$/, 'Types.pm.PL'},
