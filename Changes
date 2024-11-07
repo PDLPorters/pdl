@@ -1,4 +1,6 @@
 - CallExt removed - use `Inline with => "PDL"; use Inline C => "..."`
+- Inline::MakePdlppInstallable removed - use Inline::Module
+- PDL::PP::Dump removed - set $::PP_VERBOSE in .pd instead
 
 2.095 2024-11-03
 - add PDL_GENTYPE_IS_{REAL,FLOATREAL,COMPLEX,SIGNED,UNSIGNED}_##ppsym (#502)
