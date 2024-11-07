@@ -33,11 +33,6 @@ Basic/examples/PDL-Parallel-threads/barrier-sync.pl
 Basic/examples/PDL-Parallel-threads/perl-barrier.pl
 Basic/examples/PDL-Parallel-threads/simple-parallelize.pl
 Basic/examples/PDL-Parallel-threads/test-memory-consumption.pl
-Basic/IO-FITS/FITS.pm
-Basic/IO-FITS/Makefile.PL
-Basic/IO-FITS/t/fits-noafh.t
-Basic/IO-FITS/t/fits.t
-Basic/IO-FITS/t/m51.fits.fz
 Basic/IO-Misc/Makefile.PL
 Basic/IO-Misc/misc.pd
 Basic/IO-Misc/t/misc.t
@@ -120,6 +115,7 @@ Basic/lib/PDL/Internals.pod
 Basic/lib/PDL/IO.pod
 Basic/lib/PDL/IO/Dumper.pm
 Basic/lib/PDL/IO/FastRaw.pm
+Basic/lib/PDL/IO/FITS.pm
 Basic/lib/PDL/IO/FlexRaw.pm
 Basic/lib/PDL/Lite.pm
 Basic/lib/PDL/LiteF.pm
@@ -217,6 +213,8 @@ Basic/t/croak.t
 Basic/t/demos.t
 Basic/t/dumper.t
 Basic/t/fastraw.t
+Basic/t/fits-noafh.t
+Basic/t/fits.t
 Basic/t/flexraw-iotypes.t
 Basic/t/flexraw.t
 Basic/t/flexraw_fortran.t
@@ -224,6 +222,7 @@ Basic/t/func.pdl
 Basic/t/inline-with.t
 Basic/t/inlinepdlpp.t
 Basic/t/lvalue.t
+Basic/t/m51.fits.fz
 Basic/t/math.t
 Basic/t/matrix.t
 Basic/t/matrixops.t

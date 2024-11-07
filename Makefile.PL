@@ -173,7 +173,6 @@ return $text
 # the modules to test the ones in full PDL
 my @basics; BEGIN { @basics = (
   [qw(Basic Doc)],
-  [qw(Basic IO-FITS)],
   [qw(Basic IO-Misc)],
   [qw(Basic IO-Pnm)],
   [qw(Basic IO-Storable)],
