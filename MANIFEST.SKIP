@@ -58,8 +58,6 @@ RCS
 ^Basic/Math/Math\..*
 ^Basic/MatrixOps/MatrixOps\..*
 ^Basic/Ops/Ops\..*
-^Basic/Pod/Export\.pod$
-^Basic/Pod/PP-Inline\.pod$
 ^Basic/Primitive/Primitive\..*
 ^Basic/Slices/Slices\..*
 ^Basic/Ufunc/Ufunc\..*

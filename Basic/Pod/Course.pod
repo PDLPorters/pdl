@@ -158,8 +158,7 @@ Although writing PDL::PP code is considered an Advanced topic, and is
 covered in the next section, you should be aware that it is possible 
 (and surprisingly simple) to write PDL-aware code.  You needn't read
 the whole thing at this point, but to get some feel for how it works,
-you should read everything up through the first example.  A copy of this
-documentation is contained in L<PDL::PP-Inline>.
+you should read everything up through the first example.
 
 =item * L<PDL::Objects>
 
