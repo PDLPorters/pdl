@@ -482,6 +482,26 @@ PDL::NiceSlice - toward a nicer slicing syntax for PDL
   $y = $n(0,0;-|);          # squeeze *and* sever
   $c = $x(0,3,0;-);         # more compact way of saying $x((0),(3),(0))
 
+A longer example:
+
+  use PDL::LiteF;
+  use PDL::NiceSlice;
+  $x = sequence(10);
+  print "\n",'source $x'.'((4)) translated -> $x((4))',"\n";
+  print "Result ",$x((4)),"\n\n";
+  print 'alternative syntax: $x->'.'((4)) translated -> $x->((4))',"\n\n";
+  print 'source $x'.'(1:4) .= 2; translated -> $x(1:4) .= 2;',"\n"; # rewritten
+  ($tmp = $x(1:4)) .= 2;
+  print "Result: $x","\n\n";
+  # The arglist is split at commas but commas within
+  # matched brackets are protected. That should allow
+  # function invocations etc within the arglist:
+  print '$x'.'(1:end(0,22)) -> $x(1:end(0,22))',"\n\n";
+  print "recursive invocation is also supported:\n";
+  print '$x'.'(1,$y'.'(0:22)) -> $x(1,$y(0:22))',"\n\n";
+  no PDL::NiceSlice; # switches off source filtering
+  print 'Source $x'.'(1:4) translation -> $x(1:4)',"\n\n"; # should be untouched
+
 =head1 DESCRIPTION
 
 Slicing is a basic, extremely common operation, and PDL's

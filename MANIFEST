@@ -29,6 +29,7 @@ Basic/examples/Benchmark/Bench.xs
 Basic/examples/Benchmark/Makefile.PL
 Basic/examples/Benchmark/README.md
 Basic/examples/Benchmark/time.pl
+Basic/examples/NiceSlice-local.perldlrc
 Basic/examples/PDL-Parallel-threads/barrier-sync.pl
 Basic/examples/PDL-Parallel-threads/perl-barrier.pl
 Basic/examples/PDL-Parallel-threads/simple-parallelize.pl
@@ -123,6 +124,10 @@ Basic/lib/PDL/Lvalue.pm
 Basic/lib/PDL/MATLAB.pod
 Basic/lib/PDL/Matrix.pm
 Basic/lib/PDL/Modules.pod
+Basic/lib/PDL/NiceSlice.pm
+Basic/lib/PDL/NiceSlice/FilterSimple.pm
+Basic/lib/PDL/NiceSlice/FilterUtilCall.pm
+Basic/lib/PDL/NiceSlice/ModuleCompile.pm
 Basic/lib/PDL/Objects.pod
 Basic/lib/PDL/Options.pm
 Basic/lib/PDL/Parallel/threads.pm
@@ -188,16 +193,6 @@ Basic/script/perldl
 Basic/script/pptemplate
 Basic/Slices/Makefile.PL
 Basic/Slices/slices.pd
-Basic/SourceFilter/Changes
-Basic/SourceFilter/example
-Basic/SourceFilter/FilterSimple.pm
-Basic/SourceFilter/FilterUtilCall.pm
-Basic/SourceFilter/local.perldlrc
-Basic/SourceFilter/Makefile.PL
-Basic/SourceFilter/ModuleCompile.pm
-Basic/SourceFilter/NiceSlice.pm
-Basic/SourceFilter/t/niceslice-utilcall.t
-Basic/SourceFilter/t/niceslice.t
 Basic/t/00-report-prereqs.t
 Basic/t/01-pptest.t
 Basic/t/autoload.t
@@ -227,6 +222,8 @@ Basic/t/math.t
 Basic/t/matrix.t
 Basic/t/matrixops.t
 Basic/t/nat_complex.t
+Basic/t/niceslice-utilcall.t
+Basic/t/niceslice.t
 Basic/t/ops-bitwise.t
 Basic/t/ops.t
 Basic/t/pdl_from_string.t

@@ -199,7 +199,6 @@ sub coretarget {
         ],
         [
             core => [
-                [ [ qw(Basic SourceFilter) ], [ qw(pm_to_blib) ], ],
                 map [
                     [ 'Basic', $_ ],
                     [ qw(pure_all) ],
