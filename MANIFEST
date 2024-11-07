@@ -23,8 +23,6 @@ Basic/Doc/Doc.pm
 Basic/Doc/Doc/Config.pm
 Basic/Doc/Doc/Perldl.pm
 Basic/Doc/Makefile.PL
-Basic/Doc/mkpdlfuncpod
-Basic/Doc/README
 Basic/Doc/scantree.pl
 Basic/examples/Benchmark/Bench.pm
 Basic/examples/Benchmark/Bench.xs
