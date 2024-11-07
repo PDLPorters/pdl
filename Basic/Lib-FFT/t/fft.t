@@ -15,7 +15,7 @@ foreach my $type(double,float,cdouble,cfloat){
   ok(all($pa==pdl($type,1,-1,1,-1)), "ifft for type $type");
 }
 
-my $pa = rfits("../../Basic/m51.fits");
+my $pa = rfits("../../Basic/lib/PDL/Demos/m51.fits");
 
 {
 my $pb = $pa->copy;

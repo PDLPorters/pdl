@@ -45,7 +45,7 @@ my @cfiles = qw(pdlcore pdlapi pdlbroadcast pdlconv pdlmagic pdlaffine pdlutil);
 my $cobj = join ' ', map qq{$_\$(OBJ_EXT)}, @cfiles;
 WriteMakefile(
   NAME	        => 'PDL::Core',
-  VERSION_FROM => '../PDL.pm',
+  VERSION_FROM => '../lib/PDL.pm',
   PM          => {
     (map +($_,'$(INST_LIBDIR)/'.$_),
       qw/Core.pm Basic.pm Types.pm Dbg.pm Exporter.pm Config.pm Char.pm/

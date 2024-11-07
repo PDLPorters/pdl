@@ -6,7 +6,7 @@ my @exe_files = qw(pdldoc);
 
 WriteMakefile(
   NAME         => 'PDL::Doc',
-  VERSION_FROM => '../PDL.pm',
+  VERSION_FROM => '../lib/PDL.pm',
   PM           => {
     'Doc.pm' => '$(INST_LIB)$(DFSEP)PDL$(DFSEP)Doc.pm',
     'Doc$(DFSEP)Config.pm' => '$(INST_LIB)$(DFSEP)PDL$(DFSEP)Doc$(DFSEP)Config.pm',

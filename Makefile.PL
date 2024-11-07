@@ -80,7 +80,7 @@ my %makefile_hash = (
   },
   MIN_PERL_VERSION => '5.014',
   NAME => 'PDL',
-  VERSION_FROM => 'Basic/PDL.pm',
+  VERSION_FROM => 'Basic/lib/PDL.pm',
   META_MERGE => {
      "meta-spec" => { version => 2 },
      resources => {
@@ -172,7 +172,6 @@ return $text
 
 # the modules to test the ones in full PDL
 my @basics; BEGIN { @basics = (
-  [qw(Basic Demos)],
   [qw(Basic Doc)],
   [qw(Basic IO-FITS)],
   [qw(Basic IO-Misc)],
