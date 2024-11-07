@@ -28,18 +28,8 @@ undef &MY::postamble; # suppress warning
 *MY::postamble = sub {
   my $text = join '', map "$_ :: $_.PL Types.pm\n\t\$(PERLRUN) $_.PL $_\n",
     qw(pdl.h pdlperl.h);
-  # Here, `pdl.c` is used directly because some makes (e.g., on Solaris) do not
-  # support the `$<` variable in explicit rules
-$text .= <<EOT if $^O !~ /MSWin/;
-pdl$::Config{exe_ext} : pdl.c
-\t\$(CC) \$(CFLAGS) \$(LDFLAGS) \$(CCCDLFLAGS) pdl.c -o \$\@
-EOT
   $text;
 };
-
-my @exe_files = qw(perldl);
-push @exe_files, "pdl$Config{exe_ext}" if $^O !~ /MSWin/;
-my @cleanup = "pdl$Config{exe_ext}";
 
 my @cfiles = qw(pdlcore pdlapi pdlbroadcast pdlconv pdlmagic pdlaffine pdlutil);
 my $cobj = join ' ', map qq{$_\$(OBJ_EXT)}, @cfiles;
@@ -53,13 +43,12 @@ WriteMakefile(
             pdlbroadcast.h ppport.h/
     ),
   },
-  EXE_FILES => \@exe_files,
   PL_FILES     => {map +($_ => nopl $_), grep !/^Makefile.PL$/, 'Types.pm.PL'},
   OBJECT       => 'Core$(OBJ_EXT) ' . $cobj,
   DEFINE 	=> $pthread_define,
   LIBS         => [$libs_string],
   clean        => {'FILES'  =>
-		   "pdl.h pdlperl.h Types.pm Core.c @cleanup"
+		   "pdl.h pdlperl.h Types.pm Core.c"
 		   },
   INC          => join(' ',
     PDL::Core::Dev::PDL_INCLUDE(),

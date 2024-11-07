@@ -4,7 +4,6 @@ Basic/Core/Core.pm
 Basic/Core/Core.xs
 Basic/Core/Dev.pm
 Basic/Core/Makefile.PL
-Basic/Core/pdl.c
 Basic/Core/pdl.h.PL
 Basic/Core/pdlaffine.c
 Basic/Core/pdlapi.c
@@ -17,7 +16,6 @@ Basic/Core/pdlmagic.c
 Basic/Core/pdlmagic.h
 Basic/Core/pdlperl.h.PL
 Basic/Core/pdlutil.c
-Basic/Core/perldl
 Basic/Core/ppport.h
 Basic/Core/typemap
 Basic/Core/Types.pm.PL
@@ -26,7 +24,6 @@ Basic/Doc/Doc/Config.pm
 Basic/Doc/Doc/Perldl.pm
 Basic/Doc/Makefile.PL
 Basic/Doc/mkpdlfuncpod
-Basic/Doc/pdldoc
 Basic/Doc/README
 Basic/Doc/scantree.pl
 Basic/examples/Benchmark/Bench.pm
@@ -55,7 +52,6 @@ Basic/Gen/PP/dump.pp
 Basic/Gen/PP/PDLCode.pm
 Basic/Gen/PP/PdlParObj.pm
 Basic/Gen/PP/Signature.pm
-Basic/Gen/pptemplate
 Basic/IO-FastRaw/FastRaw.pm
 Basic/IO-FastRaw/Makefile.PL
 Basic/IO-FastRaw/t/fastraw.t
@@ -208,6 +204,10 @@ Basic/Ops/ops.pd
 Basic/Primitive/Makefile.PL
 Basic/Primitive/primitive.pd
 Basic/Primitive/xoshiro256plus.c
+Basic/script/pdl.c
+Basic/script/pdldoc
+Basic/script/perldl
+Basic/script/pptemplate
 Basic/Slices/Makefile.PL
 Basic/Slices/slices.pd
 Basic/SourceFilter/Changes

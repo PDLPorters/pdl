@@ -2,8 +2,6 @@ use strict;
 use warnings;
 use ExtUtils::MakeMaker;
 
-my @exe_files = qw(pdldoc);
-
 WriteMakefile(
   NAME         => 'PDL::Doc',
   VERSION_FROM => '../lib/PDL.pm',
@@ -12,7 +10,6 @@ WriteMakefile(
     'Doc$(DFSEP)Config.pm' => '$(INST_LIB)$(DFSEP)PDL$(DFSEP)Doc$(DFSEP)Config.pm',
     'Doc$(DFSEP)Perldl.pm' => '$(INST_LIB)$(DFSEP)PDL$(DFSEP)Doc$(DFSEP)Perldl.pm',
   },
-  EXE_FILES => \@exe_files,
   NO_MYMETA => 1,
 );
 
