@@ -206,7 +206,7 @@ sub coretarget {
                     [ qw(pure_all) ],
                     [ 'coregen' ],
                 # the modules in PDL::LiteF, used in t/core.t
-                ], qw(Core Ops Primitive Ufunc Slices Bad Math MatrixOps IO-FastRaw),
+                ], qw(Core Ops Primitive Ufunc Slices Bad Math MatrixOps),
             ]
         ],
         [
