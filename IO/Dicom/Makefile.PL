@@ -10,6 +10,5 @@ undef &MY::postamble; # suppress warning
 
 WriteMakefile(
      NAME => "PDL::IO::Dicom",
-     'VERSION_FROM' => '../../Basic/PDL.pm',
      NO_MYMETA => 1,
 );

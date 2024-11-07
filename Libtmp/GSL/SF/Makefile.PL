@@ -27,6 +27,5 @@ if (!gsl_sf_links_ok($GSL_libs, $GSL_includes)) {
 WriteMakefile(
   NAME => 'PDL::GSLSF',
   VERSION => '0.5',
-  # VERSION_FROM => '../../Basic/PDL.pm',
   NO_MYMETA => 1,
 );

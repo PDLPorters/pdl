@@ -12,7 +12,7 @@ if (
 
 WriteMakefile (
   NAME         => "PDL::Graphics::TriD",
-  VERSION_FROM => '../../Basic/PDL.pm',
+  VERSION_FROM => 'TriD.pm',
   NO_MYMETA => 1,
   PM => {
     'TriD.pm' => '$(INST_LIBDIR)/TriD.pm',

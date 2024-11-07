@@ -5,7 +5,6 @@ use ExtUtils::MakeMaker;
 my @pm_names = qw (Graphics2D.pm State.pm);
 WriteMakefile(
   NAME => 'PDL',
-  VERSION_FROM => '../Basic/PDL.pm',
   PM => { map {
     my $h = '$(INST_LIBDIR)/PDL/';
     $h .= 'Graphics/' if $_ =~ /State.pm$/;

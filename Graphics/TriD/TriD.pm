@@ -720,6 +720,7 @@ our @EXPORT_OK = qw/imag3d_ns imag3d line3d mesh3d lattice3d points3d
   twiddle3d grabpic3d tridsettings/;
 our %EXPORT_TAGS = (Func=>\@EXPORT_OK);
 our $verbose;
+our $VERSION = '2.096';
 
 use PDL::Graphics::TriD::Object;
 use PDL::Graphics::TriD::Window;

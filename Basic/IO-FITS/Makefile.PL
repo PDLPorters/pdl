@@ -4,7 +4,6 @@ use warnings;
 
 WriteMakefile(
   NAME => "PDL::IO::FITS",
-  VERSION_FROM => '../../Basic/PDL.pm',
   NO_MYMETA => 1,
 );
 
