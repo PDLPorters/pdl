@@ -34,6 +34,7 @@ my %min_version = (
   'Term::ReadKey' => '2.34', #for perldl shell
   'PGPLOT' => '2.29',
   'Alien::proj' => '1.29', # min PROJ 7.1 as T:Proj4 needs degree_output
+  'Astro::FITS::Header' => '2.1', # apparently before that, IO::FITS no work
 );
 for my $opt_dep (sort keys %min_version) {
   (my $file = $opt_dep) =~ s#::#/#g;
@@ -102,7 +103,6 @@ my %makefile_hash = (
         },
         runtime => {
            suggests => {
-              'Astro::FITS::Header' => 0,
               'Sys::SigAction' => 0, # Ctrl-C handling in shells
            },
            recommends => \%min_version,

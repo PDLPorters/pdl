@@ -213,9 +213,6 @@ a standalone script, you must also say C<use PDL::NiceSlice;>.
 # Returns a hash containing parameters accepted by recent versions of
 # Inline, to tweak compilation.  Not normally called by anyone but
 # the Inline API.
-#
-# If you're trying to debug the actual code, you're looking for "IFiles.pm"
-# which is currently in the Core directory. --CED 23-Feb-2015
 sub Inline {
     require PDL::Install::Files;
     goto &PDL::Install::Files::Inline;
