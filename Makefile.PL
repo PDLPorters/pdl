@@ -195,8 +195,7 @@ sub coretarget {
         [
             coregen => [
                 [ [ qw(Basic) ], [ qw(pm_to_blib) ], ],
-                [ [ qw(Basic Core) ], [ qw(pm_to_blib) ], ],
-                [ [ qw(Basic Gen) ], [ qw(all) ], ],
+                [ [ qw(Basic Core) ], [ qw(pm_to_blib) ], ], # at least for Dev
             ]
         ],
         [

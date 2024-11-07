@@ -153,7 +153,7 @@ sub _postamble {
     my $top = File::Spec::Functions::abs2rel($w);
     my $core = File::Spec::Functions::catdir($top, qw(Basic Core));
     $pmdep .= join ' ', '',
-      File::Spec::Functions::catfile($top, qw(Basic Gen pm_to_blib)),
+      File::Spec::Functions::catfile($top, qw(Basic pm_to_blib)),
       File::Spec::Functions::catfile($core, qw(pm_to_blib)),
       ;
     $cdep .= join ' ', $ppo, ':', map File::Spec::Functions::catfile($core, $_),
@@ -198,7 +198,7 @@ sub _pp_list_functions {
     system $^X, "$typespm.PL", $typespm if $internal and !-f $typespm;
     require $typespm;
     local $INC{'PDL/Types.pm'} = 1;
-    require ''.File::Spec::Functions::catfile($w, $internal ? qw(Gen) : (), qw(PP.pm));
+    require ''.File::Spec::Functions::catfile($w, $internal ? qw(lib PDL) : (), qw(PP.pm));
     $flist_cache{$abs_src} = [ PDL::PP::list_functions($src) ];
   }
   @{ $flist_cache{$abs_src} };
