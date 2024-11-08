@@ -16,7 +16,6 @@ Basic/Core/pdlmagic.h
 Basic/Core/pdlperl.h.PL
 Basic/Core/pdlutil.c
 Basic/Core/ppport.h
-Basic/Core/Types.pm.PL
 Basic/examples/Benchmark/Bench.pm
 Basic/examples/Benchmark/Bench.xs
 Basic/examples/Benchmark/Makefile.PL
@@ -144,6 +143,7 @@ Basic/lib/PDL/Reduce.pm
 Basic/lib/PDL/Scilab.pod
 Basic/lib/PDL/Tips.pod
 Basic/lib/PDL/Tutorials.pod
+Basic/lib/PDL/Types.pm.PL
 Basic/lib/PDLdb.pl
 Basic/lib/Test/Deep/PDL.pm
 Basic/lib/Test/PDL.pm

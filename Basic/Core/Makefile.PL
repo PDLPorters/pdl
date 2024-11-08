@@ -3,6 +3,7 @@ use warnings;
 eval { require Devel::CheckLib; Devel::CheckLib->import; };
 use ExtUtils::MakeMaker::Config;
 use ExtUtils::MakeMaker;
+use File::Spec::Functions;
 
 my $pthread_include = $ENV{POSIX_THREADS_INC} // '';
 my $pthread_library = $ENV{POSIX_THREADS_LIBS} // '-lpthread';
@@ -20,13 +21,12 @@ if (!$pthread_library) {
 }
 my $pthread_define  = $pthread_library ? ' -DPDL_PTHREAD ' : '';
 
-sub nopl { my $txt = shift; $txt =~ s/[.]PL$//; return $txt}
-
 my $libs_string = "$pthread_library -lm";
 
 undef &MY::postamble; # suppress warning
 *MY::postamble = sub {
-  my $text = join '', map "$_ :: $_.PL Types.pm\n\t\$(PERLRUN) $_.PL $_\n",
+  my $typespm = catfile(updir, qw(lib PDL Types.pm));
+  my $text = join '', map "$_ :: $_.PL $typespm\n\t\$(PERLRUN) $_.PL $_\n",
     qw(pdl.h pdlperl.h);
   $text;
 };
@@ -37,18 +37,17 @@ WriteMakefile(
   NAME	        => 'PDL::Core',
   VERSION_FROM => '../lib/PDL.pm',
   PM          => {
-    (map +($_,'$(INST_LIBDIR)/'.$_), qw/Core.pm Types.pm/),
+    (map +($_,'$(INST_LIBDIR)/'.$_), qw/Core.pm/),
     (map +($_,'$(INST_LIBDIR)/Core/'.$_),
             qw/pdl.h pdlperl.h pdlcore.h pdlmagic.h
             pdlbroadcast.h ppport.h/
     ),
   },
-  PL_FILES     => {map +($_ => nopl $_), 'Types.pm.PL'},
   OBJECT       => 'Core$(OBJ_EXT) ' . $cobj,
   DEFINE 	=> $pthread_define,
   LIBS         => [$libs_string],
   clean        => {'FILES'  =>
-		   "pdl.h pdlperl.h Types.pm Core.c"
+		   "pdl.h pdlperl.h Core.c"
 		   },
   INC          => join(' ',
     PDL::Core::Dev::PDL_INCLUDE(),

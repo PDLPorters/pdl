@@ -6,23 +6,22 @@ use File::Spec::Functions;
 my $pdlroot = catfile qw(script pdl);
 my @exe_files = map catfile('script', $_), qw(perldl pdldoc pptemplate);
 push @exe_files, "$pdlroot$Config{exe_ext}" if $^O !~ /MSWin/;
-my @cleanup = "$pdlroot$Config{exe_ext}";
+my @cleanup = ("$pdlroot$Config{exe_ext}", catfile(qw(lib PDL Types.pm)));
 
 undef &MY::postamble; # suppress warning
 *MY::postamble = sub {
-  return '' if $^O =~ /MSWin/;
-  # Here, `pdl.c` is used directly because some makes (e.g., on Solaris) do not
-  # support the `$<` variable in explicit rules
-<<EOT;
+  my $text = '';
+  $text .= <<EOT if $^O !~ /MSWin/;
 ${pdlroot}$::Config{exe_ext} : ${pdlroot}.c
 \t\$(CC) \$(CFLAGS) \$(LDFLAGS) \$(CCCDLFLAGS) ${pdlroot}.c -o \$\@
 EOT
+  $text;
 };
 
 WriteMakefile(
   NAME	=> 'PDL',
   VERSION_FROM => 'lib/PDL.pm',
-  DIR      => [qw(
+  DIR => [qw(
     Core Bad Ops Ufunc Primitive Slices Math MatrixOps
     IO-Misc IO-Pnm IO-Storable
     Lib-Compression Lib-FFT Lib-ImageND Lib-ImageRGB
@@ -45,4 +44,15 @@ sub clean {
   $inherited =~ s/\s+core\s/ /;
   # print STDERR "processed list :\n$inherited\n";
   $inherited;
+}
+
+sub _nopl { $_[0] =~ s/[.]PL$//r }
+
+sub init_PM {
+  my ($self) = @_;
+  $self->SUPER::init_PM;
+  my ($pm, $plf) = @$self{qw(PM PL_FILES)};
+  for my $f (grep /\.PL$/, keys %$pm) {
+    $pm->{ $plf->{$f} = _nopl($f) } = _nopl(delete $pm->{$f});
+  }
 }

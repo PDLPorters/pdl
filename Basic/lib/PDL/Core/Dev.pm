@@ -196,7 +196,7 @@ sub _pp_list_functions {
   my $abs_src = File::Spec::Functions::rel2abs($src);
   if (!$flist_cache{$abs_src}) {
     my $w = whereami_any();
-    my $typespm = catfile($w, $internal ? ((updir())x2, qw(Core)) : (), qw(Types.pm));
+    my $typespm = catfile($w, 'Types.pm');
     system $^X, "$typespm.PL", $typespm and die "Failed to create Types.pm from '$typespm.PL'"
       if $internal and !-f $typespm;
     require $typespm;

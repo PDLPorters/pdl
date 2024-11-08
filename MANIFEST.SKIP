@@ -41,7 +41,6 @@ RCS
 \b_eumm/
 ^Basic/Bad/Bad\..*
 ^Basic/Core/Core\.c$
-^Basic/Core/Types\.pm$
 ^Basic/Core/pdl\.h$
 ^Basic/Core/pdlperl\.h$
 ^Basic/Gen/PP/Dump\.pm$
@@ -50,6 +49,7 @@ RCS
 ^Basic/IO-Misc/Misc\..*
 ^Basic/IO-Pnm/Pnm\..*
 ^Basic/IO-Storable/Storable\..*
+^Basic/lib/PDL/Types\.pm$
 ^Basic/Lib-Compression/Compression\..*
 ^Basic/Lib-FFT/FFT\.*
 ^Basic/Lib-ImageND/ImageND\..*
