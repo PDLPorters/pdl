@@ -39,11 +39,11 @@ WriteMakefile(
   PM          => {
     (map +($_,'$(INST_LIBDIR)/'.$_), qw/Core.pm Types.pm/),
     (map +($_,'$(INST_LIBDIR)/Core/'.$_),
-            qw/Dev.pm typemap pdl.h pdlperl.h pdlcore.h pdlmagic.h
+            qw/pdl.h pdlperl.h pdlcore.h pdlmagic.h
             pdlbroadcast.h ppport.h/
     ),
   },
-  PL_FILES     => {map +($_ => nopl $_), grep !/^Makefile.PL$/, 'Types.pm.PL'},
+  PL_FILES     => {map +($_ => nopl $_), 'Types.pm.PL'},
   OBJECT       => 'Core$(OBJ_EXT) ' . $cobj,
   DEFINE 	=> $pthread_define,
   LIBS         => [$libs_string],
@@ -54,6 +54,7 @@ WriteMakefile(
     PDL::Core::Dev::PDL_INCLUDE(),
     map {length($_) ? qq{"$_"} : ()} $pthread_include
   ),
+  TYPEMAPS => [PDL::Core::Dev::PDL_TYPEMAP()],
   depend => {
     'Core$(OBJ_EXT)' => '$(INST_ARCHLIB)$(DFSEP).exists pm_to_blib pdl.h pdlperl.h pdlcore.h',
         # Core.xs needs blib/arch for -Mblib to work, as well as pm_to_blib

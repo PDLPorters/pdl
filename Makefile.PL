@@ -9,7 +9,7 @@ use File::Spec;
 
 # this will make PDL::Core::Dev's functions available
 # in Makefile.PL files in all subdirectories
-require "./Basic/Core/Dev.pm"; PDL::Core::Dev->import();
+require "./Basic/lib/PDL/Core/Dev.pm"; PDL::Core::Dev->import();
 $INC{'PDL/Core/Dev.pm'} = 1; # so require P:C:Dev will report success after
 
 my @cpan_deps = my @prereq = (
@@ -194,7 +194,7 @@ sub coretarget {
         [
             coregen => [
                 [ [ qw(Basic) ], [ qw(pm_to_blib) ], ],
-                [ [ qw(Basic Core) ], [ qw(pm_to_blib) ], ], # at least for Dev
+                [ [ qw(Basic Core) ], [ qw(pm_to_blib) ], ], # for pdl.h etc
             ]
         ],
         [

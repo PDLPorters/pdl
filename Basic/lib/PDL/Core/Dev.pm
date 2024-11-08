@@ -27,6 +27,7 @@ use File::Basename;
 use ExtUtils::Manifest;
 require Exporter;
 use Config;
+use File::Spec::Functions;
 eval { require Devel::CheckLib };
 
 our @ISA    = qw( Exporter );
@@ -43,11 +44,14 @@ our @EXPORT = qw( isbigendian
 );
 
 # Installation locations
-# beware: whereami_any now appends the /Basic or /PDL directory as appropriate
-
-# Return library locations
-sub PDL_INCLUDE { '"-I'.whereami_any().'/Core"' };
-sub PDL_TYPEMAP { whereami_any().'/Core/typemap' };
+sub PDL_INCLUDE {
+  my $w = whereami_any();
+  $w = dirname(dirname $w) if !-f catfile($w, qw(Core pdlcore.h)); # in repo
+  '"-I'.catdir($w, 'Core').'"'
+}
+sub PDL_TYPEMAP {
+  catfile(whereami_any(), qw(Core typemap))
+}
 
 # The INST are here still just in case we want to change something later.
 *PDL_INST_INCLUDE = \&PDL_INCLUDE;
@@ -149,14 +153,13 @@ sub _postamble {
     ? map "\$($_)", _mod_vars($mod)
     : _mod_values($internal, $src, $pref, $multi_c);
   if ($internal) {
-    require File::Spec::Functions;
-    my $top = File::Spec::Functions::abs2rel($w);
-    my $core = File::Spec::Functions::catdir($top, qw(Basic Core));
+    my $top = File::Spec::Functions::abs2rel(catdir($w, (updir())x2));
+    my $core = catdir($top, qw(Basic Core));
     $pmdep .= join ' ', '',
-      File::Spec::Functions::catfile($top, qw(Basic pm_to_blib)),
-      File::Spec::Functions::catfile($core, qw(pm_to_blib)),
+      catfile($top, qw(Basic pm_to_blib)),
+      catfile($core, qw(pm_to_blib)),
       ;
-    $cdep .= join ' ', $ppo, ':', map File::Spec::Functions::catfile($core, $_),
+    $cdep .= join ' ', $ppo, ':', map catfile($core, $_),
       qw(pdl.h pdlcore.h pdlbroadcast.h pdlmagic.h);
   } else {
     my $oneliner = _oneliner(qq{exit if \$ENV{DESTDIR}; use PDL::Doc; eval { PDL::Doc::add_module(q{$mod}); }});
@@ -189,16 +192,15 @@ sub pdlpp_postamble {
 }
 
 sub _pp_list_functions {
-  require File::Spec::Functions;
   my ($src, $internal) = @_;
   my $abs_src = File::Spec::Functions::rel2abs($src);
   if (!$flist_cache{$abs_src}) {
     my $w = whereami_any();
-    my $typespm = File::Spec::Functions::catfile($w, $internal ? qw(Core) : (), qw(Types.pm));
+    my $typespm = catfile($w, $internal ? ((updir())x2, qw(Core)) : (), qw(Types.pm));
     system $^X, "$typespm.PL", $typespm if $internal and !-f $typespm;
     require $typespm;
     local $INC{'PDL/Types.pm'} = 1;
-    require ''.File::Spec::Functions::catfile($w, $internal ? qw(lib PDL) : (), qw(PP.pm));
+    require ''.catfile($w, qw(PP.pm));
     $flist_cache{$abs_src} = [ PDL::PP::list_functions($src) ];
   }
   @{ $flist_cache{$abs_src} };
@@ -235,7 +237,7 @@ sub _stdargs {
   }
   (
     NAME  	=> $mod,
-    VERSION_FROM => ($internal ? "$w/Basic/lib/PDL.pm" : $src),
+    VERSION_FROM => ($internal ? catfile($w, qw(PDL.pm)) : $src),
     TYPEMAPS     => [PDL_TYPEMAP()],
     PM 	=> {"$pref.pm" => "\$(INST_LIBDIR)/$pref.pm"},
     MAN3PODS => {"$pref.pm" => "\$(INST_MAN3DIR)/$mod.\$(MAN3EXT)"},
@@ -269,7 +271,6 @@ sub pdlpp_stdargs {
 # - it relies on finding "=head1 NAME" and the module name in *.pd, though can be in comment
 #
 sub pdlpp_mkgen {
-  require File::Spec::Functions;
   require File::Copy;
   my $dir = @_ > 0 ? $_[0] : $ARGV[0];
   die "pdlpp_mkgen: unspecified directory" unless defined $dir && -d $dir;

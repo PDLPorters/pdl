@@ -2,7 +2,6 @@ Basic/Bad/bad.pd
 Basic/Bad/Makefile.PL
 Basic/Core/Core.pm
 Basic/Core/Core.xs
-Basic/Core/Dev.pm
 Basic/Core/Makefile.PL
 Basic/Core/pdl.h.PL
 Basic/Core/pdlaffine.c
@@ -17,7 +16,6 @@ Basic/Core/pdlmagic.h
 Basic/Core/pdlperl.h.PL
 Basic/Core/pdlutil.c
 Basic/Core/ppport.h
-Basic/Core/typemap
 Basic/Core/Types.pm.PL
 Basic/Doc/Doc.pm
 Basic/Doc/Doc/Config.pm
@@ -96,6 +94,8 @@ Basic/lib/PDL/Char.pm
 Basic/lib/PDL/Complex/Overloads.pm
 Basic/lib/PDL/Config.pm
 Basic/lib/PDL/Constants.pm
+Basic/lib/PDL/Core/Dev.pm
+Basic/lib/PDL/Core/typemap
 Basic/lib/PDL/Course.pod
 Basic/lib/PDL/Dataflow.pod
 Basic/lib/PDL/Dbg.pm

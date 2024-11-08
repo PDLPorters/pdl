@@ -358,7 +358,7 @@ trans_children(self)
       XPUSHs(sv);
     PDL_END_CHILDLOOP(self)
 
-INCLUDE_COMMAND: $^X -e "require q{./Dev.pm}; PDL::Core::Dev::generate_core_flags()"
+INCLUDE_COMMAND: $^X -e "require q{../lib/PDL/Core/Dev.pm}; PDL::Core::Dev::generate_core_flags()"
 
 IV
 address(self)
