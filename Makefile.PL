@@ -61,7 +61,6 @@ my %makefile_hash = (
   CONFIGURE_REQUIRES => {
     'Devel::CheckLib' => '1.01',
     'File::Which'     => 0,
-    'Carp'            => 1.20,    # EU::MM seems to need this not to crash
     'ExtUtils::MakeMaker' => '7.12', # working .g.c
     'File::Path'          => 0,
     'ExtUtils::Depends' => '0.402',
