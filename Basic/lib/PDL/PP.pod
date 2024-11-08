@@ -2298,13 +2298,13 @@ exception in Perl code, but can be handled suitably by non-Perl callers.
 =head1 MAKEFILES FOR PP FILES
 
 If you are going to generate a package from your PP file (typical file
-extensions are C<.pd> or C<.pp> for the files containing PP code) it
+extensions are C<.pd> for the files containing PP code) it
 is easiest and safest to leave generation of the appropriate commands
 to the Makefile. In the following we will outline the typical format
-of a Perl Makefile to automatically build and install your package
+of a Perl F<Makefile.PL> to automatically build and install your package
 from a description in a PP file. Most of the rules to build the xs, pm
 and other required files from the PP file are already predefined in
-the PDL::Core::Dev package. We just have to tell MakeMaker to use
+the L<PDL::Core::Dev> package. We just have to tell MakeMaker to use
 it.
 
 In most cases you can define your Makefile like
@@ -2321,7 +2321,7 @@ In most cases you can define your Makefile like
 
   # additional_Ccode.c
   #include "pdl.h"
-  void ppcp(PDL_Byte *dst, PDL_Byte *src, int len)
+  void ppcp(PDL_Byte *dst, PDL_Byte *src, PDL_Indx len)
   {
     int i;
     for (i=0;i<len;i++) *dst++=*src++;
