@@ -27,7 +27,6 @@ WriteMakefile(
     IO-Misc IO-Pnm IO-Storable
     Lib-Compression Lib-FFT Lib-ImageND Lib-ImageRGB
     Lib-Transform
-    Doc
   )],
   EXE_FILES => \@exe_files,
   clean => { FILES => join ' ',

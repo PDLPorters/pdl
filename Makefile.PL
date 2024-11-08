@@ -94,7 +94,6 @@ my %makefile_hash = (
         },
         x_IRC => 'irc://irc.perl.org/#pdl',
      },
-     no_index => { file => ['Basic/Doc/scantree.pl'] },
      prereqs => {
         configure => {
            recommends => {
@@ -127,23 +126,23 @@ sub MY::postamble {
   my  $text =
 '
 doctest ::
-	cd Basic$(DFSEP)Doc && make test
+	cd Basic && make pm_to_blib
 	$(NOECHO) $(ECHO) "doctest: Building PDL documentation database in blib ..."
-	$(NOECHO) $(PERLRUNINST) Basic$(DFSEP)Doc$(DFSEP)scantree.pl
+	$(NOECHO) $(PERLRUNINST) Basic$(DFSEP)utils$(DFSEP)scantree.pl
 
 doc_site_install :: doc_pdldoc_install
 
 doc_pdldoc_install :: pure_install # needs installed .../PDL dir to exist
 	$(NOECHO) $(ECHO) "doc_site_install: Building PDL documentation database ..."
-	$(NOECHO) $(PERLRUNINST) Basic$(DFSEP)Doc$(DFSEP)scantree.pl "$(DESTDIR)$(INSTALLSITEARCH)"
+	$(NOECHO) $(PERLRUNINST) Basic$(DFSEP)utils$(DFSEP)scantree.pl "$(DESTDIR)$(INSTALLSITEARCH)"
 
 doc_vendor_install ::
 	$(NOECHO) $(ECHO) "doc_vendor_install: Building PDL documentation database ..."
-	$(NOECHO) $(PERLRUNINST) Basic$(DFSEP)Doc$(DFSEP)scantree.pl "$(DESTDIR)$(INSTALLVENDORARCH)"
+	$(NOECHO) $(PERLRUNINST) Basic$(DFSEP)utils$(DFSEP)scantree.pl "$(DESTDIR)$(INSTALLVENDORARCH)"
 
 doc_perl_install ::
 	$(NOECHO) $(ECHO) "doc_perl_install: Building PDL documentation database ..."
-	$(NOECHO) $(PERLRUNINST) Basic$(DFSEP)Doc$(DFSEP)scantree.pl "$(DESTDIR)$(INSTALLARCHLIB)"
+	$(NOECHO) $(PERLRUNINST) Basic$(DFSEP)utils$(DFSEP)scantree.pl "$(DESTDIR)$(INSTALLARCHLIB)"
 ';
 
 $text .= "\n" . ::coretarget($self);
@@ -172,7 +171,6 @@ return $text
 
 # the modules to test the ones in full PDL
 my @basics; BEGIN { @basics = (
-  [qw(Basic Doc)],
   [qw(Basic IO-Misc)],
   [qw(Basic IO-Pnm)],
   [qw(Basic IO-Storable)],

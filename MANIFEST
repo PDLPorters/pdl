@@ -17,11 +17,6 @@ Basic/Core/pdlperl.h.PL
 Basic/Core/pdlutil.c
 Basic/Core/ppport.h
 Basic/Core/Types.pm.PL
-Basic/Doc/Doc.pm
-Basic/Doc/Doc/Config.pm
-Basic/Doc/Doc/Perldl.pm
-Basic/Doc/Makefile.PL
-Basic/Doc/scantree.pl
 Basic/examples/Benchmark/Bench.pm
 Basic/examples/Benchmark/Bench.xs
 Basic/examples/Benchmark/Makefile.PL
@@ -106,6 +101,9 @@ Basic/lib/PDL/Demos/General.pm
 Basic/lib/PDL/Demos/m51.fits
 Basic/lib/PDL/Demos/Sound.pm
 Basic/lib/PDL/DeveloperGuide.pod
+Basic/lib/PDL/Doc.pm
+Basic/lib/PDL/Doc/Config.pm
+Basic/lib/PDL/Doc/Perldl.pm
 Basic/lib/PDL/Exporter.pm
 Basic/lib/PDL/FAQ.pod
 Basic/lib/PDL/Graphics.pod
@@ -267,6 +265,7 @@ Basic/utils/address-pseudonymise
 Basic/utils/doc-pp
 Basic/utils/harness
 Basic/utils/perldlpp.pl
+Basic/utils/scantree.pl
 Changes
 COPYING
 cygwin/fix-max-memory.txt
