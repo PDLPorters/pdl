@@ -1012,6 +1012,18 @@ initialize(class)
     OUTPUT:
     RETVAL
 
+# to facilitate for STORABLE_thaw
+void
+set_sv_to_null_pdl(sv)
+  SV *sv
+CODE:
+  pdl *it = pdl_pdlnew();
+  if (!it) pdl_pdl_barf("Failed to create new pdl");
+  /* connect pdl struct to this sv */
+  sv_setiv(SvRV(sv),PTR2IV(it));
+  it->sv = SvRV(sv);
+  pdl_SetSV_PDL(sv,it);
+
 # undocumented for present. returns PDL still needing dims and datatype
 # offset is in bytes, not elements
 SV *

@@ -33,18 +33,6 @@ pp_addxs << 'EOXS';
 MODULE = PDL::Storable     PACKAGE = PDL
 
 void
-make_null(sv)
-        SV *sv
-        CODE:
-        pdl *it = PDL->pdlnew();
-        if (!it) PDL->pdl_barf("Failed to create new pdl");
-        /* connect pdl struct to this sv */
-        sv_setiv(SvRV(sv),PTR2IV(it));
-        it->sv = SvRV(sv);
-        /* printf("it->sv = %d\n",it->sv); */
-        PDL->SetSV_PDL(sv,it);
-
-void
 swapEndian( to, elem_size )
      SV* to
      int elem_size
@@ -263,7 +251,7 @@ sub pdlunpack {
   }
 
   print "thawing PDL, Dims: [",join(',',@dims),"]\n" if $PDL::verbose;
-  $pdl->make_null; # make this a real ndarray -- this is the tricky bit!
+  $pdl->set_sv_to_null_pdl; # make this a real ndarray -- this is the tricky bit!
   $pdl->set_datatype($type);
   $pdl->setdims([@dims]);
   my $dref = $pdl->get_dataref;
@@ -279,15 +267,12 @@ sub pdlunpack {
 
 sub STORABLE_freeze {
   my ($self, $cloning) = @_;
-#  return if $cloning;         # Regular default serialization
   return UNIVERSAL::isa($self, "HASH") ? ("",{%$self}) # hash ref -> Storable
-    : (pdlpack $self); # pack the ndarray into a long string
+    : pdlpack($self); # pack the ndarray into a long string
 }
 
 sub STORABLE_thaw {
   my ($pdl,$cloning,$serial,$hashref) = @_;
-  # print "in STORABLE_thaw\n";
-#  return if $cloning;
   my $class = ref $pdl;
   if (defined $hashref) {
     croak "serial data with hashref!" unless ($serial//'') eq "";
