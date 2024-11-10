@@ -180,7 +180,8 @@ sub pdlunpack {
     my ($typestring) = unpack( 'A16', substr( $pack, $offset ) );
     $offset += 16;
 
-    $type = eval( '$PDL::Types::' . $typestring );
+    $typestring =~ s#\s+$##;
+    $type = eval { PDL::Type->new($typestring)->enum };
     if( $@ )
     {
       croak "PDL::IO::Storable couldn't parse type string '$typestring'. Giving up";
@@ -223,8 +224,6 @@ sub pdlunpack {
       # all righty. Everything's fine, but I need to swap all the data
       $do_swap = 1;
     }
-
-
 
     # mostly this acts like unpack('Q<'...), but works even if my unpack()
     # doesn't support 'Q'. This also makes sure that my PDL_Indx is large enough
