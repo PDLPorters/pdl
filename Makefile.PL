@@ -206,7 +206,7 @@ sub coretarget {
             basic => [
                 map [
                     $_,
-                    [ qw(pm_to_blib dynamic) ],
+                    [ qw(pm_to_blib linkext) ],
                     [ 'core' ],
                 ], @basics,
             ]
@@ -264,6 +264,6 @@ sub flatten_parallel_target {
 sub parallel_target_mangle {
     my ($self, $dir, $targets) = @_;
     my $target = join '_', @$dir, @$targets;
-    $target =~ s#[/\\]#_#g; # avoid ambiguity with filenames
+    $target =~ s#[\$\(\)/\\_\.]+#_#g; # avoid ambiguity with filenames
     $target;
 }
