@@ -209,6 +209,17 @@ a standalone script, you must also say C<use PDL::NiceSlice;>.
 
 =back
 
+=head1 INTERNATIONALIZATION
+
+PDL currently does not have internationalization support for
+its error messages although Perl itself does support i18n
+and locales.  Some of the tests for names and strings are
+specific to ASCII and English.  Please report any issues
+regarding internationalization to the perldl mailing lists.
+
+Of course, volunteers to implement this or help with the
+translations would be welcome.
+
 =cut
 
 # support: use Inline with => 'PDL';

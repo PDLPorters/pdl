@@ -335,7 +335,6 @@ Graphics/TriD/VRML/Makefile.PL
 Graphics/TriD/VRML/VRML.pm
 Graphics/TriD/VRML/VRML/Protos.pm
 INSTALL
-INTERNATIONALIZATION
 IO/Browser/browse.c
 IO/Browser/browser.pd
 IO/Browser/Makefile.PL
