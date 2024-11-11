@@ -147,6 +147,8 @@ sub _postamble {
     : _mod_values($internal, $src, $pref, $multi_c);
   if ($internal) {
     my $top = File::Spec::Functions::abs2rel(dirname dirname $w);
+    my $ppdir = catdir($top, qw(Basic lib PDL));
+    $pmdep .= join ' ', '', catfile($ppdir, 'PP.pm'), glob(catfile($ppdir, 'PP/*'));
     $cdep .= join ' ', $ppo, ':', map catfile($top, qw(Basic lib PDL Core), $_),
       qw(pdl.h pdlcore.h pdlbroadcast.h pdlmagic.h);
   } else {
