@@ -91,6 +91,8 @@ is_pdl $y, long(50331648), "bswap4";
 $x = short(3);
 $x->type->bswap->($x);
 is_pdl $x, short(768), "bswap Type method";
+eval {$x->bswap8};
+like $@, qr/Tried to/, 'bswap of greater than ndarray type-size gives error';
 
 ############# Test rasc  #############
 
