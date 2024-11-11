@@ -80,7 +80,7 @@ my %makefile_hash = (
   },
   MIN_PERL_VERSION => '5.014',
   NAME => 'PDL',
-  VERSION_FROM => 'Basic/lib/PDL.pm',
+  VERSION_FROM => 'Basic/Core/Core.pm',
   META_MERGE => {
      "meta-spec" => { version => 2 },
      resources => {

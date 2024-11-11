@@ -20,7 +20,7 @@ EOT
 
 WriteMakefile(
   NAME	=> 'PDL',
-  VERSION_FROM => 'lib/PDL.pm',
+  VERSION_FROM => 'Core/Core.pm',
   DIR => [qw(
     Core Bad Ops Ufunc Primitive Slices Math MatrixOps
     IO-Misc IO-Pnm

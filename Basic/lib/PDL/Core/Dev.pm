@@ -229,7 +229,7 @@ sub _stdargs {
   }
   (
     NAME  	=> $mod,
-    VERSION_FROM => ($internal ? catfile($w, qw(PDL.pm)) : $src),
+    VERSION_FROM => ($internal ? catfile(dirname($w), qw(Core Core.pm)) : $src),
     TYPEMAPS     => [PDL_TYPEMAP()],
     PM 	=> {"$pref.pm" => "\$(INST_LIBDIR)/$pref.pm"},
     MAN3PODS => {"$pref.pm" => "\$(INST_MAN3DIR)/$mod.\$(MAN3EXT)"},

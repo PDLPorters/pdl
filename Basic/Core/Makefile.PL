@@ -36,16 +36,10 @@ my @cfiles = qw(pdlcore pdlapi pdlbroadcast pdlconv pdlmagic pdlaffine pdlutil);
 my $cobj = join ' ', map qq{$_\$(OBJ_EXT)}, @cfiles;
 WriteMakefile(
   NAME	        => 'PDL::Core',
-  VERSION_FROM => '../lib/PDL.pm',
-  PM          => {
-    (map +($_,'$(INST_LIBDIR)/'.$_), qw/Core.pm/),
-  },
+  VERSION_FROM => 'Core.pm',
   OBJECT       => 'Core$(OBJ_EXT) ' . $cobj,
   DEFINE 	=> $pthread_define,
   LIBS         => [$libs_string],
-  clean        => {'FILES'  =>
-		   "Core.c"
-		   },
   INC          => join(' ',
     PDL::Core::Dev::PDL_INCLUDE(),
     map {length($_) ? qq{"$_"} : ()} $pthread_include

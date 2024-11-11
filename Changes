@@ -3,6 +3,7 @@
 - PDL::PP::Dump removed - set $::PP_VERBOSE in .pd instead
 - add IO::Misc::bswap16
 - IO::Misc::bswap* now give error if try to swap more bytes than type-size
+- the distro VERSION now comes from PDL::Core
 
 2.095 2024-11-03
 - add PDL_GENTYPE_IS_{REAL,FLOATREAL,COMPLEX,SIGNED,UNSIGNED}_##ppsym (#502)

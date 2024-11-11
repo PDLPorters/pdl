@@ -5,11 +5,10 @@ package PDL::Core;
 use strict;
 use warnings;
 use PDL::Exporter;
-require PDL; # for $VERSION
 use DynaLoader;
 our @ISA    = qw( PDL::Exporter DynaLoader );
-our $VERSION = '2.028'; # PAUSE insists - below is the real one
-$VERSION = $PDL::VERSION;
+our $VERSION = '2.095'; # as of 2.096 this is the real one
+$PDL::VERSION = $VERSION; # needed by at least PDL::CCS which only loads PDL::Core - https://github.com/moocow-the-bovine/PDL-CCS/pull/13
 bootstrap PDL::Core $VERSION;
 use PDL::Types ':All';
 use Config;
