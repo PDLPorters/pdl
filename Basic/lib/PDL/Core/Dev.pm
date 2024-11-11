@@ -140,16 +140,13 @@ sub _postamble {
   my ($w, $internal, $src, $pref, $mod, $callpack, $multi_c) = @_;
   $callpack //= '';
   $w = dirname($w);
-  my $perlrun = $internal ? '$(PERLRUNINST)' : "\$(PERL) \"-I$w\"";
+  my $perlrun = "\$(PERLRUN) \"-I$w\"";
   my ($pmdep, $install, $cdep) = ($src, '', '');
   my ($ppc, $ppo) = ($multi_c && $flist_cache{File::Spec::Functions::rel2abs($src)})
     ? map "\$($_)", _mod_vars($mod)
     : _mod_values($internal, $src, $pref, $multi_c);
   if ($internal) {
     my $top = File::Spec::Functions::abs2rel(dirname dirname $w);
-    $pmdep .= join ' ', '',
-      catfile($top, qw(Basic pm_to_blib)),
-      ;
     $cdep .= join ' ', $ppo, ':', map catfile($top, qw(Basic lib PDL Core), $_),
       qw(pdl.h pdlcore.h pdlbroadcast.h pdlmagic.h);
   } else {
@@ -229,7 +226,7 @@ sub _stdargs {
   }
   (
     NAME  	=> $mod,
-    VERSION_FROM => ($internal ? catfile(dirname($w), qw(Core Core.pm)) : $src),
+    VERSION_FROM => ($internal ? catfile(dirname($w), qw(lib PDL Core.pm)) : $src),
     TYPEMAPS     => [PDL_TYPEMAP()],
     PM 	=> {"$pref.pm" => "\$(INST_LIBDIR)/$pref.pm"},
     MAN3PODS => {"$pref.pm" => "\$(INST_MAN3DIR)/$mod.\$(MAN3EXT)"},

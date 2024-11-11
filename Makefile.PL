@@ -80,7 +80,7 @@ my %makefile_hash = (
   },
   MIN_PERL_VERSION => '5.014',
   NAME => 'PDL',
-  VERSION_FROM => 'Basic/Core/Core.pm',
+  VERSION_FROM => 'Basic/lib/PDL/Core.pm',
   META_MERGE => {
      "meta-spec" => { version => 2 },
      resources => {
@@ -194,12 +194,18 @@ sub coretarget {
         ],
         [
             core => [
+                [
+                  [ 'Basic' ],
+                  [ map qq{build_\$(LINKTYPE)_PDL_$_},
+                    qw(Core) ],
+                  [ 'coregen' ]
+                ],
                 map [
                     [ 'Basic', $_ ],
                     [ qw(pure_all) ],
                     [ 'coregen' ],
                 # the modules in PDL::LiteF, used in t/core.t
-                ], qw(Core Ops Primitive Ufunc Slices Bad Math MatrixOps),
+                ], qw(Ops Primitive Ufunc Slices Bad Math MatrixOps),
             ]
         ],
         [

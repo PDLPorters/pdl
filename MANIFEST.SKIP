@@ -40,7 +40,7 @@ RCS
 /core$
 \b_eumm/
 ^Basic/Bad/Bad\..*
-^Basic/Core/Core\.c$
+^Basic/lib/PDL/Core\.c$
 ^Basic/lib/PDL/Core/pdl\.h$
 ^Basic/lib/PDL/Core/pdlperl\.h$
 ^Basic/Gen/PP/Dump\.pm$
