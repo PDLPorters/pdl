@@ -43,13 +43,10 @@ RCS
 ^Basic/lib/PDL/Core\.c$
 ^Basic/lib/PDL/Core/pdl\.h$
 ^Basic/lib/PDL/Core/pdlperl\.h$
-^Basic/Gen/PP/Dump\.pm$
-^Basic/Gen/PP/Dump\.pm\.tmp$
-^Basic/Gen/pptemplate.pod$
+^Basic/lib/PDL/Types\.pm$
 ^Basic/IO-Misc/Misc\..*
 ^Basic/IO-Pnm/Pnm\..*
 ^Basic/IO-Storable/Storable\..*
-^Basic/lib/PDL/Types\.pm$
 ^Basic/Lib-Compression/Compression\..*
 ^Basic/Lib-FFT/FFT\.*
 ^Basic/Lib-ImageND/ImageND\..*
@@ -61,11 +58,7 @@ RCS
 ^Basic/Primitive/Primitive\..*
 ^Basic/Slices/Slices\..*
 ^Basic/Ufunc/Ufunc\..*
-^Basic/Doc/Pod/pod2usage$
-^Basic/Doc/Pod/podselect$
-^Basic/Doc/docscan$
-^Basic/Doc/pdlfunc\.pod
-^Basic/Doc/pdlhead2item$
+^Basic/script/pdl$
 ^Graphics/TriD/OpenGLQ/OpenGLQ\.*
 ^Graphics/TriD/Rout/Rout\.*
 ^Graphics/TriD/TriD/Tk.pm$
@@ -106,7 +99,6 @@ RCS
 ^core
 ^inv-data.pl
 ^patch
-^Basic/script/pdl$
 ^pdldoc.db$
 ^pdldoc.pod
 ^perl$
