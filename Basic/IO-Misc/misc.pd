@@ -14,7 +14,7 @@ PDL::IO::Misc - misc IO routines for PDL
 
 =head1 DESCRIPTION
 
-Some basic I/O functionality: FITS, tables, byte-swapping
+Some basic I/O functionality: tables, byte-swapping
 
 =head1 SYNOPSIS
 
@@ -53,77 +53,35 @@ use PDL::Bad;
 use Carp;
 use Symbol qw/ gensym /;
 use List::Util;
-use strict;
 
 !NO!SUBS!
 
-defpdl(
-        'bswap2',
-        'x(); ',
-        '',
-        '
-      int i;
-      PDL_Short *aa; PDL_Short bb;
-      PDL_Byte *a,*b;
-
-      int n = sizeof($x()) / sizeof(PDL_Short);
-      aa = (PDL_Short*) &$x();
-
-      for(i=0;i<n; i++) {
-         bb = aa[i]; a = (PDL_Byte*) (void*) (aa+i);
-         b = (PDL_Byte*) &bb;
-         *a = *(b+1);  *(a+1) = *b;
-     }',
-     "Swaps pairs of bytes in argument x()"
-);
-
-
-defpdl(
-        'bswap4',
-        'x(); ',
-        '',
-        '
-      int i;
-      PDL_Long *aa; PDL_Long bb;
-      PDL_Byte *a,*b;
-
-      int n = sizeof($x()) / sizeof(PDL_Long);
-      aa = (PDL_Long*) &$x();
-
-      for(i=0;i<n; i++) {
-         bb = aa[i]; a = (PDL_Byte*) (void*) (aa+i);
-         b = (PDL_Byte*) &bb;
-         *a = *(b+3);  *(a+1) = *(b+2);  *(a+2) = *(b+1); *(a+3) = *b;
-     }',
-     "Swaps quads of bytes in argument x()"
-);
-
-
-defpdl(
-        'bswap8',
-        'x(); ',
-        '',
-        '
-      int i;
-      PDL_Double *aa; PDL_Double bb;
-      PDL_Byte *a,*b;
-
-      int n = sizeof($x()) / sizeof(PDL_Double);
-      aa = (PDL_Double*) &$x();
-
-      for(i=0;i<n; i++) {
-         bb = aa[i]; a = (PDL_Byte*) (void*) (aa+i);
-         b = (PDL_Byte*) &bb;
-         *a     = *(b+7);  *(a+1) = *(b+6);  *(a+2) = *(b+5); *(a+3) = *(b+4);
-         *(a+4) = *(b+3);  *(a+5) = *(b+2);  *(a+6) = *(b+1); *(a+7) = *b;
-     }',
-     "Swaps octets of bytes in argument x()"
-);
-
+sub defswap {
+  my ($bytes, $doc) = @_;
+  my $sized_type = $bytes == 16 ? "PDL_CDouble" : "uint".($bytes*8)."_t";
+  pp_def(
+    "bswap$bytes",
+    Pars => '[io] x()',
+    Code => <<EOF,
+int i;
+int n = sizeof(\$x()) / sizeof($sized_type);
+$sized_type *aa = ($sized_type*) &\$x();
+for (i=0;i<n; i++) {
+  $sized_type bb = aa[i];
+  PDL_Byte *a = (PDL_Byte*) (void*) (aa+i);
+  PDL_Byte *b = (PDL_Byte*) &bb;
+  @{[map "a[$_] = b[".($bytes-$_-1)."];", 0..$bytes-1]}
+}
+EOF
+    Doc  => $doc,
+  );
+}
+defswap(2, "Swaps pairs of bytes in argument x()");
+defswap(4, "Swaps quads of bytes in argument x()");
+defswap(8, "Swaps octets of bytes in argument x()");
+defswap(16, "Swaps 16s of bytes in argument x()");
 
 pp_addpm(<<'!NO!SUBS!');
-
-
 
 # Internal routine to extend PDL array by size $n along last dimension
 # - Would be nice to have a proper extend function rather than hack
@@ -1179,16 +1137,6 @@ pp_addpm( "sub PDL::isbigendian { return $isbigendian; };\n*isbigendian = \\&PDL
 pp_add_exported("", "isbigendian");
 
 ################################ XS CODE ######################################
-
-sub defpdl {
-        pp_def(
-                $_[0],
-                Pars => $_[1],
-                OtherPars => $_[2],
-                Code => $_[3],
-                Doc  => $_[4],
-        );
-}
 
 pp_add_exported('', 'rcube');
 pp_addpm(<<'EOPM');
