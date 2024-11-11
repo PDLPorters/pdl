@@ -62,17 +62,17 @@ is_pdl $seq2_dc, sequence(4), 'mutate orig no change dcloned object';
 testLoad($_) foreach( qw(t/storable_new_amd64.dat t/storable_old_amd64.dat) );
 
 {
-my $pdl = sequence(5);
+my $pdl = sequence(long,5);
 my $native_frozen = freeze $pdl;
 my $f2 = $native_frozen;
-is_pdl thaw($native_frozen), sequence(5), "thawed native";
-my $one = substr($native_frozen, -60, 4); # count from back as Storable uses platform data sizes
-PDL::swapEndian($one, 4);
-my $data = substr($native_frozen, -40, 40);
-PDL::swapEndian($data, 8);
-substr $f2, -60, 4, $one;
-substr $f2, -40, 40, $data;
-is_pdl thaw($f2), sequence(5), "thawed byte-swapped";
+is_pdl thaw($native_frozen), sequence(long,5), "thawed native";
+my $one = substr($native_frozen, -40, 4); # count from back as Storable uses platform data sizes
+$one = pack "N", unpack "V", $one;
+my $data = substr($native_frozen, -20, 20);
+$data = pack "N*", unpack "V*", $data;
+substr $f2, -40, 4, $one;
+substr $f2, -20, 20, $data;
+is_pdl thaw($f2), sequence(long,5), "thawed byte-swapped";
 }
 
 done_testing;

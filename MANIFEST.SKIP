@@ -106,7 +106,7 @@ RCS
 ^core
 ^inv-data.pl
 ^patch
-^Basic/Core/pdl$
+^Basic/script/pdl$
 ^pdldoc.db$
 ^pdldoc.pod
 ^perl$

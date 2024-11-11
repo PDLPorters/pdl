@@ -172,7 +172,6 @@ return $text
 my @basics; BEGIN { @basics = (
   [qw(Basic IO-Misc)],
   [qw(Basic IO-Pnm)],
-  [qw(Basic IO-Storable)],
   [qw(Basic Lib-Compression)],
   [qw(Basic Lib-FFT)],
   [qw(Basic Lib-ImageND)],

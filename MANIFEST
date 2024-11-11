@@ -37,11 +37,6 @@ Basic/IO-Pnm/pnm.pd
 Basic/IO-Pnm/t/pic_16bit.t
 Basic/IO-Pnm/t/pnm.t
 Basic/IO-Pnm/t/rim.t
-Basic/IO-Storable/Makefile.PL
-Basic/IO-Storable/storable.pd
-Basic/IO-Storable/t/storable.t
-Basic/IO-Storable/t/storable_new_amd64.dat
-Basic/IO-Storable/t/storable_old_amd64.dat
 Basic/Lib-Compression/compression.pd
 Basic/Lib-Compression/Makefile.PL
 Basic/Lib-Compression/ricecomp.c
@@ -115,6 +110,7 @@ Basic/lib/PDL/IO/Dumper.pm
 Basic/lib/PDL/IO/FastRaw.pm
 Basic/lib/PDL/IO/FITS.pm
 Basic/lib/PDL/IO/FlexRaw.pm
+Basic/lib/PDL/IO/Storable.pm
 Basic/lib/PDL/Lite.pm
 Basic/lib/PDL/LiteF.pm
 Basic/lib/PDL/Lvalue.pm
@@ -250,6 +246,9 @@ Basic/t/pthread.t
 Basic/t/reduce.t
 Basic/t/scope.t
 Basic/t/slice.t
+Basic/t/storable.t
+Basic/t/storable_new_amd64.dat
+Basic/t/storable_old_amd64.dat
 Basic/t/subclass.t
 Basic/t/thread.t
 Basic/t/thread_def.t

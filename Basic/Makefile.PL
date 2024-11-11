@@ -23,7 +23,7 @@ WriteMakefile(
   VERSION_FROM => 'lib/PDL.pm',
   DIR => [qw(
     Core Bad Ops Ufunc Primitive Slices Math MatrixOps
-    IO-Misc IO-Pnm IO-Storable
+    IO-Misc IO-Pnm
     Lib-Compression Lib-FFT Lib-ImageND Lib-ImageRGB
     Lib-Transform
   )],

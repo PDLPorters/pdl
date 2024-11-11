@@ -1,4 +1,16 @@
-pp_addpm << 'EOPM';
+package PDL::IO::Storable;
+
+use strict;
+use warnings;
+
+our @EXPORT_OK = qw();
+our %EXPORT_TAGS = (Func=>\@EXPORT_OK);
+our $VERSION = '2.096';
+our @ISA = ( 'PDL::Exporter' );
+
+use PDL::Core;
+use PDL::Exporter;
+use DynaLoader;
 
 =head1 NAME
 
@@ -23,35 +35,6 @@ be able to store and retrieve ndarrays via Storable.
 =head1 FUNCTIONS
 
 =cut
-
-use strict;
-use warnings;
-
-EOPM
-
-pp_addxs << 'EOXS';
-MODULE = PDL::Storable     PACKAGE = PDL
-
-void
-swapEndian( to, elem_size )
-     SV* to
-     int elem_size
-     CODE:
-     int i,j;
-     STRLEN len;
-     char* str = SvPV(to, len);
-     for( i=0; i<len/elem_size; i++ )
-       for( j=0; j<elem_size/2; j++ )
-       {
-         char tmp = str[i*elem_size + j];
-         str[i*elem_size + j] = str[(i+1)*elem_size - 1 - j];
-         str[(i+1)*elem_size - 1 - j] = tmp;
-       }
-
-EOXS
-
-pp_addpm << 'EOPM';
-
 
 { package # hide from PAUSE
     PDL;
@@ -254,13 +237,9 @@ sub pdlunpack {
   $pdl->set_datatype($type);
   $pdl->setdims([@dims]);
   my $dref = $pdl->get_dataref;
-
   $$dref = substr $pack, $offset;
-  if( $do_swap && PDL::Core::howbig( $type ) != 1 )
-  {
-    swapEndian( $$dref, PDL::Core::howbig( $type ) );
-  }
   $pdl->upd_data;
+  $pdl->type->bswap->($pdl) if $do_swap && PDL::Core::howbig($type) != 1;
   return $pdl;
 }
 
@@ -326,7 +305,4 @@ the copyright notice should be included in the file.
 
 =cut
 
-
-EOPM
-
-pp_done;
+1;
