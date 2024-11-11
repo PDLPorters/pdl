@@ -1016,7 +1016,7 @@ pp_def('statsover',
 	HandleBad => 1,
 	Pars => 'a(n); w(n); float+ [o]avg(); float+ [o]prms(); int+ [o]median(); int+ [o]min(); int+ [o]max(); float+ [o]adev(); float+ [o]rms()',
 	Code => <<'EOF',
-PDL_CLDouble tmp = 0, tmp1 = 0, diff = 0;
+PDL_IF_GENTYPE_REAL(PDL_LDouble,PDL_CLDouble) tmp = 0, tmp1 = 0, diff = 0;
 $GENERIC(min) curmin = 0, curmax = 0;
 $GENERIC(w) norm = 0;
 int flag = 0;
@@ -1040,25 +1040,25 @@ PDL_IF_BAD(if ( !flag ) {
   $SETBAD(min());  $PDLSTATESETBAD(min);
   $SETBAD(max());  $PDLSTATESETBAD(max);
   $SETBAD(prms()); $PDLSTATESETBAD(prms);
-} else,) {
-  $avg() = tmp / norm; /* Find mean */
-  $min() = curmin;
-  $max() = curmax;
-  /* Calculate the RMS and standard deviation. */
-  tmp = 0;
-  loop(n) %{
-    PDL_IF_BAD(if (!$ISGOOD(a())) continue;,)
-    diff = $a()-$avg();
-    tmp += diff * diff * $w();
-    tmp1 += fabsl(diff) * $w();
-  %}
-  $rms() = sqrtl( tmp/norm );
-  if (norm>1)
-    $prms() =  sqrtl( tmp/(norm-1) );
-  else
-    PDL_IF_BAD($SETBAD(prms()),$prms() = 0);
-  $adev() = tmp1 / norm ;
-}
+  continue;
+},)
+$avg() = tmp / norm; /* Find mean */
+$min() = curmin;
+$max() = curmax;
+/* Calculate the RMS and standard deviation. */
+tmp = 0;
+loop(n) %{
+  PDL_IF_BAD(if (!$ISGOOD(a())) continue;,)
+  diff = $a()-$avg();
+  tmp += diff * diff * $w();
+  tmp1 += PDL_IF_GENTYPE_REAL(fabsl,cabsl)(diff) * $w();
+%}
+$rms() = sqrtl( tmp/norm );
+if (norm>1)
+  $prms() =  sqrtl( tmp/(norm-1) );
+else
+  PDL_IF_BAD($SETBAD(prms()),$prms() = 0);
+$adev() = tmp1 / norm ;
 EOF
       PMCode=>pp_line_numbers(__LINE__, <<'EOPM'),
 sub PDL::statsover {
