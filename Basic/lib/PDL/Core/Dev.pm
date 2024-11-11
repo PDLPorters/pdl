@@ -44,14 +44,8 @@ our @EXPORT = qw( isbigendian
 );
 
 # Installation locations
-sub PDL_INCLUDE {
-  my $w = whereami_any();
-  $w = dirname(dirname $w) if !-f catfile($w, qw(Core pdlcore.h)); # in repo
-  '"-I'.catdir($w, 'Core').'"'
-}
-sub PDL_TYPEMAP {
-  catfile(whereami_any(), qw(Core typemap))
-}
+sub PDL_INCLUDE { '"-I'.catdir(whereami_any(), 'Core').'"' }
+sub PDL_TYPEMAP { catfile(whereami_any(), qw(Core typemap)) }
 
 # The INST are here still just in case we want to change something later.
 *PDL_INST_INCLUDE = \&PDL_INCLUDE;
@@ -89,7 +83,6 @@ EOR
 use Cwd qw/abs_path/;
 my $MY_FILE = abs_path(__FILE__); # capture at load-time because EUMM chdirs
 my $MY_DIR2 = dirname(dirname($MY_FILE));
-my $IS_INST = $MY_DIR2 =~ /PDL\W*$/i;
 sub whereami_any { $MY_DIR2 } # something containing "Core/Dev.pm"
 
 =head2 isbigendian
@@ -153,13 +146,11 @@ sub _postamble {
     ? map "\$($_)", _mod_vars($mod)
     : _mod_values($internal, $src, $pref, $multi_c);
   if ($internal) {
-    my $top = File::Spec::Functions::abs2rel(catdir($w, (updir())x2));
-    my $core = catdir($top, qw(Basic Core));
+    my $top = File::Spec::Functions::abs2rel(dirname dirname $w);
     $pmdep .= join ' ', '',
       catfile($top, qw(Basic pm_to_blib)),
-      catfile($core, qw(pm_to_blib)),
       ;
-    $cdep .= join ' ', $ppo, ':', map catfile($core, $_),
+    $cdep .= join ' ', $ppo, ':', map catfile($top, qw(Basic lib PDL Core), $_),
       qw(pdl.h pdlcore.h pdlbroadcast.h pdlmagic.h);
   } else {
     my $oneliner = _oneliner(qq{exit if \$ENV{DESTDIR}; use PDL::Doc; eval { PDL::Doc::add_module(q{$mod}); }});

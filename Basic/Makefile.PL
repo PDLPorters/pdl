@@ -30,6 +30,7 @@ WriteMakefile(
   EXE_FILES => \@exe_files,
   clean => { FILES => join ' ',
     qw(MANIFEST.bak _Inline/ .inlinepdlpp/ .inlinewith/ .pptest/), @cleanup,
+    (map catfile(qw(lib PDL Core), $_), qw(pdl.h pdlperl.h)),
   },
   NO_MYMETA => 1,
 );

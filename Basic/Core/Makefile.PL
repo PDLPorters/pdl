@@ -31,6 +31,7 @@ undef &MY::postamble; # suppress warning
   $text;
 };
 
+my $hdeps = join ' ', map catfile(updir, qw(lib PDL Core), $_), qw(pdl.h pdlperl.h pdlcore.h pdlbroadcast.h pdlmagic.h);
 my @cfiles = qw(pdlcore pdlapi pdlbroadcast pdlconv pdlmagic pdlaffine pdlutil);
 my $cobj = join ' ', map qq{$_\$(OBJ_EXT)}, @cfiles;
 WriteMakefile(
@@ -38,16 +39,12 @@ WriteMakefile(
   VERSION_FROM => '../lib/PDL.pm',
   PM          => {
     (map +($_,'$(INST_LIBDIR)/'.$_), qw/Core.pm/),
-    (map +($_,'$(INST_LIBDIR)/Core/'.$_),
-            qw/pdl.h pdlperl.h pdlcore.h pdlmagic.h
-            pdlbroadcast.h ppport.h/
-    ),
   },
   OBJECT       => 'Core$(OBJ_EXT) ' . $cobj,
   DEFINE 	=> $pthread_define,
   LIBS         => [$libs_string],
   clean        => {'FILES'  =>
-		   "pdl.h pdlperl.h Core.c"
+		   "Core.c"
 		   },
   INC          => join(' ',
     PDL::Core::Dev::PDL_INCLUDE(),
@@ -55,10 +52,9 @@ WriteMakefile(
   ),
   TYPEMAPS => [PDL::Core::Dev::PDL_TYPEMAP()],
   depend => {
-    'Core$(OBJ_EXT)' => '$(INST_ARCHLIB)$(DFSEP).exists pm_to_blib pdl.h pdlperl.h pdlcore.h',
+    'Core$(OBJ_EXT)' => '$(INST_ARCHLIB)$(DFSEP).exists pm_to_blib '.$hdeps,
         # Core.xs needs blib/arch for -Mblib to work, as well as pm_to_blib
-    $cobj => 'pdl.h pdlcore.h pdlbroadcast.h pdlmagic.h',
-    'pdlcore$(OBJ_EXT)' => 'pdlperl.h',
+    $cobj => $hdeps,
   },
   NO_MYMETA => 1,
 );

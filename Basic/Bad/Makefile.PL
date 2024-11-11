@@ -6,7 +6,7 @@ use File::Spec::Functions;
 my @pack = (["bad.pd",qw(Bad PDL::Bad)]);
 
 my %hash = pdlpp_stdargs_int(@pack);
-$hash{depend} = { 'Bad$(OBJ_EXT)' => catfile(updir, qw(Core pdlperl.h)) };
+$hash{depend} = { 'Bad$(OBJ_EXT)' => catfile(updir, qw(lib PDL Core pdlperl.h)) };
 
 undef &MY::postamble; # suppress warning
 *MY::postamble = sub {

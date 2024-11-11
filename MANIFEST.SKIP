@@ -41,8 +41,8 @@ RCS
 \b_eumm/
 ^Basic/Bad/Bad\..*
 ^Basic/Core/Core\.c$
-^Basic/Core/pdl\.h$
-^Basic/Core/pdlperl\.h$
+^Basic/lib/PDL/Core/pdl\.h$
+^Basic/lib/PDL/Core/pdlperl\.h$
 ^Basic/Gen/PP/Dump\.pm$
 ^Basic/Gen/PP/Dump\.pm\.tmp$
 ^Basic/Gen/pptemplate.pod$

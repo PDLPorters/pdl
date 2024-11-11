@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-require '../lib/PDL/Types.pm';
+require './lib/PDL/Types.pm';
 
 my $file = shift @ARGV;
 print "Extracting $file\n";
