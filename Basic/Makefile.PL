@@ -8,7 +8,7 @@ eval { require Devel::CheckLib; Devel::CheckLib->import; };
 my $pdlroot = catfile qw(script pdl);
 my @exe_files = map catfile('script', $_), qw(perldl pdldoc pptemplate);
 push @exe_files, "$pdlroot$Config{exe_ext}" if $^O !~ /MSWin/;
-my @cleanup = ("$pdlroot$Config{exe_ext}", catfile(qw(lib PDL Types.pm)));
+my @cleanup = ("$pdlroot$Config{exe_ext}");
 
 undef &MY::postamble; # suppress warning
 *MY::postamble = sub {

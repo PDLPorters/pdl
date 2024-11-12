@@ -1,12 +1,19 @@
+package PDL::Types;
 use strict;
+use warnings;
+require Exporter;
+use Carp;
 use Config;
-use File::Basename qw(&basename &dirname);
 
-my @TYPE_VERBATIM = qw/
-  realctype ppforcetype usenan real unsigned integer identifier
+our @ISA    = qw( Exporter );
+
+my @TYPE_CHECK = qw/
+  realctype ppforcetype usenan real unsigned integer identifier ctype
 /;
-
-# Figure out the 4 byte integer type on this machine
+my @TYPE_VERBATIM = (@TYPE_CHECK, qw(
+  ioname convertfunc defbval shortctype ppsym numval sym
+));
+my @TYPE_MODIFIED = qw(realversion complexversion isnan isfinite floatsuffix);
 
 sub packtypeof_PDL_Indx {
    if ($Config{'ivsize'} == 8) {
@@ -23,40 +30,40 @@ sub packtypeof_PDL_Indx {
 # Data types *must* be listed in order of complexity!!
 # this is critical for type conversions!!!
 #
-my @types = (
+my @HASHES = (
   {
     identifier => 'SB',
     onecharident => 'A',   # only needed if different from identifier
-    pdlctype => 'PDL_SByte',# to be defined in pdl.h
-    realctype => 'signed char',
+    ctype => 'PDL_SByte',# to be defined in pdl.h
+    realctype => 'signed char', # CORE21 change to int8_t
     ppforcetype => 'sbyte', # for some types different from ctype
     usenan => 0,           # do we need NaN handling for this type?
     packtype => 'c*',      # the perl pack type
-    defaultbadval => 'SCHAR_MIN',
+    defbval => 'SCHAR_MIN',
     real=>1,
     integer=>1,
     unsigned=>0,
   },
   {
     identifier => 'B',
-    pdlctype => 'PDL_Byte',# to be defined in pdl.h
+    ctype => 'PDL_Byte',# to be defined in pdl.h
     realctype => 'unsigned char',
     ppforcetype => 'byte', # for some types different from ctype
     usenan => 0,           # do we need NaN handling for this type?
     packtype => 'C*',      # the perl pack type
-    defaultbadval => 'UCHAR_MAX',
+    defbval => 'UCHAR_MAX',
     real=>1,
     integer=>1,
     unsigned=>1,
   },
   {
     identifier => 'S',
-    pdlctype => 'PDL_Short',
+    ctype => 'PDL_Short',
     realctype => 'short',
     ppforcetype => 'short',
     usenan => 0,
     packtype => 's*',
-    defaultbadval => 'SHRT_MIN',
+    defbval => 'SHRT_MIN',
     real=>1,
     integer=>1,
     unsigned=>0,
@@ -64,24 +71,24 @@ my @types = (
   {
     identifier => 'US',
     onecharident => 'U',   # only needed if different from identifier
-    pdlctype => 'PDL_Ushort',
+    ctype => 'PDL_Ushort',
     realctype => 'unsigned short',
     ppforcetype => 'ushort',
     usenan => 0,
     packtype => 'S*',
-    defaultbadval => 'USHRT_MAX',
+    defbval => 'USHRT_MAX',
     real=>1,
     integer=>1,
     unsigned=>1,
   },
   {
     identifier => 'L',
-    pdlctype => 'PDL_Long',
+    ctype => 'PDL_Long',
     realctype => 'int32_t',
     ppforcetype => 'int',
     usenan => 0,
     packtype => 'l*',
-    defaultbadval => 'INT32_MIN',
+    defbval => 'INT32_MIN',
     real=>1,
     integer=>1,
     unsigned=>0,
@@ -89,12 +96,12 @@ my @types = (
   {
     identifier => 'UL',
     onecharident => 'K',   # only needed if different from identifier
-    pdlctype => 'PDL_ULong',
+    ctype => 'PDL_ULong',
     realctype => 'uint32_t',
     ppforcetype => 'uint',
     usenan => 0,
     packtype => 'L*',
-    defaultbadval => 'UINT32_MAX',
+    defbval => 'UINT32_MAX',
     real=>1,
     integer=>1,
     unsigned=>1,
@@ -102,12 +109,12 @@ my @types = (
   {
     identifier => 'IND',
     onecharident => 'N',   # only needed if different from identifier
-    pdlctype => 'PDL_Indx',
+    ctype => 'PDL_Indx',
     realctype => 'ptrdiff_t',
     ppforcetype => 'indx',
     usenan => 0,
     packtype => &packtypeof_PDL_Indx,
-    defaultbadval => 'PTRDIFF_MIN',
+    defbval => 'PTRDIFF_MIN',
     real=>1,
     integer=>1,
     unsigned=>0,
@@ -117,12 +124,12 @@ my @types = (
   { # this one before LL so last integer is signed, to avoid default-type (last in list) changing to unsigned
     identifier => 'ULL',
     onecharident => 'P',   # only needed if different from identifier
-    pdlctype => 'PDL_ULongLong',
+    ctype => 'PDL_ULongLong',
     realctype => 'uint64_t',
     ppforcetype => 'ulonglong',
     usenan => 0,
     packtype => 'Q*',
-    defaultbadval => 'UINT64_MAX',
+    defbval => 'UINT64_MAX',
     real=>1,
     integer=>1,
     unsigned=>1,
@@ -130,12 +137,12 @@ my @types = (
   {
     identifier => 'LL',
     onecharident => 'Q',   # only needed if different from identifier
-    pdlctype => 'PDL_LongLong',
+    ctype => 'PDL_LongLong',
     realctype => 'int64_t',
     ppforcetype => 'longlong',
     usenan => 0,
     packtype => 'q*',
-    defaultbadval => 'INT64_MIN',
+    defbval => 'INT64_MIN',
     real=>1,
     integer=>1,
     unsigned=>0,
@@ -147,12 +154,12 @@ my @types = (
 #                        if (ndarraytype < PDL_F) { ... }
   {
     identifier => 'F',
-    pdlctype => 'PDL_Float',
+    ctype => 'PDL_Float',
     realctype => 'float',
     ppforcetype => 'float',
     usenan => 1,
     packtype => 'f*',
-    defaultbadval => '-FLT_MAX',
+    defbval => '-FLT_MAX',
     real=>1,
     complexversion=> 'G',
     integer=>0,
@@ -163,12 +170,12 @@ my @types = (
   },
   {
     identifier => 'D',
-    pdlctype => 'PDL_Double',
+    ctype => 'PDL_Double',
     realctype => 'double',
     ppforcetype => 'double',
     usenan => 1,
     packtype => 'd*',
-    defaultbadval => '-DBL_MAX',
+    defbval => '-DBL_MAX',
     real=>1,
     complexversion=> 'C',
     integer=>0,
@@ -180,12 +187,12 @@ my @types = (
   {
     identifier => 'LD',
     onecharident => 'E',   # only needed if different from identifier
-    pdlctype => 'PDL_LDouble',
+    ctype => 'PDL_LDouble',
     realctype => 'long double',
     ppforcetype => 'ldouble',
     usenan => 1,
     packtype => 'D*',
-    defaultbadval => '-LDBL_MAX',
+    defbval => '-LDBL_MAX',
     real=>1,
     complexversion=> 'CLD',
     integer=>0,
@@ -203,12 +210,12 @@ my @types = (
   {
     identifier => 'CF',
     onecharident => 'G',   # only needed if different from identifier
-    pdlctype => 'PDL_CFloat',
+    ctype => 'PDL_CFloat',
     realctype => 'complex float',
     ppforcetype => 'cfloat',
     usenan => 1,
     packtype => '(ff)*',
-    defaultbadval => '(-FLT_MAX - I*FLT_MAX)',
+    defbval => '(-FLT_MAX - I*FLT_MAX)',
     real=>0,
     realversion=>'F',
     integer=>0,
@@ -220,12 +227,12 @@ my @types = (
   {
     identifier => 'CD',
     onecharident => 'C',   # only needed if different from identifier
-    pdlctype => 'PDL_CDouble',
+    ctype => 'PDL_CDouble',
     realctype => 'complex double',
     ppforcetype => 'cdouble',
     usenan => 1,
     packtype => '(dd)*',
-    defaultbadval => '(-DBL_MAX - I*DBL_MAX)',
+    defbval => '(-DBL_MAX - I*DBL_MAX)',
     real=>0,
     realversion=>'D',
     integer=>0,
@@ -237,12 +244,12 @@ my @types = (
   {
     identifier => 'CLD',
     onecharident => 'H',   # only needed if different from identifier
-    pdlctype => 'PDL_CLDouble',
+    ctype => 'PDL_CLDouble',
     realctype => 'complex long double',
     ppforcetype => 'cldouble',
     usenan => 1,
     packtype => '(DD)*',
-    defaultbadval => '(-LDBL_MAX - I*LDBL_MAX)',
+    defbval => '(-LDBL_MAX - I*LDBL_MAX)',
     real=>0,
     realversion=>'LD',
     integer=>0,
@@ -253,156 +260,47 @@ my @types = (
   },
 );
 
-my @check_keys = (@TYPE_VERBATIM, qw(
-  identifier packtype pdlctype pdlctype defaultbadval
+my $i = 0;
+my @check_keys = (@TYPE_CHECK, qw(
+  identifier packtype defbval
 ));
-for my $type (@types) {
+for my $type (@HASHES) {
   die "type is not a HASH ref but ".ref($type) unless ref $type eq 'HASH';
   my @missing_keys = grep !exists $type->{$_}, @check_keys;
   die "type hash missing (@missing_keys)" if @missing_keys;
+  $type->{shortctype} = $type->{ctype} =~ s/PDL_//r;
+  $type->{ioname} = $type->{convertfunc} = lc $type->{shortctype};
+  $type->{ppsym} = $type->{onecharident} || $type->{identifier};
+  $type->{numval} = $i++;
+  $type->{sym} = "PDL_$type->{identifier}";
+  $type->{realversion} ||= $type->{ppsym};
+  $type->{complexversion} ||= !$type->{real} ? $type->{ppsym} : 'G';
 }
 
-sub gentypenames {
-  my @types = @_;
-  my @ret = map "PDL_$_->{identifier}", @types;
-  return wantarray ? @ret : $ret[0];
-}
-
-sub gentypevars {
-  my @types = @_;
-  my @ret = map "\$$_", gentypenames @types;
-  return wantarray ? @ret : $ret[0];
-}
-
-sub convertfunc {
-  my ($type) = @_;
-  return $type->{'convertfunc'} if exists $type->{'convertfunc'};
-  my $cfunc = $type->{pdlctype};
-  $cfunc =~ s/PDL_//;
-  return lc $cfunc;
-}
-
-sub gentypehashentry ($$) {
-  my ($type,$num) = @_;
-  my $convertfunc = convertfunc($type);
-  (my $shortctype = $type->{pdlctype}) =~ s/PDL_//;
-  my $ppsym = $type->{onecharident} || $type->{identifier};
-  +{
-    ctype => $type->{pdlctype},
-    ppsym => $ppsym,
-    convertfunc => $convertfunc,
-    sym => gentypenames($type),
-    numval => $num,
-    ioname => $convertfunc,
-    defbval => $type->{defaultbadval},
-    shortctype => $shortctype,
-    realversion => $type->{realversion} || $ppsym,
-    complexversion => $type->{complexversion} || (!$type->{real} ? $ppsym : 'G'),
-    (map +($_ => $type->{$_}), @TYPE_VERBATIM, qw(isnan isfinite floatsuffix)),
-  };
-}
-
-sub gentypehashcode {
-  my @types = @_;
-  use Data::Dumper;
-  local $Data::Dumper::Terse = 1;
-  local $Data::Dumper::Indent = 1;
-  local $Data::Dumper::Sortkeys = 1;
-  local $Data::Dumper::Pad = "\t\t";
-  my $i = 0;
-  my $perlcode = '';
-  $perlcode .= "our %typehash = (\n";
-  for my $type (@types) {
-    $perlcode .= "\t".gentypenames($type)." =>\n";
-    $perlcode .= Data::Dumper::Dumper(gentypehashentry($type, $i++));
-    $perlcode .= "\t\t,\n";
-  }
-  $perlcode .= "); # end typehash definition\n";
-  return $perlcode;
-}
-
-# List explicitly here the variables you want Configure to
-# generate.  Metaconfig only looks for shell variables, so you
-# have to mention them as if they were shell variables, not
-# %Config entries.  Thus you write
-#  $startperl
-# to ensure Configure will look for $Config{startperl}.
-
-# This forces PL files to create target in same directory as PL file.
-# This is so that make depend always knows where to find PL derivatives.
-chdir(dirname($0));
-my $file;
-($file = basename($0)) =~ s/\.PL$//;
-$file =~ s/\.pl$//
-	if ($Config{'osname'} eq 'VMS' or
-	    $Config{'osname'} eq 'OS2');  # "case-forgiving"
-open OUT,">$file" or die "Can't create $file: $!";
-
-print "Extracting $file\n";
-chmod 0644, $file;
-
-# in the following we generate the type dependent
-# parts of Types.pm
-# all the required info is extracted from the @types
-# array defined above
-# the guts how this is done is encapsulated in the subroutines
-# that follow the definition of @types
-
-print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  'Basic/Core/Types.pm.PL';
-print OUT <<'!NO!SUBS!';
-
-### Generated from Types.pm.PL automatically - do not modify! ###
-
-package PDL::Types;
-use strict;
-use warnings;
-require Exporter;
-use Carp;
-
-!NO!SUBS!
-
-print OUT qq{
-our \@EXPORT = qw( @{[ join ' ', gentypevars @types ]}
-	       \@pack \%typehash );
-};
-
-print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  'Basic/Core/Types.pm.PL';
-print OUT <<'!NO!SUBS!';
-
+our @EXPORT = (qw(@pack %typehash), my @typevars = map "\$$_->{sym}", @HASHES);
 our @EXPORT_OK = (@EXPORT,
   qw/types typesrtkeys mapfld typefld
     ppdefs ppdefs_complex ppdefs_all
   /
 );
 our %EXPORT_TAGS = (
-	All=>[@EXPORT,@EXPORT_OK],
+	All=>\@EXPORT_OK,
 );
 
-our @ISA    = qw( Exporter );
-
-!NO!SUBS!
-
-print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  'Basic/Core/Types.pm.PL';
-print OUT qq{
-
-# Data types/sizes (bytes) [must be in order of complexity]
-# Enum
-our ( @{[ join ', ', gentypevars @types ]} ) = (0..$#types);
+eval "our ( @{[ join ',', @typevars ]} ) = (0..$#HASHES)";
+die if $@;
 # Corresponding pack types
-our \@pack= qw/@{[ join ' ', map $_->{packtype}, @types ]}/;
-our \@names= qw/@{[ join ' ', gentypenames @types ]}/;
+our @pack= map $_->{packtype}, @HASHES;
+our @names= map $_->{sym}, @HASHES;
 
-};
-
-# generate the typehash output
-print OUT gentypehashcode @types;
-
-print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  'Basic/Core/Types.pm.PL';
-print OUT <<'!NO!SUBS!';
+our %typehash = map {
+  my $type = $_;
+  $type->{sym} => +{
+    (map +($_ => $type->{$_}), @TYPE_VERBATIM, @TYPE_MODIFIED),
+  };
+} @HASHES;
 
 # Cross-reference by common names
-my @HASHES = sort {$a->{numval} <=> $b->{numval}} values %typehash;
-my @RTKEYS = map $_->{sym}, @HASHES;
 our %typenames;
 for my $h (@HASHES) {
   my $n = $h->{numval};
@@ -451,7 +349,7 @@ Returns an array of keys of typehash sorted in order of type complexity
  PDL_SB PDL_B PDL_S PDL_US PDL_L PDL_UL PDL_IND PDL_ULL PDL_LL PDL_F PDL_D PDL_LD PDL_CF PDL_CD PDL_CLD
 =cut
 
-sub typesrtkeys { @RTKEYS }
+sub typesrtkeys { @names }
 
 =head2 ppdefs
 
@@ -715,73 +613,63 @@ my @CACHED_TYPES = map bless([$_->{numval}, $_], 'PDL::Type'), @HASHES;
 sub types { @CACHED_TYPES }
 
 {
-    package PDL::Type;
-    use Carp;
-    sub new {
-        my ($type,$val) = @_;
-        return $val if "PDL::Type" eq ref $val;
-        if(ref $val and $val->isa('PDL')) {
-            PDL::Core::barf("Can't make a type out of non-scalar ndarray $val!")
-              if $val->getndims != 0;
-            $val = $val->at;
-        }
-        confess "Can't make a type out of non-scalar $val (".
-            (ref $val).")!" if ref $val;
-        confess "Unknown type string '$val' (should be one of ".
-            join(",",map $PDL::Types::typehash{$_}->{ioname}, @names).
-            ")\n"
-            if !defined $PDL::Types::typenames{$val};
-        $CACHED_TYPES[$PDL::Types::typenames{$val}];
-    }
-
-    sub enum { $_[0][0] }
-    *symbol = \&sym;
-
-    sub realversion {
-      $CACHED_TYPES[$PDL::Types::typenames{ $_[0][1]{realversion} }];
-    }
-
-    sub complexversion {
-      $CACHED_TYPES[$PDL::Types::typenames{ $_[0][1]{complexversion} }];
-    }
-
-    sub isnan { sprintf $_[0][1]{isnan}, $_[1] }
-    sub isfinite { sprintf $_[0][1]{isfinite}, $_[1] }
-
-    sub floatsuffix { $_[0][1]{floatsuffix} // 'floatsuffix called on non-float type' }
-
-    my (%bswap_cache, %howbig_cache);
-    sub bswap {
-      PDL::Core::barf('Usage: $type->bswap with no args') if @_ > 1;
-      return $bswap_cache{$_[0][0]} if $bswap_cache{$_[0][0]};
-      my $size = $_[0]->howbig;
-      return $bswap_cache{$_[0][0]} = sub {} if $size < 2;
-      require PDL::IO::Misc;
-      $bswap_cache{$_[0][0]} =
-        $size == 2 ? \&PDL::bswap2 :
-        $size == 4 ? \&PDL::bswap4 :
-        $size == 8 ? \&PDL::bswap8 :
-        $size == 16 ? \&PDL::bswap16 :
-        $size == 32 ? \&PDL::bswap32 :
-        PDL::Core::barf("bswap couldn't find swap function for $_[0][1]{shortctype}");
-    }
-
-    sub howbig {
-      $howbig_cache{$_[0][0]} ||= PDL::Core::howbig($_[0][0]);
-    }
-
-!NO!SUBS!
-
-foreach my $name ( qw( ctype ppsym convertfunc shortctype
-		       sym numval ioname defbval
-                       ), @TYPE_VERBATIM ) {
-  print OUT << "EOS";
-    sub $name { \$_[0][1]{$name}; }
-EOS
+package PDL::Type;
+use Carp;
+sub new {
+  my ($type,$val) = @_;
+  return $val if "PDL::Type" eq ref $val;
+  if(ref $val and $val->isa('PDL')) {
+    PDL::Core::barf("Can't make a type out of non-scalar ndarray $val!")
+      if $val->getndims != 0;
+    $val = $val->at;
+  }
+  confess "Can't make a type out of non-scalar $val (".
+    (ref $val).")!" if ref $val;
+  confess "Unknown type string '$val' (should be one of ".
+    join(",",map $PDL::Types::typehash{$_}{ioname}, @names).
+    ")\n"
+    if !defined $PDL::Types::typenames{$val};
+  $CACHED_TYPES[$PDL::Types::typenames{$val}];
 }
 
-print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  'Basic/Core/Types.pm.PL';
-print OUT <<'!NO!SUBS!';
+sub enum { $_[0][0] }
+*symbol = \&sym;
+
+sub realversion {
+  $CACHED_TYPES[$PDL::Types::typenames{ $_[0][1]{realversion} }];
+}
+sub complexversion {
+  $CACHED_TYPES[$PDL::Types::typenames{ $_[0][1]{complexversion} }];
+}
+sub isnan { sprintf $_[0][1]{isnan}, $_[1] }
+sub isfinite { sprintf $_[0][1]{isfinite}, $_[1] }
+sub floatsuffix { $_[0][1]{floatsuffix} // 'floatsuffix called on non-float type' }
+
+my (%bswap_cache, %howbig_cache);
+sub bswap {
+  PDL::Core::barf('Usage: $type->bswap with no args') if @_ > 1;
+  return $bswap_cache{$_[0][0]} if $bswap_cache{$_[0][0]};
+  my $size = $_[0]->howbig;
+  return $bswap_cache{$_[0][0]} = sub {} if $size < 2;
+  require PDL::IO::Misc;
+  $bswap_cache{$_[0][0]} =
+    $size == 2 ? \&PDL::bswap2 :
+    $size == 4 ? \&PDL::bswap4 :
+    $size == 8 ? \&PDL::bswap8 :
+    $size == 16 ? \&PDL::bswap16 :
+    $size == 32 ? \&PDL::bswap32 :
+    PDL::Core::barf("bswap couldn't find swap function for $_[0][1]{shortctype}");
+}
+
+sub howbig {
+  $howbig_cache{$_[0][0]} ||= PDL::Core::howbig($_[0][0]);
+}
+
+foreach my $name (@TYPE_VERBATIM) {
+  no strict 'refs';
+  *$name = sub { $_[0][1]{$name}; };
+}
+
 sub badvalue {
   PDL::Bad::_badvalue_int( $_[1], $_[0][0] );
 }
@@ -798,7 +686,6 @@ use overload (
   },
   "<=>" => sub { $_[2] ? $_[1][0] <=> $_[0][0] : $_[0][0] <=> $_[1][0] },
 );
-
 } # package: PDL::Type
 # Return
 1;
@@ -814,22 +701,22 @@ was generated).
 
 =head2 Format of a type entry
 
-Each entry in the C<@types> array is a hash reference. Here is an example
+Each entry in the C<@HASHES> array is a hash reference. Here is an example
 taken from the actual code that defines the C<ushort> type:
 
-	     {
-	      identifier => 'US',
-	      onecharident => 'U',   # only needed if different from identifier
-	      pdlctype => 'PDL_Ushort',
-	      realctype => 'unsigned short',
-	      ppforcetype => 'ushort',
-	      usenan => 0,
-	      packtype => 'S*',
-	      defaultbadval => 'USHRT_MAX',
-	      real=>1,
-	      integer=>1,
-	      unsigned=>1,
-	     },
+  {
+    identifier => 'US',
+    onecharident => 'U',   # only needed if different from identifier
+    ctype => 'PDL_Ushort',
+    realctype => 'unsigned short',
+    ppforcetype => 'ushort',
+    usenan => 0,
+    packtype => 'S*',
+    defbval => 'USHRT_MAX',
+    real=>1,
+    integer=>1,
+    unsigned=>1,
+  },
 
 Before we start to explain the fields please take this important
 message on board:
@@ -864,7 +751,7 @@ this type in PP macro expressions of the C<TBSULFD> type - see L<PDL::PP/$T>.
 
 =item *
 
-pdlctype
+ctype
 
 I<Required>. The C<typedef>ed name that will be used to access this type
 from C code.
@@ -949,5 +836,3 @@ from the PDL root directory I<after> updating F<Types.pm.PL> to check
 for such places.
 
 =cut
-
-!NO!SUBS!

@@ -187,8 +187,6 @@ sub _pp_list_functions {
   if (!$flist_cache{$abs_src}) {
     my $w = whereami_any();
     my $typespm = catfile($w, 'Types.pm');
-    system $^X, "$typespm.PL", $typespm and die "Failed to create Types.pm from '$typespm.PL'"
-      if $internal and !-f $typespm;
     require $typespm;
     local $INC{'PDL/Types.pm'} = 1;
     require ''.catfile($w, qw(PP.pm));

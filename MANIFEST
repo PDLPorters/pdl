@@ -140,7 +140,7 @@ Basic/lib/PDL/Reduce.pm
 Basic/lib/PDL/Scilab.pod
 Basic/lib/PDL/Tips.pod
 Basic/lib/PDL/Tutorials.pod
-Basic/lib/PDL/Types.pm.PL
+Basic/lib/PDL/Types.pm
 Basic/lib/PDLdb.pl
 Basic/lib/Test/Deep/PDL.pm
 Basic/lib/Test/PDL.pm

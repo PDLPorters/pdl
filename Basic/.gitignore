@@ -1,5 +1,4 @@
 lib/PDL/Core.c
 lib/PDL/Core/pdl.h
 lib/PDL/Core/pdlperl.h
-lib/PDL/Types.pm
 script/pdl
