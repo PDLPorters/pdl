@@ -9,7 +9,7 @@ WriteMakefile(
   NAME => 'PDL::Lib',
   PM => {
     'Func_demo.pm' => '$(INST_LIB)/PDL/Demos/Func_demo.pm',
-    map +($_ => '$(INST_LIBDIR)/'.$_), qw(DiskCache.pm Func.pm),
+    map +($_ => '$(INST_LIBDIR)/'.$_), qw(Func.pm),
   },
   NO_MYMETA => 1,
 );

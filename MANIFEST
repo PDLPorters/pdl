@@ -94,6 +94,7 @@ Basic/lib/PDL/Demos/General.pm
 Basic/lib/PDL/Demos/m51.fits
 Basic/lib/PDL/Demos/Sound.pm
 Basic/lib/PDL/DeveloperGuide.pod
+Basic/lib/PDL/DiskCache.pm
 Basic/lib/PDL/Doc.pm
 Basic/lib/PDL/Doc/Config.pm
 Basic/lib/PDL/Doc/Perldl.pm
@@ -200,6 +201,7 @@ Basic/t/constructor.t
 Basic/t/core.t
 Basic/t/croak.t
 Basic/t/demos.t
+Basic/t/diskcache.t
 Basic/t/dumper.t
 Basic/t/fastraw.t
 Basic/t/fits-noafh.t
@@ -367,7 +369,6 @@ IO/STL/STL.pm
 IO/STL/t/basic.t
 IO/STL/t/cube.stl
 IO/STL/t/cube_binary.stl
-Libtmp/DiskCache.pm
 Libtmp/Filter/Linear.pm
 Libtmp/Filter/Makefile.PL
 Libtmp/Fit/Gaussian/gauss.c
@@ -610,7 +611,6 @@ Libtmp/Slatec/t/linfit.t
 Libtmp/Slatec/t/lm.t
 Libtmp/Slatec/t/slatec-polyfit-weight.t
 Libtmp/Slatec/t/slatec.t
-Libtmp/t/diskcache.t
 Libtmp/t/func.t
 Libtmp/Transform-Proj4/Demo.pm
 Libtmp/Transform-Proj4/Makefile.PL
