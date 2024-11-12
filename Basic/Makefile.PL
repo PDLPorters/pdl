@@ -19,9 +19,12 @@ ${pdlroot}$::Config{exe_ext} : ${pdlroot}.c
 \t\$(CC) \$(CFLAGS) \$(LDFLAGS) \$(CCCDLFLAGS) ${pdlroot}.c -o \$\@
 EOT
   my $typespm = catfile(qw(lib PDL Types.pm));
-  $text .= join '', map "$_ :: $typespm\n", qw(pdl.h pdlperl.h);
+  for (qw(pdl.h pdlperl.h)) {
+    my $base = "lib/PDL/Core/$_"; # no catfile as init_PM uses File::Find which normalises to /
+    $text .= "$base :: $typespm\n\t\$(PERLRUN) $base.PL $base\n";
+  }
   $text .= "\n" . ::coretarget($self);
-  my $coretest = join ' ', map File::Spec->catfile('t', $_.'.t'), qw(
+  my $coretest = join ' ', map catfile('t', $_.'.t'), qw(
     01-pptest autoload bad basic bool clump constructor core croak lvalue
     math matrix matrixops nat_complex ops-bitwise ops pdl_from_string
     pdlchar pp_croaking pp_line_numbers primitive-* ppt-* pthread reduce
@@ -107,6 +110,9 @@ sub init_PM {
   my ($self) = @_;
   $self->SUPER::init_PM;
   my ($pm, $plf) = @$self{qw(PM PL_FILES)};
+  for my $f (grep /pdl(?:perl)?\.h\.PL$/, keys %$pm) {
+    $pm->{ _nopl($f) } = _nopl(delete $pm->{$f}); # dealing in postamble but still install
+  }
   for my $f (grep /\.PL$/, keys %$pm) {
     $pm->{ $plf->{$f} = _nopl($f) } = _nopl(delete $pm->{$f});
   }
