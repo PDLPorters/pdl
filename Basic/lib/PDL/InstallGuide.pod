@@ -1,0 +1,228 @@
+package PDL::InstallGuide;
+
+=head1 NAME
+
+PDL::InstallGuide - installation notes for PDL
+
+=head1 DESCRIPTION
+
+These are notes to try to help you get PDL installed, especially
+on Windows, MacOS, and Cygwin.
+Another source of information is L<https://pdl.perl.org/?page=install>.
+
+=head1 INSTALLATION
+
+To install PDL on your machine, first check that you
+have a recent enough version of Perl: 5.14.0 and above
+is required.
+
+Then, use L<cpanm|App::cpanminus> to install PDL:
+
+  cpanm PDL::Basic
+
+This will give you PDL. There are additional modules you can install
+for further features, but for speed of installatiion, and ease of
+maintenance, they are not included in the above package. They I<can>
+however be installed with a similar command to the above, and any
+dependencies will be installed automatically.
+
+If you want to contribute to PDL, see L<PDL::DeveloperGuide> and/or
+L<PDL::FAQ>.
+
+=head2 MacOS X
+
+For a full distribution of PDL on MacOS X, try
+L<https://github.com/PDLPorters/SciPDL>. There are also plans to
+bring PDL to Homebrew, so try that to see if it is there.
+
+NOTE: The L<PDL::Graphics::TriD> window controls are based on
+having a mouse with 2 or more buttons.
+
+For Macs with one button, you can use Ctrl+Click to generate
+the needed Right-click. It is also possible to configure
+the Macbook tracpad to generate a secondary click via the
+control panel.
+
+=head2 Windows
+
+For instructions relating to the installation of PDL
+binaries (PPM packages) see the wiki:
+L<https://github.com/PDLPorters/pdl/wiki/Installing-PDL-on-Windows>
+
+If you wish to build from source, the best way (at least as of 2024)
+is to install Strawberry Perl, which includes Minimalist Gnu for
+Windows (MinGW), a full development environment. There is also a
+Strawberry Perl PDL Edition, with many extra libraries included,
+along with a version of PDL.
+
+=head2 Cygwin
+
+B<NB> These notes may not be fully up to date.
+
+This directory contains supplemental build information to
+configure and install PDL on a windows system with the cygwin
+toolset (https://www.cygwin.com).
+
+The cygwin library provides the missing unix/posix functionality
+to allow unix applications to be more easily ported to windows.
+A windows PC with cygwin looks like different flavor of unix.
+Since cygwin looks like a Unix, [almost] all of the standard
+perl functionality works and PDL can build pretty much as it
+does on other unix systems.
+
+See L</Windows>for instructions on building a
+native Windows PDL.
+
+It is recommended that you
+build and install PDL based on a full cygwin 1.7.17 or
+later. Please post to the perldl mailing list
+for help or questions regarding a cygwin install.
+
+By default, Cygwin has an ~300MB process memory limit.
+If you work with large data sets, you may wish to
+use the native win32 PDL with either ActiveState Perl
+or Strawberry Perl.  Otherwise, you'll want to set the
+value of heap_chunk_in_mb to allow for bigger data as
+described in the Cygwin Users Guide:
+http://www.cygwin.com/cygwin-ug-net/setup-maxmem.html
+
+WARNING: There is a known problem with windows DLL base
+addresses being scrambled causing mysterious failures
+for cygwin builds.  See the L</rebaseall> directions below
+for the current work around.  Development for recent
+cygwins appear to be making progress towards fixing
+this problem.
+
+If you already have a full cygwin install on your PC, the
+simplest way to get a basic PDL is to use the C<cpanm> command, as above.
+This will get you all the functionality that is supported
+by existing cygwin package functionality (i.e. available
+from the standard Setup.exe installs).
+
+=head3 rebaseall
+
+There is a known issue on cygwin where DLLs have to have their
+base addresses fixed so that runtime conflicts do not occur.  The
+problems occur for the external modules and their interfaces using
+DLLs. The usual sign for this is
+that some tests fail mysteriously.  If you run the failing test
+by hand (for example):
+
+  perl -Mblib t/plplot.t
+
+You may see no error but only 1 test run or even a message saying
+that the test failed before generating any output.  If so, you'll
+need to run rebaseall:
+
+  0. Generate a list of additional DLLs to check:
+
+     find /usr/lib/perl5 /usr/bin /usr/local /pdl_build_dir/blib -iname '*.dll' > /bin/fixit.list
+
+  1. Exit all cygwin processes, windows, shells, X server,...
+
+  2. Start up a windows CMD shell window (Start->Run cmd)
+
+  3. cd to the cygwin /bin directory (cd c:\cygwin\bin by default)
+
+  4. Run ash in that directory (ash)
+
+  5. Run rebaseall (./rebaseall -T fixit.list)
+
+       Note that we created the fixit.list file in the c:\cygwin\bin
+       folder to begin with.  If you put it elsewhere, you'll need
+       to use the appropriate pathnames.
+
+  6. Run peflagsall (./peflagsall -T fixit.list)
+
+  7. Restart cygwin
+
+After the rebaseall command has completed, you should be able to
+start up X windows and rerun the failed tests (perl -Mblib t/testname.t)
+or all tests (make test).
+
+NOTE: From the cygwin-xfree mailing list:
+
+  > Also, I've found that using a different base address with rebaseall
+  > seems to help with some X problems:
+  >
+  > dash -c "rebaseall -b 0x77000000"
+  >
+  > http://cygwin.com/ml/cygwin/2011-04/msg00306.html
+  >
+  > cgf
+
+=head3 Establishing maximum memory available
+
+Run this as C<perl filename.pl chunksize_in_MB [seconds_delay]>:
+
+  #!/usr/bin/perl
+  use PDL;
+  my $MB;
+  my @data;
+  my $chunk = (scalar @ARGV) ? $ARGV[0] : 1;
+  for ( $MB=0; $MB<5000; $MB+=$chunk) {
+     print "Allocating: total data -> ${MB}MB..";
+     push @data, zeros($chunk,125,1000);
+     print ".. done\n";
+     sleep $ARGV[1] if scalar(@ARGV) == 2;
+  }
+  print "Got total of $MB!\n";
+
+=head3 Changing Cygwin's maximum memory
+
+Cygwin's heap is extensible. However, it does start out at a fixed
+size and attempts to extend it may run into memory which has been
+previously allocated by Windows. In some cases, this problem can
+be solved by adding an entry in the either the HKEY_LOCAL_MACHINE
+(to change the limit for all users) or HKEY_CURRENT_USER (for just
+the current user) section of the registry.
+
+Add the DWORD value heap_chunk_in_mb and set it to the desired
+memory limit in decimal MB. It is preferred to do this in Cygwin
+using the regtool program included in the Cygwin package. (For more
+information about regtool or the other Cygwin utilities, see the
+section called “Cygwin Utilities” or use the --help option of each
+util.) You should always be careful when using regtool since damaging
+your system registry can result in an unusable system. This example
+sets memory limit to 1024 MB:
+
+  regtool -i set /HKLM/Software/Cygwin/heap_chunk_in_mb 1024
+  regtool -v list /HKLM/Software/Cygwin
+
+Exit all running Cygwin processes and restart them. Memory can be
+allocated up to the size of the system swap space minus any the
+size of any running processes. The system swap should be at least
+as large as the physically installed RAM and can be modified under
+the System category of the Control Panel.
+
+Here is a small program written by DJ Delorie that tests the memory
+allocation limit on your system:
+
+  main()
+  {
+    unsigned int bit=0x40000000, sum=0;
+    char *x;
+    while (bit > 4096)
+    {
+      x = malloc(bit);
+      if (x)
+      sum += bit;
+      bit >>= 1;
+    }
+    printf("%08x bytes (%.1fMb)\n", sum, sum/1024.0/1024.0);
+    return 0;
+  }
+
+You can compile this program using:
+
+  gcc max_memory.c -o max_memory.exe
+
+Run the program and it will output the maximum amount of allocatable memory.
+
+=head1 SUPPORT
+
+If you have problems building or installing PDL, we
+suggest contacting the PDL users and developers via
+the PDL mailing lists.  See L<https://pdl.perl.org/?page=mailing-lists>
+to get started. Links to searchable archives of the lists
+are available on the same page.

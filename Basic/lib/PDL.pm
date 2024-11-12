@@ -220,6 +220,10 @@ regarding internationalization to the perldl mailing lists.
 Of course, volunteers to implement this or help with the
 translations would be welcome.
 
+=head1 INSTALLATION
+
+See L<PDL::InstallGuide> for help.
+
 =cut
 
 # support: use Inline with => 'PDL';

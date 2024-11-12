@@ -103,6 +103,7 @@ Basic/lib/PDL/Graphics.pod
 Basic/lib/PDL/Index.pod
 Basic/lib/PDL/Indexing.pod
 Basic/lib/PDL/Install/Files.pm
+Basic/lib/PDL/InstallGuide.pod
 Basic/lib/PDL/Internals.pod
 Basic/lib/PDL/IO.pod
 Basic/lib/PDL/IO/Dumper.pm
@@ -266,13 +267,6 @@ Basic/utils/perldlpp.pl
 Basic/utils/scantree.pl
 Changes
 COPYING
-cygwin/fix-max-memory.txt
-cygwin/g77_gcc.conf
-cygwin/INSTALL
-cygwin/max_memory.c
-cygwin/README
-cygwin/tmalloc.pl
-DEPENDENCIES
 Graphics/Graphics2D.pm
 Graphics/Limits/Limits.pm
 Graphics/Limits/Makefile.PL
@@ -334,7 +328,6 @@ Graphics/TriD/TriD/Window.pm
 Graphics/TriD/VRML/Makefile.PL
 Graphics/TriD/VRML/VRML.pm
 Graphics/TriD/VRML/VRML/Protos.pm
-INSTALL
 IO/Browser/browse.c
 IO/Browser/browser.pd
 IO/Browser/Makefile.PL
@@ -624,7 +617,6 @@ Libtmp/Transform-Proj4/Makefile.PL
 Libtmp/Transform-Proj4/proj4.pd
 Libtmp/Transform-Proj4/t/gis_proj.t
 Libtmp/Transform-Proj4/t/proj_transform.t
-macosx/README
 Makefile.PL
 MANIFEST			This list of files
 MANIFEST.SKIP
@@ -641,5 +633,3 @@ Perldl2/README
 Perldl2/Script.pm
 Perldl2/TODO
 README.md
-win32/INSTALL
-win32/win32f77.pl
