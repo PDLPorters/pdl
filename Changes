@@ -1,7 +1,7 @@
 - CallExt removed - use `Inline with => "PDL"; use Inline C => "..."`
 - Inline::MakePdlppInstallable removed - use Inline::Module
 - PDL::PP::Dump removed - set $::PP_VERBOSE in .pd instead
-- add IO::Misc::bswap16
+- add IO::Misc::bswap{16,32}
 - IO::Misc::bswap* now give error if try to swap more bytes than type-size
 - the distro VERSION now comes from PDL::Core
 

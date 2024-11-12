@@ -9,6 +9,10 @@ use Test::PDL;
 my $tempd = tempdir( CLEANUP => 1 ) or die "Couldn't get tempdir\n";
 my ($fileh,$file) = tempfile( DIR => $tempd );
 
+for my $type (PDL::Types::types()) {
+   ok $type->bswap, "$type has bswap";
+}
+
 ############# Test rcols with colsep and missing fields ###################
 
 print $fileh <<EOD;

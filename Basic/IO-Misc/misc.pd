@@ -58,7 +58,7 @@ use List::Util;
 
 sub defswap {
   my ($bytes, $doc) = @_;
-  my $sized_type = $bytes == 16 ? "PDL_CDouble" : "uint".($bytes*8)."_t";
+  my $sized_type = "struct {char n[$bytes];}";
   pp_def(
     "bswap$bytes",
     Pars => '[io] x()',
@@ -68,10 +68,10 @@ if (sizeof(\$GENERIC(x)) < $bytes)
 EOF
     Code => <<EOF,
 int i;
-int n = sizeof(\$x()) / sizeof($sized_type);
-$sized_type *aa = ($sized_type*) &\$x();
+int n = sizeof(\$x()) / $bytes;
+$sized_type *aa = (void *) &\$x();
 for (i=0;i<n; i++) {
-  $sized_type bb = aa[i];
+  $sized_type bb; memcpy(&bb, aa+i, $bytes);
   PDL_Byte *a = (PDL_Byte*) (void*) (aa+i);
   PDL_Byte *b = (PDL_Byte*) &bb;
   @{[map "a[$_] = b[".($bytes-$_-1)."];", 0..$bytes-1]}
@@ -84,6 +84,7 @@ defswap(2, "Swaps pairs of bytes in argument x()");
 defswap(4, "Swaps quads of bytes in argument x()");
 defswap(8, "Swaps octets of bytes in argument x()");
 defswap(16, "Swaps 16s of bytes in argument x()");
+defswap(32, "Swaps 32s of bytes in argument x()");
 
 pp_addpm(<<'!NO!SUBS!');
 

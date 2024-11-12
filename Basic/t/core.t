@@ -13,6 +13,7 @@ use Devel::Peek;
 
 for my $type (PDL::Types::types()) {
    ok defined pdl($type, 0), "constructing PDL of type $type";
+   ok $type->howbig, "$type has size";
 }
 
 {

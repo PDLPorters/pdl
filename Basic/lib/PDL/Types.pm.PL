@@ -24,279 +24,259 @@ sub packtypeof_PDL_Indx {
 # this is critical for type conversions!!!
 #
 my @types = (
-	     {
-	      identifier => 'SB',
-	      onecharident => 'A',   # only needed if different from identifier
-	      pdlctype => 'PDL_SByte',# to be defined in pdl.h
-	      realctype => 'signed char',
-	      ppforcetype => 'sbyte', # for some types different from ctype
-	      usenan => 0,           # do we need NaN handling for this type?
-	      packtype => 'c*',      # the perl pack type
-	      defaultbadval => 'SCHAR_MIN',
-	      real=>1,
-	      integer=>1,
-	      unsigned=>0,
-	     },
-	     {
-	      identifier => 'B',
-	      pdlctype => 'PDL_Byte',# to be defined in pdl.h
-	      realctype => 'unsigned char',
-	      ppforcetype => 'byte', # for some types different from ctype
-	      usenan => 0,           # do we need NaN handling for this type?
-	      packtype => 'C*',      # the perl pack type
-	      defaultbadval => 'UCHAR_MAX',
-	      real=>1,
-	      integer=>1,
-	      unsigned=>1,
-	     },
-	     {
-	      identifier => 'S',
-	      pdlctype => 'PDL_Short',
-	      realctype => 'short',
-	      ppforcetype => 'short',
-	      usenan => 0,
-	      packtype => 's*',
-	      defaultbadval => 'SHRT_MIN',
-	      real=>1,
-	      integer=>1,
-	      unsigned=>0,
-	     },
-	     {
-	      identifier => 'US',
-	      onecharident => 'U',   # only needed if different from identifier
-	      pdlctype => 'PDL_Ushort',
-	      realctype => 'unsigned short',
-	      ppforcetype => 'ushort',
-	      usenan => 0,
-	      packtype => 'S*',
-	      defaultbadval => 'USHRT_MAX',
-	      real=>1,
-	      integer=>1,
-	      unsigned=>1,
-	     },
-	     {
-	      identifier => 'L',
-	      pdlctype => 'PDL_Long',
-	      realctype => 'int32_t',
-	      ppforcetype => 'int',
-	      usenan => 0,
-	      packtype => 'l*',
-	      defaultbadval => 'INT32_MIN',
-	      real=>1,
-	      integer=>1,
-	      unsigned=>0,
-	     },
-	     {
-	      identifier => 'UL',
-	      onecharident => 'K',   # only needed if different from identifier
-	      pdlctype => 'PDL_ULong',
-	      realctype => 'uint32_t',
-	      ppforcetype => 'uint',
-	      usenan => 0,
-	      packtype => 'L*',
-	      defaultbadval => 'UINT32_MAX',
-	      real=>1,
-	      integer=>1,
-	      unsigned=>1,
-	     },
-
-# The PDL_Indx type will be either the same as PDL_Long or, probably,
-# the same as PDL_LongLong depending on the platform.  Will need to
-# determine the actual type at build time.
-       {
-        identifier => 'IND',
-        onecharident => 'N',   # only needed if different from identifier
-        pdlctype => 'PDL_Indx',
-        realctype => 'ptrdiff_t',
-        ppforcetype => 'indx',
-        usenan => 0,
-        packtype => &packtypeof_PDL_Indx,
-        defaultbadval => 'PTRDIFF_MIN',
-        real=>1,
-        integer=>1,
-        unsigned=>0,
-       },
-
+  {
+    identifier => 'SB',
+    onecharident => 'A',   # only needed if different from identifier
+    pdlctype => 'PDL_SByte',# to be defined in pdl.h
+    realctype => 'signed char',
+    ppforcetype => 'sbyte', # for some types different from ctype
+    usenan => 0,           # do we need NaN handling for this type?
+    packtype => 'c*',      # the perl pack type
+    defaultbadval => 'SCHAR_MIN',
+    real=>1,
+    integer=>1,
+    unsigned=>0,
+  },
+  {
+    identifier => 'B',
+    pdlctype => 'PDL_Byte',# to be defined in pdl.h
+    realctype => 'unsigned char',
+    ppforcetype => 'byte', # for some types different from ctype
+    usenan => 0,           # do we need NaN handling for this type?
+    packtype => 'C*',      # the perl pack type
+    defaultbadval => 'UCHAR_MAX',
+    real=>1,
+    integer=>1,
+    unsigned=>1,
+  },
+  {
+    identifier => 'S',
+    pdlctype => 'PDL_Short',
+    realctype => 'short',
+    ppforcetype => 'short',
+    usenan => 0,
+    packtype => 's*',
+    defaultbadval => 'SHRT_MIN',
+    real=>1,
+    integer=>1,
+    unsigned=>0,
+  },
+  {
+    identifier => 'US',
+    onecharident => 'U',   # only needed if different from identifier
+    pdlctype => 'PDL_Ushort',
+    realctype => 'unsigned short',
+    ppforcetype => 'ushort',
+    usenan => 0,
+    packtype => 'S*',
+    defaultbadval => 'USHRT_MAX',
+    real=>1,
+    integer=>1,
+    unsigned=>1,
+  },
+  {
+    identifier => 'L',
+    pdlctype => 'PDL_Long',
+    realctype => 'int32_t',
+    ppforcetype => 'int',
+    usenan => 0,
+    packtype => 'l*',
+    defaultbadval => 'INT32_MIN',
+    real=>1,
+    integer=>1,
+    unsigned=>0,
+  },
+  {
+    identifier => 'UL',
+    onecharident => 'K',   # only needed if different from identifier
+    pdlctype => 'PDL_ULong',
+    realctype => 'uint32_t',
+    ppforcetype => 'uint',
+    usenan => 0,
+    packtype => 'L*',
+    defaultbadval => 'UINT32_MAX',
+    real=>1,
+    integer=>1,
+    unsigned=>1,
+  },
+  {
+    identifier => 'IND',
+    onecharident => 'N',   # only needed if different from identifier
+    pdlctype => 'PDL_Indx',
+    realctype => 'ptrdiff_t',
+    ppforcetype => 'indx',
+    usenan => 0,
+    packtype => &packtypeof_PDL_Indx,
+    defaultbadval => 'PTRDIFF_MIN',
+    real=>1,
+    integer=>1,
+    unsigned=>0,
+  },
 # note that the I/O routines have *not* been updated to be aware of
 # such a type yet
-       { # this one before LL so last integer is signed, to avoid default-type (last in list) changing to unsigned
-	identifier => 'ULL',
-	onecharident => 'P',   # only needed if different from identifier
-	pdlctype => 'PDL_ULongLong',
-	realctype => 'uint64_t',
-	ppforcetype => 'ulonglong',
-	usenan => 0,
-	packtype => 'Q*',
-	defaultbadval => 'UINT64_MAX',
-	real=>1,
-	integer=>1,
-	unsigned=>1,
-      },
-       {
-	identifier => 'LL',
-	onecharident => 'Q',   # only needed if different from identifier
-	pdlctype => 'PDL_LongLong',
-	realctype => 'int64_t',
-	ppforcetype => 'longlong',
-	usenan => 0,
-	packtype => 'q*',
-	defaultbadval => 'INT64_MIN',
-	real=>1,
-	integer=>1,
-	unsigned=>0,
-      },
-
+  { # this one before LL so last integer is signed, to avoid default-type (last in list) changing to unsigned
+    identifier => 'ULL',
+    onecharident => 'P',   # only needed if different from identifier
+    pdlctype => 'PDL_ULongLong',
+    realctype => 'uint64_t',
+    ppforcetype => 'ulonglong',
+    usenan => 0,
+    packtype => 'Q*',
+    defaultbadval => 'UINT64_MAX',
+    real=>1,
+    integer=>1,
+    unsigned=>1,
+  },
+  {
+    identifier => 'LL',
+    onecharident => 'Q',   # only needed if different from identifier
+    pdlctype => 'PDL_LongLong',
+    realctype => 'int64_t',
+    ppforcetype => 'longlong',
+    usenan => 0,
+    packtype => 'q*',
+    defaultbadval => 'INT64_MIN',
+    real=>1,
+    integer=>1,
+    unsigned=>0,
+  },
 # IMPORTANT:
 # PDL_F *must* be the first non-integer type in this list
 # as there are many places in the code (.c/.xs/.pm/.pd)
 # with tests like this:
 #                        if (ndarraytype < PDL_F) { ... }
-	      {
-		  identifier => 'F',
-		  pdlctype => 'PDL_Float',
-		  realctype => 'float',
-		  ppforcetype => 'float',
-		  usenan => 1,
-		  packtype => 'f*',
-	          defaultbadval => '-FLT_MAX',
-	          real=>1,
-		  complexversion=> 'G',
-	          integer=>0,
-	          unsigned=>0,
-	          isnan=>'isnan(%1$s)',
-	          isfinite=>'isfinite(%1$s)',
-	          floatsuffix=>'f',
-	      },
-	      {
-		  identifier => 'D',
-		  pdlctype => 'PDL_Double',
-		  realctype => 'double',
-		  ppforcetype => 'double',
-		  usenan => 1,
-		  packtype => 'd*',
-	          defaultbadval => '-DBL_MAX',
-	          real=>1,
-		  complexversion=> 'C',
-	          integer=>0,
-	          unsigned=>0,
-	          isnan=>'isnan(%1$s)',
-	          isfinite=>'isfinite(%1$s)',
-	          floatsuffix=>'',
-	      },
-	      {
-		  identifier => 'LD',
-		  onecharident => 'E',   # only needed if different from identifier
-		  pdlctype => 'PDL_LDouble',
-		  realctype => 'long double',
-		  ppforcetype => 'ldouble',
-		  usenan => 1,
-		  packtype => 'D*',
-	          defaultbadval => '-LDBL_MAX',
-	          real=>1,
-		  complexversion=> 'CLD',
-	          integer=>0,
-	          unsigned=>0,
-	          isnan=>'isnan(%1$s)',
-	          isfinite=>'isfinite(%1$s)',
-	          floatsuffix=>'l',
-	      },
+  {
+    identifier => 'F',
+    pdlctype => 'PDL_Float',
+    realctype => 'float',
+    ppforcetype => 'float',
+    usenan => 1,
+    packtype => 'f*',
+    defaultbadval => '-FLT_MAX',
+    real=>1,
+    complexversion=> 'G',
+    integer=>0,
+    unsigned=>0,
+    isnan=>'isnan(%1$s)',
+    isfinite=>'isfinite(%1$s)',
+    floatsuffix=>'f',
+  },
+  {
+    identifier => 'D',
+    pdlctype => 'PDL_Double',
+    realctype => 'double',
+    ppforcetype => 'double',
+    usenan => 1,
+    packtype => 'd*',
+    defaultbadval => '-DBL_MAX',
+    real=>1,
+    complexversion=> 'C',
+    integer=>0,
+    unsigned=>0,
+    isnan=>'isnan(%1$s)',
+    isfinite=>'isfinite(%1$s)',
+    floatsuffix=>'',
+  },
+  {
+    identifier => 'LD',
+    onecharident => 'E',   # only needed if different from identifier
+    pdlctype => 'PDL_LDouble',
+    realctype => 'long double',
+    ppforcetype => 'ldouble',
+    usenan => 1,
+    packtype => 'D*',
+    defaultbadval => '-LDBL_MAX',
+    real=>1,
+    complexversion=> 'CLD',
+    integer=>0,
+    unsigned=>0,
+    isnan=>'isnan(%1$s)',
+    isfinite=>'isfinite(%1$s)',
+    floatsuffix=>'l',
+  },
 # the complex types need to be in the same order as their real
 # counterparts, because the "real" ppforcetype relies on a fixed interval
 # between each real and complex version
 # they also need to occur at the end of the types, as a < PDL_CF
 # comparison is done at C level to see if a type is real, analogous to
 # the < PDL_F above
-	      {
-		  identifier => 'CF',
-		  onecharident => 'G',   # only needed if different from identifier
-		  pdlctype => 'PDL_CFloat',
-		  realctype => 'complex float',
-		  ppforcetype => 'cfloat',
-		  usenan => 1,
-		  packtype => '(ff)*',
-	          defaultbadval => '(-FLT_MAX - I*FLT_MAX)',
-	          real=>0,
-	          realversion=>'F',
-	          integer=>0,
-	          unsigned=>0,
-	          isnan=>'(isnan(crealf(%1$s)) || isnan(cimagf(%1$s)))',
-	          isfinite=>'(isfinite(crealf(%1$s)) && isfinite(cimagf(%1$s)))',
-	          floatsuffix=>'f',
-	      },
-	      {
-		  identifier => 'CD',
-		  onecharident => 'C',   # only needed if different from identifier
-		  pdlctype => 'PDL_CDouble',
-		  realctype => 'complex double',
-		  ppforcetype => 'cdouble',
-		  usenan => 1,
-		  packtype => '(dd)*',
-	          defaultbadval => '(-DBL_MAX - I*DBL_MAX)',
-	          real=>0,
-	          realversion=>'D',
-	          integer=>0,
-	          unsigned=>0,
-	          isnan=>'(isnan(creal(%1$s)) || isnan(cimag(%1$s)))',
-	          isfinite=>'(isfinite(creal(%1$s)) && isfinite(cimag(%1$s)))',
-	          floatsuffix=>'',
-	      },
-	      {
-		  identifier => 'CLD',
-		  onecharident => 'H',   # only needed if different from identifier
-		  pdlctype => 'PDL_CLDouble',
-		  realctype => 'complex long double',
-		  ppforcetype => 'cldouble',
-		  usenan => 1,
-		  packtype => '(DD)*',
-	          defaultbadval => '(-LDBL_MAX - I*LDBL_MAX)',
-	          real=>0,
-	          realversion=>'LD',
-	          integer=>0,
-	          unsigned=>0,
-	          isnan=>'(isnan(creall(%1$s)) || isnan(cimagl(%1$s)))',
-	          isfinite=>'(isfinite(creall(%1$s)) && isfinite(cimagl(%1$s)))',
-	          floatsuffix=>'l',
-	      },
-	      );
+  {
+    identifier => 'CF',
+    onecharident => 'G',   # only needed if different from identifier
+    pdlctype => 'PDL_CFloat',
+    realctype => 'complex float',
+    ppforcetype => 'cfloat',
+    usenan => 1,
+    packtype => '(ff)*',
+    defaultbadval => '(-FLT_MAX - I*FLT_MAX)',
+    real=>0,
+    realversion=>'F',
+    integer=>0,
+    unsigned=>0,
+    isnan=>'(isnan(crealf(%1$s)) || isnan(cimagf(%1$s)))',
+    isfinite=>'(isfinite(crealf(%1$s)) && isfinite(cimagf(%1$s)))',
+    floatsuffix=>'f',
+  },
+  {
+    identifier => 'CD',
+    onecharident => 'C',   # only needed if different from identifier
+    pdlctype => 'PDL_CDouble',
+    realctype => 'complex double',
+    ppforcetype => 'cdouble',
+    usenan => 1,
+    packtype => '(dd)*',
+    defaultbadval => '(-DBL_MAX - I*DBL_MAX)',
+    real=>0,
+    realversion=>'D',
+    integer=>0,
+    unsigned=>0,
+    isnan=>'(isnan(creal(%1$s)) || isnan(cimag(%1$s)))',
+    isfinite=>'(isfinite(creal(%1$s)) && isfinite(cimag(%1$s)))',
+    floatsuffix=>'',
+  },
+  {
+    identifier => 'CLD',
+    onecharident => 'H',   # only needed if different from identifier
+    pdlctype => 'PDL_CLDouble',
+    realctype => 'complex long double',
+    ppforcetype => 'cldouble',
+    usenan => 1,
+    packtype => '(DD)*',
+    defaultbadval => '(-LDBL_MAX - I*LDBL_MAX)',
+    real=>0,
+    realversion=>'LD',
+    integer=>0,
+    unsigned=>0,
+    isnan=>'(isnan(creall(%1$s)) || isnan(cimagl(%1$s)))',
+    isfinite=>'(isfinite(creall(%1$s)) && isfinite(cimagl(%1$s)))',
+    floatsuffix=>'l',
+  },
+);
 
-sub checktypehas {
-  my ($key,@types) = @_;
-  for my $type (@types) {
-    die "type is not a HASH ref" unless ref $type eq 'HASH';
-    die "type hash doesn't have a key '$key'" unless exists $type->{$key};
-  }
-}
-
-sub gentypevars {
-  my @types = @_;
-  checktypehas 'identifier', @types;
-  my @ret = map {"\$PDL_$_->{identifier}"} @types;
-  return wantarray ? @ret : $ret[0];
-}
-
-sub genexports {
-  my @types = @_;
-  return join ' ', gentypevars @types;
+my @check_keys = (@TYPE_VERBATIM, qw(
+  identifier packtype pdlctype pdlctype defaultbadval
+));
+for my $type (@types) {
+  die "type is not a HASH ref but ".ref($type) unless ref $type eq 'HASH';
+  my @missing_keys = grep !exists $type->{$_}, @check_keys;
+  die "type hash missing (@missing_keys)" if @missing_keys;
 }
 
 sub gentypenames {
   my @types = @_;
-  checktypehas 'identifier', @types;
-  my @ret = map {"PDL_$_->{identifier}"} @types;
+  my @ret = map "PDL_$_->{identifier}", @types;
   return wantarray ? @ret : $ret[0];
 }
 
-sub genpacktypes {
+sub gentypevars {
   my @types = @_;
-  checktypehas 'packtype', @types;
-  my @ret = map {"$_->{packtype}"} @types;
+  my @ret = map "\$$_", gentypenames @types;
   return wantarray ? @ret : $ret[0];
 }
 
 sub convertfunc {
   my ($type) = @_;
   return $type->{'convertfunc'} if exists $type->{'convertfunc'};
-  checktypehas 'pdlctype', $type;
   my $cfunc = $type->{pdlctype};
   $cfunc =~ s/PDL_//;
   return lc $cfunc;
@@ -304,8 +284,6 @@ sub convertfunc {
 
 sub gentypehashentry ($$) {
   my ($type,$num) = @_;
-  checktypehas $_, $type
-    for qw/pdlctype defaultbadval/, @TYPE_VERBATIM;
   my $convertfunc = convertfunc($type);
   (my $shortctype = $type->{pdlctype}) =~ s/PDL_//;
   my $ppsym = $type->{onecharident} || $type->{identifier};
@@ -313,7 +291,7 @@ sub gentypehashentry ($$) {
     ctype => $type->{pdlctype},
     ppsym => $ppsym,
     convertfunc => $convertfunc,
-    sym => &gentypenames($type),
+    sym => gentypenames($type),
     numval => $num,
     ioname => $convertfunc,
     defbval => $type->{defaultbadval},
@@ -370,13 +348,6 @@ chmod 0644, $file;
 # the guts how this is done is encapsulated in the subroutines
 # that follow the definition of @types
 
-# set up some variables that we will use below
-my $typeexports = genexports @types;
-my $ntypesm1  = @types - 1; # number of types - 1
-my $typevars  = join ', ',gentypevars @types;
-my $packtypes = join ' ', genpacktypes @types;
-my $typenames = join ' ', gentypenames @types;
-
 print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  'Basic/Core/Types.pm.PL';
 print OUT <<'!NO!SUBS!';
 
@@ -391,7 +362,7 @@ use Carp;
 !NO!SUBS!
 
 print OUT qq{
-our \@EXPORT = qw( $typeexports
+our \@EXPORT = qw( @{[ join ' ', gentypevars @types ]}
 	       \@pack \%typehash );
 };
 
@@ -416,10 +387,10 @@ print OUT qq{
 
 # Data types/sizes (bytes) [must be in order of complexity]
 # Enum
-our ( $typevars ) = (0..$ntypesm1);
+our ( @{[ join ', ', gentypevars @types ]} ) = (0..$#types);
 # Corresponding pack types
-our \@pack= qw/$packtypes/;
-our \@names= qw/$typenames/;
+our \@pack= qw/@{[ join ' ', map $_->{packtype}, @types ]}/;
+our \@names= qw/@{[ join ' ', gentypenames @types ]}/;
 
 };
 
@@ -790,6 +761,8 @@ sub types { @CACHED_TYPES }
         $size == 2 ? \&PDL::bswap2 :
         $size == 4 ? \&PDL::bswap4 :
         $size == 8 ? \&PDL::bswap8 :
+        $size == 16 ? \&PDL::bswap16 :
+        $size == 32 ? \&PDL::bswap32 :
         PDL::Core::barf("bswap couldn't find swap function for $_[0][1]{shortctype}");
     }
 
