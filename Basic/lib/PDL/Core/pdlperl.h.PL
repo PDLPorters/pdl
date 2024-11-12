@@ -1,6 +1,5 @@
 use strict;
 use warnings;
-use Config; # for ivsize
 
 require './lib/PDL/Types.pm';
 
