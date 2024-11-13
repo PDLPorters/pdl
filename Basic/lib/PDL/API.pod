@@ -125,7 +125,7 @@ The following script demonstrates a simple example:
    __C__
 
    /* wrap a user supplied chunk of data into an ndarray
-    * You must specify the dimensions (dims,ndims) and 
+    * You must specify the dimensions (dims,ndims) and
     * the datatype (constants for the datatypes are declared
     * in pdl.h; e.g. PDL_B for byte type, etc)
     *
@@ -138,7 +138,7 @@ The following script demonstrates a simple example:
     * explicitly call a function to free the resources
     * associated with your data pointer.
     * At the very least 'delete_magic' should zero the ndarray's data pointer:
-    * 
+    *
     *     void delete_mydata(pdl* pdl, int param)
     *     {
     *       pdl->data = 0;
@@ -199,7 +199,7 @@ The following script demonstrates a simple example:
      PDL_Indx dims[] = {SZ,SZ};
      pdl *p;
 
-     p = pdl_wrap((void *) mkramp(), PDL_B, dims, 2, 
+     p = pdl_wrap((void *) mkramp(), PDL_B, dims, 2,
 		  delete_myramp,0); /* the delparam is abitrarily set to 0 */
      return p;
    }
@@ -362,7 +362,7 @@ C<void pdl_warn(const char* pat,...)>
 These are C-code equivalents of C<barf> and C<warn>. They include special handling of error or warning
 messages during pthreading (i.e. processor multi-threading) that defer the messages until after pthreading
 is completed. When pthreading is complete, perl's C<barf> or C<warn> is called with the deferred messages. This
-is needed to keep from calling perl's C<barf> or C<warn> during pthreading, which can cause segfaults. 
+is needed to keep from calling perl's C<barf> or C<warn> during pthreading, which can cause segfaults.
 
 Note that C<barf> and C<warn> have been redefined (using c-preprocessor macros) in pdlcore.h to C<< PDL->barf >>
 and C<< PDL->warn >>. This is to keep any XS or PP code from calling perl's C<barf> or C<warn> directly, which can
@@ -532,6 +532,97 @@ return a C<PDL_Anyval>.
 As of 2.083, C<ANYVAL_TO_SV> assigns a value into the passed C<SV*>
 using the Perl API, rather than assigning the given C value to having a
 newly-created C<SV*>, so the caller is responsible for memory-management.
+
+=head3 PDL_GENERICSWITCH et al
+
+As of 2.058, there is a mechanism to use pure C macros (without Perl
+generation) to do PDL type-generic operations, using the
+L<X macro|https://en.wikipedia.org/wiki/X_macro> concept. A simple(ish)
+example, that extracts the right C<struct> member based on an
+ndarray's C<type> variable (from L<PDL::Bad/badvalue>):
+
+  #define X(datatype, ctype, ppsym, ...) \
+      *((ctype *)p->data) = PDL->bvals.ppsym;
+      PDL_GENERICSWITCH(PDL_TYPELIST_ALL, type, X, croak("Not a known data type code=%d", type))
+  #undef X
+
+An example using a mapping from one ndarray type to another, with
+an outer and inner type, from the same function:
+
+  #define X_OUTER(datatype, ctype, ppsym, ...) \
+        ctype cnewval = val.value.ppsym;
+  #define X_INNER(datatype, ctype, ppsym, ...) \
+        PDL->bvals.ppsym = cnewval;
+        PDL_GENERICSWITCH2(
+          PDL_TYPELIST_ALL, val.type, X_OUTER, croak("Not a known data type code=%d", val.type),
+          PDL_TYPELIST_ALL_, type, X_INNER, croak("Not a known data type code=%d", type))
+  #undef X_OUTER
+  #undef X_INNER
+
+You will note the above examples simply hardcode external variable
+names, e.g. C<cnewval>, which they can afford to do as they are
+very local. In lambda calculus terms, those variables are not bound
+by the C macros.
+
+Next is an example that I<does> such lambda binding, adding
+C<outany, inval,> after the mandatory arguments to C<PDL_GENERICSWITCH>.
+The additional comma after C<inval> is absolutely needed, so that
+when the arguments are expanded at the start of arguments to the
+"X macro" (here, C<ANYVAL_FROM_CTYPE_X>), it's syntactically valid:
+
+  #define ANYVAL_FROM_CTYPE_X(outany, inval, datatype, ctype, ppsym, ...) \
+    (outany).type = datatype; (outany).value.ppsym = (inval);
+  #define ANYVAL_FROM_CTYPE(outany,avtype,inval) \
+    PDL_GENERICSWITCH(PDL_TYPELIST_ALL, avtype, ANYVAL_FROM_CTYPE_X, \
+      outany.type = -1; outany.value.B = 0, \
+      outany, inval, \
+    )
+
+A more complex example, implemented for 2.096, does away with the
+last Perl code generation for F<pdlperl.h>, and unpacks the C<switch>
+statement to use several "lister macros":
+
+  #define ANYVAL_UNSIGNED_X(outsv, inany, sym, ctype, ppsym, ...) \
+    sv_setuv(outsv, (UV)(inany.value.ppsym));
+  #define ANYVAL_SIGNED_X(outsv, inany, sym, ctype, ppsym, ...) \
+    sv_setiv(outsv, (IV)(inany.value.ppsym));
+  #define ANYVAL_FLOATREAL_X(outsv, inany, sym, ctype, ppsym, ...) \
+    sv_setnv(outsv, (NV)(inany.value.ppsym));
+  #define ANYVAL_COMPLEX_X(outsv, inany, sym, ctype, ppsym, shortctype, defbval, realctype, floatsuffix, ...) \
+    PDL_MAKE_PERL_COMPLEX(outsv, creal ## floatsuffix(inany.value.ppsym), cimag ## floatsuffix(inany.value.ppsym));
+  #define ANYVAL_TO_SV(outsv,inany) do { switch (inany.type) { \
+    PDL_TYPELIST_UNSIGNED(PDL_GENERICSWITCH_CASE, ANYVAL_UNSIGNED_X, (outsv,inany,),) \
+    PDL_TYPELIST_SIGNED(PDL_GENERICSWITCH_CASE, ANYVAL_SIGNED_X, (outsv,inany,),) \
+    PDL_TYPELIST_FLOATREAL(PDL_GENERICSWITCH_CASE, ANYVAL_FLOATREAL_X, (outsv,inany,),) \
+    PDL_TYPELIST_COMPLEX(PDL_GENERICSWITCH_CASE, ANYVAL_COMPLEX_X, (outsv,inany,),) \
+    default: outsv = &PL_sv_undef; \
+    } \
+   } while (0)
+
+Points this author is noting while he still understands them (these
+macros are somewhat fiendish), having revisited them some months
+after creating this lambda-binding capability:
+
+=over
+
+=item *
+
+as with the last example, the "X macro" gets additional arguments
+at the start;
+
+=item *
+
+the C<PDL_GENERICSWITCH_CASE> macro needs those wrapped in parentheses
+so the C preprocessor will treat them as one thing (the
+C<PDL_GENERICSWITCH> system does this for you);
+
+=item *
+
+passing those on needs the additional C<,> at the end of that
+parenthesised group so that when it is prepended to the expansion
+of arguments in the no-extra-arguments case, chaos does not ensue.
+
+=back
 
 =head2 Access to PDL operations as C functions
 
