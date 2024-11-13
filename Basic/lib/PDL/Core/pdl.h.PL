@@ -640,13 +640,13 @@ typedef struct pdl_slice_args {
     register PDL_Indx __tdims1 = __tdims[1]; \
     register PDL_Indx *__offsp = PDL->get_threadoffsp(&(brc)); \
     if (!__offsp ) return PDL->make_error_simple(PDL_EFATAL, "Error in get_threadoffsp"); \
-    PDL_COMMENT("incs are each pdl's stride, declared at func start") \
-    PDL_COMMENT("offs are each pthread's starting offset into each pdl") \
+    /* incs are each pdl's stride, declared at func start */ \
+    /* offs are each pthread's starting offset into each pdl */ \
     ptrStep1 \
     for( __tind1 = 0 ; \
       __tind1 < __tdims1 ; \
       __tind1++ \
-      PDL_COMMENT("step by tinc1, undoing inner-loop of tinc0*tdims0") \
+      /* step by tinc1, undoing inner-loop of tinc0*tdims0 */ \
       PDL_EXPAND ptrStep2 \
     ) \
     { \
@@ -655,11 +655,11 @@ typedef struct pdl_slice_args {
         __tind0++ \
         PDL_EXPAND ptrStep3 \
       ) { \
-        PDL_COMMENT("This is the tightest loop. Make sure inside is optimal.")
+        /* This is the tightest loop. Make sure inside is optimal. */
 #define PDL_BROADCASTLOOP_END(brc, ptrStep1) \
       } \
     } \
-    PDL_COMMENT("undo outer-loop of tinc1*tdims1, and original per-pthread offset") \
+    /* undo outer-loop of tinc1*tdims1, and original per-pthread offset */ \
     ptrStep1 \
     __brcloopval = PDL->iterbroadcastloop(&(brc),2); \
     if ( __brcloopval < 0 ) return PDL->make_error_simple(PDL_EFATAL, "Error in iterbroadcastloop"); \

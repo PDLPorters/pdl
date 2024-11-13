@@ -111,11 +111,11 @@ sub new {
     $this->{Code} = (join '',sort values %$sizeprivs).
        ($dont_add_brcloop?'':join '', map "$_\n",
         'if (!$PRIV(broadcast).incs) $CROAK("broadcast.incs NULL");',
-        'PDL_COMMENT("broadcastloop declarations")',
+        '/* broadcastloop declarations */',
         'int __brcloopval;',
-        'register PDL_Indx __tind0,__tind1; PDL_COMMENT("counters along dim")',
+        'register PDL_Indx __tind0,__tind1; /* counters along dim */',
         'register PDL_Indx __tnpdls = $PRIV(broadcast).npdls;',
-        'PDL_COMMENT("dims here are how many steps along those dims")',
+        '/* dims here are how many steps along those dims */',
         (map "register PDL_Indx __tinc0_$parnames->[$_] = PDL_BRC_INC(\$PRIV(broadcast).incs,__tnpdls,$_,0);", 0..$#$parnames),
         (map "register PDL_Indx __tinc1_$parnames->[$_] = PDL_BRC_INC(\$PRIV(broadcast).incs,__tnpdls,$_,1);", 0..$#$parnames),
         eol_protect(
@@ -416,13 +416,13 @@ sub get_str {
 EOF
     return $good_str if !defined(my $bad  = $this->[1]);
     my $str = <<EOF;
-if ( \$PRIV(bvalflag) ) { PDL_COMMENT("** do 'bad' Code **")
+if ( \$PRIV(bvalflag) ) { /* ** do 'bad' Code ** */
   #define PDL_BAD_CODE
   #define PDL_IF_BAD(t,f) t
 @{[ PDL::PP::indent 2, $bad->get_str($parent,$context)
 ]}  #undef PDL_BAD_CODE
   #undef PDL_IF_BAD
-} else { PDL_COMMENT("** else do 'good' Code **")
+} else { /* ** else do 'good' Code ** */
 @{[ PDL::PP::indent 2, $good_str
 ]}}
 EOF
@@ -469,14 +469,14 @@ sub myprelude { my($this,$parent,$context) = @_;
         $loopend =~ /^-/ ? "(__${loopdim}_size$loopend)" :
         "PDLMIN($loopend, (__${loopdim}_size))";
     }
-    $text .= "{PDL_COMMENT(\"Open $_\") PDL_EXPAND2(register PDL_Indx $loopvar=$loopstart, $loopstopvar=$loopend); for(; $loopvar$cmp$loopstopvar; $loopvar+=$loopinc) {";
+    $text .= "{/* Open $_ */ PDL_EXPAND2(register PDL_Indx $loopvar=$loopstart, $loopstopvar=$loopend); for(; $loopvar$cmp$loopstopvar; $loopvar+=$loopinc) {";
     $i;
   } @{$this->[0]};
   $text;
 }
 sub mypostlude { my($this,$parent,$context) = @_;
   splice @$context, - ($#{$this->[0]}+1);
-  return join '', map "}} PDL_COMMENT(\"Close $_\")", @{$this->[0]};
+  return join '', map "}} /* Close $_ */", @{$this->[0]};
 }
 
 package PDL::PP::GenericSwitch;
@@ -509,7 +509,7 @@ sub myprelude {
     push @{$parent->{Gencurtype}}, undef; # so that $GENERIC can get at it
     die "ERROR: need to rethink NaN support in GenericSwitch\n"
 	if defined $this->[1] and $parent->{ftypes_type};
-    qq[switch ($this->[3]) { PDL_COMMENT("Start generic switch")\n];
+    qq[switch ($this->[3]) { /* Start generic switch */\n];
 }
 
 my @GENTYPE_ATTRS = qw(integer real unsigned);
