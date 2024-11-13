@@ -24,7 +24,6 @@ use strict;
 use warnings;
 use File::Path;
 use File::Basename;
-use ExtUtils::Manifest;
 require Exporter;
 use Config;
 use File::Spec::Functions;
@@ -39,7 +38,7 @@ our @EXPORT = qw( isbigendian
   pdlpp_postamble_int pdlpp_stdargs_int
   pdlpp_postamble pdlpp_stdargs write_dummy_make
   unsupported getcyglib trylink
-  pdlpp_mkgen
+  pdlpp_mkgen pdlpp_list_functions
   got_complex_version
 );
 
@@ -181,14 +180,16 @@ sub pdlpp_postamble {
   join '', map _postamble($w, 0, @$_), @_;
 }
 
-sub _pp_list_functions {
+sub pdlpp_list_functions {
   my ($src, $internal) = @_;
   my $abs_src = File::Spec::Functions::rel2abs($src);
   if (!$flist_cache{$abs_src}) {
     my $w = whereami_any();
-    my $typespm = catfile($w, 'Types.pm');
-    require $typespm;
-    local $INC{'PDL/Types.pm'} = 1;
+    if (!$INC{'PDL/Types.pm'}) {
+      my $typespm = catfile($w, 'Types.pm');
+      require $typespm;
+      $INC{'PDL/Types.pm'} = 1;
+    }
     require ''.catfile($w, qw(PP.pm));
     $flist_cache{$abs_src} = [ PDL::PP::list_functions($src) ];
   }
@@ -204,7 +205,7 @@ sub _mod_vars {
 sub _mod_values {
   my ($internal, $src, $pref, $multi_c) = @_;
   return ("$pref.xs", "$pref\$(OBJ_EXT)") if !$multi_c;
-  my @cbase = map "pp-$_", _pp_list_functions($src, $internal);
+  my @cbase = map "pp-$_", pdlpp_list_functions($src, $internal);
   (join(' ', "$pref.xs", map "$_.c", @cbase),
     join(' ', map "$_\$(OBJ_EXT)", $pref, @cbase));
 }
@@ -266,6 +267,7 @@ sub pdlpp_stdargs {
 #
 sub pdlpp_mkgen {
   require File::Copy;
+  require ExtUtils::Manifest;
   my $dir = @_ > 0 ? $_[0] : $ARGV[0];
   die "pdlpp_mkgen: unspecified directory" unless defined $dir && -d $dir;
   my $file = "$dir/MANIFEST";
