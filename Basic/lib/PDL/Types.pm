@@ -11,9 +11,9 @@ my @TYPE_CHECK = qw/
   realctype ppforcetype usenan real unsigned integer identifier ctype
 /;
 my @TYPE_VERBATIM = (@TYPE_CHECK, qw(
-  ioname convertfunc defbval shortctype ppsym numval sym
+  ioname convertfunc defbval shortctype ppsym numval sym floatsuffix
 ));
-my @TYPE_MODIFIED = qw(realversion complexversion isnan isfinite floatsuffix);
+my @TYPE_MODIFIED = qw(realversion complexversion isnan isfinite);
 
 sub packtypeof_PDL_Indx {
    if ($Config{'ivsize'} == 8) {
@@ -275,6 +275,8 @@ for my $type (@HASHES) {
   $type->{sym} = "PDL_$type->{identifier}";
   $type->{realversion} ||= $type->{ppsym};
   $type->{complexversion} ||= !$type->{real} ? $type->{ppsym} : 'G';
+  $type->{floatsuffix} //= 'INVALID';
+
 }
 
 our @EXPORT = (qw(@pack %typehash), my @typevars = map "\$$_->{sym}", @HASHES);
@@ -571,7 +573,7 @@ if I<both> are finite).
 =item floatsuffix
 
 The string appended to floating-point functions for this floating-point
-type. Dies if called on non-floating-point type.
+type. Returns C<INVALID> if called on non-floating-point type.
 
 =item orig_badvalue
 
@@ -643,7 +645,6 @@ sub complexversion {
 }
 sub isnan { sprintf $_[0][1]{isnan}, $_[1] }
 sub isfinite { sprintf $_[0][1]{isfinite}, $_[1] }
-sub floatsuffix { $_[0][1]{floatsuffix} // 'floatsuffix called on non-float type' }
 
 my (%bswap_cache, %howbig_cache);
 sub bswap {
