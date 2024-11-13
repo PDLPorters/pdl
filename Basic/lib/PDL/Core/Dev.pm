@@ -224,6 +224,11 @@ sub _stdargs {
   } else {
     %hash = (%hash, OBJECT => "$pref\$(OBJ_EXT)");
   }
+  if ($internal) {
+    $hash{depend} = {
+      "$pref\$(OBJ_EXT)" => File::Spec::Functions::abs2rel(catfile($w, qw(PDL Core pdlperl.h))),
+    };
+  }
   (
     NAME  	=> $mod,
     VERSION_FROM => ($internal ? catfile(dirname($w), qw(lib PDL Core.pm)) : $src),

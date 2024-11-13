@@ -21,7 +21,7 @@ EOT
   my $typespm = catfile(qw(lib PDL Types.pm));
   for (qw(pdl.h pdlperl.h)) {
     my $base = "lib/PDL/Core/$_"; # no catfile as init_PM uses File::Find which normalises to /
-    $text .= "$base :: $typespm\n\t\$(PERLRUN) $base.PL $base\n";
+    $text .= "$base :: $base.PL $typespm\n\t\$(PERLRUN) $base.PL $base\n";
   }
   $text .= "\n" . ::coretarget($self);
   my $coretest = join ' ', map catfile('t', $_.'.t'), qw(
