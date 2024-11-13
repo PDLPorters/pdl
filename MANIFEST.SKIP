@@ -42,7 +42,6 @@ RCS
 ^Basic/Bad/Bad\..*
 ^Basic/lib/PDL/Core\.c$
 ^Basic/lib/PDL/Core/pdl\.h$
-^Basic/lib/PDL/Core/pdlperl\.h$
 ^Basic/IO-Misc/Misc\..*
 ^Basic/IO-Pnm/Pnm\..*
 ^Basic/IO-Storable/Storable\..*

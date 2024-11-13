@@ -80,7 +80,7 @@ Basic/lib/PDL/Core/pdlcore.c
 Basic/lib/PDL/Core/pdlcore.h
 Basic/lib/PDL/Core/pdlmagic.c
 Basic/lib/PDL/Core/pdlmagic.h
-Basic/lib/PDL/Core/pdlperl.h.PL
+Basic/lib/PDL/Core/pdlperl.h
 Basic/lib/PDL/Core/pdlutil.c
 Basic/lib/PDL/Core/ppport.h
 Basic/lib/PDL/Core/typemap

@@ -19,7 +19,7 @@ ${pdlroot}$::Config{exe_ext} : ${pdlroot}.c
 \t\$(CC) \$(CFLAGS) \$(LDFLAGS) \$(CCCDLFLAGS) ${pdlroot}.c -o \$\@
 EOT
   my $typespm = catfile(qw(lib PDL Types.pm));
-  for (qw(pdl.h pdlperl.h)) {
+  for (qw(pdl.h)) {
     my $base = "lib/PDL/Core/$_"; # no catfile as init_PM uses File::Find which normalises to /
     $text .= "$base :: $base.PL $typespm\n\t\$(PERLRUN) $base.PL $base\n";
   }
@@ -98,7 +98,7 @@ WriteMakefile(
   },
   clean => { FILES => join ' ',
     qw(MANIFEST.bak _Inline/ .inlinepdlpp/ .inlinewith/ .pptest/), @cleanup,
-    (map catfile(qw(lib PDL Core), $_), qw(pdl.h pdlperl.h)),
+    catfile(qw(lib PDL Core pdl.h)),
   },
   NO_MYMETA => 1,
 );
@@ -110,7 +110,7 @@ sub init_PM {
   my ($self) = @_;
   $self->SUPER::init_PM;
   my ($pm, $plf) = @$self{qw(PM PL_FILES)};
-  for my $f (grep /pdl(?:perl)?\.h\.PL$/, keys %$pm) {
+  for my $f (grep /pdl\.h\.PL$/, keys %$pm) {
     $pm->{ _nopl($f) } = _nopl(delete $pm->{$f}); # dealing in postamble but still install
   }
   for my $f (grep /\.PL$/, keys %$pm) {

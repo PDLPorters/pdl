@@ -1,19 +1,3 @@
-use strict;
-use warnings;
-
-require './lib/PDL/Types.pm';
-
-my $file = shift @ARGV;
-print "Extracting $file\n";
-open OUT,">$file" or die "Can't create $file: $!";
-chmod 0644, $file;
-
-print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  __FILE__;
-print OUT <<'EOF';
-/*
- * THIS FILE IS GENERATED FROM pdlperl.h.PL! Do NOT edit!
- */
-
 #ifndef __PDLPERL_H
 #define __PDLPERL_H
 
@@ -180,27 +164,23 @@ static inline pdl *PDL_XS_pdlinit(pTHX_ char *objname, HV *bless_stash, SV *to_p
     outany.value.C = (PDL_CDouble)(vals[0] + I * vals[1]); \
   } while (0)
 
+#define ANYVAL_UNSIGNED_X(outsv, inany, sym, ctype, ppsym, ...) \
+  sv_setuv(outsv, (UV)(inany.value.ppsym));
+#define ANYVAL_SIGNED_X(outsv, inany, sym, ctype, ppsym, ...) \
+  sv_setiv(outsv, (IV)(inany.value.ppsym));
+#define ANYVAL_FLOATREAL_X(outsv, inany, sym, ctype, ppsym, ...) \
+  sv_setnv(outsv, (NV)(inany.value.ppsym));
+#define ANYVAL_COMPLEX_X(outsv, inany, sym, ctype, ppsym, shortctype, defbval, realctype, floatsuffix, ...) \
+  PDL_MAKE_PERL_COMPLEX(outsv, creal ## floatsuffix(inany.value.ppsym), cimag ## floatsuffix(inany.value.ppsym));
 #define ANYVAL_TO_SV(outsv,inany) do { switch (inany.type) { \
-EOF
-for (PDL::Types::types()) {
-  print OUT "case @{[$_->sym]}: ";
-  if ($_->real) {
-    my $upper = uc(my $letter = $_->unsigned ? 'u' : $_->integer ? 'i' : 'n');
-    print OUT "sv_set${letter}v(outsv, (${upper}V)(inany.value.".$_->ppsym."))";
-  } else {
-    my ($fs, $ppsym) = ($_->floatsuffix, $_->ppsym);
-    print OUT "PDL_MAKE_PERL_COMPLEX(outsv, creal$fs(inany.value.$ppsym), cimag$fs(inany.value.$ppsym))"
-  }
-  print OUT "; break; \\\n";
-}
-print OUT <<'EOF';
-   default:      outsv = &PL_sv_undef; \
+  PDL_TYPELIST_UNSIGNED(PDL_GENERICSWITCH_CASE, ANYVAL_UNSIGNED_X, (outsv,inany,),) \
+  PDL_TYPELIST_SIGNED(PDL_GENERICSWITCH_CASE, ANYVAL_SIGNED_X, (outsv,inany,),) \
+  PDL_TYPELIST_FLOATREAL(PDL_GENERICSWITCH_CASE, ANYVAL_FLOATREAL_X, (outsv,inany,),) \
+  PDL_TYPELIST_COMPLEX(PDL_GENERICSWITCH_CASE, ANYVAL_COMPLEX_X, (outsv,inany,),) \
+  default: outsv = &PL_sv_undef; \
   } \
  } while (0)
-EOF
 
-print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  __FILE__;
-print OUT <<'EOF';
 /* Check minimum datatype required to represent number */
 #define PDL_TESTTYPE(sym, ctype, v) {ctype foo = v; if (v == foo) return sym;}
 static inline int _pdl_whichdatatype_uint(UV uv) {
@@ -225,4 +205,3 @@ static inline int _pdl_whichdatatype_double(NV nv) {
 
 /* __PDLPERL_H */
 #endif
-EOF
