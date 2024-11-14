@@ -62,15 +62,14 @@ my $cobj = join ' ', map catfile(qw(lib PDL Core), qq{$_\$(OBJ_EXT)}), @cfiles;
 push @cleanup, $cobj;
 my $core_obj = catfile(qw(lib PDL), 'Core$(OBJ_EXT)');
 
+my @BUILD_MODULES = qw(Core);
+my @DIRS_CORE = qw(Bad Ops Ufunc Primitive Slices Math MatrixOps);
+# the modules needed in "use PDL"
+my @DIRS_BASIC = qw(IO-Misc IO-Pnm Lib-Compression Lib-FFT Lib-ImageND Lib-ImageRGB);
 WriteMakefile(
   NAME	=> 'PDL',
   VERSION_FROM => 'lib/PDL/Core.pm',
-  DIR => [qw(
-    Bad Ops Ufunc Primitive Slices Math MatrixOps
-    IO-Misc IO-Pnm
-    Lib-Compression Lib-FFT Lib-ImageND Lib-ImageRGB
-    Lib-Transform
-  )],
+  DIR => [@DIRS_CORE, @DIRS_BASIC, qw(Lib-Transform)],
   EXE_FILES => \@exe_files,
   XSMULTI => 1,
   XSBUILD => {
@@ -94,7 +93,7 @@ WriteMakefile(
     (map +(
       "build_dynamic_PDL_$_" => qq{\$(INST_ARCHLIB)/auto/PDL/$_/$_.\$(DLEXT)},
       "build_static_PDL_$_" => qq{\$(INST_ARCHLIB)/auto/PDL/$_/$_\$(LIB_EXT)},
-    ), qw(Core)),
+    ), @BUILD_MODULES),
   },
   clean => { FILES => join ' ',
     qw(MANIFEST.bak _Inline/ .inlinepdlpp/ .inlinewith/ .pptest/), @cleanup,
@@ -120,15 +119,6 @@ sub init_PM {
 }
 }
 
-# the modules to test the ones in full PDL
-my @basics; BEGIN { @basics = (
-  [qw(IO-Misc)],
-  [qw(IO-Pnm)],
-  [qw(Lib-Compression)],
-  [qw(Lib-FFT)],
-  [qw(Lib-ImageND)],
-  [qw(Lib-ImageRGB)],
-) }
 sub coretarget {
     my ($self) = @_;
     # remember the fundamental ones end up far to right as much deps on them
@@ -142,31 +132,31 @@ sub coretarget {
         [
             core => [
                 (map qq{build_\$(LINKTYPE)_PDL_$_},
-                  qw(Core)),
+                  @BUILD_MODULES),
                 map [
                     [ $_ ],
                     [ qw(pure_all) ],
                     [ 'pm_to_blib' ],
                 # the modules in PDL::LiteF, used in t/core.t
-                ], qw(Ops Primitive Ufunc Slices Bad Math MatrixOps),
+                ], @DIRS_CORE,
             ]
         ],
         [
             basic => [
                 map [
-                    $_,
+                    [$_],
                     [ qw(pm_to_blib linkext) ],
                     [ 'core' ],
-                ], @basics,
+                ], @DIRS_BASIC,
             ]
         ],
         [
             basictest => [
                 map [
-                    $_,
+                    [$_],
                     [ 'test' ],
                     [ 'basic' ],
-                ], @basics,
+                ], @DIRS_BASIC,
             ]
         ],
     );
