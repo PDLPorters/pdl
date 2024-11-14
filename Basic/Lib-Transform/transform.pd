@@ -419,10 +419,8 @@ pp_def('map',
  * Singular-value decomposition code is borrowed from
  * MatrixOps -- cut-and-pasted here because of linker trouble.
  * It's used by the auxiliary matrix manipulation code, below.
- *
  */
-
-static inline void pdl_xform_svd(PDL_Double *W, PDL_Double *Z, int nRow, int nCol)
+static inline void pdl_xform_svd(PDL_Double *W, PDL_Double *Z, PDL_Indx nRow, PDL_Indx nCol)
 {
   int i, j, k, EstColRank, RotCount, SweepCount, slimit;
   PDL_Double eps, e2, tol, vt, p, h2, x0, y0, q, r, c0, s0, c2, d1, d2;
@@ -511,9 +509,9 @@ static inline void pdl_xform_svd(PDL_Double *W, PDL_Double *Z, int nRow, int nCo
  */
 
 static inline PDL_Double PDL_xform_aux ( pdl *map, PDL_Indx *coords, PDL_Double *tmp, PDL_Double sv_min) {
-  short ndims;
-  PDL_Long i, j, k;
-  PDL_Long offset;
+  PDL_Indx ndims;
+  PDL_Indx i, j, k;
+  PDL_Indx offset;
   PDL_Double det;
   PDL_Double *jptr;
   PDL_Double *svptr;
@@ -534,7 +532,7 @@ static inline PDL_Double PDL_xform_aux ( pdl *map, PDL_Indx *coords, PDL_Double 
     char top = (coords[i] >= map->dims[i+1]-1);
     char symmetric = !(bot || top);
     PDL_Double *ohi,*olo;
-    PDL_Long diff = map->dimincs[i+1];
+    PDL_Indx diff = map->dimincs[i+1];
     ohi = ((PDL_Double *)map->data) + ( offset + ( top ? 0 : diff ));
     olo = ((PDL_Double *)map->data) + ( offset - ( bot ? 0 : diff ));
 
@@ -672,11 +670,11 @@ static inline PDL_Double PDL_xform_aux ( pdl *map, PDL_Indx *coords, PDL_Double 
 
   if(blen == 0) {
     /* If no boundary is specified then every dim gets truncated */
-    int i;
+    PDL_Indx i;
     for (i=0;i<ndims;i++)
       bounds[i] = 1;
   } else {
-    int i;
+    PDL_Indx i;
     for(i=0;i<ndims;i++) {
       switch(bstr[i < blen ? i : blen-1 ]) {
       case '0': case 'f': case 'F':               /* forbid */
@@ -800,11 +798,11 @@ static inline PDL_Double PDL_xform_aux ( pdl *map, PDL_Indx *coords, PDL_Double 
 
 #ifdef DEBUG_MAP
  {
-     int k; PDL_Indx foo = 0;
+     PDL_Indx k; PDL_Indx foo = 0;
      printf("ovec: [");
      for(k=0;k<ndims;k++) {
        foo += ovec[k] * map->dimincs[k+1];
-       printf(" %2d ",(int)(ovec[k]));
+       printf(" %2td ",(PDL_Indx)(ovec[k]));
      }
      printf("]; psize is %ld; big is %d; blur is %8.2f; map is [",psize,big, blur);
      for(k=0;k<ndims;k++) {
@@ -895,7 +893,7 @@ static inline PDL_Double PDL_xform_aux ( pdl *map, PDL_Indx *coords, PDL_Double 
            }
            break;
          default:
-           $CROAK("Unknown boundary condition %d in map -- bug alert!", (int)bounds[i]);
+           $CROAK("Unknown boundary condition %td in map -- bug alert!", (PDL_Indx)bounds[i]);
            break;
          }
        }
@@ -952,8 +950,8 @@ static inline PDL_Double PDL_xform_aux ( pdl *map, PDL_Indx *coords, PDL_Double 
            alpha = 1;
            cp = tmp;
            for(i=0; i<ndims; i++) {
-             int lodex;
-             int hidex;
+             PDL_Indx lodex;
+             PDL_Indx hidex;
              PDL_Double beta;
               dd = 0;
              ap = tvec;
@@ -1025,7 +1023,7 @@ static inline PDL_Double PDL_xform_aux ( pdl *map, PDL_Indx *coords, PDL_Double 
 	    if( sum > GAUSSIAN_MAXVAL || !isfinite(sum) || isnan(sum) ) {
 	      alpha = 0;
 	    } else {
-	      int lodex,hidex;
+	      PDL_Indx lodex,hidex;
 	      PDL_Double beta = fabs(zeta * sum);
 
 	      lodex = beta;
@@ -1130,7 +1128,7 @@ static inline PDL_Double PDL_xform_aux ( pdl *map, PDL_Indx *coords, PDL_Double 
          /* Now check for carry */
          if(ivec[i] <= psize) {
            /* Normal case -- copy the current offset to the faster-running dim stashes */
-           int k;
+           PDL_Indx k;
            for(k=0;k<i;k++) {
              index_stash[k] = i_off;
            }
@@ -2333,7 +2331,7 @@ domain.)
 
 NOTES
 
-Inverses are not yet implemented -- the best way to do it might be by
+Inverses are "only weakly supported" -- the best way to do it might be by
 judicious use of map() on the forward transformation.
 
 the type/unit fields are ignored.
