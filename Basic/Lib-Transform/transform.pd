@@ -2498,7 +2498,7 @@ pp_addpm(<<'+======EOD_t_linear======');
 
 =for usage
 
-$f = t_linear({options});
+  $f = t_linear({options});
 
 =for ref
 
@@ -3742,7 +3742,7 @@ pp_addpm(<<'+======EOD_t_spherical======');
 
 =for usage
 
-    $t = t_spherical(<options>);
+  $t = t_spherical(<options>);
 
 =for ref
 
@@ -3878,7 +3878,7 @@ pp_addpm(<<'+======EOD_t_projective======');
 
 =for usage
 
-    $t = t_projective(<options>);
+  $t = t_projective(<options>);
 
 =for ref
 
