@@ -241,9 +241,9 @@ subtest 'minimum_n_ind' => sub {
 
 subtest diffover => sub {
   my $a = sequence(5) + 2;
-  is_pdl $a->diffover, pdl(0, 1, 1, 1, 1), "diffover";
+  is_pdl $a->diffover, pdl(2, 1, 1, 1, 1), "diffover";
   $a->inplace->diffover;
-  is_pdl $a, pdl(0, 1, 1, 1, 1), "diffover inplace";
+  is_pdl $a, pdl(2, 1, 1, 1, 1), "diffover inplace";
 };
 
 subtest diff2 => sub {

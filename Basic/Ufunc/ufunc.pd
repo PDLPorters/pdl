@@ -105,14 +105,6 @@ EOD
 
 } # sub: cumuprojectdocs()
 
-# it's a bit unclear what to do with the comparison operators,
-# since the return value could be bad because all elements are bad,
-# which needs checking for since the bad value could evaluate to
-# true or false (eg if the user has set it to 0)
-#
-# This may NOT be sensible. Only time, and comments, will tell...
-#
-
 my %over =
     (
      sumover  => { name => 'sum',     op => '+=', init => 0, },
@@ -228,7 +220,7 @@ pp_def('diffover',
   Code => <<'EOF',
 /* do it in reverse so inplace works */
 loop (t=::-1) %{
-  $dx() = t ? $x() - $x(t=>t-1) : 0;
+  $dx() = t ? $x() - $x(t=>t-1) : $x();
 %}
 EOF
   Doc => <<'EOF',
@@ -238,6 +230,8 @@ Differencing. DX(t) = X(t) - X(t-1), DX(0) = X(0). Can be done inplace.
 
 Unlike L</diff2>, output vector is same length.
 Originally by Maggie J. Xiong.
+
+Compare to L</cumusumover>, which acts as the converse of this.
 EOF
 );
 
