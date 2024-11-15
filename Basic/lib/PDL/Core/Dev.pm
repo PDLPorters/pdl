@@ -38,7 +38,7 @@ our @EXPORT = qw( isbigendian
   pdlpp_postamble_int pdlpp_stdargs_int
   pdlpp_postamble pdlpp_stdargs write_dummy_make
   unsupported getcyglib trylink
-  pdlpp_mkgen pdlpp_list_functions
+  pdlpp_mkgen pdlpp_list_functions pdlpp_mod_vars pdlpp_mod_values
   got_complex_version
 );
 
@@ -136,14 +136,14 @@ sub _pp_call_arg {
   "-MPDL::PP=".join ',', @_
 }
 sub _postamble {
-  my ($w, $internal, $src, $pref, $mod, $callpack, $multi_c) = @_;
+  my ($w, $internal, $src, $base, $mod, $callpack, $multi_c) = @_;
   $callpack //= '';
   $w = dirname($w);
   my $perlrun = "\$(PERLRUN) \"-I$w\"";
   my ($pmdep, $install, $cdep) = ($src, '', '');
   my ($ppc, $ppo) = ($multi_c && $flist_cache{File::Spec::Functions::rel2abs($src)})
-    ? map "\$($_)", _mod_vars($mod)
-    : _mod_values($internal, $src, $pref, $multi_c);
+    ? map "\$($_)", pdlpp_mod_vars($mod)
+    : pdlpp_mod_values($internal, $src, $base, $multi_c);
   if ($internal) {
     my $top = File::Spec::Functions::abs2rel(dirname dirname $w);
     my $ppdir = catdir($top, qw(Basic lib PDL));
@@ -154,14 +154,14 @@ sub _postamble {
     my $oneliner = _oneliner(qq{exit if \$ENV{DESTDIR}; use PDL::Doc; eval { PDL::Doc::add_module(q{$mod}); }});
     $install = qq|\ninstall ::\n\t\@echo "Updating PDL documentation database...";\n\t$oneliner\n|;
   }
-  my $pp_call_arg = _pp_call_arg($mod, $mod, $pref, $callpack, $multi_c||'');
+  my $pp_call_arg = _pp_call_arg($mod, $mod, $base, $callpack, $multi_c||'');
 qq|
 
-$pref.pm : $pmdep
+$base.pm : $pmdep
 	$perlrun \"$pp_call_arg\" $src
-	\$(TOUCH) $pref.pm
+	\$(TOUCH) $base.pm
 
-$ppc : $pref.pm
+$ppc : $base.pm
 	\$(NOECHO) \$(NOOP)
 
 $cdep
@@ -196,25 +196,25 @@ sub pdlpp_list_functions {
   @{ $flist_cache{$abs_src} };
 }
 
-sub _mod_vars {
+sub pdlpp_mod_vars {
   my @parts = split /::/, $_[0];
   shift @parts if $parts[0] eq 'PDL';
   my $mangled = join '_', @parts;
   map "PDL_MULTIC_${mangled}_$_", qw(C O);
 }
-sub _mod_values {
-  my ($internal, $src, $pref, $multi_c) = @_;
-  return ("$pref.xs", "$pref\$(OBJ_EXT)") if !$multi_c;
+sub pdlpp_mod_values {
+  my ($internal, $src, $base, $multi_c) = @_;
+  return ("$base.xs", "$base\$(OBJ_EXT)") if !$multi_c;
   my @cbase = map "pp-$_", pdlpp_list_functions($src, $internal);
-  (join(' ', "$pref.xs", map "$_.c", @cbase),
-    join(' ', map "$_\$(OBJ_EXT)", $pref, @cbase));
+  (join(' ', "$base.xs", map "$_.c", @cbase),
+    join(' ', map "$_\$(OBJ_EXT)", $base, @cbase));
 }
 sub _stdargs {
-  my ($w, $internal, $src, $pref, $mod, $callpack, $multi_c) = @_;
+  my ($w, $internal, $src, $base, $mod, $callpack, $multi_c) = @_;
   my ($clean, %hash) = '';
   if ($multi_c) {
-    my ($mangled_c, $mangled_o) = _mod_vars($mod);
-    my ($mangled_c_val, $mangled_o_val) = _mod_values($internal, $src, $pref, $multi_c);
+    my ($mangled_c, $mangled_o) = pdlpp_mod_vars($mod);
+    my ($mangled_c_val, $mangled_o_val) = pdlpp_mod_values($internal, $src, $base, $multi_c);
     %hash = (%hash,
       macro        => {
         $mangled_c => $mangled_c_val, $mangled_o => $mangled_o_val,
@@ -223,22 +223,22 @@ sub _stdargs {
     );
     $clean .= " \$($mangled_c)";
   } else {
-    %hash = (%hash, OBJECT => "$pref\$(OBJ_EXT)");
+    %hash = (%hash, OBJECT => "$base\$(OBJ_EXT)");
   }
   if ($internal) {
     $hash{depend} = {
-      "$pref\$(OBJ_EXT)" => File::Spec::Functions::abs2rel(catfile($w, qw(PDL Core pdlperl.h))),
+      "$base\$(OBJ_EXT)" => File::Spec::Functions::abs2rel(catfile($w, qw(PDL Core pdlperl.h))),
     };
   }
   (
     NAME  	=> $mod,
     VERSION_FROM => ($internal ? catfile(dirname($w), qw(lib PDL Core.pm)) : $src),
     TYPEMAPS     => [PDL_TYPEMAP()],
-    PM 	=> {"$pref.pm" => "\$(INST_LIBDIR)/$pref.pm"},
-    MAN3PODS => {"$pref.pm" => "\$(INST_MAN3DIR)/$mod.\$(MAN3EXT)"},
+    PM 	=> {"$base.pm" => "\$(INST_LIBDIR)/$base.pm"},
+    MAN3PODS => {"$base.pm" => "\$(INST_MAN3DIR)/$mod.\$(MAN3EXT)"},
     INC          => PDL_INCLUDE(),
     LIBS         => [''],
-    clean        => {FILES => "$pref.pm $pref.c$clean"},
+    clean        => {FILES => "$base.pm $base.c$clean"},
     %hash,
     ($internal
       ? (NO_MYMETA => 1)
