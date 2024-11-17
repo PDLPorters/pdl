@@ -64,7 +64,8 @@ my $cobj = join ' ', map catfile(qw(lib PDL Core), qq{$_\$(OBJ_EXT)}), @cfiles;
 push @cleanup, $cobj;
 my $core_obj = catfile(qw(lib PDL), 'Core$(OBJ_EXT)');
 
-my @BUILD_MODULES = qw(Bad Core Ops);
+# the modules in PDL::LiteF, used in t/core.t
+my @BUILD_CORE = qw(Bad Core Ops);
 my @DIRS_CORE = qw(Ufunc Primitive Slices Math MatrixOps);
 # the modules needed in "use PDL"
 my @DIRS_BASIC = qw(IO-Misc IO-Pnm Lib-Compression Lib-FFT Lib-ImageND Lib-ImageRGB);
@@ -95,7 +96,7 @@ WriteMakefile(
     (map +(
       "build_dynamic_PDL_$_" => qq{\$(INST_ARCHLIB)/auto/PDL/$_/$_.\$(DLEXT)},
       "build_static_PDL_$_" => qq{\$(INST_ARCHLIB)/auto/PDL/$_/$_\$(LIB_EXT)},
-    ), @BUILD_MODULES),
+    ), @BUILD_CORE),
   },
   clean => { FILES => join ' ',
     qw(MANIFEST.bak _Inline/ .inlinepdlpp/ .inlinewith/ .pptest/), @cleanup,
@@ -135,12 +136,11 @@ sub coretarget {
         [
             core => [
                 (map qq{build_\$(LINKTYPE)_PDL_$_},
-                  @BUILD_MODULES),
+                  @BUILD_CORE),
                 map [
                     [ $_ ],
                     [ qw(pure_all) ],
                     [ 'pm_to_blib' ],
-                # the modules in PDL::LiteF, used in t/core.t
                 ], @DIRS_CORE,
             ]
         ],
