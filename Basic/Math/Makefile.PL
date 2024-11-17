@@ -21,9 +21,6 @@ my %source = qw(
 	      y0 j0
 	      y1 j1
 	      yn yn
-	      erfi ndtri
-	      ndtri ndtri
-	      polyroots cpoly
 	    );
 my @keys = sort keys %source;
 my %included = ();
@@ -90,7 +87,6 @@ $dir = cdir $dir, $mdir unless $dir =~ /$mmdir$/;
 foreach (@besufuncs) {
     if ( is_sys_func( "$_(1.);", $libs, $dir ) ) {
         $source{$_} = 'system';
-        next if $_ ne 'y0';
     }
 }
 
@@ -102,19 +98,18 @@ foreach (@besbifuncs) {
 my @pack = (["math.pd", qw(Math PDL::Math)]);
 my %hash = pdlpp_stdargs_int(@pack);
 
-my %seen = (); # Build object file list
+my %seen; # Build object file list
 foreach my $func (@keys) {
    my $file = $source{$func};
    next if $file eq 'system';
    die "File for function $func not found\n" if $file eq '';
    $hash{OBJECT} .= " $file\$(OBJ_EXT)" unless $seen{$file}++;
-   $hash{DEFINE} .= ' -DMY_'.uc($func);
 }
 
 # Add support routines
-$hash{OBJECT} .= " const\$(OBJ_EXT) mtherr\$(OBJ_EXT) polevl\$(OBJ_EXT)";
+$hash{OBJECT} .= join '', map " $_\$(OBJ_EXT)", qw(const mtherr polevl cpoly ndtri);
 
-$hash{LIBS}->[0] .= " $libs";
+$hash{LIBS}[0] .= " $libs";
 
 undef &MY::postamble; # suppress warning
 *MY::postamble = sub {
