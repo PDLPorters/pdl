@@ -1,13 +1,6 @@
 use strict;
 use warnings;
 use ExtUtils::MakeMaker;
-use File::Basename;
-use Config;
-
-sub is_sys_func {
-  my ( $code, $libs ) = @_;
-  trylink( '', qq{#include "mconf.h"}, $code, $libs );
-}
 
 # Files for each routine (.c assumed)
 my %source = qw(
@@ -22,8 +15,9 @@ my @keys = sort keys %source;
 
 my $libs = get_maths_libs();
 # Test for presence of besfuncs
-$source{$_} = 'system' for grep is_sys_func("$_(1.);", $libs), qw(j0 j1 y0 y1);
-$source{$_} = 'system' for grep is_sys_func("$_(1,1.);", $libs), qw(jn yn);
+my $include = qq{#include "mconf.h"};
+$source{$_} = 'system' for grep trylink('', $include, "$_(1.);", $libs), qw(j0 j1 y0 y1);
+$source{$_} = 'system' for grep trylink('', $include, "$_(1,1.);", $libs), qw(jn yn);
 
 my @pack = (["math.pd", qw(Math PDL::Math)]);
 my %hash = pdlpp_stdargs_int(@pack);
