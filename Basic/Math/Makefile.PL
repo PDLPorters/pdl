@@ -20,49 +20,7 @@ my %source = qw(
 );
 my @keys = sort keys %source;
 
-my ($libs) = $^O =~ /MSWin/ ? '' : $^O =~ /cygwin/ ? getcyglib('m') : '-lm';
-if ($^O eq 'solaris' or $^O eq 'sunos') {
-   # try to guess where sunmath is
-   my @d = split /:+/, $ENV{LD_LIBRARY_PATH};
-   my $ok = 0;
-   for my $d (@d) {
-      if (-e "$d/libsunmath.so" or -e "$d/libsunmath.a" ) {
-          $libs = "-lsunmath $libs";
-	  $ok = 1;
-          last;
-      }
-   }
-   if (!$ok) {
-      print "libsunmath not found in LD_LIBRARY_PATH: looking elsewhere\n";
-      # get root directory of compiler; may be off of there
-      my @dirs = ();
-      foreach my $p ( split(':', $ENV{'PATH'} ) )
-      {
-	next unless -e "$p/$Config{cc}";
-	push @dirs, dirname($p) . '/lib';
-	last;
-      }
-      push @dirs, '/opt/SUNWspro/lib'; # default location if all else fails
-      for my $d ( @dirs ) {
-         if (-e "$d/libsunmath.so") {
-            $libs = "-R$d -L$d -lsunmath $libs";
-             $ok = 1;
-             last;
-         } 
-         if (-e "$d/libsunmath.a") {
-            $libs = "-L$d -lsunmath $libs";
-            $ok = 1;
-            last;
-         } 
-      }
-   }
-   if (!$ok) {
-      print "Couldn't find sunmath library in standard places\n";
-      print "If you can find libsunmath.a or libsunmath.so\n";
-      print "please let us know at pdl-devel\@lists.sourceforge.net\n";
-   }
-}
-
+my $libs = get_maths_libs();
 # Test for presence of besfuncs
 $source{$_} = 'system' for grep is_sys_func("$_(1.);", $libs), qw(j0 j1 y0 y1);
 $source{$_} = 'system' for grep is_sys_func("$_(1,1.);", $libs), qw(jn yn);
