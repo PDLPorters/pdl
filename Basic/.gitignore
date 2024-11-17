@@ -1,3 +1,6 @@
+lib/PDL/Bad.c
+lib/PDL/Bad.pm
+lib/PDL/Bad.xs
 lib/PDL/Core.c
 lib/PDL/Core/pdl.h
 script/pdl

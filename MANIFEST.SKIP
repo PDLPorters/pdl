@@ -39,7 +39,7 @@ RCS
 \.tar\.gz$
 /core$
 \b_eumm/
-^Basic/Bad/Bad\..*
+^Basic/lib/PDL/Bad(\.(pm|xs|c)$|-pp-)
 ^Basic/lib/PDL/Core\.c$
 ^Basic/lib/PDL/Core/pdl\.h$
 ^Basic/IO-Misc/Misc\..*

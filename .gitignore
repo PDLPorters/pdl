@@ -71,3 +71,4 @@ nytprof*
 _Inline/
 t/*.dll*
 pp-*.c
+*-pp-*.c

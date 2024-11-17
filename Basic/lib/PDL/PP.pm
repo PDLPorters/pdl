@@ -507,14 +507,14 @@ use Carp;
 sub nopm { $::PDLPACK eq 'NONE' } # flag that we don't want to generate a PM
 
 sub import {
-	my ($mod,$modname, $packname, $base, $callpack, $multi_c) = @_;
+	my ($mod,$modname, $packname, $base, $callpack, $multi_c, $deep) = @_;
 	# Allow for users to not specify the packname
 	($packname, $base, $callpack) = ($modname, $packname, $base)
 		if ($packname =~ m|/|);
-
 	$::PDLMOD=$modname; $::PDLPACK=$packname; $::PDLBASE=$base;
 	$::CALLPACK = $callpack || $::PDLMOD;
 	$::PDLMULTI_C = $multi_c; # one pp-*.c per function
+	$::PDLMULTI_C_PREFIX = $deep ? "$base-" : "";
 	$::PDLOBJ = "PDL"; # define pp-funcs in this package
 	$::PDLXS="";
 	$::PDLBEGIN="";
@@ -841,7 +841,7 @@ sub pp_def {
 	)});
 	if ($::PDLMULTI_C) {
 	  PDL::PP->printxsc(undef, "$obj{RunFuncHdr};\n");
-	  PDL::PP->printxsc("pp-$obj{Name}.c", $ctext);
+	  PDL::PP->printxsc($::PDLMULTI_C_PREFIX."pp-$obj{Name}.c", $ctext);
 	} else {
 	  PDL::PP->printxsc(undef, $ctext);
 	}

@@ -35,10 +35,11 @@ our @EXPORT = qw( isbigendian
   PDL_INCLUDE PDL_TYPEMAP
   PDL_AUTO_INCLUDE PDL_BOOT
   PDL_INST_INCLUDE PDL_INST_TYPEMAP
+  pdlpp_eumm_update_deep
   pdlpp_postamble_int pdlpp_stdargs_int
   pdlpp_postamble pdlpp_stdargs write_dummy_make
   unsupported getcyglib trylink
-  pdlpp_mkgen pdlpp_list_functions pdlpp_mod_vars pdlpp_mod_values
+  pdlpp_mkgen
   got_complex_version
 );
 
@@ -136,7 +137,7 @@ sub _pp_call_arg {
   "-MPDL::PP=".join ',', @_
 }
 sub _postamble {
-  my ($w, $internal, $src, $base, $mod, $callpack, $multi_c) = @_;
+  my ($w, $internal, $src, $base, $mod, $callpack, $multi_c, $deep) = @_;
   $callpack //= '';
   $w = dirname($w);
   my $perlrun = "\$(PERLRUN) \"-I$w\"";
@@ -153,7 +154,7 @@ sub _postamble {
     my $oneliner = _oneliner(qq{exit if \$ENV{DESTDIR}; use PDL::Doc; eval { PDL::Doc::add_module(q{$mod}); }});
     $install = qq|\ninstall ::\n\t\@echo "Updating PDL documentation database...";\n\t$oneliner\n|;
   }
-  my $pp_call_arg = _pp_call_arg($mod, $mod, $base, $callpack, $multi_c||'');
+  my $pp_call_arg = _pp_call_arg($mod, $mod, $base, $callpack, $multi_c||'',$deep||'');
 qq|
 
 $base.pm : $pmdep
@@ -169,7 +170,7 @@ $install|
 
 sub pdlpp_postamble_int {
   my $w = whereami_any();
-  join '', map _postamble($w, 1, @$_[0..3], 1), @_;
+  join '', map _postamble($w, 1, @$_[0..3], 1, @$_[4..$#$_]), @_;
 }
 
 # This is the function to be used outside the PDL tree.
@@ -177,6 +178,35 @@ sub pdlpp_postamble_int {
 sub pdlpp_postamble {
   my $w = whereami_any();
   join '', map _postamble($w, 0, @$_), @_;
+}
+
+sub pdlpp_eumm_update_deep {
+  my ($eumm) = @_;
+  my $pm = $eumm->{PM};
+  my $macro = $eumm->{macro} ||= {};
+  my $xsb = $eumm->{XSBUILD}{xs} ||= {};
+  $eumm->{clean}{FILES} ||= '';
+  my $xs = $eumm->{XS} ||= {};
+  my $global_version = $eumm->parse_version($eumm->{VERSION_FROM});
+  my @pd_srcs;
+  for my $f (grep /\.pd$/, keys %$pm) {
+    delete $pm->{$f};
+    my $nolib = (my $base = $f =~ s/\.pd$//r) =~ s#^lib/##r;
+    $xs->{ "$base.xs" } = "$base.c";
+    my $pmfile = "$base.pm";
+    $pm->{$pmfile} = "\$(INST_LIB)/$nolib.pm";
+    my @macro_vars = pdlpp_mod_vars(my $mod = join '::', split /\//, $nolib);
+    @$macro{@macro_vars} = pdlpp_mod_values(1, $f, $base, 1, 1);
+    $xsb->{$base}{OBJECT} = "\$($macro_vars[1])";
+    my $mtime = (stat $f)[9] // die "$f: $!";
+    open my $fh, ">", $pmfile or die "$pmfile: $!"; # XSMULTI needs this
+    print $fh "package $mod;\nour \$VER"."SION = '$global_version';\n1;\n"; # break is so cpanm doesn't try to parse as version
+    close $fh;
+    utime $mtime - 120, $mtime - 120, $pmfile; # so is out of date
+    push @pd_srcs, [$f, $base, $mod, '', 1];
+    $eumm->{clean}{FILES} .= join ' ', '', $pmfile, map "\$($_)", @macro_vars;
+  }
+  @pd_srcs;
 }
 
 sub pdlpp_list_functions {
@@ -202,9 +232,10 @@ sub pdlpp_mod_vars {
   map "PDL_MULTIC_${mangled}_$_", qw(C O);
 }
 sub pdlpp_mod_values {
-  my ($internal, $src, $base, $multi_c) = @_;
+  my ($internal, $src, $base, $multi_c, $deep) = @_;
   return ("$base.xs", "$base\$(OBJ_EXT)") if !$multi_c;
-  my @cbase = map "pp-$_", pdlpp_list_functions($src, $internal);
+  my $cfileprefix = $deep ? "$base-" : '';
+  my @cbase = map $cfileprefix."pp-$_", pdlpp_list_functions($src, $internal);
   (join(' ', "$base.xs", map "$_.c", @cbase),
     join(' ', map "$_\$(OBJ_EXT)", $base, @cbase));
 }

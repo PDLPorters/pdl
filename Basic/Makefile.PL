@@ -10,6 +10,7 @@ my @exe_files = map catfile('script', $_), qw(perldl pdldoc pptemplate);
 push @exe_files, "$pdlroot$Config{exe_ext}" if $^O !~ /MSWin/;
 my @cleanup = ("$pdlroot$Config{exe_ext}");
 
+my @pd_srcs;
 undef &MY::postamble; # suppress warning
 *MY::postamble = sub {
   my ($self) = @_;
@@ -36,6 +37,7 @@ coretest : core
 update-ppport:
 	\$(PERLRUN) -MDevel::PPPort -e'Devel::PPPort::WriteFile' && \$(PERLRUN) lib/PDL/Core/ppport.h --strip
 EOF
+  $text .= pdlpp_postamble_int(@pd_srcs);
   $text;
 };
 
@@ -62,8 +64,8 @@ my $cobj = join ' ', map catfile(qw(lib PDL Core), qq{$_\$(OBJ_EXT)}), @cfiles;
 push @cleanup, $cobj;
 my $core_obj = catfile(qw(lib PDL), 'Core$(OBJ_EXT)');
 
-my @BUILD_MODULES = qw(Core);
-my @DIRS_CORE = qw(Bad Ops Ufunc Primitive Slices Math MatrixOps);
+my @BUILD_MODULES = qw(Bad Core);
+my @DIRS_CORE = qw(Ops Ufunc Primitive Slices Math MatrixOps);
 # the modules needed in "use PDL"
 my @DIRS_BASIC = qw(IO-Misc IO-Pnm Lib-Compression Lib-FFT Lib-ImageND Lib-ImageRGB);
 WriteMakefile(
@@ -115,6 +117,7 @@ sub init_PM {
   for my $f (grep /\.PL$/, keys %$pm) {
     $pm->{ $plf->{$f} = _nopl($f) } = _nopl(delete $pm->{$f});
   }
+  @pd_srcs = ::pdlpp_eumm_update_deep($self);
   delete @$pm{grep /\.c$/, keys %$pm};
 }
 }
