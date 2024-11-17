@@ -56,7 +56,7 @@ if (!$pthread_library) {
     print "\t==> Enabling perl threads will not help!\n";
 }
 my $pthread_define  = $pthread_library ? ' -DPDL_PTHREAD ' : '';
-my $libs_string = "$pthread_library -lm";
+my $libs_string = "$pthread_library ".get_maths_libs();
 
 my $hdeps = join ' ', map catfile(qw(lib PDL Core), $_), qw(pdl.h pdlperl.h pdlcore.h pdlbroadcast.h pdlmagic.h);
 my @cfiles = qw(pdlcore pdlapi pdlbroadcast pdlconv pdlmagic pdlaffine pdlutil);
@@ -65,8 +65,8 @@ push @cleanup, $cobj;
 my $core_obj = catfile(qw(lib PDL), 'Core$(OBJ_EXT)');
 
 # the modules in PDL::LiteF, used in t/core.t
-my @BUILD_CORE = qw(Bad Core Ops Slices Ufunc);
-my @DIRS_CORE = qw(Primitive Math MatrixOps);
+my @BUILD_CORE = qw(Bad Core Math Ops Slices Ufunc);
+my @DIRS_CORE = qw(Primitive MatrixOps);
 # the modules needed in "use PDL"
 my @DIRS_BASIC = qw(IO-Misc IO-Pnm Lib-Compression Lib-FFT Lib-ImageND Lib-ImageRGB);
 WriteMakefile(

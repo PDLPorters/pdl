@@ -18,7 +18,7 @@ my @keys = sort keys %source;
 my $libs = PDL::Core::Dev::get_maths_libs();
 # Test for presence of besfuncs
 require File::Spec::Functions;
-my $include = qq{#include "}.File::Spec::Functions::rel2abs('mconf.h').qq{"};
+my $include = qq{#include "}.File::Spec::Functions::rel2abs("$::PDLBASE/mconf.h").qq{"};
 $source{$_} = 'system' for grep PDL::Core::Dev::trylink('', $include, "$_(1.);", $libs), qw(j0 j1 y0 y1);
 $source{$_} = 'system' for grep PDL::Core::Dev::trylink('', $include, "$_(1,1.);", $libs), qw(jn yn);
 my %seen; # Build object file list
@@ -26,10 +26,11 @@ foreach my $func (@keys) {
    my $file = $source{$func};
    next if $file eq 'system';
    die "File for function $func not found\n" if $file eq '';
-   $PDL::Core::Dev::EXTRAS{$::PDLMOD}{OBJECT} .= " $file\$(OBJ_EXT)" unless $seen{$file}++;
+   $PDL::Core::Dev::EXTRAS{$::PDLMOD}{OBJECT} .= " $::PDLBASE/$file\$(OBJ_EXT)" unless $seen{$file}++;
 }
 # Add support routines
-$PDL::Core::Dev::EXTRAS{$::PDLMOD}{OBJECT} .= join '', map " $_\$(OBJ_EXT)", qw(const mtherr polevl cpoly ndtri);
+$PDL::Core::Dev::EXTRAS{$::PDLMOD}{OBJECT} .= join '', map " $::PDLBASE/$_\$(OBJ_EXT)", qw(const mtherr polevl cpoly ndtri);
+$PDL::Core::Dev::EXTRAS{$::PDLMOD}{INC} .= qq{ "-I$::PDLBASE"};
 }
 
 my $R = [ppdefs()];

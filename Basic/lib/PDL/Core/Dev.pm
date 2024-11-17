@@ -179,6 +179,7 @@ sub pdlpp_postamble {
   join '', map _postamble($w, 0, @$_), @_;
 }
 
+our %EXTRAS;
 sub pdlpp_eumm_update_deep {
   my ($eumm) = @_;
   my $pm = $eumm->{PM};
@@ -197,6 +198,8 @@ sub pdlpp_eumm_update_deep {
     my @macro_vars = pdlpp_mod_vars(my $mod = join '::', split /\//, $nolib);
     @$macro{@macro_vars} = pdlpp_mod_values(1, $f, $base, 1, 1);
     $xsb->{$base}{OBJECT} = "\$($macro_vars[1])";
+    $xsb->{$base}{OBJECT} .= $EXTRAS{$f}{OBJECT} if $EXTRAS{$f}{OBJECT};
+    $eumm->{INC} .= " $EXTRAS{$f}{INC}" if $EXTRAS{$f}{INC}; # global
     my $mtime = (stat $f)[9] // die "$f: $!";
     open my $fh, ">", $pmfile or die "$pmfile: $!"; # XSMULTI needs this
     print $fh "package $mod;\nour \$VER"."SION = '$global_version';\n1;\n"; # break is so cpanm doesn't try to parse as version
@@ -204,12 +207,13 @@ sub pdlpp_eumm_update_deep {
     utime $mtime - 120, $mtime - 120, $pmfile; # so is out of date
     push @pd_srcs, [$f, $base, $mod, '', 1];
     $eumm->{clean}{FILES} .= join ' ', '', $pmfile, map "\$($_)", @macro_vars;
+    $eumm->{clean}{FILES} .= $EXTRAS{$f}{OBJECT} if $EXTRAS{$f}{OBJECT};
   }
   @pd_srcs;
 }
 
 sub pdlpp_list_functions {
-  my ($src, $internal) = @_;
+  my ($src, $internal, $base) = @_;
   my $abs_src = File::Spec::Functions::rel2abs($src);
   if (!$flist_cache{$abs_src}) {
     my $w = whereami_any();
@@ -219,6 +223,7 @@ sub pdlpp_list_functions {
       $INC{'PDL/Types.pm'} = 1;
     }
     require ''.catfile($w, qw(PP.pm));
+    $::PDLBASE = $base;
     $flist_cache{$abs_src} = [ PDL::PP::list_functions($src) ];
   }
   @{ $flist_cache{$abs_src} };
@@ -234,7 +239,7 @@ sub pdlpp_mod_values {
   my ($internal, $src, $base, $multi_c, $deep) = @_;
   return ("$base.xs", "$base\$(OBJ_EXT)") if !$multi_c;
   my $cfileprefix = $deep ? "$base-" : '';
-  my @cbase = map $cfileprefix."pp-$_", pdlpp_list_functions($src, $internal);
+  my @cbase = map $cfileprefix."pp-$_", pdlpp_list_functions($src, $internal, $base);
   (join(' ', "$base.xs", map "$_.c", @cbase),
     join(' ', map "$_\$(OBJ_EXT)", $base, @cbase));
 }
