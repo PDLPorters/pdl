@@ -164,7 +164,6 @@ Basic/Math/NOTES
 Basic/Math/polevl.c
 Basic/Math/protos.h
 Basic/Math/quiet_nan.c
-Basic/Math/rint.c
 Basic/Math/yn.c
 Basic/MatrixOps/eigen.c
 Basic/MatrixOps/eigen.h

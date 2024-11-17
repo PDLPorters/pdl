@@ -70,12 +70,9 @@ q/=for ref
 
 Round to integer values in floating-point format.
 
-=for method
-
-rint uses the 'round half to even' rounding method (also known as
-banker's rounding).  Half-integers are rounded to the nearest even
-number. This avoids a slight statistical bias inherent in always
-rounding half-integers up or away from zero.
+This is the C99 function; previous to 2.096, the doc referred to a
+bespoke function that did banker's rounding, but this was not used
+as a system version will have been detected and used.
 
 If you are looking to round half-integers up (regardless of sign), try
 C<floor($x+0.5)>.  If you want to round half-integers away from zero,
@@ -138,15 +135,6 @@ pp_addhdr('
 #include "cpoly.h"
 extern double ndtri(double);
 ');
-
-if ($^O =~ /MSWin/) {
-pp_addhdr('
-#include <float.h>
-#ifdef _MSC_VER
-double rint (double);
-#endif
-');
-}
 
 # Standard `-lm'
 my (@ufuncs1) = qw(acos asin atan cosh sinh tan tanh); # F,D only

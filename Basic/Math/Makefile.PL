@@ -23,7 +23,6 @@ my %source = qw(
 	      yn yn
 	      erfi ndtri
 	      ndtri ndtri
-	      rint rint
 	      nan quiet_nan
 	      infinity infinity
 	      polyroots cpoly
@@ -33,7 +32,7 @@ my %included = ();
 
 # test for library features 
 my (@sfuncs) = qw(nan infinity);
-my (@ufuncs2) = qw(acosh asinh atanh erf erfc rint);
+my (@ufuncs2) = qw(acosh asinh atanh erf erfc);
 my (@besufuncs) = qw(j0 j1 y0 y1);
 my (@besbifuncs) = qw(jn yn);
 my ($libs) = $^O =~ /MSWin/ ? '' : $^O =~ /cygwin/ ? getcyglib('m') : '-lm';

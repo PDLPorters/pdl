@@ -115,12 +115,6 @@ pp_addhdr('
 
 #define REALMOD(a,b) {while ((a)>=(b)) (a) -= (b); while ((a)<0) (a) += (b);}
 
-/* rint is missing on some platforms (eg Win32) */
-
-#ifdef NEEDS_RINT
-#define rint(X) floor( X + 0.5 )
-#endif
-
 #define X(symbol, ctype, ppsym, ...) \
   ctype quick_select_ ## ppsym(ctype arr[], int n);
 PDL_TYPELIST_REAL(X)
