@@ -23,15 +23,12 @@ my %source = qw(
 	      yn yn
 	      erfi ndtri
 	      ndtri ndtri
-	      nan quiet_nan
-	      infinity infinity
 	      polyroots cpoly
 	    );
 my @keys = sort keys %source;
 my %included = ();
 
 # test for library features 
-my (@sfuncs) = qw(nan infinity);
 my (@besufuncs) = qw(j0 j1 y0 y1);
 my (@besbifuncs) = qw(jn yn);
 my ($libs) = $^O =~ /MSWin/ ? '' : $^O =~ /cygwin/ ? getcyglib('m') : '-lm';
@@ -87,10 +84,6 @@ my $mmdir = my $mdir = cdir 'Basic','Math';
 $mmdir =~ s/\\/\\\\/g;
 my $dir = File::Spec->canonpath(cwd);
 $dir = cdir $dir, $mdir unless $dir =~ /$mmdir$/;
-
-foreach (@sfuncs) {
-    $source{$_} = 'system' if is_sys_func( "$_();", $libs, $dir );
-}
 
 # Test for absence of besfuncs
 

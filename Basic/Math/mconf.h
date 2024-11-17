@@ -51,10 +51,6 @@
  * represented), and several other parameters are preset by
  * the configuration symbol.  Check the file const.c to
  * ensure that these values are correct for your computer.
- *
- * Configurations NANS, INFINITIES, MINUSZERO, and DENORMAL
- * may fail on many systems.  Verify that they are supposed
- * to work on your computer.
  */
 
 /*
@@ -75,27 +71,6 @@ Copyright 1984, 1987, 1989, 1995 by Stephen L. Moshier
 #endif
 
 /* Now include system-specific stuff */
-
-/* Look for system quiet_nan function */
-#if defined __sun && ! defined __GNUC__
-#include <sunmath.h>
-#include <ieeefp.h>
-#include <float.h>
-#define NANARG 1L
-#define NANARG_SIGNATURE long n
-#endif
-#if defined __alpha && ! defined __linux
-#include <float.h>
-#include <nan.h>
-#endif
-#ifndef NANARG
-#define NANARG
-#define NANARG_SIGNATURE
-#endif
-
-/* Redefine nan so PDL doesn't die when we see one.
-   OK, nasty, but means the C-code is still as in the original */
-#define nan() quiet_nan(NANARG)
 
 /* Constant definitions for math error conditions */
 
@@ -125,32 +100,11 @@ Copyright 1984, 1987, 1989, 1995 by Stephen L. Moshier
 #define ERANGE		34
 #endif
 
-/* Complex numeral.  */
-typedef struct
-	{
-	double r;
-	double i;
-	} cmplx;
-
-/* Long double complex numeral.  */
-typedef struct
-	{
-	double r;
-	double i;
-	} cmplxl;
-
 #define ANSIPROT
 #include "protos.h"
 
 /* Variable for error reporting.  See mtherr.c.  */
 extern int merror;
-
-#ifdef MY_QUIET_NAN
-extern double quiet_nan(NANARG_SIGNATURE);
-#endif
-#ifdef MY_INFINITY
-extern double infinity();
-#endif
 
 extern double MACHEP;
 extern double UFLOWTHRESH;

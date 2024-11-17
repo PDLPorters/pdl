@@ -150,7 +150,6 @@ Basic/Makefile.PL
 Basic/Math/const.c
 Basic/Math/cpoly.c
 Basic/Math/cpoly.h
-Basic/Math/infinity.c
 Basic/Math/j0.c
 Basic/Math/j1.c
 Basic/Math/jn.c
@@ -162,7 +161,6 @@ Basic/Math/ndtri.c
 Basic/Math/NOTES
 Basic/Math/polevl.c
 Basic/Math/protos.h
-Basic/Math/quiet_nan.c
 Basic/Math/yn.c
 Basic/MatrixOps/eigen.c
 Basic/MatrixOps/eigen.h
