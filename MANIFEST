@@ -138,6 +138,7 @@ Basic/lib/PDL/PP/Signature.pm
 Basic/lib/PDL/QuickStart.pod
 Basic/lib/PDL/Reduce.pm
 Basic/lib/PDL/Scilab.pod
+Basic/lib/PDL/Slices.pd
 Basic/lib/PDL/Tips.pod
 Basic/lib/PDL/Tutorials.pod
 Basic/lib/PDL/Types.pm
@@ -184,8 +185,6 @@ Basic/script/pdl.c
 Basic/script/pdldoc
 Basic/script/perldl
 Basic/script/pptemplate
-Basic/Slices/Makefile.PL
-Basic/Slices/slices.pd
 Basic/t/00-report-prereqs.t
 Basic/t/01-pptest.t
 Basic/t/autoload.t

@@ -6,4 +6,7 @@ lib/PDL/Core/pdl.h
 lib/PDL/Ops.c
 lib/PDL/Ops.pm
 lib/PDL/Ops.xs
+lib/PDL/Slices.c
+lib/PDL/Slices.pm
+lib/PDL/Slices.xs
 script/pdl
