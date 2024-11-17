@@ -507,12 +507,12 @@ use Carp;
 sub nopm { $::PDLPACK eq 'NONE' } # flag that we don't want to generate a PM
 
 sub import {
-	my ($mod,$modname, $packname, $prefix, $callpack, $multi_c) = @_;
+	my ($mod,$modname, $packname, $base, $callpack, $multi_c) = @_;
 	# Allow for users to not specify the packname
-	($packname, $prefix, $callpack) = ($modname, $packname, $prefix)
+	($packname, $base, $callpack) = ($modname, $packname, $base)
 		if ($packname =~ m|/|);
 
-	$::PDLMOD=$modname; $::PDLPACK=$packname; $::PDLPREF=$prefix;
+	$::PDLMOD=$modname; $::PDLPACK=$packname; $::PDLBASE=$base;
 	$::CALLPACK = $callpack || $::PDLMOD;
 	$::PDLMULTI_C = $multi_c; # one pp-*.c per function
 	$::PDLOBJ = "PDL"; # define pp-funcs in this package
@@ -761,14 +761,14 @@ sub pp_done {
           sprintf($PDL::PP::header_xs, $::PDLMOD, $::PDLOBJ),
           $::PDLXS, "\n",
           $PDL::PP::header_xsboot, $pdl_boot, $user_boot;
-        _write_file("$::PDLPREF.xs", $text);
+        _write_file("$::PDLBASE.xs", $text);
         return if nopm;
 	$::PDLPMISA = "'".join("','",@::PDLPMISA)."'";
 	$::PDLBEGIN = "BEGIN {\n$::PDLBEGIN\n}"
 		unless $::PDLBEGIN =~ /^\s*$/;
         $::PDLMODVERSION //= '';
         $::FUNCSPOD = $::DOCUMENTED ? "\n\n=head1 FUNCTIONS\n\n=cut\n\n" : '';
-        _write_file("$::PDLPREF.pm", join "\n\n", <<EOF, $::PDLBEGIN, $::PDLPM{Top}, $::FUNCSPOD, @::PDLPM{qw(Middle Bot)}, '# Exit with OK status', "1;\n");
+        _write_file("$::PDLBASE.pm", join "\n\n", <<EOF, $::PDLBEGIN, $::PDLPM{Top}, $::FUNCSPOD, @::PDLPM{qw(Middle Bot)}, '# Exit with OK status', "1;\n");
 #
 # GENERATED WITH PDL::PP from $0! Don't modify!
 #
