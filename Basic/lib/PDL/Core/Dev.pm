@@ -109,7 +109,6 @@ perl's C<%Config> array.
 
 # big/little endian?
 sub isbigendian {
-    use Config;
     my $byteorder = $Config{byteorder} ||
 	die "ERROR: Unable to find 'byteorder' in perl's Config\n";
     return 1 if $byteorder eq "4321";
@@ -446,11 +445,7 @@ sub trylink {
   my $opt = ref $_[$#_] eq 'HASH' ? pop : {};
   my ($txt,$inc,$body,$libs,$cflags) = @_;
   $cflags ||= '';
-  require File::Spec;
   require File::Temp;
-  my $cdir = sub { return File::Spec->catdir(@_)};
-  my $cfile = sub { return File::Spec->catfile(@_)};
-  use Config;
   # check if MakeMaker should be used to preprocess the libs
   for my $key(keys %$opt) {$opt->{lc $key} = $opt->{$key}}
   my $mmprocess = exists $opt->{makemaker} && $opt->{makemaker};
@@ -464,11 +459,11 @@ sub trylink {
       print "processed LIBS: $libs[0]\n" unless $hide;
       $libs = $libs[0]; # replace by preprocessed libs
   }
-  print "     Trying $txt...\n     " unless $txt =~ /^\s*$/;
+  print "     Trying $txt...\n     " if $txt =~ /\S/;
   my $HIDE = !$hide ? '' : '>/dev/null 2>&1';
   if($^O =~ /mswin32/i) {$HIDE = '>NUL 2>&1'}
   my $tempd = File::Temp::tempdir(CLEANUP=>1) || die "trylink: could not make temp dir";
-  my ($tc,$te) = map {&$cfile($tempd,"testfile$_")} ('.c','');
+  my ($tc,$te) = map catfile($tempd,"testfile$_"), ('.c','');
   open FILE,">$tc" or die "trylink: couldn't open testfile `$tc' for writing, $!";
   my $prog = <<"EOF";
 $inc
