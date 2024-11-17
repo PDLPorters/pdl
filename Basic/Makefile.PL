@@ -64,8 +64,8 @@ my $cobj = join ' ', map catfile(qw(lib PDL Core), qq{$_\$(OBJ_EXT)}), @cfiles;
 push @cleanup, $cobj;
 my $core_obj = catfile(qw(lib PDL), 'Core$(OBJ_EXT)');
 
-my @BUILD_MODULES = qw(Bad Core);
-my @DIRS_CORE = qw(Ops Ufunc Primitive Slices Math MatrixOps);
+my @BUILD_MODULES = qw(Bad Core Ops);
+my @DIRS_CORE = qw(Ufunc Primitive Slices Math MatrixOps);
 # the modules needed in "use PDL"
 my @DIRS_BASIC = qw(IO-Misc IO-Pnm Lib-Compression Lib-FFT Lib-ImageND Lib-ImageRGB);
 WriteMakefile(

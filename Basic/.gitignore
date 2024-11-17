@@ -3,4 +3,7 @@ lib/PDL/Bad.pm
 lib/PDL/Bad.xs
 lib/PDL/Core.c
 lib/PDL/Core/pdl.h
+lib/PDL/Ops.c
+lib/PDL/Ops.pm
+lib/PDL/Ops.xs
 script/pdl

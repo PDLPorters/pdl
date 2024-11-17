@@ -122,6 +122,7 @@ Basic/lib/PDL/NiceSlice/FilterSimple.pm
 Basic/lib/PDL/NiceSlice/FilterUtilCall.pm
 Basic/lib/PDL/NiceSlice/ModuleCompile.pm
 Basic/lib/PDL/Objects.pod
+Basic/lib/PDL/Ops.pd
 Basic/lib/PDL/Options.pm
 Basic/lib/PDL/Parallel/threads.pm
 Basic/lib/PDL/Parallel/threads/SIMD.pm
@@ -176,8 +177,6 @@ Basic/MatrixOps/simq.c
 Basic/MatrixOps/sslib.c
 Basic/MatrixOps/sslib.h
 Basic/MatrixOps/svd.c
-Basic/Ops/Makefile.PL
-Basic/Ops/ops.pd
 Basic/Primitive/Makefile.PL
 Basic/Primitive/primitive.pd
 Basic/Primitive/xoshiro256plus.c
