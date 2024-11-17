@@ -32,7 +32,6 @@ my %included = ();
 
 # test for library features 
 my (@sfuncs) = qw(nan infinity);
-my (@ufuncs2) = qw(acosh asinh atanh erf erfc);
 my (@besufuncs) = qw(j0 j1 y0 y1);
 my (@besbifuncs) = qw(jn yn);
 my ($libs) = $^O =~ /MSWin/ ? '' : $^O =~ /cygwin/ ? getcyglib('m') : '-lm';
@@ -91,10 +90,6 @@ $dir = cdir $dir, $mdir unless $dir =~ /$mmdir$/;
 
 foreach (@sfuncs) {
     $source{$_} = 'system' if is_sys_func( "$_();", $libs, $dir );
-}
-
-foreach (@ufuncs2) {
-    $source{$_} = 'system' if is_sys_func( "$_(1.);", $libs, $dir );
 }
 
 # Test for absence of besfuncs
