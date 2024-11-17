@@ -145,10 +145,9 @@ sub _postamble {
     ? map "\$($_)", pdlpp_mod_vars($mod)
     : pdlpp_mod_values($internal, $src, $base, $multi_c);
   if ($internal) {
-    my $top = File::Spec::Functions::abs2rel(dirname dirname $w);
-    my $ppdir = catdir($top, qw(Basic lib PDL));
+    my $ppdir = File::Spec::Functions::abs2rel(catdir(dirname(dirname $w), qw(Basic lib PDL)));
     $pmdep .= join ' ', '', catfile($ppdir, 'PP.pm'), glob(catfile($ppdir, 'PP/*'));
-    $cdep .= join ' ', $ppo, ':', map catfile($top, qw(Basic lib PDL Core), $_),
+    $cdep .= join ' ', $ppo, ':', map catfile($ppdir, qw(Core), $_),
       qw(pdl.h pdlcore.h pdlbroadcast.h pdlmagic.h);
   } else {
     my $oneliner = _oneliner(qq{exit if \$ENV{DESTDIR}; use PDL::Doc; eval { PDL::Doc::add_module(q{$mod}); }});
