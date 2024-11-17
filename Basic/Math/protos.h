@@ -9,7 +9,7 @@
 extern double j0 ( double x );
 extern double y0 ( double x );
 extern double jn ( int n, double x );
-extern double ndtr ( double a );
+extern double ndtri ( double a );
 extern double j1 ( double x );
 extern double y1 ( double x );
 extern int mtherr ( char *name, int code );

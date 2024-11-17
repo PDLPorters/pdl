@@ -133,7 +133,6 @@ pp_addhdr('
 #include <tgmath.h>
 #include "protos.h"
 #include "cpoly.h"
-extern double ndtri(double);
 ');
 
 # Standard `-lm'
