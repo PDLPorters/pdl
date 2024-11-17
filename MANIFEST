@@ -145,6 +145,7 @@ Basic/lib/PDL/Types.pm
 Basic/lib/PDLdb.pl
 Basic/lib/Test/Deep/PDL.pm
 Basic/lib/Test/PDL.pm
+Basic/lib/PDL/Ufunc.pd
 Basic/Makefile.PL
 Basic/Math/const.c
 Basic/Math/cpoly.c
@@ -257,8 +258,6 @@ Basic/t/tp-eq_pdl_clean.t
 Basic/t/tp-import_options.t
 Basic/t/tp-is_pdl.t
 Basic/t/ufunc.t
-Basic/Ufunc/Makefile.PL
-Basic/Ufunc/ufunc.pd
 Basic/utils/address-pseudonymise
 Basic/utils/doc-pp
 Basic/utils/harness

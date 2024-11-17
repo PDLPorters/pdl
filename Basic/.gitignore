@@ -9,4 +9,7 @@ lib/PDL/Ops.xs
 lib/PDL/Slices.c
 lib/PDL/Slices.pm
 lib/PDL/Slices.xs
+lib/PDL/Ufunc.c
+lib/PDL/Ufunc.pm
+lib/PDL/Ufunc.xs
 script/pdl
