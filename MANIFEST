@@ -149,6 +149,8 @@ Basic/lib/PDL/PP/Dims.pm
 Basic/lib/PDL/PP/PDLCode.pm
 Basic/lib/PDL/PP/PdlParObj.pm
 Basic/lib/PDL/PP/Signature.pm
+Basic/lib/PDL/Primitive-xoshiro256plus.c
+Basic/lib/PDL/Primitive.pd
 Basic/lib/PDL/QuickStart.pod
 Basic/lib/PDL/Reduce.pm
 Basic/lib/PDL/Scilab.pod
@@ -174,9 +176,6 @@ Basic/MatrixOps/simq.c
 Basic/MatrixOps/sslib.c
 Basic/MatrixOps/sslib.h
 Basic/MatrixOps/svd.c
-Basic/Primitive/Makefile.PL
-Basic/Primitive/primitive.pd
-Basic/Primitive/xoshiro256plus.c
 Basic/script/pdl.c
 Basic/script/pdldoc
 Basic/script/perldl

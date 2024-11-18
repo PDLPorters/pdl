@@ -42,6 +42,7 @@ RCS
 ^Basic/lib/PDL/Bad(\.(pm|xs|c)$|-pp-)
 ^Basic/lib/PDL/Math(\.(pm|xs|c)$|-pp-)
 ^Basic/lib/PDL/Ops(\.(pm|xs|c)$|-pp-)
+^Basic/lib/PDL/Primitive(\.(pm|xs|c)$|-pp-)
 ^Basic/lib/PDL/Slices(\.(pm|xs|c)$|-pp-)
 ^Basic/lib/PDL/Ufunc(\.(pm|xs|c)$|-pp-)
 ^Basic/lib/PDL/Core\.c$
@@ -55,7 +56,6 @@ RCS
 ^Basic/Lib-ImageRGB/ImageRGB\..*
 ^Basic/Lib-Transform/Transform\..*
 ^Basic/MatrixOps/MatrixOps\..*
-^Basic/Primitive/Primitive\..*
 ^Basic/script/pdl$
 ^Graphics/TriD/OpenGLQ/OpenGLQ\.*
 ^Graphics/TriD/Rout/Rout\.*

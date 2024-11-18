@@ -9,6 +9,9 @@ lib/PDL/Math.xs
 lib/PDL/Ops.c
 lib/PDL/Ops.pm
 lib/PDL/Ops.xs
+lib/PDL/Primitive.c
+lib/PDL/Primitive.pm
+lib/PDL/Primitive.xs
 lib/PDL/Slices.c
 lib/PDL/Slices.pm
 lib/PDL/Slices.xs

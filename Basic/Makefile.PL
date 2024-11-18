@@ -65,8 +65,8 @@ push @cleanup, $cobj;
 my $core_obj = catfile(qw(lib PDL), 'Core$(OBJ_EXT)');
 
 # the modules in PDL::LiteF, used in t/core.t
-my @BUILD_CORE = qw(Bad Core Math Ops Slices Ufunc);
-my @DIRS_CORE = qw(Primitive MatrixOps);
+my @BUILD_CORE = qw(Bad Core Math Ops Primitive Slices Ufunc);
+my @DIRS_CORE = qw(MatrixOps);
 # the modules needed in "use PDL"
 my @DIRS_BASIC = qw(IO-Misc IO-Pnm Lib-Compression Lib-FFT Lib-ImageND Lib-ImageRGB);
 WriteMakefile(
