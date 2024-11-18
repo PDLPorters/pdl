@@ -120,6 +120,8 @@ jobs:
       - name: 'ci-dist: target-test (with coverage)'
         uses: PDLPorters/devops/github-actions/ci-dist@master
         if: matrix.coverage
+        env:
+          DEVEL_COVER_USE_HARNESS_VAR: 1 # so local::lib vars aren't squashed by D:C even though no 't' dir
         with:
           target-test: true
           test-enable-coverage: ${{ matrix.coverage }}
