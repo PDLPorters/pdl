@@ -13,11 +13,16 @@ use threads;
 use PDL::LiteF;
 use PDL::Parallel::threads qw(retrieve_pdls);
 use PDL::IO::FastRaw;
+use File::Temp qw(tempdir);
+use File::Spec::Functions;
 
 use Test::More;
 
+my $tmpdir = tempdir( CLEANUP=>1 );
+my $name = catfile($tmpdir, "foo.dat");
+
 my $N_threads = 10;
-mapfraw('foo.dat', {Creat => 1, Dims => [$N_threads], Datatype => double})
+mapfraw($name, {Creat => 1, Dims => [$N_threads], Datatype => double})
 		->share_as('workspace');
 
 # Spawn a bunch of threads that do the work for us
@@ -36,10 +41,5 @@ for my $thr (threads->list) {
 my $expected = (sequence($N_threads) + 1)->sqrt;
 my $workspace = retrieve_pdls('workspace');
 ok(all($expected == $workspace), 'Sharing memory mapped ndarrays works');
-
-END {
-	# Clean up the testing files
-	unlink $_ for qw(foo.dat foo.dat.hdr);
-}
 
 done_testing;
