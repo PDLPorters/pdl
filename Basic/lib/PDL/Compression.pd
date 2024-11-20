@@ -1,3 +1,11 @@
+use strict;
+use warnings;
+
+{ no warnings 'once'; # pass info back to Makefile.PL
+$PDL::Core::Dev::EXTRAS{$::PDLMOD}{OBJECT} .= join '', map " $::PDLBASE/$_\$(OBJ_EXT)", qw(ricecomp);
+$PDL::Core::Dev::EXTRAS{$::PDLMOD}{INC} .= qq{ "-I$::PDLBASE"};
+}
+
 pp_addpm({At=>'Top'},<<'EOD');
 
 =head1 NAME

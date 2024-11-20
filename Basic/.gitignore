@@ -1,6 +1,9 @@
 lib/PDL/Bad.c
 lib/PDL/Bad.pm
 lib/PDL/Bad.xs
+lib/PDL/Compression.c
+lib/PDL/Compression.pm
+lib/PDL/Compression.xs
 lib/PDL/Core.c
 lib/PDL/Core/pdl.h
 lib/PDL/FFT.c

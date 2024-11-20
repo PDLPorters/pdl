@@ -21,11 +21,6 @@ Basic/IO-Pnm/pnm.pd
 Basic/IO-Pnm/t/pic_16bit.t
 Basic/IO-Pnm/t/pnm.t
 Basic/IO-Pnm/t/rim.t
-Basic/Lib-Compression/compression.pd
-Basic/Lib-Compression/Makefile.PL
-Basic/Lib-Compression/ricecomp.c
-Basic/Lib-Compression/ricecomp.h
-Basic/Lib-Compression/t/basic.t
 Basic/Lib-ImageND/imagend.pd
 Basic/Lib-ImageND/Makefile.PL
 Basic/Lib-ImageND/t/imagend.t
@@ -40,6 +35,9 @@ Basic/lib/PDL/Broadcasting.pod
 Basic/lib/PDL/Bugs.pod
 Basic/lib/PDL/Char.pm
 Basic/lib/PDL/Complex/Overloads.pm
+Basic/lib/PDL/Compression.pd
+Basic/lib/PDL/Compression/ricecomp.c
+Basic/lib/PDL/Compression/ricecomp.h
 Basic/lib/PDL/Config.pm
 Basic/lib/PDL/Constants.pm
 Basic/lib/PDL/Core.pm
@@ -178,6 +176,7 @@ Basic/t/basic.t
 Basic/t/bigmem.t
 Basic/t/bool.t
 Basic/t/clump.t
+Basic/t/compression.t
 Basic/t/constants.t
 Basic/t/constructor.t
 Basic/t/core.t
