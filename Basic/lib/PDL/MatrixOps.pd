@@ -6,6 +6,11 @@ use strict;
 use warnings;
 use PDL::Types qw(ppdefs_all);
 
+{ no warnings 'once'; # pass info back to Makefile.PL
+$PDL::Core::Dev::EXTRAS{$::PDLMOD}{OBJECT} .= join '', map " $::PDLBASE/$_\$(OBJ_EXT)", qw(eigens simq svd eigen matrix sslib);
+$PDL::Core::Dev::EXTRAS{$::PDLMOD}{INC} .= qq{ "-I$::PDLBASE"};
+}
+
 pp_addpm({At=>'Top'},<<'EOD');
 =encoding utf8
 

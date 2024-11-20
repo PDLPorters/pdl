@@ -41,6 +41,7 @@ RCS
 \b_eumm/
 ^Basic/lib/PDL/Bad(\.(pm|xs|c)$|-pp-)
 ^Basic/lib/PDL/Math(\.(pm|xs|c)$|-pp-)
+^Basic/lib/PDL/MatrixOps(\.(pm|xs|c)$|-pp-)
 ^Basic/lib/PDL/Ops(\.(pm|xs|c)$|-pp-)
 ^Basic/lib/PDL/Primitive(\.(pm|xs|c)$|-pp-)
 ^Basic/lib/PDL/Slices(\.(pm|xs|c)$|-pp-)
@@ -55,7 +56,6 @@ RCS
 ^Basic/Lib-ImageND/ImageND\..*
 ^Basic/Lib-ImageRGB/ImageRGB\..*
 ^Basic/Lib-Transform/Transform\..*
-^Basic/MatrixOps/MatrixOps\..*
 ^Basic/script/pdl$
 ^Graphics/TriD/OpenGLQ/OpenGLQ\.*
 ^Graphics/TriD/Rout/Rout\.*
@@ -115,7 +115,7 @@ RCS
 ^\.cirrus\.yml
 ^Example/Benchmark/\.git
 
-^cover_db/
+cover_db/
 ^nytprof(/|\.out)
 \.gc(ov|no|da)$
 pp-\w*\.c$

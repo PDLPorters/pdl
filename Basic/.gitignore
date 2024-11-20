@@ -6,6 +6,9 @@ lib/PDL/Core/pdl.h
 lib/PDL/Math.c
 lib/PDL/Math.pm
 lib/PDL/Math.xs
+lib/PDL/MatrixOps.c
+lib/PDL/MatrixOps.pm
+lib/PDL/MatrixOps.xs
 lib/PDL/Ops.c
 lib/PDL/Ops.pm
 lib/PDL/Ops.xs

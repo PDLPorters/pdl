@@ -5,7 +5,7 @@ my $F = [map $_->ppsym, grep $_->real && !$_->integer, types()];
 my $AF = [map $_->ppsym, grep !$_->integer, types];
 $AF = [(grep $_ ne 'D', @$AF), 'D']; # so defaults to D if non-float given
 
-{ # pass info back to Makefile.PL
+{ no warnings 'once'; # pass info back to Makefile.PL
 $PDL::Core::Dev::EXTRAS{$::PDLMOD}{OBJECT} .= " $::PDLBASE-xoshiro256plus\$(OBJ_EXT)";
 }
 
