@@ -7,6 +7,10 @@ BEGIN {
 		print("1..0 # Skip: Perl not compiled with 'useithreads'\n");
 		exit(0);
 	}
+	if (defined $Devel::Cover::VERSION) {
+		print("1..0 # Skip: Devel::Cover no like ithreads\n");
+		exit(0);
+	}
 }
 
 use Test::More;
