@@ -13,14 +13,6 @@ Basic/examples/PDL-Parallel-threads/test-memory-consumption.pl
 Basic/IO-Misc/Makefile.PL
 Basic/IO-Misc/misc.pd
 Basic/IO-Misc/t/misc.t
-Basic/IO-Pnm/get.c
-Basic/IO-Pnm/get.h
-Basic/IO-Pnm/Makefile.PL
-Basic/IO-Pnm/Pic.pm
-Basic/IO-Pnm/pnm.pd
-Basic/IO-Pnm/t/pic_16bit.t
-Basic/IO-Pnm/t/pnm.t
-Basic/IO-Pnm/t/rim.t
 Basic/Lib-ImageND/imagend.pd
 Basic/Lib-ImageND/Makefile.PL
 Basic/Lib-ImageND/t/imagend.t
@@ -92,6 +84,10 @@ Basic/lib/PDL/IO/Dumper.pm
 Basic/lib/PDL/IO/FastRaw.pm
 Basic/lib/PDL/IO/FITS.pm
 Basic/lib/PDL/IO/FlexRaw.pm
+Basic/lib/PDL/IO/Pic.pm
+Basic/lib/PDL/IO/Pnm.pd
+Basic/lib/PDL/IO/Pnm/get.c
+Basic/lib/PDL/IO/Pnm/get.h
 Basic/lib/PDL/IO/Storable.pm
 Basic/lib/PDL/Lite.pm
 Basic/lib/PDL/LiteF.pm
@@ -207,8 +203,10 @@ Basic/t/ops-bitwise.t
 Basic/t/ops.t
 Basic/t/pdl_from_string.t
 Basic/t/pdlchar.t
+Basic/t/pic_16bit.t
 Basic/t/picnorgb.t
 Basic/t/picrgb.t
+Basic/t/pnm.t
 Basic/t/pp_croaking.t
 Basic/t/pp_line_numbers.t
 Basic/t/ppt-01_ref_counting.t
@@ -231,6 +229,7 @@ Basic/t/primitive-vector.t
 Basic/t/primitive-vsearch.t
 Basic/t/pthread.t
 Basic/t/reduce.t
+Basic/t/rim.t
 Basic/t/scope.t
 Basic/t/slice.t
 Basic/t/storable.t

@@ -32,7 +32,7 @@ EOT
     slice subclass thread thread_def ufunc
   );
   my $basictest = join ' ', map catfile('t', $_.'.t'), qw(
-    compression fft imagergb picnorgb picrgb
+    compression fft imagergb picnorgb picrgb pic_16bit pnm rim
   );
   $text .= <<EOF;
 basictest : basicdtest
@@ -72,8 +72,8 @@ my $core_obj = catfile(qw(lib PDL), 'Core$(OBJ_EXT)');
 # the modules in PDL::LiteF, used in t/core.t
 my @BUILD_CORE = qw(Bad Core Math MatrixOps Ops Primitive Slices Ufunc);
 # the modules needed in "use PDL"
-my @BUILD_BASIC = qw(Compression FFT ImageRGB);
-my @DIRS_BASIC = qw(IO-Misc IO-Pnm Lib-ImageND);
+my @BUILD_BASIC = qw(Compression FFT IO/Pnm ImageRGB);
+my @DIRS_BASIC = qw(IO-Misc Lib-ImageND);
 WriteMakefile(
   NAME	=> 'PDL',
   VERSION_FROM => 'lib/PDL/Core.pm',
@@ -99,8 +99,8 @@ WriteMakefile(
     $core_obj => 'pm_to_blib '.$hdeps,
     $cobj => $hdeps,
     (map +(
-      "build_dynamic_PDL_$_" => qq{\$(INST_ARCHLIB)/auto/PDL/$_/$_.\$(DLEXT)},
-      "build_static_PDL_$_" => qq{\$(INST_ARCHLIB)/auto/PDL/$_/$_\$(LIB_EXT)},
+      "build_dynamic_PDL_".(s#/#_#gr) => "\$(INST_ARCHLIB)/auto/PDL/$_/".(s#.*/##gr).".\$(DLEXT)",
+      "build_static_PDL_".(s#/#_#gr) => "\$(INST_ARCHLIB)/auto/PDL/$_/".(s#.*/##gr)."\$(LIB_EXT)",
     ), @BUILD_CORE, @BUILD_BASIC),
   },
   clean => { FILES => join ' ',
@@ -138,12 +138,10 @@ sub coretarget {
     # @prereqs are named targets - undef=[]
     # all a left's rights are made concurrently, no sequence - list ALL prereqs
     my @left2rights = (
-        [
-            core => [ map qq{build_\$(LINKTYPE)_PDL_$_}, @BUILD_CORE ]
-        ],
+        [core => [ map qq{build_\$(LINKTYPE)_PDL_}.(s#/#_#gr), @BUILD_CORE ]],
         [
             basic => [
-                (map qq{build_\$(LINKTYPE)_PDL_$_}, @BUILD_BASIC),
+                (map qq{build_\$(LINKTYPE)_PDL_}.(s#/#_#gr), @BUILD_BASIC),
                 map [
                     [$_],
                     [ qw(pm_to_blib linkext) ],
