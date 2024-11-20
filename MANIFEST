@@ -10,9 +10,6 @@ Basic/examples/PDL-Parallel-threads/barrier-sync.pl
 Basic/examples/PDL-Parallel-threads/perl-barrier.pl
 Basic/examples/PDL-Parallel-threads/simple-parallelize.pl
 Basic/examples/PDL-Parallel-threads/test-memory-consumption.pl
-Basic/IO-Misc/Makefile.PL
-Basic/IO-Misc/misc.pd
-Basic/IO-Misc/t/misc.t
 Basic/Lib-ImageND/imagend.pd
 Basic/Lib-ImageND/Makefile.PL
 Basic/Lib-ImageND/t/imagend.t
@@ -84,6 +81,7 @@ Basic/lib/PDL/IO/Dumper.pm
 Basic/lib/PDL/IO/FastRaw.pm
 Basic/lib/PDL/IO/FITS.pm
 Basic/lib/PDL/IO/FlexRaw.pm
+Basic/lib/PDL/IO/Misc.pd
 Basic/lib/PDL/IO/Pic.pm
 Basic/lib/PDL/IO/Pnm.pd
 Basic/lib/PDL/IO/Pnm/get.c
@@ -191,6 +189,8 @@ Basic/t/func.pdl
 Basic/t/imagergb.t
 Basic/t/inline-with.t
 Basic/t/inlinepdlpp.t
+Basic/t/io-misc.t
+Basic/t/io-pnm.t
 Basic/t/lvalue.t
 Basic/t/m51.fits.fz
 Basic/t/math.t
@@ -203,10 +203,10 @@ Basic/t/ops-bitwise.t
 Basic/t/ops.t
 Basic/t/pdl_from_string.t
 Basic/t/pdlchar.t
+Basic/t/pic-rim.t
 Basic/t/pic_16bit.t
 Basic/t/picnorgb.t
 Basic/t/picrgb.t
-Basic/t/pnm.t
 Basic/t/pp_croaking.t
 Basic/t/pp_line_numbers.t
 Basic/t/ppt-01_ref_counting.t
@@ -229,7 +229,6 @@ Basic/t/primitive-vector.t
 Basic/t/primitive-vsearch.t
 Basic/t/pthread.t
 Basic/t/reduce.t
-Basic/t/rim.t
 Basic/t/scope.t
 Basic/t/slice.t
 Basic/t/storable.t

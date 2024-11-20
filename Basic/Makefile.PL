@@ -32,7 +32,8 @@ EOT
     slice subclass thread thread_def ufunc
   );
   my $basictest = join ' ', map catfile('t', $_.'.t'), qw(
-    compression fft imagergb picnorgb picrgb pic_16bit pnm rim
+    compression fft imagergb picnorgb picrgb pic_16bit io-pnm pic-rim
+    io-misc
   );
   $text .= <<EOF;
 basictest : basicdtest
@@ -72,8 +73,8 @@ my $core_obj = catfile(qw(lib PDL), 'Core$(OBJ_EXT)');
 # the modules in PDL::LiteF, used in t/core.t
 my @BUILD_CORE = qw(Bad Core Math MatrixOps Ops Primitive Slices Ufunc);
 # the modules needed in "use PDL"
-my @BUILD_BASIC = qw(Compression FFT IO/Pnm ImageRGB);
-my @DIRS_BASIC = qw(IO-Misc Lib-ImageND);
+my @BUILD_BASIC = qw(Compression FFT IO/Misc IO/Pnm ImageRGB);
+my @DIRS_BASIC = qw(Lib-ImageND);
 WriteMakefile(
   NAME	=> 'PDL',
   VERSION_FROM => 'lib/PDL/Core.pm',

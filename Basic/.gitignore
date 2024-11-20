@@ -9,6 +9,9 @@ lib/PDL/Core/pdl.h
 lib/PDL/FFT.c
 lib/PDL/FFT.pm
 lib/PDL/FFT.xs
+lib/PDL/IO/Misc.c
+lib/PDL/IO/Misc.pm
+lib/PDL/IO/Misc.xs
 lib/PDL/IO/Pnm.c
 lib/PDL/IO/Pnm.pm
 lib/PDL/IO/Pnm.xs
