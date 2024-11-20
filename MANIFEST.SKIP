@@ -44,6 +44,7 @@ RCS
 ^Basic/lib/PDL/FFT(\.(pm|xs|c)$|-pp-)
 ^Basic/lib/PDL/IO/Misc(\.(pm|xs|c)$|-pp-)
 ^Basic/lib/PDL/IO/Pnm(\.(pm|xs|c)$|-pp-)
+^Basic/lib/PDL/ImageND(\.(pm|xs|c)$|-pp-)
 ^Basic/lib/PDL/ImageRGB(\.(pm|xs|c)$|-pp-)
 ^Basic/lib/PDL/Math(\.(pm|xs|c)$|-pp-)
 ^Basic/lib/PDL/MatrixOps(\.(pm|xs|c)$|-pp-)
@@ -55,7 +56,6 @@ RCS
 ^Basic/lib/PDL/Core\.c$
 ^Basic/lib/PDL/Core/pdl\.h$
 ^Basic/IO-Storable/Storable\..*
-^Basic/Lib-ImageND/ImageND\..*
 ^Basic/script/pdl$
 ^Graphics/TriD/OpenGLQ/OpenGLQ\.*
 ^Graphics/TriD/Rout/Rout\.*

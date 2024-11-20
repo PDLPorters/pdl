@@ -10,9 +10,6 @@ Basic/examples/PDL-Parallel-threads/barrier-sync.pl
 Basic/examples/PDL-Parallel-threads/perl-barrier.pl
 Basic/examples/PDL-Parallel-threads/simple-parallelize.pl
 Basic/examples/PDL-Parallel-threads/test-memory-consumption.pl
-Basic/Lib-ImageND/imagend.pd
-Basic/Lib-ImageND/Makefile.PL
-Basic/Lib-ImageND/t/imagend.t
 Basic/lib/Inline/Pdlpp.pm
 Basic/lib/PDL.pm
 Basic/lib/PDL/API.pod
@@ -68,6 +65,7 @@ Basic/lib/PDL/FFT.pd
 Basic/lib/PDL/FFT/fftn.c
 Basic/lib/PDL/FFT/fftn.h
 Basic/lib/PDL/Graphics.pod
+Basic/lib/PDL/ImageND.pd
 Basic/lib/PDL/ImageRGB.pd
 Basic/lib/PDL/ImageRGB/pdlppm.h
 Basic/lib/PDL/ImageRGB/ppm_quant.c
@@ -186,6 +184,7 @@ Basic/t/flexraw-iotypes.t
 Basic/t/flexraw.t
 Basic/t/flexraw_fortran.t
 Basic/t/func.pdl
+Basic/t/imagend.t
 Basic/t/imagergb.t
 Basic/t/inline-with.t
 Basic/t/inlinepdlpp.t

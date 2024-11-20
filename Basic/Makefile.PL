@@ -36,9 +36,9 @@ EOT
     io-misc
   );
   $text .= <<EOF;
-basictest : basicdtest
+basictest : basic pm_to_blib core
 	\$(FULLPERLRUN) "$::Config{bin}/prove" -I ../blib/lib -I ../blib/arch $basictest
-coretest : core
+coretest : core pm_to_blib
 	\$(FULLPERLRUN) "$::Config{bin}/prove" -I ../blib/lib -I ../blib/arch $coretest
 update-ppport:
 	\$(PERLRUN) -MDevel::PPPort -e'Devel::PPPort::WriteFile' && \$(PERLRUN) lib/PDL/Core/ppport.h --strip
@@ -73,12 +73,10 @@ my $core_obj = catfile(qw(lib PDL), 'Core$(OBJ_EXT)');
 # the modules in PDL::LiteF, used in t/core.t
 my @BUILD_CORE = qw(Bad Core Math MatrixOps Ops Primitive Slices Ufunc);
 # the modules needed in "use PDL"
-my @BUILD_BASIC = qw(Compression FFT IO/Misc IO/Pnm ImageRGB);
-my @DIRS_BASIC = qw(Lib-ImageND);
+my @BUILD_BASIC = qw(Compression FFT IO/Misc IO/Pnm ImageND ImageRGB);
 WriteMakefile(
   NAME	=> 'PDL',
   VERSION_FROM => 'lib/PDL/Core.pm',
-  DIR => [@DIRS_BASIC],
   EXE_FILES => \@exe_files,
   XSMULTI => 1,
   XSBUILD => {
@@ -139,26 +137,8 @@ sub coretarget {
     # @prereqs are named targets - undef=[]
     # all a left's rights are made concurrently, no sequence - list ALL prereqs
     my @left2rights = (
-        [core => [ map qq{build_\$(LINKTYPE)_PDL_}.(s#/#_#gr), @BUILD_CORE ]],
-        [
-            basic => [
-                (map qq{build_\$(LINKTYPE)_PDL_}.(s#/#_#gr), @BUILD_BASIC),
-                map [
-                    [$_],
-                    [ qw(pm_to_blib linkext) ],
-                    [ 'core' ],
-                ], @DIRS_BASIC,
-            ]
-        ],
-        [
-            basicdtest => [
-                map [
-                    [$_],
-                    [ 'test' ],
-                    [ 'basic' ],
-                ], @DIRS_BASIC,
-            ]
-        ],
+      [core => [ map qq{build_\$(LINKTYPE)_PDL_}.(s#/#_#gr), @BUILD_CORE ]],
+      [basic => [(map qq{build_\$(LINKTYPE)_PDL_}.(s#/#_#gr), @BUILD_BASIC)]],
     );
     join "\n", map flatten_parallel_target($self, $_), @left2rights;
 }
