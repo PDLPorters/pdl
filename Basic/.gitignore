@@ -18,6 +18,9 @@ lib/PDL/Primitive.xs
 lib/PDL/Slices.c
 lib/PDL/Slices.pm
 lib/PDL/Slices.xs
+lib/PDL/Transform.c
+lib/PDL/Transform.pm
+lib/PDL/Transform.xs
 lib/PDL/Ufunc.c
 lib/PDL/Ufunc.pm
 lib/PDL/Ufunc.xs

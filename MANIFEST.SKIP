@@ -45,6 +45,7 @@ RCS
 ^Basic/lib/PDL/Ops(\.(pm|xs|c)$|-pp-)
 ^Basic/lib/PDL/Primitive(\.(pm|xs|c)$|-pp-)
 ^Basic/lib/PDL/Slices(\.(pm|xs|c)$|-pp-)
+^Basic/lib/PDL/Transform(\.(pm|xs|c)$|-pp-)
 ^Basic/lib/PDL/Ufunc(\.(pm|xs|c)$|-pp-)
 ^Basic/lib/PDL/Core\.c$
 ^Basic/lib/PDL/Core/pdl\.h$
@@ -55,7 +56,6 @@ RCS
 ^Basic/Lib-FFT/FFT\.*
 ^Basic/Lib-ImageND/ImageND\..*
 ^Basic/Lib-ImageRGB/ImageRGB\..*
-^Basic/Lib-Transform/Transform\..*
 ^Basic/script/pdl$
 ^Graphics/TriD/OpenGLQ/OpenGLQ\.*
 ^Graphics/TriD/Rout/Rout\.*

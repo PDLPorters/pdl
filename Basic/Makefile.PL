@@ -71,7 +71,7 @@ my @DIRS_BASIC = qw(IO-Misc IO-Pnm Lib-Compression Lib-FFT Lib-ImageND Lib-Image
 WriteMakefile(
   NAME	=> 'PDL',
   VERSION_FROM => 'lib/PDL/Core.pm',
-  DIR => [@DIRS_BASIC, qw(Lib-Transform)],
+  DIR => [@DIRS_BASIC],
   EXE_FILES => \@exe_files,
   XSMULTI => 1,
   XSBUILD => {
