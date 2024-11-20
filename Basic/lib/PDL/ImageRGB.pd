@@ -1,6 +1,11 @@
 use strict;
 use warnings;
 
+{ no warnings 'once'; # pass info back to Makefile.PL
+$PDL::Core::Dev::EXTRAS{$::PDLMOD}{OBJECT} .= join '', map " $::PDLBASE/$_\$(OBJ_EXT)", qw(ppm_quant);
+$PDL::Core::Dev::EXTRAS{$::PDLMOD}{INC} .= qq{ "-I$::PDLBASE"};
+}
+
 pp_add_exported('',"interlrgb rgbtogr bytescl cquant ");
 pp_addhdr('
 #include "pdlppm.h"  /* Local decs */
