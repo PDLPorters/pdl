@@ -3,6 +3,12 @@ use warnings;
 use PDL::Types qw(types);
 my $F = [map $_->ppsym, grep $_->real && !$_->integer, types()];
 
+{ no warnings 'once'; # pass info back to Makefile.PL
+$PDL::Core::Dev::EXTRAS{$::PDLMOD}{OBJECT} .= join '', map " $::PDLBASE/$_\$(OBJ_EXT)", qw(fftn);
+$PDL::Core::Dev::EXTRAS{$::PDLMOD}{DEFINE} .= qq{ -DFFT_FLOAT -DFFT_DOUBLE -DFFT_LDOUBLE};
+$PDL::Core::Dev::EXTRAS{$::PDLMOD}{INC} .= qq{ "-I$::PDLBASE"};
+}
+
 pp_addpm({At=>'Top'},<<'EOD');
 =head1 NAME
 

@@ -199,6 +199,7 @@ sub pdlpp_eumm_update_deep {
     @$macro{@macro_vars} = pdlpp_mod_values(1, $f, $base, 1, 1);
     $xsb->{$base}{OBJECT} = "\$($macro_vars[1])";
     $xsb->{$base}{OBJECT} .= $EXTRAS{$f}{OBJECT} if $EXTRAS{$f}{OBJECT};
+    $eumm->{DEFINE} .= $EXTRAS{$f}{DEFINE} if $EXTRAS{$f}{DEFINE}; # global
     $eumm->{INC} .= " $EXTRAS{$f}{INC}" if $EXTRAS{$f}{INC}; # global
     my $mtime = (stat $f)[9] // die "$f: $!";
     open my $fh, ">", $pmfile or die "$pmfile: $!"; # XSMULTI needs this

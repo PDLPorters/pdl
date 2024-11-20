@@ -3,6 +3,9 @@ lib/PDL/Bad.pm
 lib/PDL/Bad.xs
 lib/PDL/Core.c
 lib/PDL/Core/pdl.h
+lib/PDL/FFT.c
+lib/PDL/FFT.pm
+lib/PDL/FFT.xs
 lib/PDL/Math.c
 lib/PDL/Math.pm
 lib/PDL/Math.xs

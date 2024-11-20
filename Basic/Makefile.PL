@@ -31,7 +31,12 @@ EOT
     pdlchar pp_croaking pp_line_numbers primitive-* ppt-* pthread reduce
     slice subclass thread thread_def ufunc
   );
+  my $basictest = join ' ', map catfile('t', $_.'.t'), qw(
+    fft
+  );
   $text .= <<EOF;
+basictest : basicdtest
+	\$(FULLPERLRUN) "$::Config{bin}/prove" -I ../blib/lib -I ../blib/arch $basictest
 coretest : core
 	\$(FULLPERLRUN) "$::Config{bin}/prove" -I ../blib/lib -I ../blib/arch $coretest
 update-ppport:
@@ -67,7 +72,8 @@ my $core_obj = catfile(qw(lib PDL), 'Core$(OBJ_EXT)');
 # the modules in PDL::LiteF, used in t/core.t
 my @BUILD_CORE = qw(Bad Core Math MatrixOps Ops Primitive Slices Ufunc);
 # the modules needed in "use PDL"
-my @DIRS_BASIC = qw(IO-Misc IO-Pnm Lib-Compression Lib-FFT Lib-ImageND Lib-ImageRGB);
+my @BUILD_BASIC = qw(FFT);
+my @DIRS_BASIC = qw(IO-Misc IO-Pnm Lib-Compression Lib-ImageND Lib-ImageRGB);
 WriteMakefile(
   NAME	=> 'PDL',
   VERSION_FROM => 'lib/PDL/Core.pm',
@@ -95,7 +101,7 @@ WriteMakefile(
     (map +(
       "build_dynamic_PDL_$_" => qq{\$(INST_ARCHLIB)/auto/PDL/$_/$_.\$(DLEXT)},
       "build_static_PDL_$_" => qq{\$(INST_ARCHLIB)/auto/PDL/$_/$_\$(LIB_EXT)},
-    ), @BUILD_CORE),
+    ), @BUILD_CORE, @BUILD_BASIC),
   },
   clean => { FILES => join ' ',
     qw(MANIFEST.bak _Inline/ .inlinepdlpp/ .inlinewith/ .pptest/), @cleanup,
@@ -133,13 +139,11 @@ sub coretarget {
     # all a left's rights are made concurrently, no sequence - list ALL prereqs
     my @left2rights = (
         [
-            core => [
-                (map qq{build_\$(LINKTYPE)_PDL_$_},
-                  @BUILD_CORE),
-            ]
+            core => [ map qq{build_\$(LINKTYPE)_PDL_$_}, @BUILD_CORE ]
         ],
         [
             basic => [
+                (map qq{build_\$(LINKTYPE)_PDL_$_}, @BUILD_BASIC),
                 map [
                     [$_],
                     [ qw(pm_to_blib linkext) ],
@@ -148,7 +152,7 @@ sub coretarget {
             ]
         ],
         [
-            basictest => [
+            basicdtest => [
                 map [
                     [$_],
                     [ 'test' ],

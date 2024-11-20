@@ -169,12 +169,6 @@
 #define _FFTN_C
 /* we use CPP to re-include this same file for double/float cases */
 
-#if !defined (lint) && !defined (__FILE__)
-#error Your compiler is sick!
-/* define __FILE__ yourself (a string) eg, something like
-D__FILE__=\"fftn.c\" */
-#endif
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -272,7 +266,7 @@ factorize (int nPass, int * kt, int *factor)
 # undef FFT_SUFFIX
 # define FFT_SUFFIX l
 # define REAL		long double
-# include __FILE__			/* include this file again */
+# include "fftn.c"			/* include this file again */
 #endif
 /*}}}*/
 
@@ -282,7 +276,7 @@ factorize (int nPass, int * kt, int *factor)
 # undef FFT_SUFFIX
 # define FFT_SUFFIX
 # define REAL		double
-# include __FILE__			/* include this file again */
+# include "fftn.c"			/* include this file again */
 #endif
 /*}}}*/
 
@@ -292,7 +286,7 @@ factorize (int nPass, int * kt, int *factor)
 # undef FFT_SUFFIX
 # define FFT_SUFFIX f
 # define REAL		float
-# include __FILE__			/* include this file again */
+# include "fftn.c"			/* include this file again */
 #endif
 /*}}}*/
 #else	/* _FFTN_C */

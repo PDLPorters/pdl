@@ -26,11 +26,6 @@ Basic/Lib-Compression/Makefile.PL
 Basic/Lib-Compression/ricecomp.c
 Basic/Lib-Compression/ricecomp.h
 Basic/Lib-Compression/t/basic.t
-Basic/Lib-FFT/fft.pd
-Basic/Lib-FFT/fftn.c
-Basic/Lib-FFT/fftn.h
-Basic/Lib-FFT/Makefile.PL
-Basic/Lib-FFT/t/fft.t
 Basic/Lib-ImageND/imagend.pd
 Basic/Lib-ImageND/Makefile.PL
 Basic/Lib-ImageND/t/imagend.t
@@ -89,6 +84,9 @@ Basic/lib/PDL/Doc/Config.pm
 Basic/lib/PDL/Doc/Perldl.pm
 Basic/lib/PDL/Exporter.pm
 Basic/lib/PDL/FAQ.pod
+Basic/lib/PDL/FFT.pd
+Basic/lib/PDL/FFT/fftn.c
+Basic/lib/PDL/FFT/fftn.h
 Basic/lib/PDL/Graphics.pod
 Basic/lib/PDL/Index.pod
 Basic/lib/PDL/Indexing.pod
@@ -192,6 +190,7 @@ Basic/t/demos.t
 Basic/t/diskcache.t
 Basic/t/dumper.t
 Basic/t/fastraw.t
+Basic/t/fft.t
 Basic/t/fits-noafh.t
 Basic/t/fits.t
 Basic/t/flexraw-iotypes.t

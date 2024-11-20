@@ -40,6 +40,7 @@ RCS
 /core$
 \b_eumm/
 ^Basic/lib/PDL/Bad(\.(pm|xs|c)$|-pp-)
+^Basic/lib/PDL/FFT(\.(pm|xs|c)$|-pp-)
 ^Basic/lib/PDL/Math(\.(pm|xs|c)$|-pp-)
 ^Basic/lib/PDL/MatrixOps(\.(pm|xs|c)$|-pp-)
 ^Basic/lib/PDL/Ops(\.(pm|xs|c)$|-pp-)
@@ -53,7 +54,6 @@ RCS
 ^Basic/IO-Pnm/Pnm\..*
 ^Basic/IO-Storable/Storable\..*
 ^Basic/Lib-Compression/Compression\..*
-^Basic/Lib-FFT/FFT\.*
 ^Basic/Lib-ImageND/ImageND\..*
 ^Basic/Lib-ImageRGB/ImageRGB\..*
 ^Basic/script/pdl$
