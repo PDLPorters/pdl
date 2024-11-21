@@ -593,9 +593,9 @@ Libtmp/Slatec/t/lm.t
 Libtmp/Slatec/t/slatec-polyfit-weight.t
 Libtmp/Slatec/t/slatec.t
 Libtmp/t/func.t
-Libtmp/Transform-Proj4/Demo.pm
+Libtmp/Transform-Proj4/lib/PDL/Demos/Proj4_demo.pm
+Libtmp/Transform-Proj4/lib/PDL/Transform/Proj4.pd
 Libtmp/Transform-Proj4/Makefile.PL
-Libtmp/Transform-Proj4/proj4.pd
 Libtmp/Transform-Proj4/t/gis_proj.t
 Libtmp/Transform-Proj4/t/proj_transform.t
 Makefile.PL

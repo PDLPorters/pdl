@@ -186,6 +186,7 @@ sub pdlpp_eumm_update_deep {
   my $macro = $eumm->{macro} ||= {};
   my $xsb = $eumm->{XSBUILD}{xs} ||= {};
   $eumm->{clean}{FILES} ||= '';
+  $eumm->{OBJECT} ||= '';
   my $xs = $eumm->{XS} ||= {};
   my $global_version = $eumm->parse_version($eumm->{VERSION_FROM});
   my @pd_srcs;
@@ -197,6 +198,7 @@ sub pdlpp_eumm_update_deep {
     $pm->{$pmfile} = "\$(INST_LIB)/$nolib.pm";
     my @macro_vars = pdlpp_mod_vars(my $mod = join '::', split /\//, $nolib);
     @$macro{@macro_vars} = pdlpp_mod_values(1, $f, $base, 1, 1);
+    $eumm->{OBJECT} .= " $base\$(OBJ_EXT)";
     $xsb->{$base}{OBJECT} = "\$($macro_vars[1])";
     $xsb->{$base}{OBJECT} .= $EXTRAS{$f}{OBJECT} if $EXTRAS{$f}{OBJECT};
     $eumm->{DEFINE} .= $EXTRAS{$f}{DEFINE} if $EXTRAS{$f}{DEFINE}; # global
@@ -206,7 +208,7 @@ sub pdlpp_eumm_update_deep {
     print $fh "package $mod;\nour \$VER"."SION = '$global_version';\n1;\n"; # break is so cpanm doesn't try to parse as version
     close $fh;
     utime $mtime - 120, $mtime - 120, $pmfile; # so is out of date
-    push @pd_srcs, [$f, $base, $mod, '', 1];
+    push @pd_srcs, [$f, $base, $mod, '', 1, 1];
     $eumm->{clean}{FILES} .= join ' ', '', $pmfile, map "\$($_)", @macro_vars;
     $eumm->{clean}{FILES} .= $EXTRAS{$f}{OBJECT} if $EXTRAS{$f}{OBJECT};
   }

@@ -83,6 +83,7 @@ RCS
 ^Libtmp/Slatec/Slatec..*
 ^Libtmp/Slatec/slatec/.*\.c$
 ^Libtmp/Transform-Proj4/Proj4\..*
+^Libtmp/Transform-Proj4/lib/PDL/Transform/Proj4(\.(pm|xs|c)$|-pp-)
 ^Perldl2/logo3d.pdl
 ^Perldl2/pdl2.pod$
 ^Perldl2/tctrl-c.pl
