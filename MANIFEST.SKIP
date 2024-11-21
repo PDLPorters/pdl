@@ -77,7 +77,7 @@ RCS
 ^Libtmp/GSL/LINALG/LINALG\..*
 ^Libtmp/GSL/MROOT/MROOT\..*
 ^Libtmp/GSL/RNG/RNG\..*
-^Libtmp/GSL/SF/.*\.c$
+^Libtmp/GSL/SF/SF\..*
 ^Libtmp/Image2D/Image2D\..*
 ^Libtmp/LegacyComplex/Complex\..*
 ^Libtmp/Slatec/Slatec..*

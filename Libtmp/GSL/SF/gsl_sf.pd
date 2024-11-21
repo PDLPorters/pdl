@@ -1,0 +1,2012 @@
+use strict;
+use warnings;
+
+pp_addpm({At=>'Top'},<<'EOD');
+use strict;
+use warnings;
+
+=head1 NAME
+
+PDL::GSL::SF - PDL interface to GSL Special Functions
+
+=head1 DESCRIPTION
+
+This is an interface to the Special Function package present in the GNU Scientific Library.
+
+=cut
+
+EOD
+
+pp_add_boot("gsl_set_error_handler_off();\n");
+
+pp_addhdr('
+#include <gsl/gsl_sf.h>
+#include <gsl/gsl_poly.h>
+#include "../gslerr.h"
+');
+
+sub airy_func {
+  my ($which, $doc) = @_;
+  pp_def($which,
+    Doc => $doc,
+    GenericTypes => ['D'],
+    Pars=>'double x(); double [o]y(); double [o]e()',
+    Code => <<EOF,
+gsl_sf_result r;
+GSLERR(${which}_e,(\$x(),GSL_PREC_DOUBLE,&r))
+\$y() = r.val;
+\$e() = r.err;
+EOF
+  );
+}
+
+airy_func('gsl_sf_airy_Ai', 'Airy Function Ai(x).');
+airy_func('gsl_sf_airy_Bi', 'Airy Function Bi(x).');
+airy_func(
+  'gsl_sf_airy_Ai_scaled',
+  'Scaled Airy Function Ai(x). Ai(x) for x < 0  and exp(+2/3 x^{3/2}) Ai(x) for  x > 0.'
+);
+airy_func(
+  'gsl_sf_airy_Bi_scaled',
+  'Scaled Airy Function Bi(x). Bi(x) for x < 0  and exp(+2/3 x^{3/2}) Bi(x) for  x > 0.'
+);
+airy_func('gsl_sf_airy_Ai_deriv', 'Derivative Airy Function Ai`(x).');
+airy_func('gsl_sf_airy_Bi_deriv', 'Derivative Airy Function Bi`(x).');
+airy_func(
+  'gsl_sf_airy_Ai_deriv_scaled',
+  'Derivative Scaled Airy Function Ai(x). Ai`(x) for x < 0  and exp(+2/3 x^{3/2}) Ai`(x) for  x > 0.'
+);
+airy_func(
+  'gsl_sf_airy_Bi_deriv_scaled',
+  'Derivative Scaled Airy Function Bi(x). Bi`(x) for x < 0  and exp(+2/3 x^{3/2}) Bi`(x) for  x > 0.'
+);
+
+pp_addpm({At=>'Bot'},<<'EOD');
+=head1 AUTHOR
+
+This file copyright (C) 1999 Christian Pellegrin <chri@infis.univ.trieste.it>
+All rights reserved. There
+is no warranty. You are allowed to redistribute this software /
+documentation under certain conditions. For details, see the file
+COPYING in the PDL distribution. If this file is separated from the
+PDL distribution, the copyright notice should be included in the file.
+
+The GSL SF modules were written by G. Jungman.
+
+=cut
+
+EOD
+
+use strict;
+use warnings;
+
+pp_def('gsl_sf_bessel_Jn',
+       GenericTypes => ['D'],
+       OtherPars =>'int n',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_bessel_Jn_e,($COMP(n),$x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Regular Bessel Function J_n(x).'
+      );
+
+pp_def('gsl_sf_bessel_Jn_array',
+       GenericTypes => ['D'],
+       OtherPars =>'int s; IV n=>num',
+       Pars=>'double x(); double [o]y(num)',
+       Code =>'
+GSLERR(gsl_sf_bessel_Jn_array,($COMP(s),$COMP(s)+$COMP(n)-1,$x(),$P(y)))
+',
+       Doc =>'Array of Regular Bessel Functions J_{s}(x) to J_{s+n-1}(x).'
+      );
+
+pp_def('gsl_sf_bessel_Yn',
+       GenericTypes => ['D'],
+       OtherPars =>'int n',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_bessel_Yn_e,($COMP(n),$x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'IrRegular Bessel Function Y_n(x).'
+      );
+
+pp_def('gsl_sf_bessel_Yn_array',
+       GenericTypes => ['D'],
+       OtherPars =>'int s; IV n=>num',
+       Pars=>'double x(); double [o]y(num)',
+       Code =>'
+GSLERR(gsl_sf_bessel_Yn_array,($COMP(s),$COMP(s)+$COMP(n)-1,$x(),$P(y)))
+',
+       Doc =>'Array of Regular Bessel Functions Y_{s}(x) to Y_{s+n-1}(x).'
+      );
+
+pp_def('gsl_sf_bessel_In',
+       GenericTypes => ['D'],
+       OtherPars =>'int n',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_bessel_In_e,($COMP(n),$x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Regular Modified Bessel Function I_n(x).'
+      );
+
+pp_def('gsl_sf_bessel_I_array',
+       GenericTypes => ['D'],
+       OtherPars =>'int s; IV n=>num',
+       Pars=>'double x(); double [o]y(num)',
+       Code =>'
+GSLERR(gsl_sf_bessel_In_array,($COMP(s),$COMP(s)+$COMP(n)-1,$x(),$P(y)))
+',
+       Doc =>'Array of Regular Modified Bessel Functions I_{s}(x) to I_{s+n-1}(x).'
+      );
+
+pp_def('gsl_sf_bessel_In_scaled',
+       GenericTypes => ['D'],
+       OtherPars =>'int n',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_bessel_In_scaled_e,($COMP(n),$x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Scaled Regular Modified Bessel Function exp(-|x|) I_n(x).'
+      );
+
+pp_def('gsl_sf_bessel_In_scaled_array',
+       GenericTypes => ['D'],
+       OtherPars =>'int s; IV n=>num',
+       Pars=>'double x(); double [o]y(num)',
+       Code =>'
+GSLERR(gsl_sf_bessel_In_scaled_array,($COMP(s),$COMP(s)+$COMP(n)-1,$x(),$P(y)))
+',
+       Doc =>'Array of Scaled Regular Modified Bessel Functions exp(-|x|) I_{s}(x) to exp(-|x|) I_{s+n-1}(x).'
+      );
+
+pp_def('gsl_sf_bessel_Kn',
+       GenericTypes => ['D'],
+       OtherPars =>'int n',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_bessel_Kn_e,($COMP(n),$x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'IrRegular Modified Bessel Function K_n(x).'
+      );
+
+pp_def('gsl_sf_bessel_K_array',
+       GenericTypes => ['D'],
+       OtherPars =>'int s; IV n=>num',
+       Pars=>'double x(); double [o]y(num)',
+       Code =>'
+GSLERR(gsl_sf_bessel_Kn_array,($COMP(s),$COMP(s)+$COMP(n)-1,$x(),$P(y)))
+',
+       Doc =>'Array of IrRegular Modified Bessel Functions K_{s}(x) to K_{s+n-1}(x).'
+      );
+
+pp_def('gsl_sf_bessel_Kn_scaled',
+       GenericTypes => ['D'],
+       OtherPars =>'int n',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_bessel_Kn_scaled_e,($COMP(n),$x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Scaled IrRegular Modified Bessel Function exp(-|x|) K_n(x).'
+      );
+
+pp_def('gsl_sf_bessel_Kn_scaled_array',
+       GenericTypes => ['D'],
+       OtherPars =>'int s; IV n=>num',
+       Pars=>'double x(); double [o]y(num)',
+       Code =>'
+GSLERR(gsl_sf_bessel_Kn_scaled_array,($COMP(s),$COMP(s)+$COMP(n)-1,$x(),$P(y)))
+',
+       Doc =>'Array of Scaled IrRegular Modified Bessel Functions exp(-|x|) K_{s}(x) to exp(-|x|) K_{s+n-1}(x).'
+      );
+
+pp_def('gsl_sf_bessel_jl',
+       GenericTypes => ['D'],
+       OtherPars =>'int n',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_bessel_jl_e,($COMP(n),$x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Regular Sphericl Bessel Function J_n(x).'
+      );
+
+pp_def('gsl_sf_bessel_jl_array',
+       GenericTypes => ['D'],
+       OtherPars =>'int n=>num',
+       Pars=>'double x(); double [o]y(num)',
+       Code =>'
+GSLERR(gsl_sf_bessel_jl_array,($COMP(n)-1,$x(),$P(y)))
+',
+       Doc =>'Array of Spherical Regular Bessel Functions J_{0}(x) to J_{n-1}(x).'
+      );
+
+pp_def('gsl_sf_bessel_yl',
+       GenericTypes => ['D'],
+       OtherPars =>'int n',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_bessel_yl_e,($COMP(n),$x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'IrRegular Spherical Bessel Function y_n(x).'
+      );
+
+pp_def('gsl_sf_bessel_yl_array',
+       GenericTypes => ['D'],
+       OtherPars =>'int n=>num',
+       Pars=>'double x(); double [o]y(num)',
+       Code =>'
+GSLERR(gsl_sf_bessel_yl_array,($COMP(n)-1,$x(),$P(y)))
+',
+       Doc =>'Array of Regular Spherical Bessel Functions y_{0}(x) to y_{n-1}(x).'
+      );
+
+pp_def('gsl_sf_bessel_il_scaled',
+       GenericTypes => ['D'],
+       OtherPars =>'int n',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_bessel_il_scaled_e,($COMP(n),$x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Scaled Regular Modified Spherical Bessel Function exp(-|x|) i_n(x).'
+      );
+
+pp_def('gsl_sf_bessel_il_scaled_array',
+       GenericTypes => ['D'],
+       OtherPars =>'int n=>num',
+       Pars=>'double x(); double [o]y(num)',
+       Code =>'
+GSLERR(gsl_sf_bessel_il_scaled_array,($COMP(n)-1,$x(),$P(y)))
+',
+       Doc =>'Array of Scaled Regular Modified Spherical Bessel Functions exp(-|x|) i_{0}(x) to exp(-|x|) i_{n-1}(x).'
+      );
+
+pp_def('gsl_sf_bessel_kl_scaled',
+       GenericTypes => ['D'],
+       OtherPars =>'int n',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_bessel_kl_scaled_e,($COMP(n),$x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Scaled IrRegular Modified Spherical Bessel Function exp(-|x|) k_n(x).'
+      );
+
+pp_def('gsl_sf_bessel_kl_scaled_array',
+       GenericTypes => ['D'],
+       OtherPars =>'int n=>num',
+       Pars=>'double x(); double [o]y(num)',
+       Code =>'
+GSLERR(gsl_sf_bessel_kl_scaled_array,($COMP(n)-1,$x(),$P(y)))
+',
+       Doc =>'Array of Scaled IrRegular Modified Spherical Bessel Functions exp(-|x|) k_{s}(x) to exp(-|x|) k_{s+n-1}(x).'
+      );
+
+pp_def('gsl_sf_bessel_Jnu',
+       GenericTypes => ['D'],
+       OtherPars =>'double n',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_bessel_Jnu_e,($COMP(n),$x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Regular Cylindrical Bessel Function J_nu(x).'
+      );
+
+pp_def('gsl_sf_bessel_Ynu',
+       GenericTypes => ['D'],
+       OtherPars =>'double n',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_bessel_Ynu_e,($COMP(n),$x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'IrRegular Cylindrical Bessel Function J_nu(x).'
+      );
+
+pp_def('gsl_sf_bessel_Inu_scaled',
+       GenericTypes => ['D'],
+       OtherPars =>'double n',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_bessel_Inu_scaled_e,($COMP(n),$x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Scaled Modified Cylindrical Bessel Function exp(-|x|) I_nu(x).'
+      );
+
+pp_def('gsl_sf_bessel_Inu',
+       GenericTypes => ['D'],
+       OtherPars =>'double n',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_bessel_Inu_e,($COMP(n),$x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Modified Cylindrical Bessel Function I_nu(x).'
+      );
+
+pp_def('gsl_sf_bessel_Knu_scaled',
+       GenericTypes => ['D'],
+       OtherPars =>'double n',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_bessel_Knu_scaled_e,($COMP(n),$x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Scaled Modified Cylindrical Bessel Function exp(-|x|) K_nu(x).'
+      );
+
+pp_def('gsl_sf_bessel_Knu',
+       GenericTypes => ['D'],
+       OtherPars =>'double n',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_bessel_Knu_e,($COMP(n),$x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Modified Cylindrical Bessel Function K_nu(x).'
+      );
+
+pp_def('gsl_sf_bessel_lnKnu',
+       GenericTypes => ['D'],
+       OtherPars =>'double n',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_bessel_lnKnu_e,($COMP(n),$x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Logarithm of Modified Cylindrical Bessel Function K_nu(x).'
+      );
+
+pp_def('gsl_sf_clausen',
+       GenericTypes => ['D'],
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_clausen_e,($x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Clausen Integral. Cl_2(x) := Integrate[-Log[2 Sin[t/2]], {t,0,x}]'
+      );
+
+pp_def('gsl_sf_hydrogenicR',
+       GenericTypes => ['D'],
+       OtherPars =>'int n; int l; double z',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_hydrogenicR_e,($COMP(n),$COMP(l),$COMP(z),$x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Normalized Hydrogenic bound states. Radial dipendence.'
+      );
+
+pp_def('gsl_sf_coulomb_wave_FGp_array',
+       GenericTypes => ['D'],
+       OtherPars =>'double lam_min; IV kmax=>n; double eta',
+       Pars=>'double x(); double [o]fc(n); double [o]fcp(n); double [o]gc(n); double [o]gcp(n); int [o]ovfw(); double [o]fe(n); double [o]ge(n);',
+       Code =>'
+int s;
+s = gsl_sf_coulomb_wave_FGp_array($COMP(lam_min),$COMP(kmax),$COMP(eta),$x(),$P(fc),$P(fcp),$P(gc),$P(gcp),$P(fe),$P(ge));
+if (s==GSL_EOVRFLW) {
+$ovfw()=1;
+}
+else {if (s) $CROAK("Error in gsl_sf_coulomb_wave_FGp_array: %s",gsl_strerror(s));
+else {$ovfw()=0;}}
+',
+       Doc =>' Coulomb wave functions F_{lam_F}(eta,x), G_{lam_G}(eta,x) and their derivatives; lam_G := lam_F - k_lam_G. if ovfw is signaled then F_L(eta,x)  =  fc[k_L] * exp(fe) and similar. '
+      );
+
+
+pp_def('gsl_sf_coulomb_wave_sphF_array',
+       GenericTypes => ['D'],
+       OtherPars =>'double lam_min; IV kmax=>n; double eta',
+       Pars=>'double x(); double [o]fc(n); int [o]ovfw(); double [o]fe(n);',
+       Code =>'
+int s;
+s = gsl_sf_coulomb_wave_sphF_array($COMP(lam_min),$COMP(kmax),$COMP(eta),$x(),$P(fc),$P(fe));
+if (s==GSL_EOVRFLW) {
+$ovfw()=1;
+}
+else {if (s) $CROAK("Error in gsl_sf_coulomb_wave_sphF_array: %s",gsl_strerror(s));
+else {$ovfw()=0;}}
+',
+       Doc =>' Coulomb wave function divided by the argument, F(xi, eta)/xi. This is the function which reduces to spherical Bessel functions in the limit eta->0. '
+      );
+
+pp_def('gsl_sf_coulomb_CL_e',
+       GenericTypes => ['D'],
+       Pars=>'double L(); double eta();  double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_coulomb_CL_e,($L(),$eta(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Coulomb wave function normalization constant. [Abramowitz+Stegun 14.1.8, 14.1.9].'
+      );
+
+pp_def('gsl_sf_coupling_3j',
+       GenericTypes => ['L'],
+       Pars=>'ja(); jb(); jc(); ma(); mb(); mc(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_coupling_3j_e,($ja(),$jb(),$jc(),$ma(),$mb(),$mc(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'3j Symbols:  (ja jb jc) over (ma mb mc).'
+      );
+
+pp_def('gsl_sf_coupling_6j',
+       GenericTypes => ['L'],
+       Pars=>'ja(); jb(); jc(); jd(); je(); jf(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_coupling_6j_e,($ja(),$jb(),$jc(),$jd(),$je(),$jf(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'6j Symbols:  (ja jb jc) over (jd je jf).'
+      );
+
+pp_def('gsl_sf_coupling_9j',
+       GenericTypes => ['L'],
+       Pars=>'ja(); jb(); jc(); jd(); je(); jf(); jg(); jh(); ji(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_coupling_9j_e,($ja(),$jb(),$jc(),$jd(),$je(),$jf(),$jg(),$jh(),$ji(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'9j Symbols:  (ja jb jc) over (jd je jf) over (jg jh ji).'
+      );
+
+pp_def('gsl_sf_dawson',
+       GenericTypes => ['D'],
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_dawson_e,($x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Dawsons integral: Exp[-x^2] Integral[ Exp[t^2], {t,0,x}]'
+      );
+
+pp_def('gsl_sf_debye_1',
+       GenericTypes => ['D'],
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_debye_1_e,($x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'D_n(x) := n/x^n Integrate[t^n/(e^t - 1), {t,0,x}]'
+      );
+
+pp_def('gsl_sf_debye_2',
+       GenericTypes => ['D'],
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_debye_2_e,($x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'D_n(x) := n/x^n Integrate[t^n/(e^t - 1), {t,0,x}]'
+      );
+
+pp_def('gsl_sf_debye_3',
+       GenericTypes => ['D'],
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_debye_3_e,($x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'D_n(x) := n/x^n Integrate[t^n/(e^t - 1), {t,0,x}]'
+      );
+
+pp_def('gsl_sf_debye_4',
+       GenericTypes => ['D'],
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_debye_4_e,($x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'D_n(x) := n/x^n Integrate[t^n/(e^t - 1), {t,0,x}]'
+      );
+
+pp_def('gsl_sf_dilog',
+       GenericTypes => ['D'],
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_dilog_e,($x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'/* Real part of DiLogarithm(x), for real argument. In Lewins notation, this is Li_2(x). Li_2(x) = - Re[ Integrate[ Log[1-s] / s, {s, 0, x}] ]'
+      );
+
+pp_def('gsl_sf_complex_dilog',
+       GenericTypes => ['D'],
+       Pars=>'double r(); double t(); double [o]re(); double [o]im(); double [o]ere(); double [o]eim()',
+       Code =>'
+gsl_sf_result re;
+gsl_sf_result im;
+GSLERR(gsl_sf_complex_dilog_e,($r(),$t(),&re,&im))
+$re() = re.val;
+$ere() = re.err;
+$im() = im.val;
+$eim() = im.err;
+',
+       Doc =>'DiLogarithm(z), for complex argument z = r Exp[i theta].'
+      );
+
+pp_def('gsl_sf_multiply',
+       GenericTypes => ['D'],
+       Pars=>'double x(); double xx(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_multiply_e,($x(),$xx(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Multiplication.'
+      );
+
+pp_def('gsl_sf_multiply_err',
+       GenericTypes => ['D'],
+       Pars=>'double x(); double xe(); double xx(); double xxe(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_multiply_err_e,($x(),$xe(),$xx(),$xxe(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Multiplication with associated errors.'
+      );
+
+pp_def('gsl_sf_ellint_Kcomp',
+       GenericTypes => ['D'],
+       Pars=>'double k(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_ellint_Kcomp_e,($k(),GSL_PREC_DOUBLE,&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Legendre form of complete elliptic integrals K(k) = Integral[1/Sqrt[1 - k^2 Sin[t]^2], {t, 0, Pi/2}].'
+      );
+
+pp_def('gsl_sf_ellint_Ecomp',
+       GenericTypes => ['D'],
+       Pars=>'double k(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_ellint_Ecomp_e,($k(),GSL_PREC_DOUBLE,&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Legendre form of complete elliptic integrals E(k) = Integral[  Sqrt[1 - k^2 Sin[t]^2], {t, 0, Pi/2}]'
+      );
+
+pp_def('gsl_sf_ellint_F',
+       GenericTypes => ['D'],
+       Pars=>'double phi(); double k(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_ellint_F_e,($phi(),$k(),GSL_PREC_DOUBLE,&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Legendre form of incomplete elliptic integrals F(phi,k)   = Integral[1/Sqrt[1 - k^2 Sin[t]^2], {t, 0, phi}]'
+      );
+
+pp_def('gsl_sf_ellint_E',
+       GenericTypes => ['D'],
+       Pars=>'double phi(); double k(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_ellint_E_e,($phi(),$k(),GSL_PREC_DOUBLE,&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Legendre form of incomplete elliptic integrals E(phi,k)   = Integral[  Sqrt[1 - k^2 Sin[t]^2], {t, 0, phi}]'
+      );
+
+pp_def('gsl_sf_ellint_P',
+       GenericTypes => ['D'],
+       Pars=>'double phi(); double k(); double n();
+              double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_ellint_P_e,($phi(),$k(),$n(),GSL_PREC_DOUBLE,&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Legendre form of incomplete elliptic integrals P(phi,k,n) = Integral[(1 + n Sin[t]^2)^(-1)/Sqrt[1 - k^2 Sin[t]^2], {t, 0, phi}]'
+      );
+
+pp_def('gsl_sf_ellint_D',
+       GenericTypes => ['D'],
+       Pars=>'double phi(); double k();
+              double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_ellint_D_e,($phi(),$k(),GSL_PREC_DOUBLE,&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Legendre form of incomplete elliptic integrals D(phi,k)'
+      );
+
+pp_def('gsl_sf_ellint_RC',
+       GenericTypes => ['D'],
+       Pars=>'double x(); double yy(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_ellint_RC_e,($x(),$yy(),GSL_PREC_DOUBLE,&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Carlsons symmetric basis of functions RC(x,y)   = 1/2 Integral[(t+x)^(-1/2) (t+y)^(-1)], {t,0,Inf}'
+      );
+
+pp_def('gsl_sf_ellint_RD',
+       GenericTypes => ['D'],
+       Pars=>'double x(); double yy(); double z(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_ellint_RD_e,($x(),$yy(),$z(),GSL_PREC_DOUBLE,&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Carlsons symmetric basis of functions RD(x,y,z) = 3/2 Integral[(t+x)^(-1/2) (t+y)^(-1/2) (t+z)^(-3/2), {t,0,Inf}]'
+      );
+
+pp_def('gsl_sf_ellint_RF',
+       GenericTypes => ['D'],
+       Pars=>'double x(); double yy(); double z(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_ellint_RF_e,($x(),$yy(),$z(),GSL_PREC_DOUBLE,&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Carlsons symmetric basis of functions RF(x,y,z) = 1/2 Integral[(t+x)^(-1/2) (t+y)^(-1/2) (t+z)^(-1/2), {t,0,Inf}]'
+      );
+
+pp_def('gsl_sf_ellint_RJ',
+       GenericTypes => ['D'],
+       Pars=>'double x(); double yy(); double z(); double p(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_ellint_RJ_e,($x(),$yy(),$z(),$p(),GSL_PREC_DOUBLE,&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Carlsons symmetric basis of functions RJ(x,y,z,p) = 3/2 Integral[(t+x)^(-1/2) (t+y)^(-1/2) (t+z)^(-1/2) (t+p)^(-1), {t,0,Inf}]'
+      );
+
+pp_def('gsl_sf_elljac',
+       GenericTypes => ['D'],
+       Pars=>'double u(); double m(); double [o]sn(); double [o]cn(); double [o]dn()',
+       Code =>'
+if (gsl_sf_elljac_e($u(),$m(),$P(sn),$P(cn),$P(dn))) {$CROAK("Error in gsl_sf_elljac");};
+',
+       Doc =>'Jacobian elliptic functions sn, dn, cn by descending Landen transformations'
+      );
+
+pp_def('gsl_sf_erfc',
+       GenericTypes => ['D'],
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_erfc_e,($x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Complementary Error Function erfc(x) := 2/Sqrt[Pi] Integrate[Exp[-t^2], {t,x,Infinity}]'
+      );
+
+pp_def('gsl_sf_log_erfc',
+       GenericTypes => ['D'],
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_log_erfc_e,($x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Log Complementary Error Function'
+      );
+
+pp_def('gsl_sf_erf',
+       GenericTypes => ['D'],
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_erf_e,($x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Error Function erf(x) := 2/Sqrt[Pi] Integrate[Exp[-t^2], {t,0,x}]'
+      );
+
+pp_def('gsl_sf_erf_Z',
+       GenericTypes => ['D'],
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_erf_Z_e,($x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Z(x) :  Abramowitz+Stegun 26.2.1'
+      );
+
+pp_def('gsl_sf_erf_Q',
+       GenericTypes => ['D'],
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_erf_Q_e,($x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Q(x) :  Abramowitz+Stegun 26.2.1'
+      );
+
+pp_def('gsl_sf_exp',
+       GenericTypes => ['D'],
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_exp_e,($x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Exponential'
+      );
+
+pp_def('gsl_sf_exprel_n',
+       GenericTypes => ['D'],
+       OtherPars => 'int n',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_exprel_n_e,($COMP(n),$x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'N-relative Exponential. exprel_N(x) = N!/x^N (exp(x) - Sum[x^k/k!, {k,0,N-1}]) = 1 + x/(N+1) + x^2/((N+1)(N+2)) + ... = 1F1(1,1+N,x)'
+      );
+
+pp_def('gsl_sf_exp_err',
+       GenericTypes => ['D'],
+       Pars=>'double x(); double dx(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_exp_err_e,($x(),$dx(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Exponential of a quantity with given error.'
+      );
+
+pp_def('gsl_sf_expint_E1',
+       GenericTypes => ['D'],
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_expint_E1_e,($x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'E_1(x) := Re[ Integrate[ Exp[-xt]/t, {t,1,Infinity}] ]'
+      );
+
+pp_def('gsl_sf_expint_E2',
+       GenericTypes => ['D'],
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_expint_E2_e,($x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'E_2(x) := Re[ Integrate[ Exp[-xt]/t^2, {t,1,Infity}] ]'
+      );
+
+pp_def('gsl_sf_expint_Ei',
+       GenericTypes => ['D'],
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_expint_Ei_e,($x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Ei(x) := PV Integrate[ Exp[-t]/t, {t,-x,Infinity}]'
+      );
+
+pp_def('gsl_sf_Shi',
+       GenericTypes => ['D'],
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_Shi_e,($x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Shi(x) := Integrate[ Sinh[t]/t, {t,0,x}]'
+      );
+
+pp_def('gsl_sf_Chi',
+       GenericTypes => ['D'],
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_Chi_e,($x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Chi(x) := Re[ M_EULER + log(x) + Integrate[(Cosh[t]-1)/t, {t,0,x}] ]'
+      );
+
+pp_def('gsl_sf_expint_3',
+       GenericTypes => ['D'],
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_expint_3_e,($x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Ei_3(x) := Integral[ Exp[-t^3], {t,0,x}]'
+      );
+
+pp_def('gsl_sf_Si',
+       GenericTypes => ['D'],
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_Si_e,($x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Si(x) := Integrate[ Sin[t]/t, {t,0,x}]'
+      );
+
+pp_def('gsl_sf_Ci',
+       GenericTypes => ['D'],
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_Ci_e,($x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Ci(x) := -Integrate[ Cos[t]/t, {t,x,Infinity}]'
+      );
+
+pp_def('gsl_sf_atanint',
+       GenericTypes => ['D'],
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_atanint_e,($x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'AtanInt(x) := Integral[ Arctan[t]/t, {t,0,x}]'
+      );
+
+pp_def('gsl_sf_fermi_dirac_int',
+       GenericTypes => ['D'],
+       OtherPars => 'int j',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_fermi_dirac_int_e,($COMP(j),$x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Complete integral F_j(x) for integer j'
+      );
+
+pp_def('gsl_sf_fermi_dirac_mhalf',
+       GenericTypes => ['D'],
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_fermi_dirac_mhalf_e,($x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Complete integral F_{-1/2}(x)'
+      );
+
+pp_def('gsl_sf_fermi_dirac_half',
+       GenericTypes => ['D'],
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_fermi_dirac_half_e,($x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Complete integral F_{1/2}(x)'
+      );
+
+pp_def('gsl_sf_fermi_dirac_3half',
+       GenericTypes => ['D'],
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_fermi_dirac_3half_e,($x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Complete integral F_{3/2}(x)'
+      );
+
+pp_def('gsl_sf_fermi_dirac_inc_0',
+       GenericTypes => ['D'],
+	OtherPars => 'double b',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_fermi_dirac_inc_0_e,($x(),$COMP(b),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Incomplete integral F_0(x,b) = ln(1 + e^(b-x)) - (b-x)'
+      );
+
+pp_def('gsl_sf_lngamma',
+       GenericTypes => ['D'],
+       Pars=>'double x(); double [o]y(); double [o]s(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+double sgn;
+GSLERR(gsl_sf_lngamma_sgn_e,($x(),&r,&sgn))
+$y() = r.val;
+$e() = r.err;
+$s() = sgn;
+',
+       Doc =>'Log[Gamma(x)], x not a negative integer Uses real Lanczos method. Determines the sign of Gamma[x] as well as Log[|Gamma[x]|] for x < 0. So Gamma[x] = sgn * Exp[result_lg].'
+      );
+
+pp_def('gsl_sf_gamma',
+       GenericTypes => ['D'],
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_gamma_e,($x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Gamma(x), x not a negative integer'
+      );
+
+pp_def('gsl_sf_gammastar',
+       GenericTypes => ['D'],
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_gammastar_e,($x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Regulated Gamma Function, x > 0 Gamma^*(x) = Gamma(x)/(Sqrt[2Pi] x^(x-1/2) exp(-x)) = (1 + 1/(12x) + ...),  x->Inf'
+      );
+
+pp_def('gsl_sf_gammainv',
+       GenericTypes => ['D'],
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_gammainv_e,($x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'1/Gamma(x)'
+      );
+
+pp_def('gsl_sf_lngamma_complex',
+       GenericTypes => ['D'],
+       Pars=>'double zr(); double zi(); double [o]x(); double [o]y(); double [o]xe(); double [o]ye()',
+       Code =>'
+gsl_sf_result r;
+gsl_sf_result ri;
+GSLERR(gsl_sf_lngamma_complex_e,($zr(),$zi(),&r,&ri))
+$x() = r.val;
+$xe() = r.err;
+$y() = ri.val;
+$ye() = ri.err;
+',
+       Doc =>'Log[Gamma(z)] for z complex, z not a negative integer. Calculates: lnr = log|Gamma(z)|, arg = arg(Gamma(z))  in (-Pi, Pi]'
+      );
+
+pp_def('gsl_sf_taylorcoeff',
+       GenericTypes => ['D'],
+       OtherPars => 'int n',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_taylorcoeff_e,($COMP(n),$x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'x^n / n!'
+      );
+
+pp_def('gsl_sf_fact',
+       GenericTypes => ['L'],
+       Pars=>'x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_fact_e,($x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'n!'
+      );
+
+pp_def('gsl_sf_doublefact',
+       GenericTypes => ['L'],
+       Pars=>'x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_doublefact_e,($x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'n!! = n(n-2)(n-4)'
+      );
+
+pp_def('gsl_sf_lnfact',
+       GenericTypes => ['L'],
+       Pars=>'x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_lnfact_e,($x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'ln n!'
+      );
+
+pp_def('gsl_sf_lndoublefact',
+       GenericTypes => ['L'],
+       Pars=>'x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_lndoublefact_e,($x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'ln n!!'
+      );
+
+pp_def('gsl_sf_lnchoose',
+       GenericTypes => ['L'],
+       Pars=>'n(); m(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_lnchoose_e,($n(), $m(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'log(n choose m)'
+      );
+
+pp_def('gsl_sf_choose',
+       GenericTypes => ['L'],
+       Pars=>'n(); m(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_choose_e,($n(), $m(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'n choose m'
+      );
+
+pp_def('gsl_sf_lnpoch',
+       GenericTypes => ['D'],
+       OtherPars => 'double a',
+       Pars=>'double x(); double [o]y(); double [o]s(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+double sgn;
+GSLERR(gsl_sf_lnpoch_sgn_e,($COMP(a),$x(),&r,&sgn))
+$y() = r.val;
+$e() = r.err;
+$s() = sgn;
+',
+       Doc =>'Logarithm of Pochammer (Apell) symbol, with sign information. result = log( |(a)_x| ), sgn    = sgn( (a)_x ) where (a)_x := Gamma[a + x]/Gamma[a]'
+      );
+
+pp_def('gsl_sf_poch',
+       GenericTypes => ['D'],
+       OtherPars => 'double a',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_poch_e,($COMP(a),$x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Pochammer (Apell) symbol (a)_x := Gamma[a + x]/Gamma[x]'
+      );
+
+pp_def('gsl_sf_pochrel',
+       GenericTypes => ['D'],
+       OtherPars => 'double a',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_pochrel_e,($COMP(a),$x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Relative Pochammer (Apell) symbol ((a,x) - 1)/x where (a,x) = (a)_x := Gamma[a + x]/Gamma[a]'
+      );
+
+pp_def('gsl_sf_gamma_inc_Q',
+       GenericTypes => ['D'],
+       OtherPars => 'double a',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_gamma_inc_Q_e,($COMP(a),$x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Normalized Incomplete Gamma Function Q(a,x) = 1/Gamma(a) Integral[ t^(a-1) e^(-t), {t,x,Infinity} ]'
+      );
+
+pp_def('gsl_sf_gamma_inc_P',
+       GenericTypes => ['D'],
+       OtherPars => 'double a',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_gamma_inc_P_e,($COMP(a),$x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Complementary Normalized Incomplete Gamma Function P(a,x) = 1/Gamma(a) Integral[ t^(a-1) e^(-t), {t,0,x} ]'
+      );
+
+pp_def('gsl_sf_lnbeta',
+       GenericTypes => ['D'],
+       Pars=>'double a(); double b(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_lnbeta_e,($a(),$b(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Logarithm of Beta Function Log[B(a,b)]'
+      );
+
+pp_def('gsl_sf_beta',
+       GenericTypes => ['D'],
+	OtherPars => '',
+       Pars=>'double a(); double b();double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_beta_e,($a(),$b(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Beta Function B(a,b)'
+      );
+
+pp_def('gsl_sf_gegenpoly_n',
+       GenericTypes => ['D'],
+       OtherPars =>'int n; double lambda',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_gegenpoly_n_e,($COMP(n),$COMP(lambda), $x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Evaluate Gegenbauer polynomials.'
+      );
+
+pp_def('gsl_sf_gegenpoly_array',
+       GenericTypes => ['D'],
+       OtherPars =>'int n=>num; double lambda',
+       Pars=>'double x(); double [o]y(num)',
+       Code =>'
+GSLERR(gsl_sf_gegenpoly_array,($COMP(n)-1,$COMP(lambda),$x(),$P(y)))
+',
+       Doc =>'Calculate array of Gegenbauer polynomials from 0 to n-1.'
+      );
+
+pp_def('gsl_sf_hyperg_0F1',
+       GenericTypes => ['D'],
+       OtherPars =>'double c',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_hyperg_0F1_e,($COMP(c), $x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'/* Hypergeometric function related to Bessel functions 0F1[c,x] = Gamma[c]    x^(1/2(1-c)) I_{c-1}(2 Sqrt[x]) Gamma[c] (-x)^(1/2(1-c)) J_{c-1}(2 Sqrt[-x])'
+      );
+
+pp_def('gsl_sf_hyperg_1F1',
+       GenericTypes => ['D'],
+       OtherPars =>'double a; double b',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_hyperg_1F1_e,($COMP(a),$COMP(b), $x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Confluent hypergeometric function  for integer parameters. 1F1[a,b,x] = M(a,b,x)'
+      );
+
+pp_def('gsl_sf_hyperg_U',
+       GenericTypes => ['D'],
+       OtherPars =>'double a; double b',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_hyperg_U_e,($COMP(a),$COMP(b), $x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Confluent hypergeometric function  for integer parameters. U(a,b,x)'
+      );
+
+pp_def('gsl_sf_hyperg_2F1',
+       GenericTypes => ['D'],
+       OtherPars =>'double a; double b; double c',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_hyperg_2F1_e,($COMP(a),$COMP(b), $COMP(c),$x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Confluent hypergeometric function  for integer parameters. 2F1[a,b,c,x]'
+      );
+
+pp_def('gsl_sf_hyperg_2F1_conj',
+       GenericTypes => ['D'],
+       OtherPars =>'double a; double b; double c',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_hyperg_2F1_conj_e,($COMP(a),$COMP(b), $COMP(c),$x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Gauss hypergeometric function 2F1[aR + I aI, aR - I aI, c, x]'
+      );
+
+pp_def('gsl_sf_hyperg_2F1_renorm',
+       GenericTypes => ['D'],
+       OtherPars =>'double a; double b; double c',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_hyperg_2F1_renorm_e,($COMP(a),$COMP(b), $COMP(c),$x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Renormalized Gauss hypergeometric function 2F1[a,b,c,x] / Gamma[c]'
+      );
+
+pp_def('gsl_sf_hyperg_2F1_conj_renorm',
+       GenericTypes => ['D'],
+       OtherPars =>'double a; double b; double c',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_hyperg_2F1_conj_renorm_e,($COMP(a),$COMP(b), $COMP(c),$x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Renormalized Gauss hypergeometric function 2F1[aR + I aI, aR - I aI, c, x] / Gamma[c]'
+      );
+
+pp_def('gsl_sf_hyperg_2F0',
+       GenericTypes => ['D'],
+       OtherPars =>'double a; double b',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_hyperg_2F0_e,($COMP(a),$COMP(b), $x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Mysterious hypergeometric function. The series representation is a divergent hypergeometric series. However, for x < 0 we have 2F0(a,b,x) = (-1/x)^a U(a,1+a-b,-1/x)'
+      );
+
+pp_def('gsl_sf_laguerre_n',
+       GenericTypes => ['D'],
+       OtherPars =>'int n; double a',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_laguerre_n_e,($COMP(n),$COMP(a), $x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Evaluate generalized Laguerre polynomials.'
+      );
+
+pp_def('gsl_sf_legendre_Pl',
+       GenericTypes => ['D'],
+       OtherPars =>'int l',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_legendre_Pl_e,($COMP(l),$x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'P_l(x)'
+      );
+
+pp_def('gsl_sf_legendre_Pl_array',
+       GenericTypes => ['D'],
+       OtherPars =>'int l=>num',
+       Pars=>'double x(); double [o]y(num)',
+       Code =>'
+GSLERR(gsl_sf_legendre_Pl_array,($COMP(l)-1,$x(),$P(y)))
+',
+       Doc =>'P_l(x) from 0 to n-1.'
+      );
+
+pp_def('gsl_sf_legendre_Ql',
+       GenericTypes => ['D'],
+       OtherPars =>'int l',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_legendre_Ql_e,($COMP(l),$x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Q_l(x)'
+      );
+
+pp_def('gsl_sf_legendre_Plm',
+       GenericTypes => ['D'],
+       OtherPars =>'int l; int m',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_legendre_Plm_e,($COMP(l),$COMP(m),$x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'P_lm(x)'
+      );
+
+pp_def('gsl_sf_legendre_array',
+       GenericTypes => ['D'],
+       OtherPars => 'char norm;  int lmax; int csphase',
+       Pars => 'double x(); double [o]y(n=CALC($COMP(lmax)*($COMP(lmax)+1)/2+$COMP(lmax)+1)); double [t]work(wn=CALC(gsl_sf_legendre_array_n($COMP(lmax))))',
+       HandleBad => 1,
+       Code => <<'EOBC',
+       PDL_IF_BAD(if ( $ISBAD( x() ) ) {
+          loop(n) %{ $SETBAD ( y() ); %}
+       } else,) {
+         if($x()<-1||$x()>1) $CROAK("The input to gsl_sf_legendre_array must be abs(x)<=1, and you input %f",$x());
+         gsl_sf_legendre_t norm;
+         switch ($COMP(norm)) {
+               case 'S': norm = GSL_SF_LEGENDRE_SCHMIDT; break;
+               case 'Y': norm = GSL_SF_LEGENDRE_SPHARM; break;
+               case 'N': norm = GSL_SF_LEGENDRE_FULL; break;
+               default: norm = GSL_SF_LEGENDRE_NONE; break;
+         }
+         GSLERR(gsl_sf_legendre_array_e,(norm, $COMP(lmax), $x(), $COMP(csphase), $P(work)));
+         loop(n) %{ $y() = $work(wn=>n); %}
+       }
+EOBC
+       Doc => <<'EOD',
+=for ref
+
+Calculate all normalized associated Legendre polynomials.
+
+=for usage
+
+$Plm = gsl_sf_legendre_array($x,'P',4,-1);
+
+The calculation is done for degree 0 <= l <= lmax and order 0 <= m <= l on the range abs(x)<=1.
+
+The parameter norm should be:
+
+=over 3
+
+=item 'S' for Schmidt semi-normalized associated Legendre polynomials S_l^m(x),
+
+=item 'Y' for spherical harmonic associated Legendre polynomials Y_l^m(x), or
+
+=item 'N' for fully normalized associated Legendre polynomials N_l^m(x).
+
+=item 'P' (or any other) for unnormalized associated Legendre polynomials P_l^m(x),
+
+=back
+
+lmax is the maximum degree l.
+csphase should be (-1) to INCLUDE the Condon-Shortley phase factor (-1)^m, or (+1) to EXCLUDE it.
+
+See L</gsl_sf_legendre_array_index> to get the value of C<l> and C<m> in the returned vector.
+EOD
+    );
+
+pp_def('gsl_sf_legendre_array_index',
+       OtherPars => 'int lmax',
+       Pars => 'int [o]l(n=CALC($COMP(lmax)*($COMP(lmax)+1)/2+$COMP(lmax)+1)); int [o]m(n)',
+       Code => q/
+       int ell, em, index;
+       for (ell=0; ell<=$COMP(lmax); ell++){
+           for (em=0; em<=ell; em++){
+               index = gsl_sf_legendre_array_index(ell,em);
+               $l(n=>index)=ell;
+               $m(n=>index)=em;
+           }
+       }/,
+       Doc =>'=for ref
+
+Calculate the relation between gsl_sf_legendre_arrays index and l and m values.
+
+=for usage
+($l,$m) = gsl_sf_legendre_array_index($lmax);
+
+Note that this function is called differently than the corresponding GSL function, to make it more useful for PDL: here you just input the maximum l (lmax) that was used in C<gsl_sf_legendre_array> and it calculates all l and m values.'
+    );
+
+pp_def('gsl_sf_legendre_sphPlm',
+       GenericTypes => ['D'],
+       OtherPars =>'int l; int m',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_legendre_sphPlm_e,($COMP(l),$COMP(m),$x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'P_lm(x), normalized properly for use in spherical harmonics'
+      );
+
+pp_def('gsl_sf_conicalP_half',
+       GenericTypes => ['D'],
+       OtherPars =>'double lambda',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_conicalP_half_e,($COMP(lambda),$x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Irregular Spherical Conical Function P^{1/2}_{-1/2 + I lambda}(x)'
+      );
+
+pp_def('gsl_sf_conicalP_mhalf',
+       GenericTypes => ['D'],
+       OtherPars =>'double lambda',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_conicalP_mhalf_e,($COMP(lambda),$x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Regular Spherical Conical Function P^{-1/2}_{-1/2 + I lambda}(x)'
+      );
+
+pp_def('gsl_sf_conicalP_0',
+       GenericTypes => ['D'],
+       OtherPars =>'double lambda',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_conicalP_0_e,($COMP(lambda),$x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Conical Function P^{0}_{-1/2 + I lambda}(x)'
+      );
+
+pp_def('gsl_sf_conicalP_1',
+       GenericTypes => ['D'],
+       OtherPars =>'double lambda',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_conicalP_1_e,($COMP(lambda),$x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Conical Function P^{1}_{-1/2 + I lambda}(x)'
+      );
+
+pp_def('gsl_sf_conicalP_sph_reg',
+       GenericTypes => ['D'],
+       OtherPars =>'int l; double lambda',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_conicalP_sph_reg_e,($COMP(l),$COMP(lambda),$x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Regular Spherical Conical Function P^{-1/2-l}_{-1/2 + I lambda}(x)'
+      );
+
+pp_def('gsl_sf_conicalP_cyl_reg_e',
+       GenericTypes => ['D'],
+       OtherPars =>'int m; double lambda',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_conicalP_cyl_reg_e,($COMP(m),$COMP(lambda),$x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Regular Cylindrical Conical Function P^{-m}_{-1/2 + I lambda}(x)'
+      );
+
+pp_def('gsl_sf_legendre_H3d',
+       GenericTypes => ['D'],
+       OtherPars =>'int l; double lambda; double eta',
+       Pars=>'double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_legendre_H3d_e,($COMP(l),$COMP(lambda),$COMP(eta),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'lth radial eigenfunction of the Laplacian on the 3-dimensional hyperbolic space.'
+      );
+
+pp_def('gsl_sf_legendre_H3d_array',
+       GenericTypes => ['D'],
+       OtherPars =>'int l=>num; double lambda; double eta',
+       Pars=>'double [o]y(num)',
+       Code =>'
+GSLERR(gsl_sf_legendre_H3d_array,($COMP(l)-1,$COMP(lambda),$COMP(eta),$P(y)))
+',
+       Doc =>'Array of H3d(ell), for l from 0 to n-1.'
+      );
+
+pp_def('gsl_sf_log',
+       GenericTypes => ['D'],
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_log_e,($x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Provide a logarithm function with GSL semantics.'
+      );
+
+
+pp_def('gsl_sf_complex_log',
+       GenericTypes => ['D'],
+       Pars=>'double zr(); double zi(); double [o]x(); double [o]y(); double [o]xe(); double [o]ye()',
+       Code =>'
+gsl_sf_result r;
+gsl_sf_result ri;
+GSLERR(gsl_sf_complex_log_e,($zr(),$zi(),&r,&ri))
+$x() = r.val;
+$xe() = r.err;
+$y() = ri.val;
+$ye() = ri.err;
+',
+       Doc =>'Complex Logarithm exp(lnr + I theta) = zr + I zi Returns argument in [-pi,pi].'
+      );
+
+pp_def('gsl_poly_eval',
+       GenericTypes => ['D'],
+       Pars=>'double x(); double c(m); double [o]y()',
+       Code =>'
+$y() = gsl_poly_eval($P(c),$SIZE(m),$x());
+',
+       Doc =>'c[0] + c[1] x + c[2] x^2 + ... + c[m-1] x^(m-1)'
+      );
+
+pp_def('gsl_sf_pow_int',
+       GenericTypes => ['D'],
+       OtherPars => 'int n',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_pow_int_e,($x(),$COMP(n),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Calculate x^n.'
+      );
+
+pp_def('gsl_sf_psi',
+       GenericTypes => ['D'],
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_psi_e,($x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Di-Gamma Function psi(x).'
+      );
+
+pp_def('gsl_sf_psi_1piy',
+       GenericTypes => ['D'],
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_psi_1piy_e,($x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Di-Gamma Function Re[psi(1 + I y)]'
+      );
+
+pp_def('gsl_sf_psi_n',
+       GenericTypes => ['D'],
+       OtherPars => 'int n',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_psi_n_e,($COMP(n),$x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Poly-Gamma Function psi^(n)(x)'
+      );
+
+pp_def('gsl_sf_synchrotron_1',
+       GenericTypes => ['D'],
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_synchrotron_1_e,($x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'First synchrotron function: synchrotron_1(x) = x Integral[ K_{5/3}(t), {t, x, Infinity}]'
+      );
+
+pp_def('gsl_sf_synchrotron_2',
+       GenericTypes => ['D'],
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_synchrotron_2_e,($x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Second synchroton function: synchrotron_2(x) = x * K_{2/3}(x)'
+      );
+
+pp_def('gsl_sf_transport_2',
+       GenericTypes => ['D'],
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_transport_2_e,($x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'J(2,x)'
+      );
+
+pp_def('gsl_sf_transport_3',
+       GenericTypes => ['D'],
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_transport_3_e,($x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'J(3,x)'
+      );
+
+pp_def('gsl_sf_transport_4',
+       GenericTypes => ['D'],
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_transport_4_e,($x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'J(4,x)'
+      );
+
+pp_def('gsl_sf_transport_5',
+       GenericTypes => ['D'],
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_transport_5_e,($x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'J(5,x)'
+      );
+
+pp_def('gsl_sf_sin',
+       GenericTypes => ['D'],
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_sin_e,($x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Sin(x) with GSL semantics.'
+      );
+
+pp_def('gsl_sf_cos',
+       GenericTypes => ['D'],
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_cos_e,($x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Cos(x) with GSL semantics.'
+      );
+
+pp_def('gsl_sf_hypot',
+       GenericTypes => ['D'],
+       Pars=>'double x(); double xx(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_hypot_e,($x(),$xx(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Hypot(x,xx) with GSL semantics.'
+      );
+
+pp_def('gsl_sf_complex_sin',
+       GenericTypes => ['D'],
+       Pars=>'double zr(); double zi(); double [o]x(); double [o]y(); double [o]xe(); double [o]ye()',
+       Code =>'
+gsl_sf_result r;
+gsl_sf_result ri;
+GSLERR(gsl_sf_complex_sin_e,($zr(),$zi(),&r,&ri))
+$x() = r.val;
+$xe() = r.err;
+$y() = ri.val;
+$ye() = ri.err;
+',
+       Doc =>'Sin(z) for complex z'
+      );
+
+pp_def('gsl_sf_complex_cos',
+       GenericTypes => ['D'],
+       Pars=>'double zr(); double zi(); double [o]x(); double [o]y(); double [o]xe(); double [o]ye()',
+       Code =>'
+gsl_sf_result r;
+gsl_sf_result ri;
+GSLERR(gsl_sf_complex_cos_e,($zr(),$zi(),&r,&ri))
+$x() = r.val;
+$xe() = r.err;
+$y() = ri.val;
+$ye() = ri.err;
+',
+       Doc =>'Cos(z) for complex z'
+      );
+
+pp_def('gsl_sf_complex_logsin',
+       GenericTypes => ['D'],
+       Pars=>'double zr(); double zi(); double [o]x(); double [o]y(); double [o]xe(); double [o]ye()',
+       Code =>'
+gsl_sf_result r;
+gsl_sf_result ri;
+GSLERR(gsl_sf_complex_logsin_e,($zr(),$zi(),&r,&ri))
+$x() = r.val;
+$xe() = r.err;
+$y() = ri.val;
+$ye() = ri.err;
+',
+       Doc =>'Log(Sin(z)) for complex z'
+      );
+
+pp_def('gsl_sf_lnsinh',
+       GenericTypes => ['D'],
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_lnsinh_e,($x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Log(Sinh(x)) with GSL semantics.'
+      );
+
+pp_def('gsl_sf_lncosh',
+       GenericTypes => ['D'],
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_lncosh_e,($x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Log(Cos(x)) with GSL semantics.'
+      );
+
+pp_def('gsl_sf_polar_to_rect',
+       GenericTypes => ['D'],
+       Pars=>'double r(); double t(); double [o]x(); double [o]y(); double [o]xe(); double [o]ye()',
+       Code =>'
+gsl_sf_result r;
+gsl_sf_result ri;
+GSLERR(gsl_sf_polar_to_rect,($r(),$t(),&r,&ri))
+$x() = r.val;
+$xe() = r.err;
+$y() = ri.val;
+$ye() = ri.err;
+',
+       Doc =>'Convert polar to rectlinear coordinates.'
+      );
+
+pp_def('gsl_sf_rect_to_polar',
+       GenericTypes => ['D'],
+       Pars=>'double x(); double y(); double [o]r(); double [o]t(); double [o]re(); double [o]te()',
+       Code =>'
+gsl_sf_result r;
+gsl_sf_result ri;
+GSLERR(gsl_sf_rect_to_polar,($x(),$y(),&r,&ri))
+$r() = r.val;
+$re() = r.err;
+$t() = ri.val;
+$te() = ri.err;
+',
+       Doc =>'Convert rectlinear to polar coordinates. return argument in range [-pi, pi].'
+      );
+
+pp_def('gsl_sf_angle_restrict_symm',
+       GenericTypes => ['D'],
+       Pars=>'double [o]y();',
+       Code =>'
+GSLERR(gsl_sf_angle_restrict_symm_e,($P(y)))
+',
+       Doc =>'Force an angle to lie in the range (-pi,pi].'
+      );
+
+pp_def('gsl_sf_angle_restrict_pos',
+       GenericTypes => ['D'],
+       Pars=>'double [o]y();',
+       Code =>'
+GSLERR(gsl_sf_angle_restrict_pos_e,($P(y)))
+',
+       Doc =>'Force an angle to lie in the range [0,2 pi).'
+      );
+
+pp_def('gsl_sf_sin_err',
+       GenericTypes => ['D'],
+       Pars=>'double x(); double dx(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_sin_err_e,($x(),$dx(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Sin(x) for quantity with an associated error.'
+      );
+
+pp_def('gsl_sf_cos_err',
+       GenericTypes => ['D'],
+       Pars=>'double x(); double dx(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_cos_err_e,($x(),$dx(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Cos(x) for quantity with an associated error.'
+      );
+
+pp_def('gsl_sf_zeta',
+       GenericTypes => ['D'],
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_zeta_e,($x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Riemann Zeta Function zeta(x) = Sum[ k^(-s), {k,1,Infinity} ], s != 1.0'
+      );
+
+pp_def('gsl_sf_hzeta',
+       GenericTypes => ['D'],
+       OtherPars =>'double q',
+       Pars=>'double s(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_hzeta_e,($s(), $COMP(q), &r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Hurwicz Zeta Function zeta(s,q) = Sum[ (k+q)^(-s), {k,0,Infinity} ]'
+      );
+
+pp_def('gsl_sf_eta',
+       GenericTypes => ['D'],
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_eta_e,($x(),&r))
+$y() = r.val;
+$e() = r.err;
+',
+       Doc =>'Eta Function eta(s) = (1-2^(1-s)) zeta(s)'
+      );
+
+pp_done();
