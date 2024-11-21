@@ -5,12 +5,10 @@ eval { require Devel::CheckLib; Devel::CheckLib->import; };
 use 5.014;
 use ExtUtils::MakeMaker;
 use ExtUtils::MakeMaker::Config;
-use File::Spec;
+use File::Spec::Functions qw(rel2abs catdir);
 
-# this will make PDL::Core::Dev's functions available
-# in Makefile.PL files in all subdirectories
-require "./Basic/lib/PDL/Core/Dev.pm"; PDL::Core::Dev->import();
-$INC{'PDL/Core/Dev.pm'} = 1; # so require P:C:Dev will report success after
+use lib rel2abs catdir qw(Basic lib);
+use PDL::Core::Dev;
 
 my @cpan_deps = my @prereq = (
   'Data::Dumper'        => 2.121,     # for PDL::IO::Dumper

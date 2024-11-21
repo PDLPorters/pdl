@@ -1,8 +1,10 @@
 use strict;
 use warnings;
-use 5.014;
 use ExtUtils::MakeMaker;
 use File::Spec::Functions;
+use Config;
+use lib qw(lib);
+use PDL::Core::Dev;
 eval { require Devel::CheckLib; Devel::CheckLib->import; };
 
 my $pdlroot = catfile qw(script pdl);
@@ -77,6 +79,7 @@ my @BUILD_BASIC = qw(Compression FFT IO/Misc IO/Pnm ImageND ImageRGB);
 WriteMakefile(
   NAME	=> 'PDL',
   VERSION_FROM => 'lib/PDL/Core.pm',
+  MIN_PERL_VERSION => '5.014',
   EXE_FILES => \@exe_files,
   XSMULTI => 1,
   XSBUILD => {
