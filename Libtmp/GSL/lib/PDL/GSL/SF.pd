@@ -22,7 +22,7 @@ pp_add_boot("gsl_set_error_handler_off();\n");
 pp_addhdr('
 #include <gsl/gsl_sf.h>
 #include <gsl/gsl_poly.h>
-#include "../gslerr.h"
+#include "gslerr.h"
 ');
 
 sub airy_func {

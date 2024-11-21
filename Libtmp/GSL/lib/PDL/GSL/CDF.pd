@@ -1,6 +1,8 @@
 use strict;
 use warnings;
 
+our $VERSION = '2.096';
+
 pp_addpm({At=>'Top'},<<'EOD');
 
 use strict;

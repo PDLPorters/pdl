@@ -1,6 +1,10 @@
 use strict;
 use warnings;
 
+{ no warnings 'once'; # pass info back to Makefile.PL
+$PDL::Core::Dev::EXTRAS{$::PDLMOD}{OBJECT} .= join '', map " $::PDLBASE-$_\$(OBJ_EXT)", qw(FUNC);
+}
+
 pp_bless('PDL::GSL::MROOT');
 
 pp_add_exported('','gslmroot_fsolver');

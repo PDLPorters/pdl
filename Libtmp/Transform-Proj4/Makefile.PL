@@ -22,7 +22,7 @@ undef &MY::postamble; # suppress warning
 *MY::postamble = sub { pdlpp_postamble_int(@pd_srcs); };
 
 WriteMakefile(
-  NAME  => 'PDL',
+  NAME  => 'PDL::Transform::Proj4',
   VERSION_FROM => 'lib/PDL/Transform/Proj4.pd',
   MIN_PERL_VERSION => '5.014',
   XSMULTI => 1,

@@ -51,7 +51,7 @@ EOD
 
 pp_addhdr('
 #include <gsl/gsl_linalg.h>
-#include "../gslerr.h"
+#include "gslerr.h"
 
 #define MATRIX_SETUP(m, rows, cols, lda, datap) \\
   m.size1 = rows; \\

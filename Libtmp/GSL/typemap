@@ -1,4 +1,8 @@
 TYPEMAP
+GslSpline *     	T_PTROBJ
+GslAccel *      	T_PTROBJ
+gsl_spline *            T_PTR
+gsl_interp_accel *      T_PTR
 gsl_rng *		ANY_OBJ
 gsl_ran_discrete_t *	T_PTROBJ
 
@@ -9,4 +13,3 @@ ANY_OBJ
 INPUT
 ANY_OBJ
 	$var = INT2PTR($type, SvIV((SV*)SvRV($arg)))
-

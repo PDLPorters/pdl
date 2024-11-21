@@ -2,6 +2,7 @@ use strict;
 use warnings;
 use ExtUtils::MakeMaker;
 use PDL::Core::Dev;
+use File::Spec::Functions;
 
 sub get_gsl_config {
   my ($flags) = @_;
@@ -32,15 +33,34 @@ sub get_gsl_libs {
 	  get_gsl_config('--cflags') ||
 	  warn "\tno GSL include info (libgsl probably not available)\n\n");
   chomp $lib; chomp $inc;
-  return ($inc,$lib);
+  ($inc,$lib);
 }
 
 # these will be used in the subdirs
-our ($GSL_includes, $GSL_libs) = get_gsl_libs();
+my ($GSL_includes, $GSL_libs) = get_gsl_libs();
+
+my @pd_srcs;
+undef &MY::init_PM; # suppress warning
+*MY::init_PM = sub {
+  package MY; # so that "SUPER" works right
+  my ($self) = @_;
+  $self->SUPER::init_PM;
+  @pd_srcs = ::pdlpp_eumm_update_deep($self);
+  my ($pm) = @$self{qw(PM)};
+  delete @$pm{grep /\.c$/, keys %$pm};
+};
 
 undef &MY::postamble; # suppress warning
-*MY::postamble = sub {};
+*MY::postamble = sub { pdlpp_postamble_int(@pd_srcs); };
+
 WriteMakefile(
   NAME => 'PDL::GSL',
+  VERSION_FROM => 'lib/PDL/GSL/CDF.pd',
+  MIN_PERL_VERSION => '5.014',
+  XSMULTI => 1,
+  TYPEMAPS => [PDL::Core::Dev::PDL_TYPEMAP()],
+  INC => join(' ', PDL::Core::Dev::PDL_INCLUDE(), "-I".curdir(), $GSL_includes),
+  LIBS => [$GSL_libs],
+  clean => { FILES => join ' ', qw(MANIFEST.bak) },
   NO_MYMETA => 1,
 );
