@@ -22,3 +22,6 @@ lib/PDL/GSL/RNG.xs
 lib/PDL/GSL/SF.c
 lib/PDL/GSL/SF.pm
 lib/PDL/GSL/SF.xs
+lib/PDL/Stats/Distr.c
+lib/PDL/Stats/Distr.pm
+lib/PDL/Stats/Distr.xs

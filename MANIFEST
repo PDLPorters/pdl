@@ -375,6 +375,7 @@ Libtmp/GSL/lib/PDL/GSL/MROOT-FUNC.c
 Libtmp/GSL/lib/PDL/GSL/MROOT.pd
 Libtmp/GSL/lib/PDL/GSL/RNG.pd
 Libtmp/GSL/lib/PDL/GSL/SF.pd
+Libtmp/GSL/lib/PDL/Stats/Distr.pd
 Libtmp/GSL/Makefile.PL
 Libtmp/GSL/README
 Libtmp/GSL/t/cdf.t
@@ -385,6 +386,7 @@ Libtmp/GSL/t/gsl_linalg.t
 Libtmp/GSL/t/gsl_mroot.t
 Libtmp/GSL/t/gsl_rng.t
 Libtmp/GSL/t/gsl_sf.t
+Libtmp/GSL/t/stats_distr.t
 Libtmp/GSL/typemap
 Libtmp/Image2D/image2d.pd
 Libtmp/Image2D/Makefile.PL
