@@ -7,7 +7,7 @@
 use strict;
 use warnings;
 use Test::More;
-use PDL;
+use PDL::LiteF;
 use PDL::GSL::DIFF;
 
 my @res = gsldiff(\&myf,1.5);

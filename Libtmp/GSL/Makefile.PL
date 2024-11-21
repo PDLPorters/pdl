@@ -1,6 +1,7 @@
 use strict;
 use warnings;
 use ExtUtils::MakeMaker;
+use PDL::Core::Dev;
 
 sub get_gsl_config {
   my ($flags) = @_;
@@ -35,7 +36,7 @@ if (!defined($version) or $version =~ /^\s*$/) {
 } else {
   my @is_parts =split /\./,$version;
   my @needed_parts=split /\./,$MINVERSION;
-  
+
   $needed_parts[-1]--;
   for (my $i=0; $i<=$#needed_parts; $i++) {
     my $is_part=(exists $is_parts[$i] ? $is_parts[$i] : 0);

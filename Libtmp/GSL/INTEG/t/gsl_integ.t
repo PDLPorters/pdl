@@ -7,7 +7,7 @@
 use strict;
 use warnings;
 use Test::More;
-use PDL;
+use PDL::LiteF;
 use PDL::GSL::INTEG;
 
 my $alfa = 2.6;

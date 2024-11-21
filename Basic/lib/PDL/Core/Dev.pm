@@ -145,7 +145,7 @@ sub _postamble {
     ? map "\$($_)", pdlpp_mod_vars($mod)
     : pdlpp_mod_values($internal, $src, $base, $multi_c);
   if ($internal) {
-    my $ppdir = File::Spec::Functions::abs2rel(catdir(dirname(dirname $w), qw(Basic lib PDL)));
+    my $ppdir = File::Spec::Functions::abs2rel(catdir($w, qw(PDL)));
     $pmdep .= join ' ', '', catfile($ppdir, 'PP.pm'), glob(catfile($ppdir, 'PP/*'));
     $cdep .= join ' ', $ppo, ':', map catfile($ppdir, qw(Core), $_),
       qw(pdl.h pdlcore.h pdlbroadcast.h pdlmagic.h);
@@ -261,6 +261,7 @@ sub _stdargs {
     $clean .= " \$($mangled_c)";
   } else {
     %hash = (%hash, OBJECT => "$base\$(OBJ_EXT)");
+    $clean .= " $base.xs";
   }
   if ($internal) {
     $hash{depend} = {
@@ -269,7 +270,7 @@ sub _stdargs {
   }
   (
     NAME  	=> $mod,
-    VERSION_FROM => ($internal ? catfile(dirname($w), qw(lib PDL Core.pm)) : $src),
+    VERSION_FROM => ($internal ? catfile($w, qw(PDL Core.pm)) : $src),
     TYPEMAPS     => [PDL_TYPEMAP()],
     PM 	=> {"$base.pm" => "\$(INST_LIBDIR)/$base.pm"},
     MAN3PODS => {"$base.pm" => "\$(INST_MAN3DIR)/$mod.\$(MAN3EXT)"},

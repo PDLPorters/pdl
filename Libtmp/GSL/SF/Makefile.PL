@@ -2,7 +2,7 @@ use strict;
 use warnings;
 use ExtUtils::MakeMaker;
 
-our ($GSL_includes, $GSL_libs); 
+our ($GSL_includes, $GSL_libs);
 
 sub gsl_sf_links_ok {
   my($lib,$inc) = @_;

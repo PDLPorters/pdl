@@ -7,7 +7,7 @@
 
 use strict;
 use warnings;
-use PDL;
+use PDL::LiteF;
 use PDL::GSL::INTERP;
 use Test::More;
 
