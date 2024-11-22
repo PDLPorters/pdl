@@ -44,7 +44,7 @@ if ($msg ne "") {
     return;
 }
 
-my @pack = (["slatec.pd", qw(Slatec PDL::Slatec)]);
+my @pack = (["slatec.pd", qw(Slatec PDL::Slatec), '', 1]);
 my @slatecfiles = map {s/\.f$//; $_} glob("slatec/*.f");
 my %hash = pdlpp_stdargs_int(@pack);
 

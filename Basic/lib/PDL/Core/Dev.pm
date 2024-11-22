@@ -169,7 +169,7 @@ $install|
 
 sub pdlpp_postamble_int {
   my $w = whereami_any();
-  join '', map _postamble($w, 1, @$_[0..3], 1, @$_[4..$#$_]), @_;
+  join '', map _postamble($w, 1, @$_[0..3], 1, @$_[5..$#$_]), @_;
 }
 
 # This is the function to be used outside the PDL tree.
