@@ -4,6 +4,7 @@ use ExtUtils::MakeMaker;
 use Config;
 use version;
 use Text::ParseWords qw(shellwords);
+use PDL::Core::Dev;
 
 my $msg = "";
 my ($f77);
