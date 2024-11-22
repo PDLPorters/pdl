@@ -2,14 +2,100 @@
 
 PDL::Core::Dev - PDL development module
 
+=head1 SYNOPSIS
+
+   use PDL::Core::Dev;
+
 =head1 DESCRIPTION
 
 This module encapsulates most of the stuff useful for
 PDL development and is often used from within Makefile.PL's.
 
-=head1 SYNOPSIS
+=head1 BUILD MODES
 
-   use PDL::Core::Dev;
+=head2 Old Skool
+
+The original scheme, which still works, was one PDL module per
+L<ExtUtils::MakeMaker> (EUMM) "module", i.e. directory. There has
+been work with Module::Build, but as that is now deprecated, it
+will not be further discussed.  That module would generate a C<.xs>
+and C<.pm> file in its directory, according to its F<Makefile.PL>,
+such as linking extra objects, or other libraries.
+
+To have several distinct PDL modules in a CPAN
+distribution, you made several directories, each with a F<Makefile.PL>.
+Parallel building was not normally possible between modules, though
+see PDL's top-level F<Makefile.PL> as of about 2015, which gained a
+C<coretest> target that did build in parallel despite subdirectories
+and "recursive make". Any change to any C code caused a rebuild of
+the whole C<.xs> file (for Slices this was upwards of 40,000 lines),
+and being one compilation unit, it could not be parallelised.
+
+=head2 Multi-C files
+
+As of 2.058, a new "multi-C" mode was added. For all internal PDL
+modules, and external ones that opted in (by adding a 5th, true,
+element to the array-ref describing the package). This creates one
+C file per operation, so parallel building is possible. This makes
+for quicker builds, both for those installing the package, and those
+developing it.
+
+It can also avoid unnecessary rebuilds if only one operation got
+changed - it only recompiles that C file.
+This is possible due to some trickiness by L<PDL::PP>,
+which detects if each C file that it I<would> output is the same
+as the one already on disk, first removing any C<#line> directives so
+that line renumbering will not force a rebuild, and not writing
+anything unless a real change happened.
+
+It is opt-in because if the module adds C functions with C<pp_addhdr>
+without scoping them appropriately, they get incorporated in each
+generated C file, which causes linking problems. Moving those to
+separate C files solves that.
+
+But parallel building (without the "cleverness" of the C<coretest>
+work) is only possible within each module.
+
+=head2 Deep mode
+
+EUMM pure-Perl distributions in the modern era have
+a F<lib> directory, whose structure matches the hierarchy of modules.
+PDL now uses this in its C<Basic> subdirectory, so there is e.g.
+F<lib/PDL/Core.pm> under that. As of EUMM 7.12, it's also possible
+to put C<.xs> files next to their respective C<.pm> files, by giving
+a true value for C<XSMULTI>.
+
+As of 2.096, another new mode was added, which automatically engages
+"multi-C" mode. This allows you to place your C<.pd> file under a
+F<lib> directory, whose location tells the build system its package
+name, which means the previous schemes' need to communicate that
+in each F<Makefile.PL> is no more. Now, the configuration is
+communicated by each C<.pd> file by setting values in a hash, e.g.:
+
+  { no warnings 'once'; # pass info back to Makefile.PL
+  $PDL::Core::Dev::EXTRAS{$::PDLMOD}{OBJECT} .= join '', map " $::PDLBASE/$_\$(OBJ_EXT)", qw(fftn);
+  $PDL::Core::Dev::EXTRAS{$::PDLMOD}{DEFINE} .= qq{ -DFFT_FLOAT -DFFT_DOUBLE -DFFT_LDOUBLE};
+  $PDL::Core::Dev::EXTRAS{$::PDLMOD}{INC} .= qq{ "-I$::PDLBASE"};
+  }
+
+This works because PDL needs to make an entry in the Makefile for
+each operation defined, which it does by loading the C<.pd> file,
+and making its version of C<pp_def> just record the operation name.
+As a side effect, the setting of the C<EXTRAS> value can be seen
+by the build process.
+
+To have the only F<Makefile.PL> work in this new scheme, converting
+it from the previous one(s), you need to add these keys to the
+C<WriteMakefile> call, some of which may previously have been
+supplied by C<pdlpp_stdargs>:
+
+  VERSION_FROM => 'lib/PDL/GSL/CDF.pd',
+  MIN_PERL_VERSION => '5.014', # PDL as of 2.094
+  LIBS => [$GSL_libs],
+  XSMULTI => 1,
+  TYPEMAPS => [PDL::Core::Dev::PDL_TYPEMAP()],
+  INC => join(' ', PDL::Core::Dev::PDL_INCLUDE(), "-I".curdir(), $GSL_includes),
+  dist => {PREOP => '$(PERLRUNINST) -MPDL::Core::Dev -e pdlpp_mkgen $(DISTVNAME)' },
 
 =head1 FUNCTIONS
 
