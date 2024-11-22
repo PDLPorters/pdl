@@ -126,7 +126,6 @@ sub init_PM {
     $pm->{ $plf->{$f} = _nopl($f) } = _nopl(delete $pm->{$f});
   }
   @pd_srcs = ::pdlpp_eumm_update_deep($self);
-  delete @$pm{grep /\.c$/, keys %$pm};
 }
 }
 

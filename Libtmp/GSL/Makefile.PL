@@ -46,8 +46,6 @@ undef &MY::init_PM; # suppress warning
   my ($self) = @_;
   $self->SUPER::init_PM;
   @pd_srcs = ::pdlpp_eumm_update_deep($self);
-  my ($pm) = @$self{qw(PM)};
-  delete @$pm{grep /\.c$/, keys %$pm};
 };
 
 undef &MY::postamble; # suppress warning

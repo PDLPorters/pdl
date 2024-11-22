@@ -212,6 +212,7 @@ sub pdlpp_eumm_update_deep {
     $eumm->{clean}{FILES} .= join ' ', '', $pmfile, map "\$($_)", @macro_vars;
     $eumm->{clean}{FILES} .= $EXTRAS{$f}{OBJECT} if $EXTRAS{$f}{OBJECT};
   }
+  delete @$pm{grep /\.c$/, keys %$pm};
   @pd_srcs;
 }
 
