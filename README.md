@@ -12,7 +12,7 @@
 
 PDL ("Perl Data Language") gives standard Perl the ability to *compactly* store and *speedily* manipulate the large N-dimensional data arrays which are the bread and butter of scientific computing.
 
-PDL turns Perl into a free, array-oriented, numerical language similar to (but, we believe, better than) such commercial packages as IDL and MatLab. One can write simple perl expressions to manipulate entire numerical arrays all at once. Simple interactive shells, `pdl2` and `perldl`, are provided for use from the command line along with the `PDL` module for use in Perl scripts.
+PDL turns Perl into a free, array-oriented, numerical language similar to (but, we believe, better than) such commercial packages as IDL and MatLab. One can write simple perl expressions to manipulate entire numerical arrays all at once. Simple interactive shells, `perldl` and `pdl2`, are provided for use from the command line along with the `PDL` module for use in Perl scripts.
 
 WARNING: There is absolutely no warranty for this software package. See the file COPYING for details.
 
@@ -20,19 +20,15 @@ WARNING: There is absolutely no warranty for this software package. See the file
 
 Before sending us your questions, please see the following files for further information, and check for any [open issues](https://github.com/PDLPorters/pdl/issues).
 
-- `INSTALL`: Basic installation instructions
-- `INTERNATIONALIZATION`: Notes re PDL i18n issue and status
-- `DEPENDENCIES`: Other software that PDL relies on (and where to get it)
+- [`PDL::Bugs`](https://metacpan.org/pod/PDL::InstallGuide): Basic installation instructions
 - `Changes`: A list of features or issues with regard to the current version, always worth checking!
-- `Bugs.pod`: How to make a bug report, [`PDL::Bugs`](https://metacpan.org/pod/PDL::Bugs)
-- `perldl.conf`: PDL configuration options
-- `Basic/Pod/FAQ.pod`: The FAQ in pod format. Try `perldoc PDL::FAQ` after installation.
-- `Basic/Pod/QuickStart.pod`: A quick overview of PDL. Try `perldoc PDL::QuickStart` after installation.
-- `Basic/Pod/BadValues.pod`: A discussion of the bad value support in PDL
-- `Basic/Pod/DeveloperGuide.pod`: How to participate in the development of PDL
+- [`PDL::Bugs`](https://metacpan.org/pod/PDL::Bugs): How to make a bug report,
+- [`PDL::FAQ`](https://metacpan.org/pod/PDL::FAQ): The FAQ in pod format. Try `perldoc PDL::FAQ` after installation.
+- [`PDL::QuickStart`](https://metacpan.org/pod/PDL::QuickStart): A quick overview of PDL. Try `perldoc PDL::QuickStart` after installation.
+- [`PDL::BadValues`](https://metacpan.org/pod/PDL::BadValues): A discussion of the bad value support in PDL
+- [`PDL::BadValues`](https://metacpan.org/pod/PDL::DeveloperGuide): How to participate in the development of PDL
 
-**Note:** Most PDL documentation is available online within the PDL shell, `pdl2` (or `perldl`). Try the `help` command within either shell.
-
+**Note:** Most PDL documentation is available online within the PDL shell, `perldl` (or `pdl2`). Try the `help` command within either shell.
 
 ## PDL -- the package
 
@@ -47,13 +43,13 @@ Check the [pdl web site](https://pdl.perl.org) for more information.
 
 Please read the file `INSTALL` for information on how to configure and install PDL. The `Changes` file contains important version specific information. Be *sure* to check for any [open issues](https://github.com/PDLPorters/pdl/issues) if you have any `INSTALL` issues.
 
-Once you have built PDL and either installed it or done `make doctest`, try either
+Once you have built PDL and either installed it or done `make`, try either
 
-    perl -Mblib Perldl2/pdl2
+    perl -Mblib blib/script/perldl
 
 from within the root of the PDL tree or just
 
-    pdl2
+    pdl
 
 if you have installed PDL already (`make install`) to get the interactive PDL shell.  In this shell, `help` gives you access to PDL documentation for each function separately (`help help` for more about this) and `demo` gives you some basic examples of what you can do.
 
