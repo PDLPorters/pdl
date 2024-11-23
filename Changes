@@ -7,6 +7,7 @@
 - PDL::GSL now requires GSL >= 2.0
 - PDL::GSLSF::* now merged into PDL::GSL::SF
 - incorporate PDL::Stats::Distr into PDL::GSL since needs GSL
+- Ufunc::{csumover,cprodover,ccumusumover,ccumuprodover} removed
 
 2.095 2024-11-03
 - add PDL_GENTYPE_IS_{REAL,FLOATREAL,COMPLEX,SIGNED,UNSIGNED}_##ppsym (#502)

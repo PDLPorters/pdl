@@ -3,7 +3,6 @@ use warnings;
 use PDL::Types qw(types ppdefs_complex ppdefs_all);
 
 my $T = [map $_->ppsym, grep $_->integer, types];
-my $C = [ppdefs_complex];
 my $A = [ppdefs_all];
 
 pp_addpm({At=>'Top'},<<'EOD');
@@ -132,10 +131,6 @@ EOF
 	   Doc => projectdocs( $name, $_->[0].$func, $_->[3] ),
 	   ) for (
       ['', 'int+', $A, ''],
-      ['c', 'cdouble', $C,
-"Unlike L</$func>, the calculations are performed in complex double
-precision."
-      ],
       ['d', 'double', undef,
 "Unlike L</$func>, the calculations are performed in double precision."
       ],
@@ -158,10 +153,6 @@ EOF
 	   Doc => cumuprojectdocs( $name, $_->[0].$cfunc, $_->[3] ),
 	   ) for (
       ['', 'int+', $A, ''],
-      ['c', 'cdouble', $C,
-"Unlike L</$cfunc>, the calculations are performed in complex double
-precision."
-      ],
       ['d', 'double', undef,
 "Unlike L</$cfunc>, the calculations are performed in double precision."
       ],
