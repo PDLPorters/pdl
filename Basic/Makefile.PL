@@ -94,8 +94,6 @@ WriteMakefile(
     },
   },
   DEFINE => $pthread_define,
-  INC => PDL::Core::Dev::PDL_INCLUDE(),
-  TYPEMAPS => [PDL::Core::Dev::PDL_TYPEMAP()],
   LIBS => [$libs_string],
   depend => {
     $core_obj => $hdeps,

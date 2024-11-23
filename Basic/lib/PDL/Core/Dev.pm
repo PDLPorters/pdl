@@ -85,17 +85,24 @@ As a side effect, the setting of the C<EXTRAS> value can be seen
 by the build process.
 
 To have the only F<Makefile.PL> work in this new scheme, converting
-it from the previous one(s), you need to add these keys to the
-C<WriteMakefile> call, some of which may previously have been
-supplied by C<pdlpp_stdargs>:
+it from the previous one(s), you need to add this key to the
+C<WriteMakefile> call:
 
   VERSION_FROM => 'lib/PDL/GSL/CDF.pd',
-  MIN_PERL_VERSION => '5.014', # PDL as of 2.094
-  LIBS => [$GSL_libs],
-  XSMULTI => 1,
-  TYPEMAPS => [PDL::Core::Dev::PDL_TYPEMAP()],
-  INC => join(' ', PDL::Core::Dev::PDL_INCLUDE(), "-I".curdir(), $GSL_includes),
-  dist => {PREOP => '$(PERLRUNINST) -MPDL::Core::Dev -e pdlpp_mkgen $(DISTVNAME)' },
+
+Note that the ones supplied by C<pdlpp_stdargs> are added for you. You I<do>
+need to provide overrides for C<postamble> as before, and also C<init_PM>:
+
+  {
+  my @pd_srcs;
+  package MY; # so that "SUPER" works right
+  sub init_PM {
+    my ($self) = @_;
+    $self->SUPER::init_PM;
+    @pd_srcs = ::pdlpp_eumm_update_deep($self);
+  }
+  sub postamble { ::pdlpp_postamble(@pd_srcs) }
+  }
 
 =head1 FUNCTIONS
 
@@ -273,6 +280,14 @@ sub pdlpp_eumm_update_deep {
   my $xsb = $eumm->{XSBUILD}{xs} ||= {};
   $eumm->{clean}{FILES} ||= '';
   $eumm->{OBJECT} ||= '';
+  $eumm->{INC} ||= '';
+  my $pdl_inc = PDL_INCLUDE();
+  $eumm->{INC} .= ' '.$pdl_inc if index($eumm->{INC}, $pdl_inc) == -1;
+  my $tms = $eumm->{TYPEMAPS} ||= [];
+  my $pdl_tm = PDL_TYPEMAP();
+  push @$tms, $pdl_tm if !grep $_ eq $pdl_tm, @$tms;
+  $eumm->{XSMULTI} ||= 1;
+  $eumm->{dist}{PREOP} ||= '$(PERLRUNINST) -MPDL::Core::Dev -e pdlpp_mkgen $(DISTVNAME)';
   my $xs = $eumm->{XS} ||= {};
   my $global_version = $eumm->parse_version($eumm->{VERSION_FROM});
   my @pd_srcs;
