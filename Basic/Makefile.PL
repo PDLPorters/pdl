@@ -98,7 +98,7 @@ WriteMakefile(
   TYPEMAPS => [PDL::Core::Dev::PDL_TYPEMAP()],
   LIBS => [$libs_string],
   depend => {
-    $core_obj => 'pm_to_blib '.$hdeps,
+    $core_obj => $hdeps,
     $cobj => $hdeps,
     (map +(
       "build_dynamic_PDL_".(s#/#_#gr) => "\$(INST_ARCHLIB)/auto/PDL/$_/".(s#.*/##gr).".\$(DLEXT)",
