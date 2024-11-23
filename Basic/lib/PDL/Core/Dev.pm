@@ -310,8 +310,13 @@ sub pdlpp_eumm_update_deep {
     close $fh;
     utime $mtime - 120, $mtime - 120, $pmfile; # so is out of date
     push @pd_srcs, [$f, $base, $mod, '', 1, 1];
-    $eumm->{clean}{FILES} .= join ' ', '', $pmfile, map "\$($_)", @macro_vars;
-    $eumm->{clean}{FILES} .= $EXTRAS{$f}{OBJECT} if $EXTRAS{$f}{OBJECT};
+    my $clean_extra = join ' ', '', $pmfile, map "\$($_)", @macro_vars;
+    $clean_extra .= $EXTRAS{$f}{OBJECT} if $EXTRAS{$f}{OBJECT};
+    if (ref $eumm->{clean}{FILES}) {
+      push @{$eumm->{clean}{FILES}}, $clean_extra;
+    } else {
+      $eumm->{clean}{FILES} .= $clean_extra;
+    }
   }
   delete @$pm{grep /\.c$/, keys %$pm};
   @pd_srcs;
