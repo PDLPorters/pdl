@@ -41,7 +41,7 @@ Check the [pdl web site](https://pdl.perl.org) for more information.
 
 ## Installation
 
-Please read the file `INSTALL` for information on how to configure and install PDL. The `Changes` file contains important version specific information. Be *sure* to check for any [open issues](https://github.com/PDLPorters/pdl/issues) if you have any `INSTALL` issues.
+Please read the installation guide linked above for information on how to install PDL. The `Changes` file contains important version specific information. Be *sure* to check for any [open issues](https://github.com/PDLPorters/pdl/issues) if you have any installation issues.
 
 Once you have built PDL and either installed it or done `make`, try either
 
@@ -70,43 +70,22 @@ If you need to post a problem report, and after checking with the pdl-general li
 Directory structure:
 
 `Basic/`
-: The stuff that PDL would be no use without
+: The stuff that makes `use PDL` work, including demos which are a showcase for PDL: type `demo` at the perldl prompt.
 
-`Demos/`
-: Showcase for PDL, type demo at the perldl prompt.
-
-`Doc/`
-: Modules for building/using the PDL documentation database
-
-`Example/`
+`Basic/examples/`
 : Sample programs using PDL
 
+`Basic/utils/`
+: Utilities relating to PDL
+
 `Graphics/`
-: The stuff that PDL needs to make pictures
+: The stuff that allows PDL to make pictures
 
 `IO/`
-: The stuff that PDL needs to write and read strange files
+: The stuff that PDL needs to write and read various file formats
 
 `Libtmp/`
 : The stuff that PDL would still be useful without but which makes PDL even more useful
-
-`Perldl2/`
-: The PDL shell version 2 source and development
-
-`cygwin/`
-: Platform specific information
-
-`macosx/`
-: Platform specific information
-
-`t/`
-: PDL tests directory
-
-`utils/`
-: Utilities relating to PDL
-
-`win32/`
-: Platform specific information
 
 
 Comments are welcome - so are volunteers to write code and documentation! Please contact the developers mailing list `pdl-devel@lists.sourceforge.net` ([subscription info](https://pdl.perl.org/?page=mailing-lists)) with ideas and suggestions.
@@ -114,6 +93,6 @@ Comments are welcome - so are volunteers to write code and documentation! Please
 The PDL developers.
 
 
-## Compilation Reports:
+## Installation Reports:
 
 The [CPAN Testers' result page](https://www.cpantesters.org) provides a database showing the results of compiling PDL and many other CPAN packages on multiple platforms.
