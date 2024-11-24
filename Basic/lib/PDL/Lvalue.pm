@@ -35,7 +35,7 @@ use warnings;
 my @funcs = qw/
                 index index2d mv
                 broadcast unbroadcast
-                rangeb sever
+                rangeb
                 xchg /;
 
 my $prots = join "\n", map {"use attributes 'PDL', \\&PDL::$_, 'lvalue';"}

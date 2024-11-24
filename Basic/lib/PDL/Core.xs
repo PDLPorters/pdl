@@ -806,23 +806,28 @@ set_c(x,pos,value)
     pdl_barf_if_error(pdl_changed(PDL_VAFFOK(x)?x->vafftrans->from:x, PDL_PARENTDATACHANGED, 0));
 
 BOOT:
-{
-   /* Initialize structure of pointers to core C routines */
-
-   PDL.Version     = PDL_CORE_VERSION;
+  /* Initialize structure of pointers to core C routines */
+  PDL.Version     = PDL_CORE_VERSION;
 #define X(sym, rettype, args) PDL.sym = pdl_ ## sym;
-   PDL_CORE_LIST(X)
+  PDL_CORE_LIST(X)
 #undef X
 #define X(symbol, ctype, ppsym, shortctype, defbval, ...) \
-  PDL.bvals.ppsym = defbval;
+ PDL.bvals.ppsym = defbval;
    PDL_TYPELIST_ALL(X)
 #undef X
-   /*
-      "Publish" pointer to this structure in perl variable for use
-       by other modules
-   */
-   sv_setiv(get_sv("PDL::SHARE",TRUE|GV_ADDMULTI), PTR2IV(&PDL));
-}
+  /* "Publish" pointer to this structure in perl variable for use
+     by other modules */
+  sv_setiv(get_sv("PDL::SHARE",TRUE|GV_ADDMULTI), PTR2IV(&PDL));
+  /* modified from https://www.perlmonks.org/?node_id=849145 */
+  char *package = "PDL";
+  HV* stash = gv_stashpvn(package, strlen(package), TRUE);
+  char *meths[] = { "sever", NULL }, **methsptr = meths;
+  for (; *methsptr; methsptr++) {
+    SV **meth = hv_fetch(stash, *methsptr, strlen(*methsptr), 0);
+    if(!meth) croak("No found method '%s' in '%s'", *methsptr, package);
+    CV *cv = GvCV(*meth);
+    CvLVALUE_on(cv);
+  }
 
 # make ndarray belonging to 'class' and of type 'type'
 # from avref 'array_ref' which is checked for being
