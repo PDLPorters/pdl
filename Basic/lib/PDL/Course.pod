@@ -409,10 +409,6 @@ seem to fit anywhere above.
 
 =over
 
-=item * L<PDL::Delta>
-
-Explains how things changed from PDL 1.x to PDL 2.x
-
 =item * L<PDL::Graphics2D>
 
 Supposed to be a uniform interface to plotting 2D graphics.
@@ -422,7 +418,7 @@ Supposed to be a uniform interface to plotting 2D graphics.
 Covers data flow, a cool feature to be sure, but from what I can tell
 it is not currently supported.
 
-=item * L<PDL::Lvalues>
+=item * L<PDL::Lvalue>
 
 PDL started before Perl 5.6, which introduce subs that could return
 lvalues. I'm pretty sure that this module has been rolled into the core
@@ -458,4 +454,3 @@ distribute and/or modify this document under the same terms as the
 current Perl license.
 
 See: http://dev.perl.org/licenses/
-

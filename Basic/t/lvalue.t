@@ -4,19 +4,26 @@ use Test::More;
 use Test::Exception;
 
 use PDL::LiteF;
+use PDL::Dbg;
 use PDL::Lvalue;
 
-ok (PDL::Lvalue->subs('slice'),"slice is an lvalue sub");
+my @lv_subs = map [$_], qw(
+  dice flat indexND indexNDb broadcast nslice_if_pdl px range reorder reshape
+  sever slice indexNDb mslice
+);
+push @lv_subs, map [$_, 1], qw(clump dummy index unbroadcast);
+push @lv_subs, map [$_, pdl 1], qw(where whereND);
+push @lv_subs, map [$_, 0, 1], qw(diagonal);
+push @lv_subs, map [$_, 0, 0], qw(dice_axis index2d mv xchg);
+push @lv_subs, map [$_, pdl([0]), undef, undef], qw(rangeb);
 
-my $pa = sequence 10;
-lives_ok {
-	$pa->slice("") .= 0;
-} "lvalue slice ran OK";
+my $pa = sequence 3,3;
+for (@lv_subs) {
+  my ($name, @args) = @$_;
+  no warnings 'uninitialized';
+  lives_ok { $pa->$name(@args) .= 0 } "lvalue @$_ ran OK";
+}
 
 is($pa->max, 0, "lvalue slice modified values");
-
-lives_ok {
-	$pa->broadcast(0) .= 1;
-} "lvalue broadcast ran OK";
 
 done_testing;
