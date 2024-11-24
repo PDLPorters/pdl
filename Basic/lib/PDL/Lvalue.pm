@@ -35,7 +35,7 @@ use warnings;
 my @funcs = qw/ clump diagonal dice dice_axis dummy flat
                 index index2d indexND indexNDb mslice mv
                 broadcast unbroadcast
-                nslice_if_pdl polyfillv px
+                nslice_if_pdl px
                 range rangeb reorder reshape sever slice
                 where whereND xchg /;
 
