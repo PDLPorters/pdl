@@ -33,7 +33,7 @@ use warnings;
 # list of functions that can be used as lvalue subs
 # extend as necessary
 my @funcs = qw/ clump diagonal dice dice_axis dummy flat
-                index index2d indexND indexNDb mslice mv
+                index index2d indexND mv
                 broadcast unbroadcast
                 nslice_if_pdl px
                 range rangeb reorder reshape sever slice

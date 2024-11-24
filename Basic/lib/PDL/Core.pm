@@ -2449,7 +2449,7 @@ Alias to L<PDL::Slices/slice>.
 
 =cut
 
-*PDL::mslice = \&PDL::Slices::slice;
+*PDL::mslice = \&PDL::slice;
 
 =head2 nslice_if_pdl
 
