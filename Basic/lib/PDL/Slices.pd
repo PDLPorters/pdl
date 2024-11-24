@@ -146,8 +146,7 @@ my $index_init =
            $CROAK("invalid index %"IND_FLAG" (valid range 0..%"IND_FLAG")",
                 this_ind,$SIZE(n)-1);
         }';
-pp_def(
-       'index',
+pp_def('index',
        GenericTypes => [ppdefs_all],
        HandleBad => 1,
        DefaultFlow => 1,
@@ -162,8 +161,7 @@ pp_def(
        'index barfs if any of the index values are bad.',
        );
 
-pp_def(
-       'index1d',
+pp_def('index1d',
        GenericTypes => [ppdefs_all],
        HandleBad => 1,
        DefaultFlow => 1,
@@ -211,8 +209,7 @@ my $index2d_init = pp_line_numbers(__LINE__, <<'EOF');
            $CROAK("invalid y-index %"IND_FLAG" (valid range 0..%"IND_FLAG")",
                 this_ind_b,$SIZE(nb)-1);
 EOF
-pp_def(
-       'index2d',
+pp_def('index2d',
        GenericTypes => [ppdefs_all],
        HandleBad => 1,
        DefaultFlow => 1,
@@ -227,9 +224,8 @@ pp_def(
        'index2d barfs if either of the index values are bad.',
 );
 
-# indexND: CED 2-Aug-2002
 pp_add_exported('','indexND indexNDb');
-pp_addpm(<<'EOD-indexND');
+pp_addpm(<<'EOD');
 =head2 indexNDb
 
 =for ref
@@ -279,16 +275,11 @@ sub PDL::indexND {
 
 *PDL::indexNDb = \&PDL::indexND;
 
-EOD-indexND
-
-pp_addpm(<<'EOD-range');
 sub PDL::range {
   my($source,$ind,$sz,$bound) = @_;
-
-# Convert to indx type up front (also handled in rangeb if necessary)
+  # Convert to indx type up front (also handled in rangeb if necessary)
   my $index = (ref $ind && UNIVERSAL::isa($ind,'PDL') && $ind->type eq 'indx') ? $ind : indx($ind);
   my $size = defined($sz) ? PDL->pdl($sz) : undef;
-
   # Handle empty PDL case: return a properly constructed Empty.
   if($index->isempty) {
       my @sdims= $source->dims;
@@ -296,9 +287,7 @@ sub PDL::range {
       unshift(@sdims, $size->list) if(defined($size));
       return PDL->new_from_specification(0 x ($index->ndims-1), @sdims);
   }
-
   $index = $index->dummy(0,1) unless $index->ndims;
-
   # Pack boundary string if necessary
   if(defined $bound) {
     if(ref $bound eq 'ARRAY') {
@@ -314,25 +303,9 @@ sub PDL::range {
       $bound = $1;
     }
   }
-
   no warnings; # shut up about passing undef into rangeb
   $source->rangeb($index,$size,$bound);
 }
-EOD-range
-
-pp_def(
-        'rangeb',
-        OtherPars => 'pdl *ind_pdl; SV *size_sv; SV *boundary_sv',
-        Doc => <<'EOD',
-=for ref
-
-Engine for L</range>
-
-=for example
-
-Same calling convention as L</range>, but you must supply all
-parameters.  C<rangeb> is marginally faster as it makes a direct PP call,
-avoiding the perl argument-parsing step.
 
 =head2 range
 
@@ -587,6 +560,20 @@ makes it easier to loop over the index array but a little more brain-bending
 to tease out the algorithm.
 
 =cut
+EOD
+
+pp_def('rangeb',
+        OtherPars => 'pdl *ind_pdl; SV *size_sv; SV *boundary_sv',
+        Doc => <<'EOD',
+=for ref
+
+Engine for L</range>
+
+=for example
+
+Same calling convention as L</range>, but you must supply all
+parameters.  C<rangeb> is marginally faster as it makes a direct PP call,
+avoiding the perl argument-parsing step.
 EOD
         HandleBad => 1,
         TwoWay => 1,
@@ -1031,8 +1018,7 @@ for(item=0; item<$COMP(nitems); item++) {
 EOD-EquivCPOffsCode
 );
 
-pp_def(
-        'rld',
+pp_def('rld',
         GenericTypes => [ppdefs_all],
         Pars=>'indx a(n); b(n); [o]c(m);',
         OtherPars=>'IV sumover_max => m',
@@ -1073,8 +1059,7 @@ decode to C<$c>.
 EOD
 );
 
-pp_def(
-        'rle',
+pp_def('rle',
         GenericTypes => [ppdefs_all],
         Pars=>'c(n); indx [o]a(m=CALC($SIZE(n))); [o]b(m);',
         PMCode =>pp_line_numbers(__LINE__, <<'EOC'),
@@ -1393,18 +1378,15 @@ EOF
 
 # the perl wrapper clump is now defined in Core.pm
 # this is just the low level interface
-pp_def(
-        '_clump_int',
+pp_def('_clump_int',
         OtherPars => 'PDL_Indx n',
         P2Child => 1,
         RedoDims => pp_line_numbers(__LINE__, <<'EOF'),
 	         /* truncate overly long clumps to just clump existing dimensions */
 		 if($COMP(n) > $PDL(PARENT)->ndims)
                         $COMP(n) = $PDL(PARENT)->ndims;
-
 		 if($COMP(n) < -1)
                         $COMP(n) = $PDL(PARENT)->ndims + $COMP(n) + 1;
-
                  PDL_Indx nrem = ($COMP(n) == -1 ? $PDL(PARENT)->broadcastids[0] : $COMP(n));
                  $SETNDIMS($PDL(PARENT)->ndims - nrem + 1);
 	         PDL_Indx i, d1=1;
@@ -1428,8 +1410,7 @@ EOF
         Doc => 'internal',
 );
 
-pp_def(
-        'xchg',
+pp_def('xchg',
         OtherPars => 'PDL_Indx n1; PDL_Indx n2;',
         TwoWay => 1,
         P2Child => 1,
@@ -1593,8 +1574,7 @@ sub PDL::reorder {
 
 EOD
 
-pp_def(
-        'mv',
+pp_def('mv',
         OtherPars => 'PDL_Indx n1; PDL_Indx n2;',
         TwoWay => 1,
         P2Child => 1,
@@ -1707,8 +1687,7 @@ EOD
 
 pp_add_exported('', 'using meshgrid');
 
-pp_def(
-        'lags',
+pp_def('lags',
         Doc => <<'EOD',
 =for ref
 
@@ -1780,8 +1759,7 @@ EOD
 EOF
 );
 
-pp_def(
-        'splitdim',
+pp_def('splitdim',
         Doc => <<'EOD',
 =for ref
 
@@ -1869,8 +1847,7 @@ EOD
 );
 
 # This is a bit tricky. Hope I haven't missed any cases.
-pp_def(
-        'broadcastI',
+pp_def('broadcastI',
         Doc => <<'EOD',
 =for ref
 
@@ -1956,8 +1933,7 @@ EOF
 EOF
 );
 
-pp_def(
-        'unbroadcast',
+pp_def('unbroadcast',
         Doc => <<'EOD',
 =for ref
 
@@ -2152,8 +2128,7 @@ EOD
 # is implemented a bit kludgily (it is detected in the Perl
 # front-end), but it is serviceable.
 #  --CED 12-Sep-2013
-pp_def(
-        'slice',
+pp_def('slice',
         Doc => <<'EOD-slice',
 =for usage
 
