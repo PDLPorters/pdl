@@ -2,7 +2,6 @@ use strict;
 use warnings;
 
 eval { require Devel::CheckLib; Devel::CheckLib->import; };
-use 5.014;
 use ExtUtils::MakeMaker;
 use ExtUtils::MakeMaker::Config;
 use File::Spec::Functions qw(rel2abs catdir);
@@ -75,7 +74,7 @@ my %makefile_hash = (
     'Pod::Select'         => 0,
     'ExtUtils::ParseXS'   => '3.21', # ExtUtils::Typemaps::tidy_type
   },
-  MIN_PERL_VERSION => '5.014',
+  MIN_PERL_VERSION => '5.016',
   NAME => 'PDL',
   VERSION_FROM => 'Basic/lib/PDL/Core.pm',
   META_MERGE => {

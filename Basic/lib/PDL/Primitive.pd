@@ -3677,7 +3677,7 @@ broadcast over a smaller mask, for example.
 
 =cut
 
-sub PDL::where {
+sub PDL::where :lvalue {
   barf "Usage: where( \$pdl1, ..., \$pdlN, \$mask )\n" if @_ == 1;
   my $mask = pop->flat->which;
   @_ == 1 ? $_[0]->flat->index($mask) : map $_->flat->index($mask), @_;

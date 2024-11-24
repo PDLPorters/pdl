@@ -97,7 +97,7 @@ For historical reasons C<vars> is an alias for C<px>.
 
 =cut
 
-sub px {
+sub px :lvalue {
   my $arg = shift;
   my $str="";
 
@@ -145,8 +145,6 @@ Alias for C<px>
 
 =cut
 
-# make vars an alias
-# I hope this works with inheritance
 *vars = \&px;
 
 1; # return success

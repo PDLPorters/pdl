@@ -268,14 +268,14 @@ PDL, suitable for feeding to this.
 
 =cut
 
-sub PDL::indexND {
+sub PDL::indexND :lvalue {
         my($source,$index, $boundary) = @_;
         return PDL::range($source,$index,undef,$boundary);
 }
 
 *PDL::indexNDb = \&PDL::indexND;
 
-sub PDL::range {
+sub PDL::range :lvalue {
   my($source,$ind,$sz,$bound) = @_;
   # Convert to indx type up front (also handled in rangeb if necessary)
   my $index = (ref $ind && UNIVERSAL::isa($ind,'PDL') && $ind->type eq 'indx') ? $ind : indx($ind);
@@ -1545,7 +1545,7 @@ result PDL will change the parent.
 
 =cut
 
-sub PDL::reorder {
+sub PDL::reorder :lvalue {
         my ($pdl,@newDimOrder) = @_;
 
         my $arrayMax = $#newDimOrder;
@@ -2036,7 +2036,7 @@ slice will change the parent (use the C<.=> operator).
 
 =cut
 
-sub PDL::dice {
+sub PDL::dice :lvalue {
 
         my $self = shift;
         my @dim_indexes = @_;  # array of dimension indexes
@@ -2112,7 +2112,7 @@ slice will change the parent.
 
 =cut
 
-sub PDL::dice_axis {
+sub PDL::dice_axis :lvalue {
   my($self,$axis,$idx) = @_;
   my $ix = PDL->topdl($idx);
   barf("dice_axis: index must be <=1D") if $ix->getndims > 1;
@@ -2287,7 +2287,7 @@ direct slicing even though the syntax is convenient.
  $x->slice([-2,1]);
 EOD-slice
         PMCode => pp_line_numbers(__LINE__, <<'EOD-slice'),
-sub PDL::slice {
+sub PDL::slice :lvalue {
     my ($source, @others) = @_;
     for my $i(0..$#others) {
       my $idx = $others[$i];
@@ -2502,7 +2502,7 @@ END
                 $SETDIMS();
         '),
         PMCode =>pp_line_numbers(__LINE__, <<'EOD'),
-sub PDL::diagonal { shift->_diagonal_int(my $o=PDL->null, \@_); $o }
+sub PDL::diagonal :lvalue { shift->_diagonal_int(my $o=PDL->null, \@_); $o }
 EOD
         Doc => <<'EOD',
 =for ref

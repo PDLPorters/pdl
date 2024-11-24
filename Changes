@@ -8,6 +8,7 @@
 - PDL::GSLSF::* now merged into PDL::GSL::SF
 - incorporate PDL::Stats::Distr into PDL::GSL since needs GSL
 - Ufunc::{csumover,cprodover,ccumusumover,ccumuprodover} removed
+- minimum Perl 5.16 due to lvalue problems
 
 2.095 2024-11-03
 - add PDL_GENTYPE_IS_{REAL,FLOATREAL,COMPLEX,SIGNED,UNSIGNED}_##ppsym (#502)
@@ -38,6 +39,7 @@
 - incorporate PDL::Parallel::threads
 - Ufunc::firstnonzeroover added - thanks @guillepo for inspiration
 - incorporate Test::PDL
+- minimum Perl 5.14
 
 2.093 2024-09-29
 - PDL.set_datatype now doesn't physicalise input, PDL.convert_type does

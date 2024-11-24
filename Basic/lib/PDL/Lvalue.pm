@@ -32,12 +32,11 @@ use warnings;
 
 # list of functions that can be used as lvalue subs
 # extend as necessary
-my @funcs = qw/ clump diagonal dice dice_axis dummy flat
-                index index2d indexND mv
+my @funcs = qw/
+                index index2d mv
                 broadcast unbroadcast
-                nslice_if_pdl px
-                range rangeb reorder reshape sever slice
-                where whereND xchg /;
+                rangeb sever
+                xchg /;
 
 my $prots = join "\n", map {"use attributes 'PDL', \\&PDL::$_, 'lvalue';"}
   @funcs;

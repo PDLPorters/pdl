@@ -1601,7 +1601,7 @@ positive indices.
 
 =cut
 
-sub PDL::dummy($$;$) {
+sub PDL::dummy($$;$) :lvalue {
    my ($pdl,$dim,$size) = @_;
    barf("Missing position argument to dummy()") unless defined $dim;  # required argument
    $dim = $pdl->getndims+1+$dim if $dim < 0;
@@ -1737,7 +1737,7 @@ Data flows back and forth as usual with slicing routines.
 
 =cut
 
-sub PDL::clump {
+sub PDL::clump :lvalue {
   goto &PDL::_clump_int if @_ < 3;
   my ($this,@dims) = @_;
   my $ndims = $this->getndims;
@@ -1898,10 +1898,6 @@ Explicit broadcasting over specified dims using broadcast id 1.
 
  $xx = $x->broadcast1(3,1)
 
-=for example
-
- Wibble
-
 Convenience function interfacing to
 L<PDL::Slices::broadcastI|PDL::Slices/broadcastI>.
 
@@ -1922,10 +1918,6 @@ Explicit broadcasting over specified dims using broadcast id 2.
 
  $xx = $x->broadcast2(3,1)
 
-=for example
-
- Wibble
-
 Convenience function interfacing to
 L<PDL::Slices::broadcastI|PDL::Slices/broadcastI>.
 
@@ -1945,10 +1937,6 @@ Explicit broadcasting over specified dims using broadcast id 3.
 =for usage
 
  $xx = $x->broadcast3(3,1)
-
-=for example
-
- Wibble
 
 Convenience function interfacing to
 L<PDL::Slices::broadcastI|PDL::Slices/broadcastI>.
@@ -2469,7 +2457,7 @@ and/or changed to "slice_if_pdl" for PDL 3.0.
 
 =cut
 
-sub PDL::nslice_if_pdl {
+sub PDL::nslice_if_pdl :lvalue {
    my ($pdl) = shift;
    my ($orig_args) = pop;
 
@@ -2982,7 +2970,7 @@ then the connection is first severed.
 =cut
 
 *reshape = \&PDL::reshape;
-sub PDL::reshape {
+sub PDL::reshape :lvalue {
     my $pdl = topdl($_[0]);
     if (@_ == 2 && $_[1] == -1) {  # a slicing reshape that drops 1-dims
 	return $pdl->slice( map $_==1 ? [0,0,0] : [], $pdl->dims);
@@ -3042,7 +3030,7 @@ Falls through if argument already == 1D.
 =cut
 
 *flat = \&PDL::flat;
-sub PDL::flat { # fall through if < 2D
+sub PDL::flat :lvalue { # fall through if < 2D
   return my $dummy = $_[0]->getndims != 1 ? $_[0]->clump(-1) : $_[0];
 }
 
