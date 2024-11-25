@@ -516,10 +516,6 @@ L<PDL::LiteF> - minimum PDL module function loader
 
 =item *
 
-L<PDL::Lvalue> - declare PDL lvalue subs
-
-=item *
-
 L<PDL::Math> - extended mathematical operations and special functions
 
 =item *

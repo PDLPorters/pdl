@@ -18,7 +18,6 @@ PDL::LiteF - minimum PDL module function loader
    use PDL::Basic;
    use PDL::Slices;
    use PDL::Bad;
-   use PDL::Lvalue;
 
 =head1 DESCRIPTION
 
@@ -50,7 +49,6 @@ use PDL::Ufunc;
 use PDL::Basic;
 use PDL::Slices;
 use PDL::Bad;
-use PDL::Lvalue;
 
 EOD
   die $@ if $@;

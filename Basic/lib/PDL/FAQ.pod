@@ -863,7 +863,7 @@ using lvalue subroutines:
     pdl> p $x
     [0 5 6 3 4]
 
-see L<PDL::Lvalue> for more info.  PDL also supports a more
+PDL also supports a more
 matrix-like slice syntax via the L<PDL::NiceSlice> module:
 
     pdl> $x(1:2) .= pdl([5,6])
@@ -1163,7 +1163,7 @@ or
 
     $cube(:,:,($_)) .= PDL->rpic($names[$_]);
 
-for the slice assignment using the new L<PDL::NiceSlice> syntax and Lvalue
+for the slice assignment using the new L<PDL::NiceSlice> syntax and lvalue
 assignments.
 
 The for loop reads the actual images into a temporary 2D ndarray whose

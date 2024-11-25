@@ -5,7 +5,6 @@ use Test::Exception;
 
 use PDL::LiteF;
 use PDL::Dbg;
-use PDL::Lvalue;
 
 my @lv_subs = map [$_], qw(
   dice flat indexND indexNDb broadcast nslice_if_pdl px range reorder reshape

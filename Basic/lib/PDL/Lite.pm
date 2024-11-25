@@ -13,7 +13,6 @@ PDL::Lite - minimum PDL module OO loader
    use PDL::Basic '';
    use PDL::Slices '';
    use PDL::Bad '';
-   use PDL::Lvalue;
 
 =head1 DESCRIPTION
 
@@ -46,7 +45,6 @@ use PDL::Basic '';
 use PDL::Slices '';
 use PDL::Bad '';
 require PDL; # for VERSION
-use PDL::Lvalue;
 
 our $VERSION = $PDL::VERSION;
 

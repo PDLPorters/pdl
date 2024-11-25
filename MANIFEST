@@ -87,7 +87,6 @@ Basic/lib/PDL/IO/Pnm/get.h
 Basic/lib/PDL/IO/Storable.pm
 Basic/lib/PDL/Lite.pm
 Basic/lib/PDL/LiteF.pm
-Basic/lib/PDL/Lvalue.pm
 Basic/lib/PDL/Math.pd
 Basic/lib/PDL/Math/const.c
 Basic/lib/PDL/Math/cpoly.c

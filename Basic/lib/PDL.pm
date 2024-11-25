@@ -153,7 +153,6 @@ Some notes:
    use PDL::IO::FITS;
    use PDL::IO::Pic;
    use PDL::IO::Storable;
-   use PDL::Lvalue;
 
 =cut
 
@@ -163,7 +162,6 @@ sub import {
   my $pkg = (caller())[0];
   eval <<"EOD";
 package $pkg;
-
 # Load the fundamental packages
 use PDL::Core;
 use PDL::Ops;
@@ -180,8 +178,6 @@ use PDL::IO::FITS;          # FITS IO (rfits/wfits; used by rpic/wpic too)
 use PDL::IO::Pic;           # rpic/wpic
 # end TPJ bit
 use PDL::IO::Storable; # to avoid mysterious Storable segfaults
-use PDL::Lvalue;
-
 EOD
   die $@ if $@;
 }

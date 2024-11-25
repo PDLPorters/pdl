@@ -418,18 +418,6 @@ Supposed to be a uniform interface to plotting 2D graphics.
 Covers data flow, a cool feature to be sure, but from what I can tell
 it is not currently supported.
 
-=item * L<PDL::Lvalue>
-
-PDL started before Perl 5.6, which introduce subs that could return
-lvalues. I'm pretty sure that this module has been rolled into the core
-and is no longer necessary.
-
-
-=item * L<PDL::Tests>
-
-Defines a few PDL::PP tests.  This code should be moved into the testing
-suite, but hasn't been...
-
 =item * L<PDL::Ops>
 
 Defines the standard Perl-overloadable operators, like + and .=, for

@@ -1883,7 +1883,7 @@ directly.
 
 =cut
 
-sub PDL::broadcast {
+sub PDL::broadcast :lvalue {
 	my $var = shift;
 	$var->broadcastI(1,\@_);
 }
