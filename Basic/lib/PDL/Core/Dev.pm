@@ -430,15 +430,19 @@ sub pdlpp_mkgen {
   for (@pairs) {
     my ($pd, $mod) = @$_;
     (my $prefix = $mod) =~ s|::|/|g;
-    my $basename = (split '/', $prefix)[-1];
-    my $basefile = "$basename.pm";
     my $outfile = File::Spec::Functions::rel2abs("$dir/GENERATED/$prefix.pm");
     File::Path::mkpath(dirname($outfile));
     my $old_cwd = Cwd::cwd();
-    chdir dirname($pd);
-    #there is no way to use PDL::PP from perl code, thus calling via system()
+    my $maybe_lib_base = "lib/$prefix";
+    my $maybe_lib_path = "$maybe_lib_base.pd";
+    my $is_lib_path = substr($pd, -length $maybe_lib_path) eq $maybe_lib_path;
+    my $todir = $is_lib_path ? substr($pd, 0, -length($maybe_lib_path)-1) : dirname($pd);
+    chdir $todir if $todir;
+    my $basename = $is_lib_path ? $maybe_lib_base : (split '/', $prefix)[-1];
     my $pp_call_arg = _pp_call_arg($mod, $mod, $basename, '', 0); # 0 so guarantee not create pp-*.c
-    my $rv = system($^X, @in, $pp_call_arg, File::Spec::Functions::abs2rel(basename($pd)));
+    #there is no way to use PDL::PP from perl code, thus calling via system()
+    my $rv = system $^X, @in, $pp_call_arg, "$basename.pd";
+    my $basefile = "$basename.pm";
     die "pdlpp_mkgen: cannot convert '$pd'\n" unless $rv == 0 && -f $basefile;
     File::Copy::copy($basefile, $outfile) or die "$outfile: $!";
     unlink $basefile; # Transform::Proj4.pm is wrong without GIS::Proj built
