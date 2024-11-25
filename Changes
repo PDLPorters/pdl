@@ -11,6 +11,7 @@
 - minimum Perl 5.16 due to lvalue problems
 - add PP key "Lvalue" to make the operation's XS func lvalue
 - replace PDL::Lvalue with decorating the subs with ":lvalue", or Lvalue key
+- pptemplate updated to new lib/*.pd scheme, adds trivial pp_def and test
 
 2.095 2024-11-03
 - add PDL_GENTYPE_IS_{REAL,FLOATREAL,COMPLEX,SIGNED,UNSIGNED}_##ppsym (#502)
