@@ -260,7 +260,6 @@ Graphics/Limits/t/limits_trans.t
 Graphics/Limits/t/limits_trans_err.t
 Graphics/Limits/t/limits_ulimits.t
 Graphics/Makefile.PL
-Graphics/State.pm
 Graphics/TriD/demos/test4.p
 Graphics/TriD/demos/test5.p
 Graphics/TriD/demos/test7.p

@@ -13,6 +13,7 @@
 - replace PDL::Lvalue with decorating the subs with ":lvalue", or Lvalue key
 - pptemplate updated to new lib/*.pd scheme, adds trivial pp_def and test
 - PDL::Graphics2D removed - use PDL::Graphics::Simple or PDL::Graphics::TriD
+- move PDL::Graphics::State to PGPLOT distro
 
 2.095 2024-11-03
 - add PDL_GENTYPE_IS_{REAL,FLOATREAL,COMPLEX,SIGNED,UNSIGNED}_##ppsym (#502)
