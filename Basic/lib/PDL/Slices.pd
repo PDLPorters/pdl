@@ -577,6 +577,7 @@ avoiding the perl argument-parsing step.
 EOD
         HandleBad => 1,
         TwoWay => 1,
+        Lvalue => 1,
         P2Child => 1,
 
 # rdim: dimensionality of each range (0 dim of index PDL)
@@ -1413,6 +1414,7 @@ EOF
 pp_def('xchg',
         OtherPars => 'PDL_Indx n1; PDL_Indx n2;',
         TwoWay => 1,
+        Lvalue => 1,
         P2Child => 1,
         AffinePriv => 1,
         EquivDimCheck =>pp_line_numbers(__LINE__, <<'EOF'),

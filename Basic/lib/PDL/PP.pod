@@ -2654,6 +2654,11 @@ Example:
     ',
   );
 
+=head3 Lvalue
+
+If present, make the operation's XS function be C<lvalue>, like
+L<PDL::Slices/xchg>. Added in 2.096.
+
 =head1 Appendix B: PP macros and functions
 
 =head2 Macros

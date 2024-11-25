@@ -824,8 +824,9 @@ BOOT:
   char *meths[] = { "sever", NULL }, **methsptr = meths;
   for (; *methsptr; methsptr++) {
     SV **meth = hv_fetch(stash, *methsptr, strlen(*methsptr), 0);
-    if(!meth) croak("No found method '%s' in '%s'", *methsptr, package);
+    if (!meth) croak("No found method '%s' in '%s'", *methsptr, package);
     CV *cv = GvCV(*meth);
+    if (!cv) croak("No found CV for '%s' in '%s'", *methsptr, package);
     CvLVALUE_on(cv);
   }
 

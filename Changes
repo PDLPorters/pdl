@@ -9,6 +9,7 @@
 - incorporate PDL::Stats::Distr into PDL::GSL since needs GSL
 - Ufunc::{csumover,cprodover,ccumusumover,ccumuprodover} removed
 - minimum Perl 5.16 due to lvalue problems
+- add PP key "Lvalue" to make the operation's XS func lvalue
 
 2.095 2024-11-03
 - add PDL_GENTYPE_IS_{REAL,FLOATREAL,COMPLEX,SIGNED,UNSIGNED}_##ppsym (#502)

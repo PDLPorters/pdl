@@ -507,29 +507,30 @@ use Carp;
 sub nopm { $::PDLPACK eq 'NONE' } # flag that we don't want to generate a PM
 
 sub import {
-	my ($mod,$modname, $packname, $base, $callpack, $multi_c, $deep) = @_;
-	# Allow for users to not specify the packname
-	($packname, $base, $callpack) = ($modname, $packname, $base)
-		if ($packname =~ m|/|);
-	$::PDLMOD=$modname; $::PDLPACK=$packname; $::PDLBASE=$base;
-	$::CALLPACK = $callpack || $::PDLMOD;
-	$::PDLMULTI_C = $multi_c; # one pp-*.c per function
-	$::PDLMULTI_C_PREFIX = $deep ? "$base-" : "";
-	$::PDLOBJ = "PDL"; # define pp-funcs in this package
-	$::PDLXS="";
-	$::PDLBEGIN="";
-	$::PDLPMROUT="";
- 	for ('Top','Bot','Middle') { $::PDLPM{$_}="" }
-	@::PDLPMISA=('PDL::Exporter', 'DynaLoader');
-	@::PDL_IFBEGINWRAP = ('','');
-	$::PDLVERSIONSET = '';
-	$::PDLMODVERSION = undef;
-	$::DOCUMENTED = 0;
-	$::PDLCOREIMPORT = "";  #import list from core, defaults to everything, i.e. use Core
-				#  could be set to () for importing nothing from core. or qw/ barf / for
-				# importing barf only.
-	@_=("PDL::PP");
-	goto &Exporter::import;
+  my ($mod,$modname, $packname, $base, $callpack, $multi_c, $deep) = @_;
+  # Allow for users to not specify the packname
+  ($packname, $base, $callpack) = ($modname, $packname, $base)
+          if ($packname =~ m|/|);
+  $::PDLMOD=$modname; $::PDLPACK=$packname; $::PDLBASE=$base;
+  $::CALLPACK = $callpack || $::PDLMOD;
+  $::PDLMULTI_C = $multi_c; # one pp-*.c per function
+  $::PDLMULTI_C_PREFIX = $deep ? "$base-" : "";
+  $::PDLOBJ = "PDL"; # define pp-funcs in this package
+  $::PDLXS="";
+  $::PDLBEGIN="";
+  $::PDLPMROUT="";
+  for ('Top','Bot','Middle') { $::PDLPM{$_}="" }
+  @::PDLPMISA=('PDL::Exporter', 'DynaLoader');
+  @::PDL_IFBEGINWRAP = ('','');
+  $::PDLVERSIONSET = '';
+  $::PDLMODVERSION = undef;
+  $::DOCUMENTED = 0;
+  $::PDLCOREIMPORT = ""; #import list from core, defaults to everything, i.e. use Core
+                         # could be set to () for importing nothing from core. or qw/ barf / for
+                         # importing barf only.
+  @::PDL_LVALUE_SUBS = ();
+  @_=("PDL::PP");
+  goto &Exporter::import;
 }
 
 sub list_functions {
@@ -754,6 +755,18 @@ sub pp_done {
         my $pdl_boot = PDL::Core::Dev::PDL_BOOT('PDL', $::PDLMOD);
         my $user_boot = $::PDLXSBOOT//'';
         $user_boot =~ s/^\s*(.*?)\n*$/  $1\n/ if $user_boot;
+        $user_boot .= <<EOF if @::PDL_LVALUE_SUBS;
+  char *package = "$::PDLOBJ";
+  HV* stash = gv_stashpvn(package, strlen(package), TRUE);
+  char *meths[] = {@{[join ',', map qq{"$_"}, @::PDL_LVALUE_SUBS]},NULL}, **methsptr = meths;
+  for (; *methsptr; methsptr++) {
+    SV **meth = hv_fetch(stash, *methsptr, strlen(*methsptr), 0);
+    if (!meth) croak("No found method '%s' in '%s'", *methsptr, package);
+    CV *cv = GvCV(*meth);
+    if (!cv) croak("No found CV for '%s' in '%s'", *methsptr, package);
+    CvLVALUE_on(cv);
+  }
+EOF
         (my $mod_underscores = $::PDLMOD) =~ s#::#_#g;
         my $text = join '',
           sprintf($PDL::PP::header_c, $0, $mod_underscores),
@@ -1947,6 +1960,15 @@ EOF
          my ($name) = @_;
          $::PDL_IFBEGINWRAP[0].'*'.$name.' = \&'.$::PDLOBJ.
                    '::'.$name.";\n".$::PDL_IFBEGINWRAP[1]
+     }
+   ),
+
+   PDL::PP::Rule->new([], [qw(Lvalue Name)],
+     'If Lvalue key, make the XS routine be lvalue with CvLVALUE_on',
+     sub {
+       my (undef, $name) = @_;
+       push @::PDL_LVALUE_SUBS, $name;
+       ();
      }
    ),
 
