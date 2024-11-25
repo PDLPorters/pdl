@@ -127,17 +127,6 @@ Helper routines for 3D graphics.
 =back
 
 
-
-=head2 Helper Modules
-
-=over 5
-
-=item L<PDL::Graphics::Limits>
-
-Derive data limits for display purposes.
-
-=back
-
 =head1 IMAGE PROCESSING
 
 =over 5

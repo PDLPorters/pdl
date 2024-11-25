@@ -249,16 +249,6 @@ Basic/utils/perldlpp.pl
 Basic/utils/scantree.pl
 Changes
 COPYING
-Graphics/Limits/Limits.pm
-Graphics/Limits/Makefile.PL
-Graphics/Limits/t/limits_errb.t
-Graphics/Limits/t/limits_keyspecs.t
-Graphics/Limits/t/limits_normalize_dsets.t
-Graphics/Limits/t/limits_range.t
-Graphics/Limits/t/limits_round.t
-Graphics/Limits/t/limits_trans.t
-Graphics/Limits/t/limits_trans_err.t
-Graphics/Limits/t/limits_ulimits.t
 Graphics/Makefile.PL
 Graphics/TriD/demos/test4.p
 Graphics/TriD/demos/test5.p

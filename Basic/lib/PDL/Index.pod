@@ -372,10 +372,6 @@ L<PDL::Gaussian> - Gaussian distributions.
 
 =item *
 
-L<PDL::Graphics::Limits> - derive limits for display purposes
-
-=item *
-
 L<PDL::Graphics::OpenGL::Perl::OpenGL> - PDL TriD OpenGL interface using POGL
 
 =item *
