@@ -249,7 +249,6 @@ Basic/utils/perldlpp.pl
 Basic/utils/scantree.pl
 Changes
 COPYING
-Graphics/Graphics2D.pm
 Graphics/Limits/Limits.pm
 Graphics/Limits/Makefile.PL
 Graphics/Limits/t/limits_errb.t

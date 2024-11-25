@@ -2,7 +2,7 @@ use strict;
 use warnings;
 use ExtUtils::MakeMaker;
 
-my @pm_names = qw (Graphics2D.pm State.pm);
+my @pm_names = qw (State.pm);
 WriteMakefile(
   NAME => 'PDL',
   PM => { map {

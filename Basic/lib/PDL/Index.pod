@@ -372,10 +372,6 @@ L<PDL::Gaussian> - Gaussian distributions.
 
 =item *
 
-L<PDL::Graphics2D> - An object oriented interface to PDL graphics
-
-=item *
-
 L<PDL::Graphics::Limits> - derive limits for display purposes
 
 =item *

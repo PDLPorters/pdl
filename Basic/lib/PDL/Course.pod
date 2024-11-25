@@ -409,10 +409,6 @@ seem to fit anywhere above.
 
 =over
 
-=item * L<PDL::Graphics2D>
-
-Supposed to be a uniform interface to plotting 2D graphics.
-
 =item * L<PDL::Dataflow>
 
 Covers data flow, a cool feature to be sure, but from what I can tell
