@@ -298,9 +298,6 @@ Graphics/TriD/TriD/Window.pm
 Graphics/TriD/VRML/Makefile.PL
 Graphics/TriD/VRML/VRML.pm
 Graphics/TriD/VRML/VRML/Protos.pm
-IO/Browser/browse.c
-IO/Browser/browser.pd
-IO/Browser/Makefile.PL
 IO/Dicom/Dicom.pm
 IO/Dicom/Makefile.PL
 IO/ENVI/readenvi.pdl

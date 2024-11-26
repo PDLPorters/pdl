@@ -15,6 +15,7 @@
 - PDL::Graphics2D removed - use PDL::Graphics::Simple or PDL::Graphics::TriD
 - move PDL::Graphics::State to PGPLOT distro
 - split Graphics/Limits out to separate PDL::Graphics::Limits distro
+- split IO/Browser out to separate PDL::IO::Browser distro
 
 2.095 2024-11-03
 - add PDL_GENTYPE_IS_{REAL,FLOATREAL,COMPLEX,SIGNED,UNSIGNED}_##ppsym (#502)

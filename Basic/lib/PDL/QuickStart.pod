@@ -338,10 +338,6 @@ well as get more speed.
 
 General raw data formats. Like FastRaw, only better.
 
-=item PDL::IO::Browser
-
-A Curses browser for arrays.
-
 =item PDL::IO::Pnm
 
 Portaple bitmap and pixmap support.

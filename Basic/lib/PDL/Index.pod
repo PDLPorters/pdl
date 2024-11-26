@@ -420,10 +420,6 @@ L<PDL::Graphics::TriD::VRML> - TriD VRML backend
 
 =item *
 
-L<PDL::IO::Browser> - 2D data browser for PDL
-
-=item *
-
 L<PDL::IO::Dicom> - a module for reading DICOM images.
 
 =item *

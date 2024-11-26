@@ -34,10 +34,6 @@ These two modules are so similar that they could probably be combined.
 You can also directly access the data from Perl using
 L<PDL::Core/get_dataref>.
 
-=item * Data Browsing
-
-At the moment, only PDL::IO::Browser provides data browsing functionality.
-
 =item * Image Handling
 
 PDL has a handful of modules that will load images into ndarrays for you.
@@ -87,27 +83,6 @@ If you find yourself writing scripts to procss many data files,
 especially if that data processing is not necessarily in sequential
 order, you should consider using PDL::DiskCache.  To read more,
 check the L<PDL::DiskCache documentation|PDL::DiskCache>.
-
-=head2 PDL::IO::Browser
-
-The Browser module provides a text-based data browser for 2D data sets.
-
-It uses the CURSES library to do the scrolling, so if your operating
-system does not have the curses library, you won't be able to install
-this on your machine.  (Note that the package containing the header
-files for the CURSES library may be called C<libcurses> or possibly
-C<libncurses>.)
-
-To see if the module is installed on your machine (and to get more
-information about PDL::IO::Browser), follow L<this link|PDL::IO::Browser>
-or type at the system prompt:
-
- perldoc PDL::IO::Browser
-
-If you want to get more information about PDL::IO::Browser and it's
-not installed on your system, I'm afraid you'll have to pick out the
-pod from the source file, which can be found online at
-L<https://github.com/PDLPorters/pdl/blob/master/IO/Browser/browser.pd>.
 
 =head2 PDL::IO::Dicom
 
