@@ -135,7 +135,7 @@ my @demos = (
     either because it does not make sense or it's too much work to do!
 
     To find out the status of a particular routine, use the 'badinfo'
-    command in perldl or pdl2 shell (this information is also included
+    command in perldl shell (this information is also included
     when you do 'help'), or the '-b' switch of pdldoc.
 |],
 

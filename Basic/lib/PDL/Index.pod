@@ -109,7 +109,7 @@ L<PDL::Tutorials> - A guide to PDL's tutorial documentation.
 
 =item *
 
-L<pdl2|PDL::pdl2> - Simple shell (version 2) for PDL
+L<perldl> - Simple shell for PDL
 
 =item *
 
@@ -529,26 +529,6 @@ L<PDL::Opt::Simplex> - Simplex optimization routines
 =item *
 
 L<PDL::Options> - simplifies option passing by hash in PerlDL
-
-=item *
-
-L<PDL::Perldl2::Plugin::CleanErrors> - filter out Moose cruft
-
-=item *
-
-L<PDL::Perldl2::Plugin::NiceSlice> - enable PDL NiceSlice syntax
-
-=item *
-
-L<PDL::Perldl2::Plugin::PDLCommands> - implement perldl aliases/escapes
-
-=item *
-
-L<PDL::Perldl2::Plugin::PrintControl> - disable default print output
-
-=item *
-
-L<PDL::Perldl2::Profile::Perldl2> - profile for Perldl2 shell
 
 =item *
 

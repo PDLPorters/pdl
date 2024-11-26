@@ -56,7 +56,7 @@ PDL programs.
 
 =head2 PDL interactive shell
 
-To start the interactive shell, open a terminal and run C<perldl> or C<pdl2>.
+To start the interactive shell, open a terminal and run C<perldl>.
 As in MATLAB, the interactive shell is the best way to learn the
 language. To exit the shell, type C<exit>, just like MATLAB.
 
@@ -66,7 +66,7 @@ One popular IDE for Perl is called Padre (L<http://padre.perlide.org>).
 It is cross platform and easy to use.
 
 Whenever you write a stand-alone PDL program (i.e. outside the
-C<perldl> or C<pdl2> shell) you must start the program with C<use PDL;>.
+C<perldl> shell) you must start the program with C<use PDL;>.
 This command imports the PDL module into Perl. Here is a sample
 PDL program:
 
@@ -146,7 +146,8 @@ you need to do calculations based on offsets.
 
 =item Displaying an object
 
-MATLAB normally displays object contents automatically. In the PDL shells you
+MATLAB normally displays object contents automatically unless you
+end with a C<;>. In the PDL shells you need to
 display objects explicitly with the C<print> command or the shortcut C<p>:
 
 MATLAB:
@@ -156,7 +157,7 @@ MATLAB:
  >> b = 23;       % Suppress output.
  >>
 
-PDL Shell (perldl or pdl2):
+PDL Shell (perldl):
 
  pdl> $x = 12    # No output.
  pdl> print $x   # Print object.
@@ -165,7 +166,7 @@ PDL Shell (perldl or pdl2):
  12
  pdl>
 
-In pdl2 there is the C<do_print> command that will toggle the "quiet"
+In L<pdl2|PDL::Perldl2> (a shell available on CPAN) there is the C<do_print> command that will toggle the "quiet"
 mode, which defaults to on. In "print" mode, expressions you enter on
 the command line will have their values printed.
 
@@ -664,7 +665,7 @@ To read data files containing whitespace separated columns of
 numbers (as would be read using the MATLAB I<load> command)
 one uses the PDL I<rcols> in L<PDL::IO::Misc>.  For a general
 review of the IO functionality available in PDL, see the
-documentation for L<PDL::IO>, e.g., C<help PDL::IO> in the I<pdl2>
+documentation for L<PDL::IO>, e.g., C<help PDL::IO> in the I<perldl>
 shell or C< pdldoc PDL::IO > from the shell command line.
 
 =head2 Data structures

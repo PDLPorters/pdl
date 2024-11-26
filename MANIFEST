@@ -522,16 +522,4 @@ Libtmp/Transform-Proj4/t/proj_transform.t
 Makefile.PL
 MANIFEST			This list of files
 MANIFEST.SKIP
-Perldl2/Makefile.PL
-Perldl2/pdl2
-Perldl2/Plugin/CleanErrors.pm
-Perldl2/Plugin/Makefile.PL
-Perldl2/Plugin/NiceSlice.pm
-Perldl2/Plugin/PDLCommands.pm
-Perldl2/Plugin/PrintControl.pm
-Perldl2/Profile/Makefile.PL
-Perldl2/Profile/Perldl2.pm
-Perldl2/README
-Perldl2/Script.pm
-Perldl2/TODO
 README.md

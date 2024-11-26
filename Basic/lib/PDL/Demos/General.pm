@@ -149,7 +149,7 @@ We hope you enjoyed these demos illustrating some
 of the basic capabilities of PDL.
 
 We encourage you to play with these commands in
-the perldl or pdl2 shell and use its online help support
+the perldl shell and use its online help support
 to find out more about these and other commands and
 features of PDL.
 

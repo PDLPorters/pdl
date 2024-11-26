@@ -42,7 +42,7 @@ data to be easily played with and visualised.
 =head2 Help
 
 PDL contains extensive user documentation, available both within the
-I<perldl> or I<pdl2> shells and from the command line, using the
+I<perldl> shell and from the command line, using the
 C<pdldoc> program.  C<pdldoc> is the PDL equivalent of C<perldoc -f>.
 You can also point a browser to L<https://metacpan.org/pod/PDL>.
 
@@ -118,8 +118,7 @@ And the empty C<qw()>  quotes are recognised as meaning 'nothing'.
 You can also specify a list of functions to import in the normal
 Perl way.
 
-There is also an interactive shell, C<perldl> or C<pdl2>, see I<perldl>
-or L<pdl2|PDL::Perldl2> for details.
+There is also an interactive shell, L<perldl>, see I<perldl> for details.
 
 =head2 To create a new PDL variable
 
@@ -393,8 +392,8 @@ One can also write PDL extensions as normal Perl modules.
 
 =head2 PDL shells
 
-The Perl script C<pdl2> (or C<perldl>) provides a simple command line interface
-to PDL.  If the latest Readlines/ReadKey modules have been installed C<pdl2>
+The Perl script C<perldl> provides a simple command line interface
+to PDL.  If the latest Readlines/ReadKey modules have been installed C<perldl>
 detects this and enables command line recall and editing.
 See the man page for details.
 

@@ -40,14 +40,14 @@ will search /home/joe/PDL and all its subdirectories for .pdl files.
 =head2 AUTO-SCANNING
 
 The variable C<$PDL::AutoLoader::Rescan> controls whether files
-are automatically re-scanned for changes at the C<perldl> or
-C<pdl2> command line.
+are automatically re-scanned for changes at the C<perldl>
+command line.
 
 If C<$PDL::AutoLoader::Rescan == 1> and the file is changed
 then the new definition is reloaded auto-matically before
-executing the C<perldl> or C<pdl2> command line. Which means
+executing the C<perldl> command line. Which means
 in practice you can edit files, save changes and have C<perldl>
-or C<pdl2> see the changes automatically.
+see the changes automatically.
 
 The default is '0' - i.e. to have this feature disabled.
 

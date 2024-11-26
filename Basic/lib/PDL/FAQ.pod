@@ -297,18 +297,18 @@ Use the command C<perldoc PDL> to start learning about PDL.
 
 The easiest way by far, however, to get familiar with PDL is to use
 the PDL on-line help facility from within the PDL
-shell, C<pdl2>  Just type C<pdl2> at your system prompt. Once you are inside the
-C<pdl2> shell type C<help> .  Using the C<help> and C<apropos> commands
+shell, C<perldl>  Just type C<perldl> at your system prompt. Once you are inside the
+C<perldl> shell type C<help> .  Using the C<help> and C<apropos> commands
 inside the shell you should be able to find the way round the
 documentation.
 
 Even better, you can immediately try your newly acquired
 knowledge about PDL by issuing PDL/Perl commands directly at the command
 line. To illustrate this process, here is the record of a typical
-C<pdl2> session of a PDL beginner (lengthy output is only symbolically
+C<perldl> session of a PDL beginner (lengthy output is only symbolically
 reproduced in braces ( <... ...> ) ):
 
-    unix> pdl2
+    unix> perldl
     pdl> help
     < ... help output ... >
     pdl> help PDL::QuickStart
@@ -537,7 +537,7 @@ To guarantee a completely clean installation of PDL, you will need
 to first delete the current installation files and folders.  These
 will be all directories named C<PDL> in the Perl C<@INC> path,
 files named C<*Pdlpp*> in any C<Inline> directories, and the 
-programs C<pdl, pdldoc, pdl2, perldl, and pptemplate>.  Then just build
+programs C<pdl, pdldoc, perldl, and pptemplate>.  Then just build
 and install as usual.  This is much easier to keep track of if you
 always install C<PDL> into a non-standard location.  See Q: 4.4 above.
 
@@ -730,23 +730,23 @@ variable contains.
 
 
 
-=head2 Q: 6.1    What is perldl?   What is pdl2?
+=head2 Q: 6.1    What is perldl?
 
 
-Sometimes C<perldl> (C<pdl2>) is used as a synonym for PDL. Strictly
-speaking, however, the name C<perldl> (C<pdl2>) is reserved for the
+Sometimes C<perldl> is used as a synonym for PDL. Strictly
+speaking, however, the name C<perldl> is reserved for the
 little shell that comes with the PDL distribution and is
 supposed to be used for the interactive prototyping of PDL
-scripts. For details check L<perldl> or L<pdl2>.
+scripts. For details check L<perldl>.
 
 
 =head2 Q: 6.2    How do I get on-line help for PDL?  
 
 
-Just type C<help> (shortcut = "?") at the C<pdl2> shell 
+Just type C<help> (shortcut = "?") at the C<perldl> shell 
 prompt and proceed from there. Another useful command 
 is the C<apropos> (shortcut = "??") command.
-Also try the C<demo> command in the C<perldl> or C<pdl2>
+Also try the C<demo> command in the C<perldl>
 shell if you are new to PDL.
 
 
@@ -985,7 +985,7 @@ L<PDL::Indexing> and L<PDL::PP> .
 
 
 The short answer is: read L<PDL::Objects> (e.g. type 
-C<help PDL::Objects> in the I<perldl> or I<pdl2> shell).
+C<help PDL::Objects> in the I<perldl> shell).
 
 The longer answer (extracted from L<PDL::Objects> ): 
 Since a PDL object is an opaque reference to a C struct, it is not 
@@ -1174,9 +1174,9 @@ appropriate slices of the 3D ndarray C<$cube> .
 =head2 Q: 6.20   Where are test files for the graphics modules?  
 
 The demo programs can be run most easily from the
-C<perldl> or C<pdl2> interactive shell:
+C<perldl> interactive shell:
 
-    perl -Mblib perldl  or  perl -Mblib Perldl2/pdl2
+    perl -Mblib perldl
 
 followed by C<demo 3d> or C<demo 3d2> at the prompt.
 C<demo> by itself will give you a list of the available PDL demos.
@@ -1188,7 +1188,7 @@ C<demo> by itself will give you a list of the available PDL demos.
 Questions like this should be a thing of the past with the PDL
 on-line help system in place. Just try (after installation):
 
-    un*x> pdl2
+    un*x> perldl
     pdl> apropos trid
 
 Check the output for promising hits and then try to look up
@@ -1208,7 +1208,7 @@ with the L<PGPLOT> module itself.
 
 =head2 Q: 7.1    I am looking for a package to do XXX in PDL. Where shall I look for it?  
 
-The first stop is again C<perldl> or C<pdl2> and the on-line help
+The first stop is again C<perldl> and the on-line help
 or the PDL documentation. There is already a lot of functionality in
 PDL which you might not be aware of.  The easiest way to look for
 functionality is to use the C<apropos> command:

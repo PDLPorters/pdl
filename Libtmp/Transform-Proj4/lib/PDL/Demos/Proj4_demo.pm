@@ -73,7 +73,7 @@ $w->plot(with=>'fits', $earth->map($t),
 ### with a scaling transform. The number is the Earth's radius from WGS72.
 ###
 ### There are a large number of map projections -- to list them all,
-### say "?? t_proj" in the perldl or pdl2 shell.  Here are four
+### say "?? t_proj" in the perldl shell.  Here are four
 ### of them:
 
 undef $w; # Close old window

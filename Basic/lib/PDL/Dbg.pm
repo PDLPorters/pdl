@@ -15,7 +15,7 @@ PDL::Dbg - functions to support debugging of PDL scripts
 These packages implements a couple of functions that should come in
 handy when debugging your PDL scripts. They make a lot of sense while
 you're doing rapid prototyping of new PDL code, let's say inside the
-perldl or pdl2 shell.
+perldl shell.
 
 =cut
 

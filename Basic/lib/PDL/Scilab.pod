@@ -51,7 +51,7 @@ interactive shell and you can use a Perl IDE to develop PDL programs.
 
 =head2 PDL interactive shell
 
-To start the interactive shell, open a terminal and run C<perldl> or C<pdl2>.
+To start the interactive shell, open a terminal and run C<perldl>.
 As in Scilab, the interactive shell is the best way to learn the
 language. To exit the shell, type C<exit>, just like Scilab.
 
@@ -61,7 +61,7 @@ One popular IDE for Perl is called Padre (L<http://padre.perlide.org>).
 It is cross platform and easy to use.
 
 Whenever you write a stand-alone PDL program (i.e. outside the
-C<perldl> or C<pdl2> shells) you must start the program with C<use PDL;>.
+C<perldl> shell) you must start the program with C<use PDL;>.
 This command imports the PDL module into Perl. Here is a sample
 PDL program:
 

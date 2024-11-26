@@ -79,7 +79,7 @@ earth_image('day') call on the next screen.
 
 [act => q&
 ### There are a large number of map projections -- to list them all, 
-### say "??cartography" in the perldl or pdl2 shell.  Here are four
+### say "??cartography" in the perldl shell.  Here are four
 ### of them:
 
 undef $w; # Close old window

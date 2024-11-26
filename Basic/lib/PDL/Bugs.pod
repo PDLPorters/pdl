@@ -91,7 +91,7 @@ C<perl -Mblib perldl -V> from the top level of the PDL build directory.
 
 The bug description and how to reproduce it.
 
-Short examples using the PDL shells, C<pdl2> or C<perldl>, are excellent!
+Short examples using the PDL shell, C<perldl>, are excellent!
 Don't forget to include needed input data (as small as possible) so that
 the code can be run with a cut and paste.
 

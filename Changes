@@ -16,6 +16,7 @@
 - move PDL::Graphics::State to PGPLOT distro
 - split Graphics/Limits out to separate PDL::Graphics::Limits distro
 - split IO/Browser out to separate PDL::IO::Browser distro
+- split Perldl2 out to separate PDL::Perldl2 distro
 
 2.095 2024-11-03
 - add PDL_GENTYPE_IS_{REAL,FLOATREAL,COMPLEX,SIGNED,UNSIGNED}_##ppsym (#502)

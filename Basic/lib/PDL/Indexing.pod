@@ -21,7 +21,7 @@ The values of an ndarray are stored compactly as typed values in a single block 
 not (as in a normal Perl list-of-lists) as individual Perl scalars.
 
 In the sections that follow many "methods" are called out -- these are Perl operators
-that apply to ndarrays.  From the L<perldl> (or L<pdl2>) shell, you
+that apply to ndarrays.  From the L<perldl> shell, you
 can find out more about each method by typing "?" followed by the method name.
 
 =head2 Dimension lists
@@ -203,7 +203,7 @@ several screens full of digits).
  ----------------------------------------------------------------
  $im          Double D [5,5]                P            0.20Kb
 
-The interactive C<perldl> or C<pdl2> shells that come with PDL have
+The interactive C<perldl> shells that come with PDL have
 a C<help vars> command that provides information about ndarrays. Use
 C<help help> for more.
 

@@ -12,7 +12,7 @@
 
 PDL ("Perl Data Language") gives standard Perl the ability to *compactly* store and *speedily* manipulate the large N-dimensional data arrays which are the bread and butter of scientific computing.
 
-PDL turns Perl into a free, array-oriented, numerical language similar to (but, we believe, better than) such commercial packages as IDL and MatLab. One can write simple perl expressions to manipulate entire numerical arrays all at once. Simple interactive shells, `perldl` and `pdl2`, are provided for use from the command line along with the `PDL` module for use in Perl scripts.
+PDL turns Perl into a free, array-oriented, numerical language similar to (but, we believe, better than) such commercial packages as IDL and MatLab. One can write simple perl expressions to manipulate entire numerical arrays all at once. A simple interactive shell, `perldl`, is provided for use from the command line along with the `PDL` module for use in Perl scripts.
 
 WARNING: There is absolutely no warranty for this software package. See the file COPYING for details.
 
@@ -28,7 +28,7 @@ Before sending us your questions, please see the following files for further inf
 - [`PDL::BadValues`](https://metacpan.org/pod/PDL::BadValues): A discussion of the bad value support in PDL
 - [`PDL::BadValues`](https://metacpan.org/pod/PDL::DeveloperGuide): How to participate in the development of PDL
 
-**Note:** Most PDL documentation is available online within the PDL shell, `perldl` (or `pdl2`). Try the `help` command within either shell.
+**Note:** Most PDL documentation is available online within the PDL shell, `perldl`. Try the `help` command within either shell.
 
 ## PDL -- the package
 

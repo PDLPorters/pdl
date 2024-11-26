@@ -733,7 +733,7 @@ __END__
 
 =head1 NAME
 
-perldl - Simple shell for PDL (see also L<pdl2>)
+perldl - Simple shell for PDL
 
 =head1 SYNOPSIS
 
@@ -845,8 +845,6 @@ command, which means that it will evaporate before the next prompt is printed.
 (You can use C<my> variables in a multi-line block or to isolate values within 
 a single command line, of course).
 
-  NOTE: pdl2 preserves lexical scope between lines.
-
 =item * Execution is immediate
 
 Under most circumstances, as soon as you end a line of input the line
@@ -948,7 +946,7 @@ C<l> lists the history buffer
 
 C<?> is an alias for L<help|PDL::Doc::Perldl/help>
 
-  pdl> ? pdl2    # get help for new pdl2 shell
+  pdl> ? vars    # show information about ndarrays in current namespace
 
 =item *
 
@@ -1148,7 +1146,7 @@ command is interactive.
 $PDL::toolongtoprint
 
 The maximal size pdls to print (defaults to 10,000 elements).
-This is not just a C<perldl> or C<pdl2> variable but it is
+This is not just a C<perldl> variable but it is
 something that is usually needed in an interactive debugging
 session.
 
@@ -1257,8 +1255,8 @@ enabled/disabled.
 =head2 C<perldl> and L<PDL::NiceSlice>
 
 L<PDL::NiceSlice> introduces a more convenient
-slicing syntax for ndarrays. In current versions of C<perldl> and
-C<pdl2> niceslicing is enabled by default (if the required CPAN
+slicing syntax for ndarrays. In the current version of C<perldl>
+niceslicing is enabled by default (if the required CPAN
 modules are installed on your machine).
 
 At startup C<perldl> will let you

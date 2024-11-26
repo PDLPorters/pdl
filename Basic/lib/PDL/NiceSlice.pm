@@ -359,7 +359,7 @@ sub reinstator_regexp{
     return qr/$reinstr/o; # allow trailing comments
 }
 
-# safe eval of findslice that should be used within perldl or pdl2
+# safe eval of findslice that should be used within perldl
 # as a preprocessor
 sub perldlpp {
  my ($class, $txt) = @_;
@@ -510,14 +510,14 @@ cases.  C<PDL::NiceSlice> rectifies that by incorporating new slicing
 syntax directly into the language via a perl I<source filter> (see
 L<perlfilter>).  NiceSlice adds no new functionality, only convenient syntax.
 
-NiceSlice is loaded automatically in the perldl or pdl2 shell, but (to avoid
+NiceSlice is loaded automatically in the perldl shell, but (to avoid
 conflicts with other modules) must be loaded explicitly in standalone
 perl/PDL scripts (see below).  If you prefer not to use a prefilter on
 your standalone scripts, you can use the L<PDL::Slices/slice>
 method in those scripts,
 rather than the more compact NiceSlice constructs.
 
-=head1 Use in scripts and C<perldl> or C<pdl2> shell
+=head1 Use in scripts and C<perldl> shell
 
 The new slicing syntax can be switched on and off in scripts
 and perl modules by using or unloading C<PDL::NiceSlice>.
@@ -1062,7 +1062,7 @@ compiler. C<PDL::NiceSlice> searches through your Perl source code and when
 it finds the new slicing syntax it rewrites the argument list
 appropriately and splices a call to the C<slice> method using the
 modified arg list into your perl code. You can see how this works in
-the L<perldl> or L<pdl2|PDL::Perldl2> shells by switching on
+the L<perldl> shell by switching on
 reporting (see above how to do that).
 
 =head1 BUGS

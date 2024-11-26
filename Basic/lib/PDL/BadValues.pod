@@ -69,13 +69,13 @@ including complex.
  120
 
 C<demo bad>
-within L<perldl|PDL::perldl> or L<pdl2|PDL::Perldl2> gives a demonstration of some of the things
+within L<perldl|PDL::perldl> gives a demonstration of some of the things
 possible with bad values.  These are also available on PDL's web-site,
 at F<http://pdl.perl.org/demos/>.  See L<PDL::Bad> for useful routines for working
 with bad values and F<t/bad.t> to see them in action.
 
 To find out if a routine supports bad values, use the C<badinfo> command in
-L<perldl> or L<pdl2> or the C<-b> option to L<pdldoc>.
+L<perldl> or the C<-b> option to L<pdldoc>.
 
 Each ndarray contains a flag - accessible via C<< $pdl->badflag >> - to say
 whether there's any bad data present:
@@ -249,7 +249,7 @@ not sufficient, there's the C<BadDoc> option. For code written at
 the Perl level - i.e. in a .pm file - use the C<=for bad> pod directive.
 
 This information will be available via man/pod2man/html documentation. It's also
-accessible from the C<perldl> or C<pdl2> shells - using the C<badinfo> command - and the C<pdldoc>
+accessible from the C<perldl> shell - using the C<badinfo> command - and the C<pdldoc>
 shell command - using the C<-b> option.
 
 =head1 AUTHOR

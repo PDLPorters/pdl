@@ -24,13 +24,13 @@ For example:
  yvals           Fills an ndarray with Y index values. See the CAVEAT for xvals.
  zvals           Fills an ndarray with Z index values. See the CAVEAT for xvals.
 
-To learn more about the PDL shell, see L<perldl> or L<pdl2>.
+To learn more about the PDL shell, see L<perldl>.
 
 =head1 FOUNDATION
 
 =over 5
 
-=item L<perldl> or L<pdl2>
+=item L<perldl>
 
 Learn about the PDL shell.
 
