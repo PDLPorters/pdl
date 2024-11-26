@@ -51,7 +51,7 @@ These things are known to be not working and may one day be fixed:
 
 =item COMPLEX numbers
 
-These could be implemented as 2-arrays or as PDL::Complex values, but aren't yet.
+These could be implemented as 2-arrays or as native complex values, but aren't yet.
 
 =item PTR types
 

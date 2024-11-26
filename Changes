@@ -18,6 +18,7 @@
 - split PDL::IO::Browser out to separate distro
 - split PDL::Perldl2 out to separate distro
 - fixed overly-rigid parsing of ASCII STL files (#504) - thanks Shugo for report
+- split PDL::Complex out to separate distro
 
 2.095 2024-11-03
 - add PDL_GENTYPE_IS_{REAL,FLOATREAL,COMPLEX,SIGNED,UNSIGNED}_##ppsym (#502)

@@ -2230,7 +2230,7 @@ sub _prep_table {
 
 =begin WHENCOMPLEXVALUESWORK
 
-	if( UNIVERSAL::isa($var,'PDL::Complex') ) {
+	if (!$var->type->real) {
 	  $rpt = $var->dim(1);
 	  $t = 'complex'
 	} else {
@@ -2241,8 +2241,8 @@ sub _prep_table {
 
 =cut
 
-	barf "Error: wfits() currently can not handle PDL::Complex arrays (column $colnames[$i])\n"
-	  if UNIVERSAL::isa($var,'PDL::Complex');
+	barf "Error: wfits() currently can not handle complex arrays (column $colnames[$i])\n"
+	  if !$var->type->real;
 
 	$t = $bintable_types{$var->type};
 

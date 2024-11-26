@@ -382,9 +382,6 @@ Libtmp/Image2D/resample.h
 Libtmp/Image2D/rotate.c
 Libtmp/Image2D/select.c
 Libtmp/Image2D/t/image2d.t
-Libtmp/LegacyComplex/complex.pd
-Libtmp/LegacyComplex/Makefile.PL
-Libtmp/LegacyComplex/t/complex.t
 Libtmp/Makefile.PL
 Libtmp/Simplex/Demo.pm
 Libtmp/Simplex/Makefile.PL

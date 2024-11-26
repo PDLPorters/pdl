@@ -144,10 +144,6 @@ L<PDL::Char> - PDL subclass which allows reading and writing of fixed-length cha
 
 =item *
 
-L<PDL::Complex> - handle complex numbers (DEPRECATED - use native complex)
-
-=item *
-
 L<PDL::Complex::Overloads> - subclass of Math::Complex with overload fallbacks
 
 =item *

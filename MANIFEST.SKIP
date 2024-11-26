@@ -78,7 +78,6 @@ RCS
 ^Libtmp/GSL/lib/PDL/GSL/SF(\.(pm|xs|c)$|-pp-)
 ^Libtmp/GSL/lib/PDL/Stats/Distr(\.(pm|xs|c)$|-pp-)
 ^Libtmp/Image2D/Image2D\..*
-^Libtmp/LegacyComplex/Complex\..*
 ^Libtmp/Slatec/Slatec..*
 ^Libtmp/Slatec/slatec/.*\.c$
 ^Libtmp/Transform-Proj4/Proj4\..*
