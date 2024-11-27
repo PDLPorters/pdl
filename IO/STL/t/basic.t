@@ -35,11 +35,14 @@ like $@, qr/Usage:/, 'wstl error right';
   is_pdl $v2->dice_axis(1, $f2->flat)->splitdim(1,3), $cubev;
 }
 
-($vertices, $faceidx) = rstl(catfile qw(t blenderasc.stl));
-is_pdl $vertices->dice_axis(1, $faceidx->flat)->splitdim(1,3), float '
+my $blender = float '
   [0.0017237 0.102913 -0.00153113; 0.00195483 0.104636 -0.00253355; 0.00243758 0.104636 -0.00153113]
   [0.00138235 0.103254 -0.00253355; 0.000767261 0.103869 -0.00322725; 0.00108497 0.104636 -0.00322725]
   [0.00138235 0.103254 -0.00253355; 0.00108497 0.104636 -0.00322725; 0.00195483 0.104636 -0.00253355]
 ';
+($vertices, $faceidx) = rstl(catfile qw(t ascblender1.stl));
+is_pdl $vertices->dice_axis(1, $faceidx->flat)->splitdim(1,3), $blender;
+($vertices, $faceidx) = rstl(catfile qw(t ascblender2.stl));
+is_pdl $vertices->dice_axis(1, $faceidx->flat)->splitdim(1,3), $blender;
 
 done_testing;

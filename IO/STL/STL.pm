@@ -108,7 +108,7 @@ sub _read_ascii {
   };
   my (@tri, $part);
   while(my $line = $getline->()) {
-    if($line =~ m/^\s*solid (.*)/) {
+    if($line =~ m/^\s*solid\s*(.*)/) {
       $part = $1;
       next;
     }
