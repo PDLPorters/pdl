@@ -112,10 +112,12 @@ sub _read_ascii {
       $part = $1;
       next;
     }
-    elsif($line =~ m/^\s*endsolid (.*)/) {
+    elsif($line =~ m/^\s*endsolid\s*(.*)/) {
       my $name = $1;
-      barf "invalid 'endsolid' entry with no current part" if !defined $part;
-      barf "end of part '$name' should have been '$part'" if $name ne $part;
+      if (length $name) { # only catch if wrong; if absent, fine
+        barf "invalid 'endsolid' entry with no current part" if !defined $part;
+        barf "end of part '$name' should have been '$part'" if $name ne $part;
+      }
       $part = undef;
       last;
     }

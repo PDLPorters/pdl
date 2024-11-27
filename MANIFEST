@@ -332,6 +332,7 @@ IO/STL/Makefile.PL
 IO/STL/owl.stl
 IO/STL/STL.pm
 IO/STL/t/basic.t
+IO/STL/t/blenderasc.stl
 IO/STL/t/cube.stl
 IO/STL/t/cube_binary.stl
 Libtmp/Filter/Linear.pm
