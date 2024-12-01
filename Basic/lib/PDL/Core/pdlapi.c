@@ -4,7 +4,7 @@
 #include "pdlcore.h"  /* Core declarations */
 
 /* CORE21 incorporate error in here if no vtable function */
-#define VTABLE_OR_DEFAULT(what, trans, is_fwd, func, default_func) \
+#define VTABLE_OR_DEFAULT(errcall, trans, is_fwd, func, default_func) \
   do { \
     pdl_transvtable *vtable = (trans)->vtable; \
     PDLDEBUG_f(printf("VTOD call " #func "(trans=%p/%s)\n", trans, vtable->name)); \
@@ -13,7 +13,7 @@
       for (i = istart; i < iend; i++) \
         if (trans->pdls[i]->trans_parent == trans) \
           PDL_ENSURE_ALLOCATED(trans->pdls[i]); \
-    what(PDL_err, (vtable->func \
+    errcall(PDL_err, (vtable->func \
       ? vtable->func \
       : pdl_ ## default_func)(trans)); \
     for (i = istart; i < iend; i++) { \
@@ -27,7 +27,7 @@
 #define READDATA(trans) VTABLE_OR_DEFAULT(PDL_ACCUMERROR, trans, 1, readdata, readdata_affine)
 #define WRITEDATA(trans) VTABLE_OR_DEFAULT(PDL_ACCUMERROR, trans, 0, writebackdata, writebackdata_affine)
 
-#define REDODIMS(what, trans) do { \
+#define REDODIMS(errcall, trans) do { \
     pdl_transvtable *vtable = (trans)->vtable; \
     if (vtable->redodims) { \
       PDL_Indx creating[vtable->npdls]; \
@@ -36,7 +36,7 @@
       for (i=0; i<vtable->npdls; i++) \
         creating[i] = (vtable->par_flags[i] & PDL_PARAM_ISCREAT) && \
           PDL_DIMS_FROM_TRANS(trans,pdls[i]); \
-      what(PDL_err, pdl_dim_checks( \
+      errcall(PDL_err, pdl_dim_checks( \
 	vtable, pdls, \
 	NULL, creating, \
 	(trans)->ind_sizes, 1)); \
@@ -46,7 +46,7 @@
 	if (PDL_err.error) return PDL_err; \
 	(trans)->dims_redone = 0; \
     } \
-    what(PDL_err, (vtable->redodims \
+    errcall(PDL_err, (vtable->redodims \
       ? vtable->redodims \
       : pdl_redodims_default)(trans)); \
     PDL_Indx i; \
@@ -55,7 +55,7 @@
         PDL_ACCUMERROR(PDL_err, pdl_make_error(PDL_EUSERERROR, \
           "%s: RedoDims gave size < 0 for dim %s", \
           trans->vtable->name, trans->vtable->ind_names[i])); \
-    if (PDL_err.error) what(PDL_err, PDL_err); \
+    if (PDL_err.error) errcall(PDL_err, PDL_err); \
     for (i = vtable->nparents; i < vtable->npdls; i++) { \
       pdl *child = (trans)->pdls[i]; \
       PDLDEBUG_f(printf("REDODIMS child=%p turning off dimschanged, before=", child); pdl_dump_flags_fixspace(child->state, 0, PDL_FLAGS_PDL)); \
