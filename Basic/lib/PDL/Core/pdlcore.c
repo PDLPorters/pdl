@@ -332,7 +332,7 @@ PDL_Indx av_ndcheck(AV* av, AV* dims, int level, int *datalevel)
         int j;
         short pndims;
         PDL_Indx *dest_dims;
-        pdl_barf_if_error(pdl_make_physdims(dest_pdl));
+        PDLDEBUG_f(printf("av_ndcheck calling ")); pdl_barf_if_error(pdl_make_physdims(dest_pdl));
         pndims = dest_pdl->ndims;
         dest_dims = dest_pdl->dims;
         for (j=0;j<pndims;j++) {

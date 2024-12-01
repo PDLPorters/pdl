@@ -483,7 +483,7 @@ PDL_Indx
 nelem(x)
 	pdl *x
 	CODE:
-		pdl_barf_if_error(pdl_make_physdims(x));
+		PDLDEBUG_f(printf("Core::nelem calling ")); pdl_barf_if_error(pdl_make_physdims(x));
 		RETVAL = x->nvals;
 	OUTPUT:
 		RETVAL
@@ -927,7 +927,7 @@ pdl *
 make_physdims(self)
 	pdl *self;
 	CODE:
-		pdl_barf_if_error(pdl_make_physdims(self));
+		PDLDEBUG_f(printf("Core::make_physdims calling ")); pdl_barf_if_error(pdl_make_physdims(self));
 		RETVAL = self;
 	OUTPUT:
 		RETVAL
@@ -993,7 +993,7 @@ sclr(it)
         /* get the first element of an ndarray and return as
          * Perl scalar (autodetect suitable type IV or NV)
          */
-        pdl_barf_if_error(pdl_make_physdims(it));
+        PDLDEBUG_f(printf("Core::sclr calling ")); pdl_barf_if_error(pdl_make_physdims(it));
         if (it->nvals > 1) barf("multielement ndarray in 'sclr' call");
         pdl_barf_if_error(pdl_make_physvaffine( it ));
         RETVAL.type = PDL_INVALID;
@@ -1116,7 +1116,7 @@ getndims(x)
 	     PDL::ndims = 1
 	CODE:
 		(void)ix;
-		pdl_barf_if_error(pdl_make_physdims(x));
+		PDLDEBUG_f(printf("Core::getndims calling ")); pdl_barf_if_error(pdl_make_physdims(x));
 		RETVAL = x->ndims;
 	OUTPUT:
 		RETVAL
@@ -1128,7 +1128,7 @@ dims(x)
 		PDL_Indx i;
 		U8 gimme = GIMME_V;
 	PPCODE:
-		pdl_barf_if_error(pdl_make_physdims(x));
+		PDLDEBUG_f(printf("Core::dims calling ")); pdl_barf_if_error(pdl_make_physdims(x));
 		if (gimme == G_ARRAY) {
 			EXTEND(SP, x->ndims);
 			for(i=0; i<x->ndims; i++) mPUSHi(x->dims[i]);
@@ -1145,7 +1145,7 @@ getdim(x,y)
 	     PDL::dim = 1
 	CODE:
 		(void)ix;
-		pdl_barf_if_error(pdl_make_physdims(x));
+		PDLDEBUG_f(printf("Core::getdim calling ")); pdl_barf_if_error(pdl_make_physdims(x));
 		if (y < 0) y += x->ndims;
 		if (y < 0) croak("negative dim index too large");
 		RETVAL = y < x->ndims ? x->dims[y] : 1; /* all other dims=1 */
@@ -1156,7 +1156,7 @@ PDL_Indx
 getnbroadcastids(x)
 	pdl *x
 	CODE:
-		pdl_barf_if_error(pdl_make_physdims(x));
+		PDLDEBUG_f(printf("Core::getnbroadcastids calling ")); pdl_barf_if_error(pdl_make_physdims(x));
 		RETVAL = x->nbroadcastids;
 	OUTPUT:
 		RETVAL
@@ -1168,7 +1168,7 @@ broadcastids(x)
 		PDL_Indx i;
 		U8 gimme = GIMME_V;
 	PPCODE:
-		pdl_barf_if_error(pdl_make_physdims(x));
+		PDLDEBUG_f(printf("Core::broadcastids calling ")); pdl_barf_if_error(pdl_make_physdims(x));
 		if (gimme == G_ARRAY) {
 			EXTEND(SP, x->nbroadcastids);
 			for(i=0; i<x->nbroadcastids; i++) mPUSHi(x->broadcastids[i]);
@@ -1239,7 +1239,7 @@ SV *
 hdr(p)
 	pdl *p
 CODE:
-  pdl_barf_if_error(pdl_make_physdims(p));
+  PDLDEBUG_f(printf("Core::hdr calling ")); pdl_barf_if_error(pdl_make_physdims(p));
   /* Make sure that in the undef case we return not */
   /* undef but an empty hash ref. */
   if((p->hdrsv==NULL) || (p->hdrsv == &PL_sv_undef)) {
@@ -1253,7 +1253,7 @@ SV *
 gethdr(p)
   pdl *p
 CODE:
-  pdl_barf_if_error(pdl_make_physdims(p));
+  PDLDEBUG_f(printf("Core::gethdr calling ")); pdl_barf_if_error(pdl_make_physdims(p));
   if((p->hdrsv==NULL) || (p->hdrsv == &PL_sv_undef)) {
       RETVAL = &PL_sv_undef;
   } else {
@@ -1278,7 +1278,7 @@ PPCODE:
   HV *opt_hv = NULL;
   if (!(SvROK(opt) && SvTYPE(opt_hv = (HV*)SvRV(opt)) == SVt_PVHV))
     barf("Usage: $pdl->dog([\\%%opt])");
-  pdl_barf_if_error(pdl_make_physdims(x));
+  PDLDEBUG_f(printf("Core::dog calling ")); pdl_barf_if_error(pdl_make_physdims(x));
   if (x->ndims <= 0) barf("dog: must have at least one dim");
   SV **svp = hv_fetchs(opt_hv, "Break", 0);
   char dobreak = (svp && *svp && SvOK(*svp));
