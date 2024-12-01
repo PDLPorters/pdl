@@ -694,6 +694,7 @@ pdl_error pdl_make_trans_mutual(pdl_trans *trans)
   /* copy the converted outputs from the end-area to use as actual
     outputs - cf type_coerce */
   for (i=vtable->nparents; i<vtable->npdls; i++) pdls[i] = pdls[i+nchildren];
+  PDLDEBUG_f(printf("make_trans_mutual after copy converted ");pdl_dump_trans_fixspace(trans,0));
   PDL_TR_CHKMAGIC(trans);
   char disable_back = 0;
   PDL_err = pdl_trans_flow_null_checks(trans, &disable_back);
