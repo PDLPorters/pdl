@@ -1,6 +1,7 @@
 use strict;
 use warnings;
 use ExtUtils::MakeMaker;
+use PDL::Core::Dev;
 
 if (
   !eval { require OpenGL; OpenGL->VERSION(0.70); 1; } or
