@@ -728,7 +728,7 @@ use PDL::Graphics::TriD::ViewPort;
 use PDL::Graphics::TriD::Graph;
 use PDL::Graphics::TriD::Quaternion;
 use PDL::Graphics::TriD::Objects;
-use PDL::Graphics::TriD::Rout;
+use PDL::ImageND;
 
 # Then, see which display method are we using:
 
@@ -805,7 +805,7 @@ sub realcoords {
 	    $c[$_] = $c[$_]*(PDL->ones($c[($_+1)%3]->dims));
 	  }
 	}
-	my $g = PDL::Graphics::TriD::Rout::combcoords(@c);
+	my $g = PDL::ImageND::combcoords(@c);
 	$g->dump if $PDL::Graphics::TriD::verbose;
 	return $g;
 }

@@ -51,7 +51,7 @@ sub get_valid_options {
 
 package PDL::GraphEvolver;
 use PDL::Lite;
-use PDL::Graphics::TriD::Rout ":Func";
+use PDL::ImageND ":Func";
 
 sub new {
 	my($type,$coords) = @_;
@@ -62,17 +62,9 @@ sub new {
 	},$type;
 }
 
-sub set_links {
-	my($this,$from,$to,$strength) = @_;
-	$this->{From} = $from;
-	$this->{To} = $to;
-	$this->{Strength} = $strength;
-}
+sub set_links { my $this = shift; @$this{qw(From To Strength)} = @_; }
 
-sub set_fixed {
-	my($this,$ind,$coord) = @_;
-	$this->{FInd} = $ind; $this->{FCoord} = $coord;
-}
+sub set_fixed { my $this = shift; @$this{qw(FInd FCoord)} = @_; }
 
 sub step {
 	my($this) = @_;
@@ -84,12 +76,11 @@ sub step {
 	$this->{Velo} *=
 	  (0.92*50/(50+$this->{Velo}->magnover->dummy(0)))**$tst;
 	$c += $tst * 0.05 * $this->{Velo};
-	(my $tmp = $c->transpose->index($this->{FInd}->dummy(0)))
-		.= $this->{FCoord}
-			if (defined $this->{FInd});
+	$c->transpose->index($this->{FInd}->dummy(0)) .= $this->{FCoord}
+		if (defined $this->{FInd});
 	print "C: $c\n" if $PDL::Graphics::TriD::verbose;
 }
 
-sub getcoords {return $_[0]{Coords}}
+sub getcoords {$_[0]{Coords}}
 
 1;
