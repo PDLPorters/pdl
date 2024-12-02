@@ -343,11 +343,15 @@ sub gv {
   $gv->run(format => $format, %opts);
   my $output = $gv->dot_output;
   if (!defined $file) {
-    require PDL::IO::GD;
-    my $gd = PDL::IO::GD->new({ data => $output });
+    require PDL::IO::Pic;
+    require File::Temp;
+    my ($fh, $filename) = File::Temp::tempfile('XXXX', SUFFIX => '.png', UNLINK => 1);
+    print $fh $output;
+    close $fh;
+    my $img = PDL->rpic($filename);
     require PDL::Graphics::Simple;
     PDL::Graphics::Simple->import('erase'); # else is surprising if no work
-    PDL::Graphics::Simple::imag($gd->to_pdl->slice(',-1:0'));
+    PDL::Graphics::Simple::imag($img->mv(0,-1));
   }
   $output; # return just in case
 }
