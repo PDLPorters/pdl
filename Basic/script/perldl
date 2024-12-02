@@ -345,7 +345,8 @@ sub gv {
   if (!defined $file) {
     require PDL::IO::Pic;
     require File::Temp;
-    my ($fh, $filename) = File::Temp::tempfile('XXXX', SUFFIX => '.png', UNLINK => 1);
+    require File::Spec;
+    my ($fh, $filename) = File::Temp::tempfile('XXXX', DIR => File::Spec->tmpdir, SUFFIX => '.png', UNLINK => 1);
     print $fh $output;
     close $fh;
     my $img = PDL->rpic($filename);
