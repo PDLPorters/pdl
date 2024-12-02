@@ -803,6 +803,8 @@ my $oneway_slice = $y->slice('0:1');
 is "$oneway_slice", '[4 5]';
 eval {$oneway_slice .= 11};
 isnt $@, '', 'error on assigning into one-way slice';
+my $c = $y->flowing->_convert_int(cdouble->enum);
+ok $c->fflows, 'flowing -> converted has "flowing" on';
 }
 
 my $notouch = sequence(4);

@@ -131,13 +131,16 @@ pdl *pdl_scalar(PDL_Anyval anyval) {
 }
 
 pdl *pdl_get_convertedpdl(pdl *old,int type) {
-	PDLDEBUG_f(printf("pdl_get_convertedpdl\n"));
-	if(old->datatype == type) return old;
-	pdl *it = pdl_pdlnew();
-	if (!it) return it;
-	pdl_error PDL_err = pdl_converttypei_new(old,it,type);
-	if (PDL_err.error) { pdl_destroy(it); return NULL; }
-	return it;
+  PDLDEBUG_f(printf("pdl_get_convertedpdl\n"));
+  if(old->datatype == type) return old;
+  char was_flowing = (old->state & PDL_DATAFLOW_F);
+  pdl *it = pdl_pdlnew();
+  if (!it) return it;
+  pdl_error PDL_err = pdl_converttypei_new(old,it,type);
+  if (PDL_err.error) { pdl_destroy(it); return NULL; }
+  if (was_flowing)
+    it->state |= PDL_DATAFLOW_F;
+  return it;
 }
 
 pdl_error pdl_allocdata(pdl *it) {
