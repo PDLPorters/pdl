@@ -61,7 +61,8 @@ work) is only possible within each module.
 EUMM pure-Perl distributions in the modern era have
 a F<lib> directory, whose structure matches the hierarchy of modules.
 PDL now uses this in its C<Basic> subdirectory, so there is e.g.
-F<lib/PDL/Core.pm> under that. As of EUMM 7.12, it's also possible
+F<lib/PDL/Core.pm> under that. As of EUMM 7.12 (shipped with Perl
+5.26), it's also possible
 to put C<.xs> files next to their respective C<.pm> files, by giving
 a true value for C<XSMULTI>.
 
