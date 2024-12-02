@@ -44,6 +44,7 @@ RCS
 ^Basic/lib/PDL/FFT(\.(pm|xs|c)$|-pp-)
 ^Basic/lib/PDL/IO/Misc(\.(pm|xs|c)$|-pp-)
 ^Basic/lib/PDL/IO/Pnm(\.(pm|xs|c)$|-pp-)
+^Basic/lib/PDL/Image2D(\.(pm|xs|c)$|-pp-)
 ^Basic/lib/PDL/ImageND(\.(pm|xs|c)$|-pp-)
 ^Basic/lib/PDL/ImageRGB(\.(pm|xs|c)$|-pp-)
 ^Basic/lib/PDL/Math(\.(pm|xs|c)$|-pp-)
@@ -77,7 +78,6 @@ RCS
 ^Libtmp/GSL/lib/PDL/GSL/RNG(\.(pm|xs|c)$|-pp-)
 ^Libtmp/GSL/lib/PDL/GSL/SF(\.(pm|xs|c)$|-pp-)
 ^Libtmp/GSL/lib/PDL/Stats/Distr(\.(pm|xs|c)$|-pp-)
-^Libtmp/Image2D/Image2D\..*
 ^Libtmp/Slatec/Slatec..*
 ^Libtmp/Slatec/slatec/.*\.c$
 ^Libtmp/Transform-Proj4/Proj4\..*

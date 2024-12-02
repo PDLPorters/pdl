@@ -65,6 +65,12 @@ Basic/lib/PDL/FFT.pd
 Basic/lib/PDL/FFT/fftn.c
 Basic/lib/PDL/FFT/fftn.h
 Basic/lib/PDL/Graphics.pod
+Basic/lib/PDL/Image2D.pd
+Basic/lib/PDL/Image2D/misc.c
+Basic/lib/PDL/Image2D/resample.c
+Basic/lib/PDL/Image2D/resample.h
+Basic/lib/PDL/Image2D/rotate.c
+Basic/lib/PDL/Image2D/select.c
 Basic/lib/PDL/ImageND.pd
 Basic/lib/PDL/ImageRGB.pd
 Basic/lib/PDL/ImageRGB/pdlppm.h
@@ -183,6 +189,7 @@ Basic/t/flexraw-iotypes.t
 Basic/t/flexraw.t
 Basic/t/flexraw_fortran.t
 Basic/t/func.pdl
+Basic/t/image2d.t
 Basic/t/imagend.t
 Basic/t/imagergb.t
 Basic/t/inline-with.t
@@ -374,14 +381,6 @@ Libtmp/GSL/t/gsl_rng.t
 Libtmp/GSL/t/gsl_sf.t
 Libtmp/GSL/t/stats_distr.t
 Libtmp/GSL/typemap
-Libtmp/Image2D/image2d.pd
-Libtmp/Image2D/Makefile.PL
-Libtmp/Image2D/misc.c
-Libtmp/Image2D/resample.c
-Libtmp/Image2D/resample.h
-Libtmp/Image2D/rotate.c
-Libtmp/Image2D/select.c
-Libtmp/Image2D/t/image2d.t
 Libtmp/Makefile.PL
 Libtmp/Simplex/Demo.pm
 Libtmp/Simplex/Makefile.PL

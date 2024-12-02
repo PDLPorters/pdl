@@ -2,6 +2,12 @@ use strict;
 use warnings;
 use PDL::Types qw(ppdefs_all);
 my $A = [ppdefs_all];
+
+{ no warnings 'once'; # pass info back to Makefile.PL
+$PDL::Core::Dev::EXTRAS{$::PDLMOD}{OBJECT} .= join '', map " $::PDLBASE/$_\$(OBJ_EXT)", qw(rotate resample select misc);
+$PDL::Core::Dev::EXTRAS{$::PDLMOD}{INC} .= qq{ "-I$::PDLBASE"};
+}
+
 pp_addpm({At=>'Top'},<<'EOD');
 use strict;
 use warnings;

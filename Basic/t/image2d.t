@@ -9,7 +9,7 @@ use Test::PDL;
 
 # compare fft convolutions with direct method
 {
-my $pa = rfits("../../Basic/lib/PDL/Demos/m51.fits");
+my $pa = rfits("lib/PDL/Demos/m51.fits");
 {
 my $pk = ones(5,5);
 my $pb = conv2d($pa,$pk);

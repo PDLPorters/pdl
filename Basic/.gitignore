@@ -15,6 +15,9 @@ lib/PDL/IO/Misc.xs
 lib/PDL/IO/Pnm.c
 lib/PDL/IO/Pnm.pm
 lib/PDL/IO/Pnm.xs
+lib/PDL/Image2D.c
+lib/PDL/Image2D.pm
+lib/PDL/Image2D.xs
 lib/PDL/ImageND.c
 lib/PDL/ImageND.pm
 lib/PDL/ImageND.xs
