@@ -21,7 +21,6 @@ META\.yml
 Makefile$
 Makefile\.aperl
 Makefile\.old
-RCS
 \.(tmp|new|diff|ori)$
 \.BAK$
 \.bck$
@@ -37,8 +36,8 @@ RCS
 \.patch$
 \.so$
 \.tar\.gz$
-/core$
 \b_eumm/
+^Basic/examples/Benchmark/\.git
 ^Basic/lib/PDL/Bad(\.(pm|xs|c)$|-pp-)
 ^Basic/lib/PDL/Compression(\.(pm|xs|c)$|-pp-)
 ^Basic/lib/PDL/FFT(\.(pm|xs|c)$|-pp-)
@@ -56,7 +55,6 @@ RCS
 ^Basic/lib/PDL/Ufunc(\.(pm|xs|c)$|-pp-)
 ^Basic/lib/PDL/Core\.c$
 ^Basic/lib/PDL/Core/pdl\.h$
-^Basic/IO-Storable/Storable\..*
 ^Basic/script/pdl$
 ^Graphics/TriD/OpenGLQ/OpenGLQ\.*
 ^Graphics/TriD/Rout/Rout\.*
@@ -80,7 +78,6 @@ RCS
 ^Libtmp/GSL/lib/PDL/Stats/Distr(\.(pm|xs|c)$|-pp-)
 ^Libtmp/Slatec/Slatec..*
 ^Libtmp/Slatec/slatec/.*\.c$
-^Libtmp/Transform-Proj4/Proj4\..*
 ^Libtmp/Transform-Proj4/lib/PDL/Transform/Proj4(\.(pm|xs|c)$|-pp-)
 \b[\._]Inline
 ^\.\#.*
@@ -88,26 +85,12 @@ RCS
 ^\.git
 \.gitignore$
 ^blib/
-^core
-^inv-data.pl
-^patch
-^pdldoc.db$
-^pdldoc.pod
-^perl$
-^perldl.pod
 ^pm_to_blib$
-^podsel$
-^t/.*\.dll(.a)?$
-^t/.*\.pnm$
-^test\.wis$
-^tmp.*
-^work
 ~$
 ^xt/
 
 ^\.github/
 ^\.cirrus\.yml
-^Example/Benchmark/\.git
 
 cover_db/
 ^nytprof(/|\.out)
