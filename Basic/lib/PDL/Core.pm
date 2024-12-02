@@ -1210,8 +1210,12 @@ sub PDL::new {
          set_c($new, [0], $value);
       } else {
          $new->setdims([]);
-         ${$new->get_dataref}     = pack( $pack[$new->get_datatype], $value );
-         $new->upd_data;
+         if ($value) {
+           ${$new->get_dataref} = pack( $pack[$new->get_datatype], $value );
+           $new->upd_data;
+         } else { # do nothing if 0 - allocdata already memsets to 0
+           $new->make_physical;
+         }
       }
    }
    elsif (blessed($value)) { # Object
