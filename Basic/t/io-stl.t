@@ -22,7 +22,7 @@ my $cubev = pdl(
   [[0,1,0], [0,1,1], [1,1,1]],
   [[0,1,0], [1,1,1], [1,1,0]],
 );
-my ($vertices, $faceidx) = rstl(catfile qw(t cube.stl));
+my ($vertices, $faceidx) = rstl(catfile qw(t io-stl-cube.stl));
 is_pdl $vertices->dice_axis(1, $faceidx->flat)->splitdim(1,3), $cubev;
 
 eval {wstl()};
@@ -40,9 +40,9 @@ my $blender = float '
   [0.00138235 0.103254 -0.00253355; 0.000767261 0.103869 -0.00322725; 0.00108497 0.104636 -0.00322725]
   [0.00138235 0.103254 -0.00253355; 0.00108497 0.104636 -0.00322725; 0.00195483 0.104636 -0.00253355]
 ';
-($vertices, $faceidx) = rstl(catfile qw(t ascblender1.stl));
+($vertices, $faceidx) = rstl(catfile qw(t io-stl-ascblender1.stl));
 is_pdl $vertices->dice_axis(1, $faceidx->flat)->splitdim(1,3), $blender;
-($vertices, $faceidx) = rstl(catfile qw(t ascblender2.stl));
+($vertices, $faceidx) = rstl(catfile qw(t io-stl-ascblender2.stl));
 is_pdl $vertices->dice_axis(1, $faceidx->flat)->splitdim(1,3), $blender;
 
 done_testing;

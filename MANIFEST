@@ -90,6 +90,8 @@ Basic/lib/PDL/IO/Pic.pm
 Basic/lib/PDL/IO/Pnm.pd
 Basic/lib/PDL/IO/Pnm/get.c
 Basic/lib/PDL/IO/Pnm/get.h
+Basic/lib/PDL/IO/STL.pm
+Basic/lib/PDL/IO/STL/owl.stl
 Basic/lib/PDL/IO/Storable.pm
 Basic/lib/PDL/Lite.pm
 Basic/lib/PDL/LiteF.pm
@@ -196,6 +198,11 @@ Basic/t/inline-with.t
 Basic/t/inlinepdlpp.t
 Basic/t/io-misc.t
 Basic/t/io-pnm.t
+Basic/t/io-stl-ascblender1.stl
+Basic/t/io-stl-ascblender2.stl
+Basic/t/io-stl-cube.stl
+Basic/t/io-stl-cube_binary.stl
+Basic/t/io-stl.t
 Basic/t/lvalue.t
 Basic/t/m51.fits.fz
 Basic/t/math.t
@@ -335,14 +342,6 @@ IO/IDL/README
 IO/IDL/t/basic.t
 IO/IDL/t/test.sav
 IO/Makefile.PL
-IO/STL/Makefile.PL
-IO/STL/owl.stl
-IO/STL/STL.pm
-IO/STL/t/ascblender1.stl
-IO/STL/t/ascblender2.stl
-IO/STL/t/basic.t
-IO/STL/t/cube.stl
-IO/STL/t/cube_binary.stl
 Libtmp/Filter/Linear.pm
 Libtmp/Filter/Makefile.PL
 Libtmp/Fit/Gaussian/gauss.c
