@@ -100,8 +100,8 @@ typedef struct {
 #define PDL_CHKMAGIC_GENERAL(it,this_magic,type) \
   if((it)->magicno != this_magic) \
     return pdl_make_error(PDL_EFATAL, \
-      "INVALID " type " MAGICNO, got hex=%p (%lu)%s\n", \
-      it,(unsigned long)((it)->magicno), \
+      "INVALID MAGICNO in " type "=%p got 0x%lx instead of 0x%lx%s", \
+      it,(unsigned long)((it)->magicno),this_magic, \
       ((it)->magicno) == PDL_CLEARED_MAGICNO ? " (cleared)" : "" \
     ); \
   else (void)0
