@@ -59,7 +59,6 @@ my %makefile_hash = (
     'File::Which'     => 0,
     'ExtUtils::MakeMaker' => '7.12', # working .g.c
     'File::Path'          => 0,
-    'ExtUtils::Depends' => '0.402',
   },
   TEST_REQUIRES => {
     'CPAN::Meta' => '2.120900',

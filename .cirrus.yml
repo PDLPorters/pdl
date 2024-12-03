@@ -17,7 +17,7 @@ task:
   deps_script:
     - eval $( $MYPERL -Mlocal::lib=local )
     # Configure deps
-    - $MYPERL -S cpanm -nq ExtUtils::MakeMaker Devel::CheckLib File::Which ExtUtils::Depends Inline::C
+    - $MYPERL -S cpanm -nq ExtUtils::MakeMaker Devel::CheckLib File::Which Inline::C
     # Deps
     - $MYPERL -S cpanm -nq --installdeps .
   build_script:
