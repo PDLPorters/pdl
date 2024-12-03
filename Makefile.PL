@@ -29,7 +29,6 @@ my %min_version = (
   'Inline' => '0.83', # fixed ILSM-finding
   'Inline::C' => '0.62',
   'Term::ReadKey' => '2.34', #for perldl shell
-  'Alien::proj' => '1.29', # min PROJ 7.1 as T:Proj4 needs degree_output
   'Astro::FITS::Header' => '2.1', # apparently before that, IO::FITS no work
 );
 for my $opt_dep (sort keys %min_version) {
