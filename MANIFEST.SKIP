@@ -64,8 +64,6 @@ Makefile\.old
 ^IO/ENVI/envi-data
 ^IO/ENVI/envi-data.hdr
 ^IO/GD/GD\.(pm|xs|c)$
-^IO/HDF/SD/SD\.(pm|xs|c)$
-^IO/HDF/VS/VS\.(pm|xs|c)$
 ^Libtmp/Fit/Gaussian/Gaussian\..*
 ^Libtmp/GSL/lib/PDL/GSL/CDF(\.(pm|xs|c)$|-pp-)
 ^Libtmp/GSL/lib/PDL/GSL/DIFF(\.(pm|xs|c)$|-pp-)
