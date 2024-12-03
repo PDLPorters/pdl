@@ -75,7 +75,6 @@ Makefile\.old
 ^Libtmp/GSL/lib/PDL/Stats/Distr(\.(pm|xs|c)$|-pp-)
 ^Libtmp/Slatec/Slatec..*
 ^Libtmp/Slatec/slatec/.*\.c$
-^Libtmp/Transform-Proj4/lib/PDL/Transform/Proj4(\.(pm|xs|c)$|-pp-)
 \b[\._]Inline
 ^\.\#.*
 ^\.exists
