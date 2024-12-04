@@ -315,11 +315,6 @@ Graphics/TriD/VRML/VRML/Protos.pm
 IO/Dicom/Dicom.pm
 IO/Dicom/Makefile.PL
 IO/ENVI/readenvi.pdl
-IO/IDL/IDL.pm
-IO/IDL/Makefile.PL
-IO/IDL/README
-IO/IDL/t/basic.t
-IO/IDL/t/test.sav
 IO/Makefile.PL
 Libtmp/Filter/Linear.pm
 Libtmp/Filter/Makefile.PL
