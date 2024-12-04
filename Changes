@@ -25,6 +25,7 @@
 - split PDL::Transform::Proj4 out to separate distro
 - split PDL::IO::IDL out to separate distro
 - split PDL::IO::Dicom out to separate distro
+- finish, then split PDL::IO::ENVI out to separate distro
 
 2.095 2024-11-03
 - add PDL_GENTYPE_IS_{REAL,FLOATREAL,COMPLEX,SIGNED,UNSIGNED}_##ppsym (#502)

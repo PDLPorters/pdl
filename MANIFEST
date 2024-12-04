@@ -312,8 +312,6 @@ Graphics/TriD/TriD/Window.pm
 Graphics/TriD/VRML/Makefile.PL
 Graphics/TriD/VRML/VRML.pm
 Graphics/TriD/VRML/VRML/Protos.pm
-IO/ENVI/readenvi.pdl
-IO/Makefile.PL
 Libtmp/Filter/Linear.pm
 Libtmp/Filter/Makefile.PL
 Libtmp/Fit/Gaussian/gauss.c
