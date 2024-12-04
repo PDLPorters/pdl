@@ -383,15 +383,15 @@ since that time, and the support for it has as well. Thus mailing-list
 archives are in several places.  Originally pdl-general was called 'perldl',
 and pdl-devel was called 'pdl-porters'.
 
-|Time Period | URL                                                   |
-|------------|-------------------------------------------------------|
-|1996 - 2004 | http://www.xray.mpe.mpg.de/mailing-lists/perldl/      |
-|1997 - 2004 | http://www.xray.mpe.mpg.de/mailing-lists/pdl-porters/ |
-|2005 - 2015 | http://perldl.jach.hawaii.narkive.com/                |
-|2005 - 2015 | http://pdl-porters.jach.hawaii.narkive.com/           |
-|2015 -      | https://sourceforge.net/p/pdl/mailman/pdl-general/    |
-|2015 -      | https://sourceforge.net/p/pdl/mailman/pdl-devel/      |
-|--------------------------------------------------------------------|
+  |Time Period | URL                                                   |
+  |------------|-------------------------------------------------------|
+  |1996 - 2004 | http://www.xray.mpe.mpg.de/mailing-lists/perldl/      |
+  |1997 - 2004 | http://www.xray.mpe.mpg.de/mailing-lists/pdl-porters/ |
+  |2005 - 2015 | http://perldl.jach.hawaii.narkive.com/                |
+  |2005 - 2015 | http://pdl-porters.jach.hawaii.narkive.com/           |
+  |2015 -      | https://sourceforge.net/p/pdl/mailman/pdl-general/    |
+  |2015 -      | https://sourceforge.net/p/pdl/mailman/pdl-devel/      |
+  |--------------------------------------------------------------------|
 
 
 =head2 Q: 3.3    What is the current version of PDL ?  
