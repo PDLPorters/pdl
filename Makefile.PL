@@ -23,8 +23,6 @@ my @cpan_deps = my @prereq = (
   'Math::Complex'       => 0,
 );
 my %min_version = (
-  'OpenGL' => '0.70', # see also Graphics/TriD/Makefile.PL
-  'OpenGL::GLUT' => '0.72', # see also Graphics/TriD/Makefile.PL
   'ExtUtils::F77' => '1.26', # eg 1.20 can leave off -lgfortran
   'Inline' => '0.83', # fixed ILSM-finding
   'Inline::C' => '0.62',
@@ -61,7 +59,6 @@ my %makefile_hash = (
   },
   TEST_REQUIRES => {
     'CPAN::Meta' => '2.120900',
-    'IPC::Cmd' => '0.72',
     'Test::Exception' => 0,
     'Test::Warn' => 0,  # for t/pptest.t
     "Test::Deep" => 0, # for Test::Deep::PDL tests

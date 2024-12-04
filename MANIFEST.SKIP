@@ -56,13 +56,6 @@ Makefile\.old
 ^Basic/lib/PDL/Core\.c$
 ^Basic/lib/PDL/Core/pdl\.h$
 ^Basic/script/pdl$
-^Graphics/TriD/OpenGLQ/OpenGLQ\.*
-^Graphics/TriD/Rout/Rout\.*
-^Graphics/TriD/TriD/Tk.pm$
-^IO/Browser/Browser\..*
-^IO/Browser/[Pp][Dd][Cc]
-^IO/ENVI/envi-data
-^IO/ENVI/envi-data.hdr
 ^Libtmp/Fit/Gaussian/Gaussian\..*
 ^Libtmp/GSL/lib/PDL/GSL/CDF(\.(pm|xs|c)$|-pp-)
 ^Libtmp/GSL/lib/PDL/GSL/DIFF(\.(pm|xs|c)$|-pp-)
