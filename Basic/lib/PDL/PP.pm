@@ -44,9 +44,8 @@
 #
 # The Substitute rule replaces dollar-signed macros ($P(), $ISBAD(), etc)
 # with the low-level C code to perform the macro.
-#   PDL::PP::Rule::Substitute("NewXSCoerceMustSubs", "NewXSCoerceMustSub1")
-# PDL::PP::Rule::Substitute->new($target,$condition)
-#   $target and $condition must be scalars.
+#   PDL::PP::Rule::Substitute->new($target,$condition)
+# $target and $condition must be scalars.
 
 package PDL::PP::Rule;
 
@@ -332,9 +331,6 @@ sub apply {
     $pars->{$target} = sprintf $self->{"insertname.value"}, $pars->{Name};
 }
 
-#   PDL::PP::Rule->new("NewXSCoerceMustSubs", ["NewXSCoerceMustSub1","Name"],
-#	 	      \&dosubst),
-#
 # PDL::PP::Rule::Substitute->new($target,$condition)
 #   $target and $condition must be scalars.
 package PDL::PP::Rule::Substitute;
