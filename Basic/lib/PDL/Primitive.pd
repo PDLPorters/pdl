@@ -2437,51 +2437,51 @@ The default value of C<mode> is C<sample>.
 =for example
 
   use PDL;
-  
+
   my @modes = qw( sample insert_leftmost insert_rightmost match
                   bin_inclusive bin_exclusive );
-  
+
   # Generate a sequence of 3 zeros, 3 ones, ..., 3 fours.
   my $x = zeroes(3,5)->yvals->flat;
-  
+
   for my $mode ( @modes ) {
     # if the value is in $x
     my $contained = 2;
     my $idx_contained = vsearch( $contained, $x, { mode => $mode } );
     my $x_contained = $x->copy;
     $x_contained->slice( $idx_contained ) .= 9;
-    
+
     # if the value is not in $x
     my $not_contained = 1.5;
     my $idx_not_contained = vsearch( $not_contained, $x, { mode => $mode } );
     my $x_not_contained = $x->copy;
     $x_not_contained->slice( $idx_not_contained ) .= 9;
-    
+
     print sprintf("%-23s%30s\n", '$x', $x);
     print sprintf("%-23s%30s\n",   "$mode ($contained)", $x_contained);
     print sprintf("%-23s%30s\n\n", "$mode ($not_contained)", $x_not_contained);
   }
-  
+
   # $x                     [0 0 0 1 1 1 2 2 2 3 3 3 4 4 4]
   # sample (2)             [0 0 0 1 1 1 9 2 2 3 3 3 4 4 4]
   # sample (1.5)           [0 0 0 1 1 1 9 2 2 3 3 3 4 4 4]
-  # 
+  #
   # $x                     [0 0 0 1 1 1 2 2 2 3 3 3 4 4 4]
   # insert_leftmost (2)    [0 0 0 1 1 1 9 2 2 3 3 3 4 4 4]
   # insert_leftmost (1.5)  [0 0 0 1 1 1 9 2 2 3 3 3 4 4 4]
-  # 
+  #
   # $x                     [0 0 0 1 1 1 2 2 2 3 3 3 4 4 4]
   # insert_rightmost (2)   [0 0 0 1 1 1 2 2 2 9 3 3 4 4 4]
   # insert_rightmost (1.5) [0 0 0 1 1 1 9 2 2 3 3 3 4 4 4]
-  # 
+  #
   # $x                     [0 0 0 1 1 1 2 2 2 3 3 3 4 4 4]
   # match (2)              [0 0 0 1 1 1 2 9 2 3 3 3 4 4 4]
   # match (1.5)            [0 0 0 1 1 1 2 2 9 3 3 3 4 4 4]
-  # 
+  #
   # $x                     [0 0 0 1 1 1 2 2 2 3 3 3 4 4 4]
   # bin_inclusive (2)      [0 0 0 1 1 1 2 2 9 3 3 3 4 4 4]
   # bin_inclusive (1.5)    [0 0 0 1 1 9 2 2 2 3 3 3 4 4 4]
-  # 
+  #
   # $x                     [0 0 0 1 1 1 2 2 2 3 3 3 4 4 4]
   # bin_exclusive (2)      [0 0 0 1 1 9 2 2 2 3 3 3 4 4 4]
   # bin_exclusive (1.5)    [0 0 0 1 1 9 2 2 2 3 3 3 4 4 4]
@@ -3600,7 +3600,7 @@ double abs_diff2 = PDL_IF_GENTYPE_REAL(
 if (abs_diff2 <= atol2)                 { $result() = 1; continue; }
 double rel_diff2 = rtol2 * PDL_IF_GENTYPE_REAL(
   expctd * expctd,
-  (creall(expctd) * creall(expctd)) + (cimagl(expctd) * cimagl(expctd))
+  ((creall(expctd) * creall(expctd)) + (cimagl(expctd) * cimagl(expctd)))
 );
 if (abs_diff2 <= rel_diff2)             { $result() = 1; continue; }
 $result() = 0;
