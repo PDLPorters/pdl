@@ -82,6 +82,8 @@ subtest approx_artol => sub {
   $got_a = pdl('inf bad')->approx_artol(pdl('inf bad'));
   $exp_a_mask = pdl([1,1]);
   ok all($got_a == $exp_a_mask), 'inf,bad matches inf,bad' or diag "got=$got_a\nexp=$exp_a_mask";
+  ok all(approx_artol i,i), 'i is approx i';
+  ok !all(approx_artol i,5*i), 'i is not approx 5i';
 };
 
 done_testing;
