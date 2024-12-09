@@ -12,8 +12,6 @@
 /\.\#.*
 /pm_to_blib$
 /tmp.*
-Basic/examples/Benchmark/Bench.c
-Basic/examples/Benchmark/blib/
 MANIFEST\.bak$
 MANIFEST\.old
 META\.json
@@ -37,7 +35,10 @@ Makefile\.old
 \.so$
 \.tar\.gz$
 \b_eumm/
+
 ^Basic/examples/Benchmark/\.git
+^Basic/examples/Benchmark/Bench.c
+^Basic/examples/Benchmark/blib/
 ^Basic/lib/PDL/Bad(\.(pm|xs|c)$|-pp-)
 ^Basic/lib/PDL/Compression(\.(pm|xs|c)$|-pp-)
 ^Basic/lib/PDL/FFT(\.(pm|xs|c)$|-pp-)
@@ -59,6 +60,7 @@ Makefile\.old
 ^Libtmp/Fit/Gaussian/Gaussian\..*
 ^Libtmp/Slatec/Slatec..*
 ^Libtmp/Slatec/slatec/.*\.c$
+
 \b[\._]Inline
 ^\.\#.*
 ^\.exists
