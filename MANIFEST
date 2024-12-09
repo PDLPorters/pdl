@@ -263,9 +263,6 @@ Basic/utils/perldlpp.pl
 Basic/utils/scantree.pl
 Changes
 COPYING
-Libtmp/Filter/Linear.pm
-Libtmp/Filter/LinPred.pm
-Libtmp/Filter/Makefile.PL
 Libtmp/Fit/Gaussian/gauss.c
 Libtmp/Fit/Gaussian/gaussian.pd
 Libtmp/Fit/Gaussian/Makefile.PL
