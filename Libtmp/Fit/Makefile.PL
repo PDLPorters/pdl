@@ -1,6 +1,7 @@
 use strict;
 use warnings;
 use ExtUtils::MakeMaker;
+use PDL::Core::Dev;
 
 WriteMakefile(
   NAME => 'PDL::Fit',

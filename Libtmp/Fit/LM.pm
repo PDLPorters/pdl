@@ -25,7 +25,7 @@ use warnings;
 use PDL::Core;
 use PDL::Exporter;
 use PDL::Options;
-use PDL::Slatec; # for matrix inversion
+use PDL::MatrixOps qw(lu_decomp lu_backsub inv); # for matrix inversion
 
 our @EXPORT_OK  = qw(lmfit tlmfit);
 our %EXPORT_TAGS = (Func=>\@EXPORT_OK);
@@ -107,7 +107,7 @@ sub PDL::lmfit {
   my ($maxiter,$eps) = map {$opt->{$_}} qw/Maxiter Eps/;
   # initialize some variables
   my ($isig2,$chisq) = (1/($sig*$sig),0); #$isig2="inverse of sigma squared"
-  my ($ym,$al,$cov,$bet,$oldbet,$olda,$oldal,$ochisq,$di,$pivt,$info) =
+  my ($ym,$al,$cov,$bet,$oldbet,$olda,$oldal,$ochisq,$di) =
     map {null} (0..10);
   my ($aldiag,$codiag);  # the diagonals for later updating
   # this will break broadcasting
@@ -120,9 +120,8 @@ sub PDL::lmfit {
       $cov .= $al;
       # local $PDL::debug = 1;
       $codiag .= $aldiag*(1+$lambda);
-      gefa $cov, $pivt, $info;     # gefa + gesl = solution by Gaussian elem.
-      gesl $cov, $pivt, $bet, 0;   # solution returned in $bet
-      # lusd($cov,$bet,$da);
+      my ($lu, $perm, $par) = lu_decomp($cov);
+      $bet .= lu_backsub($lu,$perm,$par, $bet);
       # print "changing by $da\n";
       $c += $bet;                  # what we used to call $da is now $bet
     }
@@ -155,7 +154,7 @@ sub PDL::lmfit {
   } while ($iter++==0 || $iter < $maxiter && $di/$chisq > $eps);
   barf "iteration did not converge" if $iter >= $maxiter && $di/$chisq > $eps;
   # return inv $al as estimate of covariance matrix
-  return wantarray ? ($ym,$c,matinv($al),$iter) : $ym;
+  return wantarray ? ($ym,$c,inv($al),$iter) : $ym;
 }
 *lmfit = \&PDL::lmfit;
 

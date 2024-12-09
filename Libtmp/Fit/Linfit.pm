@@ -113,7 +113,7 @@ use PDL::Core;
 use PDL::Basic;
 use PDL::Exporter;
 use PDL::Options ':Func';
-use PDL::Slatec; # For matinv()
+use PDL::MatrixOps qw(inv);
 
 our @EXPORT_OK  = qw( linfit1d );
 our %EXPORT_TAGS = (Func=>\@EXPORT_OK);
@@ -138,7 +138,7 @@ sub PDL::linfit1d {
    my $C = $M->transpose x ($M * $wt->dummy(0)) ;
    my $Y = $M->transpose x ($y2->dummy(0) * $wt->dummy(0));
    # Fitted coefficients vector
-   my $c = matinv($C) x $Y;
+   my $c = inv($C) x $Y;
    # Fitted data
    my $yfit = ($M x $c)->clump(2) * $ymean; # Remove first dim=1, un-normalise
    return $yfit if !wantarray;

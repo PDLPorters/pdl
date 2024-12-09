@@ -269,8 +269,13 @@ Libtmp/Fit/Gaussian/gauss.c
 Libtmp/Fit/Gaussian/gaussian.pd
 Libtmp/Fit/Gaussian/Makefile.PL
 Libtmp/Fit/Gaussian/t/gauss.t
+Libtmp/Fit/Linfit.pm
+Libtmp/Fit/LM.pm
+Libtmp/Fit/lmfit_example.pl
 Libtmp/Fit/Makefile.PL
 Libtmp/Fit/Polynomial.pm
+Libtmp/Fit/t/linfit.t
+Libtmp/Fit/t/lm.t
 Libtmp/Fit/t/poly.t
 Libtmp/Func.pm
 Libtmp/Func_demo.pm
@@ -281,10 +286,7 @@ Libtmp/Simplex/Simplex.pm
 Libtmp/Simplex/t/simplex.t
 Libtmp/Slatec/barf.c
 Libtmp/Slatec/Gaussian.pm
-Libtmp/Slatec/Linfit.pm
 Libtmp/Slatec/LinPred.pm
-Libtmp/Slatec/LM.pm
-Libtmp/Slatec/lmfit_example.pl
 Libtmp/Slatec/Makefile.PL
 Libtmp/Slatec/slatec.pd
 Libtmp/Slatec/slatec/bvalu.f
@@ -400,8 +402,6 @@ Libtmp/Slatec/slatec/xermsg.f
 Libtmp/Slatec/slatec/xerprn.f
 Libtmp/Slatec/slatec/xersve.f
 Libtmp/Slatec/slatec/xgetua.f
-Libtmp/Slatec/t/linfit.t
-Libtmp/Slatec/t/lm.t
 Libtmp/Slatec/t/slatec-polyfit-weight.t
 Libtmp/Slatec/t/slatec.t
 Libtmp/t/func.t
