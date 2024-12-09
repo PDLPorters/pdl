@@ -58,8 +58,6 @@ Makefile\.old
 ^Basic/lib/PDL/Core/pdl\.h$
 ^Basic/script/pdl$
 ^Libtmp/Fit/Gaussian/Gaussian\..*
-^Libtmp/Slatec/Slatec..*
-^Libtmp/Slatec/slatec/.*\.c$
 
 \b[\._]Inline
 ^\.\#.*
