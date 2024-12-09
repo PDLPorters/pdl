@@ -74,7 +74,6 @@ use strict;
 use warnings;
 use PDL;
 use PDL::Basic;
-use PDL::Slatec;
 use PDL::Slices;
 use PDL::Primitive;
 
@@ -113,7 +112,7 @@ sub _mk_mat {
 	print "L,LB: $nl,$n\n";
 
 	my ($tmp,$tmp2);
-	PDL::Graphics::PG::imag ($sal->copy);
+	PDL::Graphics::PGPLOT::imag ($sal->copy);
 
 # First, the 2 diagonal slices
 	($tmp = $autocov->slice("$nl:-1,$nl:-1")->px) .=
@@ -171,7 +170,6 @@ sub predict ($$) {
 package PDL::Filter::LinPred;
 use PDL;
 use PDL::Basic;
-use PDL::Slatec;
 use PDL::Slices;
 use PDL::Primitive;
 use strict;
@@ -285,3 +283,4 @@ sub predict ($$) {
 		$pred ;
 }
 
+1;

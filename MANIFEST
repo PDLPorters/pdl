@@ -264,6 +264,7 @@ Basic/utils/scantree.pl
 Changes
 COPYING
 Libtmp/Filter/Linear.pm
+Libtmp/Filter/LinPred.pm
 Libtmp/Filter/Makefile.PL
 Libtmp/Fit/Gaussian/gauss.c
 Libtmp/Fit/Gaussian/gaussian.pd
@@ -285,7 +286,6 @@ Libtmp/Simplex/Makefile.PL
 Libtmp/Simplex/Simplex.pm
 Libtmp/Simplex/t/simplex.t
 Libtmp/Slatec/barf.c
-Libtmp/Slatec/LinPred.pm
 Libtmp/Slatec/Makefile.PL
 Libtmp/Slatec/slatec.pd
 Libtmp/Slatec/slatec/bvalu.f

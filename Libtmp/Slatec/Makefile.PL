@@ -96,8 +96,6 @@ if ($Config{osname} =~ /darwin/ && version->parse($Config{osvers}) >= version->p
        $hash{LDDLFLAGS} =~ s/-arch i386/ /g;
 }
 
-my @filter = qw(LinPred.pm);
-@{$hash{PM}}{@filter} = map '$(INST_LIBDIR)/Filter/'.$_, @filter;
 WriteMakefile(
  %hash,
 );
