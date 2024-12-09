@@ -57,15 +57,6 @@ Makefile\.old
 ^Basic/lib/PDL/Core/pdl\.h$
 ^Basic/script/pdl$
 ^Libtmp/Fit/Gaussian/Gaussian\..*
-^Libtmp/GSL/lib/PDL/GSL/CDF(\.(pm|xs|c)$|-pp-)
-^Libtmp/GSL/lib/PDL/GSL/DIFF(\.(pm|xs|c)$|-pp-)
-^Libtmp/GSL/lib/PDL/GSL/INTEG(\.(pm|xs|c)$|-pp-)
-^Libtmp/GSL/lib/PDL/GSL/INTERP(\.(pm|xs|c)$|-pp-)
-^Libtmp/GSL/lib/PDL/GSL/LINALG(\.(pm|xs|c)$|-pp-)
-^Libtmp/GSL/lib/PDL/GSL/MROOT(\.(pm|xs|c)$|-pp-)
-^Libtmp/GSL/lib/PDL/GSL/RNG(\.(pm|xs|c)$|-pp-)
-^Libtmp/GSL/lib/PDL/GSL/SF(\.(pm|xs|c)$|-pp-)
-^Libtmp/GSL/lib/PDL/Stats/Distr(\.(pm|xs|c)$|-pp-)
 ^Libtmp/Slatec/Slatec..*
 ^Libtmp/Slatec/slatec/.*\.c$
 \b[\._]Inline

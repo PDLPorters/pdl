@@ -28,6 +28,7 @@
 - finish, then split PDL::IO::ENVI out to separate distro
 - split PDL::Graphics::TriD out to separate distro
 - fix approx_artol for complex values (#507) - thanks @wlmb
+- split PDL::GSL out to separate distro
 
 2.095 2024-11-03
 - add PDL_GENTYPE_IS_{REAL,FLOATREAL,COMPLEX,SIGNED,UNSIGNED}_##ppsym (#502)
