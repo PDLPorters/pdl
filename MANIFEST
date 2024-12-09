@@ -266,10 +266,6 @@ COPYING
 Libtmp/Func.pm
 Libtmp/Func_demo.pm
 Libtmp/Makefile.PL
-Libtmp/Simplex/Demo.pm
-Libtmp/Simplex/Makefile.PL
-Libtmp/Simplex/Simplex.pm
-Libtmp/Simplex/t/simplex.t
 Libtmp/t/func.t
 Makefile.PL
 MANIFEST			This list of files

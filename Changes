@@ -31,6 +31,7 @@
 - split PDL::GSL out to separate distro
 - split PDL::Slatec out to separate distro
 - split PDL::Fit out to separate distro
+- split PDL::Opt::Simplex out to separate distro
 
 2.095 2024-11-03
 - add PDL_GENTYPE_IS_{REAL,FLOATREAL,COMPLEX,SIGNED,UNSIGNED}_##ppsym (#502)
