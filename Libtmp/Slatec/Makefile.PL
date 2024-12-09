@@ -98,8 +98,6 @@ if ($Config{osname} =~ /darwin/ && version->parse($Config{osvers}) >= version->p
 
 my @filter = qw(LinPred.pm);
 @{$hash{PM}}{@filter} = map '$(INST_LIBDIR)/Filter/'.$_, @filter;
-my @gauss = qw(Gaussian.pm);
-@{$hash{PM}}{@gauss} = map '$(INST_LIBDIR)/'.$_, @gauss;
 WriteMakefile(
  %hash,
 );

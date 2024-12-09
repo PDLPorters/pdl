@@ -285,7 +285,6 @@ Libtmp/Simplex/Makefile.PL
 Libtmp/Simplex/Simplex.pm
 Libtmp/Simplex/t/simplex.t
 Libtmp/Slatec/barf.c
-Libtmp/Slatec/Gaussian.pm
 Libtmp/Slatec/LinPred.pm
 Libtmp/Slatec/Makefile.PL
 Libtmp/Slatec/slatec.pd
