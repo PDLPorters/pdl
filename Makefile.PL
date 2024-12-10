@@ -84,11 +84,6 @@ my %makefile_hash = (
         x_IRC => 'irc://irc.perl.org/#pdl',
      },
      prereqs => {
-        configure => {
-           recommends => {
-              'ExtUtils::F77' => '1.10',
-           },
-        },
         runtime => {
            suggests => {
               'Sys::SigAction' => 0, # Ctrl-C handling in shells
