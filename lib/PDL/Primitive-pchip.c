@@ -1,134 +1,56 @@
 #include <stdio.h>
+#include <stdint.h>
 #include <math.h>
 
 /* f2c.h  --  Standard Fortran to C header file */
 typedef long int integer;
-typedef unsigned long int uinteger;
-typedef char *address;
-typedef short int shortint;
-typedef float real;
 typedef double doublereal;
-typedef struct { real r, i; } complex;
-typedef struct { doublereal r, i; } doublecomplex;
 typedef long int logical;
-typedef short int shortlogical;
-typedef char logical1;
-typedef char integer1;
-#ifdef INTEGER_STAR_8	/* Adjust for integer*8. */
-typedef long long longint;		/* system-dependent */
-typedef unsigned long long ulongint;	/* system-dependent */
-#define qbit_clear(a,b)	((a) & ~((ulongint)1 << (b)))
-#define qbit_set(a,b)	((a) |  ((ulongint)1 << (b)))
-#endif
 
 #define TRUE_ (1)
 #define FALSE_ (0)
 
 /* I/O stuff */
-
-#ifdef f2c_i2
-/* for -i2 */
-typedef short flag;
-typedef short ftnlen;
-typedef short ftnint;
-#else
-typedef long int flag;
 typedef long int ftnlen;
-typedef long int ftnint;
-#endif
-
-#define VOID void
 
 #define abs(x) ((x) >= 0 ? (x) : -(x))
-#define dabs(x) (doublereal)abs(x)
 #define min(a,b) ((a) <= (b) ? (a) : (b))
 #define max(a,b) ((a) >= (b) ? (a) : (b))
-#define dmin(a,b) (doublereal)min(a,b)
-#define dmax(a,b) (doublereal)max(a,b)
-#define bit_test(a,b)	((a) >> (b) & 1)
-#define bit_clear(a,b)	((a) & ~((uinteger)1 << (b)))
-#define bit_set(a,b)	((a) |  ((uinteger)1 << (b)))
-
-/* procedure parameter types for -A and -C++ */
-
-#define F2C_proc_par_types 1
-#ifdef __cplusplus
-typedef int /* Unknown procedure type */ (*U_fp)(...);
-typedef shortint (*J_fp)(...);
-typedef integer (*I_fp)(...);
-typedef real (*R_fp)(...);
-typedef doublereal (*D_fp)(...), (*E_fp)(...);
-typedef /* Complex */ VOID (*C_fp)(...);
-typedef /* Double Complex */ VOID (*Z_fp)(...);
-typedef logical (*L_fp)(...);
-typedef shortlogical (*K_fp)(...);
-typedef /* Character */ VOID (*H_fp)(...);
-typedef /* Subroutine */ int (*S_fp)(...);
-#else
-typedef int /* Unknown procedure type */ (*U_fp)();
-typedef shortint (*J_fp)();
-typedef integer (*I_fp)();
-typedef real (*R_fp)();
-typedef doublereal (*D_fp)(), (*E_fp)();
-typedef /* Complex */ VOID (*C_fp)();
-typedef /* Double Complex */ VOID (*Z_fp)();
-typedef logical (*L_fp)();
-typedef shortlogical (*K_fp)();
-typedef /* Character */ VOID (*H_fp)();
-typedef /* Subroutine */ int (*S_fp)();
-#endif
-/* E_fp is for real functions when -R is not specified */
-typedef VOID C_f;	/* complex function */
-typedef VOID H_f;	/* character function */
-typedef VOID Z_f;	/* double complex function */
-typedef doublereal E_f;	/* real function with -R not specified */
 /* end f2c.h */
 
 /* from libf2c */
-double d_sign(doublereal *a, doublereal *b)
+double d_sign(doublereal a, doublereal b)
 {
-  double x = (*a >= 0 ? *a : - *a);
-  return *b >= 0 ? x : -x;
+  double x = (a >= 0 ? a : - a);
+  return b >= 0 ? x : -x;
 }
 
-/* Table of constant values */
+#define xermsg_(lib, func, errstr, nerr, ...) \
+  fprintf(stderr, "%s::%s: %s (err=%ld)\n", lib, func, errstr, nerr)
 
-static integer c__2 = 2;
-static integer c__1 = 1;
-static integer c__0 = 0;
-static logical c_false = FALSE_;
-static integer c__4 = 4;
-static integer c_n1 = -1;
-static integer c__72 = 72;
-static logical c_true = TRUE_;
-static integer c__5 = 5;
-
-#define xermsg_(lib, func, errstr, nerr, level, ...) \
-  fprintf(stderr, "%s::%s: %s (err=%ld, level=%ld)\n", lib, func, errstr, *nerr, *level)
-
-int dintrv(doublereal *, integer *, doublereal *, integer *,
+void dintrv(doublereal *, integer *, doublereal *, integer *,
           integer *, integer *);
-int dpchkt(integer *, doublereal *, integer *, doublereal *);
-int dchfdv(doublereal *, doublereal *, 
+void dpchkt(integer *, doublereal *, integer *, doublereal *);
+void dchfdv(doublereal *, doublereal *,
 	    doublereal *, doublereal *, doublereal *, doublereal *, integer *,
 	     doublereal *, doublereal *, doublereal *, integer *, integer *);
-int dchfev(doublereal *, doublereal *, 
+void dchfev(doublereal *, doublereal *,
 	    doublereal *, doublereal *, doublereal *, doublereal *, integer *,
 	     doublereal *, doublereal *, integer *, integer *);
-doublereal dchfie(doublereal *, doublereal *, doublereal *, 
-	    doublereal *, doublereal *, doublereal *, doublereal *, 
+doublereal dchfie(doublereal *, doublereal *, doublereal *,
+	    doublereal *, doublereal *, doublereal *, doublereal *,
 	    doublereal *);
-doublereal dpchid(integer *, doublereal *, doublereal *, 
+doublereal dpchid(integer *, doublereal *, doublereal *,
 	    doublereal *, integer *, logical *, integer *, integer *,
             integer *);
 doublereal dpchst(doublereal *, doublereal *);
-int dpchsw(doublereal *, integer *, doublereal *,
+void dpchsw(doublereal *, integer *, doublereal *,
 	     doublereal *, doublereal *, doublereal *, integer *);
-int dpchce(integer *, doublereal *, integer *, 
+void dpchce(integer *, doublereal *, integer *,
 	    doublereal *, doublereal *, doublereal *, doublereal *, integer *,
 	     integer *);
-int dpchci(integer *, doublereal *, doublereal *, doublereal *, integer *);
-int dpchcs(doublereal *, integer *, 
+void dpchci(integer *, doublereal *, doublereal *, doublereal *, integer *);
+void dpchcs(doublereal *, integer *,
 	    doublereal *, doublereal *, doublereal *, integer *, integer *);
 doublereal dpchdf(integer *, doublereal *, doublereal *, integer *);
 
@@ -136,8 +58,7 @@ doublereal d1mach() {
   return 2.3e-16; /* for float, 1.2e-7 */
 }
 
-/* DECK DBVALU */
-doublereal dbvalu(doublereal *t, doublereal *a, integer *n, integer *k, 
+doublereal dbvalu(doublereal *t, doublereal *a, integer *n, integer *k,
 	integer *ideriv, doublereal *x, integer *inbv, doublereal *work)
 {
     /* System generated locals */
@@ -149,15 +70,11 @@ doublereal dbvalu(doublereal *t, doublereal *a, integer *n, integer *k,
     static doublereal fkmj;
     static integer ip1mj, mflag, imkpj, iderp1, kmider, ihmkmj;
 
-/* ***BEGIN PROLOGUE  DBVALU */
 /* ***PURPOSE  Evaluate the B-representation of a B-spline at X for the */
 /*            function value or any of its derivatives. */
 /* ***LIBRARY   SLATEC */
-/* ***CATEGORY  E3, K6 */
-/* ***TYPE      DOUBLE PRECISION (BVALU-S, DBVALU-D) */
 /* ***KEYWORDS  DIFFERENTIATION OF B-SPLINE, EVALUATION OF B-SPLINE */
 /* ***AUTHOR  Amos, D. E., (SNLA) */
-/* ***DESCRIPTION */
 
 /*     Written by Carl de Boor and modified by D. E. Amos */
 
@@ -205,7 +122,6 @@ doublereal dbvalu(doublereal *t, doublereal *a, integer *n, integer *k,
 /* ***REFERENCES  Carl de Boor, Package for calculating with B-splines, */
 /*                 SIAM Journal on Numerical Analysis 14, 3 (June 1977), */
 /*                 pp. 441-472. */
-/* ***ROUTINES CALLED  DINTRV, XERMSG */
 /* ***REVISION HISTORY  (YYMMDD) */
 /*   800901  DATE WRITTEN */
 /*   890831  Modified array declarations.  (WRB) */
@@ -214,15 +130,12 @@ doublereal dbvalu(doublereal *t, doublereal *a, integer *n, integer *k,
 /*   891214  Prologue converted to Version 4.0 format.  (BAB) */
 /*   900315  CALLs to XERROR changed to CALLs to XERMSG.  (THJ) */
 /*   920501  Reformatted the REFERENCES section.  (WRB) */
-/* ***END PROLOGUE  DBVALU */
 
-/* ***FIRST EXECUTABLE STATEMENT  DBVALU */
     /* Parameter adjustments */
     --work;
     --a;
     --t;
 
-    /* Function Body */
     ret_val = 0.;
     if (*k < 1) {
 	goto L102;
@@ -279,7 +192,7 @@ L20:
 	for (jj = 1; jj <= i__2; ++jj) {
 	    ihi = i__ + jj;
 	    ihmkmj = ihi - kmj;
-	    work[jj] = (work[jj + 1] - work[jj]) / (t[ihi] - t[ihmkmj]) * 
+	    work[jj] = (work[jj + 1] - work[jj]) / (t[ihi] - t[ihmkmj]) *
 		    fkmj;
 	}
     }
@@ -310,7 +223,7 @@ L60:
 	ilo = kmj;
 	i__2 = kmj;
 	for (jj = 1; jj <= i__2; ++jj) {
-	    work[jj] = (work[jj + 1] * work[kpk + ilo] + work[jj] * work[*k + 
+	    work[jj] = (work[jj + 1] * work[kpk + ilo] + work[jj] * work[*k +
 		    jj]) / (work[kpk + ilo] + work[*k + jj]);
 	    --ilo;
 	}
@@ -321,47 +234,36 @@ L100:
 
 
 L101:
-    xermsg_("SLATEC", "DBVALU", "N DOES NOT SATISFY N.GE.K", &c__2, &c__1, (
-	    ftnlen)6, (ftnlen)6, (ftnlen)25);
+    xermsg_("SLATEC", "DBVALU", "N DOES NOT SATISFY N.GE.K", (long)2);
     return ret_val;
 L102:
-    xermsg_("SLATEC", "DBVALU", "K DOES NOT SATISFY K.GE.1", &c__2, &c__1, (
-	    ftnlen)6, (ftnlen)6, (ftnlen)25);
+    xermsg_("SLATEC", "DBVALU", "K DOES NOT SATISFY K.GE.1", (long)2);
     return ret_val;
 L110:
-    xermsg_("SLATEC", "DBVALU", "IDERIV DOES NOT SATISFY 0.LE.IDERIV.LT.K", &
-	    c__2, &c__1, (ftnlen)6, (ftnlen)6, (ftnlen)40);
+    xermsg_("SLATEC", "DBVALU", "IDERIV DOES NOT SATISFY 0.LE.IDERIV.LT.K", (long)2);
     return ret_val;
 L120:
-    xermsg_("SLATEC", "DBVALU", "X IS N0T GREATER THAN OR EQUAL TO T(K)", &
-	    c__2, &c__1, (ftnlen)6, (ftnlen)6, (ftnlen)38);
+    xermsg_("SLATEC", "DBVALU", "X IS N0T GREATER THAN OR EQUAL TO T(K)", (long)2);
     return ret_val;
 L130:
-    xermsg_("SLATEC", "DBVALU", "X IS NOT LESS THAN OR EQUAL TO T(N+1)", &
-	    c__2, &c__1, (ftnlen)6, (ftnlen)6, (ftnlen)37);
+    xermsg_("SLATEC", "DBVALU", "X IS NOT LESS THAN OR EQUAL TO T(N+1)", (long)2);
     return ret_val;
 L140:
-    xermsg_("SLATEC", "DBVALU", "A LEFT LIMITING VALUE CANNOT BE OBTAINED AT"
-	    " T(K)", &c__2, &c__1, (ftnlen)6, (ftnlen)6, (ftnlen)48);
+    xermsg_("SLATEC", "DBVALU", "A LEFT LIMITING VALUE CANNOT BE OBTAINED AT T(K)", (long)2);
     return ret_val;
 }
 
-/* DECK DINTRV */
-/* Subroutine */ int dintrv(doublereal *xt, integer *lxt, doublereal *x, 
+void dintrv(doublereal *xt, integer *lxt, doublereal *x,
 	integer *ilo, integer *ileft, integer *mflag)
 {
     static integer ihi, istep, middle;
 
-/* ***BEGIN PROLOGUE  DINTRV */
 /* ***PURPOSE  Compute the largest integer ILEFT in 1 .LE. ILEFT .LE. LXT */
 /*            such that XT(ILEFT) .LE. X where XT(*) is a subdivision of */
 /*            the X interval. */
 /* ***LIBRARY   SLATEC */
-/* ***CATEGORY  E3, K6 */
-/* ***TYPE      DOUBLE PRECISION (INTRV-S, DINTRV-D) */
 /* ***KEYWORDS  B-SPLINE, DATA FITTING, INTERPOLATION, SPLINES */
 /* ***AUTHOR  Amos, D. E., (SNLA) */
-/* ***DESCRIPTION */
 
 /*     Written by Carl de Boor and modified by D. E. Amos */
 
@@ -403,20 +305,16 @@ L140:
 /* ***REFERENCES  Carl de Boor, Package for calculating with B-splines, */
 /*                 SIAM Journal on Numerical Analysis 14, 3 (June 1977), */
 /*                 pp. 441-472. */
-/* ***ROUTINES CALLED  (NONE) */
 /* ***REVISION HISTORY  (YYMMDD) */
 /*   800901  DATE WRITTEN */
 /*   890831  Modified array declarations.  (WRB) */
 /*   890831  REVISION DATE from Version 3.2 */
 /*   891214  Prologue converted to Version 4.0 format.  (BAB) */
 /*   920501  Reformatted the REFERENCES section.  (WRB) */
-/* ***END PROLOGUE  DINTRV */
 
-/* ***FIRST EXECUTABLE STATEMENT  DINTRV */
     /* Parameter adjustments */
     --xt;
 
-    /* Function Body */
     ihi = *ilo + 1;
     if (ihi < *lxt) {
 	goto L10;
@@ -496,21 +394,20 @@ L80:
 L90:
     *mflag = -1;
     *ileft = 1;
-    return 0;
+    return;
 L100:
     *mflag = 0;
     *ileft = *ilo;
-    return 0;
+    return;
 L110:
     *mflag = 1;
     *ileft = *lxt;
-    return 0;
+    return;
 }
 
-/* DECK DPCHBS */
-/* Subroutine */ int dpchbs(integer *n, doublereal *x, doublereal *f, 
-	doublereal *d__, integer *incfd, integer *knotyp, integer *nknots, 
-	doublereal *t, doublereal *bcoef, integer *ndim, integer *kord, 
+void dpchbs(integer *n, doublereal *x, doublereal *f,
+	doublereal *d__, integer *incfd, integer *knotyp, integer *nknots,
+	doublereal *t, doublereal *bcoef, integer *ndim, integer *kord,
 	integer *ierr)
 {
     /* System generated locals */
@@ -522,11 +419,8 @@ L110:
     char *libnam = "SLATEC";
     char *subnam = "DPCHBS";
 
-/* ***BEGIN PROLOGUE  DPCHBS */
 /* ***PURPOSE  Piecewise Cubic Hermite to B-Spline converter. */
 /* ***LIBRARY   SLATEC (PCHIP) */
-/* ***CATEGORY  E3 */
-/* ***TYPE      DOUBLE PRECISION (PCHBS-S, DPCHBS-D) */
 /* ***KEYWORDS  B-SPLINES, CONVERSION, CUBIC HERMITE INTERPOLATION, */
 /*             PIECEWISE CUBIC INTERPOLATION */
 /* ***AUTHOR  Fritsch, F. N., (LLNL) */
@@ -535,7 +429,6 @@ L110:
 /*             P.O. Box 808  (L-316) */
 /*             Livermore, CA  94550 */
 /*             FTS 532-4275, (510) 422-4275 */
-/* ***DESCRIPTION */
 
 /* *Usage: */
 
@@ -653,7 +546,6 @@ L110:
 /* ***REFERENCES  F. N. Fritsch, "Representations for parametric cubic */
 /*                 splines," Computer Aided Geometric Design 6 (1989), */
 /*                 pp.79-82. */
-/* ***ROUTINES CALLED  DPCHKT, XERMSG */
 /* ***REVISION HISTORY  (YYMMDD) */
 /*   870701  DATE WRITTEN */
 /*   900405  Converted Fortran to upper case. */
@@ -669,22 +561,7 @@ L110:
 /*   900501  Corrected declarations. */
 /*   930317  Minor cosmetic changes.  (FNF) */
 /*   930514  Corrected problems with dimensioning of arguments and */
-/*           clarified DESCRIPTION.  (FNF) */
 /*   930604  Removed  NKNOTS from DPCHKT call list.  (FNF) */
-/* ***END PROLOGUE  DPCHBS */
-
-/* *Internal Notes: */
-
-/* **End */
-
-/*  Declare arguments. */
-
-
-/*  Declare local variables. */
-
-/* ***FIRST EXECUTABLE STATEMENT  DPCHBS */
-
-/*  Initialize. */
 
     /* Parameter adjustments */
     --x;
@@ -697,7 +574,6 @@ L110:
     --t;
     --bcoef;
 
-    /* Function Body */
     *ndim = *n << 1;
     *kord = 4;
     *ierr = 0;
@@ -706,16 +582,14 @@ L110:
 
     if (*knotyp > 2) {
 	*ierr = -1;
-	xermsg_(libnam, subnam, "KNOTYP GREATER THAN 2", ierr, &c__1, (ftnlen)
-		8, (ftnlen)8, (ftnlen)21);
-	return 0;
+	xermsg_(libnam, subnam, "KNOTYP GREATER THAN 2", *ierr);
+	return;
     }
     if (*knotyp < 0) {
 	if (*nknots != *ndim + 4) {
 	    *ierr = -2;
-	    xermsg_(libnam, subnam, "KNOTYP.LT.0 AND NKNOTS.NE.(2*N+4)", ierr,
-		     &c__1, (ftnlen)8, (ftnlen)8, (ftnlen)33);
-	    return 0;
+	    xermsg_(libnam, subnam, "KNOTYP.LT.0 AND NKNOTS.NE.(2*N+4)", *ierr);
+	    return;
 	}
     } else {
 /*          Set up knot sequence. */
@@ -740,12 +614,10 @@ L110:
 
 /*  Terminate. */
 
-    return 0;
-/* ------------- LAST LINE OF DPCHBS FOLLOWS ----------------------------- */
+    return;
 }
 
-/* DECK DPCHKT */
-/* Subroutine */ int dpchkt(integer *n, doublereal *x, integer *knotyp, 
+void dpchkt(integer *n, doublereal *x, integer *knotyp,
 	doublereal *t)
 {
     /* System generated locals */
@@ -756,14 +628,9 @@ L110:
     static doublereal hbeg, hend;
     static integer ndim;
 
-/* ***BEGIN PROLOGUE  DPCHKT */
-/* ***SUBSIDIARY */
 /* ***PURPOSE  Compute B-spline knot sequence for DPCHBS. */
 /* ***LIBRARY   SLATEC (PCHIP) */
-/* ***CATEGORY  E3 */
-/* ***TYPE      DOUBLE PRECISION (PCHKT-S, DPCHKT-D) */
 /* ***AUTHOR  Fritsch, F. N., (LLNL) */
-/* ***DESCRIPTION */
 
 /*     Set a knot sequence for the B-spline representation of a PCH */
 /*     function with breakpoints X.  All knots will be at least double. */
@@ -781,7 +648,6 @@ L110:
 /*     3. 0.LE.KNOTYP.LE.2 .  (Acts like KNOTYP=0 for any other value.) */
 
 /* ***SEE ALSO  DPCHBS */
-/* ***ROUTINES CALLED  (NONE) */
 /* ***REVISION HISTORY  (YYMMDD) */
 /*   870701  DATE WRITTEN */
 /*   900405  Converted Fortran to upper case. */
@@ -790,29 +656,14 @@ L110:
 /*   900430  Produced double precision version. */
 /*   930514  Changed NKNOTS from an output to an input variable.  (FNF) */
 /*   930604  Removed unused variable NKNOTS from argument list.  (FNF) */
-/* ***END PROLOGUE  DPCHKT */
-
-/* *Internal Notes: */
 
 /*  Since this is subsidiary to DPCHBS, which validates its input before */
 /*  calling, it is unnecessary for such validation to be done here. */
-
-/* **End */
-
-/*  Declare arguments. */
-
-
-/*  Declare local variables. */
-
-/* ***FIRST EXECUTABLE STATEMENT  DPCHKT */
-
-/*  Initialize. */
 
     /* Parameter adjustments */
     --t;
     --x;
 
-    /* Function Body */
     ndim = *n << 1;
 
 /*  Set interior knots. */
@@ -849,14 +700,12 @@ L110:
 
 /*  Terminate. */
 
-    return 0;
-/* ------------- LAST LINE OF DPCHKT FOLLOWS ----------------------------- */
+    return;
 }
 
-/* DECK DCHFDV */
-/* Subroutine */ int dchfdv(doublereal *x1, doublereal *x2, doublereal *f1, 
-	doublereal *f2, doublereal *d1, doublereal *d2, integer *ne, 
-	doublereal *xe, doublereal *fe, doublereal *de, integer *next, 
+void dchfdv(doublereal *x1, doublereal *x2, doublereal *f1,
+	doublereal *f2, doublereal *d1, doublereal *d2, integer *ne,
+	doublereal *xe, doublereal *fe, doublereal *de, integer *next,
 	integer *ierr)
 {
     /* Initialized data */
@@ -871,7 +720,6 @@ L110:
     static integer i__;
     static doublereal x, c2, c3, c2t2, c3t3, xma, xmi, del1, del2, delta;
 
-/* ***BEGIN PROLOGUE  DCHFDV */
 /* ***PURPOSE  Evaluate a cubic polynomial given in Hermite form and its */
 /*            first derivative at an array of points.  While designed for */
 /*            use by DPCHFD, it may be useful directly as an evaluator */
@@ -879,8 +727,6 @@ L110:
 /*            such as graphing, where the interval is known in advance. */
 /*            If only function values are required, use DCHFEV instead. */
 /* ***LIBRARY   SLATEC (PCHIP) */
-/* ***CATEGORY  E3, H1 */
-/* ***TYPE      DOUBLE PRECISION (CHFDV-S, DCHFDV-D) */
 /* ***KEYWORDS  CUBIC HERMITE DIFFERENTIATION, CUBIC HERMITE EVALUATION, */
 /*             CUBIC POLYNOMIAL EVALUATION, PCHIP */
 /* ***AUTHOR  Fritsch, F. N., (LLNL) */
@@ -888,7 +734,6 @@ L110:
 /*             P.O. Box 808  (L-316) */
 /*             Livermore, CA  94550 */
 /*             FTS 532-4275, (510) 422-4275 */
-/* ***DESCRIPTION */
 
 /*        DCHFDV:  Cubic Hermite Function and Derivative Evaluator */
 
@@ -943,8 +788,6 @@ L110:
 /*              IERR = -2  if X1.EQ.X2 . */
 /*                (Output arrays have not been changed in either case.) */
 
-/* ***REFERENCES  (NONE) */
-/* ***ROUTINES CALLED  XERMSG */
 /* ***REVISION HISTORY  (YYMMDD) */
 /*   811019  DATE WRITTEN */
 /*   820803  Minor cosmetic changes for release 1. */
@@ -957,7 +800,6 @@ L110:
 /*   891006  REVISION DATE from Version 3.2 */
 /*   891214  Prologue converted to Version 4.0 format.  (BAB) */
 /*   900315  CALLs to XERROR changed to CALLs to XERMSG.  (THJ) */
-/* ***END PROLOGUE  DCHFDV */
 /*  Programming notes: */
 
 /*     To produce a single precision version, simply: */
@@ -965,22 +807,15 @@ L110:
 /*        b. Change the double precision declaration to real, and */
 /*        c. Change the constant ZERO to single precision. */
 
-/*  DECLARE ARGUMENTS. */
-
-
-/*  DECLARE LOCAL VARIABLES. */
-
     /* Parameter adjustments */
     --next;
     --de;
     --fe;
     --xe;
 
-    /* Function Body */
 
 /*  VALIDITY-CHECK ARGUMENTS. */
 
-/* ***FIRST EXECUTABLE STATEMENT  DCHFDV */
     if (*ne < 1) {
 	goto L5001;
     }
@@ -1028,29 +863,25 @@ L110:
 
 /*  NORMAL RETURN. */
 
-    return 0;
+    return;
 
 /*  ERROR RETURNS. */
 
 L5001:
 /*     NE.LT.1 RETURN. */
     *ierr = -1;
-    xermsg_("SLATEC", "DCHFDV", "NUMBER OF EVALUATION POINTS LESS THAN ONE", 
-	    ierr, &c__1, (ftnlen)6, (ftnlen)6, (ftnlen)41);
-    return 0;
+    xermsg_("SLATEC", "DCHFDV", "NUMBER OF EVALUATION POINTS LESS THAN ONE", *ierr);
+    return;
 
 L5002:
 /*     X1.EQ.X2 RETURN. */
     *ierr = -2;
-    xermsg_("SLATEC", "DCHFDV", "INTERVAL ENDPOINTS EQUAL", ierr, &c__1, (
-	    ftnlen)6, (ftnlen)6, (ftnlen)24);
-    return 0;
-/* ------------- LAST LINE OF DCHFDV FOLLOWS ----------------------------- */
+    xermsg_("SLATEC", "DCHFDV", "INTERVAL ENDPOINTS EQUAL", *ierr);
+    return;
 }
 
-/* DECK DPCHFD */
-/* Subroutine */ int dpchfd(integer *n, doublereal *x, doublereal *f, 
-	doublereal *d__, integer *incfd, logical *skip, integer *ne, 
+void dpchfd(integer *n, doublereal *x, doublereal *f,
+	doublereal *d__, integer *incfd, logical *skip, integer *ne,
 	doublereal *xe, doublereal *fe, doublereal *de, integer *ierr)
 {
     /* System generated locals */
@@ -1060,15 +891,12 @@ L5002:
     static integer i__, j, nj, ir, ierc, next[2];
     static integer jfirst;
 
-/* ***BEGIN PROLOGUE  DPCHFD */
 /* ***PURPOSE  Evaluate a piecewise cubic Hermite function and its first */
 /*            derivative at an array of points.  May be used by itself */
 /*            for Hermite interpolation, or as an evaluator for DPCHIM */
 /*            or DPCHIC. If only function values are required, use */
 /*            DPCHFE instead. */
 /* ***LIBRARY   SLATEC (PCHIP) */
-/* ***CATEGORY  E3, H1 */
-/* ***TYPE      DOUBLE PRECISION (PCHFD-S, DPCHFD-D) */
 /* ***KEYWORDS  CUBIC HERMITE DIFFERENTIATION, CUBIC HERMITE EVALUATION, */
 /*             HERMITE INTERPOLATION, PCHIP, PIECEWISE CUBIC EVALUATION */
 /* ***AUTHOR  Fritsch, F. N., (LLNL) */
@@ -1076,7 +904,6 @@ L5002:
 /*             P.O. Box 808  (L-316) */
 /*             Livermore, CA  94550 */
 /*             FTS 532-4275, (510) 422-4275 */
-/* ***DESCRIPTION */
 
 /*          DPCHFD:  Piecewise Cubic Hermite Function and Derivative */
 /*                  evaluator */
@@ -1166,8 +993,6 @@ L5002:
 /*                         routine DCHFDV.  NB: this should never happen. */
 /*                         Notify the author **IMMEDIATELY** if it does. */
 
-/* ***REFERENCES  (NONE) */
-/* ***ROUTINES CALLED  DCHFDV, XERMSG */
 /* ***REVISION HISTORY  (YYMMDD) */
 /*   811020  DATE WRITTEN */
 /*   820803  Minor cosmetic changes for release 1. */
@@ -1179,7 +1004,6 @@ L5002:
 /*   891006  REVISION DATE from Version 3.2 */
 /*   891214  Prologue converted to Version 4.0 format.  (BAB) */
 /*   900315  CALLs to XERROR changed to CALLs to XERMSG.  (THJ) */
-/* ***END PROLOGUE  DPCHFD */
 /*  Programming notes: */
 
 /*     1. To produce a single precision version, simply: */
@@ -1202,15 +1026,8 @@ L5002:
 /*        X(N-1), followed by points .GT.X(N), the extrapolation points */
 /*        will be counted (at least) twice in the total returned in IERR. */
 
-/*  DECLARE ARGUMENTS. */
-
-
-/*  DECLARE LOCAL VARIABLES. */
-
-
 /*  VALIDITY-CHECK ARGUMENTS. */
 
-/* ***FIRST EXECUTABLE STATEMENT  DPCHFD */
     /* Parameter adjustments */
     --x;
     d_dim1 = *incfd;
@@ -1223,7 +1040,6 @@ L5002:
     --fe;
     --de;
 
-    /* Function Body */
     if (*skip) {
 	goto L5;
     }
@@ -1390,51 +1206,44 @@ L50:
 /*  NORMAL RETURN. */
 
 L5000:
-    return 0;
+    return;
 
 /*  ERROR RETURNS. */
 
 L5001:
 /*     N.LT.2 RETURN. */
     *ierr = -1;
-    xermsg_("SLATEC", "DPCHFD", "NUMBER OF DATA POINTS LESS THAN TWO", ierr, &
-	    c__1, (ftnlen)6, (ftnlen)6, (ftnlen)35);
-    return 0;
+    xermsg_("SLATEC", "DPCHFD", "NUMBER OF DATA POINTS LESS THAN TWO", *ierr);
+    return;
 
 L5002:
 /*     INCFD.LT.1 RETURN. */
     *ierr = -2;
-    xermsg_("SLATEC", "DPCHFD", "INCREMENT LESS THAN ONE", ierr, &c__1, (
-	    ftnlen)6, (ftnlen)6, (ftnlen)23);
-    return 0;
+    xermsg_("SLATEC", "DPCHFD", "INCREMENT LESS THAN ONE", *ierr);
+    return;
 
 L5003:
 /*     X-ARRAY NOT STRICTLY INCREASING. */
     *ierr = -3;
-    xermsg_("SLATEC", "DPCHFD", "X-ARRAY NOT STRICTLY INCREASING", ierr, &
-	    c__1, (ftnlen)6, (ftnlen)6, (ftnlen)31);
-    return 0;
+    xermsg_("SLATEC", "DPCHFD", "X-ARRAY NOT STRICTLY INCREASING", *ierr);
+    return;
 
 L5004:
 /*     NE.LT.1 RETURN. */
     *ierr = -4;
-    xermsg_("SLATEC", "DPCHFD", "NUMBER OF EVALUATION POINTS LESS THAN ONE", 
-	    ierr, &c__1, (ftnlen)6, (ftnlen)6, (ftnlen)41);
-    return 0;
+    xermsg_("SLATEC", "DPCHFD", "NUMBER OF EVALUATION POINTS LESS THAN ONE", *ierr);
+    return;
 
 L5005:
 /*     ERROR RETURN FROM DCHFDV. */
 /*   *** THIS CASE SHOULD NEVER OCCUR *** */
     *ierr = -5;
-    xermsg_("SLATEC", "DPCHFD", "ERROR RETURN FROM DCHFDV -- FATAL", ierr, &
-	    c__2, (ftnlen)6, (ftnlen)6, (ftnlen)33);
-    return 0;
-/* ------------- LAST LINE OF DPCHFD FOLLOWS ----------------------------- */
+    xermsg_("SLATEC", "DPCHFD", "ERROR RETURN FROM DCHFDV -- FATAL", *ierr);
+    return;
 }
 
-/* DECK DCHFEV */
-/* Subroutine */ int dchfev(doublereal *x1, doublereal *x2, doublereal *f1, 
-	doublereal *f2, doublereal *d1, doublereal *d2, integer *ne, 
+void dchfev(doublereal *x1, doublereal *x2, doublereal *f1,
+	doublereal *f2, doublereal *d1, doublereal *d2, integer *ne,
 	doublereal *xe, doublereal *fe, integer *next, integer *ierr)
 {
     /* Initialized data */
@@ -1449,15 +1258,12 @@ L5005:
     static integer i__;
     static doublereal x, c2, c3, xma, xmi, del1, del2, delta;
 
-/* ***BEGIN PROLOGUE  DCHFEV */
 /* ***PURPOSE  Evaluate a cubic polynomial given in Hermite form at an */
 /*            array of points.  While designed for use by DPCHFE, it may */
 /*            be useful directly as an evaluator for a piecewise cubic */
 /*            Hermite function in applications, such as graphing, where */
 /*            the interval is known in advance. */
 /* ***LIBRARY   SLATEC (PCHIP) */
-/* ***CATEGORY  E3 */
-/* ***TYPE      DOUBLE PRECISION (CHFEV-S, DCHFEV-D) */
 /* ***KEYWORDS  CUBIC HERMITE EVALUATION, CUBIC POLYNOMIAL EVALUATION, */
 /*             PCHIP */
 /* ***AUTHOR  Fritsch, F. N., (LLNL) */
@@ -1465,7 +1271,6 @@ L5005:
 /*             P.O. Box 808  (L-316) */
 /*             Livermore, CA  94550 */
 /*             FTS 532-4275, (510) 422-4275 */
-/* ***DESCRIPTION */
 
 /*          DCHFEV:  Cubic Hermite Function EValuator */
 
@@ -1514,8 +1319,6 @@ L5005:
 /*              IERR = -2  if X1.EQ.X2 . */
 /*                (The FE-array has not been changed in either case.) */
 
-/* ***REFERENCES  (NONE) */
-/* ***ROUTINES CALLED  XERMSG */
 /* ***REVISION HISTORY  (YYMMDD) */
 /*   811019  DATE WRITTEN */
 /*   820803  Minor cosmetic changes for release 1. */
@@ -1529,16 +1332,12 @@ L5005:
 /*   891006  REVISION DATE from Version 3.2 */
 /*   891214  Prologue converted to Version 4.0 format.  (BAB) */
 /*   900315  CALLs to XERROR changed to CALLs to XERMSG.  (THJ) */
-/* ***END PROLOGUE  DCHFEV */
 /*  Programming notes: */
 
 /*     To produce a single precision version, simply: */
 /*        a. Change DCHFEV to CHFEV wherever it occurs, */
 /*        b. Change the double precision declaration to real, and */
 /*        c. Change the constant ZERO to single precision. */
-
-/*  DECLARE ARGUMENTS. */
-
 
 /*  DECLARE LOCAL VARIABLES. */
 
@@ -1547,11 +1346,9 @@ L5005:
     --fe;
     --xe;
 
-    /* Function Body */
 
 /*  VALIDITY-CHECK ARGUMENTS. */
 
-/* ***FIRST EXECUTABLE STATEMENT  DCHFEV */
     if (*ne < 1) {
 	goto L5001;
     }
@@ -1596,29 +1393,25 @@ L5005:
 
 /*  NORMAL RETURN. */
 
-    return 0;
+    return;
 
 /*  ERROR RETURNS. */
 
 L5001:
 /*     NE.LT.1 RETURN. */
     *ierr = -1;
-    xermsg_("SLATEC", "DCHFEV", "NUMBER OF EVALUATION POINTS LESS THAN ONE", 
-	    ierr, &c__1, (ftnlen)6, (ftnlen)6, (ftnlen)41);
-    return 0;
+    xermsg_("SLATEC", "DCHFEV", "NUMBER OF EVALUATION POINTS LESS THAN ONE", *ierr);
+    return;
 
 L5002:
 /*     X1.EQ.X2 RETURN. */
     *ierr = -2;
-    xermsg_("SLATEC", "DCHFEV", "INTERVAL ENDPOINTS EQUAL", ierr, &c__1, (
-	    ftnlen)6, (ftnlen)6, (ftnlen)24);
-    return 0;
-/* ------------- LAST LINE OF DCHFEV FOLLOWS ----------------------------- */
+    xermsg_("SLATEC", "DCHFEV", "INTERVAL ENDPOINTS EQUAL", *ierr);
+    return;
 }
 
-/* DECK DPCHFE */
-/* Subroutine */ int dpchfe(integer *n, doublereal *x, doublereal *f, 
-	doublereal *d__, integer *incfd, logical *skip, integer *ne, 
+void dpchfe(integer *n, doublereal *x, doublereal *f,
+	doublereal *d__, integer *incfd, logical *skip, integer *ne,
 	doublereal *xe, doublereal *fe, integer *ierr)
 {
     /* System generated locals */
@@ -1628,13 +1421,10 @@ L5002:
     static integer i__, j, nj, ir, ierc, next[2];
     static integer jfirst;
 
-/* ***BEGIN PROLOGUE  DPCHFE */
 /* ***PURPOSE  Evaluate a piecewise cubic Hermite function at an array of */
 /*            points.  May be used by itself for Hermite interpolation, */
 /*            or as an evaluator for DPCHIM or DPCHIC. */
 /* ***LIBRARY   SLATEC (PCHIP) */
-/* ***CATEGORY  E3 */
-/* ***TYPE      DOUBLE PRECISION (PCHFE-S, DPCHFE-D) */
 /* ***KEYWORDS  CUBIC HERMITE EVALUATION, HERMITE INTERPOLATION, PCHIP, */
 /*             PIECEWISE CUBIC EVALUATION */
 /* ***AUTHOR  Fritsch, F. N., (LLNL) */
@@ -1642,7 +1432,6 @@ L5002:
 /*             P.O. Box 808  (L-316) */
 /*             Livermore, CA  94550 */
 /*             FTS 532-4275, (510) 422-4275 */
-/* ***DESCRIPTION */
 
 /*          DPCHFE:  Piecewise Cubic Hermite Function Evaluator */
 
@@ -1721,8 +1510,6 @@ L5002:
 /*               NOTE:  The above errors are checked in the order listed, */
 /*                   and following arguments have **NOT** been validated. */
 
-/* ***REFERENCES  (NONE) */
-/* ***ROUTINES CALLED  DCHFEV, XERMSG */
 /* ***REVISION HISTORY  (YYMMDD) */
 /*   811020  DATE WRITTEN */
 /*   820803  Minor cosmetic changes for release 1. */
@@ -1765,7 +1552,6 @@ L5002:
 
 /*  VALIDITY-CHECK ARGUMENTS. */
 
-/* ***FIRST EXECUTABLE STATEMENT  DPCHFE */
     /* Parameter adjustments */
     --x;
     d_dim1 = *incfd;
@@ -1777,7 +1563,6 @@ L5002:
     --xe;
     --fe;
 
-    /* Function Body */
     if (*skip) {
 	goto L5;
     }
@@ -1944,50 +1729,43 @@ L50:
 /*  NORMAL RETURN. */
 
 L5000:
-    return 0;
+    return;
 
 /*  ERROR RETURNS. */
 
 L5001:
 /*     N.LT.2 RETURN. */
     *ierr = -1;
-    xermsg_("SLATEC", "DPCHFE", "NUMBER OF DATA POINTS LESS THAN TWO", ierr, &
-	    c__1, (ftnlen)6, (ftnlen)6, (ftnlen)35);
-    return 0;
+    xermsg_("SLATEC", "DPCHFE", "NUMBER OF DATA POINTS LESS THAN TWO", *ierr);
+    return;
 
 L5002:
 /*     INCFD.LT.1 RETURN. */
     *ierr = -2;
-    xermsg_("SLATEC", "DPCHFE", "INCREMENT LESS THAN ONE", ierr, &c__1, (
-	    ftnlen)6, (ftnlen)6, (ftnlen)23);
-    return 0;
+    xermsg_("SLATEC", "DPCHFE", "INCREMENT LESS THAN ONE", *ierr);
+    return;
 
 L5003:
 /*     X-ARRAY NOT STRICTLY INCREASING. */
     *ierr = -3;
-    xermsg_("SLATEC", "DPCHFE", "X-ARRAY NOT STRICTLY INCREASING", ierr, &
-	    c__1, (ftnlen)6, (ftnlen)6, (ftnlen)31);
-    return 0;
+    xermsg_("SLATEC", "DPCHFE", "X-ARRAY NOT STRICTLY INCREASING", *ierr);
+    return;
 
 L5004:
 /*     NE.LT.1 RETURN. */
     *ierr = -4;
-    xermsg_("SLATEC", "DPCHFE", "NUMBER OF EVALUATION POINTS LESS THAN ONE", 
-	    ierr, &c__1, (ftnlen)6, (ftnlen)6, (ftnlen)41);
-    return 0;
+    xermsg_("SLATEC", "DPCHFE", "NUMBER OF EVALUATION POINTS LESS THAN ONE", *ierr);
+    return;
 
 L5005:
 /*     ERROR RETURN FROM DCHFEV. */
 /*   *** THIS CASE SHOULD NEVER OCCUR *** */
     *ierr = -5;
-    xermsg_("SLATEC", "DPCHFE", "ERROR RETURN FROM DCHFEV -- FATAL", ierr, &
-	    c__2, (ftnlen)6, (ftnlen)6, (ftnlen)33);
-    return 0;
-/* ------------- LAST LINE OF DPCHFE FOLLOWS ----------------------------- */
+    xermsg_("SLATEC", "DPCHFE", "ERROR RETURN FROM DCHFEV -- FATAL", *ierr);
+    return;
 }
 
-/* DECK DCHFIE */
-doublereal dchfie(doublereal *x1, doublereal *x2, doublereal *f1, doublereal 
+doublereal dchfie(doublereal *x1, doublereal *x2, doublereal *f1, doublereal
 	*f2, doublereal *d1, doublereal *d2, doublereal *a, doublereal *b)
 {
     /* Initialized data */
@@ -2002,16 +1780,13 @@ doublereal dchfie(doublereal *x1, doublereal *x2, doublereal *f1, doublereal
     doublereal ret_val, d__1;
 
     /* Local variables */
-    static doublereal h__, ta1, ta2, tb1, tb2, ua1, ua2, ub1, ub2, phia1, 
+    static doublereal h__, ta1, ta2, tb1, tb2, ua1, ua2, ub1, ub2, phia1,
 	    phia2, phib1, phib2, psia1, psia2, psib1, psib2, dterm, fterm;
 
 /* ***BEGIN PROLOGUE  DCHFIE */
-/* ***SUBSIDIARY */
 /* ***PURPOSE  Evaluates integral of a single cubic for DPCHIA */
 /* ***LIBRARY   SLATEC (PCHIP) */
-/* ***TYPE      DOUBLE PRECISION (CHFIE-S, DCHFIE-D) */
 /* ***AUTHOR  Fritsch, F. N., (LLNL) */
-/* ***DESCRIPTION */
 
 /*          DCHFIE:  Cubic Hermite Function Integral Evaluator. */
 
@@ -2040,7 +1815,6 @@ doublereal dchfie(doublereal *x1, doublereal *x2, doublereal *f1, doublereal
 /*     A,B -- (input) endpoints of interval of integration. */
 
 /* ***SEE ALSO  DPCHIA */
-/* ***ROUTINES CALLED  (NONE) */
 /* ***REVISION HISTORY  (YYMMDD) */
 /*   820730  DATE WRITTEN */
 /*   820805  Converted to SLATEC library version. */
@@ -2060,7 +1834,6 @@ doublereal dchfie(doublereal *x1, doublereal *x2, doublereal *f1, doublereal
 /*  Programming notes: */
 /*  1. There is no error return from this routine because zero is */
 /*     indeed the mathematically correct answer when X1.EQ.X2 . */
-/* **End */
 
 /*  DECLARE ARGUMENTS. */
 
@@ -2073,7 +1846,6 @@ doublereal dchfie(doublereal *x1, doublereal *x2, doublereal *f1, doublereal
 
 /*  VALIDITY CHECK INPUT. */
 
-/* ***FIRST EXECUTABLE STATEMENT  DCHFIE */
     if (*x1 == *x2) {
 	ret_val = 0.;
     } else {
@@ -2112,11 +1884,9 @@ doublereal dchfie(doublereal *x1, doublereal *x2, doublereal *f1, doublereal
     }
 
     return ret_val;
-/* ------------- LAST LINE OF DCHFIE FOLLOWS ----------------------------- */
 }
 
-/* DECK DPCHIA */
-doublereal dpchia(integer *n, doublereal *x, doublereal *f, doublereal *d__, 
+doublereal dpchia(integer *n, doublereal *x, doublereal *f, doublereal *d__,
 	integer *incfd, logical *skip, doublereal *a, doublereal *b, integer *
 	ierr)
 {
@@ -2139,7 +1909,6 @@ doublereal dpchia(integer *n, doublereal *x, doublereal *f, doublereal *d__,
 /*            Hermite function over an arbitrary interval. */
 /* ***LIBRARY   SLATEC (PCHIP) */
 /* ***CATEGORY  E3, H2A1B2 */
-/* ***TYPE      DOUBLE PRECISION (PCHIA-S, DPCHIA-D) */
 /* ***KEYWORDS  CUBIC HERMITE INTERPOLATION, NUMERICAL INTEGRATION, PCHIP, */
 /*             QUADRATURE */
 /* ***AUTHOR  Fritsch, F. N., (LLNL) */
@@ -2147,7 +1916,6 @@ doublereal dpchia(integer *n, doublereal *x, doublereal *f, doublereal *d__,
 /*             P.O. Box 808  (L-316) */
 /*             Livermore, CA  94550 */
 /*             FTS 532-4275, (510) 422-4275 */
-/* ***DESCRIPTION */
 
 /*          DPCHIA:  Piecewise Cubic Hermite Integrator, Arbitrary limits */
 
@@ -2220,8 +1988,6 @@ doublereal dpchia(integer *n, doublereal *x, doublereal *f, doublereal *d__,
 /*              IERR = -4  in case of an error return from DPCHID (which */
 /*                         should never occur). */
 
-/* ***REFERENCES  (NONE) */
-/* ***ROUTINES CALLED  DCHFIE, DPCHID, XERMSG */
 /* ***REVISION HISTORY  (YYMMDD) */
 /*   820730  DATE WRITTEN */
 /*   820804  Converted to SLATEC library version. */
@@ -2244,7 +2010,6 @@ doublereal dpchia(integer *n, doublereal *x, doublereal *f, doublereal *d__,
 /*  Programming notes: */
 /*  1. The error flag from DPCHID is tested, because a logic flaw */
 /*     could conceivably result in IERD=-4, which should be reported. */
-/* **End */
 
 /*  DECLARE ARGUMENTS. */
 
@@ -2263,8 +2028,6 @@ doublereal dpchia(integer *n, doublereal *x, doublereal *f, doublereal *d__,
     f_offset = 1 + f_dim1;
     f -= f_offset;
 
-    /* Function Body */
-/* ***FIRST EXECUTABLE STATEMENT  DPCHIA */
     value = zero;
 
 /*  VALIDITY-CHECK ARGUMENTS. */
@@ -2306,14 +2069,14 @@ L5:
 	if (xb <= x[2]) {
 /*           INTERVAL IS TO LEFT OF X(2), SO USE FIRST CUBIC. */
 /*                   --------------------------------------- */
-	    value = dchfie(&x[1], &x[2], &f[f_dim1 + 1], &f[(f_dim1 << 1) + 
+	    value = dchfie(&x[1], &x[2], &f[f_dim1 + 1], &f[(f_dim1 << 1) +
 		    1], &d__[d_dim1 + 1], &d__[(d_dim1 << 1) + 1], a, b);
 /*                   --------------------------------------- */
 	} else if (xa >= x[*n - 1]) {
 /*           INTERVAL IS TO RIGHT OF X(N-1), SO USE LAST CUBIC. */
 /*                   ------------------------------------------ */
 	    value = dchfie(&x[*n - 1], &x[*n], &f[(*n - 1) * f_dim1 + 1], &f[
-		    *n * f_dim1 + 1], &d__[(*n - 1) * d_dim1 + 1], &d__[*n * 
+		    *n * f_dim1 + 1], &d__[(*n - 1) * d_dim1 + 1], &d__[*n *
 		    d_dim1 + 1], a, b);
 /*                   ------------------------------------------ */
 	} else {
@@ -2345,8 +2108,8 @@ L5:
 /*              THIS MEANS IB = IA-1 AND */
 /*                 (A,B) IS A SUBSET OF (X(IB),X(IA)). */
 /*                      ------------------------------------------- */
-		value = dchfie(&x[ib], &x[ia], &f[ib * f_dim1 + 1], &f[ia * 
-			f_dim1 + 1], &d__[ib * d_dim1 + 1], &d__[ia * d_dim1 
+		value = dchfie(&x[ib], &x[ia], &f[ib * f_dim1 + 1], &f[ia *
+			f_dim1 + 1], &d__[ib * d_dim1 + 1], &d__[ia * d_dim1
 			+ 1], a, b);
 /*                      ------------------------------------------- */
 	    } else {
@@ -2356,7 +2119,7 @@ L5:
 /*                 of VALUE to ZERO.) */
 		if (ib > ia) {
 /*                         --------------------------------------------- */
-		    value = dpchid(n, &x[1], &f[f_offset], &d__[d_offset], 
+		    value = dpchid(n, &x[1], &f[f_offset], &d__[d_offset],
 			    incfd, skip, &ia, &ib, &ierd);
 /*                         --------------------------------------------- */
 		    if (ierd < 0) {
@@ -2409,35 +2172,29 @@ L5000:
 L5001:
 /*     N.LT.2 RETURN. */
     *ierr = -1;
-    xermsg_("SLATEC", "DPCHIA", "NUMBER OF DATA POINTS LESS THAN TWO", ierr, &
-	    c__1, (ftnlen)6, (ftnlen)6, (ftnlen)35);
+    xermsg_("SLATEC", "DPCHIA", "NUMBER OF DATA POINTS LESS THAN TWO", *ierr);
     goto L5000;
 
 L5002:
 /*     INCFD.LT.1 RETURN. */
     *ierr = -2;
-    xermsg_("SLATEC", "DPCHIA", "INCREMENT LESS THAN ONE", ierr, &c__1, (
-	    ftnlen)6, (ftnlen)6, (ftnlen)23);
+    xermsg_("SLATEC", "DPCHIA", "INCREMENT LESS THAN ONE", *ierr);
     goto L5000;
 
 L5003:
 /*     X-ARRAY NOT STRICTLY INCREASING. */
     *ierr = -3;
-    xermsg_("SLATEC", "DPCHIA", "X-ARRAY NOT STRICTLY INCREASING", ierr, &
-	    c__1, (ftnlen)6, (ftnlen)6, (ftnlen)31);
+    xermsg_("SLATEC", "DPCHIA", "X-ARRAY NOT STRICTLY INCREASING", *ierr);
     goto L5000;
 
 L5004:
 /*     TROUBLE IN DPCHID.  (SHOULD NEVER OCCUR.) */
     *ierr = -4;
-    xermsg_("SLATEC", "DPCHIA", "TROUBLE IN DPCHID", ierr, &c__1, (ftnlen)6, (
-	    ftnlen)6, (ftnlen)17);
+    xermsg_("SLATEC", "DPCHIA", "TROUBLE IN DPCHID", *ierr);
     goto L5000;
-/* ------------- LAST LINE OF DPCHIA FOLLOWS ----------------------------- */
 }
 
-/* DECK DPCHID */
-doublereal dpchid(integer *n, doublereal *x, doublereal *f, doublereal *d__, 
+doublereal dpchid(integer *n, doublereal *x, doublereal *f, doublereal *d__,
 	integer *incfd, logical *skip, integer *ia, integer *ib, integer *
 	ierr)
 {
@@ -2462,7 +2219,6 @@ doublereal dpchid(integer *n, doublereal *x, doublereal *f, doublereal *d__,
 /*            points. */
 /* ***LIBRARY   SLATEC (PCHIP) */
 /* ***CATEGORY  E3, H2A1B2 */
-/* ***TYPE      DOUBLE PRECISION (PCHID-S, DPCHID-D) */
 /* ***KEYWORDS  CUBIC HERMITE INTERPOLATION, NUMERICAL INTEGRATION, PCHIP, */
 /*             QUADRATURE */
 /* ***AUTHOR  Fritsch, F. N., (LLNL) */
@@ -2470,7 +2226,6 @@ doublereal dpchid(integer *n, doublereal *x, doublereal *f, doublereal *d__,
 /*             P.O. Box 808  (L-316) */
 /*             Livermore, CA  94550 */
 /*             FTS 532-4275, (510) 422-4275 */
-/* ***DESCRIPTION */
 
 /*          DPCHID:  Piecewise Cubic Hermite Integrator, Data limits */
 
@@ -2534,8 +2289,6 @@ doublereal dpchid(integer *n, doublereal *x, doublereal *f, doublereal *d__,
 /*               NOTE:  The above errors are checked in the order listed, */
 /*                   and following arguments have **NOT** been validated. */
 
-/* ***REFERENCES  (NONE) */
-/* ***ROUTINES CALLED  XERMSG */
 /* ***REVISION HISTORY  (YYMMDD) */
 /*   820723  DATE WRITTEN */
 /*   820804  Converted to SLATEC library version. */
@@ -2558,7 +2311,6 @@ doublereal dpchid(integer *n, doublereal *x, doublereal *f, doublereal *d__,
 /*     integrals whose limits coincide with data values.  This is */
 /*     mathematically equivalent to, but much more efficient than, */
 /*     calls to DCHFIE. */
-/* **End */
 
 /*  DECLARE ARGUMENTS. */
 
@@ -2577,8 +2329,6 @@ doublereal dpchid(integer *n, doublereal *x, doublereal *f, doublereal *d__,
     f_offset = 1 + f_dim1;
     f -= f_offset;
 
-    /* Function Body */
-/* ***FIRST EXECUTABLE STATEMENT  DPCHID */
     value = zero;
 
 /*  VALIDITY-CHECK ARGUMENTS. */
@@ -2642,36 +2392,30 @@ L5000:
 L5001:
 /*     N.LT.2 RETURN. */
     *ierr = -1;
-    xermsg_("SLATEC", "DPCHID", "NUMBER OF DATA POINTS LESS THAN TWO", ierr, &
-	    c__1, (ftnlen)6, (ftnlen)6, (ftnlen)35);
+    xermsg_("SLATEC", "DPCHID", "NUMBER OF DATA POINTS LESS THAN TWO", *ierr);
     goto L5000;
 
 L5002:
 /*     INCFD.LT.1 RETURN. */
     *ierr = -2;
-    xermsg_("SLATEC", "DPCHID", "INCREMENT LESS THAN ONE", ierr, &c__1, (
-	    ftnlen)6, (ftnlen)6, (ftnlen)23);
+    xermsg_("SLATEC", "DPCHID", "INCREMENT LESS THAN ONE", *ierr);
     goto L5000;
 
 L5003:
 /*     X-ARRAY NOT STRICTLY INCREASING. */
     *ierr = -3;
-    xermsg_("SLATEC", "DPCHID", "X-ARRAY NOT STRICTLY INCREASING", ierr, &
-	    c__1, (ftnlen)6, (ftnlen)6, (ftnlen)31);
+    xermsg_("SLATEC", "DPCHID", "X-ARRAY NOT STRICTLY INCREASING", *ierr);
     goto L5000;
 
 L5004:
 /*     IA OR IB OUT OF RANGE RETURN. */
     *ierr = -4;
-    xermsg_("SLATEC", "DPCHID", "IA OR IB OUT OF RANGE", ierr, &c__1, (ftnlen)
-	    6, (ftnlen)6, (ftnlen)21);
+    xermsg_("SLATEC", "DPCHID", "IA OR IB OUT OF RANGE", *ierr);
     goto L5000;
-/* ------------- LAST LINE OF DPCHID FOLLOWS ----------------------------- */
 }
 
-/* DECK DPCHCE */
-/* Subroutine */ int dpchce(integer *ic, doublereal *vc, integer *n, 
-	doublereal *x, doublereal *h__, doublereal *slope, doublereal *d__, 
+void dpchce(integer *ic, doublereal *vc, integer *n,
+	doublereal *x, doublereal *h__, doublereal *slope, doublereal *d__,
 	integer *incfd, integer *ierr)
 {
     /* Initialized data */
@@ -2690,12 +2434,9 @@ L5004:
     static doublereal stemp[3], xtemp[4];
 
 /* ***BEGIN PROLOGUE  DPCHCE */
-/* ***SUBSIDIARY */
 /* ***PURPOSE  Set boundary conditions for DPCHIC */
 /* ***LIBRARY   SLATEC (PCHIP) */
-/* ***TYPE      DOUBLE PRECISION (PCHCE-S, DPCHCE-D) */
 /* ***AUTHOR  Fritsch, F. N., (LLNL) */
-/* ***DESCRIPTION */
 
 /*          DPCHCE:  DPCHIC End Derivative Setter. */
 
@@ -2766,7 +2507,6 @@ L5004:
 /*  Fortran intrinsics used:  ABS. */
 
 /* ***SEE ALSO  DPCHIC */
-/* ***ROUTINES CALLED  DPCHDF, DPCHST, XERMSG */
 /* ***REVISION HISTORY  (YYMMDD) */
 /*   820218  DATE WRITTEN */
 /*   820805  Converted to SLATEC library version. */
@@ -2795,7 +2535,6 @@ L5004:
 /*        Thus, it is possible (but unlikely) for a boundary condition to */
 /*        be changed, even though the original interpolant was monotonic. */
 /*        (At least the result is a continuous function of the data.) */
-/* **End */
 
 /*  DECLARE ARGUMENTS. */
 
@@ -2815,9 +2554,7 @@ L5004:
     d_offset = 1 + d_dim1;
     d__ -= d_offset;
 
-    /* Function Body */
 
-/* ***FIRST EXECUTABLE STATEMENT  DPCHCE */
     ibeg = ic[1];
     iend = ic[2];
     *ierr = 0;
@@ -2842,7 +2579,7 @@ L5004:
 	d__[d_dim1 + 1] = vc[1];
     } else if (k == 2) {
 /*        BOUNDARY SECOND DERIVATIVE PROVIDED. */
-	d__[d_dim1 + 1] = half * (three * slope[1] - d__[(d_dim1 << 1) + 1] - 
+	d__[d_dim1 + 1] = half * (three * slope[1] - d__[(d_dim1 << 1) + 1] -
 		half * vc[1] * h__[1]);
     } else if (k < 5) {
 /*        USE K-POINT DERIVATIVE FORMULA. */
@@ -2864,8 +2601,8 @@ L5004:
 	}
     } else {
 /*        USE 'NOT A KNOT' CONDITION. */
-	d__[d_dim1 + 1] = (three * (h__[1] * slope[2] + h__[2] * slope[1]) - 
-		two * (h__[1] + h__[2]) * d__[(d_dim1 << 1) + 1] - h__[1] * 
+	d__[d_dim1 + 1] = (three * (h__[1] * slope[2] + h__[2] * slope[1]) -
+		two * (h__[1] + h__[2]) * d__[(d_dim1 << 1) + 1] - h__[1] *
 		d__[d_dim1 * 3 + 1]) / h__[2];
     }
 
@@ -2900,7 +2637,7 @@ L2000:
 	d__[*n * d_dim1 + 1] = vc[2];
     } else if (k == 2) {
 /*        BOUNDARY SECOND DERIVATIVE PROVIDED. */
-	d__[*n * d_dim1 + 1] = half * (three * slope[*n - 1] - d__[(*n - 1) * 
+	d__[*n * d_dim1 + 1] = half * (three * slope[*n - 1] - d__[(*n - 1) *
 		d_dim1 + 1] + half * vc[2] * h__[*n - 1]);
     } else if (k < 5) {
 /*        USE K-POINT DERIVATIVE FORMULA. */
@@ -2922,9 +2659,9 @@ L2000:
 	}
     } else {
 /*        USE 'NOT A KNOT' CONDITION. */
-	d__[*n * d_dim1 + 1] = (three * (h__[*n - 1] * slope[*n - 2] + h__[*n 
-		- 2] * slope[*n - 1]) - two * (h__[*n - 1] + h__[*n - 2]) * 
-		d__[(*n - 1) * d_dim1 + 1] - h__[*n - 1] * d__[(*n - 2) * 
+	d__[*n * d_dim1 + 1] = (three * (h__[*n - 1] * slope[*n - 2] + h__[*n
+		- 2] * slope[*n - 1]) - two * (h__[*n - 1] + h__[*n - 2]) *
+		d__[(*n - 1) * d_dim1 + 1] - h__[*n - 1] * d__[(*n - 2) *
 		d_dim1 + 1]) / h__[*n - 2];
     }
 
@@ -2942,7 +2679,7 @@ L2000:
     } else if (dpchst(&d__[*n * d_dim1 + 1], &slope[*n - 1]) < zero) {
 	d__[*n * d_dim1 + 1] = zero;
 	*ierr += 2;
-    } else if ((d__2 = d__[*n * d_dim1 + 1], abs(d__2)) > three * (d__1 = 
+    } else if ((d__2 = d__[*n * d_dim1 + 1], abs(d__2)) > three * (d__1 =
 	    slope[*n - 1], abs(d__1))) {
 	d__[*n * d_dim1 + 1] = three * slope[*n - 1];
 	*ierr += 2;
@@ -2951,7 +2688,7 @@ L2000:
 /*  NORMAL RETURN. */
 
 L5000:
-    return 0;
+    return;
 
 /*  ERROR RETURN. */
 
@@ -2959,14 +2696,11 @@ L5001:
 /*     ERROR RETURN FROM DPCHDF. */
 /*   *** THIS CASE SHOULD NEVER OCCUR *** */
     *ierr = -1;
-    xermsg_("SLATEC", "DPCHCE", "ERROR RETURN FROM DPCHDF", ierr, &c__1, (
-	    ftnlen)6, (ftnlen)6, (ftnlen)24);
-    return 0;
-/* ------------- LAST LINE OF DPCHCE FOLLOWS ----------------------------- */
+    xermsg_("SLATEC", "DPCHCE", "ERROR RETURN FROM DPCHDF", *ierr);
+    return;
 }
 
-/* DECK DPCHCI */
-/* Subroutine */ int dpchci(integer *n, doublereal *h__, doublereal *slope, 
+void dpchci(integer *n, doublereal *h__, doublereal *slope,
 	doublereal *d__, integer *incfd)
 {
     /* Initialized data */
@@ -2985,12 +2719,9 @@ L5001:
     static doublereal hsumt3;
 
 /* ***BEGIN PROLOGUE  DPCHCI */
-/* ***SUBSIDIARY */
 /* ***PURPOSE  Set interior derivatives for DPCHIC */
 /* ***LIBRARY   SLATEC (PCHIP) */
-/* ***TYPE      DOUBLE PRECISION (PCHCI-S, DPCHCI-D) */
 /* ***AUTHOR  Fritsch, F. N., (LLNL) */
-/* ***DESCRIPTION */
 
 /*          DPCHCI:  DPCHIC Initial Derivative Setter. */
 
@@ -3046,7 +2777,6 @@ L5001:
 /*  Fortran intrinsics used:  ABS, MAX, MIN. */
 
 /* ***SEE ALSO  DPCHIC */
-/* ***ROUTINES CALLED  DPCHST */
 /* ***REVISION HISTORY  (YYMMDD) */
 /*   820218  DATE WRITTEN */
 /*   820601  Modified end conditions to be continuous functions of */
@@ -3070,7 +2800,6 @@ L5001:
 /*     1. The function  DPCHST(ARG1,ARG2)  is assumed to return zero if */
 /*        either argument is zero, +1 if they are of the same sign, and */
 /*        -1 if they are of opposite sign. */
-/* **End */
 
 /*  DECLARE ARGUMENTS. */
 
@@ -3087,8 +2816,6 @@ L5001:
     d_offset = 1 + d_dim1;
     d__ -= d_offset;
 
-    /* Function Body */
-/* ***FIRST EXECUTABLE STATEMENT  DPCHCI */
     nless1 = *n - 1;
     del1 = slope[1];
 
@@ -3181,12 +2908,10 @@ L50:
 /*  NORMAL RETURN. */
 
 L5000:
-    return 0;
-/* ------------- LAST LINE OF DPCHCI FOLLOWS ----------------------------- */
+    return;
 }
 
-/* DECK DPCHCS */
-/* Subroutine */ int dpchcs(doublereal *switch__, integer *n, doublereal *
+void dpchcs(doublereal *switch__, integer *n, doublereal *
 	h__, doublereal *slope, doublereal *d__, integer *incfd, integer *
 	ierr)
 {
@@ -3208,12 +2933,9 @@ L5000:
     static integer nless1;
 
 /* ***BEGIN PROLOGUE  DPCHCS */
-/* ***SUBSIDIARY */
 /* ***PURPOSE  Adjusts derivative values for DPCHIC */
 /* ***LIBRARY   SLATEC (PCHIP) */
-/* ***TYPE      DOUBLE PRECISION (PCHCS-S, DPCHCS-D) */
 /* ***AUTHOR  Fritsch, F. N., (LLNL) */
-/* ***DESCRIPTION */
 
 /*         DPCHCS:  DPCHIC Monotonicity Switch Derivative Setter. */
 
@@ -3266,7 +2988,6 @@ L5000:
 /*  Fortran intrinsics used:  ABS, MAX, MIN. */
 
 /* ***SEE ALSO  DPCHIC */
-/* ***ROUTINES CALLED  DPCHST, DPCHSW */
 /* ***REVISION HISTORY  (YYMMDD) */
 /*   820218  DATE WRITTEN */
 /*   820617  Redesigned to (1) fix  problem with lack of continuity */
@@ -3295,7 +3016,6 @@ L5000:
 /*     1. The function  DPCHST(ARG1,ARG2)  is assumed to return zero if */
 /*        either argument is zero, +1 if they are of the same sign, and */
 /*        -1 if they are of opposite sign. */
-/* **End */
 
 /*  DECLARE ARGUMENTS. */
 
@@ -3315,8 +3035,6 @@ L5000:
     d_offset = 1 + d_dim1;
     d__ -= d_offset;
 
-    /* Function Body */
-/* ***FIRST EXECUTABLE STATEMENT  DPCHCS */
     *ierr = 0;
     nless1 = *n - 1;
 
@@ -3374,7 +3092,7 @@ L200:
 /*              SET UP TO COMPUTE NEW VALUES FOR D(1,I-1) AND D(1,I). */
 	wtave[1] = dext;
 	if (k > 1) {
-	    wtave[0] = h__[k] / (h__[k - 1] + h__[k]) * slope[k - 1] + h__[k 
+	    wtave[0] = h__[k] / (h__[k - 1] + h__[k]) * slope[k - 1] + h__[k
 		    - 1] / (h__[k - 1] + h__[k]) * slope[k];
 	}
 	goto L400;
@@ -3386,7 +3104,7 @@ L250:
 /*              SET UP TO COMPUTE NEW VALUES FOR D(1,I) AND D(1,I+1). */
 	wtave[0] = dext;
 	if (k < nless1) {
-	    wtave[1] = h__[k + 1] / (h__[k] + h__[k + 1]) * slope[k] + h__[k] 
+	    wtave[1] = h__[k + 1] / (h__[k] + h__[k + 1]) * slope[k] + h__[k]
 		    / (h__[k] + h__[k + 1]) * slope[k + 1];
 	}
 	goto L400;
@@ -3407,7 +3125,7 @@ L300:
 /*           WE HAVE FLAT-TOPPED PEAK ON (X(I),X(I+1)). */
 	k = i__;
 /*           SET UP TO COMPUTE NEW VALUES FOR D(1,I) AND D(1,I+1). */
-	wtave[0] = h__[k] / (h__[k - 1] + h__[k]) * slope[k - 1] + h__[k - 1] 
+	wtave[0] = h__[k] / (h__[k - 1] + h__[k]) * slope[k - 1] + h__[k - 1]
 		/ (h__[k - 1] + h__[k]) * slope[k];
 	wtave[1] = h__[k + 1] / (h__[k] + h__[k + 1]) * slope[k] + h__[k] / (
 		h__[k] + h__[k + 1]) * slope[k + 1];
@@ -3443,13 +3161,13 @@ L400:
 
 	if (k > 1 && k < nless1) {
 /*           NORMAL CASE -- EXTREMUM IS NOT IN A BOUNDARY INTERVAL. */
-	    fact = fudge * (d__1 = del[2] * (del[0] - del[1]) * (wtave[1] / 
+	    fact = fudge * (d__1 = del[2] * (del[0] - del[1]) * (wtave[1] /
 		    slmax), abs(d__1));
-	    d__[k * d_dim1 + 1] += min(fact,one) * (wtave[0] - d__[k * d_dim1 
+	    d__[k * d_dim1 + 1] += min(fact,one) * (wtave[0] - d__[k * d_dim1
 		    + 1]);
-	    fact = fudge * (d__1 = del[0] * (del[2] - del[1]) * (wtave[0] / 
+	    fact = fudge * (d__1 = del[0] * (del[2] - del[1]) * (wtave[0] /
 		    slmax), abs(d__1));
-	    d__[(k + 1) * d_dim1 + 1] += min(fact,one) * (wtave[1] - d__[(k + 
+	    d__[(k + 1) * d_dim1 + 1] += min(fact,one) * (wtave[1] - d__[(k +
 		    1) * d_dim1 + 1]);
 	} else {
 /*           SPECIAL CASE K=1 (WHICH CAN OCCUR ONLY IF I=2) OR */
@@ -3488,7 +3206,7 @@ L400:
 		, &h__[k], &slope[k], ierr);
 /*        --------------------------------------------------------------- */
 	if (*ierr != 0) {
-	    return 0;
+	    return;
 	}
 
 /* ....... END OF SEGMENT LOOP. */
@@ -3497,11 +3215,9 @@ L900:
 	;
     }
 
-    return 0;
-/* ------------- LAST LINE OF DPCHCS FOLLOWS ----------------------------- */
+    return;
 }
 
-/* DECK DPCHDF */
 doublereal dpchdf(integer *k, doublereal *x, doublereal *s, integer *ierr)
 {
     /* Initialized data */
@@ -3517,12 +3233,9 @@ doublereal dpchdf(integer *k, doublereal *x, doublereal *s, integer *ierr)
     static doublereal value;
 
 /* ***BEGIN PROLOGUE  DPCHDF */
-/* ***SUBSIDIARY */
 /* ***PURPOSE  Computes divided differences for DPCHCE and DPCHSP */
 /* ***LIBRARY   SLATEC (PCHIP) */
-/* ***TYPE      DOUBLE PRECISION (PCHDF-S, DPCHDF-D) */
 /* ***AUTHOR  Fritsch, F. N., (LLNL) */
-/* ***DESCRIPTION */
 
 /*          DPCHDF:   DPCHIP Finite Difference Formula */
 
@@ -3555,7 +3268,6 @@ doublereal dpchdf(integer *k, doublereal *x, doublereal *s, integer *ierr)
 /* ***SEE ALSO  DPCHCE, DPCHSP */
 /* ***REFERENCES  Carl de Boor, A Practical Guide to Splines, Springer- */
 /*                 Verlag, New York, 1978, pp. 10-16. */
-/* ***ROUTINES CALLED  XERMSG */
 /* ***REVISION HISTORY  (YYMMDD) */
 /*   820503  DATE WRITTEN */
 /*   820805  Converted to SLATEC library version. */
@@ -3572,22 +3284,13 @@ doublereal dpchdf(integer *k, doublereal *x, doublereal *s, integer *ierr)
 /*   930503  Improved purpose.  (FNF) */
 /* ***END PROLOGUE  DPCHDF */
 
-/* **End */
-
-/*  DECLARE ARGUMENTS. */
-
-
-/*  DECLARE LOCAL VARIABLES. */
-
     /* Parameter adjustments */
     --s;
     --x;
 
-    /* Function Body */
 
 /*  CHECK FOR LEGAL VALUE OF K. */
 
-/* ***FIRST EXECUTABLE STATEMENT  DPCHDF */
     if (*k < 3) {
 	goto L5001;
     }
@@ -3621,16 +3324,13 @@ doublereal dpchdf(integer *k, doublereal *x, doublereal *s, integer *ierr)
 L5001:
 /*     K.LT.3 RETURN. */
     *ierr = -1;
-    xermsg_("SLATEC", "DPCHDF", "K LESS THAN THREE", ierr, &c__1, (ftnlen)6, (
-	    ftnlen)6, (ftnlen)17);
+    xermsg_("SLATEC", "DPCHDF", "K LESS THAN THREE", *ierr);
     ret_val = zero;
     return ret_val;
-/* ------------- LAST LINE OF DPCHDF FOLLOWS ----------------------------- */
 }
 
-/* DECK DPCHIC */
-/* Subroutine */ int dpchic(integer *ic, doublereal *vc, doublereal *
-	switch__, integer *n, doublereal *x, doublereal *f, doublereal *d__, 
+void dpchic(integer *ic, doublereal *vc, doublereal *
+	switch__, integer *n, doublereal *x, doublereal *f, doublereal *d__,
 	integer *incfd, doublereal *wk, integer *nwk, integer *ierr)
 {
     /* Initialized data */
@@ -3650,7 +3350,6 @@ L5001:
 /*            treatment of points where monotonicity switches direction. */
 /* ***LIBRARY   SLATEC (PCHIP) */
 /* ***CATEGORY  E1A */
-/* ***TYPE      DOUBLE PRECISION (PCHIC-S, DPCHIC-D) */
 /* ***KEYWORDS  CUBIC HERMITE INTERPOLATION, MONOTONE INTERPOLATION, */
 /*             PCHIP, PIECEWISE CUBIC INTERPOLATION, */
 /*             SHAPE-PRESERVING INTERPOLATION */
@@ -3659,7 +3358,6 @@ L5001:
 /*             P.O. Box 808  (L-316) */
 /*             Livermore, CA  94550 */
 /*             FTS 532-4275, (510) 422-4275 */
-/* ***DESCRIPTION */
 
 /*         DPCHIC:  Piecewise Cubic Hermite Interpolation Coefficients. */
 
@@ -3829,7 +3527,6 @@ L5001:
 /*               3. F. N. Fritsch and R. E. Carlson, Monotone piecewise */
 /*                 cubic interpolation, SIAM Journal on Numerical Ana- */
 /*                 lysis 17, 2 (April 1980), pp. 238-246. */
-/* ***ROUTINES CALLED  DPCHCE, DPCHCI, DPCHCS, XERMSG */
 /* ***REVISION HISTORY  (YYMMDD) */
 /*   820218  DATE WRITTEN */
 /*   820804  Converted to SLATEC library version. */
@@ -3873,11 +3570,9 @@ L5001:
     f -= f_offset;
     --wk;
 
-    /* Function Body */
 
 /*  VALIDITY-CHECK ARGUMENTS. */
 
-/* ***FIRST EXECUTABLE STATEMENT  DPCHIC */
     if (*n < 2) {
 	goto L5001;
     }
@@ -3958,7 +3653,7 @@ L3000:
 	goto L5000;
     }
 /*     ------------------------------------------------------- */
-    dpchce(&ic[1], &vc[1], n, &x[1], &wk[1], &wk[*n], &d__[d_offset], incfd, 
+    dpchce(&ic[1], &vc[1], n, &x[1], &wk[1], &wk[*n], &d__[d_offset], incfd,
 	    ierr);
 /*     ------------------------------------------------------- */
     if (*ierr < 0) {
@@ -3968,63 +3663,54 @@ L3000:
 /*  NORMAL RETURN. */
 
 L5000:
-    return 0;
+    return;
 
 /*  ERROR RETURNS. */
 
 L5001:
 /*     N.LT.2 RETURN. */
     *ierr = -1;
-    xermsg_("SLATEC", "DPCHIC", "NUMBER OF DATA POINTS LESS THAN TWO", ierr, &
-	    c__1, (ftnlen)6, (ftnlen)6, (ftnlen)35);
-    return 0;
+    xermsg_("SLATEC", "DPCHIC", "NUMBER OF DATA POINTS LESS THAN TWO", *ierr);
+    return;
 
 L5002:
 /*     INCFD.LT.1 RETURN. */
     *ierr = -2;
-    xermsg_("SLATEC", "DPCHIC", "INCREMENT LESS THAN ONE", ierr, &c__1, (
-	    ftnlen)6, (ftnlen)6, (ftnlen)23);
-    return 0;
+    xermsg_("SLATEC", "DPCHIC", "INCREMENT LESS THAN ONE", *ierr);
+    return;
 
 L5003:
 /*     X-ARRAY NOT STRICTLY INCREASING. */
     *ierr = -3;
-    xermsg_("SLATEC", "DPCHIC", "X-ARRAY NOT STRICTLY INCREASING", ierr, &
-	    c__1, (ftnlen)6, (ftnlen)6, (ftnlen)31);
-    return 0;
+    xermsg_("SLATEC", "DPCHIC", "X-ARRAY NOT STRICTLY INCREASING", *ierr);
+    return;
 
 L5004:
 /*     IC OUT OF RANGE RETURN. */
     *ierr += -3;
-    xermsg_("SLATEC", "DPCHIC", "IC OUT OF RANGE", ierr, &c__1, (ftnlen)6, (
-	    ftnlen)6, (ftnlen)15);
-    return 0;
+    xermsg_("SLATEC", "DPCHIC", "IC OUT OF RANGE", *ierr);
+    return;
 
 L5007:
 /*     NWK .LT. 2*(N-1)  RETURN. */
     *ierr = -7;
-    xermsg_("SLATEC", "DPCHIC", "WORK ARRAY TOO SMALL", ierr, &c__1, (ftnlen)
-	    6, (ftnlen)6, (ftnlen)20);
-    return 0;
+    xermsg_("SLATEC", "DPCHIC", "WORK ARRAY TOO SMALL", *ierr);
+    return;
 
 L5008:
 /*     ERROR RETURN FROM DPCHCS. */
     *ierr = -8;
-    xermsg_("SLATEC", "DPCHIC", "ERROR RETURN FROM DPCHCS", ierr, &c__1, (
-	    ftnlen)6, (ftnlen)6, (ftnlen)24);
-    return 0;
+    xermsg_("SLATEC", "DPCHIC", "ERROR RETURN FROM DPCHCS", *ierr);
+    return;
 
 L5009:
 /*     ERROR RETURN FROM DPCHCE. */
 /*   *** THIS CASE SHOULD NEVER OCCUR *** */
     *ierr = -9;
-    xermsg_("SLATEC", "DPCHIC", "ERROR RETURN FROM DPCHCE", ierr, &c__1, (
-	    ftnlen)6, (ftnlen)6, (ftnlen)24);
-    return 0;
-/* ------------- LAST LINE OF DPCHIC FOLLOWS ----------------------------- */
+    xermsg_("SLATEC", "DPCHIC", "ERROR RETURN FROM DPCHCE", *ierr);
+    return;
 }
 
-/* DECK DPCHST */
 doublereal dpchst(doublereal *arg1, doublereal *arg2)
 {
     /* Initialized data */
@@ -4036,12 +3722,9 @@ doublereal dpchst(doublereal *arg1, doublereal *arg2)
     doublereal ret_val;
 
 /* ***BEGIN PROLOGUE  DPCHST */
-/* ***SUBSIDIARY */
 /* ***PURPOSE  DPCHIP Sign-Testing Routine */
 /* ***LIBRARY   SLATEC (PCHIP) */
-/* ***TYPE      DOUBLE PRECISION (PCHST-S, DPCHST-D) */
 /* ***AUTHOR  Fritsch, F. N., (LLNL) */
-/* ***DESCRIPTION */
 
 /*         DPCHST:  DPCHIP Sign-Testing Routine. */
 
@@ -4057,7 +3740,6 @@ doublereal dpchst(doublereal *arg1, doublereal *arg2)
 /*  Fortran intrinsics used:  SIGN. */
 
 /* ***SEE ALSO  DPCHCE, DPCHCI, DPCHCS, DPCHIM */
-/* ***ROUTINES CALLED  (NONE) */
 /* ***REVISION HISTORY  (YYMMDD) */
 /*   811103  DATE WRITTEN */
 /*   820805  Converted to SLATEC library version. */
@@ -4071,28 +3753,17 @@ doublereal dpchst(doublereal *arg1, doublereal *arg2)
 /*   930503  Improved purpose.  (FNF) */
 /* ***END PROLOGUE  DPCHST */
 
-/* **End */
-
-/*  DECLARE ARGUMENTS. */
-
-
-/*  DECLARE LOCAL VARIABLES. */
-
-
 /*  PERFORM THE TEST. */
 
-/* ***FIRST EXECUTABLE STATEMENT  DPCHST */
-    ret_val = d_sign(&one, arg1) * d_sign(&one, arg2);
+    ret_val = d_sign(1, *arg1) * d_sign(1, *arg2);
     if (*arg1 == zero || *arg2 == zero) {
 	ret_val = zero;
     }
 
     return ret_val;
-/* ------------- LAST LINE OF DPCHST FOLLOWS ----------------------------- */
 }
 
-/* DECK DPCHSW */
-/* Subroutine */ int dpchsw(doublereal *dfmax, integer *iextrm, doublereal *
+void dpchsw(doublereal *dfmax, integer *iextrm, doublereal *
 	d1, doublereal *d2, doublereal *h__, doublereal *slope, integer *ierr)
 {
     /* Initialized data */
@@ -4112,12 +3783,9 @@ doublereal dpchst(doublereal *arg1, doublereal *arg2)
     static doublereal lambda, radcal;
 
 /* ***BEGIN PROLOGUE  DPCHSW */
-/* ***SUBSIDIARY */
 /* ***PURPOSE  Limits excursion from data for DPCHCS */
 /* ***LIBRARY   SLATEC (PCHIP) */
-/* ***TYPE      DOUBLE PRECISION (PCHSW-S, DPCHSW-D) */
 /* ***AUTHOR  Fritsch, F. N., (LLNL) */
-/* ***DESCRIPTION */
 
 /*         DPCHSW:  DPCHCS Switch Excursion Limiter. */
 
@@ -4164,7 +3832,6 @@ doublereal dpchst(doublereal *arg1, doublereal *arg2)
 /*  Fortran intrinsics used:  ABS, SIGN, SQRT. */
 
 /* ***SEE ALSO  DPCHCS */
-/* ***ROUTINES CALLED  D1MACH, XERMSG */
 /* ***REVISION HISTORY  (YYMMDD) */
 /*   820218  DATE WRITTEN */
 /*   820805  Converted to SLATEC library version. */
@@ -4184,14 +3851,6 @@ doublereal dpchst(doublereal *arg1, doublereal *arg2)
 /*   930503  Improved purpose.  (FNF) */
 /* ***END PROLOGUE  DPCHSW */
 
-/* **End */
-
-/*  DECLARE ARGUMENTS. */
-
-
-/*  DECLARE LOCAL VARIABLES. */
-
-
 /*        THIRD SHOULD BE SLIGHTLY LESS THAN 1/3. */
 
 /*  NOTATION AND GENERAL REMARKS. */
@@ -4205,7 +3864,6 @@ doublereal dpchst(doublereal *arg1, doublereal *arg2)
 /*     SIMILARLY,  P(XHAT)-F2 = D*H*(PHI-RHO) . */
 
 /*      SMALL SHOULD BE A FEW ORDERS OF MAGNITUDE GREATER THAN MACHEPS. */
-/* ***FIRST EXECUTABLE STATEMENT  DPCHSW */
     small = fact * d1mach();
 
 /*  DO MAIN CALCULATION. */
@@ -4239,7 +3897,7 @@ doublereal dpchst(doublereal *arg1, doublereal *arg2)
 	if (hphi * abs(*d2) > *dfmax) {
 /*           AT THIS POINT, HPHI.GT.0, SO DIVIDE IS OK. */
 	    d__1 = *dfmax / hphi;
-	    *d2 = d_sign(&d__1, d2);
+	    *d2 = d_sign(d__1, *d2);
 	}
     } else {
 
@@ -4290,7 +3948,7 @@ doublereal dpchst(doublereal *arg1, doublereal *arg2)
 	if (hphi * abs(*d1) > *dfmax) {
 /*           AT THIS POINT, HPHI.GT.0, SO DIVIDE IS OK. */
 	    d__1 = *dfmax / hphi;
-	    *d1 = d_sign(&d__1, d1);
+	    *d1 = d_sign(d__1, *d1);
 	    *d2 = -lambda * *d1;
 	}
     }
@@ -4299,28 +3957,24 @@ doublereal dpchst(doublereal *arg1, doublereal *arg2)
 
 L5000:
     *ierr = 0;
-    return 0;
+    return;
 
 /*  ERROR RETURNS. */
 
 L5001:
 /*     D1 AND D2 BOTH ZERO, OR BOTH NONZERO AND SAME SIGN. */
     *ierr = -1;
-    xermsg_("SLATEC", "DPCHSW", "D1 AND/OR D2 INVALID", ierr, &c__1, (ftnlen)
-	    6, (ftnlen)6, (ftnlen)20);
-    return 0;
+    xermsg_("SLATEC", "DPCHSW", "D1 AND/OR D2 INVALID", *ierr);
+    return;
 
 L5002:
 /*     NEGATIVE VALUE OF RADICAL (SHOULD NEVER OCCUR). */
     *ierr = -2;
-    xermsg_("SLATEC", "DPCHSW", "NEGATIVE RADICAL", ierr, &c__1, (ftnlen)6, (
-	    ftnlen)6, (ftnlen)16);
-    return 0;
-/* ------------- LAST LINE OF DPCHSW FOLLOWS ----------------------------- */
+    xermsg_("SLATEC", "DPCHSW", "NEGATIVE RADICAL", *ierr);
+    return;
 }
 
-/* DECK DPCHIM */
-/* Subroutine */ int dpchim(integer *n, doublereal *x, doublereal *f, 
+void dpchim(integer *n, doublereal *x, doublereal *f,
 	doublereal *d__, integer *incfd, integer *ierr)
 {
     /* Initialized data */
@@ -4348,7 +4002,6 @@ L5002:
 /*            is desired over boundary or switch conditions.) */
 /* ***LIBRARY   SLATEC (PCHIP) */
 /* ***CATEGORY  E1A */
-/* ***TYPE      DOUBLE PRECISION (PCHIM-S, DPCHIM-D) */
 /* ***KEYWORDS  CUBIC HERMITE INTERPOLATION, MONOTONE INTERPOLATION, */
 /*             PCHIP, PIECEWISE CUBIC INTERPOLATION */
 /* ***AUTHOR  Fritsch, F. N., (LLNL) */
@@ -4356,7 +4009,6 @@ L5002:
 /*             P.O. Box 808  (L-316) */
 /*             Livermore, CA  94550 */
 /*             FTS 532-4275, (510) 422-4275 */
-/* ***DESCRIPTION */
 
 /*          DPCHIM:  Piecewise Cubic Hermite Interpolation to */
 /*                  Monotone data. */
@@ -4437,7 +4089,6 @@ L5002:
 /*               2. F. N. Fritsch and R. E. Carlson, Monotone piecewise */
 /*                 cubic interpolation, SIAM Journal on Numerical Ana- */
 /*                 lysis 17, 2 (April 1980), pp. 238-246. */
-/* ***ROUTINES CALLED  DPCHST, XERMSG */
 /* ***REVISION HISTORY  (YYMMDD) */
 /*   811103  DATE WRITTEN */
 /*   820201  1. Introduced  DPCHST  to reduce possible over/under- */
@@ -4488,11 +4139,9 @@ L5002:
     f_offset = 1 + f_dim1;
     f -= f_offset;
 
-    /* Function Body */
 
 /*  VALIDITY-CHECK ARGUMENTS. */
 
-/* ***FIRST EXECUTABLE STATEMENT  DPCHIM */
     if (*n < 2) {
 	goto L5001;
     }
@@ -4628,36 +4277,31 @@ L50:
 /*  NORMAL RETURN. */
 
 L5000:
-    return 0;
+    return;
 
 /*  ERROR RETURNS. */
 
 L5001:
 /*     N.LT.2 RETURN. */
     *ierr = -1;
-    xermsg_("SLATEC", "DPCHIM", "NUMBER OF DATA POINTS LESS THAN TWO", ierr, &
-	    c__1, (ftnlen)6, (ftnlen)6, (ftnlen)35);
-    return 0;
+    xermsg_("SLATEC", "DPCHIM", "NUMBER OF DATA POINTS LESS THAN TWO", *ierr);
+    return;
 
 L5002:
 /*     INCFD.LT.1 RETURN. */
     *ierr = -2;
-    xermsg_("SLATEC", "DPCHIM", "INCREMENT LESS THAN ONE", ierr, &c__1, (
-	    ftnlen)6, (ftnlen)6, (ftnlen)23);
-    return 0;
+    xermsg_("SLATEC", "DPCHIM", "INCREMENT LESS THAN ONE", *ierr);
+    return;
 
 L5003:
 /*     X-ARRAY NOT STRICTLY INCREASING. */
     *ierr = -3;
-    xermsg_("SLATEC", "DPCHIM", "X-ARRAY NOT STRICTLY INCREASING", ierr, &
-	    c__1, (ftnlen)6, (ftnlen)6, (ftnlen)31);
-    return 0;
-/* ------------- LAST LINE OF DPCHIM FOLLOWS ----------------------------- */
+    xermsg_("SLATEC", "DPCHIM", "X-ARRAY NOT STRICTLY INCREASING", *ierr);
+    return;
 }
 
-/* DECK DPCHSP */
-/* Subroutine */ int dpchsp(integer *ic, doublereal *vc, integer *n, 
-	doublereal *x, doublereal *f, doublereal *d__, integer *incfd, 
+void dpchsp(integer *ic, doublereal *vc, integer *n,
+	doublereal *x, doublereal *f, doublereal *d__, integer *incfd,
 	doublereal *wk, integer *nwk, integer *ierr)
 {
     /* Initialized data */
@@ -4683,7 +4327,6 @@ L5003:
 /*            specified boundary conditions. */
 /* ***LIBRARY   SLATEC (PCHIP) */
 /* ***CATEGORY  E1A */
-/* ***TYPE      DOUBLE PRECISION (PCHSP-S, DPCHSP-D) */
 /* ***KEYWORDS  CUBIC HERMITE INTERPOLATION, PCHIP, */
 /*             PIECEWISE CUBIC INTERPOLATION, SPLINE INTERPOLATION */
 /* ***AUTHOR  Fritsch, F. N., (LLNL) */
@@ -4691,7 +4334,6 @@ L5003:
 /*             P.O. Box 808  (L-316) */
 /*             Livermore, CA  94550 */
 /*             FTS 532-4275, (510) 422-4275 */
-/* ***DESCRIPTION */
 
 /*          DPCHSP:   Piecewise Cubic Hermite Spline */
 
@@ -4802,7 +4444,6 @@ L5003:
 
 /* ***REFERENCES  Carl de Boor, A Practical Guide to Splines, Springer- */
 /*                 Verlag, New York, 1978, pp. 53-59. */
-/* ***ROUTINES CALLED  DPCHDF, XERMSG */
 /* ***REVISION HISTORY  (YYMMDD) */
 /*   820503  DATE WRITTEN */
 /*   820804  Converted to SLATEC library version. */
@@ -4842,11 +4483,8 @@ L5003:
     f -= f_offset;
     wk -= 3;
 
-    /* Function Body */
-
 /*  VALIDITY-CHECK ARGUMENTS. */
 
-/* ***FIRST EXECUTABLE STATEMENT  DPCHSP */
     if (*n < 2) {
 	goto L5001;
     }
@@ -4965,7 +4603,7 @@ L5003:
 	    wk[3] = wk[5] + wk[7];
 /* Computing 2nd power */
 	    d__1 = wk[5];
-	    d__[d_dim1 + 1] = ((wk[5] + two * wk[3]) * wk[6] * wk[7] + d__1 * 
+	    d__[d_dim1 + 1] = ((wk[5] + two * wk[3]) * wk[6] * wk[7] + d__1 *
 		    d__1 * wk[8]) / wk[3];
 	}
     } else if (ibeg == 1) {
@@ -4992,9 +4630,9 @@ L5003:
 	    }
 	    g = -wk[((j + 1) << 1) + 1] / wk[((j - 1) << 1) + 2];
 	    d__[j * d_dim1 + 1] = g * d__[(j - 1) * d_dim1 + 1] + three * (wk[
-		    (j << 1) + 1] * wk[((j + 1) << 1) + 2] + wk[((j + 1) << 1) + 
+		    (j << 1) + 1] * wk[((j + 1) << 1) + 2] + wk[((j + 1) << 1) +
 		    1] * wk[(j << 1) + 2]);
-	    wk[(j << 1) + 2] = g * wk[((j - 1) << 1) + 1] + two * (wk[(j << 1) 
+	    wk[(j << 1) + 2] = g * wk[((j - 1) << 1) + 1] + two * (wk[(j << 1)
 		    + 1] + wk[((j + 1) << 1) + 1]);
 	}
     }
@@ -5053,7 +4691,7 @@ L5003:
     if (wk[(*n << 1) + 2] == zero) {
 	goto L5008;
     }
-    d__[*n * d_dim1 + 1] = (g * d__[(*n - 1) * d_dim1 + 1] + d__[*n * d_dim1 
+    d__[*n * d_dim1 + 1] = (g * d__[(*n - 1) * d_dim1 + 1] + d__[*n * d_dim1
 	    + 1]) / wk[(*n << 1) + 2];
 
 /*  CARRY OUT BACK SUBSTITUTION */
@@ -5070,60 +4708,52 @@ L30:
 
 /*  NORMAL RETURN. */
 
-    return 0;
+    return;
 
 /*  ERROR RETURNS. */
 
 L5001:
 /*     N.LT.2 RETURN. */
     *ierr = -1;
-    xermsg_("SLATEC", "DPCHSP", "NUMBER OF DATA POINTS LESS THAN TWO", ierr, &
-	    c__1, (ftnlen)6, (ftnlen)6, (ftnlen)35);
-    return 0;
+    xermsg_("SLATEC", "DPCHSP", "NUMBER OF DATA POINTS LESS THAN TWO", *ierr);
+    return;
 
 L5002:
 /*     INCFD.LT.1 RETURN. */
     *ierr = -2;
-    xermsg_("SLATEC", "DPCHSP", "INCREMENT LESS THAN ONE", ierr, &c__1, (
-	    ftnlen)6, (ftnlen)6, (ftnlen)23);
-    return 0;
+    xermsg_("SLATEC", "DPCHSP", "INCREMENT LESS THAN ONE", *ierr);
+    return;
 
 L5003:
 /*     X-ARRAY NOT STRICTLY INCREASING. */
     *ierr = -3;
-    xermsg_("SLATEC", "DPCHSP", "X-ARRAY NOT STRICTLY INCREASING", ierr, &
-	    c__1, (ftnlen)6, (ftnlen)6, (ftnlen)31);
-    return 0;
+    xermsg_("SLATEC", "DPCHSP", "X-ARRAY NOT STRICTLY INCREASING", *ierr);
+    return;
 
 L5004:
 /*     IC OUT OF RANGE RETURN. */
     *ierr += -3;
-    xermsg_("SLATEC", "DPCHSP", "IC OUT OF RANGE", ierr, &c__1, (ftnlen)6, (
-	    ftnlen)6, (ftnlen)15);
-    return 0;
+    xermsg_("SLATEC", "DPCHSP", "IC OUT OF RANGE", *ierr);
+    return;
 
 L5007:
 /*     NWK TOO SMALL RETURN. */
     *ierr = -7;
-    xermsg_("SLATEC", "DPCHSP", "WORK ARRAY TOO SMALL", ierr, &c__1, (ftnlen)
-	    6, (ftnlen)6, (ftnlen)20);
-    return 0;
+    xermsg_("SLATEC", "DPCHSP", "WORK ARRAY TOO SMALL", *ierr);
+    return;
 
 L5008:
 /*     SINGULAR SYSTEM. */
 /*   *** THEORETICALLY, THIS CAN ONLY OCCUR IF SUCCESSIVE X-VALUES   *** */
 /*   *** ARE EQUAL, WHICH SHOULD ALREADY HAVE BEEN CAUGHT (IERR=-3). *** */
     *ierr = -8;
-    xermsg_("SLATEC", "DPCHSP", "SINGULAR LINEAR SYSTEM", ierr, &c__1, (
-	    ftnlen)6, (ftnlen)6, (ftnlen)22);
-    return 0;
+    xermsg_("SLATEC", "DPCHSP", "SINGULAR LINEAR SYSTEM", *ierr);
+    return;
 
 L5009:
 /*     ERROR RETURN FROM DPCHDF. */
 /*   *** THIS CASE SHOULD NEVER OCCUR *** */
     *ierr = -9;
-    xermsg_("SLATEC", "DPCHSP", "ERROR RETURN FROM DPCHDF", ierr, &c__1, (
-	    ftnlen)6, (ftnlen)6, (ftnlen)24);
-    return 0;
-/* ------------- LAST LINE OF DPCHSP FOLLOWS ----------------------------- */
+    xermsg_("SLATEC", "DPCHSP", "ERROR RETURN FROM DPCHDF", *ierr);
+    return;
 }
