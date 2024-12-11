@@ -50,6 +50,7 @@ Basic/lib/PDL/default.perldlrc
 Basic/lib/PDL/Demos.pm
 Basic/lib/PDL/Demos/BAD_demo.pm
 Basic/lib/PDL/Demos/Cartography_demo.pm
+Basic/lib/PDL/Demos/Func_demo.pm
 Basic/lib/PDL/Demos/General.pm
 Basic/lib/PDL/Demos/m51.fits
 Basic/lib/PDL/Demos/Sound.pm
@@ -64,6 +65,7 @@ Basic/lib/PDL/FAQ.pod
 Basic/lib/PDL/FFT.pd
 Basic/lib/PDL/FFT/fftn.c
 Basic/lib/PDL/FFT/fftn.h
+Basic/lib/PDL/Func.pm
 Basic/lib/PDL/Graphics.pod
 Basic/lib/PDL/Image2D.pd
 Basic/lib/PDL/Image2D/misc.c
@@ -192,6 +194,7 @@ Basic/t/flexraw-iotypes.t
 Basic/t/flexraw.t
 Basic/t/flexraw_fortran.t
 Basic/t/func.pdl
+Basic/t/func.t
 Basic/t/image2d.t
 Basic/t/imagend.t
 Basic/t/imagergb.t
@@ -264,10 +267,6 @@ Basic/utils/perldlpp.pl
 Basic/utils/scantree.pl
 Changes
 COPYING
-Libtmp/Func.pm
-Libtmp/Func_demo.pm
-Libtmp/Makefile.PL
-Libtmp/t/func.t
 Makefile.PL
 MANIFEST			This list of files
 MANIFEST.SKIP
