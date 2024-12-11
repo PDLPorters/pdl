@@ -2,7 +2,6 @@ package PDL::Demos::Func_demo;
 
 use PDL::Graphics::Simple;
 use PDL::Func;
-use PDL::Slatec; # no PCHIP without it
 
 sub info {('func', 'Interpolation etc (Req.: PDL::Graphics::Simple)')}
 

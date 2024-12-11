@@ -67,7 +67,6 @@ The valid attributes are:
 
 Use the piecewise cubic Hermite interpolation routines
 from the SLATEC library.
-Only available if L<PDL::Slatec> is installed.
 
 The valid attributes are:
 
@@ -94,7 +93,7 @@ C<interpolate>, C<gradient>, or C<integrate> is used.
 If your data is monotonic, and you are not too bothered about
 edge effects, then the default value of C<bc> of C<simple> is for you.
 Otherwise, take a look at the description of
-L<PDL::Slatec::chic|PDL::Slatec/chic> and use a hash reference
+L<PDL::Primitive::pchip_chic|PDL::Primitive/pchip_chic> and use a hash reference
 for the C<bc> attribute, with the following keys:
 
 =over 3
@@ -114,7 +113,7 @@ Default = B<0>.
 A perl list of one or two elements. The first element defines how the
 boundary condition for the start of the array is to be calculated;
 it has a range of C<-5 .. 5>, as given for the C<ic> parameter
-of L<chic|PDL::Slatec/chic>.
+of L<pchip_chic|PDL::Primitive/pchip_chic>.
 The second element, only used if options 2, 1, -1, or 2
 are chosen, contains the value of the C<vc> parameter.
 Default = B<[ 0 ]>.
@@ -136,7 +135,6 @@ and at the last point to -1.
 
 Use the cubic spline interpolation routines
 from the SLATEC library's PCHIP package.
-Only available if L<PDL::Slatec> is installed.
 
 The valid attributes are:
 
@@ -176,16 +174,6 @@ use Carp;
 use parent qw(PDL::Exporter);
 our @EXPORT_OK = qw(pchip spline);
 our %EXPORT_TAGS = (Func=>[@EXPORT_OK]);
-
-####################################################################
-#
-# what modules are available ?
-#
-my %modules;
-BEGIN {
-    eval "use PDL::Slatec";
-    $modules{slatec} = ($@ ? 0 : 1);
-}
 
 ####################################################################
 ## Public routines:
@@ -283,11 +271,6 @@ sub _init_attr {
 
     croak "ERROR: Unknown interpolation scheme <$interpolate>.\n"
 	unless defined $attr{$interpolate};
-
-    # fall over if slatec library isn't present
-    # and asking for Hermite interpolation
-    croak "ERROR: Hermite interpolation is not available without PDL::Slatec.\n"
-        if $interpolate eq "Interpolate" and $modules{slatec} == 0;
 
     # clear out the old data (if it's not the first time through)
     $self->{attributes} = {};
@@ -407,8 +390,6 @@ sub _init_hermite {
 
     my ( $g, $ierr );
     if ( ref($bc) eq "HASH" ) {
-	croak "ERROR: Hermite interpolation is not available without PDL::Slatec.\n"
-	  if !$modules{slatec};
 	my $monotonic = $bc->{monotonic} || 0;
 	my $start     = $bc->{start}     || [ 0 ];
 	my $end       = $bc->{end}       || [ 0 ];
@@ -416,17 +397,13 @@ sub _init_hermite {
 	my $ic = [$start->[0], $end->[0]];
 	my $vc = [@$start == 2 ? $start->[1] : 0, @$end == 2 ? $end->[1] : 0];
 
-	( $g, $ierr ) = chic( $ic, $vc, $monotonic, $x, $y );
+	( $g, $ierr ) = PDL::Primitive::pchip_chic( $ic, $vc, $monotonic, $x, $y );
 
-	$self->{flags}{routine} = "chic";
+	$self->{flags}{routine} = "pchip_chic";
 
     } elsif ( $bc eq "simple" ) {
-	# chim
-	croak "ERROR: Hermite interpolation is not available without PDL::Slatec.\n"
-	  if $modules{slatec} == 0;
-	( $g, $ierr ) = chim( $x, $y );
-
-	$self->{flags}{routine} = "chim";
+	( $g, $ierr ) = PDL::Primitive::pchip_chim( $x, $y );
+	$self->{flags}{routine} = "pchip_chim";
 
     } else {
 	# Unknown boundary condition
@@ -449,8 +426,6 @@ sub _init_hermite {
 }
 
 sub _init_cspline {
-    croak "ERROR: CSpline interpolation is not available without PDL::Slatec\n"
-      if !$modules{slatec};
     my $self = shift;
     # set up error flags
     $self->{flags}{status} = 0;
@@ -468,8 +443,8 @@ sub _init_cspline {
 	my $end       = $bc->{end}       || [ 0 ];
 	my $ic = [$start->[0], $end->[0]];
 	my $vc = [@$start == 2 ? $start->[1] : 0, @$end == 2 ? $end->[1] : 0];
-	( $g, $ierr ) = chsp( $ic, $vc, $x, $y );
-	$self->{flags}{routine} = "chsp";
+	( $g, $ierr ) = PDL::Primitive::pchip_chsp( $ic, $vc, $x, $y );
+	$self->{flags}{routine} = "pchip_chsp";
     }
     $self->_set_value( g => $g, err => $ierr );
     if ( all $ierr == 0 ) {
@@ -792,8 +767,8 @@ sub _interp_hermite {
       @highest_dims = @this_dims if @this_dims > @highest_dims;
     }
     shift @highest_dims; # don't care about bottom one
-    my ( $yi, $ierr ) = chfe( $x, $y, $g, PDL->ones(PDL::long(),@highest_dims), $xi );
-    $self->{flags}{routine} = "chfe";
+    my ( $yi, $ierr ) = PDL::Primitive::pchip_chfe( $x, $y, $g, PDL->ones(PDL::long(),@highest_dims), $xi );
+    $self->{flags}{routine} = "pchip_chfe";
     $self->_set_value( err => $ierr );
     if ( all $ierr == 0 ) {
 	# everything okay
@@ -839,8 +814,8 @@ sub gradient {
     # get values in one go
     my ( $x, $y, $g ) = $self->_get_value( qw( x y g ) );
 
-    my ( $yi, $gi, $ierr ) = chfd( $x, $y, $g, 0, $xi );
-    $self->{flags}{routine} = "chfd";
+    my ( $yi, $gi, $ierr ) = PDL::Primitive::pchip_chfd( $x, $y, $g, 0, $xi );
+    $self->{flags}{routine} = "pchip_chfd";
     $self->_set_value( err => $ierr );
 
     if ( all $ierr == 0 ) {
@@ -928,8 +903,8 @@ sub integrate {
     my ( $ans, $ierr );
 
     if ( $type eq "x" ) {
-	( $ans, $ierr ) = chia( $x, $y, $g, 0, $lo, $hi );
-	$self->{flags}{routine} = "chia";
+	( $ans, $ierr ) = PDL::Primitive::pchip_chia( $x, $y, $g, 0, $lo, $hi );
+	$self->{flags}{routine} = "pchip_chia";
 
 	if ( all $ierr == 0 ) {
 	    # everything okay
@@ -943,8 +918,8 @@ sub integrate {
 	}
 
     } else {
-	( $ans, $ierr ) = chid( $x, $y, $g, 0, $lo, $hi );
-	$self->{flags}->{routine} = "chid";
+	( $ans, $ierr ) = PDL::Primitive::pchip_chid( $x, $y, $g, 0, $lo, $hi );
+	$self->{flags}->{routine} = "pchip_chid";
 
 	if ( all $ierr == 0 ) {
 	    # everything okay
@@ -1019,20 +994,14 @@ In the documentation, the methods are preceded by C<PDL::Func::>
 to avoid clashes with functions such as C<set> when using
 the C<help> or C<apropos> commands within I<perldl>.
 
-=head1 HISTORY
-
-Amalgamated C<PDL::Interpolate> and C<PDL::Interpolate::Slatec>
-to form C<PDL::Func>. Comments greatly appreciated on the
-current implementation, as it is not too sensible.
-
-Thanks to Robin Williams, Halldór Olafsson, and Vince McIntyre.
-
 =head1 AUTHOR
 
 Copyright (C) 2000,2001 Doug Burke (dburke@cfa.harvard.edu).
 All rights reserved. There is no warranty.
 You are allowed to redistribute this software / documentation as
 described in the file COPYING in the PDL distribution.
+
+Thanks to Robin Williams, Halldór Olafsson, and Vince McIntyre.
 
 =cut
 

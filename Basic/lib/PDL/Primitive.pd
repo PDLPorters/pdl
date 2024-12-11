@@ -6,7 +6,7 @@ my $AF = [map $_->ppsym, grep !$_->integer, types];
 $AF = [(grep $_ ne 'D', @$AF), 'D']; # so defaults to D if non-float given
 
 { no warnings 'once'; # pass info back to Makefile.PL
-$PDL::Core::Dev::EXTRAS{$::PDLMOD}{OBJECT} .= " $::PDLBASE-xoshiro256plus\$(OBJ_EXT)";
+$PDL::Core::Dev::EXTRAS{$::PDLMOD}{OBJECT} .= " $::PDLBASE-xoshiro256plus\$(OBJ_EXT) $::PDLBASE-pchip\$(OBJ_EXT)";
 }
 
 pp_addpm({At=>'Top'},<<'EOD');
@@ -4130,12 +4130,797 @@ Find all numbers less that 100 that are of the form 2*y and 3*x
 
 *intersect = \&PDL::intersect;
 
-sub PDL::intersect {
-
-   return setops($_[0], 'AND', $_[1]);
-
-}
+sub PDL::intersect { setops($_[0], 'AND', $_[1]) }
 EOD
+
+sub firstpar {
+	$_[0] =~ /^\(([^),]+)[),]/ or die "Can't find first par from '$_[0]'";
+	$1
+}
+sub intcopy {
+  my ($cvarname, $rvalue) = @_; # closures
+  (sub {"&".$cvarname->(@_)}, sub {"PDL_LongLong *"},
+    sub {"PDL_LongLong ".$cvarname->(@_)." = ".$rvalue->(@_).";"});
+}
+# defslatec( $pdlname, $funcnames, $argstr, $docstring, $funcref )
+#
+# $pdlname is the name of the PDL function to be created
+# $funcnames is a reference to a hash array, whose keys define
+# the single (S), and double precision (D) names of the
+# SLATEC routines to be linked to.
+#
+# $argstr is a list of arguments expected by the SLATEC routine
+# - some of the allowed type names are:
+#   FuncRet
+#     - specifies that this is a function, not a subroutine, and
+#       that the output of the function should be stored in this
+#       variable
+#   IntVal
+#     - used for passing in a value to func, either calculated or a constant,
+#       but not a caller-supplied arg
+#   Logical
+#     - A Fortran Boolean, defined as same size as REAL/INTEGER so 'long'
+#   FortranIndex
+#     - pchid()/dpchid() require FORTRAN array indices, so
+#       this type flags that we should add 1 onto the input values
+#       before sending to the slatec function
+#
+# $docstring gives the text to be used as the function documentation
+#
+# $funcref gets placed within a '=for ref' pod statement at the
+# start of the documentation - ie it is placed before the
+# text within $docstring. This string gets printed out
+# in the perldl shell after a '?? string' command
+#
+my %KIND2I = (
+  Mat => ['', sub{"\$P($_[0][2])"}, sub {PDL::Type->new($_[0])->ctype." *"}],
+  FuncRet => ['', sub {()}, sub {()}],
+    # convert from C to F77 index so add 1
+  FortranIndex => ['longlong ', intcopy(sub {$_[0][2]}, sub {"\$$_[0][2]() + 1"})],
+  Integer => ['longlong ', sub{"\$P($_[0][2])"}, sub {"PDL_LongLong *"}],
+  Logical => ['int ', sub{"\$P($_[0][2])"}, sub {"PDL_Long *"}],
+  OtherParDim => [\'PDL_LongLong ', intcopy(sub {"dim_$_[0][2]"}, sub {"\$SIZE($_[0][2])"})],
+  IntVal => [undef, intcopy(sub {$_[0][2]}, sub {$_[0][4]})],
+);
+my %ignore_ppar = map +($_=>1), qw(IntVal OtherParDim);
+my %prototype = ( F => "float", D => "double" );
+my %ftypes = (S => 'F', D => 'D');
+our $debug = 0;  # print out calls to pp_def; use "local $debug=1" before func
+sub defslatec {
+    my ($pname,$fnames,$argstr,$docstring,$funcref) = @_;
+    my @args = grep /\S/, split ';', $argstr;
+    my @args2 = map {
+		/^\s*([a-zA-Z]+)\s+	# "Type name"
+		  ((?:\[[^]]*\])?)\s*	# Options
+		  ([a-zA-Z]+)\s*	# Par name
+		  (?:
+		    ((?:\(.*\))?)\s*$	# Dims
+		    |
+		    =\s*((?:.*?)?)\s*$	# value for IntVal
+		  )
+		 /x or die("Invalid slatec par $_");
+		[$1,$2,$3,$4,$5]} @args;
+    # is this for a function (Type name eq "FuncRet")
+    # or a subroutine?
+    die "Only one FuncRet allowed in pars list.\n"
+      if (my @funcret = grep $_->[0] eq "FuncRet", @args2) > 1;
+    my $fpar = @funcret ? "\$$funcret[0][2]()" : undef;
+    my $pars = join ';', map
+      +($KIND2I{$_->[0]}[0] // die "Invalid ppars ",join(',',@$_),"\n") . join('', @$_[1..3]),
+      grep !$ignore_ppar{$_->[0]}, @args2;
+    my $otherpars = join ';', map
+      ${$KIND2I{$_->[0]}[0]} . join(' => ', @$_[2,2]),
+      grep ref $KIND2I{$_->[0]}[0], @args2;
+    my $argorder;
+    if ($otherpars) {
+      my @mand = map $_->[2], grep $_->[1] !~ /\bo\b/, @args2;
+      my @opt = map $_->[2], grep $_->[1] =~ /\bo\b/, @args2;
+      $argorder = [@mand, @opt];
+    }
+    my @talts = map
+      [$ftypes{$_} // die("FTYPE $_ NOT THERE\n"),$fnames->{$_}],
+      sort keys %$fnames;
+    my $func = "\$T".join('',map {$_->[0]} @talts) . "(" .
+      join(',',map qq{$_->[1]}, @talts).")";
+    if ( defined $fpar ) { $func = "$fpar = $func"; }
+    my $funcargs = join ',', map $KIND2I{$_->[0]}[1]->($_), @args2;
+    my @protos = map $KIND2I{$_->[0]}[2], @args2;
+    my @cheaders;
+    foreach my $t ( @talts ) {
+        my @decl_args;
+        for my $ind (0..$#protos) {
+          my $arg = $protos[$ind];
+          next unless my @ret = $arg->($t->[0]);
+          push @decl_args, "$ret[0]$args2[$ind][2]";
+        }
+        push @cheaders, (defined $fpar ? $prototype{$t->[0]} : "void")
+          . " $t->[1](" .
+          join(',', @decl_args) . ");";
+    }
+    # add on the function reference, if supplied, to the start of
+    # the doc string
+    if ( defined $docstring ) {
+      $docstring = "\n=for ref\n\n$funcref\n\n$docstring" if defined $funcref;
+    } else {
+      $docstring = '';
+    }
+    # IntVals
+    my @intcopy_code = map +($KIND2I{$_->[0]}[3]||sub{})->($_), @args2;
+    my $code = join("\n", @intcopy_code, "$func($funcargs);");
+    print <<"ENDDBG" if $debug;
+pp_def('$pname',
+  Pars => '$pars',
+  OtherPars => '$otherpars',@{[ !$argorder ? '' : "
+  ArgOrder => [qw(@$argorder)],"]}
+  Code => '$code',
+  CHeader => '@cheaders',
+  GenericTypes => [@{[join ", ", map $_->[0], @talts]}],
+  Doc => '$docstring',
+);
+ENDDBG
+    pp_def($pname,
+      Pars => $pars,
+      ($otherpars ? (OtherPars => $otherpars) : ()),
+      $argorder ? (ArgOrder => $argorder) : (),
+      Code => $code,
+      CHeader => join("\n", @cheaders),
+      GenericTypes => [map $_->[0], @talts],
+      Doc => $docstring,
+    );
+}
+
+defslatec('pchip_chim',
+	  {D => 'dpchim'},
+	  'IntVal	n=$SIZE(n);
+           Mat          x       (n);
+           Mat          f       (n);
+           Mat     [o]  d       (n);
+           IntVal       incfd=1;
+           Integer [o]  ierr    ();
+          ',
+'Calculate the derivatives at the given set of points (C<$x,$f>,
+where C<$x> is strictly increasing).
+The resulting set of points - C<$x,$f,$d>, referred to
+as the cubic Hermite representation - can then be used in
+other functions, such as L</chfe>, L</chfd>,
+and L</chia>.
+
+The boundary conditions are compatible with monotonicity,
+and if the data are only piecewise monotonic, the interpolant
+will have an extremum at the switch points; for more control
+over these issues use L</chic>.
+
+Error status returned by C<$ierr>:
+
+=over 4
+
+=item *
+
+0 if successful.
+
+=item *
+
+E<gt> 0 if there were C<ierr> switches in the direction of
+monotonicity (data still valid).
+
+=item *
+
+-1 if C<nelem($x) E<lt> 2>.
+
+=item *
+
+-3 if C<$x> is not strictly increasing.
+
+=back
+
+=cut
+
+',
+'Calculate the derivatives of (x,f(x)) using cubic Hermite interpolation.'
+);
+
+# switch has become mflag, since `switch' is a reserved word in C.
+defslatec('pchip_chic',
+	  {D => 'dpchic'},
+	  'Integer      ic      (two=2);
+           Mat          vc      (two=2);
+           Mat          mflag   ();
+           IntVal       n=$SIZE(n);
+           Mat          x       (n);
+           Mat          f       (n);
+           Mat     [o]  d       (n);
+           IntVal       incfd=1;
+           Mat [t]      wk      (nwk=CALC(2*$SIZE(n)));
+           IntVal       nwk=$SIZE(nwk);
+           Integer [o]  ierr    ();
+          ',
+'Calculate the derivatives at the given points (C<$x,$f>,
+where C<$x> is strictly increasing).
+Control over the boundary conditions is given by the
+C<$ic> and C<$vc> ndarrays, and the value of C<$mflag> determines
+the treatment of points where monotoncity switches
+direction. A simpler, more restricted, interface is available
+using L</chim>.
+
+The first and second elements of C<$ic> determine the boundary
+conditions at the start and end of the data respectively.
+If the value is 0, then the default condition, as used by
+L</chim>, is adopted.
+If greater than zero, no adjustment for monotonicity is made,
+otherwise if less than zero the derivative will be adjusted.
+The allowed magnitudes for C<ic(0)> are:
+
+=over 4
+
+=item *
+
+1 if first derivative at C<x(0)> is given in C<vc(0)>.
+
+=item *
+
+2 if second derivative at C<x(0)> is given in C<vc(0)>.
+
+=item *
+
+3 to use the 3-point difference formula for C<d(0)>.
+(Reverts to the default b.c. if C<n E<lt> 3>)
+
+=item *
+
+4 to use the 4-point difference formula for C<d(0)>.
+(Reverts to the default b.c. if C<n E<lt> 4>)
+
+=item *
+
+5 to set C<d(0)> so that the second derivative is
+continuous at C<x(1)>.
+(Reverts to the default b.c. if C<n E<lt> 4>)
+
+=back
+
+The values for C<ic(1)> are the same as above, except that
+the first-derivative value is stored in C<vc(1)> for cases 1 and 2.
+The values of C<$vc> need only be set if options 1 or 2 are chosen
+for C<$ic>.
+
+Set C<$mflag = 0> if interpolant is required to be monotonic in
+each interval, regardless of the data. This causes C<$d> to be
+set to 0 at all switch points. Set C<$mflag> to be non-zero to
+use a formula based on the 3-point difference formula at switch
+points. If C<$mflag E<gt> 0>, then the interpolant at swich points
+is forced to not deviate from the data by more than C<$mflag*dfloc>,
+where C<dfloc> is the maximum of the change of C<$f> on this interval
+and its two immediate neighbours.
+If C<$mflag E<lt> 0>, no such control is to be imposed.
+
+Error status returned by C<$ierr>:
+
+=over 4
+
+=item *
+
+0 if successful.
+
+=item *
+
+1 if C<ic(0) E<lt> 0> and C<d(0)> had to be adjusted for
+monotonicity.
+
+=item *
+
+2 if C<ic(1) E<lt> 0> and C<d(n-1)> had to be adjusted
+for monotonicity.
+
+=item *
+
+3 if both 1 and 2 are true.
+
+=item *
+
+-1 if C<n E<lt> 2>.
+
+=item *
+
+-3 if C<$x> is not strictly increasing.
+
+=item *
+
+-4 if C<abs(ic(0)) E<gt> 5>.
+
+=item *
+
+-5 if C<abs(ic(1)) E<gt> 5>.
+
+=item *
+
+-6 if both -4 and -5  are true.
+
+=item *
+
+-7 if C<nwk E<lt> 2*(n-1)>.
+
+=back
+
+=cut
+
+',
+'Calculate the derivatives of (x,f(x)) using cubic Hermite interpolation.'
+);
+
+defslatec('pchip_chsp',
+	  {D => 'dpchsp'},
+	  'Integer      ic      (two=2);
+           Mat          vc      (two=2);
+           IntVal       n=$SIZE(n);
+           Mat          x       (n);
+           Mat          f       (n);
+           Mat     [o]  d       (n);
+           IntVal       incfd=1;
+           Mat [t]      wk      (nwk=CALC(2*$SIZE(n)));
+           IntVal       nwk=$SIZE(nwk);
+           Integer [o]  ierr    ();
+          ',
+'Calculate the derivatives, using cubic spline interpolation,
+at the given points (C<$x,$f>), with the specified
+boundary conditions.
+Control over the boundary conditions is given by the
+C<$ic> and C<$vc> ndarrays.
+The resulting values - C<$x,$f,$d> - can
+be used in all the functions which expect a cubic
+Hermite function.
+
+The first and second elements of C<$ic> determine the boundary
+conditions at the start and end of the data respectively.
+The allowed values for C<ic(0)> are:
+
+=over 4
+
+=item *
+
+0 to set C<d(0)> so that the third derivative is
+continuous at C<x(1)>.
+
+=item *
+
+1 if first derivative at C<x(0)> is given in C<vc(0>).
+
+=item *
+
+2 if second derivative at C<x(0>) is given in C<vc(0)>.
+
+=item *
+
+3 to use the 3-point difference formula for C<d(0)>.
+(Reverts to the default b.c. if C<n E<lt> 3>.)
+
+=item *
+
+4 to use the 4-point difference formula for C<d(0)>.
+(Reverts to the default b.c. if C<n E<lt> 4>.)
+
+=back
+
+The values for C<ic(1)> are the same as above, except that
+the first-derivative value is stored in C<vc(1)> for cases 1 and 2.
+The values of C<$vc> need only be set if options 1 or 2 are chosen
+for C<$ic>.
+
+Error status returned by C<$ierr>:
+
+=over 4
+
+=item *
+
+0 if successful.
+
+=item *
+
+-1  if C<nelem($x) E<lt> 2>.
+
+=item *
+
+-3  if C<$x> is not strictly increasing.
+
+=item *
+
+-4  if C<ic(0) E<lt> 0> or C<ic(0) E<gt> 4>.
+
+=item *
+
+-5  if C<ic(1) E<lt> 0> or C<ic(1) E<gt> 4>.
+
+=item *
+
+-6  if both of the above are true.
+
+=item *
+
+-7  if C<nwk E<lt> 2*n>.
+
+=item *
+
+-8  in case of trouble solving the linear system
+for the interior derivative values.
+
+=back
+
+=cut
+
+',
+'Calculate the derivatives of (x,f(x)) using cubic spline interpolation.'
+);
+
+defslatec('pchip_chfd',
+	  {D => 'dpchfd'},
+	  'IntVal	n=$SIZE(n);
+           Mat          x       (n);
+           Mat          f       (n);
+           Mat          d       (n);
+           IntVal       incfd=1;
+           Logical [io] skip    ();
+           IntVal       ne=$SIZE(ne);
+           Mat          xe      (ne);
+           Mat     [o]  fe      (ne);
+           Mat     [o]  de      (ne);
+           Integer [o]  ierr    ();
+          ',
+'Given a piecewise cubic Hermite function - such as from
+L</chim> - evaluate the function (C<$fe>) and
+derivative (C<$de>) at a set of points (C<$xe>).
+If function values alone are required, use L</chfe>.
+Set C<skip> to 0 to skip checks on the input data.
+
+Error status returned by C<$ierr>:
+
+=over 4
+
+=item *
+
+0 if successful.
+
+=item *
+
+E<gt>0 if extrapolation was performed at C<ierr> points
+(data still valid).
+
+=item *
+
+-1 if C<nelem($x) E<lt> 2>
+
+=item *
+
+-3 if C<$x> is not strictly increasing.
+
+=item *
+
+-4 if C<nelem($xe) E<lt> 1>.
+
+=item *
+
+-5 if an error has occurred in a lower-level routine,
+which should never happen.
+
+=back
+
+=cut
+
+',
+'Interpolate function and derivative values.'
+);
+
+defslatec('pchip_chfe',
+	  {D => 'dpchfe'},
+	  'IntVal	n=$SIZE(n);
+           Mat          x       (n);
+           Mat          f       (n);
+           Mat          d       (n);
+           IntVal       incfd=1;
+           Logical [io] skip    ();
+           IntVal       ne=$SIZE(ne);
+           Mat          xe      (ne);
+           Mat     [o]  fe      (ne);
+           Integer [o]  ierr    ();
+          ',
+'Given a piecewise cubic Hermite function - such as from
+L</chim> - evaluate the function (C<$fe>) at
+a set of points (C<$xe>).
+If derivative values are also required, use L</chfd>.
+Set C<skip> to 0 to skip checks on the input data.
+
+Error status returned by C<$ierr>:
+
+=over 4
+
+=item *
+
+0 if successful.
+
+=item *
+
+E<gt>0 if extrapolation was performed at C<ierr> points
+(data still valid).
+
+=item *
+
+-1 if C<nelem($x) E<lt> 2>
+
+=item *
+
+-3 if C<$x> is not strictly increasing.
+
+=item *
+
+-4 if C<nelem($xe) E<lt> 1>.
+
+=back
+
+=cut
+
+',
+'Interpolate function values.'
+);
+
+defslatec('pchip_chia',
+	  {D => 'dpchia'},
+	  'IntVal	n=$SIZE(n);
+           Mat          x       (n);
+           Mat          f       (n);
+           Mat          d       (n);
+           IntVal       incfd=1;
+           Logical [io] skip    ();
+           Mat          la    ();
+           Mat          lb    ();
+           FuncRet [o]  ans     ();
+           Integer [o]  ierr    ();
+          ',
+'Evaluate the definite integral of a piecewise
+cubic Hermite function over an arbitrary interval,
+given by C<[$la,$lb]>. C<$d> should contain the derivative values, computed by L</chim>.
+See L</chid> if the integration limits are
+data points.
+Set C<skip> to 0 to skip checks on the input data.
+
+The values of C<$la> and C<$lb> do not have
+to lie within C<$x>, although the resulting integral
+value will be highly suspect if they are not.
+
+Error status returned by C<$ierr>:
+
+=over 4
+
+=item *
+
+0 if successful.
+
+=item *
+
+1 if C<$la> lies outside C<$x>.
+
+=item *
+
+2 if C<$lb> lies outside C<$x>.
+
+=item *
+
+3 if both 1 and 2 are true.
+
+=item *
+
+-1 if C<nelem($x) E<lt> 2>
+
+=item *
+
+-3 if C<$x> is not strictly increasing.
+
+=item *
+
+-4 if an error has occurred in a lower-level routine,
+which should never happen.
+
+=back
+
+=cut
+
+',
+'Integrate (x,f(x)) over arbitrary limits.'
+);
+
+defslatec('pchip_chid',
+	  {D => 'dpchid'},
+	  'IntVal	n=$SIZE(n);
+           Mat          x       (n);
+           Mat          f       (n);
+           Mat          d       (n);
+           IntVal       incfd=1;
+           Logical [io] skip    ();
+           FortranIndex ia      ();
+           FortranIndex ib      ();
+           FuncRet [o]  ans     ();
+           Integer [o]  ierr    ();
+          ',
+'Evaluate the definite integral of a a piecewise
+cubic Hermite function between C<x($ia)> and
+C<x($ib)>.
+
+See L</chia> for integration between arbitrary
+limits.
+
+Although using a fortran routine, the values of
+C<$ia> and C<$ib> are zero offset.
+C<$d> should contain the derivative values, computed by L</chim>.
+Set C<skip> to 0 to skip checks on the input data.
+
+Error status returned by C<$ierr>:
+
+=over 4
+
+=item *
+
+0 if successful.
+
+=item *
+
+-1 if C<nelem($x) E<lt> 2>.
+
+=item *
+
+-3 if C<$x> is not strictly increasing.
+
+=item *
+
+-4 if C<$ia> or C<$ib> is out of range.
+
+=back
+
+=cut
+
+',
+'Integrate (x,f(x)) between data points.'
+);
+
+defslatec('pchip_chbs',
+	  {D => 'dpchbs'},
+	  'IntVal	n=$SIZE(n);
+           Mat          x       (n);
+           Mat          f       (n);
+           Mat          d       (n);
+           IntVal       incfd=1;
+           Integer      knotyp  ();
+           Integer [io] nknots  ();
+           Mat     [io] t       (tsize=CALC(2*$SIZE(n)+4));
+           Mat     [o]  bcoef   (bsize=CALC(2*$SIZE(n)));
+           Integer [o]  ndim    ();
+           Integer [o]  kord    ();
+           Integer [o]  ierr    ();
+          ',
+'The resulting B-spline representation of the data
+(i.e. C<nknots>, C<t>, C<bcoeff>, C<ndim>, and
+C<kord>) can be evaluated by L</bvalu>.
+
+Array sizes: C<tsize = 2*n + 4>, C<bsize = 2*n>,
+and C<ndim = 2*n>.
+
+C<knotyp> is a flag which controls the knot sequence.
+The knot sequence C<t> is normally computed from C<$x>
+by putting a double knot at each C<x> and setting the end knot pairs
+according to the value of C<knotyp> (where C<m = ndim = 2*n>):
+
+=over
+
+=item *
+
+0 -   Quadruple knots at the first and last points.
+
+=item *
+
+1 -   Replicate lengths of extreme subintervals:
+C<t( 0 ) = t( 1 ) = x(0) - (x(1)-x(0))> and
+C<t(m+3) = t(m+2) = x(n-1) + (x(n-1)-x(n-2))>
+
+=item *
+
+2 -   Periodic placement of boundary knots:
+C<t( 0 ) = t( 1 ) = x(0) - (x(n-1)-x(n-2))> and
+C<t(m+3) = t(m+2) = x(n) + (x(1)-x(0))>
+
+=item *
+
+E<lt>0 - Assume the C<nknots> and C<t> were set in a previous call.
+
+=back
+
+C<nknots> is the number of knots and may be changed by the routine.
+If C<knotyp E<gt>= 0>, C<nknots> will be set to C<ndim+4>,
+otherwise it is an input variable, and an error will occur if its
+value is not equal to C<ndim+4>.
+
+C<t> is the array of C<2*n+4> knots for the B-representation
+and may be changed by the routine.
+If C<knotyp E<gt>= 0>, C<t> will be changed so that the
+interior double knots are equal to the x-values and the
+boundary knots set as indicated above,
+otherwise it is assumed that C<t> was set by a
+previous call (no check is made to verify that the data
+forms a legitimate knot sequence).
+
+Error status returned by C<$ierr>:
+
+=over 4
+
+=item *
+
+0 if successful.
+
+=item *
+
+-4 if C<knotyp E<gt> 2>.
+
+=item *
+
+-5 if C<knotyp E<lt> 0> and C<nknots != 2*n + 4>.
+
+=back
+
+=cut
+
+',
+'Piecewise Cubic Hermite function to B-Spline converter.'
+);
+
+defslatec('pchip_bvalu',
+	  {D => 'dbvalu'},
+	  'Mat          t       (nplusk);
+           Mat          a       (n);
+           IntVal       n=$SIZE(n);
+           IntVal       k=$SIZE(nplusk)-$SIZE(n);
+           Integer      ideriv  ();
+           Mat          x       ();
+           IntVal       inbv=1;
+           Mat     [t]  work    (k3=CALC(3*($SIZE(nplusk)-$SIZE(n))));
+           FuncRet [o]  ans     ();
+          ',
+'Evaluates the B-representation C<(T,A,N,K)> of a B-spline
+at C<X> for the function value on C<IDERIV = 0> or any of its
+derivatives on C<IDERIV = 1,2,...,K-1>.  Right limiting values
+(right derivatives) are returned except at the right end
+point C<X=T(N+1)> where left limiting values are computed.  The
+spline is defined on C<T(K) .LE. X .LE. T(N+1)>.  BVALU returns
+a fatal error message when C<X> is outside of this interval.
+
+To compute left derivatives or left limiting values at a
+knot C<T(I)>, replace C<N> by C<I-1> and set C<X=T(I)>, C<I=K+1,N+1>.
+
+=head3 Description of Arguments
+
+=head4 Input
+
+     T       - knot vector of length N+K
+     A       - B-spline coefficient vector of length N
+     N       - number of B-spline coefficients
+               N = sum of knot multiplicities-K
+     K       - order of the B-spline, K .GE. 1
+     IDERIV  - order of the derivative, 0 .LE. IDERIV .LE. K-1
+               IDERIV=0 returns the B-spline value
+     X       - argument, T(K) .LE. X .LE. T(N+1)
+     INBV    - an initialization parameter which must be set
+               to 1 the first time BVALU is called. (PDL sets to 1 for you)
+
+=head4 Output
+
+     INBV    - INBV contains information for efficient process-
+               ing after the initial call and INBV must not
+               be changed by the user.  Distinct splines require
+               distinct INBV parameters. (unavailable in PDL)
+     WORK    - work vector of length 3*K.
+     BVALU   - value of the IDERIV-th derivative at X
+
+=head4 Error Conditions
+
+An improper input is a fatal error
+',
+'Evaluate the B-representation of a B-spline at X for the
+function value or any of its derivatives.'
+);
 
 pp_addpm({At=>'Bot'},<<'EOD');
 

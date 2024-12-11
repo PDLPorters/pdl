@@ -142,6 +142,7 @@ Basic/lib/PDL/PP/Dims.pm
 Basic/lib/PDL/PP/PDLCode.pm
 Basic/lib/PDL/PP/PdlParObj.pm
 Basic/lib/PDL/PP/Signature.pm
+Basic/lib/PDL/Primitive-pchip.c
 Basic/lib/PDL/Primitive-xoshiro256plus.c
 Basic/lib/PDL/Primitive.pd
 Basic/lib/PDL/QuickStart.pod
