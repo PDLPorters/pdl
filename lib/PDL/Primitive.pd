@@ -4133,10 +4133,6 @@ Find all numbers less that 100 that are of the form 2*y and 3*x
 sub PDL::intersect { setops($_[0], 'AND', $_[1]) }
 EOD
 
-sub firstpar {
-	$_[0] =~ /^\(([^),]+)[),]/ or die "Can't find first par from '$_[0]'";
-	$1
-}
 sub intcopy {
   my ($cvarname, $rvalue) = @_; # closures
   (sub {"&".$cvarname->(@_)}, sub {"PDL_LongLong *"},
@@ -4168,14 +4164,14 @@ sub intcopy {
 # text within $docstring. This string gets printed out
 # in the perldl shell after a '?? string' command
 #
+# [Par_forcetype(undef=none,ref=OtherPar), C_argin, C_paramtype, C_decl_value]
 my %KIND2I = (
   Mat => ['', sub{"\$P($_[0][2])"}, sub {PDL::Type->new($_[0])->ctype." *"}],
   FuncRet => ['', sub {()}, sub {()}],
-    # convert from C to F77 index so add 1
   Integer => ['longlong ', sub{"\$P($_[0][2])"}, sub {"PDL_LongLong *"}],
   Logical => ['int ', sub{"\$P($_[0][2])"}, sub {"PDL_Long *"}],
   OtherParDim => [\'PDL_LongLong ', intcopy(sub {"dim_$_[0][2]"}, sub {"\$SIZE($_[0][2])"})],
-  IntVal => [undef, intcopy(sub {$_[0][2]}, sub {$_[0][4]})],
+  IntVal => [undef, sub {$_[0][4]}, sub {"PDL_LongLong "}],
 );
 my %ignore_ppar = map +($_=>1), qw(IntVal OtherParDim);
 my %prototype = ( F => "float", D => "double" );
