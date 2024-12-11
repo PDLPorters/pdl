@@ -1,42 +1,23 @@
 use strict;
 use warnings;
 use Test::More;
+use Test::PDL;
 use PDL::LiteF;
-
-# Must load slatec before Func since Func loads slatec itself
-# and this line will be a no-op (and so we will not be able to
-# spot that Slatec has failed)
-my $slatec;
-BEGIN { eval "use PDL::Slatec"; $slatec = ($@ ? 0 : 1); }
-
 use PDL::Func qw(pchip spline);
-
-eval {PDL::Func->import};
-is $@, '', 'check got exporting right';
 
 my $x = float( 1, 2, 3, 4, 5, 6, 8, 10 );
 my $y = ($x * 3) * ($x - 2);
-
+my $xi = $x - 0.5;
 my $obj = PDL::Func->init( x => $x, y => $y );
 is( $obj->scheme() , 'Linear', 'default scheme is linear' );  # 1
+is_pdl $obj->interpolate( $xi ), pdl('-4.5 -1.5 4.5 16.5 34.5 58.5 126 216'), {atol=>1e-5, test_name=>'linear interpolate'};
+is $obj->status, -1, 'non serious error from linear interpolate: extrapolation used';
+is_pdl $obj->get( 'err' ), long('1 0 0 0 0 0 0 0'), 'same error as direct';
 
-my $xi = $x - 0.5;
-my $yi = $obj->interpolate( $xi );
-is( $obj->status, -1, 'non serious error from interpolate: extrapolation used' );
-
-# compare to direct version
-my ( $ans, $err ) = PDL::Primitive::interpolate( $xi, $x, $y );
-my $d = abs( $ans - $yi ); 
-ok( all($d < 1.0e-5), 'compare to PDL::Primitive::interpolate');
-
-my $oerr = $obj->get( 'err' );
-ok( all ($oerr-$err) == 0 , 'no error after interpolation');
-
-# check we trap a call to an unavailable method
 eval { $obj->gradient( $xi ); };
-isnt( $@ , '' ,'calling unavailable method'); # 5
+like $@ , qr/can not call gradient/, 'calling unavailable method';
 
-unless ($slatec) {
+if (!eval { require PDL::Slatec; PDL::Slatec->import; 1 }) {
   done_testing;
   exit;
 }
@@ -44,53 +25,30 @@ unless ($slatec) {
 $x = sequence(float,10);
 $y = $x*$x + 0.5;
 $obj->set( Interpolate => 'Hermite', x => $x, y => $y );
-
-#print "bc for Hermite interpolation: " . $obj->get('bc') . "\n";
 is( $obj->scheme() , 'Hermite' , 'scheme is Hermite'); 
 is( $obj->get('bc'), 'simple' , 'boundary condition is simple'); 
 is( $obj->status, 1 , 'no errors');
 
 $xi = sequence(float,5) + 2.3;
-$yi = $obj->interpolate( $xi );
+is_pdl $obj->interpolate( $xi ), $xi*$xi + 0.5, {atol=>0.04, test_name=>'interpolate'};
 is( $obj->status, 1, 'status==1 after interpolate');
 
-$ans = $xi*$xi + 0.5;
-$d   = abs( $ans - $yi );
-ok( all($d <= 0.03), 'interpolate correct answer');
-
-my $gi = $obj->gradient( $xi );
+is_pdl scalar $obj->gradient( $xi ), 2*$xi, {atol=>0.04, test_name=>'gradient'};
 is( $obj->status, 1, 'status==1 after gradient');
 
-$ans = 2*$xi;
-$d   = abs( $ans - $gi );
-ok( all($d <= 0.04), 'gradient correct answer');
-
 # see how they cope with broadcasting
-#
 $y = cat( $x*$x+43.3, $x*$x*$x-23 );
-
 $obj->set( x => $x, y => $y );
 is( $obj->status , 1, 'broadcasting: status==1 after set');
-
-$yi = $obj->interpolate( $xi );
+my $ans = cat( $xi*$xi+43.3, $xi*$xi*$xi-23 );
+is_pdl $obj->interpolate( $xi ), $ans, {atol=>6, test_name=>'broadcasting'};
 is( $obj->status, 1 ,'broadcasting: status==1 after interpolate');
-ok( ( (dims($yi) == 2) & ($yi->getdim(0) == $xi->getdim(0))) & ($yi->getdim(1) == 2), 'broadcasting dimension check' );
-$ans = cat( $xi*$xi+43.3, $xi*$xi*$xi-23 );
-$d   = abs( $ans - $yi );
-ok( all($d <= 6), 'broadcasting: correct answer' );
 
 # non-simple boundary conditions
 $obj->set( bc => {} );
-$yi = $obj->interpolate( $xi );
-$d   = abs( $ans - $yi );
-ok( all($d <= 6), 'broadcasting non-simple: correct answer' );
+is_pdl $obj->interpolate( $xi ), $ans, {atol=>6, test_name=>'broadcasting non-simple'};
 
-$yi = pchip( $x, $y, $xi );
-$d   = abs( $ans - $yi );
-ok( all($d <= 6), 'pchip(): correct answer' );
-
-$yi = spline( $x, $y, $xi );
-$d   = abs( $ans - $yi );
-ok( all($d <= 6), 'spline(): correct answer' );
+is_pdl pchip( $x, $y, $xi ), $ans, {atol=>6, test_name=>'pchip'};
+is_pdl spline( $x, $y, $xi ), $ans, {atol=>6, test_name=>'spline'};
 
 done_testing;
