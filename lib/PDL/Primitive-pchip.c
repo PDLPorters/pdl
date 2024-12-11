@@ -8,10 +8,6 @@ typedef double doublereal;
 typedef long int logical;
 
 #define TRUE_ (1)
-#define FALSE_ (0)
-
-/* I/O stuff */
-typedef long int ftnlen;
 
 #define abs(x) ((x) >= 0 ? (x) : -(x))
 #define min(a,b) ((a) <= (b) ? (a) : (b))
@@ -24,6 +20,10 @@ double d_sign(doublereal a, doublereal b)
   double x = (a >= 0 ? a : - a);
   return b >= 0 ? x : -x;
 }
+
+/* Initialized data */
+static const doublereal fact = 100.;
+static const doublereal third = .33333;
 
 #define xermsg_(lib, func, errstr, nerr, ...) \
   fprintf(stderr, "%s::%s: %s (err=%ld)\n", lib, func, errstr, nerr)
@@ -66,9 +66,9 @@ doublereal dbvalu(doublereal *t, doublereal *a, integer *n, integer *k,
     doublereal ret_val;
 
     /* Local variables */
-    static integer i__, j, j1, j2, jj, km1, ip1, ihi, imk, kmj, ipj, ilo, kpk;
-    static doublereal fkmj;
-    static integer ip1mj, mflag, imkpj, iderp1, kmider, ihmkmj;
+    integer i__, j, j1, j2, jj, km1, ip1, ihi, imk, kmj, ipj, ilo, kpk;
+    doublereal fkmj;
+    integer ip1mj, mflag, imkpj, iderp1, kmider, ihmkmj;
 
 /* ***PURPOSE  Evaluate the B-representation of a B-spline at X for the */
 /*            function value or any of its derivatives. */
@@ -256,7 +256,7 @@ L140:
 void dintrv(doublereal *xt, integer *lxt, doublereal *x,
 	integer *ilo, integer *ileft, integer *mflag)
 {
-    static integer ihi, istep, middle;
+    integer ihi, istep, middle;
 
 /* ***PURPOSE  Compute the largest integer ILEFT in 1 .LE. ILEFT .LE. LXT */
 /*            such that XT(ILEFT) .LE. X where XT(*) is a subdivision of */
@@ -414,8 +414,8 @@ void dpchbs(integer *n, doublereal *x, doublereal *f,
     integer f_dim1, f_offset, d_dim1, d_offset, i__1;
 
     /* Local variables */
-    static integer k, kk;
-    static doublereal dov3, hold, hnew;
+    integer k, kk;
+    doublereal dov3, hold, hnew;
     char *libnam = "SLATEC";
     char *subnam = "DPCHBS";
 
@@ -624,9 +624,9 @@ void dpchkt(integer *n, doublereal *x, integer *knotyp,
     integer i__1;
 
     /* Local variables */
-    static integer j, k;
-    static doublereal hbeg, hend;
-    static integer ndim;
+    integer j, k;
+    doublereal hbeg, hend;
+    integer ndim;
 
 /* ***PURPOSE  Compute B-spline knot sequence for DPCHBS. */
 /* ***LIBRARY   SLATEC (PCHIP) */
@@ -708,17 +708,13 @@ void dchfdv(doublereal *x1, doublereal *x2, doublereal *f1,
 	doublereal *xe, doublereal *fe, doublereal *de, integer *next,
 	integer *ierr)
 {
-    /* Initialized data */
-
-    static doublereal zero = 0.;
-
     /* System generated locals */
     integer i__1;
 
     /* Local variables */
-    static doublereal h__;
-    static integer i__;
-    static doublereal x, c2, c3, c2t2, c3t3, xma, xmi, del1, del2, delta;
+    doublereal h__;
+    integer i__;
+    doublereal x, c2, c3, c2t2, c3t3, xma, xmi, del1, del2, delta;
 
 /* ***PURPOSE  Evaluate a cubic polynomial given in Hermite form and its */
 /*            first derivative at an array of points.  While designed for */
@@ -820,7 +816,7 @@ void dchfdv(doublereal *x1, doublereal *x2, doublereal *f1,
 	goto L5001;
     }
     h__ = *x2 - *x1;
-    if (h__ == zero) {
+    if (h__ == 0.) {
 	goto L5002;
     }
 
@@ -829,8 +825,8 @@ void dchfdv(doublereal *x1, doublereal *x2, doublereal *f1,
     *ierr = 0;
     next[1] = 0;
     next[2] = 0;
-    xmi = min(zero,h__);
-    xma = max(zero,h__);
+    xmi = min(0.,h__);
+    xma = max(0.,h__);
 
 /*  COMPUTE CUBIC COEFFICIENTS (EXPANDED ABOUT X1). */
 
@@ -888,8 +884,8 @@ void dpchfd(integer *n, doublereal *x, doublereal *f,
     integer f_dim1, f_offset, d_dim1, d_offset, i__1, i__2;
 
     /* Local variables */
-    static integer i__, j, nj, ir, ierc, next[2];
-    static integer jfirst;
+    integer i__, j, nj, ir, ierc, next[2];
+    integer jfirst;
 
 /* ***PURPOSE  Evaluate a piecewise cubic Hermite function and its first */
 /*            derivative at an array of points.  May be used by itself */
@@ -1248,15 +1244,15 @@ void dchfev(doublereal *x1, doublereal *x2, doublereal *f1,
 {
     /* Initialized data */
 
-    static doublereal zero = 0.;
+    doublereal zero = 0.;
 
     /* System generated locals */
     integer i__1;
 
     /* Local variables */
-    static doublereal h__;
-    static integer i__;
-    static doublereal x, c2, c3, xma, xmi, del1, del2, delta;
+    doublereal h__;
+    integer i__;
+    doublereal x, c2, c3, xma, xmi, del1, del2, delta;
 
 /* ***PURPOSE  Evaluate a cubic polynomial given in Hermite form at an */
 /*            array of points.  While designed for use by DPCHFE, it may */
@@ -1353,7 +1349,7 @@ void dchfev(doublereal *x1, doublereal *x2, doublereal *f1,
 	goto L5001;
     }
     h__ = *x2 - *x1;
-    if (h__ == zero) {
+    if (h__ == 0.) {
 	goto L5002;
     }
 
@@ -1362,8 +1358,8 @@ void dchfev(doublereal *x1, doublereal *x2, doublereal *f1,
     *ierr = 0;
     next[1] = 0;
     next[2] = 0;
-    xmi = min(zero,h__);
-    xma = max(zero,h__);
+    xmi = min(0.,h__);
+    xma = max(0.,h__);
 
 /*  COMPUTE CUBIC COEFFICIENTS (EXPANDED ABOUT X1). */
 
@@ -1418,8 +1414,8 @@ void dpchfe(integer *n, doublereal *x, doublereal *f,
     integer f_dim1, f_offset, d_dim1, d_offset, i__1, i__2;
 
     /* Local variables */
-    static integer i__, j, nj, ir, ierc, next[2];
-    static integer jfirst;
+    integer i__, j, nj, ir, ierc, next[2];
+    integer jfirst;
 
 /* ***PURPOSE  Evaluate a piecewise cubic Hermite function at an array of */
 /*            points.  May be used by itself for Hermite interpolation, */
@@ -1768,19 +1764,11 @@ L5005:
 doublereal dchfie(doublereal *x1, doublereal *x2, doublereal *f1, doublereal
 	*f2, doublereal *d1, doublereal *d2, doublereal *a, doublereal *b)
 {
-    /* Initialized data */
-
-    static doublereal half = .5;
-    static doublereal two = 2.;
-    static doublereal three = 3.;
-    static doublereal four = 4.;
-    static doublereal six = 6.;
-
     /* System generated locals */
     doublereal ret_val, d__1;
 
     /* Local variables */
-    static doublereal h__, ta1, ta2, tb1, tb2, ua1, ua2, ub1, ub2, phia1,
+    doublereal h__, ta1, ta2, tb1, tb2, ua1, ua2, ub1, ub2, phia1,
 	    phia2, phib1, phib2, psia1, psia2, psib1, psib2, dterm, fterm;
 
 /* ***BEGIN PROLOGUE  DCHFIE */
@@ -1858,29 +1846,29 @@ doublereal dchfie(doublereal *x1, doublereal *x2, doublereal *f1, doublereal
 /* Computing 3rd power */
 	d__1 = ta1;
 	ua1 = d__1 * (d__1 * d__1);
-	phia1 = ua1 * (two - ta1);
-	psia1 = ua1 * (three * ta1 - four);
+	phia1 = ua1 * (2. - ta1);
+	psia1 = ua1 * (3. * ta1 - 4.);
 /* Computing 3rd power */
 	d__1 = ta2;
 	ua2 = d__1 * (d__1 * d__1);
-	phia2 = ua2 * (two - ta2);
-	psia2 = -ua2 * (three * ta2 - four);
+	phia2 = ua2 * (2. - ta2);
+	psia2 = -ua2 * (3. * ta2 - 4.);
 
 /* Computing 3rd power */
 	d__1 = tb1;
 	ub1 = d__1 * (d__1 * d__1);
-	phib1 = ub1 * (two - tb1);
-	psib1 = ub1 * (three * tb1 - four);
+	phib1 = ub1 * (2. - tb1);
+	psib1 = ub1 * (3. * tb1 - 4.);
 /* Computing 3rd power */
 	d__1 = tb2;
 	ub2 = d__1 * (d__1 * d__1);
-	phib2 = ub2 * (two - tb2);
-	psib2 = -ub2 * (three * tb2 - four);
+	phib2 = ub2 * (2. - tb2);
+	psib2 = -ub2 * (3. * tb2 - 4.);
 
 	fterm = *f1 * (phia2 - phib2) + *f2 * (phib1 - phia1);
-	dterm = (*d1 * (psia2 - psib2) + *d2 * (psib1 - psia1)) * (h__ / six);
+	dterm = (*d1 * (psia2 - psib2) + *d2 * (psib1 - psia1)) * (h__ / 6.);
 
-	ret_val = half * h__ * (fterm + dterm);
+	ret_val = 0.5 * h__ * (fterm + dterm);
     }
 
     return ret_val;
@@ -1890,19 +1878,15 @@ doublereal dpchia(integer *n, doublereal *x, doublereal *f, doublereal *d__,
 	integer *incfd, logical *skip, doublereal *a, doublereal *b, integer *
 	ierr)
 {
-    /* Initialized data */
-
-    static doublereal zero = 0.;
-
     /* System generated locals */
     integer f_dim1, f_offset, d_dim1, d_offset, i__1, i__2;
     doublereal ret_val;
 
     /* Local variables */
-    static integer i__, ia, ib, il;
-    static doublereal xa, xb;
-    static integer ir, ierd;
-    static doublereal value;
+    integer i__, ia, ib, il;
+    doublereal xa, xb;
+    integer ir, ierd;
+    doublereal value;
 
 /* ***BEGIN PROLOGUE  DPCHIA */
 /* ***PURPOSE  Evaluate the definite integral of a piecewise cubic */
@@ -2028,7 +2012,7 @@ doublereal dpchia(integer *n, doublereal *x, doublereal *f, doublereal *d__,
     f_offset = 1 + f_dim1;
     f -= f_offset;
 
-    value = zero;
+    value = 0.;
 
 /*  VALIDITY-CHECK ARGUMENTS. */
 
@@ -2198,20 +2182,14 @@ doublereal dpchid(integer *n, doublereal *x, doublereal *f, doublereal *d__,
 	integer *incfd, logical *skip, integer *ia, integer *ib, integer *
 	ierr)
 {
-    /* Initialized data */
-
-    static doublereal zero = 0.;
-    static doublereal half = .5;
-    static doublereal six = 6.;
-
     /* System generated locals */
     integer f_dim1, f_offset, d_dim1, d_offset, i__1;
     doublereal ret_val;
 
     /* Local variables */
-    static doublereal h__;
-    static integer i__, iup, low;
-    static doublereal sum, value;
+    doublereal h__;
+    integer i__, iup, low;
+    doublereal sum, value;
 
 /* ***BEGIN PROLOGUE  DPCHID */
 /* ***PURPOSE  Evaluate the definite integral of a piecewise cubic */
@@ -2329,7 +2307,7 @@ doublereal dpchid(integer *n, doublereal *x, doublereal *f, doublereal *d__,
     f_offset = 1 + f_dim1;
     f -= f_offset;
 
-    value = zero;
+    value = 0.;
 
 /*  VALIDITY-CHECK ARGUMENTS. */
 
@@ -2367,15 +2345,15 @@ L5:
     if (*ia != *ib) {
 	low = min(*ia,*ib);
 	iup = max(*ia,*ib) - 1;
-	sum = zero;
+	sum = 0.;
 	i__1 = iup;
 	for (i__ = low; i__ <= i__1; ++i__) {
 	    h__ = x[i__ + 1] - x[i__];
 	    sum += h__ * (f[i__ * f_dim1 + 1] + f[(i__ + 1) * f_dim1 + 1] + (
 		    d__[i__ * d_dim1 + 1] - d__[(i__ + 1) * d_dim1 + 1]) * (
-		    h__ / six));
+		    h__ / 6.));
 	}
-	value = half * sum;
+	value = 0.5 * sum;
 	if (*ia > *ib) {
 	    value = -value;
 	}
@@ -2418,20 +2396,13 @@ void dpchce(integer *ic, doublereal *vc, integer *n,
 	doublereal *x, doublereal *h__, doublereal *slope, doublereal *d__,
 	integer *incfd, integer *ierr)
 {
-    /* Initialized data */
-
-    static doublereal zero = 0.;
-    static doublereal half = .5;
-    static doublereal two = 2.;
-    static doublereal three = 3.;
-
     /* System generated locals */
     integer d_dim1, d_offset, i__1;
     doublereal d__1, d__2;
 
     /* Local variables */
-    static integer j, k, ibeg, iend, ierf, index;
-    static doublereal stemp[3], xtemp[4];
+    integer j, k, ibeg, iend, ierf, index;
+    doublereal stemp[3], xtemp[4];
 
 /* ***BEGIN PROLOGUE  DPCHCE */
 /* ***PURPOSE  Set boundary conditions for DPCHIC */
@@ -2579,8 +2550,8 @@ void dpchce(integer *ic, doublereal *vc, integer *n,
 	d__[d_dim1 + 1] = vc[1];
     } else if (k == 2) {
 /*        BOUNDARY SECOND DERIVATIVE PROVIDED. */
-	d__[d_dim1 + 1] = half * (three * slope[1] - d__[(d_dim1 << 1) + 1] -
-		half * vc[1] * h__[1]);
+	d__[d_dim1 + 1] = 0.5 * (3. * slope[1] - d__[(d_dim1 << 1) + 1] -
+		0.5 * vc[1] * h__[1]);
     } else if (k < 5) {
 /*        USE K-POINT DERIVATIVE FORMULA. */
 /*        PICK UP FIRST K POINTS, IN REVERSE ORDER. */
@@ -2601,8 +2572,8 @@ void dpchce(integer *ic, doublereal *vc, integer *n,
 	}
     } else {
 /*        USE 'NOT A KNOT' CONDITION. */
-	d__[d_dim1 + 1] = (three * (h__[1] * slope[2] + h__[2] * slope[1]) -
-		two * (h__[1] + h__[2]) * d__[(d_dim1 << 1) + 1] - h__[1] *
+	d__[d_dim1 + 1] = (3. * (h__[1] * slope[2] + h__[2] * slope[1]) -
+		2. * (h__[1] + h__[2]) * d__[(d_dim1 << 1) + 1] - h__[1] *
 		d__[d_dim1 * 3 + 1]) / h__[2];
     }
 
@@ -2612,16 +2583,16 @@ void dpchce(integer *ic, doublereal *vc, integer *n,
 
 /*  CHECK D(1,1) FOR COMPATIBILITY WITH MONOTONICITY. */
 
-    if (slope[1] == zero) {
-	if (d__[d_dim1 + 1] != zero) {
-	    d__[d_dim1 + 1] = zero;
+    if (slope[1] == 0.) {
+	if (d__[d_dim1 + 1] != 0.) {
+	    d__[d_dim1 + 1] = 0.;
 	    ++(*ierr);
 	}
-    } else if (dpchst(&d__[d_dim1 + 1], &slope[1]) < zero) {
-	d__[d_dim1 + 1] = zero;
+    } else if (dpchst(&d__[d_dim1 + 1], &slope[1]) < 0.) {
+	d__[d_dim1 + 1] = 0.;
 	++(*ierr);
-    } else if ((d__1 = d__[d_dim1 + 1], abs(d__1)) > three * abs(slope[1])) {
-	d__[d_dim1 + 1] = three * slope[1];
+    } else if ((d__1 = d__[d_dim1 + 1], abs(d__1)) > 3. * abs(slope[1])) {
+	d__[d_dim1 + 1] = 3. * slope[1];
 	++(*ierr);
     }
 
@@ -2637,8 +2608,8 @@ L2000:
 	d__[*n * d_dim1 + 1] = vc[2];
     } else if (k == 2) {
 /*        BOUNDARY SECOND DERIVATIVE PROVIDED. */
-	d__[*n * d_dim1 + 1] = half * (three * slope[*n - 1] - d__[(*n - 1) *
-		d_dim1 + 1] + half * vc[2] * h__[*n - 1]);
+	d__[*n * d_dim1 + 1] = 0.5 * (3. * slope[*n - 1] - d__[(*n - 1) *
+		d_dim1 + 1] + 0.5 * vc[2] * h__[*n - 1]);
     } else if (k < 5) {
 /*        USE K-POINT DERIVATIVE FORMULA. */
 /*        PICK UP LAST K POINTS. */
@@ -2659,8 +2630,8 @@ L2000:
 	}
     } else {
 /*        USE 'NOT A KNOT' CONDITION. */
-	d__[*n * d_dim1 + 1] = (three * (h__[*n - 1] * slope[*n - 2] + h__[*n
-		- 2] * slope[*n - 1]) - two * (h__[*n - 1] + h__[*n - 2]) *
+	d__[*n * d_dim1 + 1] = (3. * (h__[*n - 1] * slope[*n - 2] + h__[*n
+		- 2] * slope[*n - 1]) - 2. * (h__[*n - 1] + h__[*n - 2]) *
 		d__[(*n - 1) * d_dim1 + 1] - h__[*n - 1] * d__[(*n - 2) *
 		d_dim1 + 1]) / h__[*n - 2];
     }
@@ -2671,17 +2642,17 @@ L2000:
 
 /*  CHECK D(1,N) FOR COMPATIBILITY WITH MONOTONICITY. */
 
-    if (slope[*n - 1] == zero) {
-	if (d__[*n * d_dim1 + 1] != zero) {
-	    d__[*n * d_dim1 + 1] = zero;
+    if (slope[*n - 1] == 0.) {
+	if (d__[*n * d_dim1 + 1] != 0.) {
+	    d__[*n * d_dim1 + 1] = 0.;
 	    *ierr += 2;
 	}
-    } else if (dpchst(&d__[*n * d_dim1 + 1], &slope[*n - 1]) < zero) {
-	d__[*n * d_dim1 + 1] = zero;
+    } else if (dpchst(&d__[*n * d_dim1 + 1], &slope[*n - 1]) < 0.) {
+	d__[*n * d_dim1 + 1] = 0.;
 	*ierr += 2;
-    } else if ((d__2 = d__[*n * d_dim1 + 1], abs(d__2)) > three * (d__1 =
+    } else if ((d__2 = d__[*n * d_dim1 + 1], abs(d__2)) > 3. * (d__1 =
 	    slope[*n - 1], abs(d__1))) {
-	d__[*n * d_dim1 + 1] = three * slope[*n - 1];
+	d__[*n * d_dim1 + 1] = 3. * slope[*n - 1];
 	*ierr += 2;
     }
 
@@ -2703,20 +2674,15 @@ L5001:
 void dpchci(integer *n, doublereal *h__, doublereal *slope,
 	doublereal *d__, integer *incfd)
 {
-    /* Initialized data */
-
-    static doublereal zero = 0.;
-    static doublereal three = 3.;
-
     /* System generated locals */
     integer d_dim1, d_offset, i__1;
     doublereal d__1, d__2;
 
     /* Local variables */
-    static integer i__;
-    static doublereal w1, w2, del1, del2, dmin__, dmax__, hsum, drat1, drat2;
-    static integer nless1;
-    static doublereal hsumt3;
+    integer i__;
+    doublereal w1, w2, del1, del2, dmin__, dmax__, hsum, drat1, drat2;
+    integer nless1;
+    doublereal hsumt3;
 
 /* ***BEGIN PROLOGUE  DPCHCI */
 /* ***PURPOSE  Set interior derivatives for DPCHIC */
@@ -2840,11 +2806,11 @@ L10:
     w1 = (h__[1] + hsum) / hsum;
     w2 = -h__[1] / hsum;
     d__[d_dim1 + 1] = w1 * del1 + w2 * del2;
-    if (dpchst(&d__[d_dim1 + 1], &del1) <= zero) {
-	d__[d_dim1 + 1] = zero;
-    } else if (dpchst(&del1, &del2) < zero) {
+    if (dpchst(&d__[d_dim1 + 1], &del1) <= 0.) {
+	d__[d_dim1 + 1] = 0.;
+    } else if (dpchst(&del1, &del2) < 0.) {
 /*        NEED DO THIS CHECK ONLY IF MONOTONICITY SWITCHES. */
-	dmax__ = three * del1;
+	dmax__ = 3. * del1;
 	if ((d__1 = d__[d_dim1 + 1], abs(d__1)) > abs(dmax__)) {
 	    d__[d_dim1 + 1] = dmax__;
 	}
@@ -2865,8 +2831,8 @@ L40:
 
 /*        SET D(I)=0 UNLESS DATA ARE STRICTLY MONOTONIC. */
 
-	d__[i__ * d_dim1 + 1] = zero;
-	if (dpchst(&del1, &del2) <= zero) {
+	d__[i__ * d_dim1 + 1] = 0.;
+	if (dpchst(&del1, &del2) <= 0.) {
 	    goto L50;
 	}
 
@@ -2895,11 +2861,11 @@ L50:
     w1 = -h__[*n - 1] / hsum;
     w2 = (h__[*n - 1] + hsum) / hsum;
     d__[*n * d_dim1 + 1] = w1 * del1 + w2 * del2;
-    if (dpchst(&d__[*n * d_dim1 + 1], &del2) <= zero) {
-	d__[*n * d_dim1 + 1] = zero;
-    } else if (dpchst(&del1, &del2) < zero) {
+    if (dpchst(&d__[*n * d_dim1 + 1], &del2) <= 0.) {
+	d__[*n * d_dim1 + 1] = 0.;
+    } else if (dpchst(&del1, &del2) < 0.) {
 /*        NEED DO THIS CHECK ONLY IF MONOTONICITY SWITCHES. */
-	dmax__ = three * del2;
+	dmax__ = 3. * del2;
 	if ((d__1 = d__[*n * d_dim1 + 1], abs(d__1)) > abs(dmax__)) {
 	    d__[*n * d_dim1 + 1] = dmax__;
 	}
@@ -2915,22 +2881,18 @@ void dpchcs(doublereal *switch__, integer *n, doublereal *
 	h__, doublereal *slope, doublereal *d__, integer *incfd, integer *
 	ierr)
 {
-    /* Initialized data */
+    static const doublereal fudge = 4.;
 
-    static doublereal zero = 0.;
-    static doublereal one = 1.;
-    static doublereal fudge = 4.;
-
-    /* System generated locals */
+/* System generated locals */
     integer d_dim1, d_offset, i__1;
     doublereal d__1, d__2, d__3;
 
     /* Local variables */
-    static integer i__, k;
-    static doublereal del[3], fact, dfmx;
-    static integer indx;
-    static doublereal dext, dfloc, slmax, wtave[2];
-    static integer nless1;
+    integer i__, k;
+    doublereal del[3], fact, dfmx;
+    integer indx;
+    doublereal dext, dfloc, slmax, wtave[2];
+    integer nless1;
 
 /* ***BEGIN PROLOGUE  DPCHCS */
 /* ***PURPOSE  Adjusts derivative values for DPCHIC */
@@ -3057,13 +3019,13 @@ L100:
 
 /*           DO NOT CHANGE D IF 'UP-DOWN-UP'. */
 	if (i__ > 2) {
-	    if (dpchst(&slope[i__ - 2], &slope[i__]) > zero) {
+	    if (dpchst(&slope[i__ - 2], &slope[i__]) > 0.) {
 		goto L900;
 	    }
 /*                   -------------------------- */
 	}
 	if (i__ < nless1) {
-	    if (dpchst(&slope[i__ + 1], &slope[i__ - 1]) > zero) {
+	    if (dpchst(&slope[i__ + 1], &slope[i__ - 1]) > 0.) {
 		goto L900;
 	    }
 /*                   ---------------------------- */
@@ -3117,7 +3079,7 @@ L300:
 	if (i__ == nless1) {
 	    goto L900;
 	}
-	if (dpchst(&slope[i__ - 1], &slope[i__ + 1]) >= zero) {
+	if (dpchst(&slope[i__ - 1], &slope[i__ + 1]) >= 0.) {
 	    goto L900;
 	}
 /*                ----------------------------- */
@@ -3163,17 +3125,17 @@ L400:
 /*           NORMAL CASE -- EXTREMUM IS NOT IN A BOUNDARY INTERVAL. */
 	    fact = fudge * (d__1 = del[2] * (del[0] - del[1]) * (wtave[1] /
 		    slmax), abs(d__1));
-	    d__[k * d_dim1 + 1] += min(fact,one) * (wtave[0] - d__[k * d_dim1
+	    d__[k * d_dim1 + 1] += min(fact,1.) * (wtave[0] - d__[k * d_dim1
 		    + 1]);
 	    fact = fudge * (d__1 = del[0] * (del[2] - del[1]) * (wtave[0] /
 		    slmax), abs(d__1));
-	    d__[(k + 1) * d_dim1 + 1] += min(fact,one) * (wtave[1] - d__[(k +
+	    d__[(k + 1) * d_dim1 + 1] += min(fact,1.) * (wtave[1] - d__[(k +
 		    1) * d_dim1 + 1]);
 	} else {
 /*           SPECIAL CASE K=1 (WHICH CAN OCCUR ONLY IF I=2) OR */
 /*                        K=NLESS1 (WHICH CAN OCCUR ONLY IF I=NLESS1). */
 	    fact = fudge * abs(del[1]);
-	    d__[i__ * d_dim1 + 1] = min(fact,one) * wtave[i__ - k];
+	    d__[i__ * d_dim1 + 1] = min(fact,1.) * wtave[i__ - k];
 /*              NOTE THAT I-K+1 = 1 IF K=I  (=NLESS1), */
 /*                        I-K+1 = 2 IF K=I-1(=1). */
 	}
@@ -3181,7 +3143,7 @@ L400:
 
 /* ....... ADJUST IF NECESSARY TO LIMIT EXCURSIONS FROM DATA. */
 
-	if (*switch__ <= zero) {
+	if (*switch__ <= 0.) {
 	    goto L900;
 	}
 
@@ -3220,17 +3182,13 @@ L900:
 
 doublereal dpchdf(integer *k, doublereal *x, doublereal *s, integer *ierr)
 {
-    /* Initialized data */
-
-    static doublereal zero = 0.;
-
     /* System generated locals */
     integer i__1, i__2;
     doublereal ret_val;
 
     /* Local variables */
-    static integer i__, j;
-    static doublereal value;
+    integer i__, j;
+    doublereal value;
 
 /* ***BEGIN PROLOGUE  DPCHDF */
 /* ***PURPOSE  Computes divided differences for DPCHCE and DPCHSP */
@@ -3325,7 +3283,7 @@ L5001:
 /*     K.LT.3 RETURN. */
     *ierr = -1;
     xermsg_("SLATEC", "DPCHDF", "K LESS THAN THREE", *ierr);
-    ret_val = zero;
+    ret_val = 0.;
     return ret_val;
 }
 
@@ -3333,15 +3291,11 @@ void dpchic(integer *ic, doublereal *vc, doublereal *
 	switch__, integer *n, doublereal *x, doublereal *f, doublereal *d__,
 	integer *incfd, doublereal *wk, integer *nwk, integer *ierr)
 {
-    /* Initialized data */
-
-    static doublereal zero = 0.;
-
     /* System generated locals */
     integer f_dim1, f_offset, d_dim1, d_offset, i__1;
 
     /* Local variables */
-    static integer i__, ibeg, iend, nless1;
+    integer i__, ibeg, iend, nless1;
 
 /* ***BEGIN PROLOGUE  DPCHIC */
 /* ***PURPOSE  Set derivatives needed to determine a piecewise monotone */
@@ -3636,7 +3590,7 @@ L1000:
 
 /*  SET DERIVATIVES AT POINTS WHERE MONOTONICITY SWITCHES DIRECTION. */
 
-    if (*switch__ == zero) {
+    if (*switch__ == 0.) {
 	goto L3000;
     }
 /*     ---------------------------------------------------- */
@@ -3713,11 +3667,6 @@ L5009:
 
 doublereal dpchst(doublereal *arg1, doublereal *arg2)
 {
-    /* Initialized data */
-
-    static doublereal zero = 0.;
-    static doublereal one = 1.;
-
     /* System generated locals */
     doublereal ret_val;
 
@@ -3756,8 +3705,8 @@ doublereal dpchst(doublereal *arg1, doublereal *arg2)
 /*  PERFORM THE TEST. */
 
     ret_val = d_sign(1, *arg1) * d_sign(1, *arg2);
-    if (*arg1 == zero || *arg2 == zero) {
-	ret_val = zero;
+    if (*arg1 == 0. || *arg2 == 0.) {
+	ret_val = 0.;
     }
 
     return ret_val;
@@ -3766,21 +3715,12 @@ doublereal dpchst(doublereal *arg1, doublereal *arg2)
 void dpchsw(doublereal *dfmax, integer *iextrm, doublereal *
 	d1, doublereal *d2, doublereal *h__, doublereal *slope, integer *ierr)
 {
-    /* Initialized data */
-
-    static doublereal zero = 0.;
-    static doublereal one = 1.;
-    static doublereal two = 2.;
-    static doublereal three = 3.;
-    static doublereal fact = 100.;
-    static doublereal third = .33333;
-
     /* System generated locals */
     doublereal d__1;
 
     /* Local variables */
-    static doublereal cp, nu, phi, rho, hphi, that, sigma, small;
-    static doublereal lambda, radcal;
+    doublereal cp, nu, phi, rho, hphi, that, sigma, small;
+    doublereal lambda, radcal;
 
 /* ***BEGIN PROLOGUE  DPCHSW */
 /* ***PURPOSE  Limits excursion from data for DPCHCS */
@@ -3868,12 +3808,12 @@ void dpchsw(doublereal *dfmax, integer *iextrm, doublereal *
 
 /*  DO MAIN CALCULATION. */
 
-    if (*d1 == zero) {
+    if (*d1 == 0.) {
 
 /*        SPECIAL CASE -- D1.EQ.ZERO . */
 
 /*          IF D2 IS ALSO ZERO, THIS ROUTINE SHOULD NOT HAVE BEEN CALLED. */
-	if (*d2 == zero) {
+	if (*d2 == 0.) {
 	    goto L5001;
 	}
 
@@ -3882,10 +3822,10 @@ void dpchsw(doublereal *dfmax, integer *iextrm, doublereal *
 	if (rho >= third) {
 	    goto L5000;
 	}
-	that = two * (three * rho - one) / (three * (two * rho - one));
+	that = 2. * (3. * rho - 1.) / (3. * (2. * rho - 1.));
 /* Computing 2nd power */
 	d__1 = that;
-	phi = d__1 * d__1 * ((three * rho - one) / three);
+	phi = d__1 * d__1 * ((3. * rho - 1.) / 3.);
 
 /*          CONVERT TO DISTANCE FROM F2 IF IEXTRM.NE.1 . */
 	if (*iextrm != 1) {
@@ -3903,7 +3843,7 @@ void dpchsw(doublereal *dfmax, integer *iextrm, doublereal *
 
 	rho = *slope / *d1;
 	lambda = -(*d2) / *d1;
-	if (*d2 == zero) {
+	if (*d2 == 0.) {
 
 /*           SPECIAL CASE -- D2.EQ.ZERO . */
 
@@ -3911,32 +3851,32 @@ void dpchsw(doublereal *dfmax, integer *iextrm, doublereal *
 	    if (rho >= third) {
 		goto L5000;
 	    }
-	    cp = two - three * rho;
-	    nu = one - two * rho;
-	    that = one / (three * nu);
+	    cp = 2. - 3. * rho;
+	    nu = 1. - 2. * rho;
+	    that = 1. / (3. * nu);
 	} else {
-	    if (lambda <= zero) {
+	    if (lambda <= 0.) {
 		goto L5001;
 	    }
 
 /*           NORMAL CASE -- D1 AND D2 BOTH NONZERO, OPPOSITE SIGNS. */
 
-	    nu = one - lambda - two * rho;
-	    sigma = one - rho;
+	    nu = 1. - lambda - 2. * rho;
+	    sigma = 1. - rho;
 	    cp = nu + sigma;
 	    if (abs(nu) > small) {
 /* Computing 2nd power */
 		d__1 = sigma;
-		radcal = (nu - (two * rho + one)) * nu + d__1 * d__1;
-		if (radcal < zero) {
+		radcal = (nu - (2. * rho + 1.)) * nu + d__1 * d__1;
+		if (radcal < 0.) {
 		    goto L5002;
 		}
-		that = (cp - sqrt(radcal)) / (three * nu);
+		that = (cp - sqrt(radcal)) / (3. * nu);
 	    } else {
-		that = one / (two * sigma);
+		that = 1. / (2. * sigma);
 	    }
 	}
-	phi = that * ((nu * that - cp) * that + one);
+	phi = that * ((nu * that - cp) * that + 1.);
 
 /*          CONVERT TO DISTANCE FROM F2 IF IEXTRM.NE.1 . */
 	if (*iextrm != 1) {
@@ -3977,21 +3917,16 @@ L5002:
 void dpchim(integer *n, doublereal *x, doublereal *f,
 	doublereal *d__, integer *incfd, integer *ierr)
 {
-    /* Initialized data */
-
-    static doublereal zero = 0.;
-    static doublereal three = 3.;
-
     /* System generated locals */
     integer f_dim1, f_offset, d_dim1, d_offset, i__1;
     doublereal d__1, d__2;
 
     /* Local variables */
-    static integer i__;
-    static doublereal h1, h2, w1, w2, del1, del2, dmin__, dmax__, hsum, drat1,
+    integer i__;
+    doublereal h1, h2, w1, w2, del1, del2, dmin__, dmax__, hsum, drat1,
 	     drat2, dsave;
-    static integer nless1;
-    static doublereal hsumt3;
+    integer nless1;
+    doublereal hsumt3;
 
 /* ***BEGIN PROLOGUE  DPCHIM */
 /* ***PURPOSE  Set derivatives needed to determine a monotone piecewise */
@@ -4185,11 +4120,11 @@ L10:
     w1 = (h1 + hsum) / hsum;
     w2 = -h1 / hsum;
     d__[d_dim1 + 1] = w1 * del1 + w2 * del2;
-    if (dpchst(&d__[d_dim1 + 1], &del1) <= zero) {
-	d__[d_dim1 + 1] = zero;
-    } else if (dpchst(&del1, &del2) < zero) {
+    if (dpchst(&d__[d_dim1 + 1], &del1) <= 0.) {
+	d__[d_dim1 + 1] = 0.;
+    } else if (dpchst(&del1, &del2) < 0.) {
 /*        NEED DO THIS CHECK ONLY IF MONOTONICITY SWITCHES. */
-	dmax__ = three * del1;
+	dmax__ = 3. * del1;
 	if ((d__1 = d__[d_dim1 + 1], abs(d__1)) > abs(dmax__)) {
 	    d__[d_dim1 + 1] = dmax__;
 	}
@@ -4212,7 +4147,7 @@ L40:
 
 /*        SET D(I)=0 UNLESS DATA ARE STRICTLY MONOTONIC. */
 
-	d__[i__ * d_dim1 + 1] = zero;
+	d__[i__ * d_dim1 + 1] = 0.;
 	if ((d__1 = dpchst(&del1, &del2)) < 0.) {
 	    goto L42;
 	} else if (d__1 == 0) {
@@ -4224,10 +4159,10 @@ L40:
 /*        COUNT NUMBER OF CHANGES IN DIRECTION OF MONOTONICITY. */
 
 L41:
-	if (del2 == zero) {
+	if (del2 == 0.) {
 	    goto L50;
 	}
-	if (dpchst(&dsave, &del2) < zero) {
+	if (dpchst(&dsave, &del2) < 0.) {
 	    ++(*ierr);
 	}
 	dsave = del2;
@@ -4264,11 +4199,11 @@ L50:
     w1 = -h2 / hsum;
     w2 = (h2 + hsum) / hsum;
     d__[*n * d_dim1 + 1] = w1 * del1 + w2 * del2;
-    if (dpchst(&d__[*n * d_dim1 + 1], &del2) <= zero) {
-	d__[*n * d_dim1 + 1] = zero;
-    } else if (dpchst(&del1, &del2) < zero) {
+    if (dpchst(&d__[*n * d_dim1 + 1], &del2) <= 0.) {
+	d__[*n * d_dim1 + 1] = 0.;
+    } else if (dpchst(&del1, &del2) < 0.) {
 /*        NEED DO THIS CHECK ONLY IF MONOTONICITY SWITCHES. */
-	dmax__ = three * del2;
+	dmax__ = 3. * del2;
 	if ((d__1 = d__[*n * d_dim1 + 1], abs(d__1)) > abs(dmax__)) {
 	    d__[*n * d_dim1 + 1] = dmax__;
 	}
@@ -4304,22 +4239,14 @@ void dpchsp(integer *ic, doublereal *vc, integer *n,
 	doublereal *x, doublereal *f, doublereal *d__, integer *incfd,
 	doublereal *wk, integer *nwk, integer *ierr)
 {
-    /* Initialized data */
-
-    static doublereal zero = 0.;
-    static doublereal half = .5;
-    static doublereal one = 1.;
-    static doublereal two = 2.;
-    static doublereal three = 3.;
-
     /* System generated locals */
     integer f_dim1, f_offset, d_dim1, d_offset, i__1;
     doublereal d__1;
 
     /* Local variables */
-    static doublereal g;
-    static integer j, nm1, ibeg, iend, index;
-    static doublereal stemp[3], xtemp[4];
+    doublereal g;
+    integer j, nm1, ibeg, iend, index;
+    doublereal stemp[3], xtemp[4];
 
 /* ***BEGIN PROLOGUE  DPCHSP */
 /* ***PURPOSE  Set derivatives needed to determine the Hermite represen- */
@@ -4594,27 +4521,27 @@ void dpchsp(integer *ic, doublereal *vc, integer *n,
     if (ibeg == 0) {
 	if (*n == 2) {
 /*           NO CONDITION AT LEFT END AND N = 2. */
-	    wk[4] = one;
-	    wk[3] = one;
-	    d__[d_dim1 + 1] = two * wk[6];
+	    wk[4] = 1.;
+	    wk[3] = 1.;
+	    d__[d_dim1 + 1] = 2. * wk[6];
 	} else {
 /*           NOT-A-KNOT CONDITION AT LEFT END AND N .GT. 2. */
 	    wk[4] = wk[7];
 	    wk[3] = wk[5] + wk[7];
 /* Computing 2nd power */
 	    d__1 = wk[5];
-	    d__[d_dim1 + 1] = ((wk[5] + two * wk[3]) * wk[6] * wk[7] + d__1 *
+	    d__[d_dim1 + 1] = ((wk[5] + 2. * wk[3]) * wk[6] * wk[7] + d__1 *
 		    d__1 * wk[8]) / wk[3];
 	}
     } else if (ibeg == 1) {
 /*        SLOPE PRESCRIBED AT LEFT END. */
-	wk[4] = one;
-	wk[3] = zero;
+	wk[4] = 1.;
+	wk[3] = 0.;
     } else {
 /*        SECOND DERIVATIVE PRESCRIBED AT LEFT END. */
-	wk[4] = two;
-	wk[3] = one;
-	d__[d_dim1 + 1] = three * wk[6] - half * wk[5] * d__[d_dim1 + 1];
+	wk[4] = 2.;
+	wk[3] = 1.;
+	d__[d_dim1 + 1] = 3. * wk[6] - 0.5 * wk[5] * d__[d_dim1 + 1];
     }
 
 /*  IF THERE ARE INTERIOR KNOTS, GENERATE THE CORRESPONDING EQUATIONS AND */
@@ -4625,14 +4552,14 @@ void dpchsp(integer *ic, doublereal *vc, integer *n,
     if (nm1 > 1) {
 	i__1 = nm1;
 	for (j = 2; j <= i__1; ++j) {
-	    if (wk[((j - 1) << 1) + 2] == zero) {
+	    if (wk[((j - 1) << 1) + 2] == 0.) {
 		goto L5008;
 	    }
 	    g = -wk[((j + 1) << 1) + 1] / wk[((j - 1) << 1) + 2];
-	    d__[j * d_dim1 + 1] = g * d__[(j - 1) * d_dim1 + 1] + three * (wk[
+	    d__[j * d_dim1 + 1] = g * d__[(j - 1) * d_dim1 + 1] + 3. * (wk[
 		    (j << 1) + 1] * wk[((j + 1) << 1) + 2] + wk[((j + 1) << 1) +
 		    1] * wk[(j << 1) + 2]);
-	    wk[(j << 1) + 2] = g * wk[((j - 1) << 1) + 1] + two * (wk[(j << 1)
+	    wk[(j << 1) + 2] = g * wk[((j - 1) << 1) + 1] + 2. * (wk[(j << 1)
 		    + 1] + wk[((j + 1) << 1) + 1]);
 	}
     }
@@ -4655,12 +4582,12 @@ void dpchsp(integer *ic, doublereal *vc, integer *n,
 	} else if (*n == 2 || *n == 3 && ibeg == 0) {
 /*           EITHER (N=3 AND NOT-A-KNOT ALSO AT LEFT) OR (N=2 AND *NOT* */
 /*           NOT-A-KNOT AT LEFT END POINT). */
-	    d__[*n * d_dim1 + 1] = two * wk[(*n << 1) + 2];
-	    wk[(*n << 1) + 2] = one;
-	    if (wk[((*n - 1) << 1) + 2] == zero) {
+	    d__[*n * d_dim1 + 1] = 2. * wk[(*n << 1) + 2];
+	    wk[(*n << 1) + 2] = 1.;
+	    if (wk[((*n - 1) << 1) + 2] == 0.) {
 		goto L5008;
 	    }
-	    g = -one / wk[((*n - 1) << 1) + 2];
+	    g = -1. / wk[((*n - 1) << 1) + 2];
 	} else {
 /*           NOT-A-KNOT AND N .GE. 3, AND EITHER N.GT.3 OR  ALSO NOT-A- */
 /*           KNOT AT LEFT END POINT. */
@@ -4668,8 +4595,8 @@ void dpchsp(integer *ic, doublereal *vc, integer *n,
 /*           DO NOT NEED TO CHECK FOLLOWING DENOMINATORS (X-DIFFERENCES). */
 /* Computing 2nd power */
 	    d__1 = wk[(*n << 1) + 1];
-	    d__[*n * d_dim1 + 1] = ((wk[(*n << 1) + 1] + two * g) * wk[(*n << 1) + 2] * wk[((*n - 1) << 1) + 1] + d__1 * d__1 * (f[(*n - 1) * f_dim1 + 1] - f[(*n - 2) * f_dim1 + 1]) / wk[((*n - 1) << 1) + 1]) / g;
-	    if (wk[((*n - 1) << 1) + 2] == zero) {
+	    d__[*n * d_dim1 + 1] = ((wk[(*n << 1) + 1] + 2. * g) * wk[(*n << 1) + 2] * wk[((*n - 1) << 1) + 1] + d__1 * d__1 * (f[(*n - 1) * f_dim1 + 1] - f[(*n - 2) * f_dim1 + 1]) / wk[((*n - 1) << 1) + 1]) / g;
+	    if (wk[((*n - 1) << 1) + 2] == 0.) {
 		goto L5008;
 	    }
 	    g = -g / wk[((*n - 1) << 1) + 2];
@@ -4677,18 +4604,18 @@ void dpchsp(integer *ic, doublereal *vc, integer *n,
 	}
     } else {
 /*        SECOND DERIVATIVE PRESCRIBED AT RIGHT ENDPOINT. */
-	d__[*n * d_dim1 + 1] = three * wk[(*n << 1) + 2] + half * wk[(*n << 1) + 1] * d__[*n * d_dim1 + 1];
-	wk[(*n << 1) + 2] = two;
-	if (wk[((*n - 1) << 1) + 2] == zero) {
+	d__[*n * d_dim1 + 1] = 3. * wk[(*n << 1) + 2] + 0.5 * wk[(*n << 1) + 1] * d__[*n * d_dim1 + 1];
+	wk[(*n << 1) + 2] = 2.;
+	if (wk[((*n - 1) << 1) + 2] == 0.) {
 	    goto L5008;
 	}
-	g = -one / wk[((*n - 1) << 1) + 2];
+	g = -1. / wk[((*n - 1) << 1) + 2];
     }
 
 /*  COMPLETE FORWARD PASS OF GAUSS ELIMINATION. */
 
     wk[(*n << 1) + 2] = g * wk[((*n - 1) << 1) + 1] + wk[(*n << 1) + 2];
-    if (wk[(*n << 1) + 2] == zero) {
+    if (wk[(*n << 1) + 2] == 0.) {
 	goto L5008;
     }
     d__[*n * d_dim1 + 1] = (g * d__[(*n - 1) * d_dim1 + 1] + d__[*n * d_dim1
@@ -4698,7 +4625,7 @@ void dpchsp(integer *ic, doublereal *vc, integer *n,
 
 L30:
     for (j = nm1; j >= 1; --j) {
-	if (wk[(j << 1) + 2] == zero) {
+	if (wk[(j << 1) + 2] == 0.) {
 	    goto L5008;
 	}
 	d__[j * d_dim1 + 1] = (d__[j * d_dim1 + 1] - wk[(j << 1) + 1] * d__[(
