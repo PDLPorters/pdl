@@ -28,31 +28,30 @@ static const doublereal third = .33333;
 #define xermsg_(lib, func, errstr, nerr, ...) \
   fprintf(stderr, "%s::%s: %s (err=%ld)\n", lib, func, errstr, nerr)
 
-void dintrv(doublereal *, integer *, doublereal *, integer *,
+void dintrv(doublereal *, integer, doublereal, integer *,
           integer *, integer *);
-void dpchkt(integer *, doublereal *, integer *, doublereal *);
-void dchfdv(doublereal *, doublereal *,
-	    doublereal *, doublereal *, doublereal *, doublereal *, integer *,
+void dpchkt(integer, doublereal *, integer *, doublereal *);
+void dchfdv(doublereal, doublereal,
+	    doublereal, doublereal, doublereal, doublereal, integer,
 	     doublereal *, doublereal *, doublereal *, integer *, integer *);
-void dchfev(doublereal *, doublereal *,
-	    doublereal *, doublereal *, doublereal *, doublereal *, integer *,
+void dchfev(doublereal, doublereal,
+	    doublereal, doublereal, doublereal, doublereal, integer,
 	     doublereal *, doublereal *, integer *, integer *);
-doublereal dchfie(doublereal *, doublereal *, doublereal *,
-	    doublereal *, doublereal *, doublereal *, doublereal *,
-	    doublereal *);
+doublereal dchfie(doublereal, doublereal, doublereal,
+	    doublereal, doublereal, doublereal, doublereal,
+	    doublereal);
 doublereal dpchid(integer *, doublereal *, doublereal *,
 	    doublereal *, integer *, logical *, integer *, integer *,
             integer *);
-doublereal dpchst(doublereal *, doublereal *);
-void dpchsw(doublereal *, integer *, doublereal *,
-	     doublereal *, doublereal *, doublereal *, integer *);
-void dpchce(integer *, doublereal *, integer *,
-	    doublereal *, doublereal *, doublereal *, doublereal *, integer *,
-	     integer *);
-void dpchci(integer *, doublereal *, doublereal *, doublereal *, integer *);
-void dpchcs(doublereal *, integer *,
-	    doublereal *, doublereal *, doublereal *, integer *, integer *);
-doublereal dpchdf(integer *, doublereal *, doublereal *, integer *);
+doublereal dpchst(doublereal, doublereal);
+integer dpchsw(doublereal, integer, doublereal,
+	     doublereal, doublereal, doublereal);
+integer dpchce(integer *, doublereal *, integer,
+	    doublereal *, doublereal *, doublereal *, doublereal *, integer);
+void dpchci(integer, doublereal *, doublereal *, doublereal *, integer);
+integer dpchcs(doublereal, integer,
+	    doublereal *, doublereal *, doublereal *, integer);
+doublereal dpchdf(integer, doublereal *, doublereal *, integer *);
 
 doublereal d1mach() {
   return 2.3e-16; /* for float, 1.2e-7 */
@@ -152,7 +151,7 @@ doublereal dbvalu(doublereal *t, doublereal *a, integer *n, integer *k,
 /*     (OR, .LE. T(I+1) IF T(I) .LT. T(I+1) = T(N+1)). */
     km1 = *k - 1;
     i__1 = *n + 1;
-    dintrv(&t[1], &i__1, x, inbv, &i__, &mflag);
+    dintrv(&t[1], i__1, *x, inbv, &i__, &mflag);
     if (*x < t[*k]) {
 	goto L120;
     }
@@ -253,7 +252,7 @@ L140:
     return ret_val;
 }
 
-void dintrv(doublereal *xt, integer *lxt, doublereal *x,
+void dintrv(doublereal *xt, integer lxt, doublereal x,
 	integer *ilo, integer *ileft, integer *mflag)
 {
     integer ihi, istep, middle;
@@ -316,23 +315,23 @@ void dintrv(doublereal *xt, integer *lxt, doublereal *x,
     --xt;
 
     ihi = *ilo + 1;
-    if (ihi < *lxt) {
+    if (ihi < lxt) {
 	goto L10;
     }
-    if (*x >= xt[*lxt]) {
+    if (x >= xt[lxt]) {
 	goto L110;
     }
-    if (*lxt <= 1) {
+    if (lxt <= 1) {
 	goto L90;
     }
-    *ilo = *lxt - 1;
-    ihi = *lxt;
+    *ilo = lxt - 1;
+    ihi = lxt;
 
 L10:
-    if (*x >= xt[ihi]) {
+    if (x >= xt[ihi]) {
 	goto L40;
     }
-    if (*x >= xt[*ilo]) {
+    if (x >= xt[*ilo]) {
 	goto L100;
     }
 
@@ -344,14 +343,14 @@ L20:
     if (*ilo <= 1) {
 	goto L30;
     }
-    if (*x >= xt[*ilo]) {
+    if (x >= xt[*ilo]) {
 	goto L70;
     }
     istep <<= 1;
     goto L20;
 L30:
     *ilo = 1;
-    if (*x < xt[1]) {
+    if (x < xt[1]) {
 	goto L90;
     }
     goto L70;
@@ -361,19 +360,19 @@ L40:
 L50:
     *ilo = ihi;
     ihi = *ilo + istep;
-    if (ihi >= *lxt) {
+    if (ihi >= lxt) {
 	goto L60;
     }
-    if (*x < xt[ihi]) {
+    if (x < xt[ihi]) {
 	goto L70;
     }
     istep <<= 1;
     goto L50;
 L60:
-    if (*x >= xt[*lxt]) {
+    if (x >= xt[lxt]) {
 	goto L110;
     }
-    ihi = *lxt;
+    ihi = lxt;
 
 /* *** NOW XT(ILO) .LE. X .LT. XT(IHI) . NARROW THE INTERVAL */
 L70:
@@ -382,7 +381,7 @@ L70:
 	goto L100;
     }
 /*     NOTE. IT IS ASSUMED THAT MIDDLE = ILO IN CASE IHI = ILO+1 */
-    if (*x < xt[middle]) {
+    if (x < xt[middle]) {
 	goto L80;
     }
     *ilo = middle;
@@ -401,7 +400,7 @@ L100:
     return;
 L110:
     *mflag = 1;
-    *ileft = *lxt;
+    *ileft = lxt;
     return;
 }
 
@@ -594,7 +593,7 @@ void dpchbs(integer *n, doublereal *x, doublereal *f,
     } else {
 /*          Set up knot sequence. */
 	*nknots = *ndim + 4;
-	dpchkt(n, &x[1], knotyp, &t[1]);
+	dpchkt(*n, &x[1], knotyp, &t[1]);
     }
 
 /*  Compute B-spline coefficients. */
@@ -617,7 +616,7 @@ void dpchbs(integer *n, doublereal *x, doublereal *f,
     return;
 }
 
-void dpchkt(integer *n, doublereal *x, integer *knotyp,
+void dpchkt(integer n, doublereal *x, integer *knotyp,
 	doublereal *t)
 {
     /* System generated locals */
@@ -664,12 +663,12 @@ void dpchkt(integer *n, doublereal *x, integer *knotyp,
     --t;
     --x;
 
-    ndim = *n << 1;
+    ndim = n << 1;
 
 /*  Set interior knots. */
 
     j = 1;
-    i__1 = *n;
+    i__1 = n;
     for (k = 1; k <= i__1; ++k) {
 	j += 2;
 	t[j] = x[k];
@@ -681,19 +680,19 @@ void dpchkt(integer *n, doublereal *x, integer *knotyp,
 /*  Set end knots according to KNOTYP. */
 
     hbeg = x[2] - x[1];
-    hend = x[*n] - x[*n - 1];
+    hend = x[n] - x[n - 1];
     if (*knotyp == 1) {
 /*          Extrapolate. */
 	t[2] = x[1] - hbeg;
-	t[ndim + 3] = x[*n] + hend;
+	t[ndim + 3] = x[n] + hend;
     } else if (*knotyp == 2) {
 /*          Periodic. */
 	t[2] = x[1] - hend;
-	t[ndim + 3] = x[*n] + hbeg;
+	t[ndim + 3] = x[n] + hbeg;
     } else {
 /*          Quadruple end knots. */
 	t[2] = x[1];
-	t[ndim + 3] = x[*n];
+	t[ndim + 3] = x[n];
     }
     t[1] = t[2];
     t[ndim + 4] = t[ndim + 3];
@@ -703,8 +702,8 @@ void dpchkt(integer *n, doublereal *x, integer *knotyp,
     return;
 }
 
-void dchfdv(doublereal *x1, doublereal *x2, doublereal *f1,
-	doublereal *f2, doublereal *d1, doublereal *d2, integer *ne,
+void dchfdv(doublereal x1, doublereal x2, doublereal f1,
+	doublereal f2, doublereal d1, doublereal d2, integer ne,
 	doublereal *xe, doublereal *fe, doublereal *de, integer *next,
 	integer *ierr)
 {
@@ -812,10 +811,10 @@ void dchfdv(doublereal *x1, doublereal *x2, doublereal *f1,
 
 /*  VALIDITY-CHECK ARGUMENTS. */
 
-    if (*ne < 1) {
+    if (ne < 1) {
 	goto L5001;
     }
-    h__ = *x2 - *x1;
+    h__ = x2 - x1;
     if (h__ == 0.) {
 	goto L5002;
     }
@@ -830,9 +829,9 @@ void dchfdv(doublereal *x1, doublereal *x2, doublereal *f1,
 
 /*  COMPUTE CUBIC COEFFICIENTS (EXPANDED ABOUT X1). */
 
-    delta = (*f2 - *f1) / h__;
-    del1 = (*d1 - delta) / h__;
-    del2 = (*d2 - delta) / h__;
+    delta = (f2 - f1) / h__;
+    del1 = (d1 - delta) / h__;
+    del2 = (d2 - delta) / h__;
 /*                                           (DELTA IS NO LONGER NEEDED.) */
     c2 = -(del1 + del1 + del2);
     c2t2 = c2 + c2;
@@ -842,11 +841,11 @@ void dchfdv(doublereal *x1, doublereal *x2, doublereal *f1,
 
 /*  EVALUATION LOOP. */
 
-    i__1 = *ne;
+    i__1 = ne;
     for (i__ = 1; i__ <= i__1; ++i__) {
-	x = xe[i__] - *x1;
-	fe[i__] = *f1 + x * (*d1 + x * (c2 + x * c3));
-	de[i__] = *d1 + x * (c2t2 + x * c3t3);
+	x = xe[i__] - x1;
+	fe[i__] = f1 + x * (d1 + x * (c2 + x * c3));
+	de[i__] = d1 + x * (c2t2 + x * c3t3);
 /*          COUNT EXTRAPOLATION POINTS. */
 	if (x < xmi) {
 	    ++next[1];
@@ -1104,8 +1103,8 @@ L40:
 /*     EVALUATE CUBIC AT XE(I),  I = JFIRST (1) J-1 . */
 
 /*       ---------------------------------------------------------------- */
-    dchfdv(&x[ir - 1], &x[ir], &f[(ir - 1) * f_dim1 + 1], &f[ir * f_dim1 + 1]
-	    , &d__[(ir - 1) * d_dim1 + 1], &d__[ir * d_dim1 + 1], &nj, &xe[
+    dchfdv(x[ir - 1], x[ir], f[(ir - 1) * f_dim1 + 1], f[ir * f_dim1 + 1],
+	    d__[(ir - 1) * d_dim1 + 1], d__[ir * d_dim1 + 1], nj, &xe[
 	    jfirst], &fe[jfirst], &de[jfirst], next, &ierc);
 /*       ---------------------------------------------------------------- */
     if (ierc < 0) {
@@ -1238,8 +1237,8 @@ L5005:
     return;
 }
 
-void dchfev(doublereal *x1, doublereal *x2, doublereal *f1,
-	doublereal *f2, doublereal *d1, doublereal *d2, integer *ne,
+void dchfev(doublereal x1, doublereal x2, doublereal f1,
+	doublereal f2, doublereal d1, doublereal d2, integer ne,
 	doublereal *xe, doublereal *fe, integer *next, integer *ierr)
 {
     /* Initialized data */
@@ -1345,10 +1344,10 @@ void dchfev(doublereal *x1, doublereal *x2, doublereal *f1,
 
 /*  VALIDITY-CHECK ARGUMENTS. */
 
-    if (*ne < 1) {
+    if (ne < 1) {
 	goto L5001;
     }
-    h__ = *x2 - *x1;
+    h__ = x2 - x1;
     if (h__ == 0.) {
 	goto L5002;
     }
@@ -1363,9 +1362,9 @@ void dchfev(doublereal *x1, doublereal *x2, doublereal *f1,
 
 /*  COMPUTE CUBIC COEFFICIENTS (EXPANDED ABOUT X1). */
 
-    delta = (*f2 - *f1) / h__;
-    del1 = (*d1 - delta) / h__;
-    del2 = (*d2 - delta) / h__;
+    delta = (f2 - f1) / h__;
+    del1 = (d1 - delta) / h__;
+    del2 = (d2 - delta) / h__;
 /*                                           (DELTA IS NO LONGER NEEDED.) */
     c2 = -(del1 + del1 + del2);
     c3 = (del1 + del2) / h__;
@@ -1373,10 +1372,10 @@ void dchfev(doublereal *x1, doublereal *x2, doublereal *f1,
 
 /*  EVALUATION LOOP. */
 
-    i__1 = *ne;
+    i__1 = ne;
     for (i__ = 1; i__ <= i__1; ++i__) {
-	x = xe[i__] - *x1;
-	fe[i__] = *f1 + x * (*d1 + x * (c2 + x * c3));
+	x = xe[i__] - x1;
+	fe[i__] = f1 + x * (d1 + x * (c2 + x * c3));
 /*          COUNT EXTRAPOLATION POINTS. */
 	if (x < xmi) {
 	    ++next[1];
@@ -1627,8 +1626,8 @@ L40:
 /*     EVALUATE CUBIC AT XE(I),  I = JFIRST (1) J-1 . */
 
 /*       ---------------------------------------------------------------- */
-    dchfev(&x[ir - 1], &x[ir], &f[(ir - 1) * f_dim1 + 1], &f[ir * f_dim1 + 1]
-	    , &d__[(ir - 1) * d_dim1 + 1], &d__[ir * d_dim1 + 1], &nj, &xe[
+    dchfev(x[ir - 1], x[ir], f[(ir - 1) * f_dim1 + 1], f[ir * f_dim1 + 1],
+	    d__[(ir - 1) * d_dim1 + 1], d__[ir * d_dim1 + 1], nj, &xe[
 	    jfirst], &fe[jfirst], next, &ierc);
 /*       ---------------------------------------------------------------- */
     if (ierc < 0) {
@@ -1761,8 +1760,8 @@ L5005:
     return;
 }
 
-doublereal dchfie(doublereal *x1, doublereal *x2, doublereal *f1, doublereal
-	*f2, doublereal *d1, doublereal *d2, doublereal *a, doublereal *b)
+doublereal dchfie(doublereal x1, doublereal x2, doublereal f1, doublereal f2,
+      doublereal d1, doublereal d2, doublereal a, doublereal b)
 {
     /* System generated locals */
     doublereal ret_val, d__1;
@@ -1834,14 +1833,14 @@ doublereal dchfie(doublereal *x1, doublereal *x2, doublereal *f1, doublereal
 
 /*  VALIDITY CHECK INPUT. */
 
-    if (*x1 == *x2) {
+    if (x1 == x2) {
 	ret_val = 0.;
     } else {
-	h__ = *x2 - *x1;
-	ta1 = (*a - *x1) / h__;
-	ta2 = (*x2 - *a) / h__;
-	tb1 = (*b - *x1) / h__;
-	tb2 = (*x2 - *b) / h__;
+	h__ = x2 - x1;
+	ta1 = (a - x1) / h__;
+	ta2 = (x2 - a) / h__;
+	tb1 = (b - x1) / h__;
+	tb2 = (x2 - b) / h__;
 
 /* Computing 3rd power */
 	d__1 = ta1;
@@ -1865,8 +1864,8 @@ doublereal dchfie(doublereal *x1, doublereal *x2, doublereal *f1, doublereal
 	phib2 = ub2 * (2. - tb2);
 	psib2 = -ub2 * (3. * tb2 - 4.);
 
-	fterm = *f1 * (phia2 - phib2) + *f2 * (phib1 - phia1);
-	dterm = (*d1 * (psia2 - psib2) + *d2 * (psib1 - psia1)) * (h__ / 6.);
+	fterm = f1 * (phia2 - phib2) + f2 * (phib1 - phia1);
+	dterm = (d1 * (psia2 - psib2) + d2 * (psib1 - psia1)) * (h__ / 6.);
 
 	ret_val = 0.5 * h__ * (fterm + dterm);
     }
@@ -2053,15 +2052,15 @@ L5:
 	if (xb <= x[2]) {
 /*           INTERVAL IS TO LEFT OF X(2), SO USE FIRST CUBIC. */
 /*                   --------------------------------------- */
-	    value = dchfie(&x[1], &x[2], &f[f_dim1 + 1], &f[(f_dim1 << 1) +
-		    1], &d__[d_dim1 + 1], &d__[(d_dim1 << 1) + 1], a, b);
+	    value = dchfie(x[1], x[2], f[f_dim1 + 1], f[(f_dim1 << 1) +
+		    1], d__[d_dim1 + 1], d__[(d_dim1 << 1) + 1], *a, *b);
 /*                   --------------------------------------- */
 	} else if (xa >= x[*n - 1]) {
 /*           INTERVAL IS TO RIGHT OF X(N-1), SO USE LAST CUBIC. */
 /*                   ------------------------------------------ */
-	    value = dchfie(&x[*n - 1], &x[*n], &f[(*n - 1) * f_dim1 + 1], &f[
-		    *n * f_dim1 + 1], &d__[(*n - 1) * d_dim1 + 1], &d__[*n *
-		    d_dim1 + 1], a, b);
+	    value = dchfie(x[*n - 1], x[*n], f[(*n - 1) * f_dim1 + 1],
+		    f[*n * f_dim1 + 1], d__[(*n - 1) * d_dim1 + 1],
+		    d__[*n * d_dim1 + 1], *a, *b);
 /*                   ------------------------------------------ */
 	} else {
 /*           'NORMAL' CASE -- XA.LT.XB, XA.LT.X(N-1), XB.GT.X(2). */
@@ -2092,9 +2091,9 @@ L5:
 /*              THIS MEANS IB = IA-1 AND */
 /*                 (A,B) IS A SUBSET OF (X(IB),X(IA)). */
 /*                      ------------------------------------------- */
-		value = dchfie(&x[ib], &x[ia], &f[ib * f_dim1 + 1], &f[ia *
-			f_dim1 + 1], &d__[ib * d_dim1 + 1], &d__[ia * d_dim1
-			+ 1], a, b);
+		value = dchfie(x[ib], x[ia], f[ib * f_dim1 + 1], f[ia *
+			f_dim1 + 1], d__[ib * d_dim1 + 1], d__[ia * d_dim1
+			+ 1], *a, *b);
 /*                      ------------------------------------------- */
 	    } else {
 
@@ -2118,9 +2117,9 @@ L5:
 		    il = max(i__1,i__2);
 		    ir = il + 1;
 /*                                 ------------------------------------- */
-		    value += dchfie(&x[il], &x[ir], &f[il * f_dim1 + 1], &f[
-			    ir * f_dim1 + 1], &d__[il * d_dim1 + 1], &d__[ir *
-			     d_dim1 + 1], &xa, &x[ia]);
+		    value += dchfie(x[il], x[ir], f[il * f_dim1 + 1],
+			    f[ir * f_dim1 + 1], d__[il * d_dim1 + 1],
+			     d__[ir * d_dim1 + 1], xa, x[ia]);
 /*                                 ------------------------------------- */
 		}
 
@@ -2131,9 +2130,9 @@ L5:
 		    ir = min(i__1,*n);
 		    il = ir - 1;
 /*                                 ------------------------------------- */
-		    value += dchfie(&x[il], &x[ir], &f[il * f_dim1 + 1], &f[
-			    ir * f_dim1 + 1], &d__[il * d_dim1 + 1], &d__[ir *
-			     d_dim1 + 1], &x[ib], &xb);
+		    value += dchfie(x[il], x[ir], f[il * f_dim1 + 1],
+			    f[ir * f_dim1 + 1], d__[il * d_dim1 + 1],
+			     d__[ir * d_dim1 + 1], x[ib], xb);
 /*                                 ------------------------------------- */
 		}
 
@@ -2392,9 +2391,9 @@ L5004:
     goto L5000;
 }
 
-void dpchce(integer *ic, doublereal *vc, integer *n,
+integer dpchce(integer *ic, doublereal *vc, integer n,
 	doublereal *x, doublereal *h__, doublereal *slope, doublereal *d__,
-	integer *incfd, integer *ierr)
+	integer incfd)
 {
     /* System generated locals */
     integer d_dim1, d_offset, i__1;
@@ -2512,6 +2511,7 @@ void dpchce(integer *ic, doublereal *vc, integer *n,
 
 /*  DECLARE LOCAL VARIABLES. */
 
+    integer ierr = 0;
 
 /*  INITIALIZE. */
 
@@ -2521,21 +2521,20 @@ void dpchce(integer *ic, doublereal *vc, integer *n,
     --x;
     --h__;
     --slope;
-    d_dim1 = *incfd;
+    d_dim1 = incfd;
     d_offset = 1 + d_dim1;
     d__ -= d_offset;
 
 
     ibeg = ic[1];
     iend = ic[2];
-    *ierr = 0;
 
 /*  SET TO DEFAULT BOUNDARY CONDITIONS IF N IS TOO SMALL. */
 
-    if (abs(ibeg) > *n) {
+    if (abs(ibeg) > n) {
 	ibeg = 0;
     }
-    if (abs(iend) > *n) {
+    if (abs(iend) > n) {
 	iend = 0;
     }
 
@@ -2565,7 +2564,7 @@ void dpchce(integer *ic, doublereal *vc, integer *n,
 	    }
 	}
 /*                 ----------------------------- */
-	d__[d_dim1 + 1] = dpchdf(&k, xtemp, stemp, &ierf);
+	d__[d_dim1 + 1] = dpchdf(k, xtemp, stemp, &ierf);
 /*                 ----------------------------- */
 	if (ierf != 0) {
 	    goto L5001;
@@ -2586,14 +2585,14 @@ void dpchce(integer *ic, doublereal *vc, integer *n,
     if (slope[1] == 0.) {
 	if (d__[d_dim1 + 1] != 0.) {
 	    d__[d_dim1 + 1] = 0.;
-	    ++(*ierr);
+	    ++(ierr);
 	}
-    } else if (dpchst(&d__[d_dim1 + 1], &slope[1]) < 0.) {
+    } else if (dpchst(d__[d_dim1 + 1], slope[1]) < 0.) {
 	d__[d_dim1 + 1] = 0.;
-	++(*ierr);
+	++(ierr);
     } else if ((d__1 = d__[d_dim1 + 1], abs(d__1)) > 3. * abs(slope[1])) {
 	d__[d_dim1 + 1] = 3. * slope[1];
-	++(*ierr);
+	++(ierr);
     }
 
 /*  TREAT END BOUNDARY CONDITION. */
@@ -2605,17 +2604,17 @@ L2000:
     k = abs(iend);
     if (k == 1) {
 /*        BOUNDARY VALUE PROVIDED. */
-	d__[*n * d_dim1 + 1] = vc[2];
+	d__[n * d_dim1 + 1] = vc[2];
     } else if (k == 2) {
 /*        BOUNDARY SECOND DERIVATIVE PROVIDED. */
-	d__[*n * d_dim1 + 1] = 0.5 * (3. * slope[*n - 1] - d__[(*n - 1) *
-		d_dim1 + 1] + 0.5 * vc[2] * h__[*n - 1]);
+	d__[n * d_dim1 + 1] = 0.5 * (3. * slope[n - 1] - d__[(n - 1) *
+		d_dim1 + 1] + 0.5 * vc[2] * h__[n - 1]);
     } else if (k < 5) {
 /*        USE K-POINT DERIVATIVE FORMULA. */
 /*        PICK UP LAST K POINTS. */
 	i__1 = k;
 	for (j = 1; j <= i__1; ++j) {
-	    index = *n - k + j;
+	    index = n - k + j;
 /*           INDEX RUNS FROM N+1-K UP TO N. */
 	    xtemp[j - 1] = x[index];
 	    if (j < k) {
@@ -2623,17 +2622,17 @@ L2000:
 	    }
 	}
 /*                 ----------------------------- */
-	d__[*n * d_dim1 + 1] = dpchdf(&k, xtemp, stemp, &ierf);
+	d__[n * d_dim1 + 1] = dpchdf(k, xtemp, stemp, &ierf);
 /*                 ----------------------------- */
 	if (ierf != 0) {
 	    goto L5001;
 	}
     } else {
 /*        USE 'NOT A KNOT' CONDITION. */
-	d__[*n * d_dim1 + 1] = (3. * (h__[*n - 1] * slope[*n - 2] + h__[*n
-		- 2] * slope[*n - 1]) - 2. * (h__[*n - 1] + h__[*n - 2]) *
-		d__[(*n - 1) * d_dim1 + 1] - h__[*n - 1] * d__[(*n - 2) *
-		d_dim1 + 1]) / h__[*n - 2];
+	d__[n * d_dim1 + 1] = (3. * (h__[n - 1] * slope[n - 2] + h__[n
+		- 2] * slope[n - 1]) - 2. * (h__[n - 1] + h__[n - 2]) *
+		d__[(n - 1) * d_dim1 + 1] - h__[n - 1] * d__[(n - 2) *
+		d_dim1 + 1]) / h__[n - 2];
     }
 
     if (iend > 0) {
@@ -2642,37 +2641,37 @@ L2000:
 
 /*  CHECK D(1,N) FOR COMPATIBILITY WITH MONOTONICITY. */
 
-    if (slope[*n - 1] == 0.) {
-	if (d__[*n * d_dim1 + 1] != 0.) {
-	    d__[*n * d_dim1 + 1] = 0.;
-	    *ierr += 2;
+    if (slope[n - 1] == 0.) {
+	if (d__[n * d_dim1 + 1] != 0.) {
+	    d__[n * d_dim1 + 1] = 0.;
+	    ierr += 2;
 	}
-    } else if (dpchst(&d__[*n * d_dim1 + 1], &slope[*n - 1]) < 0.) {
-	d__[*n * d_dim1 + 1] = 0.;
-	*ierr += 2;
-    } else if ((d__2 = d__[*n * d_dim1 + 1], abs(d__2)) > 3. * (d__1 =
-	    slope[*n - 1], abs(d__1))) {
-	d__[*n * d_dim1 + 1] = 3. * slope[*n - 1];
-	*ierr += 2;
+    } else if (dpchst(d__[n * d_dim1 + 1], slope[n - 1]) < 0.) {
+	d__[n * d_dim1 + 1] = 0.;
+	ierr += 2;
+    } else if ((d__2 = d__[n * d_dim1 + 1], abs(d__2)) > 3. * (d__1 =
+	    slope[n - 1], abs(d__1))) {
+	d__[n * d_dim1 + 1] = 3. * slope[n - 1];
+	ierr += 2;
     }
 
 /*  NORMAL RETURN. */
 
 L5000:
-    return;
+    return ierr;
 
 /*  ERROR RETURN. */
 
 L5001:
 /*     ERROR RETURN FROM DPCHDF. */
 /*   *** THIS CASE SHOULD NEVER OCCUR *** */
-    *ierr = -1;
-    xermsg_("SLATEC", "DPCHCE", "ERROR RETURN FROM DPCHDF", *ierr);
-    return;
+    ierr = -1;
+    xermsg_("SLATEC", "DPCHCE", "ERROR RETURN FROM DPCHDF", ierr);
+    return ierr;
 }
 
-void dpchci(integer *n, doublereal *h__, doublereal *slope,
-	doublereal *d__, integer *incfd)
+void dpchci(integer n, doublereal *h__, doublereal *slope,
+	doublereal *d__, integer incfd)
 {
     /* System generated locals */
     integer d_dim1, d_offset, i__1;
@@ -2778,11 +2777,11 @@ void dpchci(integer *n, doublereal *h__, doublereal *slope,
     /* Parameter adjustments */
     --h__;
     --slope;
-    d_dim1 = *incfd;
+    d_dim1 = incfd;
     d_offset = 1 + d_dim1;
     d__ -= d_offset;
 
-    nless1 = *n - 1;
+    nless1 = n - 1;
     del1 = slope[1];
 
 /*  SPECIAL CASE N=2 -- USE LINEAR INTERPOLATION. */
@@ -2791,7 +2790,7 @@ void dpchci(integer *n, doublereal *h__, doublereal *slope,
 	goto L10;
     }
     d__[d_dim1 + 1] = del1;
-    d__[*n * d_dim1 + 1] = del1;
+    d__[n * d_dim1 + 1] = del1;
     goto L5000;
 
 /*  NORMAL CASE  (N .GE. 3). */
@@ -2806,9 +2805,9 @@ L10:
     w1 = (h__[1] + hsum) / hsum;
     w2 = -h__[1] / hsum;
     d__[d_dim1 + 1] = w1 * del1 + w2 * del2;
-    if (dpchst(&d__[d_dim1 + 1], &del1) <= 0.) {
+    if (dpchst(d__[d_dim1 + 1], del1) <= 0.) {
 	d__[d_dim1 + 1] = 0.;
-    } else if (dpchst(&del1, &del2) < 0.) {
+    } else if (dpchst(del1, del2) < 0.) {
 /*        NEED DO THIS CHECK ONLY IF MONOTONICITY SWITCHES. */
 	dmax__ = 3. * del1;
 	if ((d__1 = d__[d_dim1 + 1], abs(d__1)) > abs(dmax__)) {
@@ -2832,7 +2831,7 @@ L40:
 /*        SET D(I)=0 UNLESS DATA ARE STRICTLY MONOTONIC. */
 
 	d__[i__ * d_dim1 + 1] = 0.;
-	if (dpchst(&del1, &del2) <= 0.) {
+	if (dpchst(del1, del2) <= 0.) {
 	    goto L50;
 	}
 
@@ -2858,16 +2857,16 @@ L50:
 /*  SET D(N) VIA NON-CENTERED THREE-POINT FORMULA, ADJUSTED TO BE */
 /*     SHAPE-PRESERVING. */
 
-    w1 = -h__[*n - 1] / hsum;
-    w2 = (h__[*n - 1] + hsum) / hsum;
-    d__[*n * d_dim1 + 1] = w1 * del1 + w2 * del2;
-    if (dpchst(&d__[*n * d_dim1 + 1], &del2) <= 0.) {
-	d__[*n * d_dim1 + 1] = 0.;
-    } else if (dpchst(&del1, &del2) < 0.) {
+    w1 = -h__[n - 1] / hsum;
+    w2 = (h__[n - 1] + hsum) / hsum;
+    d__[n * d_dim1 + 1] = w1 * del1 + w2 * del2;
+    if (dpchst(d__[n * d_dim1 + 1], del2) <= 0.) {
+	d__[n * d_dim1 + 1] = 0.;
+    } else if (dpchst(del1, del2) < 0.) {
 /*        NEED DO THIS CHECK ONLY IF MONOTONICITY SWITCHES. */
 	dmax__ = 3. * del2;
-	if ((d__1 = d__[*n * d_dim1 + 1], abs(d__1)) > abs(dmax__)) {
-	    d__[*n * d_dim1 + 1] = dmax__;
+	if ((d__1 = d__[n * d_dim1 + 1], abs(d__1)) > abs(dmax__)) {
+	    d__[n * d_dim1 + 1] = dmax__;
 	}
     }
 
@@ -2877,9 +2876,8 @@ L5000:
     return;
 }
 
-void dpchcs(doublereal *switch__, integer *n, doublereal *
-	h__, doublereal *slope, doublereal *d__, integer *incfd, integer *
-	ierr)
+integer dpchcs(doublereal switch__, integer n, doublereal *
+	h__, doublereal *slope, doublereal *d__, integer incfd)
 {
     static const doublereal fudge = 4.;
 
@@ -2892,7 +2890,7 @@ void dpchcs(doublereal *switch__, integer *n, doublereal *
     doublereal del[3], fact, dfmx;
     integer indx;
     doublereal dext, dfloc, slmax, wtave[2];
-    integer nless1;
+    integer nless1, ierr = 0;
 
 /* ***BEGIN PROLOGUE  DPCHCS */
 /* ***PURPOSE  Adjusts derivative values for DPCHIC */
@@ -2993,18 +2991,17 @@ void dpchcs(doublereal *switch__, integer *n, doublereal *
     /* Parameter adjustments */
     --h__;
     --slope;
-    d_dim1 = *incfd;
+    d_dim1 = incfd;
     d_offset = 1 + d_dim1;
     d__ -= d_offset;
 
-    *ierr = 0;
-    nless1 = *n - 1;
+    nless1 = n - 1;
 
 /*  LOOP OVER SEGMENTS. */
 
     i__1 = nless1;
     for (i__ = 2; i__ <= i__1; ++i__) {
-	if ((d__1 = dpchst(&slope[i__ - 1], &slope[i__])) < 0.) {
+	if ((d__1 = dpchst(slope[i__ - 1], slope[i__])) < 0.) {
 	    goto L100;
 	} else if (d__1 == 0) {
 	    goto L300;
@@ -3019,13 +3016,13 @@ L100:
 
 /*           DO NOT CHANGE D IF 'UP-DOWN-UP'. */
 	if (i__ > 2) {
-	    if (dpchst(&slope[i__ - 2], &slope[i__]) > 0.) {
+	    if (dpchst(slope[i__ - 2], slope[i__]) > 0.) {
 		goto L900;
 	    }
 /*                   -------------------------- */
 	}
 	if (i__ < nless1) {
-	    if (dpchst(&slope[i__ + 1], &slope[i__ - 1]) > 0.) {
+	    if (dpchst(slope[i__ + 1], slope[i__ - 1]) > 0.) {
 		goto L900;
 	    }
 /*                   ---------------------------- */
@@ -3038,7 +3035,7 @@ L100:
 
 /*   ....... DETERMINE WHICH INTERVAL CONTAINS THE EXTREMUM. */
 
-	if ((d__1 = dpchst(&dext, &slope[i__ - 1])) < 0.) {
+	if ((d__1 = dpchst(dext, slope[i__ - 1])) < 0.) {
 	    goto L200;
 	} else if (d__1 == 0) {
 	    goto L900;
@@ -3079,7 +3076,7 @@ L300:
 	if (i__ == nless1) {
 	    goto L900;
 	}
-	if (dpchst(&slope[i__ - 1], &slope[i__ + 1]) >= 0.) {
+	if (dpchst(slope[i__ - 1], slope[i__ + 1]) >= 0.) {
 	    goto L900;
 	}
 /*                ----------------------------- */
@@ -3143,7 +3140,7 @@ L400:
 
 /* ....... ADJUST IF NECESSARY TO LIMIT EXCURSIONS FROM DATA. */
 
-	if (*switch__ <= 0.) {
+	if (switch__ <= 0.) {
 	    goto L900;
 	}
 
@@ -3160,15 +3157,15 @@ L400:
 		    ;
 	    dfloc = max(d__2,d__3);
 	}
-	dfmx = *switch__ * dfloc;
+	dfmx = switch__ * dfloc;
 	indx = i__ - k + 1;
 /*        INDX = 1 IF K=I, 2 IF K=I-1. */
 /*        --------------------------------------------------------------- */
-	dpchsw(&dfmx, &indx, &d__[k * d_dim1 + 1], &d__[(k + 1) * d_dim1 + 1]
-		, &h__[k], &slope[k], ierr);
+	ierr = dpchsw(dfmx, indx, d__[k * d_dim1 + 1], d__[(k + 1) * d_dim1 + 1],
+		h__[k], slope[k]);
 /*        --------------------------------------------------------------- */
-	if (*ierr != 0) {
-	    return;
+	if (ierr != 0) {
+	    return ierr;
 	}
 
 /* ....... END OF SEGMENT LOOP. */
@@ -3177,10 +3174,10 @@ L900:
 	;
     }
 
-    return;
+    return ierr;
 }
 
-doublereal dpchdf(integer *k, doublereal *x, doublereal *s, integer *ierr)
+doublereal dpchdf(integer k, doublereal *x, doublereal *s, integer *ierr)
 {
     /* System generated locals */
     integer i__1, i__2;
@@ -3249,15 +3246,15 @@ doublereal dpchdf(integer *k, doublereal *x, doublereal *s, integer *ierr)
 
 /*  CHECK FOR LEGAL VALUE OF K. */
 
-    if (*k < 3) {
+    if (k < 3) {
 	goto L5001;
     }
 
 /*  COMPUTE COEFFICIENTS OF INTERPOLATING POLYNOMIAL. */
 
-    i__1 = *k - 1;
+    i__1 = k - 1;
     for (j = 2; j <= i__1; ++j) {
-	i__2 = *k - j;
+	i__2 = k - j;
 	for (i__ = 1; i__ <= i__2; ++i__) {
 	    s[i__] = (s[i__ + 1] - s[i__]) / (x[i__ + j] - x[i__]);
 	}
@@ -3266,9 +3263,9 @@ doublereal dpchdf(integer *k, doublereal *x, doublereal *s, integer *ierr)
 /*  EVALUATE DERIVATIVE AT X(K). */
 
     value = s[1];
-    i__1 = *k - 1;
+    i__1 = k - 1;
     for (i__ = 2; i__ <= i__1; ++i__) {
-	value = s[i__] + value * (x[*k] - x[i__]);
+	value = s[i__] + value * (x[k] - x[i__]);
     }
 
 /*  NORMAL RETURN. */
@@ -3585,7 +3582,7 @@ L1000:
 /*  SET INTERIOR DERIVATIVES AND DEFAULT END CONDITIONS. */
 
 /*     -------------------------------------- */
-    dpchci(n, &wk[1], &wk[*n], &d__[d_offset], incfd);
+    dpchci(*n, &wk[1], &wk[*n], &d__[d_offset], *incfd);
 /*     -------------------------------------- */
 
 /*  SET DERIVATIVES AT POINTS WHERE MONOTONICITY SWITCHES DIRECTION. */
@@ -3594,7 +3591,7 @@ L1000:
 	goto L3000;
     }
 /*     ---------------------------------------------------- */
-    dpchcs(switch__, n, &wk[1], &wk[*n], &d__[d_offset], incfd, ierr);
+    *ierr = dpchcs(*switch__, *n, &wk[1], &wk[*n], &d__[d_offset], *incfd);
 /*     ---------------------------------------------------- */
     if (*ierr != 0) {
 	goto L5008;
@@ -3607,8 +3604,7 @@ L3000:
 	goto L5000;
     }
 /*     ------------------------------------------------------- */
-    dpchce(&ic[1], &vc[1], n, &x[1], &wk[1], &wk[*n], &d__[d_offset], incfd,
-	    ierr);
+    *ierr = dpchce(&ic[1], &vc[1], *n, &x[1], &wk[1], &wk[*n], &d__[d_offset], *incfd);
 /*     ------------------------------------------------------- */
     if (*ierr < 0) {
 	goto L5009;
@@ -3665,7 +3661,7 @@ L5009:
     return;
 }
 
-doublereal dpchst(doublereal *arg1, doublereal *arg2)
+doublereal dpchst(doublereal arg1, doublereal arg2)
 {
     /* System generated locals */
     doublereal ret_val;
@@ -3704,16 +3700,16 @@ doublereal dpchst(doublereal *arg1, doublereal *arg2)
 
 /*  PERFORM THE TEST. */
 
-    ret_val = d_sign(1, *arg1) * d_sign(1, *arg2);
-    if (*arg1 == 0. || *arg2 == 0.) {
+    ret_val = d_sign(1, arg1) * d_sign(1, arg2);
+    if (arg1 == 0. || arg2 == 0.) {
 	ret_val = 0.;
     }
 
     return ret_val;
 }
 
-void dpchsw(doublereal *dfmax, integer *iextrm, doublereal *
-	d1, doublereal *d2, doublereal *h__, doublereal *slope, integer *ierr)
+integer dpchsw(doublereal dfmax, integer iextrm, doublereal d1,
+	doublereal d2, doublereal h__, doublereal slope)
 {
     /* System generated locals */
     doublereal d__1;
@@ -3808,16 +3804,16 @@ void dpchsw(doublereal *dfmax, integer *iextrm, doublereal *
 
 /*  DO MAIN CALCULATION. */
 
-    if (*d1 == 0.) {
+    if (d1 == 0.) {
 
 /*        SPECIAL CASE -- D1.EQ.ZERO . */
 
 /*          IF D2 IS ALSO ZERO, THIS ROUTINE SHOULD NOT HAVE BEEN CALLED. */
-	if (*d2 == 0.) {
+	if (d2 == 0.) {
 	    goto L5001;
 	}
 
-	rho = *slope / *d2;
+	rho = slope / d2;
 /*          EXTREMUM IS OUTSIDE INTERVAL WHEN RHO .GE. 1/3 . */
 	if (rho >= third) {
 	    goto L5000;
@@ -3828,22 +3824,22 @@ void dpchsw(doublereal *dfmax, integer *iextrm, doublereal *
 	phi = d__1 * d__1 * ((3. * rho - 1.) / 3.);
 
 /*          CONVERT TO DISTANCE FROM F2 IF IEXTRM.NE.1 . */
-	if (*iextrm != 1) {
+	if (iextrm != 1) {
 	    phi -= rho;
 	}
 
 /*          TEST FOR EXCEEDING LIMIT, AND ADJUST ACCORDINGLY. */
-	hphi = *h__ * abs(phi);
-	if (hphi * abs(*d2) > *dfmax) {
+	hphi = h__ * abs(phi);
+	if (hphi * abs(d2) > dfmax) {
 /*           AT THIS POINT, HPHI.GT.0, SO DIVIDE IS OK. */
-	    d__1 = *dfmax / hphi;
-	    *d2 = d_sign(d__1, *d2);
+	    d__1 = dfmax / hphi;
+	    d2 = d_sign(d__1, d2);
 	}
     } else {
 
-	rho = *slope / *d1;
-	lambda = -(*d2) / *d1;
-	if (*d2 == 0.) {
+	rho = slope / d1;
+	lambda = -(d2) / d1;
+	if (d2 == 0.) {
 
 /*           SPECIAL CASE -- D2.EQ.ZERO . */
 
@@ -3879,39 +3875,36 @@ void dpchsw(doublereal *dfmax, integer *iextrm, doublereal *
 	phi = that * ((nu * that - cp) * that + 1.);
 
 /*          CONVERT TO DISTANCE FROM F2 IF IEXTRM.NE.1 . */
-	if (*iextrm != 1) {
+	if (iextrm != 1) {
 	    phi -= rho;
 	}
 
 /*          TEST FOR EXCEEDING LIMIT, AND ADJUST ACCORDINGLY. */
-	hphi = *h__ * abs(phi);
-	if (hphi * abs(*d1) > *dfmax) {
+	hphi = h__ * abs(phi);
+	if (hphi * abs(d1) > dfmax) {
 /*           AT THIS POINT, HPHI.GT.0, SO DIVIDE IS OK. */
-	    d__1 = *dfmax / hphi;
-	    *d1 = d_sign(d__1, *d1);
-	    *d2 = -lambda * *d1;
+	    d__1 = dfmax / hphi;
+	    d1 = d_sign(d__1, d1);
+	    d2 = -lambda * d1;
 	}
     }
 
 /*  NORMAL RETURN. */
 
 L5000:
-    *ierr = 0;
-    return;
+    return 0;
 
 /*  ERROR RETURNS. */
 
 L5001:
 /*     D1 AND D2 BOTH ZERO, OR BOTH NONZERO AND SAME SIGN. */
-    *ierr = -1;
-    xermsg_("SLATEC", "DPCHSW", "D1 AND/OR D2 INVALID", *ierr);
-    return;
+    xermsg_("SLATEC", "DPCHSW", "D1 AND/OR D2 INVALID", (long)-1);
+    return -1;
 
 L5002:
 /*     NEGATIVE VALUE OF RADICAL (SHOULD NEVER OCCUR). */
-    *ierr = -2;
-    xermsg_("SLATEC", "DPCHSW", "NEGATIVE RADICAL", *ierr);
-    return;
+    xermsg_("SLATEC", "DPCHSW", "NEGATIVE RADICAL", (long)-2);
+    return -2;
 }
 
 void dpchim(integer *n, doublereal *x, doublereal *f,
@@ -4120,9 +4113,9 @@ L10:
     w1 = (h1 + hsum) / hsum;
     w2 = -h1 / hsum;
     d__[d_dim1 + 1] = w1 * del1 + w2 * del2;
-    if (dpchst(&d__[d_dim1 + 1], &del1) <= 0.) {
+    if (dpchst(d__[d_dim1 + 1], del1) <= 0.) {
 	d__[d_dim1 + 1] = 0.;
-    } else if (dpchst(&del1, &del2) < 0.) {
+    } else if (dpchst(del1, del2) < 0.) {
 /*        NEED DO THIS CHECK ONLY IF MONOTONICITY SWITCHES. */
 	dmax__ = 3. * del1;
 	if ((d__1 = d__[d_dim1 + 1], abs(d__1)) > abs(dmax__)) {
@@ -4148,7 +4141,7 @@ L40:
 /*        SET D(I)=0 UNLESS DATA ARE STRICTLY MONOTONIC. */
 
 	d__[i__ * d_dim1 + 1] = 0.;
-	if ((d__1 = dpchst(&del1, &del2)) < 0.) {
+	if ((d__1 = dpchst(del1, del2)) < 0.) {
 	    goto L42;
 	} else if (d__1 == 0) {
 	    goto L41;
@@ -4162,7 +4155,7 @@ L41:
 	if (del2 == 0.) {
 	    goto L50;
 	}
-	if (dpchst(&dsave, &del2) < 0.) {
+	if (dpchst(dsave, del2) < 0.) {
 	    ++(*ierr);
 	}
 	dsave = del2;
@@ -4199,9 +4192,9 @@ L50:
     w1 = -h2 / hsum;
     w2 = (h2 + hsum) / hsum;
     d__[*n * d_dim1 + 1] = w1 * del1 + w2 * del2;
-    if (dpchst(&d__[*n * d_dim1 + 1], &del2) <= 0.) {
+    if (dpchst(d__[*n * d_dim1 + 1], del2) <= 0.) {
 	d__[*n * d_dim1 + 1] = 0.;
-    } else if (dpchst(&del1, &del2) < 0.) {
+    } else if (dpchst(del1, del2) < 0.) {
 /*        NEED DO THIS CHECK ONLY IF MONOTONICITY SWITCHES. */
 	dmax__ = 3. * del2;
 	if ((d__1 = d__[*n * d_dim1 + 1], abs(d__1)) > abs(dmax__)) {
@@ -4478,7 +4471,7 @@ void dpchsp(integer *ic, doublereal *vc, integer *n,
 	    }
 	}
 /*                 -------------------------------- */
-	d__[d_dim1 + 1] = dpchdf(&ibeg, xtemp, stemp, ierr);
+	d__[d_dim1 + 1] = dpchdf(ibeg, xtemp, stemp, ierr);
 /*                 -------------------------------- */
 	if (*ierr != 0) {
 	    goto L5009;
@@ -4500,7 +4493,7 @@ void dpchsp(integer *ic, doublereal *vc, integer *n,
 	    }
 	}
 /*                 -------------------------------- */
-	d__[*n * d_dim1 + 1] = dpchdf(&iend, xtemp, stemp, ierr);
+	d__[*n * d_dim1 + 1] = dpchdf(iend, xtemp, stemp, ierr);
 /*                 -------------------------------- */
 	if (*ierr != 0) {
 	    goto L5009;
