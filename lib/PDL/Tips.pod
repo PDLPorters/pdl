@@ -42,7 +42,7 @@ into STDOUT. Plans for the future include making it possible to
 redirect the output, and also making it possible to select messages
 with more precision.
 
-Many of the messages come from C<Basic/Core/pdlapi.c> and you
+Many of the messages come from C<lib/PDL/Core/pdlapi.c> and you
 can look at the source to see what is going on.
 
 If you have any extra time to work on these mechanisms,

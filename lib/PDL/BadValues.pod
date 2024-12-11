@@ -195,9 +195,9 @@ in the PDL core.
 
 The default bad values
 are now stored in a structure within the Core PDL structure
-- C<PDL.bvals> (eg F<Basic/Core/pdlcore.h>); see also
-C<typedef pdl_badvals> in F<Basic/Core/pdl.h.PL> and the
-BOOT code of F<Basic/Core/Core.xs> where the values are initialised to
+- C<PDL.bvals> (eg F<lib/PDL/Core/pdlcore.h>); see also
+C<typedef pdl_badvals> in F<lib/PDL/Core/pdl.h.PL> and the
+BOOT code of F<lib/PDL/Core.xs> where the values are initialised to
 (hopefully) sensible values.
 See L<PDL::Bad/badvalue> and L<PDL::Bad/orig_badvalue> for read/write routines to the values.
 

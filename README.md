@@ -20,13 +20,13 @@ WARNING: There is absolutely no warranty for this software package. See the file
 
 Before sending us your questions, please see the following files for further information, and check for any [open issues](https://github.com/PDLPorters/pdl/issues).
 
-- [`PDL::Bugs`](https://metacpan.org/pod/PDL::InstallGuide): Basic installation instructions
+- [`PDL::InstallGuide`](https://metacpan.org/pod/PDL::InstallGuide): Basic installation instructions
 - `Changes`: A list of features or issues with regard to the current version, always worth checking!
 - [`PDL::Bugs`](https://metacpan.org/pod/PDL::Bugs): How to make a bug report,
 - [`PDL::FAQ`](https://metacpan.org/pod/PDL::FAQ): The FAQ in pod format. Try `perldoc PDL::FAQ` after installation.
 - [`PDL::QuickStart`](https://metacpan.org/pod/PDL::QuickStart): A quick overview of PDL. Try `perldoc PDL::QuickStart` after installation.
 - [`PDL::BadValues`](https://metacpan.org/pod/PDL::BadValues): A discussion of the bad value support in PDL
-- [`PDL::BadValues`](https://metacpan.org/pod/PDL::DeveloperGuide): How to participate in the development of PDL
+- [`PDL::DeveloperGuide`](https://metacpan.org/pod/PDL::DeveloperGuide): How to participate in the development of PDL
 
 **Note:** Most PDL documentation is available online within the PDL shell, `perldl`. Try the `help` command within either shell.
 
@@ -66,27 +66,6 @@ If you need to post a problem report, and after checking with the pdl-general li
 
 
 ## Notes
-
-Directory structure:
-
-`Basic/`
-: The stuff that makes `use PDL` work, including demos which are a showcase for PDL: type `demo` at the perldl prompt.
-
-`Basic/examples/`
-: Sample programs using PDL
-
-`Basic/utils/`
-: Utilities relating to PDL
-
-`Graphics/`
-: The stuff that allows PDL to make pictures
-
-`IO/`
-: The stuff that PDL needs to write and read various file formats
-
-`Libtmp/`
-: The stuff that PDL would still be useful without but which makes PDL even more useful
-
 
 Comments are welcome - so are volunteers to write code and documentation! Please contact the developers mailing list `pdl-devel@lists.sourceforge.net` ([subscription info](https://pdl.perl.org/?page=mailing-lists)) with ideas and suggestions.
 

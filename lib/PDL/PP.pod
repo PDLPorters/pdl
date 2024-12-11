@@ -1314,16 +1314,8 @@ then generates the calls to C<pp_def> from parsed descriptions of the
 functions in that library. For an example, please check the I<Slatec>
 interface in the C<Lib> tree of the PDL distribution. If you want to check
 (during debugging) which calls to PP functions your Perl code generated
-a little helper package comes in handy which replaces the PP functions
-by identically named ones that dump their arguments to stdout.
-
-Just say
-
-   perl -MPDL::PP::Dump myfile.pd
-
-to see the calls to C<pp_def> and friends. Try it with F<ops.pd> and
-F<slatec.pd>. If you're interested (or want to enhance it), the source
-is in Basic/Gen/PP/Dump.pm
+then set C<$::PP_VERBOSE> to a true value just before the relevant
+C<pp_def> call, or at the top of the file.
 
 =head2 Other macros in the Code section
 
@@ -1876,7 +1868,7 @@ completeness.
 
 If bad values are being used, care must be taken to ensure the
 propagation of the badflag when inplace is being used;
-consider this excerpt from F<Basic/Bad/bad.pd>:
+consider this excerpt from F<lib/PDL/Bad.pd>:
 
   pp_def('setbadtoval',HandleBad => 1,
     Pars => 'a(); [o]b();',
@@ -2268,7 +2260,7 @@ vaffines which we shall entirely skip here.
 =head2 Slices and bad values
 
 Slice operations need to be able to handle bad values.  The easiest
-thing to do is look at F<Basic/Slices/slices.pd> to see how this works.
+thing to do is look at F<lib/PDL/Slices.pd> to see how this works.
 
 Along with C<BadCode>, there are also the C<BadBackCode> and 
 C<BadRedoDimsCode> keys for C<pp_def>. However, any
@@ -2443,7 +2435,7 @@ C<$BADFLAGCACHE()> is true after the code has been
 evaluated.  Sometimes C<CopyBadStatusCode> is set to an empty string,
 with the responsibility of setting the badflag of the output ndarray
 left to the C<BadCode> section (e.g. the C<xxxover> routines
-in F<Basic/Ufunc/ufunc.pd>).
+in F<lib/PDL/Ufunc.pd>).
 
 =head3 GenericTypes
 
@@ -2483,7 +2475,7 @@ Mark a function as being able to work inplace.
 
 If bad values are being used, care must be taken to ensure the
 propagation of the badflag when inplace is being used;
-for instance see the code for C<setbadtoval> in F<Basic/Bad/bad.pd>.
+for instance see the code for C<setbadtoval> in F<lib/PDL/Bad.pd>.
 
 =head3 Doc
 

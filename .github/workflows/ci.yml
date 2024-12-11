@@ -114,8 +114,7 @@ jobs:
           [ -f Makefile ] || perl Makefile.PL
           make install
           make clean # clean is to ensure no blib
-          mv Basic Basic.x # ensure doesn't think is in repo!
-          cd Basic.x && prove -j4 -I ../blib/lib -I ../blib/arch t
+          prove -j4 t
 
       - name: 'ci-dist: target-test (with coverage)'
         uses: PDLPorters/devops/github-actions/ci-dist@master
