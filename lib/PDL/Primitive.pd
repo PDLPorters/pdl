@@ -4160,10 +4160,6 @@ sub intcopy {
 #       but not a caller-supplied arg
 #   Logical
 #     - A Fortran Boolean, defined as same size as REAL/INTEGER so 'long'
-#   FortranIndex
-#     - pchid()/dpchid() require FORTRAN array indices, so
-#       this type flags that we should add 1 onto the input values
-#       before sending to the slatec function
 #
 # $docstring gives the text to be used as the function documentation
 #
@@ -4176,7 +4172,6 @@ my %KIND2I = (
   Mat => ['', sub{"\$P($_[0][2])"}, sub {PDL::Type->new($_[0])->ctype." *"}],
   FuncRet => ['', sub {()}, sub {()}],
     # convert from C to F77 index so add 1
-  FortranIndex => ['longlong ', intcopy(sub {$_[0][2]}, sub {"\$$_[0][2]() + 1"})],
   Integer => ['longlong ', sub{"\$P($_[0][2])"}, sub {"PDL_LongLong *"}],
   Logical => ['int ', sub{"\$P($_[0][2])"}, sub {"PDL_Long *"}],
   OtherParDim => [\'PDL_LongLong ', intcopy(sub {"dim_$_[0][2]"}, sub {"\$SIZE($_[0][2])"})],
@@ -4733,8 +4728,8 @@ defslatec('pchip_chid',
            Mat          d       (n);
            IntVal       incfd=1;
            Logical [io] skip    ();
-           FortranIndex ia      ();
-           FortranIndex ib      ();
+           Integer      ia      ();
+           Integer      ib      ();
            FuncRet [o]  ans     ();
            Integer [o]  ierr    ();
           ',
