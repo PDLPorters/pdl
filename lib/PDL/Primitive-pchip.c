@@ -59,8 +59,6 @@ doublereal d1mach() {
 
 /* ***PURPOSE  Evaluate the B-representation of a B-spline at X for the */
 /*            function value or any of its derivatives. */
-/* ***LIBRARY   SLATEC */
-/* ***KEYWORDS  DIFFERENTIATION OF B-SPLINE, EVALUATION OF B-SPLINE */
 /* ***AUTHOR  Amos, D. E., (SNLA) */
 /*     Written by Carl de Boor and modified by D. E. Amos */
 /*     Abstract   **** a double precision routine **** */
@@ -99,14 +97,6 @@ doublereal d1mach() {
 /* ***REFERENCES  Carl de Boor, Package for calculating with B-splines, */
 /*                 SIAM Journal on Numerical Analysis 14, 3 (June 1977), */
 /*                 pp. 441-472. */
-/* ***REVISION HISTORY  (YYMMDD) */
-/*   800901  DATE WRITTEN */
-/*   890831  Modified array declarations.  (WRB) */
-/*   890911  Removed unnecessary intrinsics.  (WRB) */
-/*   890911  REVISION DATE from Version 3.2 */
-/*   891214  Prologue converted to Version 4.0 format.  (BAB) */
-/*   900315  CALLs to XERROR changed to CALLs to XERMSG.  (THJ) */
-/*   920501  Reformatted the REFERENCES section.  (WRB) */
 doublereal dbvalu(doublereal *t, doublereal *a, integer n, integer k,
 	integer ideriv, doublereal x, integer inbv, doublereal *work)
 {
@@ -198,8 +188,6 @@ doublereal dbvalu(doublereal *t, doublereal *a, integer n, integer k,
 /* ***PURPOSE  Compute the largest integer ILEFT in 1 .LE. ILEFT .LE. LXT */
 /*            such that XT(ILEFT) .LE. X where XT(*) is a subdivision of */
 /*            the X interval. */
-/* ***LIBRARY   SLATEC */
-/* ***KEYWORDS  B-SPLINE, DATA FITTING, INTERPOLATION, SPLINES */
 /* ***AUTHOR  Amos, D. E., (SNLA) */
 /*     Written by Carl de Boor and modified by D. E. Amos */
 /*     Abstract    **** a double precision routine **** */
@@ -232,12 +220,6 @@ doublereal dbvalu(doublereal *t, doublereal *a, integer n, integer k,
 /* ***REFERENCES  Carl de Boor, Package for calculating with B-splines, */
 /*                 SIAM Journal on Numerical Analysis 14, 3 (June 1977), */
 /*                 pp. 441-472. */
-/* ***REVISION HISTORY  (YYMMDD) */
-/*   800901  DATE WRITTEN */
-/*   890831  Modified array declarations.  (WRB) */
-/*   890831  REVISION DATE from Version 3.2 */
-/*   891214  Prologue converted to Version 4.0 format.  (BAB) */
-/*   920501  Reformatted the REFERENCES section.  (WRB) */
 void dintrv(doublereal *xt, integer lxt, doublereal x,
 	integer *ilo, integer *ileft, integer *mflag)
 {
@@ -323,9 +305,6 @@ void dintrv(doublereal *xt, integer lxt, doublereal x,
 }
 
 /* ***PURPOSE  Piecewise Cubic Hermite to B-Spline converter. */
-/* ***LIBRARY   SLATEC (PCHIP) */
-/* ***KEYWORDS  B-SPLINES, CONVERSION, CUBIC HERMITE INTERPOLATION, */
-/*             PIECEWISE CUBIC INTERPOLATION */
 /* ***AUTHOR  Fritsch, F. N., (LLNL) */
 /*             Computing and Mathematics Research Division */
 /*             Lawrence Livermore National Laboratory */
@@ -425,22 +404,6 @@ void dintrv(doublereal *xt, integer lxt, doublereal x,
 /* ***REFERENCES  F. N. Fritsch, "Representations for parametric cubic */
 /*                 splines," Computer Aided Geometric Design 6 (1989), */
 /*                 pp.79-82. */
-/* ***REVISION HISTORY  (YYMMDD) */
-/*   870701  DATE WRITTEN */
-/*   900405  Converted Fortran to upper case. */
-/*   900405  Removed requirement that X be dimensioned N+1. */
-/*   900406  Modified to make PCHKT a subsidiary routine to simplify */
-/*           usage.  In the process, added argument INCFD to be com- */
-/*           patible with the rest of PCHIP. */
-/*   900410  Converted prologue to SLATEC 4.0 format. */
-/*   900410  Added calls to XERMSG and changed constant 3. to 3 to */
-/*           reduce single/double differences. */
-/*   900411  Added reference. */
-/*   900430  Produced double precision version. */
-/*   900501  Corrected declarations. */
-/*   930317  Minor cosmetic changes.  (FNF) */
-/*   930514  Corrected problems with dimensioning of arguments and */
-/*   930604  Removed  NKNOTS from DPCHKT call list.  (FNF) */
 void dpchbs(integer n, doublereal *x, doublereal *f,
 	doublereal *d__, integer incfd, integer *knotyp, integer *nknots,
 	doublereal *t, doublereal *bcoef, integer *ndim, integer *kord,
@@ -500,7 +463,6 @@ void dpchbs(integer n, doublereal *x, doublereal *f,
 }
 
 /* ***PURPOSE  Compute B-spline knot sequence for DPCHBS. */
-/* ***LIBRARY   SLATEC (PCHIP) */
 /* ***AUTHOR  Fritsch, F. N., (LLNL) */
 /*     Set a knot sequence for the B-spline representation of a PCH */
 /*     function with breakpoints X.  All knots will be at least double. */
@@ -515,14 +477,6 @@ void dpchbs(integer n, doublereal *x, doublereal *f,
 /*     2. X(i).LT.X(i+1), i=1,...,N .  (not checked) */
 /*     3. 0.LE.KNOTYP.LE.2 .  (Acts like KNOTYP=0 for any other value.) */
 /* ***SEE ALSO  DPCHBS */
-/* ***REVISION HISTORY  (YYMMDD) */
-/*   870701  DATE WRITTEN */
-/*   900405  Converted Fortran to upper case. */
-/*   900410  Converted prologue to SLATEC 4.0 format. */
-/*   900410  Minor cosmetic changes. */
-/*   900430  Produced double precision version. */
-/*   930514  Changed NKNOTS from an output to an input variable.  (FNF) */
-/*   930604  Removed unused variable NKNOTS from argument list.  (FNF) */
 /*  Since this is subsidiary to DPCHBS, which validates its input before */
 /*  calling, it is unnecessary for such validation to be done here. */
 void dpchkt(integer n, doublereal *x, integer *knotyp,
@@ -572,9 +526,6 @@ void dpchkt(integer n, doublereal *x, integer *knotyp,
 /*            for a piecewise cubic Hermite function in applications, */
 /*            such as graphing, where the interval is known in advance. */
 /*            If only function values are required, use DCHFEV instead. */
-/* ***LIBRARY   SLATEC (PCHIP) */
-/* ***KEYWORDS  CUBIC HERMITE DIFFERENTIATION, CUBIC HERMITE EVALUATION, */
-/*             CUBIC POLYNOMIAL EVALUATION, PCHIP */
 /* ***AUTHOR  Fritsch, F. N., (LLNL) */
 /*             Lawrence Livermore National Laboratory */
 /*             P.O. Box 808  (L-316) */
@@ -616,18 +567,6 @@ void dpchkt(integer n, doublereal *x, integer *knotyp,
 /*              IERR = -1  if NE.LT.1 . */
 /*              IERR = -2  if X1.EQ.X2 . */
 /*                (Output arrays have not been changed in either case.) */
-/* ***REVISION HISTORY  (YYMMDD) */
-/*   811019  DATE WRITTEN */
-/*   820803  Minor cosmetic changes for release 1. */
-/*   870707  Corrected XERROR calls for d.p. names(s). */
-/*   870813  Minor cosmetic changes. */
-/*   890411  Added SAVE statements (Vers. 3.2). */
-/*   890531  Changed all specific intrinsics to generic.  (WRB) */
-/*   890831  Modified array declarations.  (WRB) */
-/*   891006  Cosmetic changes to prologue.  (WRB) */
-/*   891006  REVISION DATE from Version 3.2 */
-/*   891214  Prologue converted to Version 4.0 format.  (BAB) */
-/*   900315  CALLs to XERROR changed to CALLs to XERMSG.  (THJ) */
 /*  Programming notes: */
 /*     To produce a single precision version, simply: */
 /*        a. Change DCHFDV to CHFDV wherever it occurs, */
@@ -696,9 +635,6 @@ void dchfdv(doublereal x1, doublereal x2, doublereal f1,
 /*            for Hermite interpolation, or as an evaluator for DPCHIM */
 /*            or DPCHIC. If only function values are required, use */
 /*            DPCHFE instead. */
-/* ***LIBRARY   SLATEC (PCHIP) */
-/* ***KEYWORDS  CUBIC HERMITE DIFFERENTIATION, CUBIC HERMITE EVALUATION, */
-/*             HERMITE INTERPOLATION, PCHIP, PIECEWISE CUBIC EVALUATION */
 /* ***AUTHOR  Fritsch, F. N., (LLNL) */
 /*             Lawrence Livermore National Laboratory */
 /*             P.O. Box 808  (L-316) */
@@ -770,17 +706,6 @@ void dchfdv(doublereal x1, doublereal x2, doublereal f1,
 /*              IERR = -5  if an error has occurred in the lower-level */
 /*                         routine DCHFDV.  NB: this should never happen. */
 /*                         Notify the author **IMMEDIATELY** if it does. */
-/* ***REVISION HISTORY  (YYMMDD) */
-/*   811020  DATE WRITTEN */
-/*   820803  Minor cosmetic changes for release 1. */
-/*   870707  Corrected XERROR calls for d.p. name(s). */
-/*   890206  Corrected XERROR calls. */
-/*   890531  Changed all specific intrinsics to generic.  (WRB) */
-/*   890831  Modified array declarations.  (WRB) */
-/*   891006  Cosmetic changes to prologue.  (WRB) */
-/*   891006  REVISION DATE from Version 3.2 */
-/*   891214  Prologue converted to Version 4.0 format.  (BAB) */
-/*   900315  CALLs to XERROR changed to CALLs to XERMSG.  (THJ) */
 /*  Programming notes: */
 /*     1. To produce a single precision version, simply: */
 /*        a. Change DPCHFD to PCHFD, and DCHFDV to CHFDV, wherever they */
@@ -961,9 +886,6 @@ void dpchfd(integer n, doublereal *x, doublereal *f,
 /*            be useful directly as an evaluator for a piecewise cubic */
 /*            Hermite function in applications, such as graphing, where */
 /*            the interval is known in advance. */
-/* ***LIBRARY   SLATEC (PCHIP) */
-/* ***KEYWORDS  CUBIC HERMITE EVALUATION, CUBIC POLYNOMIAL EVALUATION, */
-/*             PCHIP */
 /* ***AUTHOR  Fritsch, F. N., (LLNL) */
 /*             Lawrence Livermore National Laboratory */
 /*             P.O. Box 808  (L-316) */
@@ -1001,19 +923,6 @@ void dpchfd(integer n, doublereal *x, doublereal *f,
 /*              IERR = -1  if NE.LT.1 . */
 /*              IERR = -2  if X1.EQ.X2 . */
 /*                (The FE-array has not been changed in either case.) */
-/* ***REVISION HISTORY  (YYMMDD) */
-/*   811019  DATE WRITTEN */
-/*   820803  Minor cosmetic changes for release 1. */
-/*   870813  Corrected XERROR calls for d.p. names(s). */
-/*   890206  Corrected XERROR calls. */
-/*   890411  Added SAVE statements (Vers. 3.2). */
-/*   890531  Changed all specific intrinsics to generic.  (WRB) */
-/*   890703  Corrected category record.  (WRB) */
-/*   890831  Modified array declarations.  (WRB) */
-/*   891006  Cosmetic changes to prologue.  (WRB) */
-/*   891006  REVISION DATE from Version 3.2 */
-/*   891214  Prologue converted to Version 4.0 format.  (BAB) */
-/*   900315  CALLs to XERROR changed to CALLs to XERMSG.  (THJ) */
 /*  Programming notes: */
 /*     To produce a single precision version, simply: */
 /*        a. Change DCHFEV to CHFEV wherever it occurs, */
@@ -1076,9 +985,6 @@ void dchfev(doublereal x1, doublereal x2, doublereal f1,
 /* ***PURPOSE  Evaluate a piecewise cubic Hermite function at an array of */
 /*            points.  May be used by itself for Hermite interpolation, */
 /*            or as an evaluator for DPCHIM or DPCHIC. */
-/* ***LIBRARY   SLATEC (PCHIP) */
-/* ***KEYWORDS  CUBIC HERMITE EVALUATION, HERMITE INTERPOLATION, PCHIP, */
-/*             PIECEWISE CUBIC EVALUATION */
 /* ***AUTHOR  Fritsch, F. N., (LLNL) */
 /*             Lawrence Livermore National Laboratory */
 /*             P.O. Box 808  (L-316) */
@@ -1142,18 +1048,6 @@ void dchfev(doublereal x1, doublereal x2, doublereal f1,
 /*             (The FE-array has not been changed in any of these cases.) */
 /*               NOTE:  The above errors are checked in the order listed, */
 /*                   and following arguments have **NOT** been validated. */
-/* ***REVISION HISTORY  (YYMMDD) */
-/*   811020  DATE WRITTEN */
-/*   820803  Minor cosmetic changes for release 1. */
-/*   870707  Corrected XERROR calls for d.p. name(s). */
-/*   890206  Corrected XERROR calls. */
-/*   890531  Changed all specific intrinsics to generic.  (WRB) */
-/*   890831  Modified array declarations.  (WRB) */
-/*   891006  Cosmetic changes to prologue.  (WRB) */
-/*   891006  REVISION DATE from Version 3.2 */
-/*   891214  Prologue converted to Version 4.0 format.  (BAB) */
-/*   900315  CALLs to XERROR changed to CALLs to XERMSG.  (THJ) */
-/* ***END PROLOGUE  DPCHFE */
 /*  Programming notes: */
 /*     1. To produce a single precision version, simply: */
 /*        a. Change DPCHFE to PCHFE, and DCHFEV to CHFEV, wherever they */
@@ -1337,9 +1231,7 @@ void dpchfe(integer n, doublereal *x, doublereal *f,
     }
 }
 
-/* ***BEGIN PROLOGUE  DCHFIE */
 /* ***PURPOSE  Evaluates integral of a single cubic for DPCHIA */
-/* ***LIBRARY   SLATEC (PCHIP) */
 /* ***AUTHOR  Fritsch, F. N., (LLNL) */
 /*          DCHFIE:  Cubic Hermite Function Integral Evaluator. */
 /*     Called by  DPCHIA  to evaluate the integral of a single cubic (in */
@@ -1356,21 +1248,6 @@ void dpchfe(integer n, doublereal *x, doublereal *f,
 /*     D1,D2 -- (input) derivative values at the ends of the interval. */
 /*     A,B -- (input) endpoints of interval of integration. */
 /* ***SEE ALSO  DPCHIA */
-/* ***REVISION HISTORY  (YYMMDD) */
-/*   820730  DATE WRITTEN */
-/*   820805  Converted to SLATEC library version. */
-/*   870707  Corrected subroutine name from DCHIV to DCHFIV. */
-/*   870813  Minor cosmetic changes. */
-/*   890411  1. Added SAVE statements (Vers. 3.2). */
-/*           2. Added SIX to DOUBLE PRECISION declaration. */
-/*   890411  REVISION DATE from Version 3.2 */
-/*   891214  Prologue converted to Version 4.0 format.  (BAB) */
-/*   900315  CALLs to XERROR changed to CALLs to XERMSG.  (THJ) */
-/*   900328  Added TYPE section.  (WRB) */
-/*   910408  Updated AUTHOR section in prologue.  (WRB) */
-/*   930503  Corrected to set VALUE=0 when IERR.ne.0.  (FNF) */
-/*   930504  Eliminated IERR and changed name DCHFIV to DCHFIE.  (FNF) */
-/* ***END PROLOGUE  DCHFIE */
 /*  Programming notes: */
 /*  1. There is no error return from this routine because zero is */
 /*     indeed the mathematically correct answer when X1.EQ.X2 . */
@@ -1413,13 +1290,8 @@ doublereal dchfie(doublereal x1, doublereal x2, doublereal f1, doublereal f2,
     return 0.5 * h__ * (fterm + dterm);
 }
 
-/* ***BEGIN PROLOGUE  DPCHIA */
 /* ***PURPOSE  Evaluate the definite integral of a piecewise cubic */
 /*            Hermite function over an arbitrary interval. */
-/* ***LIBRARY   SLATEC (PCHIP) */
-/* ***CATEGORY  E3, H2A1B2 */
-/* ***KEYWORDS  CUBIC HERMITE INTERPOLATION, NUMERICAL INTEGRATION, PCHIP, */
-/*             QUADRATURE */
 /* ***AUTHOR  Fritsch, F. N., (LLNL) */
 /*             Lawrence Livermore National Laboratory */
 /*             P.O. Box 808  (L-316) */
@@ -1479,23 +1351,6 @@ doublereal dchfie(doublereal x1, doublereal x2, doublereal f1, doublereal f2,
 /*                   and following arguments have **NOT** been validated. */
 /*              IERR = -4  in case of an error return from DPCHID (which */
 /*                         should never occur). */
-/* ***REVISION HISTORY  (YYMMDD) */
-/*   820730  DATE WRITTEN */
-/*   820804  Converted to SLATEC library version. */
-/*   870707  Corrected XERROR calls for d.p. name(s). */
-/*   870707  Corrected conversion to double precision. */
-/*   870813  Minor cosmetic changes. */
-/*   890206  Corrected XERROR calls. */
-/*   890411  Added SAVE statements (Vers. 3.2). */
-/*   890531  Changed all specific intrinsics to generic.  (WRB) */
-/*   890703  Corrected category record.  (WRB) */
-/*   890831  Modified array declarations.  (WRB) */
-/*   891006  Cosmetic changes to prologue.  (WRB) */
-/*   891006  REVISION DATE from Version 3.2 */
-/*   891214  Prologue converted to Version 4.0 format.  (BAB) */
-/*   900315  CALLs to XERROR changed to CALLs to XERMSG.  (THJ) */
-/*   930503  Corrected to set VALUE=0 when IERR.lt.0.  (FNF) */
-/*   930504  Changed DCHFIV to DCHFIE.  (FNF) */
 /*  Programming notes: */
 /*  1. The error flag from DPCHID is tested, because a logic flaw */
 /*     could conceivably result in IERD=-4, which should be reported. */
@@ -1651,10 +1506,6 @@ doublereal dpchia(integer n, doublereal *x, doublereal *f, doublereal *d__,
 /* ***PURPOSE  Evaluate the definite integral of a piecewise cubic */
 /*            Hermite function over an interval whose endpoints are data */
 /*            points. */
-/* ***LIBRARY   SLATEC (PCHIP) */
-/* ***CATEGORY  E3, H2A1B2 */
-/* ***KEYWORDS  CUBIC HERMITE INTERPOLATION, NUMERICAL INTEGRATION, PCHIP, */
-/*             QUADRATURE */
 /* ***AUTHOR  Fritsch, F. N., (LLNL) */
 /*             Lawrence Livermore National Laboratory */
 /*             P.O. Box 808  (L-316) */
@@ -1705,21 +1556,6 @@ doublereal dpchia(integer n, doublereal *x, doublereal *f, doublereal *d__,
 /*                (VALUE will be zero in any of these cases.) */
 /*               NOTE:  The above errors are checked in the order listed, */
 /*                   and following arguments have **NOT** been validated. */
-/* ***REVISION HISTORY  (YYMMDD) */
-/*   820723  DATE WRITTEN */
-/*   820804  Converted to SLATEC library version. */
-/*   870707  Corrected XERROR calls for d.p. name(s). */
-/*   870813  Minor cosmetic changes. */
-/*   890206  Corrected XERROR calls. */
-/*   890411  Added SAVE statements (Vers. 3.2). */
-/*   890531  Changed all specific intrinsics to generic.  (WRB) */
-/*   890703  Corrected category record.  (WRB) */
-/*   890831  Modified array declarations.  (WRB) */
-/*   891006  Cosmetic changes to prologue.  (WRB) */
-/*   891006  REVISION DATE from Version 3.2 */
-/*   891214  Prologue converted to Version 4.0 format.  (BAB) */
-/*   900315  CALLs to XERROR changed to CALLs to XERMSG.  (THJ) */
-/*   930504  Corrected to set VALUE=0 when IERR.ne.0.  (FNF) */
 /*  Programming notes: */
 /*  1. This routine uses a special formula that is valid only for */
 /*     integrals whose limits coincide with data values.  This is */
@@ -1797,7 +1633,6 @@ doublereal dpchid(integer n, doublereal *x, doublereal *f, doublereal *d__,
 }
 
 /* ***PURPOSE  Set boundary conditions for DPCHIC */
-/* ***LIBRARY   SLATEC (PCHIP) */
 /* ***AUTHOR  Fritsch, F. N., (LLNL) */
 /*          DPCHCE:  DPCHIC End Derivative Setter. */
 /*    Called by DPCHIC to set end derivatives as requested by the user. */
@@ -1849,20 +1684,6 @@ doublereal dpchid(integer n, doublereal *x, doublereal *f, doublereal *d__,
 /*    WARNING:  This routine does no validity-checking of arguments. */
 /*    ------- */
 /* ***SEE ALSO  DPCHIC */
-/* ***REVISION HISTORY  (YYMMDD) */
-/*   820218  DATE WRITTEN */
-/*   820805  Converted to SLATEC library version. */
-/*   870707  Corrected XERROR calls for d.p. name(s). */
-/*   890206  Corrected XERROR calls. */
-/*   890411  Added SAVE statements (Vers. 3.2). */
-/*   890531  Changed all specific intrinsics to generic.  (WRB) */
-/*   890831  Modified array declarations.  (WRB) */
-/*   890831  REVISION DATE from Version 3.2 */
-/*   891214  Prologue converted to Version 4.0 format.  (BAB) */
-/*   900315  CALLs to XERROR changed to CALLs to XERMSG.  (THJ) */
-/*   900328  Added TYPE section.  (WRB) */
-/*   910408  Updated AUTHOR section in prologue.  (WRB) */
-/*   930503  Improved purpose.  (FNF) */
 /*  Programming notes: */
 /*     1. The function DPCHST(ARG1,ARG2)  is assumed to return zero if */
 /*        either argument is zero, +1 if they are of the same sign, and */
@@ -2019,7 +1840,6 @@ integer dpchce(integer *ic, doublereal *vc, integer n,
 }
 
 /* ***PURPOSE  Set interior derivatives for DPCHIC */
-/* ***LIBRARY   SLATEC (PCHIP) */
 /* ***AUTHOR  Fritsch, F. N., (LLNL) */
 /*          DPCHCI:  DPCHIC Initial Derivative Setter. */
 /*    Called by DPCHIC to set derivatives needed to determine a monotone */
@@ -2058,23 +1878,6 @@ integer dpchce(integer *ic, doublereal *vc, integer n,
 /*    WARNING:  This routine does no validity-checking of arguments. */
 /*    ------- */
 /* ***SEE ALSO  DPCHIC */
-/* ***REVISION HISTORY  (YYMMDD) */
-/*   820218  DATE WRITTEN */
-/*   820601  Modified end conditions to be continuous functions of */
-/*           data when monotonicity switches in next interval. */
-/*   820602  1. Modified formulas so end conditions are less prone */
-/*             to over/underflow problems. */
-/*           2. Minor modification to HSUM calculation. */
-/*   820805  Converted to SLATEC library version. */
-/*   870813  Minor cosmetic changes. */
-/*   890411  Added SAVE statements (Vers. 3.2). */
-/*   890531  Changed all specific intrinsics to generic.  (WRB) */
-/*   890831  Modified array declarations.  (WRB) */
-/*   890831  REVISION DATE from Version 3.2 */
-/*   891214  Prologue converted to Version 4.0 format.  (BAB) */
-/*   900328  Added TYPE section.  (WRB) */
-/*   910408  Updated AUTHOR section in prologue.  (WRB) */
-/*   930503  Improved purpose.  (FNF) */
 /*  Programming notes: */
 /*     1. The function  DPCHST(ARG1,ARG2)  is assumed to return zero if */
 /*        either argument is zero, +1 if they are of the same sign, and */
@@ -2168,7 +1971,6 @@ void dpchci(integer n, doublereal *h__, doublereal *slope,
 }
 
 /* ***PURPOSE  Adjusts derivative values for DPCHIC */
-/* ***LIBRARY   SLATEC (PCHIP) */
 /* ***AUTHOR  Fritsch, F. N., (LLNL) */
 /*         DPCHCS:  DPCHIC Monotonicity Switch Derivative Setter. */
 /*     Called by  DPCHIC  to adjust the values of D in the vicinity of a */
@@ -2206,28 +2008,6 @@ void dpchci(integer n, doublereal *h__, doublereal *slope,
 /*    ------- */
 /*  Fortran intrinsics used:  ABS, MAX, MIN. */
 /* ***SEE ALSO  DPCHIC */
-/* ***REVISION HISTORY  (YYMMDD) */
-/*   820218  DATE WRITTEN */
-/*   820617  Redesigned to (1) fix  problem with lack of continuity */
-/*           approaching a flat-topped peak (2) be cleaner and */
-/*           easier to verify. */
-/*           Eliminated subroutines PCHSA and PCHSX in the process. */
-/*   820622  1. Limited fact to not exceed one, so computed D is a */
-/*             convex combination of DPCHCI value and DPCHSD value. */
-/*           2. Changed fudge from 1 to 4 (based on experiments). */
-/*   820623  Moved PCHSD to an inline function (eliminating MSWTYP). */
-/*   820805  Converted to SLATEC library version. */
-/*   870707  Corrected conversion to double precision. */
-/*   870813  Minor cosmetic changes. */
-/*   890411  Added SAVE statements (Vers. 3.2). */
-/*   890531  Changed all specific intrinsics to generic.  (WRB) */
-/*   890831  Modified array declarations.  (WRB) */
-/*   891006  Modified spacing in computation of DFLOC.  (WRB) */
-/*   891006  REVISION DATE from Version 3.2 */
-/*   891214  Prologue converted to Version 4.0 format.  (BAB) */
-/*   900328  Added TYPE section.  (WRB) */
-/*   910408  Updated AUTHOR section in prologue.  (WRB) */
-/*   930503  Improved purpose.  (FNF) */
 /*  Programming notes: */
 /*     1. The function  DPCHST(ARG1,ARG2)  is assumed to return zero if */
 /*        either argument is zero, +1 if they are of the same sign, and */
@@ -2403,7 +2183,6 @@ integer dpchcs(doublereal switch__, integer n, doublereal *
 }
 
 /* ***PURPOSE  Computes divided differences for DPCHCE and DPCHSP */
-/* ***LIBRARY   SLATEC (PCHIP) */
 /* ***AUTHOR  Fritsch, F. N., (LLNL) */
 /*          DPCHDF:   DPCHIP Finite Difference Formula */
 /*     Uses a divided difference formulation to compute a K-point approx- */
@@ -2429,21 +2208,6 @@ integer dpchcs(doublereal switch__, integer n, doublereal *
 /* ***SEE ALSO  DPCHCE, DPCHSP */
 /* ***REFERENCES  Carl de Boor, A Practical Guide to Splines, Springer- */
 /*                 Verlag, New York, 1978, pp. 10-16. */
-/* ***REVISION HISTORY  (YYMMDD) */
-/*   820503  DATE WRITTEN */
-/*   820805  Converted to SLATEC library version. */
-/*   870707  Corrected XERROR calls for d.p. name(s). */
-/*   870813  Minor cosmetic changes. */
-/*   890206  Corrected XERROR calls. */
-/*   890411  Added SAVE statements (Vers. 3.2). */
-/*   890411  REVISION DATE from Version 3.2 */
-/*   891214  Prologue converted to Version 4.0 format.  (BAB) */
-/*   900315  CALLs to XERROR changed to CALLs to XERMSG.  (THJ) */
-/*   900328  Added TYPE section.  (WRB) */
-/*   910408  Updated AUTHOR and DATE WRITTEN sections in prologue.  (WRB) */
-/*   920429  Revised format and order of references.  (WRB,FNF) */
-/*   930503  Improved purpose.  (FNF) */
-/* ***END PROLOGUE  DPCHDF */
 /*  CHECK FOR LEGAL VALUE OF K. */
 doublereal dpchdf(integer k, doublereal *x, doublereal *s, integer *ierr)
 {
@@ -2479,10 +2243,6 @@ doublereal dpchdf(integer k, doublereal *x, doublereal *s, integer *ierr)
 /*            piecewise cubic Hermite interpolant to given data. */
 /*            User control is available over boundary conditions and/or */
 /*            treatment of points where monotonicity switches direction. */
-/* ***LIBRARY   SLATEC (PCHIP) */
-/* ***KEYWORDS  CUBIC HERMITE INTERPOLATION, MONOTONE INTERPOLATION, */
-/*             PCHIP, PIECEWISE CUBIC INTERPOLATION, */
-/*             SHAPE-PRESERVING INTERPOLATION */
 /* ***AUTHOR  Fritsch, F. N., (LLNL) */
 /*             Lawrence Livermore National Laboratory */
 /*             P.O. Box 808  (L-316) */
@@ -2630,21 +2390,6 @@ doublereal dpchdf(integer k, doublereal *x, doublereal *s, integer *ierr)
 /*               3. F. N. Fritsch and R. E. Carlson, Monotone piecewise */
 /*                 cubic interpolation, SIAM Journal on Numerical Ana- */
 /*                 lysis 17, 2 (April 1980), pp. 238-246. */
-/* ***REVISION HISTORY  (YYMMDD) */
-/*   820218  DATE WRITTEN */
-/*   820804  Converted to SLATEC library version. */
-/*   870707  Corrected XERROR calls for d.p. name(s). */
-/*   870813  Updated Reference 2. */
-/*   890206  Corrected XERROR calls. */
-/*   890411  Added SAVE statements (Vers. 3.2). */
-/*   890531  Changed all specific intrinsics to generic.  (WRB) */
-/*   890703  Corrected category record.  (WRB) */
-/*   890831  Modified array declarations.  (WRB) */
-/*   891006  Cosmetic changes to prologue.  (WRB) */
-/*   891006  REVISION DATE from Version 3.2 */
-/*   891214  Prologue converted to Version 4.0 format.  (BAB) */
-/*   900315  CALLs to XERROR changed to CALLs to XERMSG.  (THJ) */
-/*   920429  Revised format and order of references.  (WRB,FNF) */
 /*  Programming notes: */
 /*     To produce a single precision version, simply: */
 /*        a. Change DPCHIC to PCHIC wherever it occurs, */
@@ -2756,7 +2501,6 @@ void dpchic(integer *ic, doublereal *vc, doublereal switch__,
 }
 
 /* ***PURPOSE  DPCHIP Sign-Testing Routine */
-/* ***LIBRARY   SLATEC (PCHIP) */
 /* ***AUTHOR  Fritsch, F. N., (LLNL) */
 /*     Returns: */
 /*        -1. if ARG1 and ARG2 are of opposite sign. */
@@ -2766,24 +2510,12 @@ void dpchic(integer *ic, doublereal *vc, doublereal switch__,
 /*     possible over/underflow problems. */
 /*  Fortran intrinsics used:  SIGN. */
 /* ***SEE ALSO  DPCHCE, DPCHCI, DPCHCS, DPCHIM */
-/* ***REVISION HISTORY  (YYMMDD) */
-/*   811103  DATE WRITTEN */
-/*   820805  Converted to SLATEC library version. */
-/*   870813  Minor cosmetic changes. */
-/*   890411  Added SAVE statements (Vers. 3.2). */
-/*   890531  Changed all specific intrinsics to generic.  (WRB) */
-/*   890531  REVISION DATE from Version 3.2 */
-/*   891214  Prologue converted to Version 4.0 format.  (BAB) */
-/*   900328  Added TYPE section.  (WRB) */
-/*   910408  Updated AUTHOR and DATE WRITTEN sections in prologue.  (WRB) */
-/*   930503  Improved purpose.  (FNF) */
 doublereal dpchst(doublereal arg1, doublereal arg2)
 {
     return (arg1 == 0. || arg2 == 0.) ? 0. : d_sign(1, arg1) * d_sign(1, arg2);
 }
 
 /* ***PURPOSE  Limits excursion from data for DPCHCS */
-/* ***LIBRARY   SLATEC (PCHIP) */
 /* ***AUTHOR  Fritsch, F. N., (LLNL) */
 /*         DPCHSW:  DPCHCS Switch Excursion Limiter. */
 /*     Called by  DPCHCS  to adjust D1 and D2 if necessary to insure that */
@@ -2815,23 +2547,6 @@ doublereal dpchst(doublereal arg1, doublereal arg2)
 /*    ------- */
 /*  Fortran intrinsics used:  ABS, SIGN, SQRT. */
 /* ***SEE ALSO  DPCHCS */
-/* ***REVISION HISTORY  (YYMMDD) */
-/*   820218  DATE WRITTEN */
-/*   820805  Converted to SLATEC library version. */
-/*   870707  Corrected XERROR calls for d.p. name(s). */
-/*   870707  Replaced DATA statement for SMALL with a use of D1MACH. */
-/*   870813  Minor cosmetic changes. */
-/*   890206  Corrected XERROR calls. */
-/*   890411  1. Added SAVE statements (Vers. 3.2). */
-/*           2. Added DOUBLE PRECISION declaration for D1MACH. */
-/*   890531  Changed all specific intrinsics to generic.  (WRB) */
-/*   890531  REVISION DATE from Version 3.2 */
-/*   891214  Prologue converted to Version 4.0 format.  (BAB) */
-/*   900315  CALLs to XERROR changed to CALLs to XERMSG.  (THJ) */
-/*   900328  Added TYPE section.  (WRB) */
-/*   910408  Updated AUTHOR and DATE WRITTEN sections in prologue.  (WRB) */
-/*   920526  Eliminated possible divide by zero problem.  (FNF) */
-/*   930503  Improved purpose.  (FNF) */
 /*  NOTATION AND GENERAL REMARKS. */
 /*     RHO IS THE RATIO OF THE DATA SLOPE TO THE DERIVATIVE BEING TESTED. */
 /*     LAMBDA IS THE RATIO OF D2 TO D1. */
@@ -2945,9 +2660,6 @@ integer dpchsw(doublereal dfmax, integer iextrm, doublereal d1,
 /*            interpolant will have an extremum at each point where mono- */
 /*            tonicity switches direction.  (See DPCHIC if user control */
 /*            is desired over boundary or switch conditions.) */
-/* ***LIBRARY   SLATEC (PCHIP) */
-/* ***KEYWORDS  CUBIC HERMITE INTERPOLATION, MONOTONE INTERPOLATION, */
-/*             PCHIP, PIECEWISE CUBIC INTERPOLATION */
 /* ***AUTHOR  Fritsch, F. N., (LLNL) */
 /*             Lawrence Livermore National Laboratory */
 /*             P.O. Box 808  (L-316) */
@@ -3016,28 +2728,6 @@ integer dpchsw(doublereal dfmax, integer iextrm, doublereal d1,
 /*               2. F. N. Fritsch and R. E. Carlson, Monotone piecewise */
 /*                 cubic interpolation, SIAM Journal on Numerical Ana- */
 /*                 lysis 17, 2 (April 1980), pp. 238-246. */
-/* ***REVISION HISTORY  (YYMMDD) */
-/*   811103  DATE WRITTEN */
-/*   820201  1. Introduced  DPCHST  to reduce possible over/under- */
-/*             flow problems. */
-/*           2. Rearranged derivative formula for same reason. */
-/*   820602  1. Modified end conditions to be continuous functions */
-/*             of data when monotonicity switches in next interval. */
-/*           2. Modified formulas so end conditions are less prone */
-/*             of over/underflow problems. */
-/*   820803  Minor cosmetic changes for release 1. */
-/*   870707  Corrected XERROR calls for d.p. name(s). */
-/*   870813  Updated Reference 1. */
-/*   890206  Corrected XERROR calls. */
-/*   890411  Added SAVE statements (Vers. 3.2). */
-/*   890531  Changed all specific intrinsics to generic.  (WRB) */
-/*   890703  Corrected category record.  (WRB) */
-/*   890831  Modified array declarations.  (WRB) */
-/*   891006  Cosmetic changes to prologue.  (WRB) */
-/*   891006  REVISION DATE from Version 3.2 */
-/*   891214  Prologue converted to Version 4.0 format.  (BAB) */
-/*   900315  CALLs to XERROR changed to CALLs to XERMSG.  (THJ) */
-/*   920429  Revised format and order of references.  (WRB,FNF) */
 /*  Programming notes: */
 /*     1. The function  DPCHST(ARG1,ARG2)  is assumed to return zero if */
 /*        either argument is zero, +1 if they are of the same sign, and */
@@ -3188,9 +2878,6 @@ void dpchim(integer n, doublereal *x, doublereal *f,
 /* ***PURPOSE  Set derivatives needed to determine the Hermite represen- */
 /*            tation of the cubic spline interpolant to given data, with */
 /*            specified boundary conditions. */
-/* ***LIBRARY   SLATEC (PCHIP) */
-/* ***KEYWORDS  CUBIC HERMITE INTERPOLATION, PCHIP, */
-/*             PIECEWISE CUBIC INTERPOLATION, SPLINE INTERPOLATION */
 /* ***AUTHOR  Fritsch, F. N., (LLNL) */
 /*             Lawrence Livermore National Laboratory */
 /*             P.O. Box 808  (L-316) */
@@ -3282,19 +2969,6 @@ void dpchim(integer n, doublereal *x, doublereal *f,
 /*             (             Do **NOT** use it!                ) */
 /* ***REFERENCES  Carl de Boor, A Practical Guide to Splines, Springer- */
 /*                 Verlag, New York, 1978, pp. 53-59. */
-/* ***REVISION HISTORY  (YYMMDD) */
-/*   820503  DATE WRITTEN */
-/*   820804  Converted to SLATEC library version. */
-/*   870707  Corrected XERROR calls for d.p. name(s). */
-/*   890206  Corrected XERROR calls. */
-/*   890411  Added SAVE statements (Vers. 3.2). */
-/*   890703  Corrected category record.  (WRB) */
-/*   890831  Modified array declarations.  (WRB) */
-/*   891006  Cosmetic changes to prologue.  (WRB) */
-/*   891006  REVISION DATE from Version 3.2 */
-/*   891214  Prologue converted to Version 4.0 format.  (BAB) */
-/*   900315  CALLs to XERROR changed to CALLs to XERMSG.  (THJ) */
-/*   920429  Revised format and order of references.  (WRB,FNF) */
 /*  Programming notes: */
 /*     To produce a single precision version, simply: */
 /*        a. Change DPCHSP to PCHSP wherever it occurs, */
