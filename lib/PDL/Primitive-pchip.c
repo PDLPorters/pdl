@@ -41,7 +41,7 @@ doublereal dchfie(doublereal, doublereal, doublereal,
 	    doublereal, doublereal, doublereal, doublereal,
 	    doublereal);
 doublereal dpchid(integer, doublereal *, doublereal *,
-	    doublereal *, integer, logical *, integer *, integer *,
+	    doublereal *, integer, logical *, integer, integer,
             integer *);
 doublereal dpchst(doublereal, doublereal);
 integer dpchsw(doublereal, integer, doublereal,
@@ -58,7 +58,7 @@ doublereal d1mach() {
 }
 
 doublereal dbvalu(doublereal *t, doublereal *a, integer n, integer k,
-	integer *ideriv, doublereal *x, integer inbv, doublereal *work)
+	integer ideriv, doublereal x, integer inbv, doublereal *work)
 {
     /* System generated locals */
     integer i__1, i__2;
@@ -137,23 +137,23 @@ doublereal dbvalu(doublereal *t, doublereal *a, integer n, integer k,
     if (n < k) {
 	goto L101;
     }
-    if (*ideriv < 0 || *ideriv >= k) {
+    if (ideriv < 0 || ideriv >= k) {
 	goto L110;
     }
-    kmider = k - *ideriv;
+    kmider = k - ideriv;
 
 /* *** FIND *I* IN (K,N) SUCH THAT T(I) .LE. X .LT. T(I+1) */
 /*     (OR, .LE. T(I+1) IF T(I) .LT. T(I+1) = T(N+1)). */
     km1 = k - 1;
     i__1 = n + 1;
-    dintrv(&t[0], i__1, *x, &inbv, &i__, &mflag);
-    if (*x < t[k-1]) {
+    dintrv(&t[0], i__1, x, &inbv, &i__, &mflag);
+    if (x < t[k-1]) {
 	goto L120;
     }
     if (mflag == 0) {
 	goto L20;
     }
-    if (*x > t[i__-1]) {
+    if (x > t[i__-1]) {
 	goto L130;
     }
 L10:
@@ -161,7 +161,7 @@ L10:
 	goto L140;
     }
     --i__;
-    if (*x == t[i__-1]) {
+    if (x == t[i__-1]) {
 	goto L10;
     }
 
@@ -175,10 +175,10 @@ L20:
 	imkpj = imk + j;
 	work[j] = a[imkpj];
     }
-    if (*ideriv == 0) {
+    if (ideriv == 0) {
 	goto L60;
     }
-    i__1 = *ideriv;
+    i__1 = ideriv;
     for (j = 1; j <= i__1; ++j) {
 	kmj = k - j;
 	fkmj = (doublereal) kmj;
@@ -194,7 +194,7 @@ L20:
 /* *** COMPUTE VALUE AT *X* IN (T(I),(T(I+1)) OF IDERIV-TH DERIVATIVE, */
 /*     GIVEN ITS RELEVANT B-SPLINE COEFF. IN AJ(1),...,AJ(K-IDERIV). */
 L60:
-    if (*ideriv == km1) {
+    if (ideriv == km1) {
 	goto L100;
     }
     ip1 = i__ + 1;
@@ -204,13 +204,13 @@ L60:
     i__1 = kmider;
     for (j = 1; j <= i__1; ++j) {
 	ipj = i__ + j;
-	work[j1-1] = t[ipj-1] - *x;
+	work[j1-1] = t[ipj-1] - x;
 	ip1mj = ip1 - j;
-	work[j2-1] = *x - t[ip1mj-1];
+	work[j2-1] = x - t[ip1mj-1];
 	++j1;
 	++j2;
     }
-    iderp1 = *ideriv + 1;
+    iderp1 = ideriv + 1;
     i__1 = km1;
     for (j = iderp1; j <= i__1; ++j) {
 	kmj = k - j;
@@ -1829,8 +1829,8 @@ doublereal dchfie(doublereal x1, doublereal x2, doublereal f1, doublereal f2,
 }
 
 doublereal dpchia(integer n, doublereal *x, doublereal *f, doublereal *d__,
-	integer incfd, logical *skip, doublereal *a, doublereal *b, integer *
-	ierr)
+	integer incfd, logical *skip, doublereal a, doublereal b,
+	integer *ierr)
 {
     /* System generated locals */
     integer f_dim1, f_offset, d_dim1, d_offset, i__1, i__2;
@@ -1989,30 +1989,30 @@ doublereal dpchia(integer n, doublereal *x, doublereal *f, doublereal *d__,
 L5:
     *skip = TRUE_;
     *ierr = 0;
-    if (*a < x[0] || *a > x[n-1]) {
+    if (a < x[0] || a > x[n-1]) {
 	++(*ierr);
     }
-    if (*b < x[0] || *b > x[n-1]) {
+    if (b < x[0] || b > x[n-1]) {
 	*ierr += 2;
     }
 
 /*  COMPUTE INTEGRAL VALUE. */
 
-    if (*a != *b) {
-	xa = min(*a,*b);
-	xb = max(*a,*b);
+    if (a != b) {
+	xa = min(a,b);
+	xb = max(a,b);
 	if (xb <= x[1]) {
 /*           INTERVAL IS TO LEFT OF X(2), SO USE FIRST CUBIC. */
 /*                   --------------------------------------- */
 	    value = dchfie(x[0], x[1], f[f_dim1], f[(f_dim1 << 1)],
-		    d__[d_dim1], d__[(d_dim1 << 1)], *a, *b);
+		    d__[d_dim1], d__[(d_dim1 << 1)], a, b);
 /*                   --------------------------------------- */
 	} else if (xa >= x[n - 2]) {
 /*           INTERVAL IS TO RIGHT OF X(N-1), SO USE LAST CUBIC. */
 /*                   ------------------------------------------ */
 	    value = dchfie(x[n - 2], x[n-1], f[(n - 1) * f_dim1],
 		    f[n * f_dim1], d__[(n - 1) * d_dim1],
-		    d__[n * d_dim1], *a, *b);
+		    d__[n * d_dim1], a, b);
 /*                   ------------------------------------------ */
 	} else {
 /*           'NORMAL' CASE -- XA.LT.XB, XA.LT.X(N-1), XB.GT.X(2). */
@@ -2045,7 +2045,7 @@ L5:
 /*                      ------------------------------------------- */
 		value = dchfie(x[ib-1], x[ia-1], f[ib * f_dim1],
 			f[ia * f_dim1], d__[ib * d_dim1], d__[ia * d_dim1],
-			*a, *b);
+			a, b);
 /*                      ------------------------------------------- */
 	    } else {
 
@@ -2054,9 +2054,8 @@ L5:
 /*                 of VALUE to ZERO.) */
 		if (ib > ia) {
 /*                         --------------------------------------------- */
-		    integer iam1 = ia-1, ibm1 = ib-1;
 		    value = dpchid(n, &x[0], &f[f_offset], &d__[d_offset],
-			    incfd, skip, &iam1, &ibm1, &ierd);
+			    incfd, skip, ia-1, ib-1, &ierd);
 /*                         --------------------------------------------- */
 		    if (ierd < 0) {
 			goto L5004;
@@ -2090,7 +2089,7 @@ L5:
 		}
 
 /*              FINALLY, ADJUST SIGN IF NECESSARY. */
-		if (*a > *b) {
+		if (a > b) {
 		    value = -value;
 		}
 	    }
@@ -2131,7 +2130,7 @@ L5004:
 }
 
 doublereal dpchid(integer n, doublereal *x, doublereal *f, doublereal *d__,
-	integer incfd, logical *skip, integer *ia, integer *ib, integer *
+	integer incfd, logical *skip, integer ia, integer ib, integer *
 	ierr)
 {
     /* System generated locals */
@@ -2281,19 +2280,19 @@ doublereal dpchid(integer n, doublereal *x, doublereal *f, doublereal *d__,
 
 L5:
     *skip = TRUE_;
-    if (*ia < 0 || *ia > n-1) {
+    if (ia < 0 || ia > n-1) {
 	goto L5004;
     }
-    if (*ib < 0 || *ib > n-1) {
+    if (ib < 0 || ib > n-1) {
 	goto L5004;
     }
     *ierr = 0;
 
 /*  COMPUTE INTEGRAL VALUE. */
 
-    if (*ia != *ib) {
-	low = min(*ia,*ib);
-	iup = max(*ia,*ib) - 1;
+    if (ia != ib) {
+	low = min(ia,ib);
+	iup = max(ia,ib) - 1;
 	sum = 0.;
 	i__1 = iup+1;
 	for (i__ = low+1; i__ <= i__1; ++i__) {
@@ -2303,7 +2302,7 @@ L5:
 		    (h__ / 6.));
 	}
 	value = 0.5 * sum;
-	if (*ia > *ib) {
+	if (ia > ib) {
 	    value = -value;
 	}
     }
@@ -3214,8 +3213,8 @@ L5001:
     return ret_val;
 }
 
-void dpchic(integer *ic, doublereal *vc, doublereal *
-	switch__, integer n, doublereal *x, doublereal *f, doublereal *d__,
+void dpchic(integer *ic, doublereal *vc, doublereal switch__,
+	integer n, doublereal *x, doublereal *f, doublereal *d__,
 	integer incfd, doublereal *wk, integer nwk, integer *ierr)
 {
     /* System generated locals */
@@ -3510,11 +3509,11 @@ L1000:
 
 /*  SET DERIVATIVES AT POINTS WHERE MONOTONICITY SWITCHES DIRECTION. */
 
-    if (*switch__ == 0.) {
+    if (switch__ == 0.) {
 	goto L3000;
     }
 /*     ---------------------------------------------------- */
-    *ierr = dpchcs(*switch__, n, &wk[0], &wk[n-1], &d__[d_offset], incfd);
+    *ierr = dpchcs(switch__, n, &wk[0], &wk[n-1], &d__[d_offset], incfd);
 /*     ---------------------------------------------------- */
     if (*ierr != 0) {
 	goto L5008;

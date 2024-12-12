@@ -4169,6 +4169,8 @@ my %KIND2I = (
   Mat => ['', sub{"\$P($_[0][2])"}, sub {PDL::Type->new($_[0])->ctype." *"}],
   FuncRet => ['', sub {()}, sub {()}],
   Integer => ['longlong ', sub{"\$P($_[0][2])"}, sub {"PDL_LongLong *"}],
+  IntScalar => ['longlong ', sub{"\$$_[0][2]()"}, sub {"PDL_LongLong "}],
+  MatScalar => ['', sub{"\$$_[0][2]()"}, sub {PDL::Type->new($_[0])->ctype." "}],
   Logical => ['int ', sub{"\$P($_[0][2])"}, sub {"PDL_Long *"}],
   OtherParDim => [\'PDL_LongLong ', intcopy(sub {"dim_$_[0][2]"}, sub {"\$SIZE($_[0][2])"})],
   IntVal => [undef, sub {$_[0][4]}, sub {"PDL_LongLong "}],
@@ -4315,7 +4317,7 @@ defslatec('pchip_chic',
 	  {D => 'dpchic'},
 	  'Integer      ic      (two=2);
            Mat          vc      (two=2);
-           Mat          mflag   ();
+           MatScalar    mflag   ();
            IntVal       n=$SIZE(n);
            Mat          x       (n);
            Mat          f       (n);
@@ -4659,8 +4661,8 @@ defslatec('pchip_chia',
            Mat          d       (n);
            IntVal       incfd=1;
            Logical [io] skip    ();
-           Mat          la    ();
-           Mat          lb    ();
+           MatScalar    la    ();
+           MatScalar    lb    ();
            FuncRet [o]  ans     ();
            Integer [o]  ierr    ();
           ',
@@ -4724,8 +4726,8 @@ defslatec('pchip_chid',
            Mat          d       (n);
            IntVal       incfd=1;
            Logical [io] skip    ();
-           Integer      ia      ();
-           Integer      ib      ();
+           IntScalar    ia      ();
+           IntScalar    ib      ();
            FuncRet [o]  ans     ();
            Integer [o]  ierr    ();
           ',
@@ -4864,8 +4866,8 @@ defslatec('pchip_bvalu',
            Mat          a       (n);
            IntVal       n=$SIZE(n);
            IntVal       k=$SIZE(nplusk)-$SIZE(n);
-           Integer      ideriv  ();
-           Mat          x       ();
+           IntScalar    ideriv  ();
+           MatScalar    x       ();
            IntVal       inbv=1;
            Mat     [t]  work    (k3=CALC(3*($SIZE(nplusk)-$SIZE(n))));
            FuncRet [o]  ans     ();
