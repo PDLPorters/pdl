@@ -57,25 +57,14 @@ doublereal d1mach() {
   return 2.3e-16; /* for float, 1.2e-7 */
 }
 
-doublereal dbvalu(doublereal *t, doublereal *a, integer n, integer k,
-	integer ideriv, doublereal x, integer inbv, doublereal *work)
-{
-    /* Local variables */
-    integer i__, j, j1, j2, jj, km1, ihi, imk, kmj, ipj, ilo, kpk;
-    doublereal fkmj;
-    integer mflag, kmider;
-
 /* ***PURPOSE  Evaluate the B-representation of a B-spline at X for the */
 /*            function value or any of its derivatives. */
 /* ***LIBRARY   SLATEC */
 /* ***KEYWORDS  DIFFERENTIATION OF B-SPLINE, EVALUATION OF B-SPLINE */
 /* ***AUTHOR  Amos, D. E., (SNLA) */
-
 /*     Written by Carl de Boor and modified by D. E. Amos */
-
 /*     Abstract   **** a double precision routine **** */
 /*         DBVALU is the BVALUE function of the reference. */
-
 /*         DBVALU evaluates the B-representation (T,A,N,K) of a B-spline */
 /*         at X for the function value on IDERIV=0 or any of its */
 /*         derivatives on IDERIV=1,2,...,K-1.  Right limiting values */
@@ -83,14 +72,10 @@ doublereal dbvalu(doublereal *t, doublereal *a, integer n, integer k,
 /*         point X=T(N+1) where left limiting values are computed.  The */
 /*         spline is defined on T(K) .LE. X .LE. T(N+1).  DBVALU returns */
 /*         a fatal error message when X is outside of this interval. */
-
 /*         To compute left derivatives or left limiting values at a */
 /*         knot T(I), replace N by I-1 and set X=T(I), I=K+1,N+1. */
-
 /*         DBVALU calls DINTRV */
-
 /*     Description of Arguments */
-
 /*         Input      T,A,X are double precision */
 /*          T       - knot vector of length N+K */
 /*          A       - B-spline coefficient vector of length N */
@@ -102,7 +87,6 @@ doublereal dbvalu(doublereal *t, doublereal *a, integer n, integer k,
 /*          X       - argument, T(K) .LE. X .LE. T(N+1) */
 /*          INBV    - an initialization parameter which must be set */
 /*                    to 1 the first time DBVALU is called. */
-
 /*         Output     WORK,DBVALU are double precision */
 /*          INBV    - INBV contains information for efficient process- */
 /*                    ing after the initial call and INBV must not */
@@ -110,10 +94,8 @@ doublereal dbvalu(doublereal *t, doublereal *a, integer n, integer k,
 /*                    distinct INBV parameters. */
 /*          WORK    - work vector of length 3*K. */
 /*          DBVALU  - value of the IDERIV-th derivative at X */
-
 /*     Error Conditions */
 /*         An improper input is a fatal error */
-
 /* ***REFERENCES  Carl de Boor, Package for calculating with B-splines, */
 /*                 SIAM Journal on Numerical Analysis 14, 3 (June 1977), */
 /*                 pp. 441-472. */
@@ -125,6 +107,13 @@ doublereal dbvalu(doublereal *t, doublereal *a, integer n, integer k,
 /*   891214  Prologue converted to Version 4.0 format.  (BAB) */
 /*   900315  CALLs to XERROR changed to CALLs to XERMSG.  (THJ) */
 /*   920501  Reformatted the REFERENCES section.  (WRB) */
+doublereal dbvalu(doublereal *t, doublereal *a, integer n, integer k,
+	integer ideriv, doublereal x, integer inbv, doublereal *work)
+{
+    /* Local variables */
+    integer i__, j, j1, j2, jj, km1, ihi, imk, kmj, ipj, ilo, kpk;
+    doublereal fkmj;
+    integer mflag, kmider;
 
     if (k < 1) {
 	xermsg_("SLATEC", "DBVALU", "K DOES NOT SATISFY K.GE.1", (long)2);
@@ -206,34 +195,24 @@ doublereal dbvalu(doublereal *t, doublereal *a, integer n, integer k,
     return work[0];
 }
 
-void dintrv(doublereal *xt, integer lxt, doublereal x,
-	integer *ilo, integer *ileft, integer *mflag)
-{
 /* ***PURPOSE  Compute the largest integer ILEFT in 1 .LE. ILEFT .LE. LXT */
 /*            such that XT(ILEFT) .LE. X where XT(*) is a subdivision of */
 /*            the X interval. */
 /* ***LIBRARY   SLATEC */
 /* ***KEYWORDS  B-SPLINE, DATA FITTING, INTERPOLATION, SPLINES */
 /* ***AUTHOR  Amos, D. E., (SNLA) */
-
 /*     Written by Carl de Boor and modified by D. E. Amos */
-
 /*     Abstract    **** a double precision routine **** */
 /*         DINTRV is the INTERV routine of the reference. */
-
 /*         DINTRV computes the largest integer ILEFT in 1 .LE. ILEFT .LE. */
 /*         LXT such that XT(ILEFT) .LE. X where XT(*) is a subdivision of */
 /*         the X interval.  Precisely, */
-
 /*                      X .LT. XT(1)                1         -1 */
 /*         if  XT(I) .LE. X .LT. XT(I+1)  then  ILEFT=I  , MFLAG=0 */
 /*           XT(LXT) .LE. X                         LXT        1, */
-
 /*         That is, when multiplicities are present in the break point */
 /*         to the left of X, the largest index is taken for ILEFT. */
-
 /*     Description of Arguments */
-
 /*         Input      XT,X are double precision */
 /*          XT      - XT is a knot or break point vector of length LXT */
 /*          LXT     - length of the XT vector */
@@ -241,7 +220,6 @@ void dintrv(doublereal *xt, integer lxt, doublereal x,
 /*          ILO     - an initialization parameter which must be set */
 /*                    to 1 the first time the spline array XT is */
 /*                    processed by DINTRV. */
-
 /*         Output */
 /*          ILO     - ILO contains information for efficient process- */
 /*                    ing after the initial call and ILO must not be */
@@ -249,10 +227,8 @@ void dintrv(doublereal *xt, integer lxt, doublereal x,
 /*                    distinct ILO parameters. */
 /*          ILEFT   - largest integer satisfying XT(ILEFT) .LE. X */
 /*          MFLAG   - signals when X lies out of bounds */
-
 /*     Error Conditions */
 /*         None */
-
 /* ***REFERENCES  Carl de Boor, Package for calculating with B-splines, */
 /*                 SIAM Journal on Numerical Analysis 14, 3 (June 1977), */
 /*                 pp. 441-472. */
@@ -262,7 +238,9 @@ void dintrv(doublereal *xt, integer lxt, doublereal x,
 /*   890831  REVISION DATE from Version 3.2 */
 /*   891214  Prologue converted to Version 4.0 format.  (BAB) */
 /*   920501  Reformatted the REFERENCES section.  (WRB) */
-
+void dintrv(doublereal *xt, integer lxt, doublereal x,
+	integer *ilo, integer *ileft, integer *mflag)
+{
     integer ihi, istep, middle, skipflag;
 
     ihi = *ilo + 1;
@@ -344,20 +322,6 @@ void dintrv(doublereal *xt, integer lxt, doublereal x,
     }
 }
 
-void dpchbs(integer n, doublereal *x, doublereal *f,
-	doublereal *d__, integer incfd, integer *knotyp, integer *nknots,
-	doublereal *t, doublereal *bcoef, integer *ndim, integer *kord,
-	integer *ierr)
-{
-    /* System generated locals */
-    integer f_dim1, f_offset, d_dim1, d_offset;
-
-    /* Local variables */
-    integer k, kk;
-    doublereal dov3, hold, hnew;
-    char *libnam = "SLATEC";
-    char *subnam = "DPCHBS";
-
 /* ***PURPOSE  Piecewise Cubic Hermite to B-Spline converter. */
 /* ***LIBRARY   SLATEC (PCHIP) */
 /* ***KEYWORDS  B-SPLINES, CONVERSION, CUBIC HERMITE INTERPOLATION, */
@@ -368,39 +332,29 @@ void dpchbs(integer n, doublereal *x, doublereal *f,
 /*             P.O. Box 808  (L-316) */
 /*             Livermore, CA  94550 */
 /*             FTS 532-4275, (510) 422-4275 */
-
 /* *Usage: */
-
 /*        INTEGER  N, INCFD, KNOTYP, NKNOTS, NDIM, KORD, IERR */
 /*        PARAMETER  (INCFD = ...) */
 /*        DOUBLE PRECISION  X(nmax), F(INCFD,nmax), D(INCFD,nmax), */
 /*       *      T(2*nmax+4), BCOEF(2*nmax) */
-
 /*        CALL DPCHBS (N, X, F, D, INCFD, KNOTYP, NKNOTS, T, BCOEF, */
 /*       *             NDIM, KORD, IERR) */
-
 /* *Arguments: */
-
 /*     N:IN  is the number of data points, N.ge.2 .  (not checked) */
-
 /*     X:IN  is the real array of independent variable values.  The */
 /*           elements of X must be strictly increasing: */
 /*                X(I-1) .LT. X(I),  I = 2(1)N.   (not checked) */
 /*           nmax, the dimension of X, must be .ge.N. */
-
 /*     F:IN  is the real array of dependent variable values. */
 /*           F(1+(I-1)*INCFD) is the value corresponding to X(I). */
 /*           nmax, the second dimension of F, must be .ge.N. */
-
 /*     D:IN  is the real array of derivative values at the data points. */
 /*           D(1+(I-1)*INCFD) is the value corresponding to X(I). */
 /*           nmax, the second dimension of D, must be .ge.N. */
-
 /*     INCFD:IN  is the increment between successive values in F and D. */
 /*           This argument is provided primarily for 2-D applications. */
 /*           It may have the value 1 for one-dimensional applications, */
 /*           in which case F and D may be singly-subscripted arrays. */
-
 /*     KNOTYP:IN  is a flag to control the knot sequence. */
 /*           The knot sequence T is normally computed from X by putting */
 /*           a double knot at each X and setting the end knot pairs */
@@ -417,12 +371,10 @@ void dpchbs(integer n, doublereal *x, doublereal *f,
 /*           assumed that NKNOTS and T were set in a previous call. */
 /*           This option is provided for improved efficiency when used */
 /*           in a parametric setting. */
-
 /*     NKNOTS:INOUT  is the number of knots. */
 /*           If KNOTYP.GE.0, then NKNOTS will be set to NDIM+4. */
 /*           If KNOTYP.LT.0, then NKNOTS is an input variable, and an */
 /*              error return will be taken if it is not equal to NDIM+4. */
-
 /*     T:INOUT  is the array of 2*N+4 knots for the B-representation. */
 /*           If KNOTYP.GE.0, T will be returned by DPCHBS with the */
 /*              interior double knots equal to the X-values and the */
@@ -430,34 +382,26 @@ void dpchbs(integer n, doublereal *x, doublereal *f,
 /*           If KNOTYP.LT.0, it is assumed that T was set by a */
 /*              previous call to DPCHBS.  (This routine does **not** */
 /*              verify that T forms a legitimate knot sequence.) */
-
 /*     BCOEF:OUT  is the array of 2*N B-spline coefficients. */
-
 /*     NDIM:OUT  is the dimension of the B-spline space.  (Set to 2*N.) */
-
 /*     KORD:OUT  is the order of the B-spline.  (Set to 4.) */
-
 /*     IERR:OUT  is an error flag. */
 /*           Normal return: */
 /*              IERR = 0  (no errors). */
 /*           "Recoverable" errors: */
 /*              IERR = -4  if KNOTYP.GT.2 . */
 /*              IERR = -5  if KNOTYP.LT.0 and NKNOTS.NE.(2*N+4). */
-
 /* *Description: */
 /*     DPCHBS computes the B-spline representation of the PCH function */
 /*     determined by N,X,F,D.  To be compatible with the rest of PCHIP, */
 /*     DPCHBS includes INCFD, the increment between successive values of */
 /*     the F- and D-arrays. */
-
 /*     The output is the B-representation for the function:  NKNOTS, T, */
 /*     BCOEF, NDIM, KORD. */
-
 /* *Caution: */
 /*     Since it is assumed that the input PCH function has been */
 /*     computed by one of the other routines in the package PCHIP, */
 /*     input arguments N, X, INCFD are **not** checked for validity. */
-
 /* *Restrictions/assumptions: */
 /*     1. N.GE.2 .  (not checked) */
 /*     2. X(i).LT.X(i+1), i=1,...,N .  (not checked) */
@@ -465,23 +409,19 @@ void dpchbs(integer n, doublereal *x, doublereal *f,
 /*     4. KNOTYP.LE.2 .  (error return if not) */
 /*    *5. NKNOTS = NDIM+4 = 2*N+4 .  (error return if not) */
 /*    *6. T(2*k+1) = T(2*k) = X(k), k=1,...,N .  (not checked) */
-
 /*       * Indicates this applies only if KNOTYP.LT.0 . */
-
 /* *Portability: */
 /*     Argument INCFD is used only to cause the compiler to generate */
 /*     efficient code for the subscript expressions (1+(I-1)*INCFD) . */
 /*     The normal usage, in which DPCHBS is called with one-dimensional */
 /*     arrays F and D, is probably non-Fortran 77, in the strict sense, */
 /*     but it works on all systems on which DPCHBS has been tested. */
-
 /* *See Also: */
 /*     PCHIC, PCHIM, or PCHSP can be used to determine an interpolating */
 /*        PCH function from a set of data. */
 /*     The B-spline routine DBVALU can be used to evaluate the */
 /*        B-representation that is output by DPCHBS. */
 /*        (See BSPDOC for more information.) */
-
 /* ***REFERENCES  F. N. Fritsch, "Representations for parametric cubic */
 /*                 splines," Computer Aided Geometric Design 6 (1989), */
 /*                 pp.79-82. */
@@ -501,6 +441,19 @@ void dpchbs(integer n, doublereal *x, doublereal *f,
 /*   930317  Minor cosmetic changes.  (FNF) */
 /*   930514  Corrected problems with dimensioning of arguments and */
 /*   930604  Removed  NKNOTS from DPCHKT call list.  (FNF) */
+void dpchbs(integer n, doublereal *x, doublereal *f,
+	doublereal *d__, integer incfd, integer *knotyp, integer *nknots,
+	doublereal *t, doublereal *bcoef, integer *ndim, integer *kord,
+	integer *ierr)
+{
+    /* System generated locals */
+    integer f_dim1, f_offset, d_dim1, d_offset;
+
+    /* Local variables */
+    integer k, kk;
+    doublereal dov3, hold, hnew;
+    char *libnam = "SLATEC";
+    char *subnam = "DPCHBS";
 
     /* Parameter adjustments */
     d_offset = d_dim1 = incfd;
@@ -546,33 +499,21 @@ void dpchbs(integer n, doublereal *x, doublereal *f,
     }
 }
 
-void dpchkt(integer n, doublereal *x, integer *knotyp,
-	doublereal *t)
-{
-    /* Local variables */
-    integer j, k;
-    doublereal hbeg, hend;
-    integer ndim;
-
 /* ***PURPOSE  Compute B-spline knot sequence for DPCHBS. */
 /* ***LIBRARY   SLATEC (PCHIP) */
 /* ***AUTHOR  Fritsch, F. N., (LLNL) */
-
 /*     Set a knot sequence for the B-spline representation of a PCH */
 /*     function with breakpoints X.  All knots will be at least double. */
 /*     Endknots are set as: */
 /*        (1) quadruple knots at endpoints if KNOTYP=0; */
 /*        (2) extrapolate the length of end interval if KNOTYP=1; */
 /*        (3) periodic if KNOTYP=2. */
-
 /*  Input arguments:  N, X, KNOTYP. */
 /*  Output arguments:  T. */
-
 /*  Restrictions/assumptions: */
 /*     1. N.GE.2 .  (not checked) */
 /*     2. X(i).LT.X(i+1), i=1,...,N .  (not checked) */
 /*     3. 0.LE.KNOTYP.LE.2 .  (Acts like KNOTYP=0 for any other value.) */
-
 /* ***SEE ALSO  DPCHBS */
 /* ***REVISION HISTORY  (YYMMDD) */
 /*   870701  DATE WRITTEN */
@@ -582,9 +523,15 @@ void dpchkt(integer n, doublereal *x, integer *knotyp,
 /*   900430  Produced double precision version. */
 /*   930514  Changed NKNOTS from an output to an input variable.  (FNF) */
 /*   930604  Removed unused variable NKNOTS from argument list.  (FNF) */
-
 /*  Since this is subsidiary to DPCHBS, which validates its input before */
 /*  calling, it is unnecessary for such validation to be done here. */
+void dpchkt(integer n, doublereal *x, integer *knotyp,
+	doublereal *t)
+{
+    /* Local variables */
+    integer j, k;
+    doublereal hbeg, hend;
+    integer ndim;
 
     ndim = n << 1;
 
@@ -619,16 +566,6 @@ void dpchkt(integer n, doublereal *x, integer *knotyp,
     t[ndim + 3] = t[ndim + 2];
 }
 
-void dchfdv(doublereal x1, doublereal x2, doublereal f1,
-	doublereal f2, doublereal d1, doublereal d2, integer ne,
-	doublereal *xe, doublereal *fe, doublereal *de, integer *next,
-	integer *ierr)
-{
-    /* Local variables */
-    doublereal h__;
-    integer i__;
-    doublereal x, c2, c3, c2t2, c3t3, xma, xmi, del1, del2, delta;
-
 /* ***PURPOSE  Evaluate a cubic polynomial given in Hermite form and its */
 /*            first derivative at an array of points.  While designed for */
 /*            use by DPCHFD, it may be useful directly as an evaluator */
@@ -643,52 +580,35 @@ void dchfdv(doublereal x1, doublereal x2, doublereal f1,
 /*             P.O. Box 808  (L-316) */
 /*             Livermore, CA  94550 */
 /*             FTS 532-4275, (510) 422-4275 */
-
 /*        DCHFDV:  Cubic Hermite Function and Derivative Evaluator */
-
 /*     Evaluates the cubic polynomial determined by function values */
 /*     F1,F2 and derivatives D1,D2 on interval (X1,X2), together with */
 /*     its first derivative, at the points  XE(J), J=1(1)NE. */
-
 /*     If only function values are required, use DCHFEV, instead. */
-
 /* ---------------------------------------------------------------------- */
-
 /*  Calling sequence: */
-
 /*        INTEGER  NE, NEXT(2), IERR */
 /*        DOUBLE PRECISION  X1, X2, F1, F2, D1, D2, XE(NE), FE(NE), */
 /*                          DE(NE) */
-
 /*        CALL  DCHFDV (X1,X2, F1,F2, D1,D2, NE, XE, FE, DE, NEXT, IERR) */
-
 /*   Parameters: */
-
 /*     X1,X2 -- (input) endpoints of interval of definition of cubic. */
 /*           (Error return if  X1.EQ.X2 .) */
-
 /*     F1,F2 -- (input) values of function at X1 and X2, respectively. */
-
 /*     D1,D2 -- (input) values of derivative at X1 and X2, respectively. */
-
 /*     NE -- (input) number of evaluation points.  (Error return if */
 /*           NE.LT.1 .) */
-
 /*     XE -- (input) real*8 array of points at which the functions are to */
 /*           be evaluated.  If any of the XE are outside the interval */
 /*           [X1,X2], a warning error is returned in NEXT. */
-
 /*     FE -- (output) real*8 array of values of the cubic function */
 /*           defined by  X1,X2, F1,F2, D1,D2  at the points  XE. */
-
 /*     DE -- (output) real*8 array of values of the first derivative of */
 /*           the same function at the points  XE. */
-
 /*     NEXT -- (output) integer array indicating number of extrapolation */
 /*           points: */
 /*            NEXT(1) = number of evaluation points to left of interval. */
 /*            NEXT(2) = number of evaluation points to right of interval. */
-
 /*     IERR -- (output) error flag. */
 /*           Normal return: */
 /*              IERR = 0  (no errors). */
@@ -696,7 +616,6 @@ void dchfdv(doublereal x1, doublereal x2, doublereal f1,
 /*              IERR = -1  if NE.LT.1 . */
 /*              IERR = -2  if X1.EQ.X2 . */
 /*                (Output arrays have not been changed in either case.) */
-
 /* ***REVISION HISTORY  (YYMMDD) */
 /*   811019  DATE WRITTEN */
 /*   820803  Minor cosmetic changes for release 1. */
@@ -710,14 +629,19 @@ void dchfdv(doublereal x1, doublereal x2, doublereal f1,
 /*   891214  Prologue converted to Version 4.0 format.  (BAB) */
 /*   900315  CALLs to XERROR changed to CALLs to XERMSG.  (THJ) */
 /*  Programming notes: */
-
 /*     To produce a single precision version, simply: */
 /*        a. Change DCHFDV to CHFDV wherever it occurs, */
 /*        b. Change the double precision declaration to real, and */
 /*        c. Change the constant ZERO to single precision. */
-
-/*  VALIDITY-CHECK ARGUMENTS. */
-
+void dchfdv(doublereal x1, doublereal x2, doublereal f1,
+	doublereal f2, doublereal d1, doublereal d2, integer ne,
+	doublereal *xe, doublereal *fe, doublereal *de, integer *next,
+	integer *ierr)
+{
+    /* Local variables */
+    doublereal h__;
+    integer i__;
+    doublereal x, c2, c3, c2t2, c3t3, xma, xmi, del1, del2, delta;
     if (ne < 1) {
         *ierr = -1;
 	xermsg_("SLATEC", "DCHFDV", "NUMBER OF EVALUATION POINTS LESS THAN ONE", *ierr);
@@ -767,10 +691,6 @@ void dchfdv(doublereal x1, doublereal x2, doublereal f1,
     }
 }
 
-void dpchfd(integer n, doublereal *x, doublereal *f,
-	doublereal *d__, integer incfd, logical *skip, integer ne,
-	doublereal *xe, doublereal *fe, doublereal *de, integer *ierr)
-{
 /* ***PURPOSE  Evaluate a piecewise cubic Hermite function and its first */
 /*            derivative at an array of points.  May be used by itself */
 /*            for Hermite interpolation, or as an evaluator for DPCHIM */
@@ -784,62 +704,43 @@ void dpchfd(integer n, doublereal *x, doublereal *f,
 /*             P.O. Box 808  (L-316) */
 /*             Livermore, CA  94550 */
 /*             FTS 532-4275, (510) 422-4275 */
-
 /*          DPCHFD:  Piecewise Cubic Hermite Function and Derivative */
 /*                  evaluator */
-
 /*     Evaluates the cubic Hermite function defined by  N, X, F, D,  to- */
 /*     gether with its first derivative, at the points  XE(J), J=1(1)NE. */
-
 /*     If only function values are required, use DPCHFE, instead. */
-
 /*     To provide compatibility with DPCHIM and DPCHIC, includes an */
 /*     increment between successive values of the F- and D-arrays. */
-
 /* ---------------------------------------------------------------------- */
-
 /*  Calling sequence: */
-
 /*        PARAMETER  (INCFD = ...) */
 /*        INTEGER  N, NE, IERR */
 /*        DOUBLE PRECISION  X(N), F(INCFD,N), D(INCFD,N), XE(NE), FE(NE), */
 /*                          DE(NE) */
 /*        LOGICAL  SKIP */
-
 /*        CALL  DPCHFD (N, X, F, D, INCFD, SKIP, NE, XE, FE, DE, IERR) */
-
 /*   Parameters: */
-
 /*     N -- (input) number of data points.  (Error return if N.LT.2 .) */
-
 /*     X -- (input) real*8 array of independent variable values.  The */
 /*           elements of X must be strictly increasing: */
 /*                X(I-1) .LT. X(I),  I = 2(1)N. */
 /*           (Error return if not.) */
-
 /*     F -- (input) real*8 array of function values.  F(1+(I-1)*INCFD) is */
 /*           the value corresponding to X(I). */
-
 /*     D -- (input) real*8 array of derivative values.  D(1+(I-1)*INCFD) */
 /*           is the value corresponding to X(I). */
-
 /*     INCFD -- (input) increment between successive values in F and D. */
 /*           (Error return if  INCFD.LT.1 .) */
-
 /*     SKIP -- (input/output) logical variable which should be set to */
 /*           .TRUE. if the user wishes to skip checks for validity of */
 /*           preceding parameters, or to .FALSE. otherwise. */
 /*           This will save time in case these checks have already */
 /*           been performed (say, in DPCHIM or DPCHIC). */
 /*           SKIP will be set to .TRUE. on normal return. */
-
 /*     NE -- (input) number of evaluation points.  (Error return if */
 /*           NE.LT.1 .) */
-
 /*     XE -- (input) real*8 array of points at which the functions are to */
 /*           be evaluated. */
-
-
 /*          NOTES: */
 /*           1. The evaluation will be most efficient if the elements */
 /*              of XE are increasing relative to X; */
@@ -848,13 +749,10 @@ void dpchfd(integer n, doublereal *x, doublereal *f,
 /*           2. If any of the XE are outside the interval [X(1),X(N)], */
 /*              values are extrapolated from the nearest extreme cubic, */
 /*              and a warning error is returned. */
-
 /*     FE -- (output) real*8 array of values of the cubic Hermite */
 /*           function defined by  N, X, F, D  at the points  XE. */
-
 /*     DE -- (output) real*8 array of values of the first derivative of */
 /*           the same function at the points  XE. */
-
 /*     IERR -- (output) error flag. */
 /*           Normal return: */
 /*              IERR = 0  (no errors). */
@@ -872,7 +770,6 @@ void dpchfd(integer n, doublereal *x, doublereal *f,
 /*              IERR = -5  if an error has occurred in the lower-level */
 /*                         routine DCHFDV.  NB: this should never happen. */
 /*                         Notify the author **IMMEDIATELY** if it does. */
-
 /* ***REVISION HISTORY  (YYMMDD) */
 /*   811020  DATE WRITTEN */
 /*   820803  Minor cosmetic changes for release 1. */
@@ -885,27 +782,26 @@ void dpchfd(integer n, doublereal *x, doublereal *f,
 /*   891214  Prologue converted to Version 4.0 format.  (BAB) */
 /*   900315  CALLs to XERROR changed to CALLs to XERMSG.  (THJ) */
 /*  Programming notes: */
-
 /*     1. To produce a single precision version, simply: */
 /*        a. Change DPCHFD to PCHFD, and DCHFDV to CHFDV, wherever they */
 /*           occur, */
 /*        b. Change the double precision declaration to real, */
-
 /*     2. Most of the coding between the call to DCHFDV and the end of */
 /*        the IR-loop could be eliminated if it were permissible to */
 /*        assume that XE is ordered relative to X. */
-
 /*     3. DCHFDV does not assume that X1 is less than X2.  thus, it would */
 /*        be possible to write a version of DPCHFD that assumes a strict- */
 /*        ly decreasing X-array by simply running the IR-loop backwards */
 /*        (and reversing the order of appropriate tests). */
-
 /*     4. The present code has a minor bug, which I have decided is not */
 /*        worth the effort that would be required to fix it. */
 /*        If XE contains points in [X(N-1),X(N)], followed by points .LT. */
 /*        X(N-1), followed by points .GT.X(N), the extrapolation points */
 /*        will be counted (at least) twice in the total returned in IERR. */
-
+void dpchfd(integer n, doublereal *x, doublereal *f,
+	doublereal *d__, integer incfd, logical *skip, integer ne,
+	doublereal *xe, doublereal *fe, doublereal *de, integer *ierr)
+{
     /* System generated locals */
     integer f_dim1, f_offset, d_dim1, d_offset, i__1;
 
@@ -1060,15 +956,6 @@ void dpchfd(integer n, doublereal *x, doublereal *f,
     }
 }
 
-void dchfev(doublereal x1, doublereal x2, doublereal f1,
-	doublereal f2, doublereal d1, doublereal d2, integer ne,
-	doublereal *xe, doublereal *fe, integer *next, integer *ierr)
-{
-    /* Local variables */
-    doublereal h__;
-    integer i__;
-    doublereal x, c2, c3, xma, xmi, del1, del2, delta;
-
 /* ***PURPOSE  Evaluate a cubic polynomial given in Hermite form at an */
 /*            array of points.  While designed for use by DPCHFE, it may */
 /*            be useful directly as an evaluator for a piecewise cubic */
@@ -1082,46 +969,31 @@ void dchfev(doublereal x1, doublereal x2, doublereal f1,
 /*             P.O. Box 808  (L-316) */
 /*             Livermore, CA  94550 */
 /*             FTS 532-4275, (510) 422-4275 */
-
 /*          DCHFEV:  Cubic Hermite Function EValuator */
-
 /*     Evaluates the cubic polynomial determined by function values */
 /*     F1,F2 and derivatives D1,D2 on interval (X1,X2) at the points */
 /*     XE(J), J=1(1)NE. */
-
 /* ---------------------------------------------------------------------- */
-
 /*  Calling sequence: */
-
 /*        INTEGER  NE, NEXT(2), IERR */
 /*        DOUBLE PRECISION  X1, X2, F1, F2, D1, D2, XE(NE), FE(NE) */
-
 /*        CALL  DCHFEV (X1,X2, F1,F2, D1,D2, NE, XE, FE, NEXT, IERR) */
-
 /*   Parameters: */
-
 /*     X1,X2 -- (input) endpoints of interval of definition of cubic. */
 /*           (Error return if  X1.EQ.X2 .) */
-
 /*     F1,F2 -- (input) values of function at X1 and X2, respectively. */
-
 /*     D1,D2 -- (input) values of derivative at X1 and X2, respectively. */
-
 /*     NE -- (input) number of evaluation points.  (Error return if */
 /*           NE.LT.1 .) */
-
 /*     XE -- (input) real*8 array of points at which the function is to */
 /*           be evaluated.  If any of the XE are outside the interval */
 /*           [X1,X2], a warning error is returned in NEXT. */
-
 /*     FE -- (output) real*8 array of values of the cubic function */
 /*           defined by  X1,X2, F1,F2, D1,D2  at the points  XE. */
-
 /*     NEXT -- (output) integer array indicating number of extrapolation */
 /*           points: */
 /*            NEXT(1) = number of evaluation points to left of interval. */
 /*            NEXT(2) = number of evaluation points to right of interval. */
-
 /*     IERR -- (output) error flag. */
 /*           Normal return: */
 /*              IERR = 0  (no errors). */
@@ -1129,7 +1001,6 @@ void dchfev(doublereal x1, doublereal x2, doublereal f1,
 /*              IERR = -1  if NE.LT.1 . */
 /*              IERR = -2  if X1.EQ.X2 . */
 /*                (The FE-array has not been changed in either case.) */
-
 /* ***REVISION HISTORY  (YYMMDD) */
 /*   811019  DATE WRITTEN */
 /*   820803  Minor cosmetic changes for release 1. */
@@ -1144,14 +1015,18 @@ void dchfev(doublereal x1, doublereal x2, doublereal f1,
 /*   891214  Prologue converted to Version 4.0 format.  (BAB) */
 /*   900315  CALLs to XERROR changed to CALLs to XERMSG.  (THJ) */
 /*  Programming notes: */
-
 /*     To produce a single precision version, simply: */
 /*        a. Change DCHFEV to CHFEV wherever it occurs, */
 /*        b. Change the double precision declaration to real, and */
 /*        c. Change the constant ZERO to single precision. */
-
-/*  VALIDITY-CHECK ARGUMENTS. */
-
+void dchfev(doublereal x1, doublereal x2, doublereal f1,
+	doublereal f2, doublereal d1, doublereal d2, integer ne,
+	doublereal *xe, doublereal *fe, integer *next, integer *ierr)
+{
+    /* Local variables */
+    doublereal h__;
+    integer i__;
+    doublereal x, c2, c3, xma, xmi, del1, del2, delta;
     if (ne < 1) {
 	*ierr = -1;
 	xermsg_("SLATEC", "DCHFEV", "NUMBER OF EVALUATION POINTS LESS THAN ONE", *ierr);
@@ -1198,10 +1073,6 @@ void dchfev(doublereal x1, doublereal x2, doublereal f1,
     }
 }
 
-void dpchfe(integer n, doublereal *x, doublereal *f,
-	doublereal *d__, integer incfd, logical *skip, integer ne,
-	doublereal *xe, doublereal *fe, integer *ierr)
-{
 /* ***PURPOSE  Evaluate a piecewise cubic Hermite function at an array of */
 /*            points.  May be used by itself for Hermite interpolation, */
 /*            or as an evaluator for DPCHIM or DPCHIC. */
@@ -1213,57 +1084,40 @@ void dpchfe(integer n, doublereal *x, doublereal *f,
 /*             P.O. Box 808  (L-316) */
 /*             Livermore, CA  94550 */
 /*             FTS 532-4275, (510) 422-4275 */
-
 /*          DPCHFE:  Piecewise Cubic Hermite Function Evaluator */
-
 /*     Evaluates the cubic Hermite function defined by  N, X, F, D  at */
 /*     the points  XE(J), J=1(1)NE. */
-
 /*     To provide compatibility with DPCHIM and DPCHIC, includes an */
 /*     increment between successive values of the F- and D-arrays. */
-
 /* ---------------------------------------------------------------------- */
-
 /*  Calling sequence: */
-
 /*        PARAMETER  (INCFD = ...) */
 /*        INTEGER  N, NE, IERR */
 /*        DOUBLE PRECISION  X(N), F(INCFD,N), D(INCFD,N), XE(NE), FE(NE) */
 /*        LOGICAL  SKIP */
-
 /*        CALL  DPCHFE (N, X, F, D, INCFD, SKIP, NE, XE, FE, IERR) */
-
 /*   Parameters: */
-
 /*     N -- (input) number of data points.  (Error return if N.LT.2 .) */
-
 /*     X -- (input) real*8 array of independent variable values.  The */
 /*           elements of X must be strictly increasing: */
 /*                X(I-1) .LT. X(I),  I = 2(1)N. */
 /*           (Error return if not.) */
-
 /*     F -- (input) real*8 array of function values.  F(1+(I-1)*INCFD) is */
 /*           the value corresponding to X(I). */
-
 /*     D -- (input) real*8 array of derivative values.  D(1+(I-1)*INCFD) */
 /*           is the value corresponding to X(I). */
-
 /*     INCFD -- (input) increment between successive values in F and D. */
 /*           (Error return if  INCFD.LT.1 .) */
-
 /*     SKIP -- (input/output) logical variable which should be set to */
 /*           .TRUE. if the user wishes to skip checks for validity of */
 /*           preceding parameters, or to .FALSE. otherwise. */
 /*           This will save time in case these checks have already */
 /*           been performed (say, in DPCHIM or DPCHIC). */
 /*           SKIP will be set to .TRUE. on normal return. */
-
 /*     NE -- (input) number of evaluation points.  (Error return if */
 /*           NE.LT.1 .) */
-
 /*     XE -- (input) real*8 array of points at which the function is to */
 /*           be evaluated. */
-
 /*          NOTES: */
 /*           1. The evaluation will be most efficient if the elements */
 /*              of XE are increasing relative to X; */
@@ -1272,10 +1126,8 @@ void dpchfe(integer n, doublereal *x, doublereal *f,
 /*           2. If any of the XE are outside the interval [X(1),X(N)], */
 /*              values are extrapolated from the nearest extreme cubic, */
 /*              and a warning error is returned. */
-
 /*     FE -- (output) real*8 array of values of the cubic Hermite */
 /*           function defined by  N, X, F, D  at the points  XE. */
-
 /*     IERR -- (output) error flag. */
 /*           Normal return: */
 /*              IERR = 0  (no errors). */
@@ -1290,7 +1142,6 @@ void dpchfe(integer n, doublereal *x, doublereal *f,
 /*             (The FE-array has not been changed in any of these cases.) */
 /*               NOTE:  The above errors are checked in the order listed, */
 /*                   and following arguments have **NOT** been validated. */
-
 /* ***REVISION HISTORY  (YYMMDD) */
 /*   811020  DATE WRITTEN */
 /*   820803  Minor cosmetic changes for release 1. */
@@ -1304,27 +1155,26 @@ void dpchfe(integer n, doublereal *x, doublereal *f,
 /*   900315  CALLs to XERROR changed to CALLs to XERMSG.  (THJ) */
 /* ***END PROLOGUE  DPCHFE */
 /*  Programming notes: */
-
 /*     1. To produce a single precision version, simply: */
 /*        a. Change DPCHFE to PCHFE, and DCHFEV to CHFEV, wherever they */
 /*           occur, */
 /*        b. Change the double precision declaration to real, */
-
 /*     2. Most of the coding between the call to DCHFEV and the end of */
 /*        the IR-loop could be eliminated if it were permissible to */
 /*        assume that XE is ordered relative to X. */
-
 /*     3. DCHFEV does not assume that X1 is less than X2.  thus, it would */
 /*        be possible to write a version of DPCHFE that assumes a */
 /*        decreasing X-array by simply running the IR-loop backwards */
 /*        (and reversing the order of appropriate tests). */
-
 /*     4. The present code has a minor bug, which I have decided is not */
 /*        worth the effort that would be required to fix it. */
 /*        If XE contains points in [X(N-1),X(N)], followed by points .LT. */
 /*        X(N-1), followed by points .GT.X(N), the extrapolation points */
 /*        will be counted (at least) twice in the total returned in IERR. */
-
+void dpchfe(integer n, doublereal *x, doublereal *f,
+	doublereal *d__, integer incfd, logical *skip, integer ne,
+	doublereal *xe, doublereal *fe, integer *ierr)
+{
     /* System generated locals */
     integer f_dim1, f_offset, d_dim1, d_offset;
 
@@ -1487,44 +1337,24 @@ void dpchfe(integer n, doublereal *x, doublereal *f,
     }
 }
 
-doublereal dchfie(doublereal x1, doublereal x2, doublereal f1, doublereal f2,
-      doublereal d1, doublereal d2, doublereal a, doublereal b)
-{
-    /* Local variables */
-    doublereal h__, ta1, ta2, tb1, tb2, ua1, ua2, ub1, ub2, phia1,
-	    phia2, phib1, phib2, psia1, psia2, psib1, psib2, dterm, fterm;
-
 /* ***BEGIN PROLOGUE  DCHFIE */
 /* ***PURPOSE  Evaluates integral of a single cubic for DPCHIA */
 /* ***LIBRARY   SLATEC (PCHIP) */
 /* ***AUTHOR  Fritsch, F. N., (LLNL) */
-
 /*          DCHFIE:  Cubic Hermite Function Integral Evaluator. */
-
 /*     Called by  DPCHIA  to evaluate the integral of a single cubic (in */
 /*     Hermite form) over an arbitrary interval (A,B). */
-
 /* ---------------------------------------------------------------------- */
-
 /*  Calling sequence: */
-
 /*        DOUBLE PRECISION  X1, X2, F1, F2, D1, D2, A, B */
 /*        DOUBLE PRECISION  VALUE, DCHFIE */
-
 /*        VALUE = DCHFIE (X1, X2, F1, F2, D1, D2, A, B) */
-
 /*   Parameters: */
-
 /*     VALUE -- (output) value of the requested integral. */
-
 /*     X1,X2 -- (input) endpoints if interval of definition of cubic. */
-
 /*     F1,F2 -- (input) function values at the ends of the interval. */
-
 /*     D1,D2 -- (input) derivative values at the ends of the interval. */
-
 /*     A,B -- (input) endpoints of interval of integration. */
-
 /* ***SEE ALSO  DPCHIA */
 /* ***REVISION HISTORY  (YYMMDD) */
 /*   820730  DATE WRITTEN */
@@ -1541,22 +1371,15 @@ doublereal dchfie(doublereal x1, doublereal x2, doublereal f1, doublereal f2,
 /*   930503  Corrected to set VALUE=0 when IERR.ne.0.  (FNF) */
 /*   930504  Eliminated IERR and changed name DCHFIV to DCHFIE.  (FNF) */
 /* ***END PROLOGUE  DCHFIE */
-
 /*  Programming notes: */
 /*  1. There is no error return from this routine because zero is */
 /*     indeed the mathematically correct answer when X1.EQ.X2 . */
-
-/*  DECLARE ARGUMENTS. */
-
-
-/*  DECLARE LOCAL VARIABLES. */
-
-
-/*  INITIALIZE. */
-
-
-/*  VALIDITY CHECK INPUT. */
-
+doublereal dchfie(doublereal x1, doublereal x2, doublereal f1, doublereal f2,
+      doublereal d1, doublereal d2, doublereal a, doublereal b)
+{
+    /* Local variables */
+    doublereal h__, ta1, ta2, tb1, tb2, ua1, ua2, ub1, ub2, phia1,
+	    phia2, phib1, phib2, psia1, psia2, psib1, psib2, dterm, fterm;
     if (x1 == x2) {
 	return 0.;
     }
@@ -1590,19 +1413,6 @@ doublereal dchfie(doublereal x1, doublereal x2, doublereal f1, doublereal f2,
     return 0.5 * h__ * (fterm + dterm);
 }
 
-doublereal dpchia(integer n, doublereal *x, doublereal *f, doublereal *d__,
-	integer incfd, logical *skip, doublereal a, doublereal b,
-	integer *ierr)
-{
-    /* System generated locals */
-    integer f_dim1, f_offset, d_dim1, d_offset;
-
-    /* Local variables */
-    integer i__, ia, ib, il;
-    doublereal xa, xb;
-    integer ir, ierd;
-    doublereal value;
-
 /* ***BEGIN PROLOGUE  DPCHIA */
 /* ***PURPOSE  Evaluate the definite integral of a piecewise cubic */
 /*            Hermite function over an arbitrary interval. */
@@ -1615,59 +1425,42 @@ doublereal dpchia(integer n, doublereal *x, doublereal *f, doublereal *d__,
 /*             P.O. Box 808  (L-316) */
 /*             Livermore, CA  94550 */
 /*             FTS 532-4275, (510) 422-4275 */
-
 /*          DPCHIA:  Piecewise Cubic Hermite Integrator, Arbitrary limits */
-
 /*     Evaluates the definite integral of the cubic Hermite function */
 /*     defined by  N, X, F, D  over the interval [A, B]. */
-
 /*     To provide compatibility with DPCHIM and DPCHIC, includes an */
 /*     increment between successive values of the F- and D-arrays. */
-
 /* ---------------------------------------------------------------------- */
-
 /*  Calling sequence: */
-
 /*        PARAMETER  (INCFD = ...) */
 /*        INTEGER  N, IERR */
 /*        DOUBLE PRECISION  X(N), F(INCFD,N), D(INCFD,N), A, B */
 /*        DOUBLE PRECISION  VALUE, DPCHIA */
 /*        LOGICAL  SKIP */
-
 /*        VALUE = DPCHIA (N, X, F, D, INCFD, SKIP, A, B, IERR) */
-
 /*   Parameters: */
-
 /*     VALUE -- (output) value of the requested integral. */
-
 /*     N -- (input) number of data points.  (Error return if N.LT.2 .) */
-
 /*     X -- (input) real*8 array of independent variable values.  The */
 /*           elements of X must be strictly increasing: */
 /*                X(I-1) .LT. X(I),  I = 2(1)N. */
 /*           (Error return if not.) */
-
 /*     F -- (input) real*8 array of function values.  F(1+(I-1)*INCFD) is */
 /*           the value corresponding to X(I). */
-
 /*     D -- (input) real*8 array of derivative values.  D(1+(I-1)*INCFD) */
 /*           is the value corresponding to X(I). */
-
 /*     INCFD -- (input) increment between successive values in F and D. */
 /*           (Error return if  INCFD.LT.1 .) */
-
 /*     SKIP -- (input/output) logical variable which should be set to */
 /*           .TRUE. if the user wishes to skip checks for validity of */
 /*           preceding parameters, or to .FALSE. otherwise. */
 /*           This will save time in case these checks have already */
 /*           been performed (say, in DPCHIM or DPCHIC). */
 /*           SKIP will be set to .TRUE. on return with IERR.GE.0 . */
-
 /*     A,B -- (input) the limits of integration. */
 /*           NOTE:  There is no requirement that [A,B] be contained in */
 /*                  [X(1),X(N)].  However, the resulting integral value */
 /*                  will be highly suspect, if not. */
-
 /*     IERR -- (output) error flag. */
 /*           Normal return: */
 /*              IERR = 0  (no errors). */
@@ -1686,7 +1479,6 @@ doublereal dpchia(integer n, doublereal *x, doublereal *f, doublereal *d__,
 /*                   and following arguments have **NOT** been validated. */
 /*              IERR = -4  in case of an error return from DPCHID (which */
 /*                         should never occur). */
-
 /* ***REVISION HISTORY  (YYMMDD) */
 /*   820730  DATE WRITTEN */
 /*   820804  Converted to SLATEC library version. */
@@ -1704,14 +1496,21 @@ doublereal dpchia(integer n, doublereal *x, doublereal *f, doublereal *d__,
 /*   900315  CALLs to XERROR changed to CALLs to XERMSG.  (THJ) */
 /*   930503  Corrected to set VALUE=0 when IERR.lt.0.  (FNF) */
 /*   930504  Changed DCHFIV to DCHFIE.  (FNF) */
-/* ***END PROLOGUE  DPCHIA */
-
 /*  Programming notes: */
 /*  1. The error flag from DPCHID is tested, because a logic flaw */
 /*     could conceivably result in IERD=-4, which should be reported. */
+doublereal dpchia(integer n, doublereal *x, doublereal *f, doublereal *d__,
+	integer incfd, logical *skip, doublereal a, doublereal b,
+	integer *ierr)
+{
+    /* System generated locals */
+    integer f_dim1, f_offset, d_dim1, d_offset;
 
-/*  INITIALIZE. */
-
+    /* Local variables */
+    integer i__, ia, ib, il;
+    doublereal xa, xb;
+    integer ir, ierd;
+    doublereal value;
     /* Parameter adjustments */
     d_offset = d_dim1 = incfd;
     d__ -= d_offset;
@@ -1719,8 +1518,6 @@ doublereal dpchia(integer n, doublereal *x, doublereal *f, doublereal *d__,
     f -= f_offset;
 
     value = 0.;
-
-/*  VALIDITY-CHECK ARGUMENTS. */
 
     if (!*skip) {
         if (n < 2) {
@@ -1851,19 +1648,6 @@ doublereal dpchia(integer n, doublereal *x, doublereal *f, doublereal *d__,
     return value;
 }
 
-doublereal dpchid(integer n, doublereal *x, doublereal *f, doublereal *d__,
-	integer incfd, logical *skip, integer ia, integer ib, integer *
-	ierr)
-{
-    /* System generated locals */
-    integer f_dim1, f_offset, d_dim1, d_offset;
-
-    /* Local variables */
-    doublereal h__;
-    integer i__, iup, low;
-    doublereal sum, value;
-
-/* ***BEGIN PROLOGUE  DPCHID */
 /* ***PURPOSE  Evaluate the definite integral of a piecewise cubic */
 /*            Hermite function over an interval whose endpoints are data */
 /*            points. */
@@ -1876,57 +1660,40 @@ doublereal dpchid(integer n, doublereal *x, doublereal *f, doublereal *d__,
 /*             P.O. Box 808  (L-316) */
 /*             Livermore, CA  94550 */
 /*             FTS 532-4275, (510) 422-4275 */
-
 /*          DPCHID:  Piecewise Cubic Hermite Integrator, Data limits */
-
 /*     Evaluates the definite integral of the cubic Hermite function */
 /*     defined by  N, X, F, D  over the interval [X(IA), X(IB)]. */
-
 /*     To provide compatibility with DPCHIM and DPCHIC, includes an */
 /*     increment between successive values of the F- and D-arrays. */
-
 /* ---------------------------------------------------------------------- */
-
 /*  Calling sequence: */
-
 /*        PARAMETER  (INCFD = ...) */
 /*        INTEGER  N, IA, IB, IERR */
 /*        DOUBLE PRECISION  X(N), F(INCFD,N), D(INCFD,N) */
 /*        LOGICAL  SKIP */
-
 /*        VALUE = DPCHID (N, X, F, D, INCFD, SKIP, IA, IB, IERR) */
-
 /*   Parameters: */
-
 /*     VALUE -- (output) value of the requested integral. */
-
 /*     N -- (input) number of data points.  (Error return if N.LT.2 .) */
-
 /*     X -- (input) real*8 array of independent variable values.  The */
 /*           elements of X must be strictly increasing: */
 /*                X(I-1) .LT. X(I),  I = 2(1)N. */
 /*           (Error return if not.) */
-
 /*     F -- (input) real*8 array of function values.  F(1+(I-1)*INCFD) is */
 /*           the value corresponding to X(I). */
-
 /*     D -- (input) real*8 array of derivative values.  D(1+(I-1)*INCFD) */
 /*           is the value corresponding to X(I). */
-
 /*     INCFD -- (input) increment between successive values in F and D. */
 /*           (Error return if  INCFD.LT.1 .) */
-
 /*     SKIP -- (input/output) logical variable which should be set to */
 /*           .TRUE. if the user wishes to skip checks for validity of */
 /*           preceding parameters, or to .FALSE. otherwise. */
 /*           This will save time in case these checks have already */
 /*           been performed (say, in DPCHIM or DPCHIC). */
 /*           SKIP will be set to .TRUE. on return with IERR = 0 or -4. */
-
 /*     IA,IB -- (input) indices in X-array for the limits of integration. */
 /*           both must be in the range [1,N].  (Error return if not.) */
 /*           No restrictions on their relative values. */
-
 /*     IERR -- (output) error flag. */
 /*           Normal return: */
 /*              IERR = 0  (no errors). */
@@ -1938,7 +1705,6 @@ doublereal dpchid(integer n, doublereal *x, doublereal *f, doublereal *d__,
 /*                (VALUE will be zero in any of these cases.) */
 /*               NOTE:  The above errors are checked in the order listed, */
 /*                   and following arguments have **NOT** been validated. */
-
 /* ***REVISION HISTORY  (YYMMDD) */
 /*   820723  DATE WRITTEN */
 /*   820804  Converted to SLATEC library version. */
@@ -1954,21 +1720,22 @@ doublereal dpchid(integer n, doublereal *x, doublereal *f, doublereal *d__,
 /*   891214  Prologue converted to Version 4.0 format.  (BAB) */
 /*   900315  CALLs to XERROR changed to CALLs to XERMSG.  (THJ) */
 /*   930504  Corrected to set VALUE=0 when IERR.ne.0.  (FNF) */
-/* ***END PROLOGUE  DPCHID */
-
 /*  Programming notes: */
 /*  1. This routine uses a special formula that is valid only for */
 /*     integrals whose limits coincide with data values.  This is */
 /*     mathematically equivalent to, but much more efficient than, */
 /*     calls to DCHFIE. */
+doublereal dpchid(integer n, doublereal *x, doublereal *f, doublereal *d__,
+	integer incfd, logical *skip, integer ia, integer ib, integer *
+	ierr)
+{
+    /* System generated locals */
+    integer f_dim1, f_offset, d_dim1, d_offset;
 
-/*  DECLARE ARGUMENTS. */
-
-
-/*  DECLARE LOCAL VARIABLES. */
-
-
-/*  INITIALIZE. */
+    /* Local variables */
+    doublereal h__;
+    integer i__, iup, low;
+    doublereal sum, value;
 
     /* Parameter adjustments */
     d_offset = d_dim1 = incfd;
@@ -2029,74 +1796,46 @@ doublereal dpchid(integer n, doublereal *x, doublereal *f, doublereal *d__,
     return value;
 }
 
-integer dpchce(integer *ic, doublereal *vc, integer n,
-	doublereal *x, doublereal *h__, doublereal *slope, doublereal *d__,
-	integer incfd)
-{
-    /* System generated locals */
-    integer d_dim1, d_offset;
-
-    /* Local variables */
-    integer j, k, ibeg, iend, ierf, index;
-    doublereal stemp[3], xtemp[4];
-
-/* ***BEGIN PROLOGUE  DPCHCE */
 /* ***PURPOSE  Set boundary conditions for DPCHIC */
 /* ***LIBRARY   SLATEC (PCHIP) */
 /* ***AUTHOR  Fritsch, F. N., (LLNL) */
-
 /*          DPCHCE:  DPCHIC End Derivative Setter. */
-
 /*    Called by DPCHIC to set end derivatives as requested by the user. */
 /*    It must be called after interior derivative values have been set. */
 /*                      ----- */
-
 /*    To facilitate two-dimensional applications, includes an increment */
 /*    between successive values of the D-array. */
-
 /* ---------------------------------------------------------------------- */
-
 /*  Calling sequence: */
-
 /*        PARAMETER  (INCFD = ...) */
 /*        INTEGER  IC(2), N, IERR */
 /*        DOUBLE PRECISION  VC(2), X(N), H(N), SLOPE(N), D(INCFD,N) */
-
 /*        CALL  DPCHCE (IC, VC, N, X, H, SLOPE, D, INCFD, IERR) */
-
 /*   Parameters: */
-
 /*     IC -- (input) integer array of length 2 specifying desired */
 /*           boundary conditions: */
 /*           IC(1) = IBEG, desired condition at beginning of data. */
 /*           IC(2) = IEND, desired condition at end of data. */
 /*           ( see prologue to DPCHIC for details. ) */
-
 /*     VC -- (input) real*8 array of length 2 specifying desired boundary */
 /*           values.  VC(1) need be set only if IC(1) = 2 or 3 . */
 /*                    VC(2) need be set only if IC(2) = 2 or 3 . */
-
 /*     N -- (input) number of data points.  (assumes N.GE.2) */
-
 /*     X -- (input) real*8 array of independent variable values.  (the */
 /*           elements of X are assumed to be strictly increasing.) */
-
 /*     H -- (input) real*8 array of interval lengths. */
 /*     SLOPE -- (input) real*8 array of data slopes. */
 /*           If the data are (X(I),Y(I)), I=1(1)N, then these inputs are: */
 /*                  H(I) =  X(I+1)-X(I), */
 /*              SLOPE(I) = (Y(I+1)-Y(I))/H(I),  I=1(1)N-1. */
-
 /*     D -- (input) real*8 array of derivative values at the data points. */
 /*           The value corresponding to X(I) must be stored in */
 /*                D(1+(I-1)*INCFD),  I=1(1)N. */
 /*          (output) the value of D at X(1) and/or X(N) is changed, if */
 /*           necessary, to produce the requested boundary conditions. */
 /*           no other entries in D are changed. */
-
 /*     INCFD -- (input) increment between successive values in D. */
 /*           This argument is provided primarily for 2-D applications. */
-
 /*     IERR -- (output) error flag. */
 /*           Normal return: */
 /*              IERR = 0  (no errors). */
@@ -2106,13 +1845,9 @@ integer dpchce(integer *ic, doublereal *vc, integer n,
 /*              IERR = 2  if IEND.LT.0 and D(1+(N-1)*INCFD) had to be */
 /*                        adjusted for monotonicity. */
 /*              IERR = 3  if both of the above are true. */
-
 /*    ------- */
 /*    WARNING:  This routine does no validity-checking of arguments. */
 /*    ------- */
-
-/*  Fortran intrinsics used:  ABS. */
-
 /* ***SEE ALSO  DPCHIC */
 /* ***REVISION HISTORY  (YYMMDD) */
 /*   820218  DATE WRITTEN */
@@ -2128,8 +1863,6 @@ integer dpchce(integer *ic, doublereal *vc, integer n,
 /*   900328  Added TYPE section.  (WRB) */
 /*   910408  Updated AUTHOR section in prologue.  (WRB) */
 /*   930503  Improved purpose.  (FNF) */
-/* ***END PROLOGUE  DPCHCE */
-
 /*  Programming notes: */
 /*     1. The function DPCHST(ARG1,ARG2)  is assumed to return zero if */
 /*        either argument is zero, +1 if they are of the same sign, and */
@@ -2142,15 +1875,17 @@ integer dpchce(integer *ic, doublereal *vc, integer n,
 /*        Thus, it is possible (but unlikely) for a boundary condition to */
 /*        be changed, even though the original interpolant was monotonic. */
 /*        (At least the result is a continuous function of the data.) */
+integer dpchce(integer *ic, doublereal *vc, integer n,
+	doublereal *x, doublereal *h__, doublereal *slope, doublereal *d__,
+	integer incfd)
+{
+    /* System generated locals */
+    integer d_dim1, d_offset;
 
-/*  DECLARE ARGUMENTS. */
-
-
-/*  DECLARE LOCAL VARIABLES. */
-
+    /* Local variables */
+    integer j, k, ibeg, iend, ierf, index;
+    doublereal stemp[3], xtemp[4];
     integer ierr = 0;
-
-/*  INITIALIZE. */
 
     /* Parameter adjustments */
     d_offset = d_dim1 = incfd;
@@ -2283,76 +2018,45 @@ integer dpchce(integer *ic, doublereal *vc, integer n,
     return ierr;
 }
 
-void dpchci(integer n, doublereal *h__, doublereal *slope,
-	doublereal *d__, integer incfd)
-{
-    /* System generated locals */
-    integer d_dim1, d_offset;
-
-    /* Local variables */
-    integer i__;
-    doublereal w1, w2, del1, del2, dmin__, dmax__, hsum, drat1, drat2;
-    integer nless1;
-    doublereal hsumt3;
-
-/* ***BEGIN PROLOGUE  DPCHCI */
 /* ***PURPOSE  Set interior derivatives for DPCHIC */
 /* ***LIBRARY   SLATEC (PCHIP) */
 /* ***AUTHOR  Fritsch, F. N., (LLNL) */
-
 /*          DPCHCI:  DPCHIC Initial Derivative Setter. */
-
 /*    Called by DPCHIC to set derivatives needed to determine a monotone */
 /*    piecewise cubic Hermite interpolant to the data. */
-
 /*    Default boundary conditions are provided which are compatible */
 /*    with monotonicity.  If the data are only piecewise monotonic, the */
 /*    interpolant will have an extremum at each point where monotonicity */
 /*    switches direction. */
-
 /*    To facilitate two-dimensional applications, includes an increment */
 /*    between successive values of the D-array. */
-
 /*    The resulting piecewise cubic Hermite function should be identical */
 /*    (within roundoff error) to that produced by DPCHIM. */
-
 /* ---------------------------------------------------------------------- */
-
 /*  Calling sequence: */
-
 /*        PARAMETER  (INCFD = ...) */
 /*        INTEGER  N */
 /*        DOUBLE PRECISION  H(N), SLOPE(N), D(INCFD,N) */
-
 /*        CALL  DPCHCI (N, H, SLOPE, D, INCFD) */
-
 /*   Parameters: */
-
 /*     N -- (input) number of data points. */
 /*           If N=2, simply does linear interpolation. */
-
 /*     H -- (input) real*8 array of interval lengths. */
 /*     SLOPE -- (input) real*8 array of data slopes. */
 /*           If the data are (X(I),Y(I)), I=1(1)N, then these inputs are: */
 /*                  H(I) =  X(I+1)-X(I), */
 /*              SLOPE(I) = (Y(I+1)-Y(I))/H(I),  I=1(1)N-1. */
-
 /*     D -- (output) real*8 array of derivative values at data points. */
 /*           If the data are monotonic, these values will determine a */
 /*           a monotone cubic Hermite function. */
 /*           The value corresponding to X(I) is stored in */
 /*                D(1+(I-1)*INCFD),  I=1(1)N. */
 /*           No other entries in D are changed. */
-
 /*     INCFD -- (input) increment between successive values in D. */
 /*           This argument is provided primarily for 2-D applications. */
-
 /*    ------- */
 /*    WARNING:  This routine does no validity-checking of arguments. */
 /*    ------- */
-
-/*  Fortran intrinsics used:  ABS, MAX, MIN. */
-
 /* ***SEE ALSO  DPCHIC */
 /* ***REVISION HISTORY  (YYMMDD) */
 /*   820218  DATE WRITTEN */
@@ -2371,15 +2075,21 @@ void dpchci(integer n, doublereal *h__, doublereal *slope,
 /*   900328  Added TYPE section.  (WRB) */
 /*   910408  Updated AUTHOR section in prologue.  (WRB) */
 /*   930503  Improved purpose.  (FNF) */
-/* ***END PROLOGUE  DPCHCI */
-
 /*  Programming notes: */
 /*     1. The function  DPCHST(ARG1,ARG2)  is assumed to return zero if */
 /*        either argument is zero, +1 if they are of the same sign, and */
 /*        -1 if they are of opposite sign. */
+void dpchci(integer n, doublereal *h__, doublereal *slope,
+	doublereal *d__, integer incfd)
+{
+    /* System generated locals */
+    integer d_dim1, d_offset;
 
-/*  INITIALIZE. */
-
+    /* Local variables */
+    integer i__;
+    doublereal w1, w2, del1, del2, dmin__, dmax__, hsum, drat1, drat2;
+    integer nless1;
+    doublereal hsumt3;
     /* Parameter adjustments */
     d_offset = d_dim1 = incfd;
     d__ -= d_offset;
@@ -2457,56 +2167,28 @@ void dpchci(integer n, doublereal *h__, doublereal *slope,
     }
 }
 
-integer dpchcs(doublereal switch__, integer n, doublereal *
-	h__, doublereal *slope, doublereal *d__, integer incfd)
-{
-    static const doublereal fudge = 4.;
-
-/* System generated locals */
-    integer d_dim1, d_offset;
-    doublereal d__1;
-
-    /* Local variables */
-    integer i__, k;
-    doublereal del[3], fact, dfmx;
-    integer indx;
-    doublereal dext, dfloc, slmax, wtave[2];
-    integer nless1, ierr = 0;
-
-/* ***BEGIN PROLOGUE  DPCHCS */
 /* ***PURPOSE  Adjusts derivative values for DPCHIC */
 /* ***LIBRARY   SLATEC (PCHIP) */
 /* ***AUTHOR  Fritsch, F. N., (LLNL) */
-
 /*         DPCHCS:  DPCHIC Monotonicity Switch Derivative Setter. */
-
 /*     Called by  DPCHIC  to adjust the values of D in the vicinity of a */
 /*     switch in direction of monotonicity, to produce a more "visually */
 /*     pleasing" curve than that given by  DPCHIM . */
-
 /* ---------------------------------------------------------------------- */
-
 /*  Calling sequence: */
-
 /*        PARAMETER  (INCFD = ...) */
 /*        INTEGER  N, IERR */
 /*        DOUBLE PRECISION  SWITCH, H(N), SLOPE(N), D(INCFD,N) */
-
 /*        CALL  DPCHCS (SWITCH, N, H, SLOPE, D, INCFD, IERR) */
-
 /*   Parameters: */
-
 /*     SWITCH -- (input) indicates the amount of control desired over */
 /*           local excursions from data. */
-
 /*     N -- (input) number of data points.  (assumes N.GT.2 .) */
-
 /*     H -- (input) real*8 array of interval lengths. */
 /*     SLOPE -- (input) real*8 array of data slopes. */
 /*           If the data are (X(I),Y(I)), I=1(1)N, then these inputs are: */
 /*                  H(I) =  X(I+1)-X(I), */
 /*              SLOPE(I) = (Y(I+1)-Y(I))/H(I),  I=1(1)N-1. */
-
 /*     D -- (input) real*8 array of derivative values at the data points, */
 /*           as determined by DPCHCI. */
 /*          (output) derivatives in the vicinity of switches in direction */
@@ -2515,19 +2197,14 @@ integer dpchcs(doublereal switch__, integer n, doublereal *
 /*           The value corresponding to X(I) is stored in */
 /*                D(1+(I-1)*INCFD),  I=1(1)N. */
 /*           No other entries in D are changed. */
-
 /*     INCFD -- (input) increment between successive values in D. */
 /*           This argument is provided primarily for 2-D applications. */
-
 /*     IERR -- (output) error flag.  should be zero. */
 /*           If negative, trouble in DPCHSW.  (should never happen.) */
-
 /*    ------- */
 /*    WARNING:  This routine does no validity-checking of arguments. */
 /*    ------- */
-
 /*  Fortran intrinsics used:  ABS, MAX, MIN. */
-
 /* ***SEE ALSO  DPCHIC */
 /* ***REVISION HISTORY  (YYMMDD) */
 /*   820218  DATE WRITTEN */
@@ -2551,22 +2228,27 @@ integer dpchcs(doublereal switch__, integer n, doublereal *
 /*   900328  Added TYPE section.  (WRB) */
 /*   910408  Updated AUTHOR section in prologue.  (WRB) */
 /*   930503  Improved purpose.  (FNF) */
-/* ***END PROLOGUE  DPCHCS */
-
 /*  Programming notes: */
 /*     1. The function  DPCHST(ARG1,ARG2)  is assumed to return zero if */
 /*        either argument is zero, +1 if they are of the same sign, and */
 /*        -1 if they are of opposite sign. */
+integer dpchcs(doublereal switch__, integer n, doublereal *
+	h__, doublereal *slope, doublereal *d__, integer incfd)
+{
+    static const doublereal fudge = 4.;
 
-/*  DECLARE ARGUMENTS. */
+/* System generated locals */
+    integer d_dim1, d_offset;
+    doublereal d__1;
 
-
-/*  DECLARE LOCAL VARIABLES. */
-
+    /* Local variables */
+    integer i__, k;
+    doublereal del[3], fact, dfmx;
+    integer indx;
+    doublereal dext, dfloc, slmax, wtave[2];
+    integer nless1, ierr = 0;
 
 /*  DEFINE INLINE FUNCTION FOR WEIGHTED AVERAGE OF SLOPES. */
-
-
 /*  INITIALIZE. */
 
     /* Parameter adjustments */
@@ -2720,27 +2402,15 @@ integer dpchcs(doublereal switch__, integer n, doublereal *
     return ierr;
 }
 
-doublereal dpchdf(integer k, doublereal *x, doublereal *s, integer *ierr)
-{
-    /* Local variables */
-    integer i__, j;
-    doublereal value;
-
-/* ***BEGIN PROLOGUE  DPCHDF */
 /* ***PURPOSE  Computes divided differences for DPCHCE and DPCHSP */
 /* ***LIBRARY   SLATEC (PCHIP) */
 /* ***AUTHOR  Fritsch, F. N., (LLNL) */
-
 /*          DPCHDF:   DPCHIP Finite Difference Formula */
-
 /*     Uses a divided difference formulation to compute a K-point approx- */
 /*     imation to the derivative at X(K) based on the data in X and S. */
-
 /*     Called by  DPCHCE  and  DPCHSP  to compute 3- and 4-point boundary */
 /*     derivative approximations. */
-
 /* ---------------------------------------------------------------------- */
-
 /*     On input: */
 /*        K      is the order of the desired derivative approximation. */
 /*               K must be at least 3 (error return if not). */
@@ -2750,15 +2420,12 @@ doublereal dpchdf(integer k, doublereal *x, doublereal *s, integer *ierr)
 /*        S      contains the associated slope values: */
 /*                  S(I) = (F(I+1)-F(I))/(X(I+1)-X(I)), I=1(1)K-1. */
 /*               (Note that S need only be of length K-1.) */
-
 /*     On return: */
 /*        S      will be destroyed. */
 /*        IERR   will be set to -1 if K.LT.2 . */
 /*        DPCHDF  will be set to the desired derivative approximation if */
 /*               IERR=0 or to zero if IERR=-1. */
-
 /* ---------------------------------------------------------------------- */
-
 /* ***SEE ALSO  DPCHCE, DPCHSP */
 /* ***REFERENCES  Carl de Boor, A Practical Guide to Splines, Springer- */
 /*                 Verlag, New York, 1978, pp. 10-16. */
@@ -2777,8 +2444,12 @@ doublereal dpchdf(integer k, doublereal *x, doublereal *s, integer *ierr)
 /*   920429  Revised format and order of references.  (WRB,FNF) */
 /*   930503  Improved purpose.  (FNF) */
 /* ***END PROLOGUE  DPCHDF */
-
 /*  CHECK FOR LEGAL VALUE OF K. */
+doublereal dpchdf(integer k, doublereal *x, doublereal *s, integer *ierr)
+{
+    /* Local variables */
+    integer i__, j;
+    doublereal value;
 
     if (k < 3) {
 	*ierr = -1;
@@ -2804,23 +2475,11 @@ doublereal dpchdf(integer k, doublereal *x, doublereal *s, integer *ierr)
     return value;
 }
 
-void dpchic(integer *ic, doublereal *vc, doublereal switch__,
-	integer n, doublereal *x, doublereal *f, doublereal *d__,
-	integer incfd, doublereal *wk, integer nwk, integer *ierr)
-{
-    /* System generated locals */
-    integer f_dim1, f_offset, d_dim1, d_offset;
-
-    /* Local variables */
-    integer i__, ibeg, iend, nless1;
-
-/* ***BEGIN PROLOGUE  DPCHIC */
 /* ***PURPOSE  Set derivatives needed to determine a piecewise monotone */
 /*            piecewise cubic Hermite interpolant to given data. */
 /*            User control is available over boundary conditions and/or */
 /*            treatment of points where monotonicity switches direction. */
 /* ***LIBRARY   SLATEC (PCHIP) */
-/* ***CATEGORY  E1A */
 /* ***KEYWORDS  CUBIC HERMITE INTERPOLATION, MONOTONE INTERPOLATION, */
 /*             PCHIP, PIECEWISE CUBIC INTERPOLATION, */
 /*             SHAPE-PRESERVING INTERPOLATION */
@@ -2829,40 +2488,28 @@ void dpchic(integer *ic, doublereal *vc, doublereal switch__,
 /*             P.O. Box 808  (L-316) */
 /*             Livermore, CA  94550 */
 /*             FTS 532-4275, (510) 422-4275 */
-
 /*         DPCHIC:  Piecewise Cubic Hermite Interpolation Coefficients. */
-
 /*     Sets derivatives needed to determine a piecewise monotone piece- */
 /*     wise cubic interpolant to the data given in X and F satisfying the */
 /*     boundary conditions specified by IC and VC. */
-
 /*     The treatment of points where monotonicity switches direction is */
 /*     controlled by argument SWITCH. */
-
 /*     To facilitate two-dimensional applications, includes an increment */
 /*     between successive values of the F- and D-arrays. */
-
 /*     The resulting piecewise cubic Hermite function may be evaluated */
 /*     by DPCHFE or DPCHFD. */
-
 /* ---------------------------------------------------------------------- */
-
 /*  Calling sequence: */
-
 /*        PARAMETER  (INCFD = ...) */
 /*        INTEGER  IC(2), N, NWK, IERR */
 /*        DOUBLE PRECISION  VC(2), SWITCH, X(N), F(INCFD,N), D(INCFD,N), */
 /*                          WK(NWK) */
-
 /*        CALL DPCHIC (IC, VC, SWITCH, N, X, F, D, INCFD, WK, NWK, IERR) */
-
 /*   Parameters: */
-
 /*     IC -- (input) integer array of length 2 specifying desired */
 /*           boundary conditions: */
 /*           IC(1) = IBEG, desired condition at beginning of data. */
 /*           IC(2) = IEND, desired condition at end of data. */
-
 /*           IBEG = 0  for the default boundary condition (the same as */
 /*                     used by DPCHIM). */
 /*           If IBEG.NE.0, then its sign indicates whether the boundary */
@@ -2871,7 +2518,6 @@ void dpchic(integer *ic, doublereal *vc, doublereal switch__,
 /*              IBEG.GT.0  if no adjustment is to be performed. */
 /*              IBEG.LT.0  if the derivative is to be adjusted for */
 /*                     monotonicity. */
-
 /*           Allowable values for the magnitude of IBEG are: */
 /*           IBEG = 1  if first derivative at X(1) is given in VC(1). */
 /*           IBEG = 2  if second derivative at X(1) is given in VC(1). */
@@ -2883,7 +2529,6 @@ void dpchic(integer *ic, doublereal *vc, doublereal switch__,
 /*              tinuous at X(2). (Reverts to the default b.c. if N.LT.4.) */
 /*              This option is somewhat analogous to the "not a knot" */
 /*              boundary condition provided by DPCHSP. */
-
 /*          NOTES (IBEG): */
 /*           1. An error return is taken if ABS(IBEG).GT.5 . */
 /*           2. Only in case  IBEG.LE.0  is it guaranteed that the */
@@ -2893,11 +2538,9 @@ void dpchic(integer *ic, doublereal *vc, doublereal switch__,
 /*              is **NOT** checked if IBEG.GT.0 . */
 /*           3. If IBEG.LT.0 and D(1) had to be changed to achieve mono- */
 /*              tonicity, a warning error is returned. */
-
 /*           IEND may take on the same values as IBEG, but applied to */
 /*           derivative at X(N).  In case IEND = 1 or 2, the value is */
 /*           given in VC(2). */
-
 /*          NOTES (IEND): */
 /*           1. An error return is taken if ABS(IEND).GT.5 . */
 /*           2. Only in case  IEND.LE.0  is it guaranteed that the */
@@ -2907,12 +2550,10 @@ void dpchic(integer *ic, doublereal *vc, doublereal switch__,
 /*              This is **NOT** checked if IEND.GT.0 . */
 /*           3. If IEND.LT.0 and D(1+(N-1)*INCFD) had to be changed to */
 /*              achieve monotonicity, a warning error is returned. */
-
 /*     VC -- (input) real*8 array of length 2 specifying desired boundary */
 /*           values, as indicated above. */
 /*           VC(1) need be set only if IC(1) = 1 or 2 . */
 /*           VC(2) need be set only if IC(2) = 1 or 2 . */
-
 /*     SWITCH -- (input) indicates desired treatment of points where */
 /*           direction of monotonicity switches: */
 /*           Set SWITCH to zero if interpolant is required to be mono- */
@@ -2933,18 +2574,14 @@ void dpchic(integer *ic, doublereal *vc, doublereal switch__,
 /*              maximum of the change of F on this interval and its two */
 /*              immediate neighbors. */
 /*           If SWITCH is negative, no such control is to be imposed. */
-
 /*     N -- (input) number of data points.  (Error return if N.LT.2 .) */
-
 /*     X -- (input) real*8 array of independent variable values.  The */
 /*           elements of X must be strictly increasing: */
 /*                X(I-1) .LT. X(I),  I = 2(1)N. */
 /*           (Error return if not.) */
-
 /*     F -- (input) real*8 array of dependent variable values to be */
 /*           interpolated.  F(1+(I-1)*INCFD) is value corresponding to */
 /*           X(I). */
-
 /*     D -- (output) real*8 array of derivative values at the data */
 /*           points.  These values will determine a monotone cubic */
 /*           Hermite function on each subinterval on which the data */
@@ -2952,20 +2589,16 @@ void dpchic(integer *ic, doublereal *vc, doublereal switch__,
 /*           monotonicity. The value corresponding to X(I) is stored in */
 /*                D(1+(I-1)*INCFD),  I=1(1)N. */
 /*           No other entries in D are changed. */
-
 /*     INCFD -- (input) increment between successive values in F and D. */
 /*           This argument is provided primarily for 2-D applications. */
 /*           (Error return if  INCFD.LT.1 .) */
-
 /*     WK -- (scratch) real*8 array of working storage.  The user may */
 /*           wish to know that the returned values are: */
 /*              WK(I)     = H(I)     = X(I+1) - X(I) ; */
 /*              WK(N-1+I) = SLOPE(I) = (F(1,I+1) - F(1,I)) / H(I) */
 /*           for  I = 1(1)N-1. */
-
 /*     NWK -- (input) length of work array. */
 /*           (Error return if  NWK.LT.2*(N-1) .) */
-
 /*     IERR -- (output) error flag. */
 /*           Normal return: */
 /*              IERR = 0  (no errors). */
@@ -2986,7 +2619,6 @@ void dpchic(integer *ic, doublereal *vc, doublereal switch__,
 /*             (The D-array has not been changed in any of these cases.) */
 /*               NOTE:  The above errors are checked in the order listed, */
 /*                   and following arguments have **NOT** been validated. */
-
 /* ***REFERENCES  1. F. N. Fritsch, Piecewise Cubic Hermite Interpolation */
 /*                 Package, Report UCRL-87285, Lawrence Livermore Natio- */
 /*                 nal Laboratory, July 1982.  [Poster presented at the */
@@ -3013,9 +2645,7 @@ void dpchic(integer *ic, doublereal *vc, doublereal switch__,
 /*   891214  Prologue converted to Version 4.0 format.  (BAB) */
 /*   900315  CALLs to XERROR changed to CALLs to XERMSG.  (THJ) */
 /*   920429  Revised format and order of references.  (WRB,FNF) */
-/* ***END PROLOGUE  DPCHIC */
 /*  Programming notes: */
-
 /*     To produce a single precision version, simply: */
 /*        a. Change DPCHIC to PCHIC wherever it occurs, */
 /*        b. Change DPCHCE to PCHCE wherever it occurs, */
@@ -3023,11 +2653,15 @@ void dpchic(integer *ic, doublereal *vc, doublereal switch__,
 /*        d. Change DPCHCS to PCHCS wherever it occurs, */
 /*        e. Change the double precision declarations to real, and */
 /*        f. Change the constant  ZERO  to single precision. */
+void dpchic(integer *ic, doublereal *vc, doublereal switch__,
+	integer n, doublereal *x, doublereal *f, doublereal *d__,
+	integer incfd, doublereal *wk, integer nwk, integer *ierr)
+{
+    /* System generated locals */
+    integer f_dim1, f_offset, d_dim1, d_offset;
 
-/*  DECLARE ARGUMENTS. */
-
-
-/*  DECLARE LOCAL VARIABLES. */
+    /* Local variables */
+    integer i__, ibeg, iend, nless1;
 
     /* Parameter adjustments */
     d_offset = d_dim1 = incfd;
@@ -3121,22 +2755,16 @@ void dpchic(integer *ic, doublereal *vc, doublereal switch__,
     }
 }
 
-doublereal dpchst(doublereal arg1, doublereal arg2)
-{
 /* ***PURPOSE  DPCHIP Sign-Testing Routine */
 /* ***LIBRARY   SLATEC (PCHIP) */
 /* ***AUTHOR  Fritsch, F. N., (LLNL) */
-
 /*     Returns: */
 /*        -1. if ARG1 and ARG2 are of opposite sign. */
 /*         0. if either argument is zero. */
 /*        +1. if ARG1 and ARG2 are of the same sign. */
-
 /*     The object is to do this without multiplying ARG1*ARG2, to avoid */
 /*     possible over/underflow problems. */
-
 /*  Fortran intrinsics used:  SIGN. */
-
 /* ***SEE ALSO  DPCHCE, DPCHCI, DPCHCS, DPCHIM */
 /* ***REVISION HISTORY  (YYMMDD) */
 /*   811103  DATE WRITTEN */
@@ -3149,67 +2777,43 @@ doublereal dpchst(doublereal arg1, doublereal arg2)
 /*   900328  Added TYPE section.  (WRB) */
 /*   910408  Updated AUTHOR and DATE WRITTEN sections in prologue.  (WRB) */
 /*   930503  Improved purpose.  (FNF) */
-/* ***END PROLOGUE  DPCHST */
-
+doublereal dpchst(doublereal arg1, doublereal arg2)
+{
     return (arg1 == 0. || arg2 == 0.) ? 0. : d_sign(1, arg1) * d_sign(1, arg2);
 }
 
-integer dpchsw(doublereal dfmax, integer iextrm, doublereal d1,
-	doublereal d2, doublereal h__, doublereal slope)
-{
-    /* Local variables */
-    doublereal cp, nu, phi, rho, hphi, that, sigma, small;
-    doublereal lambda, radcal;
-
-/* ***BEGIN PROLOGUE  DPCHSW */
 /* ***PURPOSE  Limits excursion from data for DPCHCS */
 /* ***LIBRARY   SLATEC (PCHIP) */
 /* ***AUTHOR  Fritsch, F. N., (LLNL) */
-
 /*         DPCHSW:  DPCHCS Switch Excursion Limiter. */
-
 /*     Called by  DPCHCS  to adjust D1 and D2 if necessary to insure that */
 /*     the extremum on this interval is not further than DFMAX from the */
 /*     extreme data value. */
-
 /* ---------------------------------------------------------------------- */
-
 /*  Calling sequence: */
-
 /*        INTEGER  IEXTRM, IERR */
 /*        DOUBLE PRECISION  DFMAX, D1, D2, H, SLOPE */
-
 /*        CALL  DPCHSW (DFMAX, IEXTRM, D1, D2, H, SLOPE, IERR) */
-
 /*   Parameters: */
-
 /*     DFMAX -- (input) maximum allowed difference between F(IEXTRM) and */
 /*           the cubic determined by derivative values D1,D2.  (assumes */
 /*           DFMAX.GT.0.) */
-
 /*     IEXTRM -- (input) index of the extreme data value.  (assumes */
 /*           IEXTRM = 1 or 2 .  Any value .NE.1 is treated as 2.) */
-
 /*     D1,D2 -- (input) derivative values at the ends of the interval. */
 /*           (Assumes D1*D2 .LE. 0.) */
 /*          (output) may be modified if necessary to meet the restriction */
 /*           imposed by DFMAX. */
-
 /*     H -- (input) interval length.  (Assumes  H.GT.0.) */
-
 /*     SLOPE -- (input) data slope on the interval. */
-
 /*     IERR -- (output) error flag.  should be zero. */
 /*           If IERR=-1, assumption on D1 and D2 is not satisfied. */
 /*           If IERR=-2, quadratic equation locating extremum has */
 /*                       negative discriminant (should never occur). */
-
 /*    ------- */
 /*    WARNING:  This routine does no validity-checking of arguments. */
 /*    ------- */
-
 /*  Fortran intrinsics used:  ABS, SIGN, SQRT. */
-
 /* ***SEE ALSO  DPCHCS */
 /* ***REVISION HISTORY  (YYMMDD) */
 /*   820218  DATE WRITTEN */
@@ -3228,12 +2832,7 @@ integer dpchsw(doublereal dfmax, integer iextrm, doublereal d1,
 /*   910408  Updated AUTHOR and DATE WRITTEN sections in prologue.  (WRB) */
 /*   920526  Eliminated possible divide by zero problem.  (FNF) */
 /*   930503  Improved purpose.  (FNF) */
-/* ***END PROLOGUE  DPCHSW */
-
-/*        THIRD SHOULD BE SLIGHTLY LESS THAN 1/3. */
-
 /*  NOTATION AND GENERAL REMARKS. */
-
 /*     RHO IS THE RATIO OF THE DATA SLOPE TO THE DERIVATIVE BEING TESTED. */
 /*     LAMBDA IS THE RATIO OF D2 TO D1. */
 /*     THAT = T-HAT(RHO) IS THE NORMALIZED LOCATION OF THE EXTREMUM. */
@@ -3241,7 +2840,14 @@ integer dpchsw(doublereal dfmax, integer iextrm, doublereal d1,
 /*           WHERE  THAT = (XHAT - X1)/H . */
 /*        THAT IS, P(XHAT)-F1 = D*H*PHI,  WHERE D=D1 OR D2. */
 /*     SIMILARLY,  P(XHAT)-F2 = D*H*(PHI-RHO) . */
+integer dpchsw(doublereal dfmax, integer iextrm, doublereal d1,
+	doublereal d2, doublereal h__, doublereal slope)
+{
+    /* Local variables */
+    doublereal cp, nu, phi, rho, hphi, that, sigma, small;
+    doublereal lambda, radcal;
 
+/*        THIRD SHOULD BE SLIGHTLY LESS THAN 1/3. */
 /*      SMALL SHOULD BE A FEW ORDERS OF MAGNITUDE GREATER THAN MACHEPS. */
     small = fact * d1mach();
 
@@ -3333,21 +2939,6 @@ integer dpchsw(doublereal dfmax, integer iextrm, doublereal d1,
     return 0;
 }
 
-void dpchim(integer n, doublereal *x, doublereal *f,
-	doublereal *d__, integer incfd, integer *ierr)
-{
-    /* System generated locals */
-    integer f_dim1, f_offset, d_dim1, d_offset;
-    doublereal d__1;
-
-    /* Local variables */
-    integer i__;
-    doublereal h1, h2, w1, w2, del1, del2, dmin__, dmax__, hsum, drat1,
-	     drat2, dsave;
-    integer nless1;
-    doublereal hsumt3;
-
-/* ***BEGIN PROLOGUE  DPCHIM */
 /* ***PURPOSE  Set derivatives needed to determine a monotone piecewise */
 /*            cubic Hermite interpolant to given data.  Boundary values */
 /*            are provided which are compatible with monotonicity.  The */
@@ -3355,7 +2946,6 @@ void dpchim(integer n, doublereal *x, doublereal *f,
 /*            tonicity switches direction.  (See DPCHIC if user control */
 /*            is desired over boundary or switch conditions.) */
 /* ***LIBRARY   SLATEC (PCHIP) */
-/* ***CATEGORY  E1A */
 /* ***KEYWORDS  CUBIC HERMITE INTERPOLATION, MONOTONE INTERPOLATION, */
 /*             PCHIP, PIECEWISE CUBIC INTERPOLATION */
 /* ***AUTHOR  Fritsch, F. N., (LLNL) */
@@ -3363,47 +2953,33 @@ void dpchim(integer n, doublereal *x, doublereal *f,
 /*             P.O. Box 808  (L-316) */
 /*             Livermore, CA  94550 */
 /*             FTS 532-4275, (510) 422-4275 */
-
 /*          DPCHIM:  Piecewise Cubic Hermite Interpolation to */
 /*                  Monotone data. */
-
 /*     Sets derivatives needed to determine a monotone piecewise cubic */
 /*     Hermite interpolant to the data given in X and F. */
-
 /*     Default boundary conditions are provided which are compatible */
 /*     with monotonicity.  (See DPCHIC if user control of boundary con- */
 /*     ditions is desired.) */
-
 /*     If the data are only piecewise monotonic, the interpolant will */
 /*     have an extremum at each point where monotonicity switches direc- */
 /*     tion.  (See DPCHIC if user control is desired in such cases.) */
-
 /*     To facilitate two-dimensional applications, includes an increment */
 /*     between successive values of the F- and D-arrays. */
-
 /*     The resulting piecewise cubic Hermite function may be evaluated */
 /*     by DPCHFE or DPCHFD. */
-
 /* ---------------------------------------------------------------------- */
-
 /*  Calling sequence: */
-
 /*        PARAMETER  (INCFD = ...) */
 /*        INTEGER  N, IERR */
 /*        DOUBLE PRECISION  X(N), F(INCFD,N), D(INCFD,N) */
-
 /*        CALL  DPCHIM (N, X, F, D, INCFD, IERR) */
-
 /*   Parameters: */
-
 /*     N -- (input) number of data points.  (Error return if N.LT.2 .) */
 /*           If N=2, simply does linear interpolation. */
-
 /*     X -- (input) real*8 array of independent variable values.  The */
 /*           elements of X must be strictly increasing: */
 /*                X(I-1) .LT. X(I),  I = 2(1)N. */
 /*           (Error return if not.) */
-
 /*     F -- (input) real*8 array of dependent variable values to be */
 /*           interpolated.  F(1+(I-1)*INCFD) is value corresponding to */
 /*           X(I).  DPCHIM is designed for monotonic data, but it will */
@@ -3417,11 +2993,9 @@ void dpchim(integer n, doublereal *x, doublereal *f,
 /*           The value corresponding to X(I) is stored in */
 /*                D(1+(I-1)*INCFD),  I=1(1)N. */
 /*           No other entries in D are changed. */
-
 /*     INCFD -- (input) increment between successive values in F and D. */
 /*           This argument is provided primarily for 2-D applications. */
 /*           (Error return if  INCFD.LT.1 .) */
-
 /*     IERR -- (output) error flag. */
 /*           Normal return: */
 /*              IERR = 0  (no errors). */
@@ -3435,7 +3009,6 @@ void dpchim(integer n, doublereal *x, doublereal *f,
 /*             (The D-array has not been changed in any of these cases.) */
 /*               NOTE:  The above errors are checked in the order listed, */
 /*                   and following arguments have **NOT** been validated. */
-
 /* ***REFERENCES  1. F. N. Fritsch and J. Butland, A method for construc- */
 /*                 ting local monotone piecewise cubic interpolants, SIAM */
 /*                 Journal on Scientific and Statistical Computing 5, 2 */
@@ -3465,9 +3038,7 @@ void dpchim(integer n, doublereal *x, doublereal *f,
 /*   891214  Prologue converted to Version 4.0 format.  (BAB) */
 /*   900315  CALLs to XERROR changed to CALLs to XERMSG.  (THJ) */
 /*   920429  Revised format and order of references.  (WRB,FNF) */
-/* ***END PROLOGUE  DPCHIM */
 /*  Programming notes: */
-
 /*     1. The function  DPCHST(ARG1,ARG2)  is assumed to return zero if */
 /*        either argument is zero, +1 if they are of the same sign, and */
 /*        -1 if they are of opposite sign. */
@@ -3478,6 +3049,19 @@ void dpchim(integer n, doublereal *x, doublereal *f,
 /*           single precision equivalents, */
 /*        d. Change the double precision declarations to real, and */
 /*        e. Change the constants ZERO and THREE to single precision. */
+void dpchim(integer n, doublereal *x, doublereal *f,
+	doublereal *d__, integer incfd, integer *ierr)
+{
+    /* System generated locals */
+    integer f_dim1, f_offset, d_dim1, d_offset;
+    doublereal d__1;
+
+    /* Local variables */
+    integer i__;
+    doublereal h1, h2, w1, w2, del1, del2, dmin__, dmax__, hsum, drat1,
+	     drat2, dsave;
+    integer nless1;
+    doublereal hsumt3;
 
     /* Parameter adjustments */
     d_offset = d_dim1 = incfd;
@@ -3601,6 +3185,121 @@ void dpchim(integer n, doublereal *x, doublereal *f,
     }
 }
 
+/* ***PURPOSE  Set derivatives needed to determine the Hermite represen- */
+/*            tation of the cubic spline interpolant to given data, with */
+/*            specified boundary conditions. */
+/* ***LIBRARY   SLATEC (PCHIP) */
+/* ***KEYWORDS  CUBIC HERMITE INTERPOLATION, PCHIP, */
+/*             PIECEWISE CUBIC INTERPOLATION, SPLINE INTERPOLATION */
+/* ***AUTHOR  Fritsch, F. N., (LLNL) */
+/*             Lawrence Livermore National Laboratory */
+/*             P.O. Box 808  (L-316) */
+/*             Livermore, CA  94550 */
+/*             FTS 532-4275, (510) 422-4275 */
+/*          DPCHSP:   Piecewise Cubic Hermite Spline */
+/*     Computes the Hermite representation of the cubic spline inter- */
+/*     polant to the data given in X and F satisfying the boundary */
+/*     conditions specified by IC and VC. */
+/*     To facilitate two-dimensional applications, includes an increment */
+/*     between successive values of the F- and D-arrays. */
+/*     The resulting piecewise cubic Hermite function may be evaluated */
+/*     by DPCHFE or DPCHFD. */
+/*     NOTE:  This is a modified version of C. de Boor's cubic spline */
+/*            routine CUBSPL. */
+/* ---------------------------------------------------------------------- */
+/*  Calling sequence: */
+/*        PARAMETER  (INCFD = ...) */
+/*        INTEGER  IC(2), N, NWK, IERR */
+/*        DOUBLE PRECISION  VC(2), X(N), F(INCFD,N), D(INCFD,N), WK(NWK) */
+/*        CALL  DPCHSP (IC, VC, N, X, F, D, INCFD, WK, NWK, IERR) */
+/*   Parameters: */
+/*     IC -- (input) integer array of length 2 specifying desired */
+/*           boundary conditions: */
+/*           IC(1) = IBEG, desired condition at beginning of data. */
+/*           IC(2) = IEND, desired condition at end of data. */
+/*           IBEG = 0  to set D(1) so that the third derivative is con- */
+/*              tinuous at X(2).  This is the "not a knot" condition */
+/*              provided by de Boor's cubic spline routine CUBSPL. */
+/*              < This is the default boundary condition. > */
+/*           IBEG = 1  if first derivative at X(1) is given in VC(1). */
+/*           IBEG = 2  if second derivative at X(1) is given in VC(1). */
+/*           IBEG = 3  to use the 3-point difference formula for D(1). */
+/*                     (Reverts to the default b.c. if N.LT.3 .) */
+/*           IBEG = 4  to use the 4-point difference formula for D(1). */
+/*                     (Reverts to the default b.c. if N.LT.4 .) */
+/*          NOTES: */
+/*           1. An error return is taken if IBEG is out of range. */
+/*           2. For the "natural" boundary condition, use IBEG=2 and */
+/*              VC(1)=0. */
+/*           IEND may take on the same values as IBEG, but applied to */
+/*           derivative at X(N).  In case IEND = 1 or 2, the value is */
+/*           given in VC(2). */
+/*          NOTES: */
+/*           1. An error return is taken if IEND is out of range. */
+/*           2. For the "natural" boundary condition, use IEND=2 and */
+/*              VC(2)=0. */
+/*     VC -- (input) real*8 array of length 2 specifying desired boundary */
+/*           values, as indicated above. */
+/*           VC(1) need be set only if IC(1) = 1 or 2 . */
+/*           VC(2) need be set only if IC(2) = 1 or 2 . */
+/*     N -- (input) number of data points.  (Error return if N.LT.2 .) */
+/*     X -- (input) real*8 array of independent variable values.  The */
+/*           elements of X must be strictly increasing: */
+/*                X(I-1) .LT. X(I),  I = 2(1)N. */
+/*           (Error return if not.) */
+/*     F -- (input) real*8 array of dependent variable values to be */
+/*           interpolated.  F(1+(I-1)*INCFD) is value corresponding to */
+/*           X(I). */
+/*     D -- (output) real*8 array of derivative values at the data */
+/*           points.  These values will determine the cubic spline */
+/*           interpolant with the requested boundary conditions. */
+/*           The value corresponding to X(I) is stored in */
+/*                D(1+(I-1)*INCFD),  I=1(1)N. */
+/*           No other entries in D are changed. */
+/*     INCFD -- (input) increment between successive values in F and D. */
+/*           This argument is provided primarily for 2-D applications. */
+/*           (Error return if  INCFD.LT.1 .) */
+/*     WK -- (scratch) real*8 array of working storage. */
+/*     NWK -- (input) length of work array. */
+/*           (Error return if NWK.LT.2*N .) */
+/*     IERR -- (output) error flag. */
+/*           Normal return: */
+/*              IERR = 0  (no errors). */
+/*           "Recoverable" errors: */
+/*              IERR = -1  if N.LT.2 . */
+/*              IERR = -2  if INCFD.LT.1 . */
+/*              IERR = -3  if the X-array is not strictly increasing. */
+/*              IERR = -4  if IBEG.LT.0 or IBEG.GT.4 . */
+/*              IERR = -5  if IEND.LT.0 of IEND.GT.4 . */
+/*              IERR = -6  if both of the above are true. */
+/*              IERR = -7  if NWK is too small. */
+/*               NOTE:  The above errors are checked in the order listed, */
+/*                   and following arguments have **NOT** been validated. */
+/*             (The D-array has not been changed in any of these cases.) */
+/*              IERR = -8  in case of trouble solving the linear system */
+/*                         for the interior derivative values. */
+/*             (The D-array may have been changed in this case.) */
+/*             (             Do **NOT** use it!                ) */
+/* ***REFERENCES  Carl de Boor, A Practical Guide to Splines, Springer- */
+/*                 Verlag, New York, 1978, pp. 53-59. */
+/* ***REVISION HISTORY  (YYMMDD) */
+/*   820503  DATE WRITTEN */
+/*   820804  Converted to SLATEC library version. */
+/*   870707  Corrected XERROR calls for d.p. name(s). */
+/*   890206  Corrected XERROR calls. */
+/*   890411  Added SAVE statements (Vers. 3.2). */
+/*   890703  Corrected category record.  (WRB) */
+/*   890831  Modified array declarations.  (WRB) */
+/*   891006  Cosmetic changes to prologue.  (WRB) */
+/*   891006  REVISION DATE from Version 3.2 */
+/*   891214  Prologue converted to Version 4.0 format.  (BAB) */
+/*   900315  CALLs to XERROR changed to CALLs to XERMSG.  (THJ) */
+/*   920429  Revised format and order of references.  (WRB,FNF) */
+/*  Programming notes: */
+/*     To produce a single precision version, simply: */
+/*        a. Change DPCHSP to PCHSP wherever it occurs, */
+/*        b. Change the double precision declarations to real, and */
+/*        c. Change the constants ZERO, HALF, ... to single precision. */
 /*     SINGULAR SYSTEM. */
 /*   *** THEORETICALLY, THIS CAN ONLY OCCUR IF SUCCESSIVE X-VALUES   *** */
 /*   *** ARE EQUAL, WHICH SHOULD ALREADY HAVE BEEN CAUGHT (IERR=-3). *** */
@@ -3620,156 +3319,6 @@ void dpchsp(integer *ic, doublereal *vc, integer n,
     doublereal g;
     integer j, nm1, ibeg, iend, index;
     doublereal stemp[3], xtemp[4];
-
-/* ***BEGIN PROLOGUE  DPCHSP */
-/* ***PURPOSE  Set derivatives needed to determine the Hermite represen- */
-/*            tation of the cubic spline interpolant to given data, with */
-/*            specified boundary conditions. */
-/* ***LIBRARY   SLATEC (PCHIP) */
-/* ***CATEGORY  E1A */
-/* ***KEYWORDS  CUBIC HERMITE INTERPOLATION, PCHIP, */
-/*             PIECEWISE CUBIC INTERPOLATION, SPLINE INTERPOLATION */
-/* ***AUTHOR  Fritsch, F. N., (LLNL) */
-/*             Lawrence Livermore National Laboratory */
-/*             P.O. Box 808  (L-316) */
-/*             Livermore, CA  94550 */
-/*             FTS 532-4275, (510) 422-4275 */
-
-/*          DPCHSP:   Piecewise Cubic Hermite Spline */
-
-/*     Computes the Hermite representation of the cubic spline inter- */
-/*     polant to the data given in X and F satisfying the boundary */
-/*     conditions specified by IC and VC. */
-
-/*     To facilitate two-dimensional applications, includes an increment */
-/*     between successive values of the F- and D-arrays. */
-
-/*     The resulting piecewise cubic Hermite function may be evaluated */
-/*     by DPCHFE or DPCHFD. */
-
-/*     NOTE:  This is a modified version of C. de Boor's cubic spline */
-/*            routine CUBSPL. */
-
-/* ---------------------------------------------------------------------- */
-
-/*  Calling sequence: */
-
-/*        PARAMETER  (INCFD = ...) */
-/*        INTEGER  IC(2), N, NWK, IERR */
-/*        DOUBLE PRECISION  VC(2), X(N), F(INCFD,N), D(INCFD,N), WK(NWK) */
-
-/*        CALL  DPCHSP (IC, VC, N, X, F, D, INCFD, WK, NWK, IERR) */
-
-/*   Parameters: */
-
-/*     IC -- (input) integer array of length 2 specifying desired */
-/*           boundary conditions: */
-/*           IC(1) = IBEG, desired condition at beginning of data. */
-/*           IC(2) = IEND, desired condition at end of data. */
-
-/*           IBEG = 0  to set D(1) so that the third derivative is con- */
-/*              tinuous at X(2).  This is the "not a knot" condition */
-/*              provided by de Boor's cubic spline routine CUBSPL. */
-/*              < This is the default boundary condition. > */
-/*           IBEG = 1  if first derivative at X(1) is given in VC(1). */
-/*           IBEG = 2  if second derivative at X(1) is given in VC(1). */
-/*           IBEG = 3  to use the 3-point difference formula for D(1). */
-/*                     (Reverts to the default b.c. if N.LT.3 .) */
-/*           IBEG = 4  to use the 4-point difference formula for D(1). */
-/*                     (Reverts to the default b.c. if N.LT.4 .) */
-/*          NOTES: */
-/*           1. An error return is taken if IBEG is out of range. */
-/*           2. For the "natural" boundary condition, use IBEG=2 and */
-/*              VC(1)=0. */
-
-/*           IEND may take on the same values as IBEG, but applied to */
-/*           derivative at X(N).  In case IEND = 1 or 2, the value is */
-/*           given in VC(2). */
-
-/*          NOTES: */
-/*           1. An error return is taken if IEND is out of range. */
-/*           2. For the "natural" boundary condition, use IEND=2 and */
-/*              VC(2)=0. */
-
-/*     VC -- (input) real*8 array of length 2 specifying desired boundary */
-/*           values, as indicated above. */
-/*           VC(1) need be set only if IC(1) = 1 or 2 . */
-/*           VC(2) need be set only if IC(2) = 1 or 2 . */
-
-/*     N -- (input) number of data points.  (Error return if N.LT.2 .) */
-
-/*     X -- (input) real*8 array of independent variable values.  The */
-/*           elements of X must be strictly increasing: */
-/*                X(I-1) .LT. X(I),  I = 2(1)N. */
-/*           (Error return if not.) */
-
-/*     F -- (input) real*8 array of dependent variable values to be */
-/*           interpolated.  F(1+(I-1)*INCFD) is value corresponding to */
-/*           X(I). */
-
-/*     D -- (output) real*8 array of derivative values at the data */
-/*           points.  These values will determine the cubic spline */
-/*           interpolant with the requested boundary conditions. */
-/*           The value corresponding to X(I) is stored in */
-/*                D(1+(I-1)*INCFD),  I=1(1)N. */
-/*           No other entries in D are changed. */
-
-/*     INCFD -- (input) increment between successive values in F and D. */
-/*           This argument is provided primarily for 2-D applications. */
-/*           (Error return if  INCFD.LT.1 .) */
-
-/*     WK -- (scratch) real*8 array of working storage. */
-
-/*     NWK -- (input) length of work array. */
-/*           (Error return if NWK.LT.2*N .) */
-
-/*     IERR -- (output) error flag. */
-/*           Normal return: */
-/*              IERR = 0  (no errors). */
-/*           "Recoverable" errors: */
-/*              IERR = -1  if N.LT.2 . */
-/*              IERR = -2  if INCFD.LT.1 . */
-/*              IERR = -3  if the X-array is not strictly increasing. */
-/*              IERR = -4  if IBEG.LT.0 or IBEG.GT.4 . */
-/*              IERR = -5  if IEND.LT.0 of IEND.GT.4 . */
-/*              IERR = -6  if both of the above are true. */
-/*              IERR = -7  if NWK is too small. */
-/*               NOTE:  The above errors are checked in the order listed, */
-/*                   and following arguments have **NOT** been validated. */
-/*             (The D-array has not been changed in any of these cases.) */
-/*              IERR = -8  in case of trouble solving the linear system */
-/*                         for the interior derivative values. */
-/*             (The D-array may have been changed in this case.) */
-/*             (             Do **NOT** use it!                ) */
-
-/* ***REFERENCES  Carl de Boor, A Practical Guide to Splines, Springer- */
-/*                 Verlag, New York, 1978, pp. 53-59. */
-/* ***REVISION HISTORY  (YYMMDD) */
-/*   820503  DATE WRITTEN */
-/*   820804  Converted to SLATEC library version. */
-/*   870707  Corrected XERROR calls for d.p. name(s). */
-/*   890206  Corrected XERROR calls. */
-/*   890411  Added SAVE statements (Vers. 3.2). */
-/*   890703  Corrected category record.  (WRB) */
-/*   890831  Modified array declarations.  (WRB) */
-/*   891006  Cosmetic changes to prologue.  (WRB) */
-/*   891006  REVISION DATE from Version 3.2 */
-/*   891214  Prologue converted to Version 4.0 format.  (BAB) */
-/*   900315  CALLs to XERROR changed to CALLs to XERMSG.  (THJ) */
-/*   920429  Revised format and order of references.  (WRB,FNF) */
-/* ***END PROLOGUE  DPCHSP */
-/*  Programming notes: */
-
-/*     To produce a single precision version, simply: */
-/*        a. Change DPCHSP to PCHSP wherever it occurs, */
-/*        b. Change the double precision declarations to real, and */
-/*        c. Change the constants ZERO, HALF, ... to single precision. */
-
-/*  DECLARE ARGUMENTS. */
-
-
-/*  DECLARE LOCAL VARIABLES. */
-
 
     /* Parameter adjustments */
     d_offset = d_dim1 = incfd;
