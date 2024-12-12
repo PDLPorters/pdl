@@ -4271,17 +4271,29 @@ defslatec('pchip_chim',
            IntVal       incfd=1;
            Integer [o]  ierr    ();
           ',
-'Calculate the derivatives at the given set of points (C<$x,$f>,
+'Calculate the derivatives needed to determine a monotone piecewise
+cubic Hermite interpolant to the given set of points (C<$x,$f>,
 where C<$x> is strictly increasing).
 The resulting set of points - C<$x,$f,$d>, referred to
 as the cubic Hermite representation - can then be used in
-other functions, such as L</chfe>, L</chfd>,
-and L</chia>.
+other functions, such as L</pchip_chfe>, L</pchip_chfd>,
+and L</pchip_chia>.
 
 The boundary conditions are compatible with monotonicity,
 and if the data are only piecewise monotonic, the interpolant
 will have an extremum at the switch points; for more control
-over these issues use L</chic>.
+over these issues use L</pchip_chic>.
+
+F -- (input) array of dependent variable values to be
+interpolated. F(I) is value corresponding to
+X(I). C<pchip_chim> is designed for monotonic data, but it will
+work for any F-array.  It will force extrema at points where
+monotonicity switches direction. If some other treatment of
+switch points is desired, DPCHIC should be used instead.
+
+D -- (output) array of derivative values at the data
+points.  If the data are monotonic, these values will
+determine a monotone cubic Hermite function.
 
 Error status returned by C<$ierr>:
 
@@ -4298,7 +4310,7 @@ monotonicity (data still valid).
 
 =item *
 
--1 if C<nelem($x) E<lt> 2>.
+-1 if C<dim($x, 0) E<lt> 2>.
 
 =item *
 
@@ -4306,8 +4318,20 @@ monotonicity (data still valid).
 
 =back
 
-=cut
+(The D-array has not been changed in any of these cases.)
+NOTE: The above errors are checked in the order listed,
+and following arguments have B<NOT> been validated.
 
+References:
+
+1. F. N. Fritsch and J. Butland, A method for constructing
+local monotone piecewise cubic interpolants, SIAM
+Journal on Scientific and Statistical Computing 5, 2
+(June 1984), pp. 300-304.
+
+F. N. Fritsch and R. E. Carlson, Monotone piecewise
+cubic interpolation, SIAM Journal on Numerical Analysis
+17, 2 (April 1980), pp. 238-246.
 ',
 'Calculate the derivatives of (x,f(x)) using cubic Hermite interpolation.'
 );
@@ -4327,18 +4351,22 @@ defslatec('pchip_chic',
            IntVal       nwk=$SIZE(nwk);
            Integer [o]  ierr    ();
           ',
-'Calculate the derivatives at the given points (C<$x,$f>,
+'
+Calculate the derivatives needed to determine a piecewise monotone piecewise
+cubic interpolant to the data given in (C<$x,$f>,
 where C<$x> is strictly increasing).
 Control over the boundary conditions is given by the
 C<$ic> and C<$vc> ndarrays, and the value of C<$mflag> determines
-the treatment of points where monotoncity switches
+the treatment of points where monotonicity switches
 direction. A simpler, more restricted, interface is available
-using L</chim>.
+using L</pchip_chim>.
+The resulting piecewise cubic Hermite function may be evaluated
+by L</pchip_chfe> or L</pchip_chfd>.
 
 The first and second elements of C<$ic> determine the boundary
 conditions at the start and end of the data respectively.
 If the value is 0, then the default condition, as used by
-L</chim>, is adopted.
+L</pchip_chim>, is adopted.
 If greater than zero, no adjustment for monotonicity is made,
 otherwise if less than zero the derivative will be adjusted.
 The allowed magnitudes for C<ic(0)> are:
@@ -4368,23 +4396,77 @@ The allowed magnitudes for C<ic(0)> are:
 5 to set C<d(0)> so that the second derivative is
 continuous at C<x(1)>.
 (Reverts to the default b.c. if C<n E<lt> 4>)
+This option is somewhat analogous to the "not a knot"
+boundary condition provided by DPCHSP.
 
 =back
 
 The values for C<ic(1)> are the same as above, except that
 the first-derivative value is stored in C<vc(1)> for cases 1 and 2.
 The values of C<$vc> need only be set if options 1 or 2 are chosen
-for C<$ic>.
+for C<$ic>. NOTES:
+
+=over
+
+=item *
+
+Only in case C<$ic(n)> E<lt> 0 is it guaranteed that the interpolant
+will be monotonic in the first interval. If the returned value of
+D(start_or_end) lies between zero and 3*SLOPE(start_or_end), the
+interpolant will be monotonic. This is B<NOT> checked if C<$ic(n)>
+E<gt> 0.
+
+=item *
+
+If C<$ic(n)> E<lt> 0 and D(0) had to be changed to achieve monotonicity,
+a warning error is returned.
+
+=back
 
 Set C<$mflag = 0> if interpolant is required to be monotonic in
-each interval, regardless of the data. This causes C<$d> to be
-set to 0 at all switch points. Set C<$mflag> to be non-zero to
+each interval, regardless of monotonicity of data. This causes C<$d> to be
+set to 0 at all switch points. NOTES:
+
+=over
+
+item *
+
+This will cause D to be set to zero at all switch points, thus
+forcing extrema there.
+
+item *
+
+The result of using this option with the default boundary conditions
+will be identical to using DPCHIM, but will generally cost more
+compute time. This option is provided only to facilitate comparison
+of different switch and/or boundary conditions.
+
+=back
+
+Set C<$mflag> to be non-zero to
 use a formula based on the 3-point difference formula at switch
-points. If C<$mflag E<gt> 0>, then the interpolant at swich points
+points. If C<$mflag E<gt> 0>, then the interpolant at switch points
 is forced to not deviate from the data by more than C<$mflag*dfloc>,
 where C<dfloc> is the maximum of the change of C<$f> on this interval
 and its two immediate neighbours.
 If C<$mflag E<lt> 0>, no such control is to be imposed.
+
+X -- (input) array of independent variable values.  The
+elements of X must be strictly increasing:
+
+           X(I-1) .LT. X(I),  I = 2(1)N.
+
+(Error return if not.)
+
+F -- (input) array of dependent variable values to be
+interpolated. F(I) is value corresponding to X(I).
+
+D -- (output) array of derivative values at the data
+points. These values will determine a monotone cubic
+Hermite function on each subinterval on which the data
+are monotonic, except possibly adjacent to switches in
+monotonicity. The value corresponding to X(I) is stored in D(I).
+No other entries in D are changed.
 
 Error status returned by C<$ierr>:
 
@@ -4434,10 +4516,30 @@ for monotonicity.
 
 =back
 
-=cut
+(The D-array has not been changed in any of these cases.)
+NOTE:  The above errors are checked in the order listed,
+and following arguments have B<NOT> been validated.
 
+References:
+
+1. F. N. Fritsch, Piecewise Cubic Hermite Interpolation
+Package, Report UCRL-87285, Lawrence Livermore National
+Laboratory, July 1982.  [Poster presented at the
+SIAM 30th Anniversary Meeting, 19-23 July 1982.]
+
+2. F. N. Fritsch and J. Butland, A method for constructing
+local monotone piecewise cubic interpolants, SIAM
+Journal on Scientific and Statistical Computing 5, 2
+(June 1984), pp. 300-304.
+
+3. F. N. Fritsch and R. E. Carlson, Monotone piecewise
+cubic interpolation, SIAM Journal on Numerical
+Analysis 17, 2 (April 1980), pp. 238-246.
 ',
-'Calculate the derivatives of (x,f(x)) using cubic Hermite interpolation.'
+'Set derivatives needed to determine a piecewise monotone piecewise
+cubic Hermite interpolant to given data. User control is available
+over boundary conditions and/or treatment of points where monotonicity
+switches direction.'
 );
 
 defslatec('pchip_chsp',
@@ -4453,14 +4555,13 @@ defslatec('pchip_chsp',
            IntVal       nwk=$SIZE(nwk);
            Integer [o]  ierr    ();
           ',
-'Calculate the derivatives, using cubic spline interpolation,
-at the given points (C<$x,$f>), with the specified
-boundary conditions.
+'Computes the Hermite representation of the cubic spline interpolant
+to the data given in (C<$x,$f>), with the specified boundary conditions.
 Control over the boundary conditions is given by the
 C<$ic> and C<$vc> ndarrays.
 The resulting values - C<$x,$f,$d> - can
 be used in all the functions which expect a cubic
-Hermite function.
+Hermite function, including L</pchip_bvalu>.
 
 The first and second elements of C<$ic> determine the boundary
 conditions at the start and end of the data respectively.
@@ -4498,6 +4599,8 @@ the first-derivative value is stored in C<vc(1)> for cases 1 and 2.
 The values of C<$vc> need only be set if options 1 or 2 are chosen
 for C<$ic>.
 
+NOTES: For the "natural" boundary condition, use IC(n)=2 and VC(n)=0.
+
 Error status returned by C<$ierr>:
 
 =over 4
@@ -4508,7 +4611,7 @@ Error status returned by C<$ierr>:
 
 =item *
 
--1  if C<nelem($x) E<lt> 2>.
+-1  if C<dim($x, 0) E<lt> 2>.
 
 =item *
 
@@ -4530,15 +4633,20 @@ Error status returned by C<$ierr>:
 
 -7  if C<nwk E<lt> 2*n>.
 
+NOTE:  The above errors are checked in the order listed,
+and following arguments have B<NOT> been validated.
+(The D-array has not been changed in any of these cases.)
+
 =item *
 
 -8  in case of trouble solving the linear system
 for the interior derivative values.
+(The D-array may have been changed in this case. Do B<NOT> use it!)
 
 =back
 
-=cut
-
+References: Carl de Boor, A Practical Guide to Splines, Springer-Verlag,
+New York, 1978, pp. 53-59.
 ',
 'Calculate the derivatives of (x,f(x)) using cubic spline interpolation.'
 );
@@ -4558,10 +4666,31 @@ defslatec('pchip_chfd',
            Integer [o]  ierr    ();
           ',
 'Given a piecewise cubic Hermite function - such as from
-L</chim> - evaluate the function (C<$fe>) and
+L</pchip_chim> - evaluate the function (C<$fe>) and
 derivative (C<$de>) at a set of points (C<$xe>).
-If function values alone are required, use L</chfe>.
-Set C<skip> to 0 to skip checks on the input data.
+If function values alone are required, use L</pchip_chfe>.
+
+Set C<skip> to 1 to skip checks on the input data.
+This will save time in case these checks have already
+been performed (say, in L</pchip_chim> or L</pchip_chic>).
+Will be set to TRUE on normal return.
+
+XE -- (input) array of points at which the functions are to
+be evaluated. NOTES:
+
+  1. The evaluation will be most efficient if the elements
+     of XE are increasing relative to X;
+     that is,   XE(J) .GE. X(I)
+     implies    XE(K) .GE. X(I),  all K.GE.J .
+  2. If any of the XE are outside the interval [X(1),X(N)],
+     values are extrapolated from the nearest extreme cubic,
+     and a warning error is returned.
+
+FE -- (output) array of values of the cubic Hermite
+function defined by  N, X, F, D  at the points  XE.
+
+DE -- (output) array of values of the first derivative of
+the same function at the points  XE.
 
 Error status returned by C<$ierr>:
 
@@ -4578,7 +4707,7 @@ E<gt>0 if extrapolation was performed at C<ierr> points
 
 =item *
 
--1 if C<nelem($x) E<lt> 2>
+-1 if C<dim($x, 0) E<lt> 2>
 
 =item *
 
@@ -4586,7 +4715,7 @@ E<gt>0 if extrapolation was performed at C<ierr> points
 
 =item *
 
--4 if C<nelem($xe) E<lt> 1>.
+-4 if C<dim($xe, 0) E<lt> 1>.
 
 =item *
 
@@ -4594,11 +4723,10 @@ E<gt>0 if extrapolation was performed at C<ierr> points
 which should never happen.
 
 =back
-
-=cut
-
 ',
-'Interpolate function and derivative values.'
+'Evaluate a piecewise cubic Hermite function and its first derivative
+at an array of points. May be used by itself for Hermite interpolation,
+or as an evaluator for DPCHIM or DPCHIC.'
 );
 
 defslatec('pchip_chfe',
@@ -4615,10 +4743,42 @@ defslatec('pchip_chfe',
            Integer [o]  ierr    ();
           ',
 'Given a piecewise cubic Hermite function - such as from
-L</chim> - evaluate the function (C<$fe>) at
+L</pchip_chim> - evaluate the function (C<$fe>) at
 a set of points (C<$xe>).
-If derivative values are also required, use L</chfd>.
-Set C<skip> to 0 to skip checks on the input data.
+If derivative values are also required, use L</pchip_chfd>.
+
+X -- (input) array of independent variable values.  The
+elements of X must be strictly increasing:
+
+           X(I-1) .LT. X(I),  I = 2(1)N.
+
+(Error return if not.)
+
+F -- (input) array of function values.  F(1+(I-1)*INCFD) is
+the value corresponding to X(I).
+
+D -- (input) array of derivative values.  D(1+(I-1)*INCFD)
+is the value corresponding to X(I).
+
+Set C<skip> to 1 to skip checks on the input data.
+This will save time in case these checks have already
+been performed (say, in L</pchip_chim> or L</pchip_chic>).
+Will be set to TRUE on normal return.
+
+XE -- (input) array of points at which the function is to
+      be evaluated.
+
+ NOTES:
+  1. The evaluation will be most efficient if the elements
+     of XE are increasing relative to X;
+     that is,   XE(J) .GE. X(I)
+     implies    XE(K) .GE. X(I),  all K.GE.J .
+  2. If any of the XE are outside the interval [X(1),X(N)],
+     values are extrapolated from the nearest extreme cubic,
+     and a warning error is returned.
+
+FE -- (output) array of values of the cubic Hermite
+function defined by  N, X, F, D  at the points  XE.
 
 Error status returned by C<$ierr>:
 
@@ -4635,7 +4795,7 @@ E<gt>0 if extrapolation was performed at C<ierr> points
 
 =item *
 
--1 if C<nelem($x) E<lt> 2>
+-1 if C<dim($x, 0) E<lt> 2>
 
 =item *
 
@@ -4643,14 +4803,20 @@ E<gt>0 if extrapolation was performed at C<ierr> points
 
 =item *
 
--4 if C<nelem($xe) E<lt> 1>.
+-4 if C<dim($xe, 0) E<lt> 1>.
 
 =back
+
+(The FE-array has not been changed in any of these cases.)
+NOTE:  The above errors are checked in the order listed,
+and following arguments have B<NOT> been validated.
 
 =cut
 
 ',
-'Interpolate function values.'
+'Evaluate a piecewise cubic Hermite function at an array of points.
+May be used by itself for Hermite interpolation, or as an evaluator
+for L</pchip_chim> or L</pchip_chic>.'
 );
 
 defslatec('pchip_chia',
@@ -4668,10 +4834,25 @@ defslatec('pchip_chia',
           ',
 'Evaluate the definite integral of a piecewise
 cubic Hermite function over an arbitrary interval,
-given by C<[$la,$lb]>. C<$d> should contain the derivative values, computed by L</chim>.
-See L</chid> if the integration limits are
+given by C<[$la,$lb]>.
+
+X -- (input) array of independent variable values.  The elements
+of X must be strictly increasing (error return if not):
+
+           X(I-1) .LT. X(I),  I = 2(1)N.
+
+F -- (input) array of function values. F(I) is the value
+corresponding to X(I).
+
+C<$d> should contain the derivative values,
+computed by L</pchip_chim>.
+See L</pchip_chid> if the integration limits are
 data points.
-Set C<skip> to 0 to skip checks on the input data.
+
+Set C<skip> to 1 to skip checks on the input data.
+This will save time in case these checks have already
+been performed (say, in L</pchip_chim> or L</pchip_chic>).
+Will be set to TRUE on return with IERR E<gt>= 0.
 
 The values of C<$la> and C<$lb> do not have
 to lie within C<$x>, although the resulting integral
@@ -4695,11 +4876,12 @@ Error status returned by C<$ierr>:
 
 =item *
 
-3 if both 1 and 2 are true.
+3 if both 1 and 2 are true. (Note that this means that either [A,B]
+contains data interval or the intervals do not intersect at all.)
 
 =item *
 
--1 if C<nelem($x) E<lt> 2>
+-1 if C<dim($x, 0) E<lt> 2>
 
 =item *
 
@@ -4711,9 +4893,6 @@ Error status returned by C<$ierr>:
 which should never happen.
 
 =back
-
-=cut
-
 ',
 'Integrate (x,f(x)) over arbitrary limits.'
 );
@@ -4735,13 +4914,30 @@ defslatec('pchip_chid',
 cubic Hermite function between C<x($ia)> and
 C<x($ib)>.
 
-See L</chia> for integration between arbitrary
+See L</pchip_chia> for integration between arbitrary
 limits.
 
-Although using a fortran routine, the values of
-C<$ia> and C<$ib> are zero offset.
-C<$d> should contain the derivative values, computed by L</chim>.
-Set C<skip> to 0 to skip checks on the input data.
+X -- (input) array of independent variable values.  The
+elements of X must be strictly increasing:
+
+           X(I-1) .LT. X(I),  I = 2(1)N.
+
+(Error return if not.)
+
+IA,IB -- (input) indices in X-array for the limits of integration.
+both must be in the range [0,N-1] (this is different from the Fortran
+version) - error return if not. No restrictions on their relative
+values.
+
+F -- (input) array of function values.  F(I) is
+the value corresponding to X(I).
+
+C<$d> should contain the derivative values, computed by L</pchip_chim>.
+
+Set C<skip> to 1 to skip checks on the input data.
+This will save time in case these checks have already
+been performed (say, in L</pchip_chim> or L</pchip_chic>).
+Will be set to TRUE on return with IERR of 0 or -4.
 
 Error status returned by C<$ierr>:
 
@@ -4753,7 +4949,7 @@ Error status returned by C<$ierr>:
 
 =item *
 
--1 if C<nelem($x) E<lt> 2>.
+-1 if C<dim($x, 0) E<lt> 2>.
 
 =item *
 
@@ -4765,10 +4961,13 @@ Error status returned by C<$ierr>:
 
 =back
 
-=cut
-
+(VALUE will be zero in any of these cases.)
+NOTE: The above errors are checked in the order listed, and following
+arguments have B<NOT> been validated.
 ',
-'Integrate (x,f(x)) between data points.'
+'Evaluate the definite integral of a piecewise cubic
+Hermite function over an interval whose endpoints are data
+points.'
 );
 
 defslatec('pchip_chbs',
@@ -4786,12 +4985,42 @@ defslatec('pchip_chbs',
            Integer [o]  kord    ();
            Integer [o]  ierr    ();
           ',
-'The resulting B-spline representation of the data
+'Computes the B-spline representation of the PCH function
+determined by N,X,F,D.  To be compatible with the rest of PCHIP,
+CHBS includes INCFD, the increment between successive values of
+the F- and D-arrays.
+The output is the B-representation for the function:  NKNOTS, T,
+BCOEF, NDIM, KORD.
+
+L</pchip_chic>, L</pchip_chim>, or L</pchip_chsp> can be used to
+determine an interpolating PCH function from a set of data. The
+B-spline routine L</pchip_bvalu> can be used to evaluate the
+resulting B-spline representation of the data
 (i.e. C<nknots>, C<t>, C<bcoeff>, C<ndim>, and
-C<kord>) can be evaluated by L</bvalu>.
+C<kord>).
+
+Caution: Since it is assumed that the input PCH function has been
+computed by one of the other routines in the package PCHIP,
+input arguments N, X, INCFD are B<not> checked for validity.
+
+Restrictions/assumptions:
+
+   1. N.GE.2 .  (not checked)
+   2. X(i).LT.X(i+1), i=1,...,N .  (not checked)
+   3. INCFD.GT.0 .  (not checked)
+   4. KNOTYP.LE.2 .  (error return if not)
+  *5. NKNOTS = NDIM+4 = 2*N+4 .  (error return if not)
+  *6. T(2*k+1) = T(2*k) = X(k), k=1,...,N .  (not checked)
+     * Indicates this applies only if KNOTYP.LT.0 .
 
 Array sizes: C<tsize = 2*n + 4>, C<bsize = 2*n>,
 and C<ndim = 2*n>.
+
+C<f> is the array of dependent variable values.
+C<f(I)> is the value corresponding to C<x(I)>.
+
+C<d> is the array of derivative values at the data points.
+C<d(I)> is the value corresponding to C<x(I)>.
 
 C<knotyp> is a flag which controls the knot sequence.
 The knot sequence C<t> is normally computed from C<$x>
@@ -4819,6 +5048,8 @@ C<t(m+3) = t(m+2) = x(n) + (x(1)-x(0))>
 =item *
 
 E<lt>0 - Assume the C<nknots> and C<t> were set in a previous call.
+This option is provided for improved efficiency when used
+in a parametric setting.
 
 =back
 
@@ -4836,6 +5067,10 @@ otherwise it is assumed that C<t> was set by a
 previous call (no check is made to verify that the data
 forms a legitimate knot sequence).
 
+C<BCOEF:OUT> is the array of 2*N B-spline coefficients.
+C<NDIM:OUT> is the dimension of the B-spline space.  (Set to 2*N.)
+C<KORD:OUT> is the order of the B-spline.  (Set to 4.)
+
 Error status returned by C<$ierr>:
 
 =over 4
@@ -4846,13 +5081,16 @@ Error status returned by C<$ierr>:
 
 =item *
 
--4 if C<knotyp E<gt> 2>.
+-4 if C<knotyp E<gt> 2>. (recoverable)
 
 =item *
 
--5 if C<knotyp E<lt> 0> and C<nknots != 2*n + 4>.
+-5 if C<knotyp E<lt> 0> and C<nknots != 2*n + 4>. (recoverable)
 
 =back
+
+References: F. N. Fritsch, "Representations for parametric cubic
+splines," Computer Aided Geometric Design 6 (1989), pp.79-82.
 
 =cut
 
@@ -4910,9 +5148,13 @@ knot C<T(I)>, replace C<N> by C<I-1> and set C<X=T(I)>, C<I=K+1,N+1>.
 =head4 Error Conditions
 
 An improper input is a fatal error
+
+References: Carl de Boor, Package for calculating with B-splines,
+SIAM Journal on Numerical Analysis 14, 3 (June 1977), pp. 441-472.
 ',
 'Evaluate the B-representation of a B-spline at X for the
-function value or any of its derivatives.'
+function value or any of its derivatives.
+'
 );
 
 pp_addpm({At=>'Bot'},<<'EOD');
