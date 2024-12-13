@@ -4268,7 +4268,6 @@ defslatec('pchip_chim',
            Mat          x       (n);
            Mat          f       (n);
            Mat     [o]  d       (n);
-           IntVal       incfd=1;
            Integer [o]  ierr    ();
           ',
 'Calculate the derivatives needed to determine a monotone piecewise
@@ -4346,7 +4345,6 @@ defslatec('pchip_chic',
            Mat          x       (n);
            Mat          f       (n);
            Mat     [o]  d       (n);
-           IntVal       incfd=1;
            Mat [t]      wk      (nwk=CALC(2*$SIZE(n)));
            IntVal       nwk=$SIZE(nwk);
            Integer [o]  ierr    ();
@@ -4550,7 +4548,6 @@ defslatec('pchip_chsp',
            Mat          x       (n);
            Mat          f       (n);
            Mat     [o]  d       (n);
-           IntVal       incfd=1;
            Mat [t]      wk      (nwk=CALC(2*$SIZE(n)));
            IntVal       nwk=$SIZE(nwk);
            Integer [o]  ierr    ();
@@ -4657,7 +4654,6 @@ defslatec('pchip_chfd',
            Mat          x       (n);
            Mat          f       (n);
            Mat          d       (n);
-           IntVal       incfd=1;
            Logical [io] skip    ();
            IntVal       ne=$SIZE(ne);
            Mat          xe      (ne);
@@ -4735,7 +4731,6 @@ defslatec('pchip_chfe',
            Mat          x       (n);
            Mat          f       (n);
            Mat          d       (n);
-           IntVal       incfd=1;
            Logical [io] skip    ();
            IntVal       ne=$SIZE(ne);
            Mat          xe      (ne);
@@ -4754,10 +4749,10 @@ elements of X must be strictly increasing:
 
 (Error return if not.)
 
-F -- (input) array of function values.  F(1+(I-1)*INCFD) is
+F -- (input) array of function values.  F(I) is
 the value corresponding to X(I).
 
-D -- (input) array of derivative values.  D(1+(I-1)*INCFD)
+D -- (input) array of derivative values.  D(I)
 is the value corresponding to X(I).
 
 Set C<skip> to 1 to skip checks on the input data.
@@ -4825,7 +4820,6 @@ defslatec('pchip_chia',
            Mat          x       (n);
            Mat          f       (n);
            Mat          d       (n);
-           IntVal       incfd=1;
            Logical [io] skip    ();
            MatScalar    la    ();
            MatScalar    lb    ();
@@ -4903,7 +4897,6 @@ defslatec('pchip_chid',
            Mat          x       (n);
            Mat          f       (n);
            Mat          d       (n);
-           IntVal       incfd=1;
            Logical [io] skip    ();
            IntScalar    ia      ();
            IntScalar    ib      ();
@@ -4976,7 +4969,6 @@ defslatec('pchip_chbs',
            Mat          x       (n);
            Mat          f       (n);
            Mat          d       (n);
-           IntVal       incfd=1;
            Integer      knotyp  ();
            Integer [io] nknots  ();
            Mat     [io] t       (tsize=CALC(2*$SIZE(n)+4));
@@ -4986,11 +4978,8 @@ defslatec('pchip_chbs',
            Integer [o]  ierr    ();
           ',
 'Computes the B-spline representation of the PCH function
-determined by N,X,F,D.  To be compatible with the rest of PCHIP,
-CHBS includes INCFD, the increment between successive values of
-the F- and D-arrays.
-The output is the B-representation for the function:  NKNOTS, T,
-BCOEF, NDIM, KORD.
+determined by N,X,F,D. The output is the B-representation for the
+function:  NKNOTS, T, BCOEF, NDIM, KORD.
 
 L</pchip_chic>, L</pchip_chim>, or L</pchip_chsp> can be used to
 determine an interpolating PCH function from a set of data. The
@@ -5001,13 +4990,12 @@ C<kord>).
 
 Caution: Since it is assumed that the input PCH function has been
 computed by one of the other routines in the package PCHIP,
-input arguments N, X, INCFD are B<not> checked for validity.
+input arguments N, X are B<not> checked for validity.
 
 Restrictions/assumptions:
 
    1. N.GE.2 .  (not checked)
    2. X(i).LT.X(i+1), i=1,...,N .  (not checked)
-   3. INCFD.GT.0 .  (not checked)
    4. KNOTYP.LE.2 .  (error return if not)
   *5. NKNOTS = NDIM+4 = 2*N+4 .  (error return if not)
   *6. T(2*k+1) = T(2*k) = X(k), k=1,...,N .  (not checked)
