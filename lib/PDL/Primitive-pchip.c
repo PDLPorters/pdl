@@ -214,41 +214,6 @@ doublereal dbvalu(doublereal *t, doublereal *a, integer n, integer k,
 /* ***SEE ALSO  DPCHBS */
 /*  Since this is subsidiary to DPCHBS, which validates its input before */
 /*  calling, it is unnecessary for such validation to be done here. */
-void dpchkt(integer n, doublereal *x, integer *knotyp,
-    doublereal *t)
-{
-/* Local variables */
-  integer j, k;
-  doublereal hbeg, hend;
-  integer ndim;
-  ndim = n << 1;
-/*  Set interior knots. */
-  j = 0;
-  for (k = 0; k < n; ++k) {
-    j += 2;
-    t[j+1] = t[j] = x[k];
-  }
-/*   Assertion:  At this point T(3),...,T(NDIM+2) have been set and */
-/*         J=NDIM+1. */
-/*  Set end knots according to KNOTYP. */
-  hbeg = x[1] - x[0];
-  hend = x[n-1] - x[n - 2];
-  if (*knotyp == 1) {
-/*      Extrapolate. */
-    t[1] = x[0] - hbeg;
-    t[ndim + 2] = x[n-1] + hend;
-  } else if (*knotyp == 2) {
-/*      Periodic. */
-    t[1] = x[0] - hend;
-    t[ndim + 2] = x[n-1] + hbeg;
-  } else {
-/*      Quadruple end knots. */
-    t[1] = x[0];
-    t[ndim + 2] = x[n-1];
-  }
-  t[0] = t[1];
-  t[ndim + 3] = t[ndim + 2];
-}
 
 void dpchbs(integer n, doublereal *x, doublereal *f,
     doublereal *d, integer *knotyp, integer *nknots,
@@ -278,7 +243,38 @@ void dpchbs(integer n, doublereal *x, doublereal *f,
   } else {
 /*      Set up knot sequence. */
     *nknots = *ndim + 4;
-    dpchkt(n, &x[0], knotyp, &t[0]);
+    do { /* inline dpchkt */
+/* Local variables */
+      integer j, k;
+      doublereal hbeg, hend;
+      integer ndim = n << 1;
+/*  Set interior knots. */
+      j = 0;
+      for (k = 0; k < n; ++k) {
+        j += 2;
+        t[j+1] = t[j] = x[k];
+      }
+/*   Assertion:  At this point T(3),...,T(NDIM+2) have been set and */
+/*         J=NDIM+1. */
+/*  Set end knots according to KNOTYP. */
+      hbeg = x[1] - x[0];
+      hend = x[n-1] - x[n - 2];
+      if (*knotyp == 1) {
+/*      Extrapolate. */
+        t[1] = x[0] - hbeg;
+        t[ndim + 2] = x[n-1] + hend;
+      } else if (*knotyp == 2) {
+/*      Periodic. */
+        t[1] = x[0] - hend;
+        t[ndim + 2] = x[n-1] + hbeg;
+      } else {
+/*      Quadruple end knots. */
+        t[1] = x[0];
+        t[ndim + 2] = x[n-1];
+      }
+      t[0] = t[1];
+      t[ndim + 3] = t[ndim + 2];
+    } while (0); /* end inline dpchkt */
   }
 /*  Compute B-spline coefficients. */
   hnew = t[2] - t[0];
