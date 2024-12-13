@@ -804,116 +804,6 @@ doublereal dpchdf(integer k, doublereal *x, doublereal *s, integer *ierr)
   return value;
 }
 
-/* ***PURPOSE  Set interior derivatives for DPCHIC */
-/*      DPCHCI:  DPCHIC Initial Derivative Setter. */
-/*  Called by DPCHIC to set derivatives needed to determine a monotone */
-/*  piecewise cubic Hermite interpolant to the data. */
-/*  Default boundary conditions are provided which are compatible */
-/*  with monotonicity.  If the data are only piecewise monotonic, the */
-/*  interpolant will have an extremum at each point where monotonicity */
-/*  switches direction. */
-/*  To facilitate two-dimensional applications, includes an increment */
-/*  between successive values of the D-array. */
-/*  The resulting piecewise cubic Hermite function should be identical */
-/*  (within roundoff error) to that produced by DPCHIM. */
-/* ---------------------------------------------------------------------- */
-/*  Calling sequence: */
-/*    INTEGER  N */
-/*    DOUBLE PRECISION  H(N), SLOPE(N), D(N) */
-/*    CALL  DPCHCI (N, H, SLOPE, D) */
-/*   Parameters: */
-/*   N -- (input) number of data points. */
-/*       If N=2, simply does linear interpolation. */
-/*   H -- (input) real*8 array of interval lengths. */
-/*   SLOPE -- (input) real*8 array of data slopes. */
-/*       If the data are (X(I),Y(I)), I=1(1)N, then these inputs are: */
-/*          H(I) =  X(I+1)-X(I), */
-/*        SLOPE(I) = (Y(I+1)-Y(I))/H(I),  I=1(1)N-1. */
-/*   D -- (output) real*8 array of derivative values at data points. */
-/*       If the data are monotonic, these values will determine a */
-/*       a monotone cubic Hermite function. */
-/*       The value corresponding to X(I) is stored in */
-/*        D(1+(I-1)),  I=1(1)N. */
-/*       No other entries in D are changed. */
-/*  ------- */
-/*  WARNING:  This routine does no validity-checking of arguments. */
-/*  ------- */
-/* ***SEE ALSO  DPCHIC */
-/*  Programming notes: */
-/*   1. The function  DPCHST(ARG1,ARG2)  is assumed to return zero if */
-/*    either argument is zero, +1 if they are of the same sign, and */
-/*    -1 if they are of opposite sign. */
-void dpchci(integer n, doublereal *h, doublereal *slope, doublereal *d)
-{
-/* Local variables */
-  integer i;
-  doublereal w1, w2, del1, del2, dmin, dmax, hsum, drat1, drat2;
-  integer nless1;
-  doublereal hsumt3;
-  nless1 = n - 1;
-  del1 = slope[0];
-/*  SPECIAL CASE N=2 -- USE LINEAR INTERPOLATION. */
-  if (nless1 <= 1) {
-    d[0] = d[n-1] = del1;
-    return;
-  }
-/*  NORMAL CASE  (N .GE. 3). */
-  del2 = slope[1];
-/*  SET D(1) VIA NON-CENTERED THREE-POINT FORMULA, ADJUSTED TO BE */
-/*   SHAPE-PRESERVING. */
-  hsum = h[0] + h[1];
-  w1 = (h[0] + hsum) / hsum;
-  w2 = -h[0] / hsum;
-  d[0] = w1 * del1 + w2 * del2;
-  if (dpchst(d[0], del1) <= 0.) {
-    d[0] = 0.;
-  } else if (dpchst(del1, del2) < 0.) {
-/*    NEED DO THIS CHECK ONLY IF MONOTONICITY SWITCHES. */
-    dmax = 3. * del1;
-    if (abs(d[0]) > abs(dmax)) {
-      d[0] = dmax;
-    }
-  }
-/*  LOOP THROUGH INTERIOR POINTS. */
-  for (i = 2; i <= nless1; ++i) {
-    if (i != 2) {
-      hsum = h[i - 2] + h[i-1];
-      del1 = del2;
-      del2 = slope[i-1];
-    }
-/*    SET D(I)=0 UNLESS DATA ARE STRICTLY MONOTONIC. */
-    d[i-1] = 0.;
-    if (dpchst(del1, del2) <= 0.) {
-      continue;
-    }
-/*    USE BRODLIE MODIFICATION OF BUTLAND FORMULA. */
-    hsumt3 = hsum + hsum + hsum;
-    w1 = (hsum + h[i - 2]) / hsumt3;
-    w2 = (hsum + h[i-1]) / hsumt3;
-/* Computing MAX */
-    dmax = max(abs(del1),abs(del2));
-/* Computing MIN */
-    dmin = min(abs(del1),abs(del2));
-    drat1 = del1 / dmax;
-    drat2 = del2 / dmax;
-    d[i-1] = dmin / (w1 * drat1 + w2 * drat2);
-  }
-/*  SET D(N) VIA NON-CENTERED THREE-POINT FORMULA, ADJUSTED TO BE */
-/*   SHAPE-PRESERVING. */
-  w1 = -h[n - 2] / hsum;
-  w2 = (h[n - 2] + hsum) / hsum;
-  d[n-1] = w1 * del1 + w2 * del2;
-  if (dpchst(d[n-1], del2) <= 0.) {
-    d[n-1] = 0.;
-  } else if (dpchst(del1, del2) < 0.) {
-/*    NEED DO THIS CHECK ONLY IF MONOTONICITY SWITCHES. */
-    dmax = 3. * del2;
-    if (abs(d[n-1]) > abs(dmax)) {
-      d[n-1] = dmax;
-    }
-  }
-}
-
 /* ***PURPOSE  Limits excursion from data for DPCHCS */
 /*     DPCHSW:  DPCHCS Switch Excursion Limiter. */
 /*   Called by  DPCHCS  to adjust D1 and D2 if necessary to insure that */
@@ -1271,7 +1161,75 @@ void dpchic(integer *ic, doublereal *vc, doublereal mflag,
   } else {
 /*  NORMAL CASE  (N .GE. 3) . */
 /*  SET INTERIOR DERIVATIVES AND DEFAULT END CONDITIONS. */
-    dpchci(n, &wk[0], &wk[n-1], &d[0]);
+    do { /* inline dpchci */
+/* Local variables */
+      integer i;
+      doublereal w1, w2, del1, del2, dmin, dmax, hsum, drat1, drat2;
+      integer nless1;
+      doublereal hsumt3, *slope = &wk[n-1];
+      nless1 = n - 1;
+      del1 = slope[0];
+/*  SPECIAL CASE N=2 -- USE LINEAR INTERPOLATION. */
+      if (nless1 <= 1) {
+        d[0] = d[n-1] = del1;
+        break;
+      }
+/*  NORMAL CASE  (N .GE. 3). */
+      del2 = slope[1];
+/*  SET D(1) VIA NON-CENTERED THREE-POINT FORMULA, ADJUSTED TO BE */
+/*   SHAPE-PRESERVING. */
+      hsum = wk[0] + wk[1];
+      w1 = (wk[0] + hsum) / hsum;
+      w2 = -wk[0] / hsum;
+      d[0] = w1 * del1 + w2 * del2;
+      if (dpchst(d[0], del1) <= 0.) {
+        d[0] = 0.;
+      } else if (dpchst(del1, del2) < 0.) {
+/*    NEED DO THIS CHECK ONLY IF MONOTONICITY SWITCHES. */
+        dmax = 3. * del1;
+        if (abs(d[0]) > abs(dmax)) {
+          d[0] = dmax;
+        }
+      }
+/*  LOOP THROUGH INTERIOR POINTS. */
+      for (i = 2; i <= nless1; ++i) {
+        if (i != 2) {
+          hsum = wk[i - 2] + wk[i-1];
+          del1 = del2;
+          del2 = slope[i-1];
+        }
+/*    SET D(I)=0 UNLESS DATA ARE STRICTLY MONOTONIC. */
+        d[i-1] = 0.;
+        if (dpchst(del1, del2) <= 0.) {
+          continue;
+        }
+/*    USE BRODLIE MODIFICATION OF BUTLAND FORMULA. */
+        hsumt3 = hsum + hsum + hsum;
+        w1 = (hsum + wk[i - 2]) / hsumt3;
+        w2 = (hsum + wk[i-1]) / hsumt3;
+/* Computing MAX */
+        dmax = max(abs(del1),abs(del2));
+/* Computing MIN */
+        dmin = min(abs(del1),abs(del2));
+        drat1 = del1 / dmax;
+        drat2 = del2 / dmax;
+        d[i-1] = dmin / (w1 * drat1 + w2 * drat2);
+      }
+/*  SET D(N) VIA NON-CENTERED THREE-POINT FORMULA, ADJUSTED TO BE */
+/*   SHAPE-PRESERVING. */
+      w1 = -wk[n - 2] / hsum;
+      w2 = (wk[n - 2] + hsum) / hsum;
+      d[n-1] = w1 * del1 + w2 * del2;
+      if (dpchst(d[n-1], del2) <= 0.) {
+        d[n-1] = 0.;
+      } else if (dpchst(del1, del2) < 0.) {
+/*    NEED DO THIS CHECK ONLY IF MONOTONICITY SWITCHES. */
+        dmax = 3. * del2;
+        if (abs(d[n-1]) > abs(dmax)) {
+          d[n-1] = dmax;
+        }
+      }
+    } while (0); /* end inline dpchci */
 /*  SET DERIVATIVES AT POINTS WHERE MONOTONICITY SWITCHES DIRECTION. */
     if (mflag != 0.) {
       *ierr = dpchcs(mflag, n, &wk[0], &wk[n-1], &d[0]);
