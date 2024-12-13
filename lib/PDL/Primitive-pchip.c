@@ -273,105 +273,6 @@ void dpchbs(integer n, doublereal *x, doublereal *f,
   }
 }
 
-/* ***PURPOSE  Evaluate a cubic polynomial given in Hermite form and its */
-/*      first derivative at an array of points.  While designed for */
-/*      use by DPCHFD, it may be useful directly as an evaluator */
-/*      for a piecewise cubic Hermite function in applications, */
-/*      such as graphing, where the interval is known in advance. */
-/*      If only function values are required, use DCHFEV instead. */
-/*    DCHFDV:  Cubic Hermite Function and Derivative Evaluator */
-/*   Evaluates the cubic polynomial determined by function values */
-/*   F1,F2 and derivatives D1,D2 on interval (X1,X2), together with */
-/*   its first derivative, at the points  XE(J), J=1(1)NE. */
-/*   If only function values are required, use DCHFEV, instead. */
-/* ---------------------------------------------------------------------- */
-/*  Calling sequence: */
-/*    INTEGER  NE, NEXT(2), IERR */
-/*    DOUBLE PRECISION  X1, X2, F1, F2, D1, D2, XE(NE), FE(NE), */
-/*              DE(NE) */
-/*    CALL  DCHFDV (X1,X2, F1,F2, D1,D2, NE, XE, FE, DE, NEXT, IERR) */
-/*   Parameters: */
-/*   X1,X2 -- (input) endpoints of interval of definition of cubic. */
-/*       (Error return if  X1.EQ.X2 .) */
-/*   F1,F2 -- (input) values of function at X1 and X2, respectively. */
-/*   D1,D2 -- (input) values of derivative at X1 and X2, respectively. */
-/*   NE -- (input) number of evaluation points.  (Error return if */
-/*       NE.LT.1 .) */
-/*   XE -- (input) real*8 array of points at which the functions are to */
-/*       be evaluated.  If any of the XE are outside the interval */
-/*       [X1,X2], a warning error is returned in NEXT. */
-/*   FE -- (output) real*8 array of values of the cubic function */
-/*       defined by  X1,X2, F1,F2, D1,D2  at the points  XE. */
-/*   DE -- (output) real*8 array of values of the first derivative of */
-/*       the same function at the points  XE. */
-/*   NEXT -- (output) integer array indicating number of extrapolation */
-/*       points: */
-/*      NEXT(1) = number of evaluation points to left of interval. */
-/*      NEXT(2) = number of evaluation points to right of interval. */
-/*   IERR -- (output) error flag. */
-/*       Normal return: */
-/*        IERR = 0  (no errors). */
-/*       "Recoverable" errors: */
-/*        IERR = -1  if NE.LT.1 . */
-/*        IERR = -2  if X1.EQ.X2 . */
-/*        (Output arrays have not been changed in either case.) */
-/*  Programming notes: */
-/*   To produce a single precision version, simply: */
-/*    a. Change DCHFDV to CHFDV wherever it occurs, */
-/*    b. Change the double precision declaration to real, and */
-/*    c. Change the constant ZERO to single precision. */
-void dchfdv(doublereal x1, doublereal x2, doublereal f1,
-    doublereal f2, doublereal d1, doublereal d2, integer ne,
-    doublereal *xe, doublereal *fe, doublereal *de, integer *next,
-    integer *ierr)
-{
-/* Local variables */
-  doublereal h;
-  integer i;
-  doublereal x, c2, c3, c2t2, c3t3, xma, xmi, del1, del2, delta;
-  if (ne < 1) {
-    *ierr = -1;
-    xermsg_("SLATEC", "DCHFDV", "NUMBER OF EVALUATION POINTS LESS THAN ONE", *ierr);
-    return;
-  }
-  h = x2 - x1;
-  if (h == 0.) {
-    *ierr = -2;
-    xermsg_("SLATEC", "DCHFDV", "INTERVAL ENDPOINTS EQUAL", *ierr);
-    return;
-  }
-/*  INITIALIZE. */
-  *ierr = 0;
-  next[0] = 0;
-  next[1] = 0;
-  xmi = min(0.,h);
-  xma = max(0.,h);
-/*  COMPUTE CUBIC COEFFICIENTS (EXPANDED ABOUT X1). */
-  delta = (f2 - f1) / h;
-  del1 = (d1 - delta) / h;
-  del2 = (d2 - delta) / h;
-/*                       (DELTA IS NO LONGER NEEDED.) */
-  c2 = -(del1 + del1 + del2);
-  c2t2 = c2 + c2;
-  c3 = (del1 + del2) / h;
-/*                 (H, DEL1 AND DEL2 ARE NO LONGER NEEDED.) */
-  c3t3 = c3 + c3 + c3;
-/*  EVALUATION LOOP. */
-  for (i = 0; i < ne; ++i) {
-    x = xe[i] - x1;
-    fe[i] = f1 + x * (d1 + x * (c2 + x * c3));
-    if (de) de[i] = d1 + x * (c2t2 + x * c3t3);
-/*      COUNT EXTRAPOLATION POINTS. */
-    if (x < xmi) {
-      ++next[0];
-    }
-    if (x > xma) {
-      ++next[1];
-    }
-/*    (NOTE REDUNDANCY--IF EITHER CONDITION IS TRUE, OTHER IS FALSE.) */
-  }
-}
-
 /*  Programming notes: */
 /*   2. Most of the coding between the call to DCHFDV and the end of */
 /*    the IR-loop could be eliminated if it were permissible to */
@@ -446,8 +347,59 @@ void dpchfd(integer n, doublereal *x, doublereal *f,
     }
 /*   EVALUATE CUBIC AT XE(I),  I = JFIRST (1) J-1 . */
 /*     ---------------------------------------------------------------- */
-    dchfdv(x[ir - 1], x[ir], f[ir - 1], f[ir], d[ir - 1], d[ir], nj,
-        &xe[jfirst], &fe[jfirst], de ? &de[jfirst] : NULL, next, &ierc);
+    do { /* inline dchfdv */
+/* Local variables */
+      doublereal x1 = x[ir - 1], x2 = x[ir];
+      doublereal f1 = f[ir - 1], f2 = f[ir];
+      doublereal d1 = d[ir - 1], d2 = d[ir];
+      integer ne = nj;
+      doublereal *xe2 = &xe[jfirst], *fe2 = &fe[jfirst];
+      doublereal *de2 = de ? &de[jfirst] : NULL;
+      doublereal h;
+      integer i;
+      doublereal x, c2, c3, c2t2, c3t3, xma, xmi, del1, del2, delta;
+      if (ne < 1) {
+        ierc = -1;
+        xermsg_("SLATEC", "DCHFDV", "NUMBER OF EVALUATION POINTS LESS THAN ONE", ierc);
+        break;
+      }
+      h = x2 - x1;
+      if (h == 0.) {
+        ierc = -2;
+        xermsg_("SLATEC", "DCHFDV", "INTERVAL ENDPOINTS EQUAL", ierc);
+        break;
+      }
+/*  INITIALIZE. */
+      ierc = 0;
+      next[0] = 0;
+      next[1] = 0;
+      xmi = min(0.,h);
+      xma = max(0.,h);
+/*  COMPUTE CUBIC COEFFICIENTS (EXPANDED ABOUT X1). */
+      delta = (f2 - f1) / h;
+      del1 = (d1 - delta) / h;
+      del2 = (d2 - delta) / h;
+/*                       (DELTA IS NO LONGER NEEDED.) */
+      c2 = -(del1 + del1 + del2);
+      c2t2 = c2 + c2;
+      c3 = (del1 + del2) / h;
+/*                 (H, DEL1 AND DEL2 ARE NO LONGER NEEDED.) */
+      c3t3 = c3 + c3 + c3;
+/*  EVALUATION LOOP. */
+      for (i = 0; i < ne; ++i) {
+        x = xe2[i] - x1;
+        fe2[i] = f1 + x * (d1 + x * (c2 + x * c3));
+        if (de2) de2[i] = d1 + x * (c2t2 + x * c3t3);
+/*      COUNT EXTRAPOLATION POINTS. */
+        if (x < xmi) {
+          ++next[0];
+        }
+        if (x > xma) {
+          ++next[1];
+        }
+/*    (NOTE REDUNDANCY--IF EITHER CONDITION IS TRUE, OTHER IS FALSE.) */
+      }
+    } while (0); /* end inline dchfdv */
 /*     ---------------------------------------------------------------- */
     if (ierc < 0) {
       *ierr = -5;
