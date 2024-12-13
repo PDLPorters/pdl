@@ -53,10 +53,9 @@ doublereal dbvalu(doublereal *t, doublereal *a, integer n, integer k,
     integer ideriv, doublereal x, integer inbv, doublereal *work)
 {
 /* Local variables */
-  integer i, j, j1, j2, jj, km1, ihi, imk, kmj, ipj, ilo, kpk;
+  integer i, j, j1, j2, jj, km1, ihi, imk, kmj, ilo, kpk;
   doublereal fkmj;
   integer mflag, kmider;
-
   if (k < 1) {
     xermsg_("SLATEC", "DBVALU", "K DOES NOT SATISFY K.GE.1", (long)2);
     return 0.;
@@ -70,7 +69,6 @@ doublereal dbvalu(doublereal *t, doublereal *a, integer n, integer k,
     return 0.;
   }
   kmider = k - ideriv;
-
 /* *** FIND *I* IN (K,N) SUCH THAT T(I) .LE. X .LT. T(I+1) */
 /*   (OR, .LE. T(I+1) IF T(I) .LT. T(I+1) = T(N+1)). */
   km1 = k - 1;
@@ -80,25 +78,24 @@ doublereal dbvalu(doublereal *t, doublereal *a, integer n, integer k,
     return 0.;
   }
   if (mflag != 0) {
-    if (x > t[i-1]) {
+    if (x > t[i]) {
       xermsg_("SLATEC", "DBVALU", "X IS NOT LESS THAN OR EQUAL TO T(N+1)", (long)2);
       return 0.;
     }
     while (1) {
-      if (i == k) {
+      if (i == k-1) {
         xermsg_("SLATEC", "DBVALU", "A LEFT LIMITING VALUE CANNOT BE OBTAINED AT T(K)", (long)2);
         return 0.;
       }
       --i;
-      if (x != t[i-1]) {
+      if (x != t[i]) {
         break;
       }
     }
-
 /* *** DIFFERENCE THE COEFFICIENTS *IDERIV* TIMES */
 /*   WORK(I) = AJ(I), WORK(K+I) = DP(I), WORK(K+K+I) = DM(I), I=1.K */
   }
-  imk = i - k;
+  imk = i+1 - k;
   for (j = 0; j < k; ++j) {
     work[j] = a[imk + j];
   }
@@ -107,7 +104,7 @@ doublereal dbvalu(doublereal *t, doublereal *a, integer n, integer k,
       kmj = k - j - 1;
       fkmj = (doublereal) kmj;
       for (jj = 0; jj < kmj; ++jj) {
-        ihi = i + jj;
+        ihi = i+1 + jj;
         work[jj] = (work[jj+1] - work[jj]) / (t[ihi] - t[ihi - kmj]) * fkmj;
       }
     }
@@ -118,9 +115,9 @@ doublereal dbvalu(doublereal *t, doublereal *a, integer n, integer k,
     j1 = k;
     j2 = kpk = k + k;
     for (j = 0; j < kmider; ++j) {
-      ipj = i + j + 1;
-      work[j1] = t[ipj-1] - x;
-      work[j2] = x - t[i - j - 1];
+      integer ipj = i + j + 1;
+      work[j1] = t[ipj] - x;
+      work[j2] = x - t[i - j];
       ++j1;
       ++j2;
     }
@@ -163,7 +160,7 @@ doublereal dbvalu(doublereal *t, doublereal *a, integer n, integer k,
 /*      ILO   - ILO contains information for efficient process- */
 /*          ing after the initial call and ILO must not be */
 /*          changed by the user.  Distinct splines require */
-/*          distinct ILO parameters. */
+/*          distinct ILO parameters. In PDL, zero-based */
 /*      ILEFT   - largest integer satisfying XT(ILEFT) .LE. X */
 /*      MFLAG   - signals when X lies out of bounds */
 /*   Error Conditions */
@@ -174,21 +171,20 @@ doublereal dbvalu(doublereal *t, doublereal *a, integer n, integer k,
 void dintrv(doublereal *xt, integer lxt, doublereal x,
     integer *ilo, integer *ileft, integer *mflag)
 {
-  integer ihi, istep, middle, skipflag;
+  integer ihi, istep, skipflag;
   ihi = *ilo + 1;
-  if (ihi >= lxt) {
+  if (ihi >= lxt-1) {
     if (x >= xt[lxt-1]) {
-      *mflag = 1; *ileft = lxt; return;
+      *mflag = 1; *ileft = lxt-1; return;
     }
     if (lxt <= 1) {
-      *mflag = -1; *ileft = 1; return;
+      *mflag = -1; *ileft = 0; return;
     }
-    *ilo = lxt - 1;
-    ihi = lxt;
+    ihi = *ilo = lxt - 1;
   }
   skipflag = 0;
-  if (x < xt[ihi-1]) {
-    if (x >= xt[*ilo-1]) {
+  if (x < xt[ihi]) {
+    if (x >= xt[*ilo]) {
       *mflag = 0; *ileft = *ilo; return;
     }
 /* *** NOW X .LT. XT(IHI) . FIND LOWER BOUND */
@@ -196,19 +192,19 @@ void dintrv(doublereal *xt, integer lxt, doublereal x,
     while (1) {
       ihi = *ilo;
       *ilo = ihi - istep;
-      if (*ilo <= 1) {
+      if (*ilo <= 0) {
         break;
       }
-      if (x >= xt[*ilo-1]) {
+      if (x >= xt[*ilo]) {
         skipflag = 1;
         break;
       }
       istep <<= 1;
     }
     if (!skipflag) {
-      *ilo = 1;
-      if (x < xt[1-1]) {
-        *mflag = -1; *ileft = 1; return;
+      *ilo = 0;
+      if (x < xt[0]) {
+        *mflag = -1; *ileft = 0; return;
       }
     }
     skipflag = 1;
@@ -219,35 +215,31 @@ void dintrv(doublereal *xt, integer lxt, doublereal x,
     while (1) {
       *ilo = ihi;
       ihi = *ilo + istep;
-      if (ihi >= lxt) {
-        if (x < xt[ihi-1]) {
-          skipflag = 1;
-          break;
-        }
-        istep <<= 1;
-        continue;
+      if (ihi >= lxt-1) break;
+      if (x < xt[ihi]) {
+        skipflag = 1;
+        break;
       }
-      break;
+      istep <<= 1;
     }
     if (!skipflag) {
       if (x >= xt[lxt-1]) {
-        *mflag = 1; *ileft = lxt; return;
+        *mflag = 1; *ileft = lxt-1; return;
       }
-      ihi = lxt;
+      ihi = lxt-1;
     }
   }
 /* *** NOW XT(ILO) .LE. X .LT. XT(IHI) . NARROW THE INTERVAL */
   while (1) {
-    middle = (*ilo + ihi) / 2;
+    integer middle = (*ilo + ihi) / 2;
     if (middle == *ilo) {
       *mflag = 0; *ileft = *ilo; return;
     }
 /*   NOTE. IT IS ASSUMED THAT MIDDLE = ILO IN CASE IHI = ILO+1 */
-    if (x < xt[middle-1]) {
+    if (x < xt[middle])
       ihi = middle;
-      continue;
-    }
-    *ilo = middle;
+    else
+      *ilo = middle;
   }
 }
 
