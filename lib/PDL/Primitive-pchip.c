@@ -29,9 +29,6 @@ void dpchkt(integer, doublereal *, integer *, doublereal *);
 void dchfdv(doublereal, doublereal,
       doublereal, doublereal, doublereal, doublereal, integer,
        doublereal *, doublereal *, doublereal *, integer *, integer *);
-void dchfev(doublereal, doublereal,
-      doublereal, doublereal, doublereal, doublereal, integer,
-       doublereal *, doublereal *, integer *, integer *);
 doublereal dchfie(doublereal, doublereal, doublereal,
       doublereal, doublereal, doublereal, doublereal, doublereal);
 doublereal dpchid(integer, doublereal *, doublereal *,
@@ -426,7 +423,7 @@ void dchfdv(doublereal x1, doublereal x2, doublereal f1,
   for (i = 0; i < ne; ++i) {
     x = xe[i] - x1;
     fe[i] = f1 + x * (d1 + x * (c2 + x * c3));
-    de[i] = d1 + x * (c2t2 + x * c3t3);
+    if (de) de[i] = d1 + x * (c2t2 + x * c3t3);
 /*      COUNT EXTRAPOLATION POINTS. */
     if (x < xmi) {
       ++next[0];
@@ -439,10 +436,6 @@ void dchfdv(doublereal x1, doublereal x2, doublereal f1,
 }
 
 /*  Programming notes: */
-/*   1. To produce a single precision version, simply: */
-/*    a. Change DPCHFD to PCHFD, and DCHFDV to CHFDV, wherever they */
-/*       occur, */
-/*    b. Change the double precision declaration to real, */
 /*   2. Most of the coding between the call to DCHFDV and the end of */
 /*    the IR-loop could be eliminated if it were permissible to */
 /*    assume that XE is ordered relative to X. */
@@ -460,8 +453,7 @@ void dpchfd(integer n, doublereal *x, doublereal *f,
     doublereal *xe, doublereal *fe, doublereal *de, integer *ierr)
 {
 /* Local variables */
-  integer i, j, nj, ir, ierc, next[2], jfirst;
-  integer located;
+  integer i, j, nj, ir, ierc, next[2], jfirst, located;
 /*  VALIDITY-CHECK ARGUMENTS. */
   if (ne < 1) {
     *ierr = -4;
@@ -508,269 +500,30 @@ void dpchfd(integer n, doublereal *x, doublereal *f,
 /*   HAVE LOCATED FIRST POINT BEYOND INTERVAL. */
     nj = j - jfirst;
 /*   SKIP EVALUATION IF NO POINTS IN INTERVAL. */
-    if (nj != 0) {
-/*   EVALUATE CUBIC AT XE(I),  I = JFIRST (1) J-1 . */
-/*     ---------------------------------------------------------------- */
-        dchfdv(x[ir - 1], x[ir], f[ir - 1], f[ir],
-            d[ir - 1], d[ir], nj,
-            &xe[jfirst], &fe[jfirst], &de[jfirst], next, &ierc);
-/*     ---------------------------------------------------------------- */
-        if (ierc < 0) {
-          *ierr = -5;
-          xermsg_("SLATEC", "DPCHFD", "ERROR RETURN FROM DCHFDV -- FATAL", *ierr);
-          return;
-        }
-        if (next[1] != 0) {
-/*       IN THE CURRENT SET OF XE-POINTS, THERE ARE NEXT(2) TO THE */
-/*       RIGHT OF X(IR). */
-          if (ir < n-1) {
-/*        WE SHOULD NEVER HAVE GOTTEN HERE. */
-            *ierr = -5;
-            xermsg_("SLATEC", "DPCHFD", "ERROR RETURN FROM DCHFDV -- FATAL", *ierr);
-            return;
-          }
-/*        THESE ARE ACTUALLY EXTRAPOLATION POINTS. */
-          *ierr += next[1];
-        }
-        if (next[0] != 0) {
-/*       IN THE CURRENT SET OF XE-POINTS, THERE ARE NEXT(1) TO THE */
-/*       LEFT OF X(IR-1). */
-          if (ir < 2) {
-/*        THESE ARE ACTUALLY EXTRAPOLATION POINTS. */
-            *ierr += next[0];
-            goto L49;
-          }
-/*        XE IS NOT ORDERED RELATIVE TO X, SO MUST ADJUST */
-/*        EVALUATION INTERVAL. */
-/*        FIRST, LOCATE FIRST POINT TO LEFT OF X(IR-1). */
-          located = 0;
-          for (i = jfirst; i < j; ++i) {
-            if (xe[i] < x[ir - 1]) {
-              located = 1;
-              break;
-            }
-          }
-          if (!located) {
-/*        NOTE-- CANNOT DROP THROUGH HERE UNLESS THERE IS AN ERROR */
-/*           IN DCHFDV. */
-            *ierr = -5;
-            xermsg_("SLATEC", "DPCHFD", "ERROR RETURN FROM DCHFDV -- FATAL", *ierr);
-            return;
-          }
-/*        RESET J.  (THIS WILL BE THE NEW JFIRST.) */
-          j = i;
-/*        NOW FIND OUT HOW FAR TO BACK UP IN THE X-ARRAY. */
-          for (i = 0; i < ir; ++i) {
-            if (xe[j] < x[i]) {
-              break;
-            }
-          }
-/*        NB-- CAN NEVER DROP THROUGH HERE, SINCE XE(J).LT.X(IR-1). */
-/*        AT THIS POINT, EITHER  XE(J) .LT. X(1) */
-/*         OR    X(I-1) .LE. XE(J) .LT. X(I) . */
-/*        RESET IR, RECOGNIZING THAT IT WILL BE INCREMENTED BEFORE */
-/*        CYCLING. */
-/* Computing MAX */
-          ir = max(0,i-1);
-        }
-      L49:
-        jfirst = j;
-/*   END OF IR-LOOP. */
-    }
-    ++ir;
-    if (ir > n-1) break;
-  }
-}
-
-/* ***PURPOSE  Evaluate a cubic polynomial given in Hermite form at an */
-/*      array of points.  While designed for use by DPCHFE, it may */
-/*      be useful directly as an evaluator for a piecewise cubic */
-/*      Hermite function in applications, such as graphing, where */
-/*      the interval is known in advance. */
-/*      DCHFEV:  Cubic Hermite Function EValuator */
-/*   Evaluates the cubic polynomial determined by function values */
-/*   F1,F2 and derivatives D1,D2 on interval (X1,X2) at the points */
-/*   XE(J), J=1(1)NE. */
-/* ---------------------------------------------------------------------- */
-/*  Calling sequence: */
-/*    INTEGER  NE, NEXT(2), IERR */
-/*    DOUBLE PRECISION  X1, X2, F1, F2, D1, D2, XE(NE), FE(NE) */
-/*    CALL  DCHFEV (X1,X2, F1,F2, D1,D2, NE, XE, FE, NEXT, IERR) */
-/*   Parameters: */
-/*   X1,X2 -- (input) endpoints of interval of definition of cubic. */
-/*       (Error return if  X1.EQ.X2 .) */
-/*   F1,F2 -- (input) values of function at X1 and X2, respectively. */
-/*   D1,D2 -- (input) values of derivative at X1 and X2, respectively. */
-/*   NE -- (input) number of evaluation points.  (Error return if */
-/*       NE.LT.1 .) */
-/*   XE -- (input) real*8 array of points at which the function is to */
-/*       be evaluated.  If any of the XE are outside the interval */
-/*       [X1,X2], a warning error is returned in NEXT. */
-/*   FE -- (output) real*8 array of values of the cubic function */
-/*       defined by  X1,X2, F1,F2, D1,D2  at the points  XE. */
-/*   NEXT -- (output) integer array indicating number of extrapolation */
-/*       points: */
-/*      NEXT(1) = number of evaluation points to left of interval. */
-/*      NEXT(2) = number of evaluation points to right of interval. */
-/*   IERR -- (output) error flag. */
-/*       Normal return: */
-/*        IERR = 0  (no errors). */
-/*       "Recoverable" errors: */
-/*        IERR = -1  if NE.LT.1 . */
-/*        IERR = -2  if X1.EQ.X2 . */
-/*        (The FE-array has not been changed in either case.) */
-/*  Programming notes: */
-/*   To produce a single precision version, simply: */
-/*    a. Change DCHFEV to CHFEV wherever it occurs, */
-/*    b. Change the double precision declaration to real, and */
-/*    c. Change the constant ZERO to single precision. */
-void dchfev(doublereal x1, doublereal x2, doublereal f1,
-    doublereal f2, doublereal d1, doublereal d2, integer ne,
-    doublereal *xe, doublereal *fe, integer *next, integer *ierr)
-{
-/* Local variables */
-  doublereal h;
-  integer i;
-  doublereal x, c2, c3, xma, xmi, del1, del2, delta;
-  if (ne < 1) {
-    *ierr = -1;
-    xermsg_("SLATEC", "DCHFEV", "NUMBER OF EVALUATION POINTS LESS THAN ONE", *ierr);
-    return;
-  }
-  h = x2 - x1;
-  if (h == 0.) {
-    *ierr = -2;
-    xermsg_("SLATEC", "DCHFEV", "INTERVAL ENDPOINTS EQUAL", *ierr);
-    return;
-  }
-/*  INITIALIZE. */
-  *ierr = 0;
-  next[0] = 0;
-  next[1] = 0;
-  xmi = min(0.,h);
-  xma = max(0.,h);
-/*  COMPUTE CUBIC COEFFICIENTS (EXPANDED ABOUT X1). */
-  delta = (f2 - f1) / h;
-  del1 = (d1 - delta) / h;
-  del2 = (d2 - delta) / h;
-/*                       (DELTA IS NO LONGER NEEDED.) */
-  c2 = -(del1 + del1 + del2);
-  c3 = (del1 + del2) / h;
-/*                 (H, DEL1 AND DEL2 ARE NO LONGER NEEDED.) */
-/*  EVALUATION LOOP. */
-  for (i = 0; i < ne; ++i) {
-    x = xe[i] - x1;
-    fe[i] = f1 + x * (d1 + x * (c2 + x * c3));
-/*      COUNT EXTRAPOLATION POINTS. */
-    if (x < xmi) {
-      ++next[0];
-    }
-    if (x > xma) {
-      ++next[1];
-    }
-/*    (NOTE REDUNDANCY--IF EITHER CONDITION IS TRUE, OTHER IS FALSE.) */
-  }
-}
-
-/*  Programming notes: */
-/*   1. To produce a single precision version, simply: */
-/*    a. Change DPCHFE to PCHFE, and DCHFEV to CHFEV, wherever they */
-/*       occur, */
-/*    b. Change the double precision declaration to real, */
-/*   2. Most of the coding between the call to DCHFEV and the end of */
-/*    the IR-loop could be eliminated if it were permissible to */
-/*    assume that XE is ordered relative to X. */
-/*   3. DCHFEV does not assume that X1 is less than X2.  thus, it would */
-/*    be possible to write a version of DPCHFE that assumes a */
-/*    decreasing X-array by simply running the IR-loop backwards */
-/*    (and reversing the order of appropriate tests). */
-/*   4. The present code has a minor bug, which I have decided is not */
-/*    worth the effort that would be required to fix it. */
-/*    If XE contains points in [X(N-1),X(N)], followed by points .LT. */
-/*    X(N-1), followed by points .GT.X(N), the extrapolation points */
-/*    will be counted (at least) twice in the total returned in IERR. */
-void dpchfe(integer n, doublereal *x, doublereal *f,
-    doublereal *d, logical *skip, integer ne,
-    doublereal *xe, doublereal *fe, integer *ierr)
-{
-/* Local variables */
-  integer i, j, nj, ir, ierc, next[2];
-  integer jfirst, located;
-/*  VALIDITY-CHECK ARGUMENTS. */
-  if (ne < 1) {
-    *ierr = -4;
-    xermsg_("SLATEC", "DPCHFE", "NUMBER OF EVALUATION POINTS LESS THAN ONE", *ierr);
-    return;
-  }
-  if (!*skip) {
-    if (n < 2) {
-      *ierr = -1;
-      xermsg_("SLATEC", "DPCHFE", "NUMBER OF DATA POINTS LESS THAN TWO", *ierr);
-      return;
-    }
-    for (i = 1; i < n; ++i) {
-      if (x[i] <= x[i - 1]) {
-        *ierr = -3;
-        xermsg_("SLATEC", "DPCHFE", "X-ARRAY NOT STRICTLY INCREASING", *ierr);
-        return;
-      }
-    }
-/*  FUNCTION DEFINITION IS OK, GO ON. */
-  }
-  *ierr = 0;
-  *skip = TRUE_;
-/*  LOOP OVER INTERVALS.    (   INTERVAL INDEX IS  IL = IR-1  . ) */
-/*                ( INTERVAL IS X(IL).LE.X.LT.X(IR) . ) */
-  jfirst = 1;
-  ir = 2;
-  while (1) {
-/*   SKIP OUT OF LOOP IF HAVE PROCESSED ALL EVALUATION POINTS. */
-    if (jfirst > ne) {
-      return;
-    }
-/*   LOCATE ALL POINTS IN INTERVAL. */
-    located = 0;
-    for (j = jfirst; j <= ne; ++j) {
-      if (xe[j-1] >= x[ir-1]) {
-        located = 1;
-        break;
-      }
-    }
-    if (located) {
-/*   HAVE LOCATED FIRST POINT BEYOND INTERVAL. */
-      if (ir == n) {
-        j = ne + 1;
-      }
-    } else {
-      j = ne + 1;
-    }
-    nj = j - jfirst;
-/*   SKIP EVALUATION IF NO POINTS IN INTERVAL. */
     if (nj == 0) {
       ++ir;
-      if (ir <= n) {
+      if (ir < n) {
         continue;
       }
       return;
     }
 /*   EVALUATE CUBIC AT XE(I),  I = JFIRST (1) J-1 . */
 /*     ---------------------------------------------------------------- */
-    dchfev(x[ir - 2], x[ir-1], f[ir - 2], f[ir-1],
-        d[ir - 2], d[ir - 1], nj,
-        &xe[jfirst-1], &fe[jfirst-1], next, &ierc);
+    dchfdv(x[ir - 1], x[ir], f[ir - 1], f[ir], d[ir - 1], d[ir], nj,
+        &xe[jfirst], &fe[jfirst], de ? &de[jfirst] : NULL, next, &ierc);
 /*     ---------------------------------------------------------------- */
     if (ierc < 0) {
       *ierr = -5;
-      xermsg_("SLATEC", "DPCHFE", "ERROR RETURN FROM DCHFEV -- FATAL", *ierr);
+      xermsg_("SLATEC", "DPCHFD", "ERROR RETURN FROM DCHFDV -- FATAL", *ierr);
       return;
     }
     if (next[1] != 0) {
 /*       IN THE CURRENT SET OF XE-POINTS, THERE ARE NEXT(2) TO THE */
 /*       RIGHT OF X(IR). */
-      if (ir < n) {
+      if (ir < n-1) {
 /*        WE SHOULD NEVER HAVE GOTTEN HERE. */
         *ierr = -5;
-        xermsg_("SLATEC", "DPCHFE", "ERROR RETURN FROM DCHFEV -- FATAL", *ierr);
+        xermsg_("SLATEC", "DPCHFD", "ERROR RETURN FROM DCHFDV -- FATAL", *ierr);
         return;
       }
 /*        THESE ARE ACTUALLY EXTRAPOLATION POINTS. */
@@ -779,7 +532,7 @@ void dpchfe(integer n, doublereal *x, doublereal *f,
     if (next[0] != 0) {
 /*       IN THE CURRENT SET OF XE-POINTS, THERE ARE NEXT(1) TO THE */
 /*       LEFT OF X(IR-1). */
-      if (ir <= 2) {
+      if (ir < 2) {
 /*        THESE ARE ACTUALLY EXTRAPOLATION POINTS. */
         *ierr += next[0];
         goto L49;
@@ -789,23 +542,23 @@ void dpchfe(integer n, doublereal *x, doublereal *f,
 /*        FIRST, LOCATE FIRST POINT TO LEFT OF X(IR-1). */
       located = 0;
       for (i = jfirst; i < j; ++i) {
-        if (xe[i-1] < x[ir - 2]) {
+        if (xe[i] < x[ir - 1]) {
           located = 1;
           break;
         }
       }
       if (!located) {
 /*        NOTE-- CANNOT DROP THROUGH HERE UNLESS THERE IS AN ERROR */
-/*           IN DCHFEV. */
+/*           IN DCHFDV. */
         *ierr = -5;
-        xermsg_("SLATEC", "DPCHFE", "ERROR RETURN FROM DCHFEV -- FATAL", *ierr);
+        xermsg_("SLATEC", "DPCHFD", "ERROR RETURN FROM DCHFDV -- FATAL", *ierr);
         return;
       }
 /*        RESET J.  (THIS WILL BE THE NEW JFIRST.) */
       j = i;
 /*        NOW FIND OUT HOW FAR TO BACK UP IN THE X-ARRAY. */
-      for (i = 1; i < ir; ++i) {
-        if (xe[j-1] < x[i-1]) {
+      for (i = 0; i < ir; ++i) {
+        if (xe[j] < x[i]) {
           break;
         }
       }
@@ -815,14 +568,21 @@ void dpchfe(integer n, doublereal *x, doublereal *f,
 /*        RESET IR, RECOGNIZING THAT IT WILL BE INCREMENTED BEFORE */
 /*        CYCLING. */
 /* Computing MAX */
-      ir = max(1,i - 1);
-  L49:;
+      ir = max(0,i-1);
     }
+  L49:
     jfirst = j;
 /*   END OF IR-LOOP. */
     ++ir;
-    if (ir > n) break;
+    if (ir >= n) break;
   }
+}
+
+void dpchfe(integer n, doublereal *x, doublereal *f,
+    doublereal *d, logical *skip, integer ne,
+    doublereal *xe, doublereal *fe, integer *ierr)
+{
+  dpchfd(n, x, f, d, skip, ne, xe, fe, NULL, ierr);
 }
 
 /* ***PURPOSE  Evaluates integral of a single cubic for DPCHIA */
