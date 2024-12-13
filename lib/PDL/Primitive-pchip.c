@@ -198,23 +198,6 @@ doublereal dbvalu(doublereal *t, doublereal *a, integer n, integer k,
   return work[0];
 }
 
-/* ***PURPOSE  Compute B-spline knot sequence for DPCHBS. */
-/*   Set a knot sequence for the B-spline representation of a PCH */
-/*   function with breakpoints X.  All knots will be at least double. */
-/*   Endknots are set as: */
-/*    (1) quadruple knots at endpoints if KNOTYP=0; */
-/*    (2) extrapolate the length of end interval if KNOTYP=1; */
-/*    (3) periodic if KNOTYP=2. */
-/*  Input arguments:  N, X, KNOTYP. */
-/*  Output arguments:  T. */
-/*  Restrictions/assumptions: */
-/*   1. N.GE.2 .  (not checked) */
-/*   2. X(i).LT.X(i+1), i=1,...,N .  (not checked) */
-/*   3. 0.LE.KNOTYP.LE.2 .  (Acts like KNOTYP=0 for any other value.) */
-/* ***SEE ALSO  DPCHBS */
-/*  Since this is subsidiary to DPCHBS, which validates its input before */
-/*  calling, it is unnecessary for such validation to be done here. */
-
 void dpchbs(integer n, doublereal *x, doublereal *f,
     doublereal *d, integer *knotyp, integer *nknots,
     doublereal *t, doublereal *bcoef, integer *ndim, integer *kord,
@@ -821,188 +804,6 @@ doublereal dpchdf(integer k, doublereal *x, doublereal *s, integer *ierr)
   return value;
 }
 
-/* ***PURPOSE  Set boundary conditions for DPCHIC */
-/*      DPCHCE:  DPCHIC End Derivative Setter. */
-/*  Called by DPCHIC to set end derivatives as requested by the user. */
-/*  It must be called after interior derivative values have been set. */
-/*            ----- */
-/*  To facilitate two-dimensional applications, includes an increment */
-/*  between successive values of the D-array. */
-/* ---------------------------------------------------------------------- */
-/*  Calling sequence: */
-/*    INTEGER  IC(2), N, IERR */
-/*    DOUBLE PRECISION  VC(2), X(N), H(N), SLOPE(N), D(N) */
-/*    CALL  DPCHCE (IC, VC, N, X, H, SLOPE, D, IERR) */
-/*   Parameters: */
-/*   IC -- (input) integer array of length 2 specifying desired */
-/*       boundary conditions: */
-/*       IC(1) = IBEG, desired condition at beginning of data. */
-/*       IC(2) = IEND, desired condition at end of data. */
-/*       ( see prologue to DPCHIC for details. ) */
-/*   VC -- (input) real*8 array of length 2 specifying desired boundary */
-/*       values.  VC(1) need be set only if IC(1) = 2 or 3 . */
-/*          VC(2) need be set only if IC(2) = 2 or 3 . */
-/*   N -- (input) number of data points.  (assumes N.GE.2) */
-/*   X -- (input) real*8 array of independent variable values.  (the */
-/*       elements of X are assumed to be strictly increasing.) */
-/*   H -- (input) real*8 array of interval lengths. */
-/*   SLOPE -- (input) real*8 array of data slopes. */
-/*       If the data are (X(I),Y(I)), I=1(1)N, then these inputs are: */
-/*          H(I) =  X(I+1)-X(I), */
-/*        SLOPE(I) = (Y(I+1)-Y(I))/H(I),  I=1(1)N-1. */
-/*   D -- (input) real*8 array of derivative values at the data points. */
-/*       The value corresponding to X(I) must be stored in */
-/*        D(1+(I-1)),  I=1(1)N. */
-/*      (output) the value of D at X(1) and/or X(N) is changed, if */
-/*       necessary, to produce the requested boundary conditions. */
-/*       no other entries in D are changed. */
-/*   IERR -- (output) error flag. */
-/*       Normal return: */
-/*        IERR = 0  (no errors). */
-/*       Warning errors: */
-/*        IERR = 1  if IBEG.LT.0 and D(1) had to be adjusted for */
-/*            monotonicity. */
-/*        IERR = 2  if IEND.LT.0 and D(1+(N-1)) had to be */
-/*            adjusted for monotonicity. */
-/*        IERR = 3  if both of the above are true. */
-/*  ------- */
-/*  WARNING:  This routine does no validity-checking of arguments. */
-/*  ------- */
-/* ***SEE ALSO  DPCHIC */
-/*  Programming notes: */
-/*   1. The function DPCHST(ARG1,ARG2)  is assumed to return zero if */
-/*    either argument is zero, +1 if they are of the same sign, and */
-/*    -1 if they are of opposite sign. */
-/*   2. One could reduce the number of arguments and amount of local */
-/*    storage, at the expense of reduced code clarity, by passing in */
-/*    the array WK (rather than splitting it into H and SLOPE) and */
-/*    increasing its length enough to incorporate STEMP and XTEMP. */
-/*   3. The two monotonicity checks only use the sufficient conditions. */
-/*    Thus, it is possible (but unlikely) for a boundary condition to */
-/*    be changed, even though the original interpolant was monotonic. */
-/*    (At least the result is a continuous function of the data.) */
-integer dpchce(integer *ic, doublereal *vc, integer n,
-    doublereal *x, doublereal *h, doublereal *slope, doublereal *d)
-{
-/* Local variables */
-  integer j, k, ibeg, iend, ierf, index;
-  doublereal stemp[3], xtemp[4];
-  integer ierr = 0;
-  ibeg = ic[0];
-  iend = ic[1];
-/*  SET TO DEFAULT BOUNDARY CONDITIONS IF N IS TOO SMALL. */
-  if (abs(ibeg) > n) {
-    ibeg = 0;
-  }
-  if (abs(iend) > n) {
-    iend = 0;
-  }
-/*  TREAT BEGINNING BOUNDARY CONDITION. */
-  if (ibeg != 0) {
-    k = abs(ibeg);
-    if (k == 1) {
-/*    BOUNDARY VALUE PROVIDED. */
-      d[0] = vc[0];
-    } else if (k == 2) {
-/*    BOUNDARY SECOND DERIVATIVE PROVIDED. */
-      d[0] = 0.5 * (3. * slope[0] - d[1] - 0.5 * vc[0] * h[0]);
-    } else if (k < 5) {
-/*    USE K-POINT DERIVATIVE FORMULA. */
-/*    PICK UP FIRST K POINTS, IN REVERSE ORDER. */
-      for (j = 1; j <= k; ++j) {
-        index = k - j + 1;
-/*       INDEX RUNS FROM K DOWN TO 1. */
-        xtemp[j - 1] = x[index-1];
-        if (j < k) {
-          stemp[j - 1] = slope[index - 2];
-        }
-      }
-/*         ----------------------------- */
-      d[0] = dpchdf(k, xtemp, stemp, &ierf);
-/*         ----------------------------- */
-      if (ierf != 0) {
-        ierr = -1;
-        xermsg_("SLATEC", "DPCHCE", "ERROR RETURN FROM DPCHDF", ierr);
-        return ierr;
-      }
-    } else {
-/*    USE 'NOT A KNOT' CONDITION. */
-      d[0] = (3. * (h[0] * slope[1] + h[1] * slope[0]) -
-          2. * (h[0] + h[1]) * d[1] - h[0] * d[2]) / h[1];
-    }
-/*  CHECK D(1,1) FOR COMPATIBILITY WITH MONOTONICITY. */
-    if (ibeg <= 0) {
-      if (slope[0] == 0.) {
-        if (d[0] != 0.) {
-          d[0] = 0.;
-          ++(ierr);
-        }
-      } else if (dpchst(d[0], slope[0]) < 0.) {
-        d[0] = 0.;
-        ++(ierr);
-      } else if (abs(d[0]) > 3. * abs(slope[0])) {
-        d[0] = 3. * slope[0];
-        ++(ierr);
-      }
-    }
-  }
-/*  TREAT END BOUNDARY CONDITION. */
-  if (iend == 0) {
-    return ierr;
-  }
-  k = abs(iend);
-  if (k == 1) {
-/*    BOUNDARY VALUE PROVIDED. */
-    d[n-1] = vc[1];
-  } else if (k == 2) {
-/*    BOUNDARY SECOND DERIVATIVE PROVIDED. */
-    d[n-1] = 0.5 * (3. * slope[n - 2] - d[n - 2]
-        + 0.5 * vc[1] * h[n - 2]);
-  } else if (k < 5) {
-/*    USE K-POINT DERIVATIVE FORMULA. */
-/*    PICK UP LAST K POINTS. */
-    for (j = 1; j <= k; ++j) {
-      index = n - k + j;
-/*       INDEX RUNS FROM N+1-K UP TO N. */
-      xtemp[j - 1] = x[index-1];
-      if (j < k) {
-        stemp[j - 1] = slope[index-1];
-      }
-    }
-/*         ----------------------------- */
-    d[n-1] = dpchdf(k, xtemp, stemp, &ierf);
-/*         ----------------------------- */
-    if (ierf != 0) {
-/*   *** THIS CASE SHOULD NEVER OCCUR *** */
-      ierr = -1;
-      xermsg_("SLATEC", "DPCHCE", "ERROR RETURN FROM DPCHDF", ierr);
-      return ierr;
-    }
-  } else {
-/*    USE 'NOT A KNOT' CONDITION. */
-    d[n-1] = (3. * (h[n - 2] * slope[n - 3] +
-        h[n - 3] * slope[n - 2]) - 2. * (h[n - 2] + h[n - 3]) *
-        d[n - 2] - h[n - 2] * d[n - 3]) / h[n - 3];
-  }
-  if (iend > 0) {
-    return ierr;
-  }
-/*  CHECK D(1,N) FOR COMPATIBILITY WITH MONOTONICITY. */
-  if (slope[n - 2] == 0.) {
-    if (d[n-1] != 0.) {
-      d[n-1] = 0.;
-      ierr += 2;
-    }
-  } else if (dpchst(d[n-1], slope[n - 2]) < 0.) {
-    d[n-1] = 0.;
-    ierr += 2;
-  } else if (abs(d[n-1]) > 3. * abs(slope[n - 2])) {
-    d[n-1] = 3. * slope[n - 2];
-    ierr += 2;
-  }
-  return ierr;
-}
-
 /* ***PURPOSE  Set interior derivatives for DPCHIC */
 /*      DPCHCI:  DPCHIC Initial Derivative Setter. */
 /*  Called by DPCHIC to set derivatives needed to determine a monotone */
@@ -1486,7 +1287,123 @@ void dpchic(integer *ic, doublereal *vc, doublereal mflag,
     return;
   }
 /*   ------------------------------------------------------- */
-  *ierr = dpchce(&ic[0], &vc[0], n, &x[0], &wk[0], &wk[n-1], &d[0]);
+  do { /* inline dpchce */
+/* Local variables */
+    integer j, k, ibeg, iend, ierf, index;
+    doublereal stemp[3], xtemp[4], *slope = &wk[n-1];
+    ibeg = ic[0];
+    iend = ic[1];
+/*  SET TO DEFAULT BOUNDARY CONDITIONS IF N IS TOO SMALL. */
+    if (abs(ibeg) > n) {
+      ibeg = 0;
+    }
+    if (abs(iend) > n) {
+      iend = 0;
+    }
+/*  TREAT BEGINNING BOUNDARY CONDITION. */
+    if (ibeg != 0) {
+      k = abs(ibeg);
+      if (k == 1) {
+/*    BOUNDARY VALUE PROVIDED. */
+        d[0] = vc[0];
+      } else if (k == 2) {
+/*    BOUNDARY SECOND DERIVATIVE PROVIDED. */
+        d[0] = 0.5 * (3. * slope[0] - d[1] - 0.5 * vc[0] * wk[0]);
+      } else if (k < 5) {
+/*    USE K-POINT DERIVATIVE FORMULA. */
+/*    PICK UP FIRST K POINTS, IN REVERSE ORDER. */
+        for (j = 1; j <= k; ++j) {
+          index = k - j + 1;
+/*       INDEX RUNS FROM K DOWN TO 1. */
+          xtemp[j - 1] = x[index-1];
+          if (j < k) {
+            stemp[j - 1] = slope[index - 2];
+          }
+        }
+/*         ----------------------------- */
+        d[0] = dpchdf(k, xtemp, stemp, &ierf);
+/*         ----------------------------- */
+        if (ierf != 0) {
+          *ierr = -1;
+          xermsg_("SLATEC", "DPCHCE", "ERROR RETURN FROM DPCHDF", *ierr);
+          break;
+        }
+      } else {
+/*    USE 'NOT A KNOT' CONDITION. */
+        d[0] = (3. * (wk[0] * slope[1] + wk[1] * slope[0]) -
+            2. * (wk[0] + wk[1]) * d[1] - wk[0] * d[2]) / wk[1];
+      }
+/*  CHECK D(1,1) FOR COMPATIBILITY WITH MONOTONICITY. */
+      if (ibeg <= 0) {
+        if (slope[0] == 0.) {
+          if (d[0] != 0.) {
+            d[0] = 0.;
+            ++(ierr);
+          }
+        } else if (dpchst(d[0], slope[0]) < 0.) {
+          d[0] = 0.;
+          ++(ierr);
+        } else if (abs(d[0]) > 3. * abs(slope[0])) {
+          d[0] = 3. * slope[0];
+          ++(ierr);
+        }
+      }
+    }
+/*  TREAT END BOUNDARY CONDITION. */
+    if (iend == 0) {
+      break;
+    }
+    k = abs(iend);
+    if (k == 1) {
+/*    BOUNDARY VALUE PROVIDED. */
+      d[n-1] = vc[1];
+    } else if (k == 2) {
+/*    BOUNDARY SECOND DERIVATIVE PROVIDED. */
+      d[n-1] = 0.5 * (3. * slope[n - 2] - d[n - 2]
+          + 0.5 * vc[1] * wk[n - 2]);
+    } else if (k < 5) {
+/*    USE K-POINT DERIVATIVE FORMULA. */
+/*    PICK UP LAST K POINTS. */
+      for (j = 1; j <= k; ++j) {
+        index = n - k + j;
+/*       INDEX RUNS FROM N+1-K UP TO N. */
+        xtemp[j - 1] = x[index-1];
+        if (j < k) {
+          stemp[j - 1] = slope[index-1];
+        }
+      }
+/*         ----------------------------- */
+      d[n-1] = dpchdf(k, xtemp, stemp, &ierf);
+/*         ----------------------------- */
+      if (ierf != 0) {
+/*   *** THIS CASE SHOULD NEVER OCCUR *** */
+        *ierr = -1;
+        xermsg_("SLATEC", "DPCHCE", "ERROR RETURN FROM DPCHDF", *ierr);
+        break;
+      }
+    } else {
+/*    USE 'NOT A KNOT' CONDITION. */
+      d[n-1] = (3. * (wk[n - 2] * slope[n - 3] +
+          wk[n - 3] * slope[n - 2]) - 2. * (wk[n - 2] + wk[n - 3]) *
+          d[n - 2] - wk[n - 2] * d[n - 3]) / wk[n - 3];
+    }
+    if (iend > 0) {
+      break;
+    }
+/*  CHECK D(1,N) FOR COMPATIBILITY WITH MONOTONICITY. */
+    if (slope[n - 2] == 0.) {
+      if (d[n-1] != 0.) {
+        d[n-1] = 0.;
+        ierr += 2;
+      }
+    } else if (dpchst(d[n-1], slope[n - 2]) < 0.) {
+      d[n-1] = 0.;
+      ierr += 2;
+    } else if (abs(d[n-1]) > 3. * abs(slope[n - 2])) {
+      d[n-1] = 3. * slope[n - 2];
+      ierr += 2;
+    }
+  } while (0); /* end inlined dpchce */
 /*   ------------------------------------------------------- */
   if (*ierr < 0) {
     *ierr = -9;
