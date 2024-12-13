@@ -24,111 +24,22 @@ double d_sign(doublereal a, doublereal b)
 #define xermsg_(lib, func, errstr, nerr, ...) \
   fprintf(stderr, "%s::%s: %s (err=%ld)\n", lib, func, errstr, nerr)
 
-void dintrv(doublereal *, integer, doublereal, integer *, integer *, integer *);
-void dpchkt(integer, doublereal *, integer *, doublereal *);
-void dchfdv(doublereal, doublereal,
-      doublereal, doublereal, doublereal, doublereal, integer,
-       doublereal *, doublereal *, doublereal *, integer *, integer *);
-doublereal dchfie(doublereal, doublereal, doublereal,
-      doublereal, doublereal, doublereal, doublereal, doublereal);
-doublereal dpchid(integer, doublereal *, doublereal *,
-      doublereal *, logical *, integer, integer, integer *);
-doublereal dpchst(doublereal, doublereal);
-integer dpchsw(doublereal, integer, doublereal,
-       doublereal, doublereal, doublereal);
-integer dpchce(integer *, doublereal *, integer,
-      doublereal *, doublereal *, doublereal *, doublereal *);
-void dpchci(integer, doublereal *, doublereal *, doublereal *);
-integer dpchcs(doublereal, integer, doublereal *, doublereal *, doublereal *);
-doublereal dpchdf(integer, doublereal *, doublereal *, integer *);
-
 doublereal d1mach() {
   return 2.3e-16; /* for float, 1.2e-7 */
 }
 
-doublereal dbvalu(doublereal *t, doublereal *a, integer n, integer k,
-    integer ideriv, doublereal x, integer inbv, doublereal *work)
+/* ***PURPOSE  DPCHIP Sign-Testing Routine */
+/*   Returns: */
+/*    -1. if ARG1 and ARG2 are of opposite sign. */
+/*     0. if either argument is zero. */
+/*    +1. if ARG1 and ARG2 are of the same sign. */
+/*   The object is to do this without multiplying ARG1*ARG2, to avoid */
+/*   possible over/underflow problems. */
+/*  Fortran intrinsics used:  SIGN. */
+/* ***SEE ALSO  DPCHCE, DPCHCI, DPCHCS, DPCHIM */
+doublereal dpchst(doublereal arg1, doublereal arg2)
 {
-/* Local variables */
-  integer i, j, j1, j2, jj, km1, ihi, imk, kmj, ilo, kpk;
-  doublereal fkmj;
-  integer mflag, kmider;
-  if (k < 1) {
-    xermsg_("SLATEC", "DBVALU", "K DOES NOT SATISFY K.GE.1", (long)2);
-    return 0.;
-  }
-  if (n < k) {
-    xermsg_("SLATEC", "DBVALU", "N DOES NOT SATISFY N.GE.K", (long)2);
-    return 0.;
-  }
-  if (ideriv < 0 || ideriv >= k) {
-    xermsg_("SLATEC", "DBVALU", "IDERIV DOES NOT SATISFY 0.LE.IDERIV.LT.K", (long)2);
-    return 0.;
-  }
-  kmider = k - ideriv;
-/* *** FIND *I* IN (K,N) SUCH THAT T(I) .LE. X .LT. T(I+1) */
-/*   (OR, .LE. T(I+1) IF T(I) .LT. T(I+1) = T(N+1)). */
-  km1 = k - 1;
-  dintrv(&t[0], n + 1, x, &inbv, &i, &mflag);
-  if (x < t[k-1]) {
-    xermsg_("SLATEC", "DBVALU", "X IS N0T GREATER THAN OR EQUAL TO T(K)", (long)2);
-    return 0.;
-  }
-  if (mflag != 0) {
-    if (x > t[i]) {
-      xermsg_("SLATEC", "DBVALU", "X IS NOT LESS THAN OR EQUAL TO T(N+1)", (long)2);
-      return 0.;
-    }
-    while (1) {
-      if (i == k-1) {
-        xermsg_("SLATEC", "DBVALU", "A LEFT LIMITING VALUE CANNOT BE OBTAINED AT T(K)", (long)2);
-        return 0.;
-      }
-      --i;
-      if (x != t[i]) {
-        break;
-      }
-    }
-/* *** DIFFERENCE THE COEFFICIENTS *IDERIV* TIMES */
-/*   WORK(I) = AJ(I), WORK(K+I) = DP(I), WORK(K+K+I) = DM(I), I=1.K */
-  }
-  imk = i+1 - k;
-  for (j = 0; j < k; ++j) {
-    work[j] = a[imk + j];
-  }
-  if (ideriv != 0) {
-    for (j = 0; j < ideriv; ++j) {
-      kmj = k - j - 1;
-      fkmj = (doublereal) kmj;
-      for (jj = 0; jj < kmj; ++jj) {
-        ihi = i+1 + jj;
-        work[jj] = (work[jj+1] - work[jj]) / (t[ihi] - t[ihi - kmj]) * fkmj;
-      }
-    }
-/* *** COMPUTE VALUE AT *X* IN (T(I),(T(I+1)) OF IDERIV-TH DERIVATIVE, */
-/*   GIVEN ITS RELEVANT B-SPLINE COEFF. IN AJ(1),...,AJ(K-IDERIV). */
-  }
-  if (ideriv != km1) {
-    j1 = k;
-    j2 = kpk = k + k;
-    for (j = 0; j < kmider; ++j) {
-      integer ipj = i + j + 1;
-      work[j1] = t[ipj] - x;
-      work[j2] = x - t[i - j];
-      ++j1;
-      ++j2;
-    }
-    for (j = ideriv; j < km1; ++j) {
-      kmj = k - j - 1;
-      ilo = kpk + kmj - 1;
-      for (jj = 0; jj < kmj; ++jj) {
-        work[jj] = (work[jj+1] * work[ilo] + work[jj] *
-            work[k + jj]) / (work[ilo] + work[k + jj]);
-        --ilo;
-      }
-    }
-  }
-  return work[0];
+  return (arg1 == 0. || arg2 == 0.) ? 0. : d_sign(1, arg1) * d_sign(1, arg2);
 }
 
 /* ***PURPOSE  Compute the largest integer ILEFT in 1 .LE. ILEFT .LE. LXT */
@@ -240,48 +151,89 @@ void dintrv(doublereal *xt, integer lxt, doublereal x,
   }
 }
 
-void dpchbs(integer n, doublereal *x, doublereal *f,
-    doublereal *d, integer *knotyp, integer *nknots,
-    doublereal *t, doublereal *bcoef, integer *ndim, integer *kord,
-    integer *ierr)
+doublereal dbvalu(doublereal *t, doublereal *a, integer n, integer k,
+    integer ideriv, doublereal x, integer inbv, doublereal *work)
 {
 /* Local variables */
-  integer k, kk;
-  doublereal dov3, hold, hnew;
-  char *libnam = "SLATEC";
-  char *subnam = "DPCHBS";
-  *ndim = n << 1;
-  *kord = 4;
-  *ierr = 0;
-/*  Check argument validity.  Set up knot sequence if OK. */
-  if (*knotyp > 2) {
-    *ierr = -1;
-    xermsg_(libnam, subnam, "KNOTYP GREATER THAN 2", *ierr);
-    return;
+  integer i, j, j1, j2, jj, km1, ihi, imk, kmj, ilo, kpk;
+  doublereal fkmj;
+  integer mflag, kmider;
+  if (k < 1) {
+    xermsg_("SLATEC", "DBVALU", "K DOES NOT SATISFY K.GE.1", (long)2);
+    return 0.;
   }
-  if (*knotyp < 0) {
-    if (*nknots != *ndim + 4) {
-      *ierr = -2;
-      xermsg_(libnam, subnam, "KNOTYP.LT.0 AND NKNOTS.NE.(2*N+4)", *ierr);
-      return;
+  if (n < k) {
+    xermsg_("SLATEC", "DBVALU", "N DOES NOT SATISFY N.GE.K", (long)2);
+    return 0.;
+  }
+  if (ideriv < 0 || ideriv >= k) {
+    xermsg_("SLATEC", "DBVALU", "IDERIV DOES NOT SATISFY 0.LE.IDERIV.LT.K", (long)2);
+    return 0.;
+  }
+  kmider = k - ideriv;
+/* *** FIND *I* IN (K,N) SUCH THAT T(I) .LE. X .LT. T(I+1) */
+/*   (OR, .LE. T(I+1) IF T(I) .LT. T(I+1) = T(N+1)). */
+  km1 = k - 1;
+  dintrv(&t[0], n + 1, x, &inbv, &i, &mflag);
+  if (x < t[k-1]) {
+    xermsg_("SLATEC", "DBVALU", "X IS N0T GREATER THAN OR EQUAL TO T(K)", (long)2);
+    return 0.;
+  }
+  if (mflag != 0) {
+    if (x > t[i]) {
+      xermsg_("SLATEC", "DBVALU", "X IS NOT LESS THAN OR EQUAL TO T(N+1)", (long)2);
+      return 0.;
     }
-  } else {
-/*      Set up knot sequence. */
-    *nknots = *ndim + 4;
-    dpchkt(n, &x[0], knotyp, &t[0]);
+    while (1) {
+      if (i == k-1) {
+        xermsg_("SLATEC", "DBVALU", "A LEFT LIMITING VALUE CANNOT BE OBTAINED AT T(K)", (long)2);
+        return 0.;
+      }
+      --i;
+      if (x != t[i]) {
+        break;
+      }
+    }
+/* *** DIFFERENCE THE COEFFICIENTS *IDERIV* TIMES */
+/*   WORK(I) = AJ(I), WORK(K+I) = DP(I), WORK(K+K+I) = DM(I), I=1.K */
   }
-/*  Compute B-spline coefficients. */
-  hnew = t[2] - t[0];
-  for (k = 0; k < n; ++k) {
-    kk = k << 1;
-    hold = hnew;
-/*      The following requires mixed mode arithmetic. */
-    dov3 = d[k] / 3;
-    bcoef[kk] = f[k] - hold * dov3;
-/*      The following assumes T(2*K+1) = X(K). */
-    hnew = t[kk + 4] - t[kk + 2];
-    bcoef[kk+1] = f[k] + hnew * dov3;
+  imk = i+1 - k;
+  for (j = 0; j < k; ++j) {
+    work[j] = a[imk + j];
   }
+  if (ideriv != 0) {
+    for (j = 0; j < ideriv; ++j) {
+      kmj = k - j - 1;
+      fkmj = (doublereal) kmj;
+      for (jj = 0; jj < kmj; ++jj) {
+        ihi = i+1 + jj;
+        work[jj] = (work[jj+1] - work[jj]) / (t[ihi] - t[ihi - kmj]) * fkmj;
+      }
+    }
+/* *** COMPUTE VALUE AT *X* IN (T(I),(T(I+1)) OF IDERIV-TH DERIVATIVE, */
+/*   GIVEN ITS RELEVANT B-SPLINE COEFF. IN AJ(1),...,AJ(K-IDERIV). */
+  }
+  if (ideriv != km1) {
+    j1 = k;
+    j2 = kpk = k + k;
+    for (j = 0; j < kmider; ++j) {
+      integer ipj = i + j + 1;
+      work[j1] = t[ipj] - x;
+      work[j2] = x - t[i - j];
+      ++j1;
+      ++j2;
+    }
+    for (j = ideriv; j < km1; ++j) {
+      kmj = k - j - 1;
+      ilo = kpk + kmj - 1;
+      for (jj = 0; jj < kmj; ++jj) {
+        work[jj] = (work[jj+1] * work[ilo] + work[jj] *
+            work[k + jj]) / (work[ilo] + work[k + jj]);
+        --ilo;
+      }
+    }
+  }
+  return work[0];
 }
 
 /* ***PURPOSE  Compute B-spline knot sequence for DPCHBS. */
@@ -334,6 +286,50 @@ void dpchkt(integer n, doublereal *x, integer *knotyp,
   }
   t[0] = t[1];
   t[ndim + 3] = t[ndim + 2];
+}
+
+void dpchbs(integer n, doublereal *x, doublereal *f,
+    doublereal *d, integer *knotyp, integer *nknots,
+    doublereal *t, doublereal *bcoef, integer *ndim, integer *kord,
+    integer *ierr)
+{
+/* Local variables */
+  integer k, kk;
+  doublereal dov3, hold, hnew;
+  char *libnam = "SLATEC";
+  char *subnam = "DPCHBS";
+  *ndim = n << 1;
+  *kord = 4;
+  *ierr = 0;
+/*  Check argument validity.  Set up knot sequence if OK. */
+  if (*knotyp > 2) {
+    *ierr = -1;
+    xermsg_(libnam, subnam, "KNOTYP GREATER THAN 2", *ierr);
+    return;
+  }
+  if (*knotyp < 0) {
+    if (*nknots != *ndim + 4) {
+      *ierr = -2;
+      xermsg_(libnam, subnam, "KNOTYP.LT.0 AND NKNOTS.NE.(2*N+4)", *ierr);
+      return;
+    }
+  } else {
+/*      Set up knot sequence. */
+    *nknots = *ndim + 4;
+    dpchkt(n, &x[0], knotyp, &t[0]);
+  }
+/*  Compute B-spline coefficients. */
+  hnew = t[2] - t[0];
+  for (k = 0; k < n; ++k) {
+    kk = k << 1;
+    hold = hnew;
+/*      The following requires mixed mode arithmetic. */
+    dov3 = d[k] / 3;
+    bcoef[kk] = f[k] - hold * dov3;
+/*      The following assumes T(2*K+1) = X(K). */
+    hnew = t[kk + 4] - t[kk + 2];
+    bcoef[kk+1] = f[k] + hnew * dov3;
+  }
 }
 
 /* ***PURPOSE  Evaluate a cubic polynomial given in Hermite form and its */
@@ -640,6 +636,60 @@ doublereal dchfie(doublereal x1, doublereal x2, doublereal f1, doublereal f2,
 }
 
 /*  Programming notes: */
+/*  1. This routine uses a special formula that is valid only for */
+/*   integrals whose limits coincide with data values.  This is */
+/*   mathematically equivalent to, but much more efficient than, */
+/*   calls to DCHFIE. */
+doublereal dpchid(integer n, doublereal *x, doublereal *f, doublereal *d,
+    logical *skip, integer ia, integer ib, integer *
+    ierr)
+{
+/* Local variables */
+  doublereal h;
+  integer i, iup, low;
+  doublereal sum, value;
+  value = 0.;
+/*  VALIDITY-CHECK ARGUMENTS. */
+  if (!*skip) {
+    if (n < 2) {
+      *ierr = -1;
+      xermsg_("SLATEC", "DPCHID", "NUMBER OF DATA POINTS LESS THAN TWO", *ierr);
+      return value;
+    }
+    for (i = 2; i <= n; ++i) {
+      if (x[i-1] <= x[i - 2]) {
+        *ierr = -3;
+        xermsg_("SLATEC", "DPCHID", "X-ARRAY NOT STRICTLY INCREASING", *ierr);
+        return value;
+      }
+    }
+  }
+/*  FUNCTION DEFINITION IS OK, GO ON. */
+  *skip = TRUE_;
+  if (ia < 0 || ia > n-1 || ib < 0 || ib > n-1) {
+    *ierr = -4;
+    xermsg_("SLATEC", "DPCHID", "IA OR IB OUT OF RANGE", *ierr);
+    return value;
+  }
+  *ierr = 0;
+/*  COMPUTE INTEGRAL VALUE. */
+  if (ia != ib) {
+    low = min(ia,ib);
+    iup = max(ia,ib);
+    sum = 0.;
+    for (i = low; i < iup; ++i) {
+      h = x[i+1] - x[i];
+      sum += h * (f[i] + f[i + 1] + (d[i] - d[i + 1]) * (h / 6.));
+    }
+    value = 0.5 * sum;
+    if (ia > ib) {
+      value = -value;
+    }
+  }
+  return value;
+}
+
+/*  Programming notes: */
 /*  1. The error flag from DPCHID is tested, because a logic flaw */
 /*   could conceivably result in IERD=-4, which should be reported. */
 doublereal dpchia(integer n, doublereal *x, doublereal *f, doublereal *d,
@@ -761,57 +811,55 @@ doublereal dpchia(integer n, doublereal *x, doublereal *f, doublereal *d,
   return value;
 }
 
-/*  Programming notes: */
-/*  1. This routine uses a special formula that is valid only for */
-/*   integrals whose limits coincide with data values.  This is */
-/*   mathematically equivalent to, but much more efficient than, */
-/*   calls to DCHFIE. */
-doublereal dpchid(integer n, doublereal *x, doublereal *f, doublereal *d,
-    logical *skip, integer ia, integer ib, integer *
-    ierr)
+/* ***PURPOSE  Computes divided differences for DPCHCE and DPCHSP */
+/*      DPCHDF:   DPCHIP Finite Difference Formula */
+/*   Uses a divided difference formulation to compute a K-point approx- */
+/*   imation to the derivative at X(K) based on the data in X and S. */
+/*   Called by  DPCHCE  and  DPCHSP  to compute 3- and 4-point boundary */
+/*   derivative approximations. */
+/* ---------------------------------------------------------------------- */
+/*   On input: */
+/*    K    is the order of the desired derivative approximation. */
+/*         K must be at least 3 (error return if not). */
+/*    X    contains the K values of the independent variable. */
+/*         X need not be ordered, but the values **MUST** be */
+/*         distinct.  (Not checked here.) */
+/*    S    contains the associated slope values: */
+/*          S(I) = (F(I+1)-F(I))/(X(I+1)-X(I)), I=1(1)K-1. */
+/*         (Note that S need only be of length K-1.) */
+/*   On return: */
+/*    S    will be destroyed. */
+/*    IERR   will be set to -1 if K.LT.2 . */
+/*    DPCHDF  will be set to the desired derivative approximation if */
+/*         IERR=0 or to zero if IERR=-1. */
+/* ---------------------------------------------------------------------- */
+/* ***SEE ALSO  DPCHCE, DPCHSP */
+/* ***REFERENCES  Carl de Boor, A Practical Guide to Splines, Springer- */
+/*         Verlag, New York, 1978, pp. 10-16. */
+/*  CHECK FOR LEGAL VALUE OF K. */
+doublereal dpchdf(integer k, doublereal *x, doublereal *s, integer *ierr)
 {
 /* Local variables */
-  doublereal h;
-  integer i, iup, low;
-  doublereal sum, value;
-  value = 0.;
-/*  VALIDITY-CHECK ARGUMENTS. */
-  if (!*skip) {
-    if (n < 2) {
-      *ierr = -1;
-      xermsg_("SLATEC", "DPCHID", "NUMBER OF DATA POINTS LESS THAN TWO", *ierr);
-      return value;
-    }
-    for (i = 2; i <= n; ++i) {
-      if (x[i-1] <= x[i - 2]) {
-        *ierr = -3;
-        xermsg_("SLATEC", "DPCHID", "X-ARRAY NOT STRICTLY INCREASING", *ierr);
-        return value;
-      }
+  integer i, j;
+  doublereal value;
+  if (k < 3) {
+    *ierr = -1;
+    xermsg_("SLATEC", "DPCHDF", "K LESS THAN THREE", *ierr);
+    return 0.;
+  }
+/*  COMPUTE COEFFICIENTS OF INTERPOLATING POLYNOMIAL. */
+  for (j = 2; j < k; ++j) {
+    integer itmp = k - j;
+    for (i = 0; i < itmp; ++i) {
+      s[i] = (s[i+1] - s[i]) / (x[i + j] - x[i]);
     }
   }
-/*  FUNCTION DEFINITION IS OK, GO ON. */
-  *skip = TRUE_;
-  if (ia < 0 || ia > n-1 || ib < 0 || ib > n-1) {
-    *ierr = -4;
-    xermsg_("SLATEC", "DPCHID", "IA OR IB OUT OF RANGE", *ierr);
-    return value;
+/*  EVALUATE DERIVATIVE AT X(K). */
+  value = s[0];
+  for (i = 2; i < k; ++i) {
+    value = s[i-1] + value * (x[k-1] - x[i-1]);
   }
   *ierr = 0;
-/*  COMPUTE INTEGRAL VALUE. */
-  if (ia != ib) {
-    low = min(ia,ib);
-    iup = max(ia,ib);
-    sum = 0.;
-    for (i = low; i < iup; ++i) {
-      h = x[i+1] - x[i];
-      sum += h * (f[i] + f[i + 1] + (d[i] - d[i + 1]) * (h / 6.));
-    }
-    value = 0.5 * sum;
-    if (ia > ib) {
-      value = -value;
-    }
-  }
   return value;
 }
 
@@ -1107,6 +1155,132 @@ void dpchci(integer n, doublereal *h, doublereal *slope, doublereal *d)
   }
 }
 
+/* ***PURPOSE  Limits excursion from data for DPCHCS */
+/*     DPCHSW:  DPCHCS Switch Excursion Limiter. */
+/*   Called by  DPCHCS  to adjust D1 and D2 if necessary to insure that */
+/*   the extremum on this interval is not further than DFMAX from the */
+/*   extreme data value. */
+/* ---------------------------------------------------------------------- */
+/*  Calling sequence: */
+/*    INTEGER  IEXTRM, IERR */
+/*    DOUBLE PRECISION  DFMAX, D1, D2, H, SLOPE */
+/*    CALL  DPCHSW (DFMAX, IEXTRM, D1, D2, H, SLOPE, IERR) */
+/*   Parameters: */
+/*   DFMAX -- (input) maximum allowed difference between F(IEXTRM) and */
+/*       the cubic determined by derivative values D1,D2.  (assumes */
+/*       DFMAX.GT.0.) */
+/*   IEXTRM -- (input) index of the extreme data value.  (assumes */
+/*       IEXTRM = 1 or 2 .  Any value .NE.1 is treated as 2.) */
+/*   D1,D2 -- (input) derivative values at the ends of the interval. */
+/*       (Assumes D1*D2 .LE. 0.) */
+/*      (output) may be modified if necessary to meet the restriction */
+/*       imposed by DFMAX. */
+/*   H -- (input) interval length.  (Assumes  H.GT.0.) */
+/*   SLOPE -- (input) data slope on the interval. */
+/*   IERR -- (output) error flag.  should be zero. */
+/*       If IERR=-1, assumption on D1 and D2 is not satisfied. */
+/*       If IERR=-2, quadratic equation locating extremum has */
+/*             negative discriminant (should never occur). */
+/*  ------- */
+/*  WARNING:  This routine does no validity-checking of arguments. */
+/*  ------- */
+/*  Fortran intrinsics used:  ABS, SIGN, SQRT. */
+/* ***SEE ALSO  DPCHCS */
+/*  NOTATION AND GENERAL REMARKS. */
+/*   RHO IS THE RATIO OF THE DATA SLOPE TO THE DERIVATIVE BEING TESTED. */
+/*   LAMBDA IS THE RATIO OF D2 TO D1. */
+/*   THAT = T-HAT(RHO) IS THE NORMALIZED LOCATION OF THE EXTREMUM. */
+/*   PHI IS THE NORMALIZED VALUE OF P(X)-F1 AT X = XHAT = X-HAT(RHO), */
+/*       WHERE  THAT = (XHAT - X1)/H . */
+/*    THAT IS, P(XHAT)-F1 = D*H*PHI,  WHERE D=D1 OR D2. */
+/*   SIMILARLY,  P(XHAT)-F2 = D*H*(PHI-RHO) . */
+integer dpchsw(doublereal dfmax, integer iextrm, doublereal d1,
+    doublereal d2, doublereal h, doublereal slope)
+{
+/* Local variables */
+  doublereal cp, nu, phi, rho, hphi, that, sigma, small;
+  doublereal lambda, radcal;
+/* Initialized data */
+  static const doublereal fact = 100.;
+/*    THIRD SHOULD BE SLIGHTLY LESS THAN 1/3. */
+  static const doublereal third = .33333;
+/*    SMALL SHOULD BE A FEW ORDERS OF MAGNITUDE GREATER THAN MACHEPS. */
+  small = fact * d1mach();
+/*  DO MAIN CALCULATION. */
+  if (d1 == 0.) {
+/*    SPECIAL CASE -- D1.EQ.ZERO . */
+/*      IF D2 IS ALSO ZERO, THIS ROUTINE SHOULD NOT HAVE BEEN CALLED. */
+    if (d2 == 0.) {
+      xermsg_("SLATEC", "DPCHSW", "D1 AND/OR D2 INVALID", (long)-1);
+      return -1;
+    }
+    rho = slope / d2;
+/*      EXTREMUM IS OUTSIDE INTERVAL WHEN RHO .GE. 1/3 . */
+    if (rho >= third) {
+      return 0;
+    }
+    that = 2. * (3. * rho - 1.) / (3. * (2. * rho - 1.));
+/* Computing 2nd power */
+    phi = that * that * ((3. * rho - 1.) / 3.);
+/*      CONVERT TO DISTANCE FROM F2 IF IEXTRM.NE.1 . */
+    if (iextrm != 1) {
+      phi -= rho;
+    }
+/*      TEST FOR EXCEEDING LIMIT, AND ADJUST ACCORDINGLY. */
+    hphi = h * abs(phi);
+    if (hphi * abs(d2) > dfmax) {
+/*       AT THIS POINT, HPHI.GT.0, SO DIVIDE IS OK. */
+      d2 = d_sign(dfmax / hphi, d2);
+    }
+  } else {
+    rho = slope / d1;
+    lambda = -(d2) / d1;
+    if (d2 == 0.) {
+/*       SPECIAL CASE -- D2.EQ.ZERO . */
+/*       EXTREMUM IS OUTSIDE INTERVAL WHEN RHO .GE. 1/3 . */
+      if (rho >= third) {
+        return 0;
+      }
+      cp = 2. - 3. * rho;
+      nu = 1. - 2. * rho;
+      that = 1. / (3. * nu);
+    } else {
+      if (lambda <= 0.) {
+        xermsg_("SLATEC", "DPCHSW", "D1 AND/OR D2 INVALID", (long)-1);
+        return -1;
+      }
+/*       NORMAL CASE -- D1 AND D2 BOTH NONZERO, OPPOSITE SIGNS. */
+      nu = 1. - lambda - 2. * rho;
+      sigma = 1. - rho;
+      cp = nu + sigma;
+      if (abs(nu) > small) {
+/* Computing 2nd power */
+        radcal = (nu - (2. * rho + 1.)) * nu + sigma * sigma;
+        if (radcal < 0.) {
+          xermsg_("SLATEC", "DPCHSW", "NEGATIVE RADICAL", (long)-2);
+          return -2;
+        }
+        that = (cp - sqrt(radcal)) / (3. * nu);
+      } else {
+        that = 1. / (2. * sigma);
+      }
+    }
+    phi = that * ((nu * that - cp) * that + 1.);
+/*      CONVERT TO DISTANCE FROM F2 IF IEXTRM.NE.1 . */
+    if (iextrm != 1) {
+      phi -= rho;
+    }
+/*      TEST FOR EXCEEDING LIMIT, AND ADJUST ACCORDINGLY. */
+    hphi = h * abs(phi);
+    if (hphi * abs(d1) > dfmax) {
+/*       AT THIS POINT, HPHI.GT.0, SO DIVIDE IS OK. */
+      d1 = d_sign(dfmax / hphi, d1);
+      d2 = -lambda * d1;
+    }
+  }
+  return 0;
+}
+
 /* ***PURPOSE  Adjusts derivative values for DPCHIC */
 /*     DPCHCS:  DPCHIC Monotonicity Switch Derivative Setter. */
 /*   Called by  DPCHIC  to adjust the values of D in the vicinity of a */
@@ -1286,58 +1460,6 @@ integer dpchcs(doublereal mflag, integer n, doublereal *h,
   return ierr;
 }
 
-/* ***PURPOSE  Computes divided differences for DPCHCE and DPCHSP */
-/*      DPCHDF:   DPCHIP Finite Difference Formula */
-/*   Uses a divided difference formulation to compute a K-point approx- */
-/*   imation to the derivative at X(K) based on the data in X and S. */
-/*   Called by  DPCHCE  and  DPCHSP  to compute 3- and 4-point boundary */
-/*   derivative approximations. */
-/* ---------------------------------------------------------------------- */
-/*   On input: */
-/*    K    is the order of the desired derivative approximation. */
-/*         K must be at least 3 (error return if not). */
-/*    X    contains the K values of the independent variable. */
-/*         X need not be ordered, but the values **MUST** be */
-/*         distinct.  (Not checked here.) */
-/*    S    contains the associated slope values: */
-/*          S(I) = (F(I+1)-F(I))/(X(I+1)-X(I)), I=1(1)K-1. */
-/*         (Note that S need only be of length K-1.) */
-/*   On return: */
-/*    S    will be destroyed. */
-/*    IERR   will be set to -1 if K.LT.2 . */
-/*    DPCHDF  will be set to the desired derivative approximation if */
-/*         IERR=0 or to zero if IERR=-1. */
-/* ---------------------------------------------------------------------- */
-/* ***SEE ALSO  DPCHCE, DPCHSP */
-/* ***REFERENCES  Carl de Boor, A Practical Guide to Splines, Springer- */
-/*         Verlag, New York, 1978, pp. 10-16. */
-/*  CHECK FOR LEGAL VALUE OF K. */
-doublereal dpchdf(integer k, doublereal *x, doublereal *s, integer *ierr)
-{
-/* Local variables */
-  integer i, j;
-  doublereal value;
-  if (k < 3) {
-    *ierr = -1;
-    xermsg_("SLATEC", "DPCHDF", "K LESS THAN THREE", *ierr);
-    return 0.;
-  }
-/*  COMPUTE COEFFICIENTS OF INTERPOLATING POLYNOMIAL. */
-  for (j = 2; j < k; ++j) {
-    integer itmp = k - j;
-    for (i = 0; i < itmp; ++i) {
-      s[i] = (s[i+1] - s[i]) / (x[i + j] - x[i]);
-    }
-  }
-/*  EVALUATE DERIVATIVE AT X(K). */
-  value = s[0];
-  for (i = 2; i < k; ++i) {
-    value = s[i-1] + value * (x[k-1] - x[i-1]);
-  }
-  *ierr = 0;
-  return value;
-}
-
 void dpchic(integer *ic, doublereal *vc, doublereal mflag,
     integer n, doublereal *x, doublereal *f, doublereal *d,
     doublereal *wk, integer nwk, integer *ierr)
@@ -1413,146 +1535,6 @@ void dpchic(integer *ic, doublereal *vc, doublereal mflag,
     xermsg_("SLATEC", "DPCHIC", "ERROR RETURN FROM DPCHCE", *ierr);
     return;
   }
-}
-
-/* ***PURPOSE  DPCHIP Sign-Testing Routine */
-/*   Returns: */
-/*    -1. if ARG1 and ARG2 are of opposite sign. */
-/*     0. if either argument is zero. */
-/*    +1. if ARG1 and ARG2 are of the same sign. */
-/*   The object is to do this without multiplying ARG1*ARG2, to avoid */
-/*   possible over/underflow problems. */
-/*  Fortran intrinsics used:  SIGN. */
-/* ***SEE ALSO  DPCHCE, DPCHCI, DPCHCS, DPCHIM */
-doublereal dpchst(doublereal arg1, doublereal arg2)
-{
-  return (arg1 == 0. || arg2 == 0.) ? 0. : d_sign(1, arg1) * d_sign(1, arg2);
-}
-
-/* ***PURPOSE  Limits excursion from data for DPCHCS */
-/*     DPCHSW:  DPCHCS Switch Excursion Limiter. */
-/*   Called by  DPCHCS  to adjust D1 and D2 if necessary to insure that */
-/*   the extremum on this interval is not further than DFMAX from the */
-/*   extreme data value. */
-/* ---------------------------------------------------------------------- */
-/*  Calling sequence: */
-/*    INTEGER  IEXTRM, IERR */
-/*    DOUBLE PRECISION  DFMAX, D1, D2, H, SLOPE */
-/*    CALL  DPCHSW (DFMAX, IEXTRM, D1, D2, H, SLOPE, IERR) */
-/*   Parameters: */
-/*   DFMAX -- (input) maximum allowed difference between F(IEXTRM) and */
-/*       the cubic determined by derivative values D1,D2.  (assumes */
-/*       DFMAX.GT.0.) */
-/*   IEXTRM -- (input) index of the extreme data value.  (assumes */
-/*       IEXTRM = 1 or 2 .  Any value .NE.1 is treated as 2.) */
-/*   D1,D2 -- (input) derivative values at the ends of the interval. */
-/*       (Assumes D1*D2 .LE. 0.) */
-/*      (output) may be modified if necessary to meet the restriction */
-/*       imposed by DFMAX. */
-/*   H -- (input) interval length.  (Assumes  H.GT.0.) */
-/*   SLOPE -- (input) data slope on the interval. */
-/*   IERR -- (output) error flag.  should be zero. */
-/*       If IERR=-1, assumption on D1 and D2 is not satisfied. */
-/*       If IERR=-2, quadratic equation locating extremum has */
-/*             negative discriminant (should never occur). */
-/*  ------- */
-/*  WARNING:  This routine does no validity-checking of arguments. */
-/*  ------- */
-/*  Fortran intrinsics used:  ABS, SIGN, SQRT. */
-/* ***SEE ALSO  DPCHCS */
-/*  NOTATION AND GENERAL REMARKS. */
-/*   RHO IS THE RATIO OF THE DATA SLOPE TO THE DERIVATIVE BEING TESTED. */
-/*   LAMBDA IS THE RATIO OF D2 TO D1. */
-/*   THAT = T-HAT(RHO) IS THE NORMALIZED LOCATION OF THE EXTREMUM. */
-/*   PHI IS THE NORMALIZED VALUE OF P(X)-F1 AT X = XHAT = X-HAT(RHO), */
-/*       WHERE  THAT = (XHAT - X1)/H . */
-/*    THAT IS, P(XHAT)-F1 = D*H*PHI,  WHERE D=D1 OR D2. */
-/*   SIMILARLY,  P(XHAT)-F2 = D*H*(PHI-RHO) . */
-integer dpchsw(doublereal dfmax, integer iextrm, doublereal d1,
-    doublereal d2, doublereal h, doublereal slope)
-{
-/* Local variables */
-  doublereal cp, nu, phi, rho, hphi, that, sigma, small;
-  doublereal lambda, radcal;
-/* Initialized data */
-  static const doublereal fact = 100.;
-/*    THIRD SHOULD BE SLIGHTLY LESS THAN 1/3. */
-  static const doublereal third = .33333;
-/*    SMALL SHOULD BE A FEW ORDERS OF MAGNITUDE GREATER THAN MACHEPS. */
-  small = fact * d1mach();
-/*  DO MAIN CALCULATION. */
-  if (d1 == 0.) {
-/*    SPECIAL CASE -- D1.EQ.ZERO . */
-/*      IF D2 IS ALSO ZERO, THIS ROUTINE SHOULD NOT HAVE BEEN CALLED. */
-    if (d2 == 0.) {
-      xermsg_("SLATEC", "DPCHSW", "D1 AND/OR D2 INVALID", (long)-1);
-      return -1;
-    }
-    rho = slope / d2;
-/*      EXTREMUM IS OUTSIDE INTERVAL WHEN RHO .GE. 1/3 . */
-    if (rho >= third) {
-      return 0;
-    }
-    that = 2. * (3. * rho - 1.) / (3. * (2. * rho - 1.));
-/* Computing 2nd power */
-    phi = that * that * ((3. * rho - 1.) / 3.);
-/*      CONVERT TO DISTANCE FROM F2 IF IEXTRM.NE.1 . */
-    if (iextrm != 1) {
-      phi -= rho;
-    }
-/*      TEST FOR EXCEEDING LIMIT, AND ADJUST ACCORDINGLY. */
-    hphi = h * abs(phi);
-    if (hphi * abs(d2) > dfmax) {
-/*       AT THIS POINT, HPHI.GT.0, SO DIVIDE IS OK. */
-      d2 = d_sign(dfmax / hphi, d2);
-    }
-  } else {
-    rho = slope / d1;
-    lambda = -(d2) / d1;
-    if (d2 == 0.) {
-/*       SPECIAL CASE -- D2.EQ.ZERO . */
-/*       EXTREMUM IS OUTSIDE INTERVAL WHEN RHO .GE. 1/3 . */
-      if (rho >= third) {
-        return 0;
-      }
-      cp = 2. - 3. * rho;
-      nu = 1. - 2. * rho;
-      that = 1. / (3. * nu);
-    } else {
-      if (lambda <= 0.) {
-        xermsg_("SLATEC", "DPCHSW", "D1 AND/OR D2 INVALID", (long)-1);
-        return -1;
-      }
-/*       NORMAL CASE -- D1 AND D2 BOTH NONZERO, OPPOSITE SIGNS. */
-      nu = 1. - lambda - 2. * rho;
-      sigma = 1. - rho;
-      cp = nu + sigma;
-      if (abs(nu) > small) {
-/* Computing 2nd power */
-        radcal = (nu - (2. * rho + 1.)) * nu + sigma * sigma;
-        if (radcal < 0.) {
-          xermsg_("SLATEC", "DPCHSW", "NEGATIVE RADICAL", (long)-2);
-          return -2;
-        }
-        that = (cp - sqrt(radcal)) / (3. * nu);
-      } else {
-        that = 1. / (2. * sigma);
-      }
-    }
-    phi = that * ((nu * that - cp) * that + 1.);
-/*      CONVERT TO DISTANCE FROM F2 IF IEXTRM.NE.1 . */
-    if (iextrm != 1) {
-      phi -= rho;
-    }
-/*      TEST FOR EXCEEDING LIMIT, AND ADJUST ACCORDINGLY. */
-    hphi = h * abs(phi);
-    if (hphi * abs(d1) > dfmax) {
-/*       AT THIS POINT, HPHI.GT.0, SO DIVIDE IS OK. */
-      d1 = d_sign(dfmax / hphi, d1);
-      d2 = -lambda * d1;
-    }
-  }
-  return 0;
 }
 
 /*  Programming notes: */
