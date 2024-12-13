@@ -4891,21 +4891,53 @@ which should never happen.
 'Integrate (x,f(x)) over arbitrary limits.'
 );
 
-defslatec('pchip_chid',
-	  {D => 'dpchid'},
-	  'IntVal	n=$SIZE(n);
-           Mat          x       (n);
-           Mat          f       (n);
-           Mat          d       (n);
-           Logical [io] skip    ();
-           IntScalar    ia      ();
-           IntScalar    ib      ();
-           FuncRet [o]  ans     ();
-           Integer [o]  ierr    ();
-          ',
-'Evaluate the definite integral of a a piecewise
-cubic Hermite function between C<x($ia)> and
-C<x($ib)>.
+pp_def('pchip_chid',
+  Pars => 'x(n);f(n);d(n);int [io]skip();longlong ia();longlong ib();[o]ans();longlong [o]ierr()',
+  RedoDimsCode => <<'EOF',
+if ($SIZE(n) < 2) $CROAK("NUMBER OF DATA POINTS LESS THAN TWO");
+EOF
+  Code => <<'EOF',
+/*  Programming notes: */
+/*  1. This routine uses a special formula that is valid only for */
+/*   integrals whose limits coincide with data values.  This is */
+/*   mathematically equivalent to, but much more efficient than, */
+/*   calls to DCHFIE. */
+/*  VALIDITY-CHECK ARGUMENTS. */
+if (!$skip()) {
+  loop (n=1) %{
+    if ($x() > $x(n=>n-1)) continue;
+    $ierr() = -1;
+    $CROAK("X-ARRAY NOT STRICTLY INCREASING");
+  %}
+}
+/*  FUNCTION DEFINITION IS OK, GO ON. */
+$skip() = 1;
+if ($ia() < 0 || $ia() > $SIZE(n)-1 || $ib() < 0 || $ib() > $SIZE(n)-1) {
+  $ierr() = -4;
+  $CROAK("IA OR IB OUT OF RANGE");
+}
+$ierr() = 0;
+/*  COMPUTE INTEGRAL VALUE. */
+if ($ia() == $ib()) { $ans() = 0; continue; }
+PDL_Indx low = PDLMIN($ia(),$ib()), iup = PDLMAX($ia(),$ib());
+$GENERIC() sum = 0.;
+loop (n=low:iup) %{
+  $GENERIC() h = $x(n=>n+1) - $x();
+  sum += h * ($f() + $f(n=>n+1) + ($d() - $d(n=>n+1)) * (h / 6.));
+%}
+$ans() = 0.5 * ($ia() > $ib() ? -sum : sum);
+EOF
+  GenericTypes => $F,
+  Doc => <<'EOF',
+=for ref
+
+Evaluate the definite integral of a piecewise cubic Hermite function
+over an interval whose endpoints are data points.
+
+=for usage
+
+Evaluate the definite integral of a a piecewise cubic Hermite
+function between C<x($ia)> and C<x($ib)>.
 
 See L</pchip_chia> for integration between arbitrary
 limits.
@@ -4932,17 +4964,16 @@ This will save time in case these checks have already
 been performed (say, in L</pchip_chim> or L</pchip_chic>).
 Will be set to TRUE on return with IERR of 0 or -4.
 
-Error status returned by C<$ierr>:
+It is a fatal error to pass in data with C<N> E<lt> 2.
+
+Error status returned by C<$ierr> - this will be set, but an exception
+will also be thrown:
 
 =over 4
 
 =item *
 
 0 if successful.
-
-=item *
-
--1 if C<dim($x, 0) E<lt> 2>.
 
 =item *
 
@@ -4957,10 +4988,7 @@ Error status returned by C<$ierr>:
 (VALUE will be zero in any of these cases.)
 NOTE: The above errors are checked in the order listed, and following
 arguments have B<NOT> been validated.
-',
-'Evaluate the definite integral of a piecewise cubic
-Hermite function over an interval whose endpoints are data
-points.'
+EOF
 );
 
 defslatec('pchip_chbs',
