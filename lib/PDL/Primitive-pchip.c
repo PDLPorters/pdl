@@ -399,8 +399,8 @@ doublereal dpchid(integer n, doublereal *x, doublereal *f, doublereal *d,
       xermsg_("SLATEC", "DPCHID", "NUMBER OF DATA POINTS LESS THAN TWO", *ierr);
       return value;
     }
-    for (i = 2; i <= n; ++i) {
-      if (x[i-1] <= x[i - 2]) {
+    for (i = 1; i < n; ++i) {
+      if (x[i] <= x[i - 1]) {
         *ierr = -3;
         xermsg_("SLATEC", "DPCHID", "X-ARRAY NOT STRICTLY INCREASING", *ierr);
         return value;
@@ -450,8 +450,8 @@ doublereal dpchia(integer n, doublereal *x, doublereal *f, doublereal *d,
       xermsg_("SLATEC", "DPCHIA", "NUMBER OF DATA POINTS LESS THAN TWO", *ierr);
       return value;
     }
-    for (i = 2; i <= n; ++i) {
-      if (x[i-1] <= x[i - 2]) {
+    for (i = 1; i < n; ++i) {
+      if (x[i] <= x[i - 1]) {
         *ierr = -3;
         xermsg_("SLATEC", "DPCHIA", "X-ARRAY NOT STRICTLY INCREASING", *ierr);
         return value;
@@ -487,17 +487,17 @@ doublereal dpchia(integer n, doublereal *x, doublereal *f, doublereal *d,
 /*    ......LOCATE IA AND IB SUCH THAT */
 /*         X(IA-1).LT.XA.LE.X(IA).LE.X(IB).LE.XB.LE.X(IB+1) */
       ia = 0;
-      for (i = 1; i < n; ++i) {
-        if (xa > x[i-1]) {
-          ia = i;
+      for (i = 0; i < n-1; ++i) {
+        if (xa > x[i]) {
+          ia = i + 1;
         }
       }
 /*       IA = 1 IMPLIES XA.LT.X(1) .  OTHERWISE, */
 /*       IA IS LARGEST INDEX SUCH THAT X(IA-1).LT.XA,. */
       ib = n - 1;
-      for (i = n; i > ia; --i) {
-        if (xb < x[i-1]) {
-          ib = i - 2;
+      for (i = n-1; i >= ia; --i) {
+        if (xb < x[i]) {
+          ib = i - 1;
         }
       }
 /*       IB = N IMPLIES XB.GT.X(N) .  OTHERWISE, */
@@ -600,8 +600,8 @@ doublereal dpchia(integer n, doublereal *x, doublereal *f, doublereal *d,
     } \
 /*  EVALUATE DERIVATIVE AT X(K). */ \
     value = s[0]; \
-    for (i = 2; i < k; ++i) { \
-      value = s[i-1] + value * (x[k-1] - x[i-1]); \
+    for (i = 1; i < k-1; ++i) { \
+      value = s[i] + value * (x[k-1] - x[i]); \
     } \
     *ierr = 0; \
     return value; \
@@ -621,8 +621,8 @@ void dpchic(integer *ic, doublereal *vc, doublereal mflag,
     xermsg_("SLATEC", "DPCHIC", "NUMBER OF DATA POINTS LESS THAN TWO", *ierr);
     return;
   }
-  for (i = 2; i <= n; ++i) {
-    if (x[i-1] <= x[i - 2]) {
+  for (i = 1; i < n; ++i) {
+    if (x[i] <= x[i - 1]) {
       *ierr = -3;
       xermsg_("SLATEC", "DPCHIC", "X-ARRAY NOT STRICTLY INCREASING", *ierr);
       return;
@@ -650,10 +650,9 @@ void dpchic(integer *ic, doublereal *vc, doublereal mflag,
     return;
   }
 /*  SET UP H AND SLOPE ARRAYS. */
-  for (i = 1; i <= nless1; ++i) {
-    wk[i-1] = x[i] - x[i-1];
-    wk[nless1 + i - 1] = (f[i] - f[i-1]) /
-         wk[i-1];
+  for (i = 0; i < nless1; ++i) {
+    wk[i] = x[i+1] - x[i];
+    wk[nless1 + i] = (f[i+1] - f[i]) / wk[i];
   }
 /*  SPECIAL CASE N=2 -- USE LINEAR INTERPOLATION. */
   if (nless1 <= 1) {
@@ -692,28 +691,28 @@ void dpchic(integer *ic, doublereal *vc, doublereal mflag,
         }
       }
 /*  LOOP THROUGH INTERIOR POINTS. */
-      for (i = 2; i <= nless1; ++i) {
-        if (i != 2) {
-          hsum = wk[i - 2] + wk[i-1];
+      for (i = 1; i < nless1; ++i) {
+        if (i != 1) {
+          hsum = wk[i - 1] + wk[i];
           del1 = del2;
-          del2 = slope[i-1];
+          del2 = slope[i];
         }
 /*    SET D(I)=0 UNLESS DATA ARE STRICTLY MONOTONIC. */
-        d[i-1] = 0.;
+        d[i] = 0.;
         if (pchst_D(del1, del2) <= 0.) {
           continue;
         }
 /*    USE BRODLIE MODIFICATION OF BUTLAND FORMULA. */
         hsumt3 = hsum + hsum + hsum;
-        w1 = (hsum + wk[i - 2]) / hsumt3;
-        w2 = (hsum + wk[i-1]) / hsumt3;
+        w1 = (hsum + wk[i - 1]) / hsumt3;
+        w2 = (hsum + wk[i]) / hsumt3;
 /* Computing MAX */
         dmax = max(abs(del1),abs(del2));
 /* Computing MIN */
         dmin = min(abs(del1),abs(del2));
         drat1 = del1 / dmax;
         drat2 = del2 / dmax;
-        d[i-1] = dmin / (w1 * drat1 + w2 * drat2);
+        d[i] = dmin / (w1 * drat1 + w2 * drat2);
       }
 /*  SET D(N) VIA NON-CENTERED THREE-POINT FORMULA, ADJUSTED TO BE */
 /*   SHAPE-PRESERVING. */
@@ -742,44 +741,43 @@ void dpchic(integer *ic, doublereal *vc, doublereal mflag,
 /* Local variables */
         integer i, k;
         doublereal del[3], fact, dfmx, *slope = &wk[n-1], *d_local = &d[0];
-        integer indx;
         doublereal dext, dfloc, slmax, wtave[2];
         integer nless1;
 /*  INITIALIZE. */
         nless1 = n - 1;
 /*  LOOP OVER SEGMENTS. */
-        for (i = 2; i <= nless1; ++i) {
-          doublereal dtmp = pchst_D(slope[i - 2], slope[i-1]);
+        for (i = 1; i < nless1; ++i) {
+          doublereal dtmp = pchst_D(slope[i - 1], slope[i]);
           if (dtmp > 0.) {
             continue;
           }
           if (dtmp != 0.) {
 /* ....... SLOPE SWITCHES MONOTONICITY AT I-TH POINT ..................... */
 /*       DO NOT CHANGE D IF 'UP-DOWN-UP'. */
-            if (i > 2) {
-              if (pchst_D(slope[i - 3], slope[i-1]) > 0.) {
+            if (i > 1) {
+              if (pchst_D(slope[i - 2], slope[i]) > 0.) {
                 continue;
               }
 /*           -------------------------- */
             }
-            if (i < nless1) {
-              if (pchst_D(slope[i], slope[i - 2]) > 0.) {
+            if (i < nless1-1) {
+              if (pchst_D(slope[i+1], slope[i - 1]) > 0.) {
                 continue;
               }
 /*           ---------------------------- */
             }
 /*   ....... COMPUTE PROVISIONAL VALUE FOR D(1,I). */
-            dext = wk[i-1] / (wk[i - 2] + wk[i-1]) * slope[i - 2] +
-                wk[i - 2] / (wk[i - 2] + wk[i-1]) * slope[i-1];
+            dext = wk[i] / (wk[i - 1] + wk[i]) * slope[i - 1] +
+                wk[i - 1] / (wk[i - 1] + wk[i]) * slope[i];
 /*   ....... DETERMINE WHICH INTERVAL CONTAINS THE EXTREMUM. */
-            dtmp = pchst_D(dext, slope[i - 2]);
+            dtmp = pchst_D(dext, slope[i - 1]);
             if (dtmp == 0) {
               continue;
             }
             if (dtmp < 0.) {
 /*        DEXT AND SLOPE(I-1) HAVE OPPOSITE SIGNS -- */
 /*            EXTREMUM IS IN (X(I-1),X(I)). */
-              k = i - 1;
+              k = i;
 /*        SET UP TO COMPUTE NEW VALUES FOR D(1,I-1) AND D(1,I). */
               wtave[1] = dext;
               if (k > 1) {
@@ -789,7 +787,7 @@ void dpchic(integer *ic, doublereal *vc, doublereal mflag,
             } else {
 /*        DEXT AND SLOPE(I) HAVE OPPOSITE SIGNS -- */
 /*            EXTREMUM IS IN (X(I),X(I+1)). */
-              k = i;
+              k = i + 1;
 /*        SET UP TO COMPUTE NEW VALUES FOR D(1,I) AND D(1,I+1). */
               wtave[0] = dext;
               if (k < nless1) {
@@ -800,12 +798,12 @@ void dpchic(integer *ic, doublereal *vc, doublereal mflag,
           } else {
 /* ....... AT LEAST ONE OF SLOPE(I-1) AND SLOPE(I) IS ZERO -- */
 /*           CHECK FOR FLAT-TOPPED PEAK ....................... */
-            if (i == nless1 || pchst_D(slope[i - 2], slope[i]) >= 0.) {
+            if (i == nless1-1 || pchst_D(slope[i - 1], slope[i+1]) >= 0.) {
               continue;
             }
 /*        ----------------------------- */
 /*       WE HAVE FLAT-TOPPED PEAK ON (X(I),X(I+1)). */
-            k = i;
+            k = i+1;
 /*       SET UP TO COMPUTE NEW VALUES FOR D(1,I) AND D(1,I+1). */
             wtave[0] = wk[k-1] / (wk[k - 2] + wk[k-1]) * slope[k - 2] + wk[k - 2]
                 / (wk[k - 2] + wk[k-1]) * slope[k-1];
@@ -845,7 +843,7 @@ void dpchic(integer *ic, doublereal *vc, doublereal mflag,
 /*       SPECIAL CASE K=1 (WHICH CAN OCCUR ONLY IF I=2) OR */
 /*            K=NLESS1 (WHICH CAN OCCUR ONLY IF I=NLESS1). */
             fact = fudge * abs(del[1]);
-            d_local[i-1] = min(fact,1.) * wtave[i - k];
+            d_local[i] = min(fact,1.) * wtave[i+1 - k];
 /*        NOTE THAT I-K+1 = 1 IF K=I  (=NLESS1), */
 /*            I-K+1 = 2 IF K=I-1(=1). */
           }
@@ -863,7 +861,7 @@ void dpchic(integer *ic, doublereal *vc, doublereal mflag,
             dfloc = max(dfloc,wk[k] * abs(slope[k]));
           }
           dfmx = mflag * dfloc;
-          indx = i - k + 1;
+          integer indx = i - k;
 /*    INDX = 1 IF K=I, 2 IF K=I-1. */
 /*    --------------------------------------------------------------- */
           do { /* inline dpchsw */
@@ -902,7 +900,7 @@ void dpchic(integer *ic, doublereal *vc, doublereal mflag,
 /* Computing 2nd power */
               phi = that * that * ((3. * rho - 1.) / 3.);
 /*      CONVERT TO DISTANCE FROM F2 IF IEXTRM.NE.1 . */
-              if (indx != 1) {
+              if (indx != 3) {
                 phi -= rho;
               }
 /*      TEST FOR EXCEEDING LIMIT, AND ADJUST ACCORDINGLY. */
@@ -946,7 +944,7 @@ void dpchic(integer *ic, doublereal *vc, doublereal mflag,
               }
               phi = that * ((nu * that - cp) * that + 1.);
 /*      CONVERT TO DISTANCE FROM F2 IF IEXTRM.NE.1 . */
-              if (indx != 1) {
+              if (indx != 3) {
                 phi -= rho;
               }
 /*      TEST FOR EXCEEDING LIMIT, AND ADJUST ACCORDINGLY. */
@@ -979,7 +977,7 @@ void dpchic(integer *ic, doublereal *vc, doublereal mflag,
 /*   ------------------------------------------------------- */
   do { /* inline dpchce */
 /* Local variables */
-    integer j, k, ibeg, iend, ierf, index;
+    integer j, k, ibeg, iend, ierf;
     doublereal stemp[3], xtemp[4], *slope = &wk[n-1];
     ibeg = ic[0];
     iend = ic[1];
@@ -1002,12 +1000,12 @@ void dpchic(integer *ic, doublereal *vc, doublereal mflag,
       } else if (k < 5) {
 /*    USE K-POINT DERIVATIVE FORMULA. */
 /*    PICK UP FIRST K POINTS, IN REVERSE ORDER. */
-        for (j = 1; j <= k; ++j) {
-          index = k - j + 1;
+        for (j = 0; j < k; ++j) {
+          integer index = k - j;
 /*       INDEX RUNS FROM K DOWN TO 1. */
-          xtemp[j - 1] = x[index-1];
-          if (j < k) {
-            stemp[j - 1] = slope[index - 2];
+          xtemp[j] = x[index+1];
+          if (j < k-1) {
+            stemp[j] = slope[index];
           }
         }
 /*         ----------------------------- */
@@ -1054,12 +1052,12 @@ void dpchic(integer *ic, doublereal *vc, doublereal mflag,
     } else if (k < 5) {
 /*    USE K-POINT DERIVATIVE FORMULA. */
 /*    PICK UP LAST K POINTS. */
-      for (j = 1; j <= k; ++j) {
-        index = n - k + j;
+      for (j = 0; j < k; ++j) {
+        integer index = n - k + j;
 /*       INDEX RUNS FROM N+1-K UP TO N. */
-        xtemp[j - 1] = x[index-1];
-        if (j < k) {
-          stemp[j - 1] = slope[index-1];
+        xtemp[j] = x[index];
+        if (j < k-1) {
+          stemp[j] = slope[index];
         }
       }
 /*         ----------------------------- */
@@ -1130,8 +1128,8 @@ void dpchim(integer n, doublereal *x, doublereal *f,
     xermsg_("SLATEC", "DPCHIM", "NUMBER OF DATA POINTS LESS THAN TWO", *ierr);
     return;
   }
-  for (i = 2; i <= n; ++i) {
-    if (x[i-1] <= x[i - 2]) {
+  for (i = 1; i < n; ++i) {
+    if (x[i] <= x[i - 1]) {
       *ierr = -3;
       xermsg_("SLATEC", "DPCHIM", "X-ARRAY NOT STRICTLY INCREASING", *ierr);
       return;
@@ -1167,16 +1165,16 @@ void dpchim(integer n, doublereal *x, doublereal *f,
     }
   }
 /*  LOOP THROUGH INTERIOR POINTS. */
-  for (i = 2; i <= nless1; ++i) {
-    if (i != 2) {
+  for (i = 1; i < nless1; ++i) {
+    if (i != 1) {
       h1 = h2;
-      h2 = x[i] - x[i-1];
+      h2 = x[i+1] - x[i];
       hsum = h1 + h2;
       del1 = del2;
-      del2 = (f[i] - f[i-1]) / h2;
+      del2 = (f[i+1] - f[i]) / h2;
     }
 /*    SET D(I)=0 UNLESS DATA ARE STRICTLY MONOTONIC. */
-    d[i-1] = 0.;
+    d[i] = 0.;
     dtmp = pchst_D(del1, del2);
     if (dtmp <= 0) {
       if (dtmp == 0.) {
@@ -1204,7 +1202,7 @@ void dpchim(integer n, doublereal *x, doublereal *f,
     dmin = min(abs(del1),abs(del2));
     drat1 = del1 / dmax;
     drat2 = del2 / dmax;
-    d[i-1] = dmin / (w1 * drat1 + w2 * drat2);
+    d[i] = dmin / (w1 * drat1 + w2 * drat2);
   }
 /*  SET D(N) VIA NON-CENTERED THREE-POINT FORMULA, ADJUSTED TO BE */
 /*   SHAPE-PRESERVING. */
@@ -1237,7 +1235,7 @@ void dpchsp(integer *ic, doublereal *vc, integer n,
   doublereal dtmp;
 /* Local variables */
   doublereal g;
-  integer j, nm1, ibeg, iend, index;
+  integer j, nm1, ibeg, iend;
   doublereal stemp[3], xtemp[4];
   wk -= 3;
 /*  VALIDITY-CHECK ARGUMENTS. */
@@ -1246,8 +1244,8 @@ void dpchsp(integer *ic, doublereal *vc, integer n,
     xermsg_("SLATEC", "DPCHSP", "NUMBER OF DATA POINTS LESS THAN TWO", *ierr);
     return;
   }
-  for (j = 2; j <= n; ++j) {
-    if (x[j-1] <= x[j - 2]) {
+  for (j = 1; j < n; ++j) {
+    if (x[j] <= x[j - 1]) {
       *ierr = -3;
       xermsg_("SLATEC", "DPCHSP", "X-ARRAY NOT STRICTLY INCREASING", *ierr);
       return;
@@ -1275,10 +1273,9 @@ void dpchsp(integer *ic, doublereal *vc, integer n,
   }
 /*  COMPUTE FIRST DIFFERENCES OF X SEQUENCE AND STORE IN WK(1,.). ALSO, */
 /*  COMPUTE FIRST DIVIDED DIFFERENCE OF DATA AND STORE IN WK(2,.). */
-  for (j = 2; j <= n; ++j) {
-    wk[(j << 1) + 1] = x[j-1] - x[j - 2];
-    wk[(j << 1) + 2] = (f[j-1] - f[j - 2]) /
-        wk[(j << 1) + 1];
+  for (j = 1; j < n; ++j) {
+    wk[(j << 1) + 3] = x[j] - x[j - 1];
+    wk[(j << 1) + 4] = (f[j] - f[j - 1]) / wk[(j << 1) + 3];
   }
 /*  SET TO DEFAULT BOUNDARY CONDITIONS IF N IS TOO SMALL. */
   if (ibeg > n) {
@@ -1292,12 +1289,12 @@ void dpchsp(integer *ic, doublereal *vc, integer n,
     d[0] = vc[0];
   } else if (ibeg > 2) {
 /*    PICK UP FIRST IBEG POINTS, IN REVERSE ORDER. */
-    for (j = 1; j <= ibeg; ++j) {
-      index = ibeg - j + 1;
+    for (j = 0; j < ibeg; ++j) {
+      integer index = ibeg - j;
 /*       INDEX RUNS FROM IBEG DOWN TO 1. */
-      xtemp[j - 1] = x[index-1];
-      if (j < ibeg) {
-        stemp[j - 1] = wk[(index << 1) + 2];
+      xtemp[j] = x[index+1];
+      if (j < ibeg-1) {
+        stemp[j] = wk[(index << 1) + 6];
       }
     }
 /*         -------------------------------- */
@@ -1314,12 +1311,12 @@ void dpchsp(integer *ic, doublereal *vc, integer n,
     d[n-1] = vc[1];
   } else if (iend > 2) {
 /*    PICK UP LAST IEND POINTS. */
-    for (j = 1; j <= iend; ++j) {
-      index = n - iend + j;
+    for (j = 0; j < iend; ++j) {
+      integer index = n - iend + j;
 /*       INDEX RUNS FROM N+1-IEND UP TO N. */
-      xtemp[j - 1] = x[index-1];
-      if (j < iend) {
-        stemp[j - 1] = wk[((index + 1) << 1) + 2];
+      xtemp[j] = x[index];
+      if (j < iend-1) {
+        stemp[j] = wk[((index + 2) << 1) + 2];
       }
     }
 /*         -------------------------------- */
@@ -1368,16 +1365,16 @@ void dpchsp(integer *ic, doublereal *vc, integer n,
 /*  EQUATION READS  WK(2,J)*S(J) + WK(1,J)*S(J+1) = D(1,J). */
   nm1 = n - 1;
   if (nm1 > 1) {
-    for (j = 2; j <= nm1; ++j) {
-      if (wk[((j - 1) << 1) + 2] == 0.) {
+    for (j = 1; j < nm1; ++j) {
+      if (wk[((j) << 1) + 2] == 0.) {
         dpchsp_singular;
       }
-      g = -wk[((j + 1) << 1) + 1] / wk[((j - 1) << 1) + 2];
-      d[j-1] = g * d[j - 2] + 3. *
-          (wk[(j << 1) + 1] * wk[((j + 1) << 1) + 2] +
-          wk[((j + 1) << 1) + 1] * wk[(j << 1) + 2]);
-      wk[(j << 1) + 2] = g * wk[((j - 1) << 1) + 1] + 2. *
-          (wk[(j << 1) + 1] + wk[((j + 1) << 1) + 1]);
+      g = -wk[((j + 2) << 1) + 1] / wk[(j << 1) + 2];
+      d[j] = g * d[j - 1] + 3. *
+          (wk[(j << 1) + 3] * wk[((j + 2) << 1) + 2] +
+          wk[(j << 1) + 5] * wk[(j << 1) + 4]);
+      wk[(j << 1) + 4] = g * wk[(j << 1) + 1] + 2. *
+          (wk[(j << 1) + 3] + wk[((j + 2) << 1) + 1]);
     }
   }
 /*  CONSTRUCT LAST EQUATION FROM SECOND BOUNDARY CONDITION, OF THE FORM */
@@ -1433,11 +1430,11 @@ void dpchsp(integer *ic, doublereal *vc, integer n,
     }
   }
 /*  CARRY OUT BACK SUBSTITUTION */
-  for (j = nm1; j >= 1; --j) {
-    if (wk[(j << 1) + 2] == 0.) {
+  for (j = nm1-1; j >= 0; --j) {
+    if (wk[(j << 1) + 4] == 0.) {
       dpchsp_singular;
     }
-    d[j-1] = (d[j-1] - wk[(j << 1) + 1] * d[j]) / wk[(j << 1) + 2];
+    d[j] = (d[j] - wk[(j << 1) + 3] * d[j+1]) / wk[(j << 1) + 4];
   }
 /* --------------------(  END  CODING FROM CUBSPL )-------------------- */
 }

@@ -5133,15 +5133,15 @@ int mflag;
 /* *** FIND *I* IN (K,N) SUCH THAT T(I) .LE. X .LT. T(I+1) */
 /*   (OR, .LE. T(I+1) IF T(I) .LT. T(I+1) = T(N+1)). */
 do { /* inlined dintrv */
-  PDL_Indx ihi = $inbv() + 1, lxt = $SIZE(n) + 1;
-  if (ihi >= lxt-1) {
-    if ($x() >= $t(nplusk=>lxt-1)) {
-      mflag = 1; i = lxt-1; break;
+  PDL_Indx ihi = $inbv() + 1, lxt = $SIZE(n);
+  if (ihi >= lxt) {
+    if ($x() >= $t(nplusk=>lxt)) {
+      mflag = 1; i = lxt; break;
     }
-    if (lxt <= 1) {
+    if (lxt <= 0) {
       mflag = -1; i = 0; break;
     }
-    ihi = $inbv() = lxt - 1;
+    ihi = $inbv() = lxt;
   }
   char skipflag = 0;
   if ($x() < $t(nplusk=>ihi)) {
@@ -5178,7 +5178,7 @@ do { /* inlined dintrv */
     while (1) {
       $inbv() = ihi;
       ihi = $inbv() + istep;
-      if (ihi >= lxt-1) break;
+      if (ihi >= lxt) break;
       if ($x() < $t(nplusk=>ihi)) {
         skipflag = 1;
         break;
@@ -5186,10 +5186,10 @@ do { /* inlined dintrv */
       istep <<= 1;
     }
     if (!skipflag) {
-      if ($x() >= $t(nplusk=>lxt-1)) {
-        mflag = 1; i = lxt-1; break;
+      if ($x() >= $t(nplusk=>lxt)) {
+        mflag = 1; i = lxt; break;
       }
-      ihi = lxt-1;
+      ihi = lxt;
     }
   }
 /* *** NOW XT(ILO) .LE. X .LT. XT(IHI) . NARROW THE INTERVAL */
