@@ -489,25 +489,27 @@ string.  You shouldn't call this unless you know what you're doing.
 =cut
 
 sub PDL::IO::Dumper::find_PDLs {
-  local($_);
-  my($out)="";
-  my($sp) = shift;
+  my($sp, @items) = @_;
 
-  findpdl:foreach $_(@_) {
-    next findpdl unless ref($_);
+  my $out = "";
 
-    if(UNIVERSAL::isa($_,'ARRAY')) {
+  findpdl:
+  foreach my $item (@items) {
+    next findpdl unless ref($item);
+
+    if(UNIVERSAL::isa($item,'ARRAY')) {
       my($x);
-      foreach $x(@{$_}) {
-	$out .= find_PDLs($sp,$x);
+      foreach $x(@{$item}) {
+        $out .= find_PDLs($sp,$x);
       }
     } 
-    elsif(UNIVERSAL::isa($_,'HASH')) {
+    elsif(UNIVERSAL::isa($item,'HASH')) {
       my($x);
-      foreach $x(values %{$_}) {
-	$out .= find_PDLs($sp,$x)
-	}
-    } elsif(UNIVERSAL::isa($_,'PDL')) {
+      foreach $x(values %{$item}) {
+        $out .= find_PDLs($sp,$x)
+      }
+    }
+    elsif(UNIVERSAL::isa($item,'PDL')) {
 
       # In addition to straight PDLs, 
       # this gets subclasses of PDL, but NOT magic-hash subclasses of
@@ -516,17 +518,17 @@ sub PDL::IO::Dumper::find_PDLs {
       # just a straight PDL (and not a hash with PDL field), you end up here.
       #
 
-      my($pdlid) = sprintf('PDL_%u',$$_);
-      my(@strings) = &PDL::IO::Dumper::dump_PDL($_,$pdlid);
+      my($pdlid) = sprintf('PDL_%u',$$item);
+      my(@strings) = &PDL::IO::Dumper::dump_PDL($item,$pdlid);
       
       $out .= $strings[0];
       $$sp =~ s/\$$pdlid/$strings[1]/g if(defined($strings[1]));  
     }
-    elsif(UNIVERSAL::isa($_,'SCALAR')) {
+    elsif(UNIVERSAL::isa($item,'SCALAR')) {
       # This gets other kinds of refs -- PDLs have already been gotten.
       # Naked PDLs are themselves SCALARs, so the SCALAR case has to come 
       # last to let the PDL case run.
-      $out .= find_PDLs( $sp, ${$_} );
+      $out .= find_PDLs( $sp, ${$item} );
     }
   
   }
