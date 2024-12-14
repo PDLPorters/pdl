@@ -497,7 +497,7 @@ void dpchfe(integer n, doublereal *x, doublereal *f,
   ctype chfie_ ## ppsym(ctype x1, ctype x2, ctype f1, ctype f2, \
       ctype d1, ctype d2, ctype a, ctype b) \
   { \
-  /* Local variables */ \
+/* Local variables */ \
     ctype h, ta1, ta2, tb1, tb2, ua1, ua2, ub1, ub2, phia1, \
         phia2, phib1, phib2, psia1, psia2, psib1, psib2, dterm, fterm; \
     if (x1 == x2) { \
@@ -508,19 +508,19 @@ void dpchfe(integer n, doublereal *x, doublereal *f,
     ta2 = (x2 - a) / h; \
     tb1 = (b - x1) / h; \
     tb2 = (x2 - b) / h; \
-  /* Computing 3rd power */ \
+/* Computing 3rd power */ \
     ua1 = ta1 * (ta1 * ta1); \
     phia1 = ua1 * (2. - ta1); \
     psia1 = ua1 * (3. * ta1 - 4.); \
-  /* Computing 3rd power */ \
+/* Computing 3rd power */ \
     ua2 = ta2 * (ta2 * ta2); \
     phia2 = ua2 * (2. - ta2); \
     psia2 = -ua2 * (3. * ta2 - 4.); \
-  /* Computing 3rd power */ \
+/* Computing 3rd power */ \
     ub1 = tb1 * (tb1 * tb1); \
     phib1 = ub1 * (2. - tb1); \
     psib1 = ub1 * (3. * tb1 - 4.); \
-  /* Computing 3rd power */ \
+/* Computing 3rd power */ \
     ub2 = tb2 * (tb2 * tb2); \
     phib2 = ub2 * (2. - tb2); \
     psib2 = -ub2 * (3. * tb2 - 4.); \
@@ -759,132 +759,6 @@ doublereal dpchdf(integer k, doublereal *x, doublereal *s, integer *ierr)
   return value;
 }
 
-/* ***PURPOSE  Limits excursion from data for DPCHCS */
-/*     DPCHSW:  DPCHCS Switch Excursion Limiter. */
-/*   Called by  DPCHCS  to adjust D1 and D2 if necessary to insure that */
-/*   the extremum on this interval is not further than DFMAX from the */
-/*   extreme data value. */
-/* ---------------------------------------------------------------------- */
-/*  Calling sequence: */
-/*    INTEGER  IEXTRM, IERR */
-/*    DOUBLE PRECISION  DFMAX, D1, D2, H, SLOPE */
-/*    CALL  DPCHSW (DFMAX, IEXTRM, D1, D2, H, SLOPE, IERR) */
-/*   Parameters: */
-/*   DFMAX -- (input) maximum allowed difference between F(IEXTRM) and */
-/*       the cubic determined by derivative values D1,D2.  (assumes */
-/*       DFMAX.GT.0.) */
-/*   IEXTRM -- (input) index of the extreme data value.  (assumes */
-/*       IEXTRM = 1 or 2 .  Any value .NE.1 is treated as 2.) */
-/*   D1,D2 -- (input) derivative values at the ends of the interval. */
-/*       (Assumes D1*D2 .LE. 0.) */
-/*      (output) may be modified if necessary to meet the restriction */
-/*       imposed by DFMAX. */
-/*   H -- (input) interval length.  (Assumes  H.GT.0.) */
-/*   SLOPE -- (input) data slope on the interval. */
-/*   IERR -- (output) error flag.  should be zero. */
-/*       If IERR=-1, assumption on D1 and D2 is not satisfied. */
-/*       If IERR=-2, quadratic equation locating extremum has */
-/*             negative discriminant (should never occur). */
-/*  ------- */
-/*  WARNING:  This routine does no validity-checking of arguments. */
-/*  ------- */
-/*  Fortran intrinsics used:  ABS, SIGN, SQRT. */
-/* ***SEE ALSO  DPCHCS */
-/*  NOTATION AND GENERAL REMARKS. */
-/*   RHO IS THE RATIO OF THE DATA SLOPE TO THE DERIVATIVE BEING TESTED. */
-/*   LAMBDA IS THE RATIO OF D2 TO D1. */
-/*   THAT = T-HAT(RHO) IS THE NORMALIZED LOCATION OF THE EXTREMUM. */
-/*   PHI IS THE NORMALIZED VALUE OF P(X)-F1 AT X = XHAT = X-HAT(RHO), */
-/*       WHERE  THAT = (XHAT - X1)/H . */
-/*    THAT IS, P(XHAT)-F1 = D*H*PHI,  WHERE D=D1 OR D2. */
-/*   SIMILARLY,  P(XHAT)-F2 = D*H*(PHI-RHO) . */
-integer dpchsw(doublereal dfmax, integer iextrm, doublereal d1,
-    doublereal d2, doublereal h, doublereal slope)
-{
-/* Local variables */
-  doublereal cp, nu, phi, rho, hphi, that, sigma, small;
-  doublereal lambda, radcal;
-/* Initialized data */
-  static const doublereal fact = 100.;
-/*    THIRD SHOULD BE SLIGHTLY LESS THAN 1/3. */
-  static const doublereal third = .33333;
-/*    SMALL SHOULD BE A FEW ORDERS OF MAGNITUDE GREATER THAN MACHEPS. */
-  small = fact * d1mach();
-/*  DO MAIN CALCULATION. */
-  if (d1 == 0.) {
-/*    SPECIAL CASE -- D1.EQ.ZERO . */
-/*      IF D2 IS ALSO ZERO, THIS ROUTINE SHOULD NOT HAVE BEEN CALLED. */
-    if (d2 == 0.) {
-      xermsg_("SLATEC", "DPCHSW", "D1 AND/OR D2 INVALID", (long)-1);
-      return -1;
-    }
-    rho = slope / d2;
-/*      EXTREMUM IS OUTSIDE INTERVAL WHEN RHO .GE. 1/3 . */
-    if (rho >= third) {
-      return 0;
-    }
-    that = 2. * (3. * rho - 1.) / (3. * (2. * rho - 1.));
-/* Computing 2nd power */
-    phi = that * that * ((3. * rho - 1.) / 3.);
-/*      CONVERT TO DISTANCE FROM F2 IF IEXTRM.NE.1 . */
-    if (iextrm != 1) {
-      phi -= rho;
-    }
-/*      TEST FOR EXCEEDING LIMIT, AND ADJUST ACCORDINGLY. */
-    hphi = h * abs(phi);
-    if (hphi * abs(d2) > dfmax) {
-/*       AT THIS POINT, HPHI.GT.0, SO DIVIDE IS OK. */
-      d2 = d_sign(dfmax / hphi, d2);
-    }
-  } else {
-    rho = slope / d1;
-    lambda = -(d2) / d1;
-    if (d2 == 0.) {
-/*       SPECIAL CASE -- D2.EQ.ZERO . */
-/*       EXTREMUM IS OUTSIDE INTERVAL WHEN RHO .GE. 1/3 . */
-      if (rho >= third) {
-        return 0;
-      }
-      cp = 2. - 3. * rho;
-      nu = 1. - 2. * rho;
-      that = 1. / (3. * nu);
-    } else {
-      if (lambda <= 0.) {
-        xermsg_("SLATEC", "DPCHSW", "D1 AND/OR D2 INVALID", (long)-1);
-        return -1;
-      }
-/*       NORMAL CASE -- D1 AND D2 BOTH NONZERO, OPPOSITE SIGNS. */
-      nu = 1. - lambda - 2. * rho;
-      sigma = 1. - rho;
-      cp = nu + sigma;
-      if (abs(nu) > small) {
-/* Computing 2nd power */
-        radcal = (nu - (2. * rho + 1.)) * nu + sigma * sigma;
-        if (radcal < 0.) {
-          xermsg_("SLATEC", "DPCHSW", "NEGATIVE RADICAL", (long)-2);
-          return -2;
-        }
-        that = (cp - sqrt(radcal)) / (3. * nu);
-      } else {
-        that = 1. / (2. * sigma);
-      }
-    }
-    phi = that * ((nu * that - cp) * that + 1.);
-/*      CONVERT TO DISTANCE FROM F2 IF IEXTRM.NE.1 . */
-    if (iextrm != 1) {
-      phi -= rho;
-    }
-/*      TEST FOR EXCEEDING LIMIT, AND ADJUST ACCORDINGLY. */
-    hphi = h * abs(phi);
-    if (hphi * abs(d1) > dfmax) {
-/*       AT THIS POINT, HPHI.GT.0, SO DIVIDE IS OK. */
-      d1 = d_sign(dfmax / hphi, d1);
-      d2 = -lambda * d1;
-    }
-  }
-  return 0;
-}
-
 /* ***PURPOSE  Adjusts derivative values for DPCHIC */
 /*     DPCHCS:  DPCHIC Monotonicity Switch Derivative Setter. */
 /*   Called by  DPCHIC  to adjust the values of D in the vicinity of a */
@@ -1054,8 +928,99 @@ integer dpchcs(doublereal mflag, integer n, doublereal *h,
     indx = i - k + 1;
 /*    INDX = 1 IF K=I, 2 IF K=I-1. */
 /*    --------------------------------------------------------------- */
-    ierr = dpchsw(dfmx, indx, d[k-1], d[k],
-        h[k-1], slope[k-1]);
+    do { /* inline dpchsw */
+/*  NOTATION AND GENERAL REMARKS. */
+/*   RHO IS THE RATIO OF THE DATA SLOPE TO THE DERIVATIVE BEING TESTED. */
+/*   LAMBDA IS THE RATIO OF D2 TO D1. */
+/*   THAT = T-HAT(RHO) IS THE NORMALIZED LOCATION OF THE EXTREMUM. */
+/*   PHI IS THE NORMALIZED VALUE OF P(X)-F1 AT X = XHAT = X-HAT(RHO), */
+/*       WHERE  THAT = (XHAT - X1)/H . */
+/*    THAT IS, P(XHAT)-F1 = D*H*PHI,  WHERE D=D1 OR D2. */
+/*   SIMILARLY,  P(XHAT)-F2 = D*H*(PHI-RHO) . */
+/* Local variables */
+      doublereal cp, nu, phi, rho, hphi, that, sigma, small;
+      doublereal lambda, radcal;
+    doublereal d1 = d[k-1], d2 = d[k], h2 = h[k-1], slope2 = slope[k-1];
+/* Initialized data */
+      static const doublereal fact = 100.;
+/*    THIRD SHOULD BE SLIGHTLY LESS THAN 1/3. */
+      static const doublereal third = .33333;
+/*    SMALL SHOULD BE A FEW ORDERS OF MAGNITUDE GREATER THAN MACHEPS. */
+      small = fact * d1mach();
+/*  DO MAIN CALCULATION. */
+      if (d1 == 0.) {
+/*    SPECIAL CASE -- D1.EQ.ZERO . */
+/*      IF D2 IS ALSO ZERO, THIS ROUTINE SHOULD NOT HAVE BEEN CALLED. */
+        if (d2 == 0.) {
+          xermsg_("SLATEC", "DPCHSW", "D1 AND/OR D2 INVALID", (long)-1);
+          ierr = -1; break;
+        }
+        rho = slope2 / d2;
+/*      EXTREMUM IS OUTSIDE INTERVAL WHEN RHO .GE. 1/3 . */
+        if (rho >= third) {
+          ierr = 0; break;
+        }
+        that = 2. * (3. * rho - 1.) / (3. * (2. * rho - 1.));
+/* Computing 2nd power */
+        phi = that * that * ((3. * rho - 1.) / 3.);
+/*      CONVERT TO DISTANCE FROM F2 IF IEXTRM.NE.1 . */
+        if (indx != 1) {
+          phi -= rho;
+        }
+/*      TEST FOR EXCEEDING LIMIT, AND ADJUST ACCORDINGLY. */
+        hphi = h2 * abs(phi);
+        if (hphi * abs(d2) > dfmx) {
+/*       AT THIS POINT, HPHI.GT.0, SO DIVIDE IS OK. */
+          d2 = d_sign(dfmx / hphi, d2);
+        }
+      } else {
+        rho = slope2 / d1;
+        lambda = -(d2) / d1;
+        if (d2 == 0.) {
+/*       SPECIAL CASE -- D2.EQ.ZERO . */
+/*       EXTREMUM IS OUTSIDE INTERVAL WHEN RHO .GE. 1/3 . */
+          if (rho >= third) {
+            ierr = 0; break;
+          }
+          cp = 2. - 3. * rho;
+          nu = 1. - 2. * rho;
+          that = 1. / (3. * nu);
+        } else {
+          if (lambda <= 0.) {
+            xermsg_("SLATEC", "DPCHSW", "D1 AND/OR D2 INVALID", (long)-1);
+            ierr = -1; break;
+          }
+/*       NORMAL CASE -- D1 AND D2 BOTH NONZERO, OPPOSITE SIGNS. */
+          nu = 1. - lambda - 2. * rho;
+          sigma = 1. - rho;
+          cp = nu + sigma;
+          if (abs(nu) > small) {
+/* Computing 2nd power */
+            radcal = (nu - (2. * rho + 1.)) * nu + sigma * sigma;
+            if (radcal < 0.) {
+              xermsg_("SLATEC", "DPCHSW", "NEGATIVE RADICAL", (long)-2);
+              ierr = -2; break;
+            }
+            that = (cp - sqrt(radcal)) / (3. * nu);
+          } else {
+            that = 1. / (2. * sigma);
+          }
+        }
+        phi = that * ((nu * that - cp) * that + 1.);
+/*      CONVERT TO DISTANCE FROM F2 IF IEXTRM.NE.1 . */
+        if (indx != 1) {
+          phi -= rho;
+        }
+/*      TEST FOR EXCEEDING LIMIT, AND ADJUST ACCORDINGLY. */
+        hphi = h2 * abs(phi);
+        if (hphi * abs(d1) > dfmx) {
+/*       AT THIS POINT, HPHI.GT.0, SO DIVIDE IS OK. */
+          d1 = d_sign(dfmx / hphi, d1);
+          d2 = -lambda * d1;
+        }
+      }
+      ierr = 0;
+    } while (0); /* end inline dpchsw */
 /*    --------------------------------------------------------------- */
     if (ierr != 0) {
       return ierr;
