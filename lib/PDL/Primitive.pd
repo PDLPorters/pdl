@@ -5114,19 +5114,162 @@ splines," Computer Aided Geometric Design 6 (1989), pp.79-82.
 'Piecewise Cubic Hermite function to B-Spline converter.'
 );
 
-defslatec('pchip_bvalu',
-	  {D => 'dbvalu'},
-	  'Mat          t       (nplusk);
-           Mat          a       (n);
-           IntVal       n=$SIZE(n);
-           IntVal       k=$SIZE(nplusk)-$SIZE(n);
-           IntScalar    ideriv  ();
-           MatScalar    x       ();
-           IntVal       inbv=0;
-           Mat     [t]  work    (k3=CALC(3*($SIZE(nplusk)-$SIZE(n))));
-           FuncRet [o]  ans     ();
-          ',
-'Evaluates the B-representation C<(T,A,N,K)> of a B-spline
+pp_def('pchip_bvalu',
+  Pars => 't(nplusk); a(n); indx ideriv(); x();
+    [o]ans(); indx [o] inbv();
+    [t] work(k3=CALC(3*($SIZE(nplusk)-$SIZE(n))));',
+  GenericTypes => $F,
+  RedoDimsCode => <<'EOF',
+PDL_Indx k = $SIZE(nplusk) - $SIZE(n);
+if (k < 1)        $CROAK("K DOES NOT SATISFY K.GE.1");
+if ($SIZE(n) < k) $CROAK("N DOES NOT SATISFY N.GE.K");
+EOF
+  Code => pp_line_numbers(__LINE__, <<'EOF'),
+PDL_Indx k = $SIZE(nplusk) - $SIZE(n);
+if ($ideriv() < 0 || $ideriv() >= k)
+  $CROAK("IDERIV DOES NOT SATISFY 0.LE.IDERIV.LT.K");
+PDL_Indx i;
+int mflag;
+/* *** FIND *I* IN (K,N) SUCH THAT T(I) .LE. X .LT. T(I+1) */
+/*   (OR, .LE. T(I+1) IF T(I) .LT. T(I+1) = T(N+1)). */
+do { /* inlined dintrv */
+  PDL_Indx ihi = $inbv() + 1, lxt = $SIZE(n) + 1;
+  if (ihi >= lxt-1) {
+    if ($x() >= $t(nplusk=>lxt-1)) {
+      mflag = 1; i = lxt-1; break;
+    }
+    if (lxt <= 1) {
+      mflag = -1; i = 0; break;
+    }
+    ihi = $inbv() = lxt - 1;
+  }
+  char skipflag = 0;
+  if ($x() < $t(nplusk=>ihi)) {
+    PDL_Indx inbv = $inbv();
+    if ($x() >= $t(nplusk=>inbv)) {
+      mflag = 0; i = $inbv(); break;
+    }
+/* *** NOW X .LT. XT(IHI) . FIND LOWER BOUND */
+    PDL_Indx istep = 1;
+    while (1) {
+      ihi = $inbv();
+      $inbv() = ihi - istep;
+      if ($inbv() <= 0) {
+        break;
+      }
+      PDL_Indx inbv = $inbv();
+      if ($x() >= $t(nplusk=>inbv)) {
+        skipflag = 1;
+        break;
+      }
+      istep <<= 1;
+    }
+    if (!skipflag) {
+      $inbv() = 0;
+      if ($x() < $t(nplusk=>0)) {
+        mflag = -1; i = 0; break;
+      }
+    }
+    skipflag = 1;
+/* *** NOW X .GE. XT(ILO) . FIND UPPER BOUND */
+  }
+  if (!skipflag) {
+    PDL_Indx istep = 1;
+    while (1) {
+      $inbv() = ihi;
+      ihi = $inbv() + istep;
+      if (ihi >= lxt-1) break;
+      if ($x() < $t(nplusk=>ihi)) {
+        skipflag = 1;
+        break;
+      }
+      istep <<= 1;
+    }
+    if (!skipflag) {
+      if ($x() >= $t(nplusk=>lxt-1)) {
+        mflag = 1; i = lxt-1; break;
+      }
+      ihi = lxt-1;
+    }
+  }
+/* *** NOW XT(ILO) .LE. X .LT. XT(IHI) . NARROW THE INTERVAL */
+  while (1) {
+    PDL_Indx middle = ($inbv() + ihi) / 2;
+    if (middle == $inbv()) {
+      mflag = 0; i = $inbv(); break;
+    }
+/*   NOTE. IT IS ASSUMED THAT MIDDLE = ILO IN CASE IHI = ILO+1 */
+    if ($x() < $t(nplusk=>middle))
+      ihi = middle;
+    else
+      $inbv() = middle;
+  }
+} while (0); /* end dintrv inlined */
+if ($x() < $t(nplusk=>k-1)) {
+  $CROAK("X IS N0T GREATER THAN OR EQUAL TO T(K)");
+}
+if (mflag != 0) {
+  if ($x() > $t(nplusk=>i)) {
+    $CROAK("X IS NOT LESS THAN OR EQUAL TO T(N+1)");
+  }
+  while (1) {
+    if (i == k-1) {
+      $CROAK("A LEFT LIMITING VALUE CANNOT BE OBTAINED AT T(K)");
+    }
+    --i;
+    if ($x() != $t(nplusk=>i)) {
+      break;
+    }
+  }
+/* *** DIFFERENCE THE COEFFICIENTS *IDERIV* TIMES */
+/*   WORK(I) = AJ(I), WORK(K+I) = DP(I), WORK(K+K+I) = DM(I), I=1.K */
+}
+PDL_Indx imk = i+1 - k, j;
+loop (k3=:k) %{
+  $work() = $a(n=>imk+k3);
+%}
+if ($ideriv() != 0) {
+  for (j = 0; j < $ideriv(); ++j) {
+    PDL_Indx kmj = k - j - 1;
+    $GENERIC() fkmj = kmj;
+    loop (k3=0:kmj) %{
+      PDL_Indx ihi = i+1 + k3;
+      $work() = ($work(k3=>k3+1) - $work()) / ($t(nplusk=>ihi) - $t(nplusk=>ihi-kmj)) * fkmj;
+    %}
+  }
+/* *** COMPUTE VALUE AT *X* IN (T(I),T(I+1)) OF IDERIV-TH DERIVATIVE, */
+/*   GIVEN ITS RELEVANT B-SPLINE COEFF. IN AJ(1),...,AJ(K-IDERIV). */
+}
+PDL_Indx km1 = k - 1;
+if ($ideriv() != km1) {
+  PDL_Indx j, j1 = k, kpk = k + k, j2 = kpk, kmider = k - $ideriv();
+  for (j = 0; j < kmider; ++j) {
+    PDL_Indx ipj = i + j + 1;
+    $work(k3=>j1) = $t(nplusk=>ipj) - $x();
+    $work(k3=>j2) = $x() - $t(nplusk=>i-j);
+    ++j1;
+    ++j2;
+  }
+  for (j = $ideriv(); j < km1; ++j) {
+    PDL_Indx kmj = k - j - 1, ilo = kpk + kmj - 1;
+    loop (k3=0:kmj) %{
+      $work() = ($work(k3=>k3+1) * $work(k3=>ilo) + $work() *
+          $work(k3=>k+k3)) / ($work(k3=>ilo) + $work(k3=>k+k3));
+      --ilo;
+    %}
+  }
+}
+$ans() = $work(k3=>0);
+EOF
+  Doc => <<'EOF',
+=for ref
+
+Evaluate the B-representation of a B-spline at X for the
+function value or any of its derivatives.
+
+=for usage
+
+Evaluates the B-representation C<(T,A,N,K)> of a B-spline
 at C<X> for the function value on C<IDERIV = 0> or any of its
 derivatives on C<IDERIV = 1,2,...,K-1>.  Right limiting values
 (right derivatives) are returned except at the right end
@@ -5158,7 +5301,7 @@ knot C<T(I)>, replace C<N> by C<I-1> and set C<X=T(I)>, C<I=K+1,N+1>.
      INBV    - INBV contains information for efficient process-
                ing after the initial call and INBV must not
                be changed by the user.  Distinct splines require
-               distinct INBV parameters. (unavailable in PDL)
+               distinct INBV parameters.
      WORK    - work vector of length 3*K.
      BVALU   - value of the IDERIV-th derivative at X
 
@@ -5168,10 +5311,7 @@ An improper input is a fatal error
 
 References: Carl de Boor, Package for calculating with B-splines,
 SIAM Journal on Numerical Analysis 14, 3 (June 1977), pp. 441-472.
-',
-'Evaluate the B-representation of a B-spline at X for the
-function value or any of its derivatives.
-'
+EOF
 );
 
 pp_addpm({At=>'Bot'},<<'EOD');
