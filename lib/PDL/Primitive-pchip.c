@@ -736,31 +736,34 @@ doublereal dpchia(integer n, doublereal *x, doublereal *f, doublereal *d,
 /* ***REFERENCES  Carl de Boor, A Practical Guide to Splines, Springer- */
 /*         Verlag, New York, 1978, pp. 10-16. */
 /*  CHECK FOR LEGAL VALUE OF K. */
-doublereal dpchdf(integer k, doublereal *x, doublereal *s, integer *ierr)
-{
-/* Local variables */
-  integer i, j;
-  doublereal value;
-  if (k < 3) {
-    *ierr = -1;
-    xermsg_("SLATEC", "DPCHDF", "K LESS THAN THREE", *ierr);
-    return 0.;
+#define X(ctype, ppsym) \
+  static inline ctype pchdf_ ## ppsym(integer k, ctype *x, ctype *s, integer *ierr) \
+  { \
+  /* Local variables */ \
+    integer i, j; \
+    ctype value; \
+    if (k < 3) { \
+      *ierr = -1; \
+      xermsg_("SLATEC", "DPCHDF", "K LESS THAN THREE", *ierr); \
+      return 0.; \
+    } \
+  /*  COMPUTE COEFFICIENTS OF INTERPOLATING POLYNOMIAL. */ \
+    for (j = 2; j < k; ++j) { \
+      integer itmp = k - j; \
+      for (i = 0; i < itmp; ++i) { \
+        s[i] = (s[i+1] - s[i]) / (x[i + j] - x[i]); \
+      } \
+    } \
+  /*  EVALUATE DERIVATIVE AT X(K). */ \
+    value = s[0]; \
+    for (i = 2; i < k; ++i) { \
+      value = s[i-1] + value * (x[k-1] - x[i-1]); \
+    } \
+    *ierr = 0; \
+    return value; \
   }
-/*  COMPUTE COEFFICIENTS OF INTERPOLATING POLYNOMIAL. */
-  for (j = 2; j < k; ++j) {
-    integer itmp = k - j;
-    for (i = 0; i < itmp; ++i) {
-      s[i] = (s[i+1] - s[i]) / (x[i + j] - x[i]);
-    }
-  }
-/*  EVALUATE DERIVATIVE AT X(K). */
-  value = s[0];
-  for (i = 2; i < k; ++i) {
-    value = s[i-1] + value * (x[k-1] - x[i-1]);
-  }
-  *ierr = 0;
-  return value;
-}
+X(doublereal, D)
+#undef X
 
 /* ***PURPOSE  Adjusts derivative values for DPCHIC */
 /*     DPCHCS:  DPCHIC Monotonicity Switch Derivative Setter. */
@@ -1202,7 +1205,7 @@ void dpchic(integer *ic, doublereal *vc, doublereal mflag,
           }
         }
 /*         ----------------------------- */
-        d[0] = dpchdf(k, xtemp, stemp, &ierf);
+        d[0] = pchdf_D(k, xtemp, stemp, &ierf);
 /*         ----------------------------- */
         if (ierf != 0) {
           *ierr = -1;
@@ -1254,7 +1257,7 @@ void dpchic(integer *ic, doublereal *vc, doublereal mflag,
         }
       }
 /*         ----------------------------- */
-      d[n-1] = dpchdf(k, xtemp, stemp, &ierf);
+      d[n-1] = pchdf_D(k, xtemp, stemp, &ierf);
 /*         ----------------------------- */
       if (ierf != 0) {
 /*   *** THIS CASE SHOULD NEVER OCCUR *** */
@@ -1492,7 +1495,7 @@ void dpchsp(integer *ic, doublereal *vc, integer n,
       }
     }
 /*         -------------------------------- */
-    d[0] = dpchdf(ibeg, xtemp, stemp, ierr);
+    d[0] = pchdf_D(ibeg, xtemp, stemp, ierr);
 /*         -------------------------------- */
     if (*ierr != 0) {
       *ierr = -9;
@@ -1514,7 +1517,7 @@ void dpchsp(integer *ic, doublereal *vc, integer n,
       }
     }
 /*         -------------------------------- */
-    d[n-1] = dpchdf(iend, xtemp, stemp, ierr);
+    d[n-1] = pchdf_D(iend, xtemp, stemp, ierr);
 /*         -------------------------------- */
     if (*ierr != 0) {
       *ierr = -9;
