@@ -72,7 +72,7 @@ ok eval { ($x->[0]->gethdr()->{ok}==1) && ($x->[1]->gethdr()->{ok}==2) }, 'Check
 
     my $restored = eval $as_string;
 
-    diag $as_string;
+    # diag $as_string;
 
     my @nulls = grep {!defined $restored->{$_}} sort keys %$restored;
     is_deeply \@nulls, [], 'none of the restored items are undef';

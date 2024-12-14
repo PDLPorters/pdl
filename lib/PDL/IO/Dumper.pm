@@ -491,7 +491,30 @@ string.  You shouldn't call this unless you know what you're doing.
 sub PDL::IO::Dumper::find_PDLs {
   my($sp, @items) = @_;
 
-  my $out = "";
+  my $out_aref = _find_PDLs_inner($sp, @items);
+
+  #  deduplicate
+  my (@uniq, %seen);
+  LINE:
+  foreach my $line (@$out_aref) {
+    if ($line =~ /^my\(\$PDL_(\d+)\)/) {
+      my $id = $1;
+      next LINE if $seen{$id};
+      $seen{$id}++;
+    }
+    push @uniq, $line;
+  }
+
+  my $out = join "\n", @uniq;
+  $out .= "\n";
+
+  return $out;
+}
+
+sub _find_PDLs_inner {
+  my($sp, @items) = @_;
+
+  my @out;
 
   findpdl:
   foreach my $item (@items) {
@@ -500,18 +523,20 @@ sub PDL::IO::Dumper::find_PDLs {
     if(UNIVERSAL::isa($item,'ARRAY')) {
       my($x);
       foreach $x(@{$item}) {
-        $out .= find_PDLs($sp,$x);
+        my $res = _find_PDLs_inner($sp,$x);
+        push @out, @$res;
       }
-    } 
+    }
     elsif(UNIVERSAL::isa($item,'HASH')) {
       my($x);
-      foreach $x(values %{$item}) {
-        $out .= find_PDLs($sp,$x)
+      foreach $x (values %{$item}) {
+        my $res = _find_PDLs_inner($sp,$x);
+        push @out, @$res;
       }
     }
     elsif(UNIVERSAL::isa($item,'PDL')) {
 
-      # In addition to straight PDLs, 
+      # In addition to straight PDLs,
       # this gets subclasses of PDL, but NOT magic-hash subclasses of
       # PDL (because they'd be gotten by the previous clause).
       # So if you subclass PDL but your actual data structure is still
@@ -520,25 +545,21 @@ sub PDL::IO::Dumper::find_PDLs {
 
       my($pdlid) = sprintf('PDL_%u',$$item);
       my(@strings) = &PDL::IO::Dumper::dump_PDL($item,$pdlid);
-      
-      $out .= $strings[0];
-      $$sp =~ s/\$$pdlid/$strings[1]/g if(defined($strings[1]));  
+
+      push @out, $strings[0];
+      $$sp =~ s/\$$pdlid/$strings[1]/g if(defined($strings[1]));
     }
     elsif(UNIVERSAL::isa($item,'SCALAR')) {
       # This gets other kinds of refs -- PDLs have already been gotten.
-      # Naked PDLs are themselves SCALARs, so the SCALAR case has to come 
+      # Naked PDLs are themselves SCALARs, so the SCALAR case has to come
       # last to let the PDL case run.
-      $out .= find_PDLs( $sp, ${$item} );
+      my $res = _find_PDLs_inner( $sp, ${$item} );
+      push @out, @$res;
     }
-  
+
   }
 
-  #  deduplicate
-  # my %seen;
-  # $out = join "\n", grep {!$seen{$_}++} split ("\n", $out);
-  # $out .= "\n";
-
-  return $out;
+  return \@out;
 }
 
 =head1 AUTHOR
