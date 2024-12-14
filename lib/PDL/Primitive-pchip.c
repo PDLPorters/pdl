@@ -493,40 +493,43 @@ void dpchfe(integer n, doublereal *x, doublereal *f,
 /*  Programming notes: */
 /*  1. There is no error return from this routine because zero is */
 /*   indeed the mathematically correct answer when X1.EQ.X2 . */
-doublereal dchfie(doublereal x1, doublereal x2, doublereal f1, doublereal f2,
-    doublereal d1, doublereal d2, doublereal a, doublereal b)
-{
-/* Local variables */
-  doublereal h, ta1, ta2, tb1, tb2, ua1, ua2, ub1, ub2, phia1,
-      phia2, phib1, phib2, psia1, psia2, psib1, psib2, dterm, fterm;
-  if (x1 == x2) {
-    return 0.;
+#define X(ctype, ppsym) \
+  ctype chfie_ ## ppsym(ctype x1, ctype x2, ctype f1, ctype f2, \
+      ctype d1, ctype d2, ctype a, ctype b) \
+  { \
+  /* Local variables */ \
+    ctype h, ta1, ta2, tb1, tb2, ua1, ua2, ub1, ub2, phia1, \
+        phia2, phib1, phib2, psia1, psia2, psib1, psib2, dterm, fterm; \
+    if (x1 == x2) { \
+      return 0.; \
+    } \
+    h = x2 - x1; \
+    ta1 = (a - x1) / h; \
+    ta2 = (x2 - a) / h; \
+    tb1 = (b - x1) / h; \
+    tb2 = (x2 - b) / h; \
+  /* Computing 3rd power */ \
+    ua1 = ta1 * (ta1 * ta1); \
+    phia1 = ua1 * (2. - ta1); \
+    psia1 = ua1 * (3. * ta1 - 4.); \
+  /* Computing 3rd power */ \
+    ua2 = ta2 * (ta2 * ta2); \
+    phia2 = ua2 * (2. - ta2); \
+    psia2 = -ua2 * (3. * ta2 - 4.); \
+  /* Computing 3rd power */ \
+    ub1 = tb1 * (tb1 * tb1); \
+    phib1 = ub1 * (2. - tb1); \
+    psib1 = ub1 * (3. * tb1 - 4.); \
+  /* Computing 3rd power */ \
+    ub2 = tb2 * (tb2 * tb2); \
+    phib2 = ub2 * (2. - tb2); \
+    psib2 = -ub2 * (3. * tb2 - 4.); \
+    fterm = f1 * (phia2 - phib2) + f2 * (phib1 - phia1); \
+    dterm = (d1 * (psia2 - psib2) + d2 * (psib1 - psia1)) * (h / 6.); \
+    return 0.5 * h * (fterm + dterm); \
   }
-  h = x2 - x1;
-  ta1 = (a - x1) / h;
-  ta2 = (x2 - a) / h;
-  tb1 = (b - x1) / h;
-  tb2 = (x2 - b) / h;
-/* Computing 3rd power */
-  ua1 = ta1 * (ta1 * ta1);
-  phia1 = ua1 * (2. - ta1);
-  psia1 = ua1 * (3. * ta1 - 4.);
-/* Computing 3rd power */
-  ua2 = ta2 * (ta2 * ta2);
-  phia2 = ua2 * (2. - ta2);
-  psia2 = -ua2 * (3. * ta2 - 4.);
-/* Computing 3rd power */
-  ub1 = tb1 * (tb1 * tb1);
-  phib1 = ub1 * (2. - tb1);
-  psib1 = ub1 * (3. * tb1 - 4.);
-/* Computing 3rd power */
-  ub2 = tb2 * (tb2 * tb2);
-  phib2 = ub2 * (2. - tb2);
-  psib2 = -ub2 * (3. * tb2 - 4.);
-  fterm = f1 * (phia2 - phib2) + f2 * (phib1 - phia1);
-  dterm = (d1 * (psia2 - psib2) + d2 * (psib1 - psia1)) * (h / 6.);
-  return 0.5 * h * (fterm + dterm);
-}
+X(doublereal, D)
+#undef X
 
 /*  Programming notes: */
 /*  1. This routine uses a special formula that is valid only for */
@@ -624,13 +627,13 @@ doublereal dpchia(integer n, doublereal *x, doublereal *f, doublereal *d,
     if (xb <= x[1]) {
 /*       INTERVAL IS TO LEFT OF X(2), SO USE FIRST CUBIC. */
 /*           --------------------------------------- */
-      value = dchfie(x[0], x[1], f[0], f[1],
+      value = chfie_D(x[0], x[1], f[0], f[1],
           d[0], d[1], a, b);
 /*           --------------------------------------- */
     } else if (xa >= x[n - 2]) {
 /*       INTERVAL IS TO RIGHT OF X(N-1), SO USE LAST CUBIC. */
 /*           ------------------------------------------ */
-      value = dchfie(x[n - 2], x[n-1], f[n - 2], f[n-1], d[n-2], d[n-1], a, b);
+      value = chfie_D(x[n - 2], x[n-1], f[n - 2], f[n-1], d[n-2], d[n-1], a, b);
 /*           ------------------------------------------ */
     } else {
 /*       'NORMAL' CASE -- XA.LT.XB, XA.LT.X(N-1), XB.GT.X(2). */
@@ -657,7 +660,7 @@ doublereal dpchia(integer n, doublereal *x, doublereal *f, doublereal *d,
 /*        THIS MEANS IB = IA-1 AND */
 /*         (A,B) IS A SUBSET OF (X(IB),X(IA)). */
 /*            ------------------------------------------- */
-        value = dchfie(x[ib], x[ia], f[ib],
+        value = chfie_D(x[ib], x[ia], f[ib],
             f[ia], d[ib], d[ia],
             a, b);
 /*            ------------------------------------------- */
@@ -682,7 +685,7 @@ doublereal dpchia(integer n, doublereal *x, doublereal *f, doublereal *d,
           il = max(0,ia - 1);
           ir = il + 1;
 /*                 ------------------------------------- */
-          value += dchfie(x[il], x[ir], f[il], f[ir], d[il], d[ir], xa, x[ia]);
+          value += chfie_D(x[il], x[ir], f[il], f[ir], d[il], d[ir], xa, x[ia]);
 /*                 ------------------------------------- */
         }
 /*        THEN ADD ON INTEGRAL OVER (X(IB),XB). */
@@ -691,7 +694,7 @@ doublereal dpchia(integer n, doublereal *x, doublereal *f, doublereal *d,
           ir = min(ib + 1,n-1);
           il = ir - 1;
 /*                 ------------------------------------- */
-          value += dchfie(x[il], x[ir], f[il], f[ir], d[il], d[ir], x[ib], xb);
+          value += chfie_D(x[il], x[ir], f[il], f[ir], d[il], d[ir], x[ib], xb);
 /*                 ------------------------------------- */
         }
 /*        FINALLY, ADJUST SIGN IF NECESSARY. */
