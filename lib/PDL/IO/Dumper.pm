@@ -491,14 +491,15 @@ string.  You shouldn't call this unless you know what you're doing.
 sub PDL::IO::Dumper::find_PDLs {
   my($sp, @items) = @_;
 
-  my %seen;
-  my $out_aref = _find_PDLs_inner(dumped_string => $sp, items => \@items, seen => \%seen);
 
-  #  deduplicate
+  my $out_aref = _find_PDLs_inner(dumped_string => $sp, items => \@items);
+
+  #  deduplicate - should not be needed now but retained just in case.
   my @uniq;
+  my %seen;
   LINE:
   foreach my $line (@$out_aref) {
-    if ($line =~ /^my\(\$PDL_(\d+)\)/) {
+    if ($line =~ /^my\(\$(PDL_\d+)\)/) {
       my $id = $1;
       next LINE if $seen{$id};
       $seen{$id}++;
@@ -517,7 +518,7 @@ sub _find_PDLs_inner {
   my $sp    = $args{dumped_string};
   #  internal sub so legitimate uses will pass an array
   my @items = @{$args{items}};
-  my $seen  = $args{seen};
+  my $seen  = $args{seen} //= {};
 
   my @out;
 
@@ -549,10 +550,13 @@ sub _find_PDLs_inner {
       #
 
       my($pdlid) = sprintf('PDL_%u',$$item);
-      my(@strings) = &PDL::IO::Dumper::dump_PDL($item,$pdlid);
+      if (!$seen->{$pdlid}) {
+        my (@strings) = &PDL::IO::Dumper::dump_PDL($item, $pdlid);
 
-      push @out, $strings[0];
-      $$sp =~ s/\$$pdlid/$strings[1]/g if(defined($strings[1]));
+        push @out, $strings[0];
+        $$sp =~ s/\$$pdlid/$strings[1]/g if (defined($strings[1]));
+        $seen->{$pdlid}++;
+      }
     }
     elsif(UNIVERSAL::isa($item,'SCALAR')) {
       # This gets other kinds of refs -- PDLs have already been gotten.
