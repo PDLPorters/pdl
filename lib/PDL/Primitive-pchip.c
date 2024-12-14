@@ -739,7 +739,7 @@ doublereal dpchia(integer n, doublereal *x, doublereal *f, doublereal *d,
 #define X(ctype, ppsym) \
   static inline ctype pchdf_ ## ppsym(integer k, ctype *x, ctype *s, integer *ierr) \
   { \
-  /* Local variables */ \
+/* Local variables */ \
     integer i, j; \
     ctype value; \
     if (k < 3) { \
@@ -747,14 +747,14 @@ doublereal dpchia(integer n, doublereal *x, doublereal *f, doublereal *d,
       xermsg_("SLATEC", "DPCHDF", "K LESS THAN THREE", *ierr); \
       return 0.; \
     } \
-  /*  COMPUTE COEFFICIENTS OF INTERPOLATING POLYNOMIAL. */ \
+/*  COMPUTE COEFFICIENTS OF INTERPOLATING POLYNOMIAL. */ \
     for (j = 2; j < k; ++j) { \
       integer itmp = k - j; \
       for (i = 0; i < itmp; ++i) { \
         s[i] = (s[i+1] - s[i]) / (x[i + j] - x[i]); \
       } \
     } \
-  /*  EVALUATE DERIVATIVE AT X(K). */ \
+/*  EVALUATE DERIVATIVE AT X(K). */ \
     value = s[0]; \
     for (i = 2; i < k; ++i) { \
       value = s[i-1] + value * (x[k-1] - x[i-1]); \
@@ -764,276 +764,6 @@ doublereal dpchia(integer n, doublereal *x, doublereal *f, doublereal *d,
   }
 X(doublereal, D)
 #undef X
-
-/* ***PURPOSE  Adjusts derivative values for DPCHIC */
-/*     DPCHCS:  DPCHIC Monotonicity Switch Derivative Setter. */
-/*   Called by  DPCHIC  to adjust the values of D in the vicinity of a */
-/*   switch in direction of monotonicity, to produce a more "visually */
-/*   pleasing" curve than that given by  DPCHIM . */
-/* ---------------------------------------------------------------------- */
-/*  Calling sequence: */
-/*    INTEGER  N, IERR */
-/*    DOUBLE PRECISION  SWITCH, H(N), SLOPE(N), D(N) */
-/*    CALL  DPCHCS (SWITCH, N, H, SLOPE, D, IERR) */
-/*   Parameters: */
-/*   SWITCH -- (input) indicates the amount of control desired over */
-/*       local excursions from data. */
-/*   N -- (input) number of data points.  (assumes N.GT.2 .) */
-/*   H -- (input) real*8 array of interval lengths. */
-/*   SLOPE -- (input) real*8 array of data slopes. */
-/*       If the data are (X(I),Y(I)), I=1(1)N, then these inputs are: */
-/*          H(I) =  X(I+1)-X(I), */
-/*        SLOPE(I) = (Y(I+1)-Y(I))/H(I),  I=1(1)N-1. */
-/*   D -- (input) real*8 array of derivative values at the data points, */
-/*       as determined by DPCHCI. */
-/*      (output) derivatives in the vicinity of switches in direction */
-/*       of monotonicity may be adjusted to produce a more "visually */
-/*       pleasing" curve. */
-/*       The value corresponding to X(I) is stored in */
-/*        D(1+(I-1)),  I=1(1)N. */
-/*       No other entries in D are changed. */
-/*   IERR -- (output) error flag.  should be zero. */
-/*       If negative, trouble in DPCHSW.  (should never happen.) */
-/*  ------- */
-/*  WARNING:  This routine does no validity-checking of arguments. */
-/*  ------- */
-/*  Fortran intrinsics used:  ABS, MAX, MIN. */
-/* ***SEE ALSO  DPCHIC */
-/*  Programming notes: */
-/*   1. The function  DPCHST(ARG1,ARG2)  is assumed to return zero if */
-/*    either argument is zero, +1 if they are of the same sign, and */
-/*    -1 if they are of opposite sign. */
-integer dpchcs(doublereal mflag, integer n, doublereal *h,
-    doublereal *slope, doublereal *d)
-{
-  static const doublereal fudge = 4.;
-/* Local variables */
-  integer i, k;
-  doublereal del[3], fact, dfmx;
-  integer indx;
-  doublereal dext, dfloc, slmax, wtave[2];
-  integer nless1, ierr = 0;
-/*  INITIALIZE. */
-  nless1 = n - 1;
-/*  LOOP OVER SEGMENTS. */
-  for (i = 2; i <= nless1; ++i) {
-    doublereal dtmp = pchst_D(slope[i - 2], slope[i-1]);
-    if (dtmp > 0.) {
-      continue;
-    }
-    if (dtmp != 0.) {
-/* ....... SLOPE SWITCHES MONOTONICITY AT I-TH POINT ..................... */
-/*       DO NOT CHANGE D IF 'UP-DOWN-UP'. */
-      if (i > 2) {
-        if (pchst_D(slope[i - 3], slope[i-1]) > 0.) {
-          continue;
-        }
-/*           -------------------------- */
-      }
-      if (i < nless1) {
-        if (pchst_D(slope[i], slope[i - 2]) > 0.) {
-          continue;
-        }
-/*           ---------------------------- */
-      }
-/*   ....... COMPUTE PROVISIONAL VALUE FOR D(1,I). */
-      dext = h[i-1] / (h[i - 2] + h[i-1]) * slope[i - 2] +
-          h[i - 2] / (h[i - 2] + h[i-1]) * slope[i-1];
-/*   ....... DETERMINE WHICH INTERVAL CONTAINS THE EXTREMUM. */
-      dtmp = pchst_D(dext, slope[i - 2]);
-      if (dtmp == 0) {
-        continue;
-      }
-      if (dtmp < 0.) {
-/*        DEXT AND SLOPE(I-1) HAVE OPPOSITE SIGNS -- */
-/*            EXTREMUM IS IN (X(I-1),X(I)). */
-        k = i - 1;
-/*        SET UP TO COMPUTE NEW VALUES FOR D(1,I-1) AND D(1,I). */
-        wtave[1] = dext;
-        if (k > 1) {
-          wtave[0] = h[k-1] / (h[k - 2] + h[k-1]) * slope[k - 2] +
-              h[k - 2] / (h[k - 2] + h[k]) * slope[k-1];
-        }
-      } else {
-/*        DEXT AND SLOPE(I) HAVE OPPOSITE SIGNS -- */
-/*            EXTREMUM IS IN (X(I),X(I+1)). */
-        k = i;
-/*        SET UP TO COMPUTE NEW VALUES FOR D(1,I) AND D(1,I+1). */
-        wtave[0] = dext;
-        if (k < nless1) {
-          wtave[1] = h[k] / (h[k-1] + h[k]) * slope[k-1] + h[k-1]
-              / (h[k-1] + h[k]) * slope[k];
-        }
-      }
-    } else {
-/* ....... AT LEAST ONE OF SLOPE(I-1) AND SLOPE(I) IS ZERO -- */
-/*           CHECK FOR FLAT-TOPPED PEAK ....................... */
-      if (i == nless1 || pchst_D(slope[i - 2], slope[i]) >= 0.) {
-        continue;
-      }
-/*        ----------------------------- */
-/*       WE HAVE FLAT-TOPPED PEAK ON (X(I),X(I+1)). */
-      k = i;
-/*       SET UP TO COMPUTE NEW VALUES FOR D(1,I) AND D(1,I+1). */
-      wtave[0] = h[k-1] / (h[k - 2] + h[k-1]) * slope[k - 2] + h[k - 2]
-          / (h[k - 2] + h[k-1]) * slope[k-1];
-      wtave[1] = h[k] / (h[k-1] + h[k]) * slope[k-1] + h[k-1] / (
-          h[k-1] + h[k]) * slope[k];
-    }
-/* ....... AT THIS POINT WE HAVE DETERMINED THAT THERE WILL BE AN EXTREMUM */
-/*    ON (X(K),X(K+1)), WHERE K=I OR I-1, AND HAVE SET ARRAY WTAVE-- */
-/*       WTAVE(1) IS A WEIGHTED AVERAGE OF SLOPE(K-1) AND SLOPE(K), */
-/*          IF K.GT.1 */
-/*       WTAVE(2) IS A WEIGHTED AVERAGE OF SLOPE(K) AND SLOPE(K+1), */
-/*          IF K.LT.N-1 */
-    slmax = abs(slope[k-1]);
-    if (k > 1) {
-/* Computing MAX */
-      slmax = max(slmax,abs(slope[k - 2]));
-    }
-    if (k < nless1) {
-/* Computing MAX */
-      slmax = max(slmax,abs(slope[k]));
-    }
-    if (k > 1) {
-      del[0] = slope[k - 2] / slmax;
-    }
-    del[1] = slope[k-1] / slmax;
-    if (k < nless1) {
-      del[2] = slope[k] / slmax;
-    }
-    if (k > 1 && k < nless1) {
-/*       NORMAL CASE -- EXTREMUM IS NOT IN A BOUNDARY INTERVAL. */
-      fact = fudge * abs(del[2] * (del[0] - del[1]) * (wtave[1] / slmax));
-      d[k-1] += min(fact,1.) * (wtave[0] - d[k-1]);
-      fact = fudge * abs(del[0] * (del[2] - del[1]) * (wtave[0] / slmax));
-      d[k] += min(fact,1.) * (wtave[1] -
-          d[k]);
-    } else {
-/*       SPECIAL CASE K=1 (WHICH CAN OCCUR ONLY IF I=2) OR */
-/*            K=NLESS1 (WHICH CAN OCCUR ONLY IF I=NLESS1). */
-      fact = fudge * abs(del[1]);
-      d[i-1] = min(fact,1.) * wtave[i - k];
-/*        NOTE THAT I-K+1 = 1 IF K=I  (=NLESS1), */
-/*            I-K+1 = 2 IF K=I-1(=1). */
-    }
-/* ....... ADJUST IF NECESSARY TO LIMIT EXCURSIONS FROM DATA. */
-    if (mflag <= 0.) {
-      continue;
-    }
-    dfloc = h[k-1] * abs(slope[k-1]);
-    if (k > 1) {
-/* Computing MAX */
-      dfloc = max(dfloc,h[k - 2] * abs(slope[k - 2]));
-    }
-    if (k < nless1) {
-/* Computing MAX */
-      dfloc = max(dfloc,h[k] * abs(slope[k]));
-    }
-    dfmx = mflag * dfloc;
-    indx = i - k + 1;
-/*    INDX = 1 IF K=I, 2 IF K=I-1. */
-/*    --------------------------------------------------------------- */
-    do { /* inline dpchsw */
-/*  NOTATION AND GENERAL REMARKS. */
-/*   RHO IS THE RATIO OF THE DATA SLOPE TO THE DERIVATIVE BEING TESTED. */
-/*   LAMBDA IS THE RATIO OF D2 TO D1. */
-/*   THAT = T-HAT(RHO) IS THE NORMALIZED LOCATION OF THE EXTREMUM. */
-/*   PHI IS THE NORMALIZED VALUE OF P(X)-F1 AT X = XHAT = X-HAT(RHO), */
-/*       WHERE  THAT = (XHAT - X1)/H . */
-/*    THAT IS, P(XHAT)-F1 = D*H*PHI,  WHERE D=D1 OR D2. */
-/*   SIMILARLY,  P(XHAT)-F2 = D*H*(PHI-RHO) . */
-/* Local variables */
-      doublereal cp, nu, phi, rho, hphi, that, sigma, small;
-      doublereal lambda, radcal;
-    doublereal d1 = d[k-1], d2 = d[k], h2 = h[k-1], slope2 = slope[k-1];
-/* Initialized data */
-      static const doublereal fact = 100.;
-/*    THIRD SHOULD BE SLIGHTLY LESS THAN 1/3. */
-      static const doublereal third = .33333;
-/*    SMALL SHOULD BE A FEW ORDERS OF MAGNITUDE GREATER THAN MACHEPS. */
-      small = fact * d1mach();
-/*  DO MAIN CALCULATION. */
-      if (d1 == 0.) {
-/*    SPECIAL CASE -- D1.EQ.ZERO . */
-/*      IF D2 IS ALSO ZERO, THIS ROUTINE SHOULD NOT HAVE BEEN CALLED. */
-        if (d2 == 0.) {
-          xermsg_("SLATEC", "DPCHSW", "D1 AND/OR D2 INVALID", (long)-1);
-          ierr = -1; break;
-        }
-        rho = slope2 / d2;
-/*      EXTREMUM IS OUTSIDE INTERVAL WHEN RHO .GE. 1/3 . */
-        if (rho >= third) {
-          ierr = 0; break;
-        }
-        that = 2. * (3. * rho - 1.) / (3. * (2. * rho - 1.));
-/* Computing 2nd power */
-        phi = that * that * ((3. * rho - 1.) / 3.);
-/*      CONVERT TO DISTANCE FROM F2 IF IEXTRM.NE.1 . */
-        if (indx != 1) {
-          phi -= rho;
-        }
-/*      TEST FOR EXCEEDING LIMIT, AND ADJUST ACCORDINGLY. */
-        hphi = h2 * abs(phi);
-        if (hphi * abs(d2) > dfmx) {
-/*       AT THIS POINT, HPHI.GT.0, SO DIVIDE IS OK. */
-          d2 = d_sign(dfmx / hphi, d2);
-        }
-      } else {
-        rho = slope2 / d1;
-        lambda = -(d2) / d1;
-        if (d2 == 0.) {
-/*       SPECIAL CASE -- D2.EQ.ZERO . */
-/*       EXTREMUM IS OUTSIDE INTERVAL WHEN RHO .GE. 1/3 . */
-          if (rho >= third) {
-            ierr = 0; break;
-          }
-          cp = 2. - 3. * rho;
-          nu = 1. - 2. * rho;
-          that = 1. / (3. * nu);
-        } else {
-          if (lambda <= 0.) {
-            xermsg_("SLATEC", "DPCHSW", "D1 AND/OR D2 INVALID", (long)-1);
-            ierr = -1; break;
-          }
-/*       NORMAL CASE -- D1 AND D2 BOTH NONZERO, OPPOSITE SIGNS. */
-          nu = 1. - lambda - 2. * rho;
-          sigma = 1. - rho;
-          cp = nu + sigma;
-          if (abs(nu) > small) {
-/* Computing 2nd power */
-            radcal = (nu - (2. * rho + 1.)) * nu + sigma * sigma;
-            if (radcal < 0.) {
-              xermsg_("SLATEC", "DPCHSW", "NEGATIVE RADICAL", (long)-2);
-              ierr = -2; break;
-            }
-            that = (cp - sqrt(radcal)) / (3. * nu);
-          } else {
-            that = 1. / (2. * sigma);
-          }
-        }
-        phi = that * ((nu * that - cp) * that + 1.);
-/*      CONVERT TO DISTANCE FROM F2 IF IEXTRM.NE.1 . */
-        if (indx != 1) {
-          phi -= rho;
-        }
-/*      TEST FOR EXCEEDING LIMIT, AND ADJUST ACCORDINGLY. */
-        hphi = h2 * abs(phi);
-        if (hphi * abs(d1) > dfmx) {
-/*       AT THIS POINT, HPHI.GT.0, SO DIVIDE IS OK. */
-          d1 = d_sign(dfmx / hphi, d1);
-          d2 = -lambda * d1;
-        }
-      }
-      ierr = 0;
-    } while (0); /* end inline dpchsw */
-/*    --------------------------------------------------------------- */
-    if (ierr != 0) {
-      return ierr;
-    }
-  } /* ....... END OF SEGMENT LOOP. */
-  return ierr;
-}
 
 void dpchic(integer *ic, doublereal *vc, doublereal mflag,
     integer n, doublereal *x, doublereal *f, doublereal *d,
@@ -1158,7 +888,239 @@ void dpchic(integer *ic, doublereal *vc, doublereal mflag,
     } while (0); /* end inline dpchci */
 /*  SET DERIVATIVES AT POINTS WHERE MONOTONICITY SWITCHES DIRECTION. */
     if (mflag != 0.) {
-      *ierr = dpchcs(mflag, n, &wk[0], &wk[n-1], &d[0]);
+      do { /* inline dpchcs */
+/* ***PURPOSE  Adjusts derivative values for DPCHIC */
+/*     DPCHCS:  DPCHIC Monotonicity Switch Derivative Setter. */
+/*   Called by  DPCHIC  to adjust the values of D in the vicinity of a */
+/*   switch in direction of monotonicity, to produce a more "visually */
+/*   pleasing" curve than that given by  DPCHIM . */
+        static const doublereal fudge = 4.;
+/* Local variables */
+        integer i, k;
+        doublereal del[3], fact, dfmx, *slope = &wk[n-1], *d_local = &d[0];
+        integer indx;
+        doublereal dext, dfloc, slmax, wtave[2];
+        integer nless1;
+/*  INITIALIZE. */
+        nless1 = n - 1;
+/*  LOOP OVER SEGMENTS. */
+        for (i = 2; i <= nless1; ++i) {
+          doublereal dtmp = pchst_D(slope[i - 2], slope[i-1]);
+          if (dtmp > 0.) {
+            continue;
+          }
+          if (dtmp != 0.) {
+/* ....... SLOPE SWITCHES MONOTONICITY AT I-TH POINT ..................... */
+/*       DO NOT CHANGE D IF 'UP-DOWN-UP'. */
+            if (i > 2) {
+              if (pchst_D(slope[i - 3], slope[i-1]) > 0.) {
+                continue;
+              }
+/*           -------------------------- */
+            }
+            if (i < nless1) {
+              if (pchst_D(slope[i], slope[i - 2]) > 0.) {
+                continue;
+              }
+/*           ---------------------------- */
+            }
+/*   ....... COMPUTE PROVISIONAL VALUE FOR D(1,I). */
+            dext = wk[i-1] / (wk[i - 2] + wk[i-1]) * slope[i - 2] +
+                wk[i - 2] / (wk[i - 2] + wk[i-1]) * slope[i-1];
+/*   ....... DETERMINE WHICH INTERVAL CONTAINS THE EXTREMUM. */
+            dtmp = pchst_D(dext, slope[i - 2]);
+            if (dtmp == 0) {
+              continue;
+            }
+            if (dtmp < 0.) {
+/*        DEXT AND SLOPE(I-1) HAVE OPPOSITE SIGNS -- */
+/*            EXTREMUM IS IN (X(I-1),X(I)). */
+              k = i - 1;
+/*        SET UP TO COMPUTE NEW VALUES FOR D(1,I-1) AND D(1,I). */
+              wtave[1] = dext;
+              if (k > 1) {
+                wtave[0] = wk[k-1] / (wk[k - 2] + wk[k-1]) * slope[k - 2] +
+                    wk[k - 2] / (wk[k - 2] + wk[k]) * slope[k-1];
+              }
+            } else {
+/*        DEXT AND SLOPE(I) HAVE OPPOSITE SIGNS -- */
+/*            EXTREMUM IS IN (X(I),X(I+1)). */
+              k = i;
+/*        SET UP TO COMPUTE NEW VALUES FOR D(1,I) AND D(1,I+1). */
+              wtave[0] = dext;
+              if (k < nless1) {
+                wtave[1] = wk[k] / (wk[k-1] + wk[k]) * slope[k-1] + wk[k-1]
+                    / (wk[k-1] + wk[k]) * slope[k];
+              }
+            }
+          } else {
+/* ....... AT LEAST ONE OF SLOPE(I-1) AND SLOPE(I) IS ZERO -- */
+/*           CHECK FOR FLAT-TOPPED PEAK ....................... */
+            if (i == nless1 || pchst_D(slope[i - 2], slope[i]) >= 0.) {
+              continue;
+            }
+/*        ----------------------------- */
+/*       WE HAVE FLAT-TOPPED PEAK ON (X(I),X(I+1)). */
+            k = i;
+/*       SET UP TO COMPUTE NEW VALUES FOR D(1,I) AND D(1,I+1). */
+            wtave[0] = wk[k-1] / (wk[k - 2] + wk[k-1]) * slope[k - 2] + wk[k - 2]
+                / (wk[k - 2] + wk[k-1]) * slope[k-1];
+            wtave[1] = wk[k] / (wk[k-1] + wk[k]) * slope[k-1] + wk[k-1] / (
+                wk[k-1] + wk[k]) * slope[k];
+          }
+/* ....... AT THIS POINT WE HAVE DETERMINED THAT THERE WILL BE AN EXTREMUM */
+/*    ON (X(K),X(K+1)), WHERE K=I OR I-1, AND HAVE SET ARRAY WTAVE-- */
+/*       WTAVE(1) IS A WEIGHTED AVERAGE OF SLOPE(K-1) AND SLOPE(K), */
+/*          IF K.GT.1 */
+/*       WTAVE(2) IS A WEIGHTED AVERAGE OF SLOPE(K) AND SLOPE(K+1), */
+/*          IF K.LT.N-1 */
+          slmax = abs(slope[k-1]);
+          if (k > 1) {
+/* Computing MAX */
+            slmax = max(slmax,abs(slope[k - 2]));
+          }
+          if (k < nless1) {
+/* Computing MAX */
+            slmax = max(slmax,abs(slope[k]));
+          }
+          if (k > 1) {
+            del[0] = slope[k - 2] / slmax;
+          }
+          del[1] = slope[k-1] / slmax;
+          if (k < nless1) {
+            del[2] = slope[k] / slmax;
+          }
+          if (k > 1 && k < nless1) {
+/*       NORMAL CASE -- EXTREMUM IS NOT IN A BOUNDARY INTERVAL. */
+            fact = fudge * abs(del[2] * (del[0] - del[1]) * (wtave[1] / slmax));
+            d_local[k-1] += min(fact,1.) * (wtave[0] - d_local[k-1]);
+            fact = fudge * abs(del[0] * (del[2] - del[1]) * (wtave[0] / slmax));
+            d_local[k] += min(fact,1.) * (wtave[1] -
+                d_local[k]);
+          } else {
+/*       SPECIAL CASE K=1 (WHICH CAN OCCUR ONLY IF I=2) OR */
+/*            K=NLESS1 (WHICH CAN OCCUR ONLY IF I=NLESS1). */
+            fact = fudge * abs(del[1]);
+            d_local[i-1] = min(fact,1.) * wtave[i - k];
+/*        NOTE THAT I-K+1 = 1 IF K=I  (=NLESS1), */
+/*            I-K+1 = 2 IF K=I-1(=1). */
+          }
+/* ....... ADJUST IF NECESSARY TO LIMIT EXCURSIONS FROM DATA. */
+          if (mflag <= 0.) {
+            continue;
+          }
+          dfloc = wk[k-1] * abs(slope[k-1]);
+          if (k > 1) {
+/* Computing MAX */
+            dfloc = max(dfloc,wk[k - 2] * abs(slope[k - 2]));
+          }
+          if (k < nless1) {
+/* Computing MAX */
+            dfloc = max(dfloc,wk[k] * abs(slope[k]));
+          }
+          dfmx = mflag * dfloc;
+          indx = i - k + 1;
+/*    INDX = 1 IF K=I, 2 IF K=I-1. */
+/*    --------------------------------------------------------------- */
+          do { /* inline dpchsw */
+/*  NOTATION AND GENERAL REMARKS. */
+/*   RHO IS THE RATIO OF THE DATA SLOPE TO THE DERIVATIVE BEING TESTED. */
+/*   LAMBDA IS THE RATIO OF D2 TO D1. */
+/*   THAT = T-HAT(RHO) IS THE NORMALIZED LOCATION OF THE EXTREMUM. */
+/*   PHI IS THE NORMALIZED VALUE OF P(X)-F1 AT X = XHAT = X-HAT(RHO), */
+/*       WHERE  THAT = (XHAT - X1)/H . */
+/*    THAT IS, P(XHAT)-F1 = D*H*PHI,  WHERE D=D1 OR D2. */
+/*   SIMILARLY,  P(XHAT)-F2 = D*H*(PHI-RHO) . */
+/* Local variables */
+            doublereal cp, nu, phi, rho, hphi, that, sigma, small;
+            doublereal lambda, radcal;
+          doublereal d1 = d_local[k-1], d2 = d_local[k], h2 = wk[k-1], slope2 = slope[k-1];
+/* Initialized data */
+            static const doublereal fact = 100.;
+/*    THIRD SHOULD BE SLIGHTLY LESS THAN 1/3. */
+            static const doublereal third = .33333;
+/*    SMALL SHOULD BE A FEW ORDERS OF MAGNITUDE GREATER THAN MACHEPS. */
+            small = fact * d1mach();
+/*  DO MAIN CALCULATION. */
+            if (d1 == 0.) {
+/*    SPECIAL CASE -- D1.EQ.ZERO . */
+/*      IF D2 IS ALSO ZERO, THIS ROUTINE SHOULD NOT HAVE BEEN CALLED. */
+              if (d2 == 0.) {
+                xermsg_("SLATEC", "DPCHSW", "D1 AND/OR D2 INVALID", (long)-1);
+                *ierr = -1; break;
+              }
+              rho = slope2 / d2;
+/*      EXTREMUM IS OUTSIDE INTERVAL WHEN RHO .GE. 1/3 . */
+              if (rho >= third) {
+                *ierr = 0; break;
+              }
+              that = 2. * (3. * rho - 1.) / (3. * (2. * rho - 1.));
+/* Computing 2nd power */
+              phi = that * that * ((3. * rho - 1.) / 3.);
+/*      CONVERT TO DISTANCE FROM F2 IF IEXTRM.NE.1 . */
+              if (indx != 1) {
+                phi -= rho;
+              }
+/*      TEST FOR EXCEEDING LIMIT, AND ADJUST ACCORDINGLY. */
+              hphi = h2 * abs(phi);
+              if (hphi * abs(d2) > dfmx) {
+/*       AT THIS POINT, HPHI.GT.0, SO DIVIDE IS OK. */
+                d2 = d_sign(dfmx / hphi, d2);
+              }
+            } else {
+              rho = slope2 / d1;
+              lambda = -(d2) / d1;
+              if (d2 == 0.) {
+/*       SPECIAL CASE -- D2.EQ.ZERO . */
+/*       EXTREMUM IS OUTSIDE INTERVAL WHEN RHO .GE. 1/3 . */
+                if (rho >= third) {
+                  *ierr = 0; break;
+                }
+                cp = 2. - 3. * rho;
+                nu = 1. - 2. * rho;
+                that = 1. / (3. * nu);
+              } else {
+                if (lambda <= 0.) {
+                  xermsg_("SLATEC", "DPCHSW", "D1 AND/OR D2 INVALID", (long)-1);
+                  *ierr = -1; break;
+                }
+/*       NORMAL CASE -- D1 AND D2 BOTH NONZERO, OPPOSITE SIGNS. */
+                nu = 1. - lambda - 2. * rho;
+                sigma = 1. - rho;
+                cp = nu + sigma;
+                if (abs(nu) > small) {
+/* Computing 2nd power */
+                  radcal = (nu - (2. * rho + 1.)) * nu + sigma * sigma;
+                  if (radcal < 0.) {
+                    xermsg_("SLATEC", "DPCHSW", "NEGATIVE RADICAL", (long)-2);
+                    *ierr = -2; break;
+                  }
+                  that = (cp - sqrt(radcal)) / (3. * nu);
+                } else {
+                  that = 1. / (2. * sigma);
+                }
+              }
+              phi = that * ((nu * that - cp) * that + 1.);
+/*      CONVERT TO DISTANCE FROM F2 IF IEXTRM.NE.1 . */
+              if (indx != 1) {
+                phi -= rho;
+              }
+/*      TEST FOR EXCEEDING LIMIT, AND ADJUST ACCORDINGLY. */
+              hphi = h2 * abs(phi);
+              if (hphi * abs(d1) > dfmx) {
+/*       AT THIS POINT, HPHI.GT.0, SO DIVIDE IS OK. */
+                d1 = d_sign(dfmx / hphi, d1);
+                d2 = -lambda * d1;
+              }
+            }
+            *ierr = 0;
+          } while (0); /* end inline dpchsw */
+/*    --------------------------------------------------------------- */
+          if (*ierr != 0) {
+            break;
+          }
+        } /* ....... END OF SEGMENT LOOP. */
+      } while (0); /* end inline dpchcs */
       if (*ierr != 0) {
         *ierr = -8;
         xermsg_("SLATEC", "DPCHIC", "ERROR RETURN FROM DPCHCS", *ierr);
