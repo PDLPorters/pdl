@@ -532,9 +532,9 @@ sub PDL::IO::Dumper::find_PDLs {
   }
 
   #  deduplicate
-  my %seen;
-  $out = join "\n", grep {!$seen{$_}++} split ("\n", $out);
-  $out .= "\n";
+  # my %seen;
+  # $out = join "\n", grep {!$seen{$_}++} split ("\n", $out);
+  # $out .= "\n";
 
   return $out;
 }
