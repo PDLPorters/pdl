@@ -95,6 +95,7 @@ convenience routine exists to use it.
 
 sub PDL::IO::Dumper::sdump {
 # Make an initial dump...
+  local $Data::Dumper::Purity = 1;
   my($s) = Data::Dumper->Dump([@_]);
   my(%pdls);
 # Find the bless(...,'PDL') lines
@@ -114,7 +115,7 @@ sub PDL::IO::Dumper::sdump {
   # find_PDLs call (which modifies $s using the s/// operator).
 
   my($s2) =  "{my(\$VAR1);\n".&PDL::IO::Dumper::find_PDLs(\$s,@_)."\n\n";
-  return $s2.$s."\n}";
+  return $s2.$s."\n\$VAR1}";
 
 #
 }
@@ -529,6 +530,12 @@ sub PDL::IO::Dumper::find_PDLs {
     }
   
   }
+
+  #  deduplicate
+  my %seen;
+  $out = join "\n", grep {!$seen{$_}++} split ("\n", $out);
+  $out .= "\n";
+
   return $out;
 }
 
