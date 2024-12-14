@@ -491,10 +491,11 @@ string.  You shouldn't call this unless you know what you're doing.
 sub PDL::IO::Dumper::find_PDLs {
   my($sp, @items) = @_;
 
-  my $out_aref = _find_PDLs_inner($sp, @items);
+  my %seen;
+  my $out_aref = _find_PDLs_inner(dumped_string => $sp, items => \@items, seen => \%seen);
 
   #  deduplicate
-  my (@uniq, %seen);
+  my @uniq;
   LINE:
   foreach my $line (@$out_aref) {
     if ($line =~ /^my\(\$PDL_(\d+)\)/) {
@@ -512,7 +513,11 @@ sub PDL::IO::Dumper::find_PDLs {
 }
 
 sub _find_PDLs_inner {
-  my($sp, @items) = @_;
+  my %args = @_;
+  my $sp    = $args{dumped_string};
+  #  internal sub so legitimate uses will pass an array
+  my @items = @{$args{items}};
+  my $seen  = $args{seen};
 
   my @out;
 
@@ -523,14 +528,14 @@ sub _find_PDLs_inner {
     if(UNIVERSAL::isa($item,'ARRAY')) {
       my($x);
       foreach $x(@{$item}) {
-        my $res = _find_PDLs_inner($sp,$x);
+        my $res = _find_PDLs_inner(%args, items => [$x]);
         push @out, @$res;
       }
     }
     elsif(UNIVERSAL::isa($item,'HASH')) {
       my($x);
       foreach $x (values %{$item}) {
-        my $res = _find_PDLs_inner($sp,$x);
+        my $res = _find_PDLs_inner(%args, items => [$x]);
         push @out, @$res;
       }
     }
@@ -553,7 +558,7 @@ sub _find_PDLs_inner {
       # This gets other kinds of refs -- PDLs have already been gotten.
       # Naked PDLs are themselves SCALARs, so the SCALAR case has to come
       # last to let the PDL case run.
-      my $res = _find_PDLs_inner( $sp, ${$item} );
+      my $res = _find_PDLs_inner( %args, items => [${$item}] );
       push @out, @$res;
     }
 
