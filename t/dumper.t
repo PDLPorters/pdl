@@ -54,4 +54,37 @@ is ref($x), 'ARRAY' or diag explain $s;
 ok eval { $x->[0]->hdrcpy() == 1 && $x->[1]->hdrcpy() == 0 }, 'Check hdrcpy()\'s persist';
 ok eval { ($x->[0]->gethdr()->{ok}==1) && ($x->[1]->gethdr()->{ok}==2) }, 'Check gethdr() values persist';
 
+#  GH508
+{
+    my $x = xvals(5);
+    my $y1 = $x;
+    my $y2 = 2*$x;
+    my $y3 = $x*$x;
+
+    my %plots = (
+        'x1'=>$x, 'y1'=>$y1,
+        'x2'=>$x, 'y2'=>$y2,
+        'x3'=>$x, 'y3'=>$y3,
+    );
+
+    my $as_string = sdump \%plots;
+
+    my $restored = eval $as_string;
+
+    #diag $as_string;
+
+    my @nulls = grep {!defined $restored->{$_}} sort keys %$restored;
+    is_deeply \@nulls, [], 'none of the restored items are undef';
+
+    #  test a dump with uuencoded content
+    my $u = xvals(25,25);
+    my @ndarrays = ($u, $u);
+    $as_string = sdump \@ndarrays;
+    # diag $as_string;
+    $restored = eval $as_string;
+    @nulls = grep {!defined $_} @$restored;
+    is_deeply \@nulls, [], 'none of the restored uuencoded items are undef';
+
+}
+
 done_testing;
