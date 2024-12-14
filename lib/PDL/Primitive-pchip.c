@@ -37,10 +37,13 @@ doublereal d1mach() {
 /*   possible over/underflow problems. */
 /*  Fortran intrinsics used:  SIGN. */
 /* ***SEE ALSO  DPCHCE, DPCHCI, DPCHCS, DPCHIM */
-doublereal dpchst(doublereal arg1, doublereal arg2)
-{
-  return (arg1 == 0. || arg2 == 0.) ? 0. : d_sign(1, arg1) * d_sign(1, arg2);
-}
+#define X(ctype, ppsym) \
+  static inline ctype pchst_ ## ppsym(ctype arg1, ctype arg2) \
+  { \
+    return (arg1 == 0. || arg2 == 0.) ? 0. : d_sign(1, arg1) * d_sign(1, arg2); \
+  }
+X(doublereal, D)
+#undef X
 
 doublereal dbvalu(doublereal *t, doublereal *a, integer n, integer k,
     integer ideriv, doublereal x, integer inbv, doublereal *work)
@@ -494,7 +497,7 @@ void dpchfe(integer n, doublereal *x, doublereal *f,
 /*  1. There is no error return from this routine because zero is */
 /*   indeed the mathematically correct answer when X1.EQ.X2 . */
 #define X(ctype, ppsym) \
-  ctype chfie_ ## ppsym(ctype x1, ctype x2, ctype f1, ctype f2, \
+  static inline ctype chfie_ ## ppsym(ctype x1, ctype x2, ctype f1, ctype f2, \
       ctype d1, ctype d2, ctype a, ctype b) \
   { \
 /* Local variables */ \
@@ -811,7 +814,7 @@ integer dpchcs(doublereal mflag, integer n, doublereal *h,
   nless1 = n - 1;
 /*  LOOP OVER SEGMENTS. */
   for (i = 2; i <= nless1; ++i) {
-    doublereal dtmp = dpchst(slope[i - 2], slope[i-1]);
+    doublereal dtmp = pchst_D(slope[i - 2], slope[i-1]);
     if (dtmp > 0.) {
       continue;
     }
@@ -819,13 +822,13 @@ integer dpchcs(doublereal mflag, integer n, doublereal *h,
 /* ....... SLOPE SWITCHES MONOTONICITY AT I-TH POINT ..................... */
 /*       DO NOT CHANGE D IF 'UP-DOWN-UP'. */
       if (i > 2) {
-        if (dpchst(slope[i - 3], slope[i-1]) > 0.) {
+        if (pchst_D(slope[i - 3], slope[i-1]) > 0.) {
           continue;
         }
 /*           -------------------------- */
       }
       if (i < nless1) {
-        if (dpchst(slope[i], slope[i - 2]) > 0.) {
+        if (pchst_D(slope[i], slope[i - 2]) > 0.) {
           continue;
         }
 /*           ---------------------------- */
@@ -834,7 +837,7 @@ integer dpchcs(doublereal mflag, integer n, doublereal *h,
       dext = h[i-1] / (h[i - 2] + h[i-1]) * slope[i - 2] +
           h[i - 2] / (h[i - 2] + h[i-1]) * slope[i-1];
 /*   ....... DETERMINE WHICH INTERVAL CONTAINS THE EXTREMUM. */
-      dtmp = dpchst(dext, slope[i - 2]);
+      dtmp = pchst_D(dext, slope[i - 2]);
       if (dtmp == 0) {
         continue;
       }
@@ -862,7 +865,7 @@ integer dpchcs(doublereal mflag, integer n, doublereal *h,
     } else {
 /* ....... AT LEAST ONE OF SLOPE(I-1) AND SLOPE(I) IS ZERO -- */
 /*           CHECK FOR FLAT-TOPPED PEAK ....................... */
-      if (i == nless1 || dpchst(slope[i - 2], slope[i]) >= 0.) {
+      if (i == nless1 || pchst_D(slope[i - 2], slope[i]) >= 0.) {
         continue;
       }
 /*        ----------------------------- */
@@ -1102,9 +1105,9 @@ void dpchic(integer *ic, doublereal *vc, doublereal mflag,
       w1 = (wk[0] + hsum) / hsum;
       w2 = -wk[0] / hsum;
       d[0] = w1 * del1 + w2 * del2;
-      if (dpchst(d[0], del1) <= 0.) {
+      if (pchst_D(d[0], del1) <= 0.) {
         d[0] = 0.;
-      } else if (dpchst(del1, del2) < 0.) {
+      } else if (pchst_D(del1, del2) < 0.) {
 /*    NEED DO THIS CHECK ONLY IF MONOTONICITY SWITCHES. */
         dmax = 3. * del1;
         if (abs(d[0]) > abs(dmax)) {
@@ -1120,7 +1123,7 @@ void dpchic(integer *ic, doublereal *vc, doublereal mflag,
         }
 /*    SET D(I)=0 UNLESS DATA ARE STRICTLY MONOTONIC. */
         d[i-1] = 0.;
-        if (dpchst(del1, del2) <= 0.) {
+        if (pchst_D(del1, del2) <= 0.) {
           continue;
         }
 /*    USE BRODLIE MODIFICATION OF BUTLAND FORMULA. */
@@ -1140,9 +1143,9 @@ void dpchic(integer *ic, doublereal *vc, doublereal mflag,
       w1 = -wk[n - 2] / hsum;
       w2 = (wk[n - 2] + hsum) / hsum;
       d[n-1] = w1 * del1 + w2 * del2;
-      if (dpchst(d[n-1], del2) <= 0.) {
+      if (pchst_D(d[n-1], del2) <= 0.) {
         d[n-1] = 0.;
-      } else if (dpchst(del1, del2) < 0.) {
+      } else if (pchst_D(del1, del2) < 0.) {
 /*    NEED DO THIS CHECK ONLY IF MONOTONICITY SWITCHES. */
         dmax = 3. * del2;
         if (abs(d[n-1]) > abs(dmax)) {
@@ -1218,7 +1221,7 @@ void dpchic(integer *ic, doublereal *vc, doublereal mflag,
             d[0] = 0.;
             ++(ierr);
           }
-        } else if (dpchst(d[0], slope[0]) < 0.) {
+        } else if (pchst_D(d[0], slope[0]) < 0.) {
           d[0] = 0.;
           ++(ierr);
         } else if (abs(d[0]) > 3. * abs(slope[0])) {
@@ -1274,7 +1277,7 @@ void dpchic(integer *ic, doublereal *vc, doublereal mflag,
         d[n-1] = 0.;
         ierr += 2;
       }
-    } else if (dpchst(d[n-1], slope[n - 2]) < 0.) {
+    } else if (pchst_D(d[n-1], slope[n - 2]) < 0.) {
       d[n-1] = 0.;
       ierr += 2;
     } else if (abs(d[n-1]) > 3. * abs(slope[n - 2])) {
@@ -1345,9 +1348,9 @@ void dpchim(integer n, doublereal *x, doublereal *f,
   w1 = (h1 + hsum) / hsum;
   w2 = -h1 / hsum;
   d[0] = w1 * del1 + w2 * del2;
-  if (dpchst(d[0], del1) <= 0.) {
+  if (pchst_D(d[0], del1) <= 0.) {
     d[0] = 0.;
-  } else if (dpchst(del1, del2) < 0.) {
+  } else if (pchst_D(del1, del2) < 0.) {
 /*    NEED DO THIS CHECK ONLY IF MONOTONICITY SWITCHES. */
     dmax = 3. * del1;
     if (abs(d[0]) > abs(dmax)) {
@@ -1365,14 +1368,14 @@ void dpchim(integer n, doublereal *x, doublereal *f,
     }
 /*    SET D(I)=0 UNLESS DATA ARE STRICTLY MONOTONIC. */
     d[i-1] = 0.;
-    dtmp = dpchst(del1, del2);
+    dtmp = pchst_D(del1, del2);
     if (dtmp <= 0) {
       if (dtmp == 0.) {
 /*    COUNT NUMBER OF CHANGES IN DIRECTION OF MONOTONICITY. */
         if (del2 == 0.) {
           continue;
         }
-        if (dpchst(dsave, del2) < 0.) {
+        if (pchst_D(dsave, del2) < 0.) {
           ++(*ierr);
         }
         dsave = del2;
@@ -1399,9 +1402,9 @@ void dpchim(integer n, doublereal *x, doublereal *f,
   w1 = -h2 / hsum;
   w2 = (h2 + hsum) / hsum;
   d[n-1] = w1 * del1 + w2 * del2;
-  if (dpchst(d[n-1], del2) <= 0.) {
+  if (pchst_D(d[n-1], del2) <= 0.) {
     d[n-1] = 0.;
-  } else if (dpchst(del1, del2) < 0.) {
+  } else if (pchst_D(del1, del2) < 0.) {
 /*    NEED DO THIS CHECK ONLY IF MONOTONICITY SWITCHES. */
     dmax = 3. * del2;
     if (abs(d[n-1]) > abs(dmax)) {
