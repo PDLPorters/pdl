@@ -66,10 +66,9 @@ EOPM
 pp_addhdr('
 #include <tgmath.h>
 
-#define MOD(X,N) (((N) == 0)   ?    0   :   (   (X) - (ABS(N))  *  ((long long)((X)/(ABS(N))) + (   ( ((N) * ((long long)((X)/(N)))) != (X) )   ?   ( ( ((N)<0) ? 1 : 0 )  +  ( (((X)<0) ? -1 : 0)))  :  0 ))))
+#define MOD(X,N) (((N) == 0)   ?    0   :   (   (X) - (PDL_ABS(N))  *  ((long long)((X)/(PDL_ABS(N))) + (   ( ((N) * ((long long)((X)/(N)))) != (X) )   ?   ( ( ((N)<0) ? 1 : 0 )  +  ( (((X)<0) ? -1 : 0)))  :  0 ))))
 #define BU_MOD(X,N)(((N) == 0)   ?    0   :   ( (X)-(N)*((uint64_t)((X)/(N))) ))
 #define SPACE(A,B)   ( ((A)<(B)) ? -1 : ((A)!=(B)) )
-#define ABS(A)       ( (A)>=0 ? (A) : -(A) )
 ');
 
 my %char2escape = ('>'=>'E<gt>','<'=>'E<lt>');
@@ -418,7 +417,7 @@ cfunc('_cabs', 'fabs', 1, 'Returns the absolute (length) of a complex number.', 
 );
 my $rabs_code = '
   types('.join('', @$U).') %{ $b()=$a(); %}
-  types('.join('', @$S).') %{ $b()=ABS($a()); %}
+  types('.join('', @$S).') %{ $b()=PDL_ABS($a()); %}
 ';
 pp_def ( '_rabs',
 	Pars=>'a(); [o]b()',

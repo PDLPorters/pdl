@@ -590,6 +590,7 @@ typedef struct pdl_slice_args {
 
 #define PDLMAX(a,b) ((a) > (b) ? (a) : (b))
 #define PDLMIN(a,b) ((a) < (b) ? (a) : (b))
+#define PDL_ABS(A) ( (A)>=0 ? (A) : -(A) )
 
 #define PDL_RETERROR2(rv, expr, iferr) \
   do { rv = expr; if (rv.error) { iferr } } while (0)
