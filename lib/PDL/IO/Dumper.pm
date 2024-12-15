@@ -95,6 +95,7 @@ convenience routine exists to use it.
 
 sub PDL::IO::Dumper::sdump {
 # Make an initial dump...
+  local $Data::Dumper::Purity = 1;
   my($s) = Data::Dumper->Dump([@_]);
   my(%pdls);
 # Find the bless(...,'PDL') lines
@@ -114,7 +115,7 @@ sub PDL::IO::Dumper::sdump {
   # find_PDLs call (which modifies $s using the s/// operator).
 
   my($s2) =  "{my(\$VAR1);\n".&PDL::IO::Dumper::find_PDLs(\$s,@_)."\n\n";
-  return $s2.$s."\n}";
+  return $s2.$s."\n\$VAR1}";
 
 #
 }
@@ -488,48 +489,86 @@ string.  You shouldn't call this unless you know what you're doing.
 =cut
 
 sub PDL::IO::Dumper::find_PDLs {
-  local($_);
-  my($out)="";
-  my($sp) = shift;
+  my($sp, @items) = @_;
 
-  findpdl:foreach $_(@_) {
-    next findpdl unless ref($_);
 
-    if(UNIVERSAL::isa($_,'ARRAY')) {
+  my $out_aref = _find_PDLs_inner(dumped_string => $sp, items => \@items);
+
+  #  deduplicate - should not be needed now but retained just in case.
+  my @uniq;
+  my %seen;
+  LINE:
+  foreach my $line (@$out_aref) {
+    if ($line =~ /^my\(\$(PDL_\d+)\)/) {
+      my $id = $1;
+      next LINE if $seen{$id};
+      $seen{$id}++;
+    }
+    push @uniq, $line;
+  }
+
+  my $out = join "\n", @uniq;
+  $out .= "\n";
+
+  return $out;
+}
+
+sub _find_PDLs_inner {
+  my %args = @_;
+  my $sp    = $args{dumped_string};
+  #  internal sub so legitimate uses will pass an array
+  my @items = @{$args{items}};
+  my $seen  = $args{seen} //= {};
+
+  my @out;
+
+  findpdl:
+  foreach my $item (@items) {
+    next findpdl unless ref($item);
+
+    if(UNIVERSAL::isa($item,'ARRAY')) {
       my($x);
-      foreach $x(@{$_}) {
-	$out .= find_PDLs($sp,$x);
+      foreach $x(@{$item}) {
+        my $res = _find_PDLs_inner(%args, items => [$x]);
+        push @out, @$res;
       }
-    } 
-    elsif(UNIVERSAL::isa($_,'HASH')) {
+    }
+    elsif(UNIVERSAL::isa($item,'HASH')) {
       my($x);
-      foreach $x(values %{$_}) {
-	$out .= find_PDLs($sp,$x)
-	}
-    } elsif(UNIVERSAL::isa($_,'PDL')) {
+      foreach $x (values %{$item}) {
+        my $res = _find_PDLs_inner(%args, items => [$x]);
+        push @out, @$res;
+      }
+    }
+    elsif(UNIVERSAL::isa($item,'PDL')) {
 
-      # In addition to straight PDLs, 
+      # In addition to straight PDLs,
       # this gets subclasses of PDL, but NOT magic-hash subclasses of
       # PDL (because they'd be gotten by the previous clause).
       # So if you subclass PDL but your actual data structure is still
       # just a straight PDL (and not a hash with PDL field), you end up here.
       #
 
-      my($pdlid) = sprintf('PDL_%u',$$_);
-      my(@strings) = &PDL::IO::Dumper::dump_PDL($_,$pdlid);
-      
-      $out .= $strings[0];
-      $$sp =~ s/\$$pdlid/$strings[1]/g if(defined($strings[1]));  
+      my($pdlid) = sprintf('PDL_%u',$$item);
+      if (!$seen->{$pdlid}) {
+        my (@strings) = &PDL::IO::Dumper::dump_PDL($item, $pdlid);
+
+        push @out, $strings[0];
+        $$sp =~ s/\$$pdlid/$strings[1]/g if (defined($strings[1]));
+        $seen->{$pdlid}++;
+      }
     }
-    elsif(UNIVERSAL::isa($_,'SCALAR')) {
+    elsif(UNIVERSAL::isa($item,'SCALAR')) {
       # This gets other kinds of refs -- PDLs have already been gotten.
-      # Naked PDLs are themselves SCALARs, so the SCALAR case has to come 
+      # Naked PDLs are themselves SCALARs, so the SCALAR case has to come
       # last to let the PDL case run.
-      $out .= find_PDLs( $sp, ${$_} );
+      my $res = _find_PDLs_inner( %args, items => [${$item}] );
+      push @out, @$res;
     }
-  
+
   }
-  return $out;
+
+  return \@out;
 }
 
 =head1 AUTHOR
