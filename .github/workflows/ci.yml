@@ -215,7 +215,7 @@ jobs:
         run: |
             curl -L https://install.perlbrew.pl | bash
             source ~/perl5/perlbrew/etc/bashrc
-            perlbrew install --notest -D ${{ matrix.weirdness }} perl-5.32.0 --as perl-5.32.0-${{ matrix.weirdness }}
+            perlbrew install --notest -D ${{ matrix.weirdness }} perl-5.40.0 --as perl-5.40.0-${{ matrix.weirdness }} || (cat ~/perl5/perlbrew/build.perl-5.40.0.log; false)
       - name: run tests
         env:
           PERL_USE_UNSAFE_INC: 0
