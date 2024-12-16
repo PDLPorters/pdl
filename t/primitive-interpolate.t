@@ -69,6 +69,52 @@ subtest PCHIP => sub {
   my $x_slice = $x->slice('*1,0:-2'); # because calling with last value is out of range
   my ($val) = pchip_bvalu($t, $bcoef, 0, $x_slice);
   is_pdl $val->t, pdl('43.3 44.3 47.3 52.3 59.3 68.3 79.3 92.3 107.3; -23 -22 -15 4 41 102 193 320 489'), 'pchip_bvalu';
+
+  $x = float( 3 .. 10 );
+  my $f = $x*$x*$x + 425.42352;
+  my $answer = 3*$x*$x;
+  my ( $d, $err ) = pchip_chim( $x, float($f) );
+  is_pdl $err, longlong 0;
+  # don't check the first and last elements, as expect the
+  # error to be largest there
+  # value of 5% comes from tests on linux and solaris machines
+  is_pdl +(map $_->slice('1:-2'), $d, $answer), {rtol=>0.05};
+  my $d2 = $f->zeroes;
+  pchip_chic( pdl([0, 0]), pdl([0, 0]), 1, $x, $f, $d2, my $err2=null );
+  is_pdl $err2, longlong 0;
+  is_pdl $d2, $d->double, {atol=>2e-2};
+  pchip_chsp( pdl([0, 0]), pdl([0, 0]), $x, $f, my $d3=null, my $err3=null );
+  is_pdl $err3, longlong 0;
+  is_pdl $d3, $d->double, {atol=>2};
+  my $xe = float( pdl( 4 .. 8 ) + 0.5 );
+  my ( $fe, $de );
+  ( $fe, $de, $err ) = pchip_chfd( $x, $f, $d, 1, $xe );
+  is_pdl $err, longlong(0);
+  $answer = $xe*$xe*$xe + 425.42352;
+  is_pdl $fe, $answer, {rtol=>1e-5};
+  $answer = 3.0*$xe*$xe;
+  is_pdl $de, $answer, {rtol=>2e-2};
+  ( $fe, $err ) = pchip_chfe( $x, $f, $d, 1, $xe );
+  is_pdl $fe, $xe*$xe*$xe + 425.42352, {rtol=>1e-3};
+  is_pdl $err, longlong 0;
+  $x   = float( 1, 2, 3, 5, 6, 7 );
+  $f   = float( 1, 2, 3, 4, 3, 4 );
+  my $ans = longlong(  1, 1, 1, -1, 1, 2 );
+  ( $d, $err ) = pchip_chim($x, $f);
+  is_pdl $err, longlong 2;
+  $x = double( sequence(11) - 0.3 );
+  $f = $x * $x;
+  ( $d, $err ) = pchip_chim($x, $f);
+  $ans = pdl( 9.0**3, (8.0**3-1.0**3) ) / 3.0;
+  ( my $int, $err ) = pchip_chia($x, $f, $d, my $skip=zeroes(2), pdl(0.0,1.0), pdl(9.0,8.0));
+  is_pdl $err, longlong 0,0;
+  is_pdl $int, $ans, {atol=>4e-2};
+  my $hi = pdl( $x->at(9), $x->at(7) );
+  my $lo = pdl( $x->at(0), $x->at(1) );
+  $ans = ($hi**3 - $lo**3) / 3;
+  ( $int, $err ) = pchip_chid( $x, $f, $d, $skip=zeroes(2), pdl(0,1), pdl(9,7) );
+  is_pdl $err, longlong 0,0;
+  is_pdl $int, $ans, {atol=>6e-2};
 };
 
 done_testing;
