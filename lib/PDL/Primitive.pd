@@ -4330,16 +4330,14 @@ CHFIE => sub {my ($x1, $x2, $f1, $f2, $d1, $d2, $a, $b, $out) = @_; '
 /*  1. There is no error return from this routine because zero is */
 /*   indeed the mathematically correct answer when X1.EQ.X2 . */
 do {
-  $GENERIC() x1='.$x1.', x2='.$x2.', f1='.$f1.', f2='.$f2.',
-    d1='.$d1.', d2='.$d2.', a='.$a.', b='.$b.';
   if ('.$x1.' == '.$x2.') {
     '.$out.' = 0.; break;
   }
-  $GENERIC() h = x2 - x1;
-  $GENERIC() ta1 = (a - x1) / h;
-  $GENERIC() ta2 = (x2 - a) / h;
-  $GENERIC() tb1 = (b - x1) / h;
-  $GENERIC() tb2 = (x2 - b) / h;
+  $GENERIC() h = '.$x2.' - '.$x1.';
+  $GENERIC() ta1 = ('.$a.' - '.$x1.') / h;
+  $GENERIC() ta2 = ('.$x2.' - '.$a.') / h;
+  $GENERIC() tb1 = ('.$b.' - '.$x1.') / h;
+  $GENERIC() tb2 = ('.$x2.' - '.$b.') / h;
 /* Computing 3rd power */
   $GENERIC() ua1 = ta1 * (ta1 * ta1);
   $GENERIC() phia1 = ua1 * (2. - ta1);
@@ -4356,8 +4354,8 @@ do {
   $GENERIC() ub2 = tb2 * (tb2 * tb2);
   $GENERIC() phib2 = ub2 * (2. - tb2);
   $GENERIC() psib2 = -ub2 * (3. * tb2 - 4.);
-  $GENERIC() fterm = f1 * (phia2 - phib2) + f2 * (phib1 - phia1);
-  $GENERIC() dterm = (d1 * (psia2 - psib2) + d2 * (psib1 - psia1)) * (h / 6.);
+  $GENERIC() fterm = '.$f1.' * (phia2 - phib2) + '.$f2.' * (phib1 - phia1);
+  $GENERIC() dterm = ('.$d1.' * (psia2 - psib2) + '.$d2.' * (psib1 - psia1)) * (h / 6.);
   '.$out.' = 0.5 * h * (fterm + dterm);
 } while(0)
 '},
@@ -4369,30 +4367,22 @@ PCHID => sub {my ($ia, $ib, $out) = @_; '
 /*   calls to DCHFIE. */
 /*  VALIDITY-CHECK ARGUMENTS. */
 do {
-  PDL_Indx ia = '.$ia.', ib = '.$ib.';
-  if (!$skip()) {
-    loop (n=1) %{
-      if ($x() > $x(n=>n-1)) continue;
-      $ierr() = -1;
-      $CROAK("X-ARRAY NOT STRICTLY INCREASING");
-    %}
-  }
   /*  FUNCTION DEFINITION IS OK, GO ON. */
   $skip() = 1;
-  if (ia < 0 || ia > $SIZE(n)-1 || ib < 0 || ib > $SIZE(n)-1) {
+  if ('.$ia.' < 0 || '.$ia.' > $SIZE(n)-1 || '.$ib.' < 0 || '.$ib.' > $SIZE(n)-1) {
     $ierr() = -4;
     $CROAK("IA OR IB OUT OF RANGE");
   }
   $ierr() = 0;
   /*  COMPUTE INTEGRAL VALUE. */
-  if ($ia() == $ib()) { $ans() = 0; continue; }
-  PDL_Indx low = PDLMIN($ia(),$ib()), iup = PDLMAX($ia(),$ib());
+  if ('.$ia.' == '.$ib.') { '.$out.' = 0; continue; }
+  PDL_Indx low = PDLMIN('.$ia.','.$ib.'), iup = PDLMAX('.$ia.','.$ib.');
   $GENERIC() sum = 0.;
   loop (n=low:iup) %{
     $GENERIC() h = $x(n=>n+1) - $x();
     sum += h * ($f() + $f(n=>n+1) + ($d() - $d(n=>n+1)) * (h / 6.));
   %}
-  '.$out.' = 0.5 * ($ia() > $ib() ? -sum : sum);
+  '.$out.' = 0.5 * ('.$ia.' > '.$ib.' ? -sum : sum);
 } while(0)
 '},
 );
@@ -5640,19 +5630,121 @@ May be used by itself for Hermite interpolation, or as an evaluator
 for L</pchip_chim> or L</pchip_chic>.'
 );
 
-defslatec('pchip_chia',
-	  {D => 'dpchia'},
-	  'IntVal	n=$SIZE(n);
-           Mat          x       (n);
-           Mat          f       (n);
-           Mat          d       (n);
-           Logical [io] skip    ();
-           MatScalar    la    ();
-           MatScalar    lb    ();
-           FuncRet [o]  ans     ();
-           Integer [o]  ierr    ();
-          ',
-'Evaluate the definite integral of a piecewise
+pp_def('pchip_chia',
+  Pars => 'x(n); f(n); d(n); int [io]skip(); la(); lb();
+    [o]ans(); longlong [o]ierr()',
+  GenericTypes => $F,
+  RedoDimsCode => <<'EOF',
+if ($SIZE(n) < 2) $CROAK("NUMBER OF DATA POINTS LESS THAN TWO");
+EOF
+  Code => pp_line_numbers(__LINE__, <<'EOF'),
+PDL_Indx ia, ib, il;
+$GENERIC() a = $la(), b = $lb(), xa, xb;
+PDL_Indx ir, n = $SIZE(n);
+$GENERIC() value = 0.;
+if (!$skip()) {
+  loop (n=1) %{
+    if ($x() > $x(n=>n-1)) continue;
+    $ierr() = -1;
+    $CROAK("X-ARRAY NOT STRICTLY INCREASING");
+  %}
+}
+/*  FUNCTION DEFINITION IS OK, GO ON. */
+$skip() = 1;
+$ierr() = 0;
+if (a < $x(n=>0) || a > $x(n=>n-1)) {
+  ++($ierr());
+}
+if (b < $x(n=>0) || b > $x(n=>n-1)) {
+  $ierr() += 2;
+}
+/*  COMPUTE INTEGRAL VALUE. */
+if (a != b) {
+  xa = PDLMIN(a,b);
+  xb = PDLMAX(a,b);
+  if (xb <= $x(n=>1)) {
+/*       INTERVAL IS TO LEFT OF X(2), SO USE FIRST CUBIC. */
+/*           --------------------------------------- */
+    $CHFIE($x(n=>0), $x(n=>1), $f(n=>0), $f(n=>1),
+        $d(n=>0), $d(n=>1), a, b, value);
+/*           --------------------------------------- */
+  } else if (xa >= $x(n=>n-2)) {
+/*       INTERVAL IS TO RIGHT OF X(N-1), SO USE LAST CUBIC. */
+/*           ------------------------------------------ */
+    $CHFIE($x(n=>n-2), $x(n=>n-1), $f(n=>n-2), $f(n=>n-1), $d(n=>n-2), $d(n=>n-1), a, b, value);
+/*           ------------------------------------------ */
+  } else {
+/*       'NORMAL' CASE -- XA.LT.XB, XA.LT.X(N-1), XB.GT.X(2). */
+/*    ......LOCATE IA AND IB SUCH THAT */
+/*         X(IA-1).LT.XA.LE.X(IA).LE.X(IB).LE.XB.LE.X(IB+1) */
+    ia = 0;
+    loop (n=:-1) %{
+      if (xa > $x())
+        ia = n + 1;
+    %}
+/*       IA = 1 IMPLIES XA.LT.X(1) .  OTHERWISE, */
+/*       IA IS LARGEST INDEX SUCH THAT X(IA-1).LT.XA,. */
+    ib = n - 1;
+    loop (n=:ia:-1) %{
+      if (xb < $x())
+        ib = n - 1;
+    %}
+/*       IB = N IMPLIES XB.GT.X(N) .  OTHERWISE, */
+/*       IB IS SMALLEST INDEX SUCH THAT XB.LT.X(IB+1) . */
+/*   ......COMPUTE THE INTEGRAL. */
+    if (ib <= ia) {
+/*        THIS MEANS IB = IA-1 AND */
+/*         (A,B) IS A SUBSET OF (X(IB),X(IA)). */
+/*            ------------------------------------------- */
+      $CHFIE($x(n=>ib), $x(n=>ia), $f(n=>ib),
+          $f(n=>ia), $d(n=>ib), $d(n=>ia), a, b, value);
+/*            ------------------------------------------- */
+    } else {
+/*        FIRST COMPUTE INTEGRAL OVER (X(IA),X(IB)). */
+/*        (Case (IB .EQ. IA) is taken care of by initialization */
+/*         of VALUE to ZERO.) */
+      if (ib > ia-1) {
+/*             --------------------------------------------- */
+        $PCHID(ia, ib, value);
+/*             --------------------------------------------- */
+      }
+/*        THEN ADD ON INTEGRAL OVER (XA,X(IA)). */
+      if (xa < $x(n=>ia)) {
+/* Computing MAX */
+        il = PDLMAX(0,ia - 1);
+        ir = il + 1;
+/*                 ------------------------------------- */
+        $GENERIC() chfie_ans = 0;
+        $CHFIE($x(n=>il), $x(n=>ir), $f(n=>il), $f(n=>ir), $d(n=>il), $d(n=>ir), xa, $x(n=>ia), chfie_ans);
+        value += chfie_ans;
+/*                 ------------------------------------- */
+      }
+/*        THEN ADD ON INTEGRAL OVER (X(IB),XB). */
+      if (xb > $x(n=>ib)) {
+/* Computing MIN */
+        ir = PDLMIN(ib + 1,n-1);
+        il = ir - 1;
+/*                 ------------------------------------- */
+        $GENERIC() chfie_ans = 0;
+        $CHFIE($x(n=>il), $x(n=>ir), $f(n=>il), $f(n=>ir), $d(n=>il), $d(n=>ir), $x(n=>ib), xb, chfie_ans);
+        value += chfie_ans;
+/*                 ------------------------------------- */
+      }
+/*        FINALLY, ADJUST SIGN IF NECESSARY. */
+      if (a > b) {
+        value = -value;
+      }
+    }
+  }
+}
+$ans() = value;
+EOF
+  Doc => <<'EOF',
+=for ref
+
+Integrate (x,f(x)) over arbitrary limits.
+
+Evaluate the definite integral of a piecewise
 cubic Hermite function over an arbitrary interval,
 given by C<[$la,$lb]>.
 
@@ -5713,8 +5805,7 @@ contains data interval or the intervals do not intersect at all.)
 which should never happen.
 
 =back
-',
-'Integrate (x,f(x)) over arbitrary limits.'
+EOF
 );
 
 pp_def('pchip_chid',
@@ -5725,6 +5816,13 @@ pp_def('pchip_chid',
 if ($SIZE(n) < 2) $CROAK("NUMBER OF DATA POINTS LESS THAN TWO");
 EOF
   Code => <<'EOF',
+if (!$skip()) {
+  loop (n=1) %{
+    if ($x() > $x(n=>n-1)) continue;
+    $ierr() = -1;
+    $CROAK("X-ARRAY NOT STRICTLY INCREASING");
+  %}
+}
 $PCHID($ia(), $ib(), $ans());
 EOF
   GenericTypes => $F,
