@@ -4262,7 +4262,8 @@ ENDDBG
     );
 }
 
-pp_add_macros(PCHDF => sub {my ($k, $x, $s, $out) = @_; '
+pp_add_macros(
+PCHDF => sub {my ($k, $x, $s, $out) = @_; '
 /* PDL version: K, X, S are var names, 4th param output */
 /* ***PURPOSE  Computes divided differences for DPCHCE and DPCHSP */
 /*      DPCHDF:   DPCHIP Finite Difference Formula */
@@ -4312,6 +4313,88 @@ SIGN => sub {my ($a, $b) = @_; "(($b) >= 0 ? PDL_ABS($a) : -PDL_ABS($a))"},
 PCHST => sub {my ($a, $b) = @_;
   "((($a) == 0. || ($b) == 0.) ? 0. : \$SIGN(1, ($a)) * \$SIGN(1, ($b)))"
 },
+CHFIE => sub {my ($x1, $x2, $f1, $f2, $d1, $d2, $a, $b, $out) = @_; '
+/* ***PURPOSE  Evaluates integral of a single cubic for DPCHIA */
+/*      DCHFIE:  Cubic Hermite Function Integral Evaluator. */
+/*   Called by  DPCHIA  to evaluate the integral of a single cubic (in */
+/*   Hermite form) over an arbitrary interval (A,B). */
+/* ---------------------------------------------------------------------- */
+/*   Parameters: */
+/*   VALUE -- (output) value of the requested integral. */
+/*   X1,X2 -- (input) endpoints if interval of definition of cubic. */
+/*   F1,F2 -- (input) function values at the ends of the interval. */
+/*   D1,D2 -- (input) derivative values at the ends of the interval. */
+/*   A,B -- (input) endpoints of interval of integration. */
+/* ***SEE ALSO  DPCHIA */
+/*  Programming notes: */
+/*  1. There is no error return from this routine because zero is */
+/*   indeed the mathematically correct answer when X1.EQ.X2 . */
+do {
+  $GENERIC() x1='.$x1.', x2='.$x2.', f1='.$f1.', f2='.$f2.',
+    d1='.$d1.', d2='.$d2.', a='.$a.', b='.$b.';
+  if ('.$x1.' == '.$x2.') {
+    '.$out.' = 0.; break;
+  }
+  $GENERIC() h = x2 - x1;
+  $GENERIC() ta1 = (a - x1) / h;
+  $GENERIC() ta2 = (x2 - a) / h;
+  $GENERIC() tb1 = (b - x1) / h;
+  $GENERIC() tb2 = (x2 - b) / h;
+/* Computing 3rd power */
+  $GENERIC() ua1 = ta1 * (ta1 * ta1);
+  $GENERIC() phia1 = ua1 * (2. - ta1);
+  $GENERIC() psia1 = ua1 * (3. * ta1 - 4.);
+/* Computing 3rd power */
+  $GENERIC() ua2 = ta2 * (ta2 * ta2);
+  $GENERIC() phia2 = ua2 * (2. - ta2);
+  $GENERIC() psia2 = -ua2 * (3. * ta2 - 4.);
+/* Computing 3rd power */
+  $GENERIC() ub1 = tb1 * (tb1 * tb1);
+  $GENERIC() phib1 = ub1 * (2. - tb1);
+  $GENERIC() psib1 = ub1 * (3. * tb1 - 4.);
+/* Computing 3rd power */
+  $GENERIC() ub2 = tb2 * (tb2 * tb2);
+  $GENERIC() phib2 = ub2 * (2. - tb2);
+  $GENERIC() psib2 = -ub2 * (3. * tb2 - 4.);
+  $GENERIC() fterm = f1 * (phia2 - phib2) + f2 * (phib1 - phia1);
+  $GENERIC() dterm = (d1 * (psia2 - psib2) + d2 * (psib1 - psia1)) * (h / 6.);
+  '.$out.' = 0.5 * h * (fterm + dterm);
+} while(0)
+'},
+PCHID => sub {my ($ia, $ib, $out) = @_; '
+/*  Programming notes: */
+/*  1. This routine uses a special formula that is valid only for */
+/*   integrals whose limits coincide with data values.  This is */
+/*   mathematically equivalent to, but much more efficient than, */
+/*   calls to DCHFIE. */
+/*  VALIDITY-CHECK ARGUMENTS. */
+do {
+  PDL_Indx ia = '.$ia.', ib = '.$ib.';
+  if (!$skip()) {
+    loop (n=1) %{
+      if ($x() > $x(n=>n-1)) continue;
+      $ierr() = -1;
+      $CROAK("X-ARRAY NOT STRICTLY INCREASING");
+    %}
+  }
+  /*  FUNCTION DEFINITION IS OK, GO ON. */
+  $skip() = 1;
+  if (ia < 0 || ia > $SIZE(n)-1 || ib < 0 || ib > $SIZE(n)-1) {
+    $ierr() = -4;
+    $CROAK("IA OR IB OUT OF RANGE");
+  }
+  $ierr() = 0;
+  /*  COMPUTE INTEGRAL VALUE. */
+  if ($ia() == $ib()) { $ans() = 0; continue; }
+  PDL_Indx low = PDLMIN($ia(),$ib()), iup = PDLMAX($ia(),$ib());
+  $GENERIC() sum = 0.;
+  loop (n=low:iup) %{
+    $GENERIC() h = $x(n=>n+1) - $x();
+    sum += h * ($f() + $f(n=>n+1) + ($d() - $d(n=>n+1)) * (h / 6.));
+  %}
+  '.$out.' = 0.5 * ($ia() > $ib() ? -sum : sum);
+} while(0)
+'},
 );
 
 pp_def('pchip_chim',
@@ -5635,40 +5718,14 @@ which should never happen.
 );
 
 pp_def('pchip_chid',
-  Pars => 'x(n);f(n);d(n);int [io]skip();longlong ia();longlong ib();[o]ans();longlong [o]ierr()',
+  Pars => 'x(n); f(n); d(n);
+    int [io]skip(); longlong ia(); longlong ib();
+    [o]ans(); longlong [o]ierr()',
   RedoDimsCode => <<'EOF',
 if ($SIZE(n) < 2) $CROAK("NUMBER OF DATA POINTS LESS THAN TWO");
 EOF
   Code => <<'EOF',
-/*  Programming notes: */
-/*  1. This routine uses a special formula that is valid only for */
-/*   integrals whose limits coincide with data values.  This is */
-/*   mathematically equivalent to, but much more efficient than, */
-/*   calls to DCHFIE. */
-/*  VALIDITY-CHECK ARGUMENTS. */
-if (!$skip()) {
-  loop (n=1) %{
-    if ($x() > $x(n=>n-1)) continue;
-    $ierr() = -1;
-    $CROAK("X-ARRAY NOT STRICTLY INCREASING");
-  %}
-}
-/*  FUNCTION DEFINITION IS OK, GO ON. */
-$skip() = 1;
-if ($ia() < 0 || $ia() > $SIZE(n)-1 || $ib() < 0 || $ib() > $SIZE(n)-1) {
-  $ierr() = -4;
-  $CROAK("IA OR IB OUT OF RANGE");
-}
-$ierr() = 0;
-/*  COMPUTE INTEGRAL VALUE. */
-if ($ia() == $ib()) { $ans() = 0; continue; }
-PDL_Indx low = PDLMIN($ia(),$ib()), iup = PDLMAX($ia(),$ib());
-$GENERIC() sum = 0.;
-loop (n=low:iup) %{
-  $GENERIC() h = $x(n=>n+1) - $x();
-  sum += h * ($f() + $f(n=>n+1) + ($d() - $d(n=>n+1)) * (h / 6.));
-%}
-$ans() = 0.5 * ($ia() > $ib() ? -sum : sum);
+$PCHID($ia(), $ib(), $ans());
 EOF
   GenericTypes => $F,
   Doc => <<'EOF',
