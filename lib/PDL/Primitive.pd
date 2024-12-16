@@ -4314,15 +4314,110 @@ PCHST => sub {my ($a, $b) = @_;
 },
 );
 
-defslatec('pchip_chim',
-	  {D => 'dpchim'},
-	  'IntVal	n=$SIZE(n);
-           Mat          x       (n);
-           Mat          f       (n);
-           Mat     [o]  d       (n);
-           Integer [o]  ierr    ();
-          ',
-'Calculate the derivatives needed to determine a monotone piecewise
+pp_def('pchip_chim',
+  Pars => 'x(n); f(n); [o]d(n); longlong [o]ierr();',
+  RedoDimsCode => <<'EOF',
+if ($SIZE(n) < 2) $CROAK("NUMBER OF DATA POINTS LESS THAN TWO");
+EOF
+  Code => pp_line_numbers(__LINE__, <<'EOF'),
+/* Local variables */
+$GENERIC() dmax, hsumt3;
+PDL_Indx n = $SIZE(n);
+/*  VALIDITY-CHECK ARGUMENTS. */
+loop (n=1) %{
+  if ($x() > $x(n=>n-1)) continue;
+  $ierr() = -1;
+  $CROAK("X-ARRAY NOT STRICTLY INCREASING");
+%}
+/*  FUNCTION DEFINITION IS OK, GO ON. */
+$ierr() = 0;
+$GENERIC() h1 = $x(n=>1) - $x(n=>0);
+$GENERIC() del1 = ($f(n=>1) - $f(n=>0)) / h1;
+$GENERIC() dsave = del1;
+/*  SPECIAL CASE N=2 -- USE LINEAR INTERPOLATION. */
+if (n <= 2) {
+  $d(n=>0) = $d(n=>1) = del1;
+  continue;
+}
+/*  NORMAL CASE  (N .GE. 3). */
+$GENERIC() h2 = $x(n=>2) - $x(n=>1);
+$GENERIC() del2 = ($f(n=>2) - $f(n=>1)) / h2;
+/*  SET D(1) VIA NON-CENTERED THREE-POINT FORMULA, ADJUSTED TO BE */
+/*   SHAPE-PRESERVING. */
+$GENERIC() hsum = h1 + h2;
+$GENERIC() w1 = (h1 + hsum) / hsum;
+$GENERIC() w2 = -h1 / hsum;
+$d(n=>0) = w1 * del1 + w2 * del2;
+if ($PCHST($d(n=>0), del1) <= 0.) {
+  $d(n=>0) = 0.;
+} else if ($PCHST(del1, del2) < 0.) {
+/*    NEED DO THIS CHECK ONLY IF MONOTONICITY SWITCHES. */
+  dmax = 3. * del1;
+  if (PDL_ABS($d(n=>0)) > PDL_ABS(dmax)) {
+    $d(n=>0) = dmax;
+  }
+}
+/*  LOOP THROUGH INTERIOR POINTS. */
+loop (n=1:-1) %{
+  if (n != 1) {
+    h1 = h2;
+    h2 = $x(n=>n+1) - $x();
+    hsum = h1 + h2;
+    del1 = del2;
+    del2 = ($f(n=>n+1) - $f()) / h2;
+  }
+/*    SET D(I)=0 UNLESS DATA ARE STRICTLY MONOTONIC. */
+  $d() = 0.;
+  $GENERIC() dtmp = $PCHST(del1, del2);
+  if (dtmp <= 0) {
+    if (dtmp == 0.) {
+/*    COUNT NUMBER OF CHANGES IN DIRECTION OF MONOTONICITY. */
+      if (del2 == 0.) {
+        continue;
+      }
+      if ($PCHST(dsave, del2) < 0.) {
+        ++($ierr());
+      }
+      dsave = del2;
+      continue;
+    }
+    ++($ierr());
+    dsave = del2;
+    continue;
+  }
+/*    USE BRODLIE MODIFICATION OF BUTLAND FORMULA. */
+  hsumt3 = hsum + hsum + hsum;
+  w1 = (hsum + h1) / hsumt3;
+  w2 = (hsum + h2) / hsumt3;
+/* Computing MAX */
+  dmax = PDLMAX(PDL_ABS(del1),PDL_ABS(del2));
+/* Computing MIN */
+  $GENERIC() dmin = PDLMIN(PDL_ABS(del1),PDL_ABS(del2));
+  $GENERIC() drat1 = del1 / dmax;
+  $GENERIC() drat2 = del2 / dmax;
+  $d() = dmin / (w1 * drat1 + w2 * drat2);
+%}
+/*  SET D(N) VIA NON-CENTERED THREE-POINT FORMULA, ADJUSTED TO BE */
+/*   SHAPE-PRESERVING. */
+w1 = -h2 / hsum;
+w2 = (h2 + hsum) / hsum;
+$d(n=>n-1) = w1 * del1 + w2 * del2;
+if ($PCHST($d(n=>n-1), del2) <= 0.) {
+  $d(n=>n-1) = 0.;
+} else if ($PCHST(del1, del2) < 0.) {
+/*    NEED DO THIS CHECK ONLY IF MONOTONICITY SWITCHES. */
+  dmax = 3. * del2;
+  if (PDL_ABS($d(n=>n-1)) > PDL_ABS(dmax)) {
+    $d(n=>n-1) = dmax;
+  }
+}
+EOF
+  Doc => <<'EOF',
+=for ref
+
+Calculate the derivatives of (x,f(x)) using cubic Hermite interpolation.
+
+Calculate the derivatives needed to determine a monotone piecewise
 cubic Hermite interpolant to the given set of points (C<$x,$f>,
 where C<$x> is strictly increasing).
 The resulting set of points - C<$x,$f,$d>, referred to
@@ -4383,8 +4478,7 @@ Journal on Scientific and Statistical Computing 5, 2
 F. N. Fritsch and R. E. Carlson, Monotone piecewise
 cubic interpolation, SIAM Journal on Numerical Analysis
 17, 2 (April 1980), pp. 238-246.
-',
-'Calculate the derivatives of (x,f(x)) using cubic Hermite interpolation.'
+EOF
 );
 
 pp_def('pchip_chic',
