@@ -4390,6 +4390,154 @@ do {
   '.$out.' = 0.5 * ('.$ia.' > '.$ib.' ? -sum : sum);
 } while(0)
 '},
+CHFD => sub {my ($do_deriv) = @_; '
+/*  Programming notes: */
+/*   2. Most of the coding between the call to DCHFDV and the end of */
+/*    the IR-loop could be eliminated if it were permissible to */
+/*    assume that XE is ordered relative to X. */
+/*   3. DCHFDV does not assume that X1 is less than X2.  thus, it would */
+/*    be possible to write a version of DPCHFD that assumes a strict- */
+/*    ly decreasing X-array by simply running the IR-loop backwards */
+/*    (and reversing the order of appropriate tests). */
+/*   4. The present code has a minor bug, which I have decided is not */
+/*    worth the effort that would be required to fix it. */
+/*    If XE contains points in [X(N-1),X(N)], followed by points .LT. */
+/*    X(N-1), followed by points .GT.X(N), the extrapolation points */
+/*    will be counted (at least) twice in the total returned in IERR. */
+/*  VALIDITY-CHECK ARGUMENTS. */
+if (!$skip()) {
+  loop (n=1) %{
+    if ($x() > $x(n=>n-1)) continue;
+    $ierr() = -3;
+    $CROAK("X-ARRAY NOT STRICTLY INCREASING");
+  %}
+}
+/*  FUNCTION DEFINITION IS OK, GO ON. */
+$ierr() = 0;
+$skip() = 1;
+/*  LOOP OVER INTERVALS.    (   INTERVAL INDEX IS  IL = IR-1  . ) */
+/*                ( INTERVAL IS X(IL).LE.X.LT.X(IR) . ) */
+PDL_Indx n = $SIZE(n), ne = $SIZE(ne);
+PDL_Indx jfirst = 0;
+PDL_Indx ir = 1;
+while (1) {
+/*   SKIP OUT OF LOOP IF HAVE PROCESSED ALL EVALUATION POINTS. */
+  if (jfirst >= ne)
+    break;
+/*   LOCATE ALL POINTS IN INTERVAL. */
+  char located = 0;
+  PDL_Indx j = jfirst;
+  loop (ne=jfirst) %{
+    j = ne;
+    if ($xe() >= $x(n=>ir)) {
+      located = 1;
+      break;
+    }
+  %}
+  if (!located || ir == n-1)
+    j = ne;
+/*   HAVE LOCATED FIRST POINT BEYOND INTERVAL. */
+  PDL_Indx nj = j - jfirst;
+/*   SKIP EVALUATION IF NO POINTS IN INTERVAL. */
+  if (nj == 0) {
+    ++ir;
+    if (ir < n)
+      continue;
+    break;
+  }
+/*   EVALUATE CUBIC AT XE(I),  I = JFIRST (1) J-1 . */
+/*     ---------------------------------------------------------------- */
+  PDL_Indx next[] = {0,0};
+  do { /* inline dchfdv */
+/* Local variables */
+    $GENERIC() x1 = $x(n=>ir-1), x2 = $x(n=>ir);
+    $GENERIC() f1 = $f(n=>ir-1), f2 = $f(n=>ir);
+    $GENERIC() d1 = $d(n=>ir-1), d2 = $d(n=>ir);
+    $GENERIC() h = x2 - x1;
+    if (h == 0.)
+      $CROAK("INTERVAL ENDPOINTS EQUAL");
+/*  INITIALIZE. */
+    $GENERIC() xmi = PDLMIN(0.,h);
+    $GENERIC() xma = PDLMAX(0.,h);
+/*  COMPUTE CUBIC COEFFICIENTS (EXPANDED ABOUT X1). */
+    $GENERIC() delta = (f2 - f1) / h;
+    $GENERIC() del1 = (d1 - delta) / h;
+    $GENERIC() del2 = (d2 - delta) / h;
+/*                       (DELTA IS NO LONGER NEEDED.) */
+    $GENERIC() c2 = -(del1 + del1 + del2);
+    $GENERIC() c2t2 = c2 + c2;
+    $GENERIC() c3 = (del1 + del2) / h;
+/*                 (H, DEL1 AND DEL2 ARE NO LONGER NEEDED.) */
+    $GENERIC() c3t3 = c3 + c3 + c3;
+/*  EVALUATION LOOP. */
+    loop (ne=:nj) %{
+      $GENERIC() x = $xe(ne=>ne+jfirst) - x1;
+      $fe(ne=>ne+jfirst) = f1 + x * (d1 + x * (c2 + x * c3));
+      '.($do_deriv ? '$de(ne=>ne+jfirst) = d1 + x * (c2t2 + x * c3t3);' : '').'
+/*      COUNT EXTRAPOLATION POINTS. */
+      if (x < xmi)
+        ++next[0];
+      if (x > xma)
+        ++next[1];
+/*    (NOTE REDUNDANCY--IF EITHER CONDITION IS TRUE, OTHER IS FALSE.) */
+    %}
+  } while (0); /* end inline dchfdv */
+/*     ---------------------------------------------------------------- */
+  if (next[1] != 0) {
+/*       IN THE CURRENT SET OF XE-POINTS, THERE ARE NEXT(2) TO THE */
+/*       RIGHT OF X(IR). */
+/*        THESE ARE ACTUALLY EXTRAPOLATION POINTS. */
+    $ierr() += next[1];
+  }
+  if (next[0] != 0) {
+/*       IN THE CURRENT SET OF XE-POINTS, THERE ARE NEXT(1) TO THE */
+/*       LEFT OF X(IR-1). */
+    if (ir < 2) {
+/*        THESE ARE ACTUALLY EXTRAPOLATION POINTS. */
+      $ierr() += next[0];
+      goto L49_$PPSYM();
+    }
+/*        XE IS NOT ORDERED RELATIVE TO X, SO MUST ADJUST */
+/*        EVALUATION INTERVAL. */
+/*        FIRST, LOCATE FIRST POINT TO LEFT OF X(IR-1). */
+    located = 0;
+    PDL_Indx i = jfirst;
+    loop (ne=jfirst:j) %{
+      i = ne;
+      if ($xe() < $x(n=>ir-1)) {
+        located = 1;
+        break;
+      }
+    %}
+    if (!located) {
+/*        NOTE-- CANNOT DROP THROUGH HERE UNLESS THERE IS AN ERROR */
+/*           IN DCHFDV. */
+      $ierr() = -5;
+      $CROAK("ERROR RETURN FROM DCHFDV -- FATAL");
+    }
+/*        RESET J.  (THIS WILL BE THE NEW JFIRST.) */
+    j = i;
+/*        NOW FIND OUT HOW FAR TO BACK UP IN THE X-ARRAY. */
+    loop (n=:ir) %{
+      i = n;
+      if ($xe(ne=>j) < $x())
+        break;
+    %}
+/*        NB-- CAN NEVER DROP THROUGH HERE, SINCE XE(J).LT.X(IR-1). */
+/*        AT THIS POINT, EITHER  XE(J) .LT. X(1) */
+/*         OR    X(I-1) .LE. XE(J) .LT. X(I) . */
+/*        RESET IR, RECOGNIZING THAT IT WILL BE INCREMENTED BEFORE */
+/*        CYCLING. */
+/* Computing MAX */
+    ir = PDLMAX(0,i-1);
+  }
+L49_$PPSYM():
+  jfirst = j;
+/*   END OF IR-LOOP. */
+  ++ir;
+  if (ir >= n) break;
+}
+'},
 );
 
 pp_def('pchip_chim',
@@ -5469,20 +5617,25 @@ New York, 1978, pp. 53-59.
 EOF
 );
 
-defslatec('pchip_chfd',
-	  {D => 'dpchfd'},
-	  'IntVal	n=$SIZE(n);
-           Mat          x       (n);
-           Mat          f       (n);
-           Mat          d       (n);
-           Logical [io] skip    ();
-           IntVal       ne=$SIZE(ne);
-           Mat          xe      (ne);
-           Mat     [o]  fe      (ne);
-           Mat     [o]  de      (ne);
-           Integer [o]  ierr    ();
-          ',
-'Given a piecewise cubic Hermite function - such as from
+pp_def('pchip_chfd',
+  Pars => 'x(n); f(n); d(n); int [io] skip(); xe(ne);
+    [o] fe(ne); [o] de(ne); longlong [o] ierr()',
+  RedoDimsCode => <<'EOF',
+if ($SIZE(n) < 2)  $CROAK("NUMBER OF DATA POINTS LESS THAN TWO");
+if ($SIZE(ne) < 1) $CROAK("NUMBER OF EVALUATION POINTS LESS THAN ONE");
+EOF
+  Code => pp_line_numbers(__LINE__, <<'EOF'),
+$CHFD(1);
+EOF
+  GenericTypes => $F,
+  Doc => <<'EOF',
+=for ref
+
+Evaluate a piecewise cubic Hermite function and its first derivative
+at an array of points. May be used by itself for Hermite interpolation,
+or as an evaluator for DPCHIM or DPCHIC.
+
+Given a piecewise cubic Hermite function - such as from
 L</pchip_chim> - evaluate the function (C<$fe>) and
 derivative (C<$de>) at a set of points (C<$xe>).
 If function values alone are required, use L</pchip_chfe>.
@@ -5540,10 +5693,7 @@ E<gt>0 if extrapolation was performed at C<ierr> points
 which should never happen.
 
 =back
-',
-'Evaluate a piecewise cubic Hermite function and its first derivative
-at an array of points. May be used by itself for Hermite interpolation,
-or as an evaluator for DPCHIM or DPCHIC.'
+EOF
 );
 
 defslatec('pchip_chfe',
