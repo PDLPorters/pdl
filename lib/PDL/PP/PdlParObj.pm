@@ -217,10 +217,12 @@ sub do_indterm { my($this,$pdl,$ind,$subst,$context) = @_;
   my $index = delete($subst->{$substname}) //
 # No => get the one from the nearest context.
     (grep $_ eq $substname, map $_->[1], reverse @$context)[0];
-  croak "pp_def($this->{Sig}{OpName}): Access Index not found: $pdl, $ind, @{[$this->{IndObjs}[$ind]->name]}
-	  On stack:".(join ' ',map {"($_->[0],$_->[1])"} @$context)."\n"
-	  if !defined $index;
-  return "(".($this->get_incname($ind,1))."*($index))";
+  if (!defined $index) {
+    croak "pp_def($this->{Sig}{OpName}): no value given for ndarray '$pdl' index '$substname'
+          You supplied (@{[sort keys %$subst]})
+          On stack: ".(join ' ',map {"($_->[0],$_->[1])"} @$context)."\n"
+  }
+  "(".($this->get_incname($ind,1))."*($index))";
 }
 
 sub get_xsdatapdecl { 
