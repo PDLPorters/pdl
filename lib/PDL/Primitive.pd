@@ -5889,21 +5889,75 @@ arguments have B<NOT> been validated.
 EOF
 );
 
-defslatec('pchip_chbs',
-	  {D => 'dpchbs'},
-	  'IntVal	n=$SIZE(n);
-           Mat          x       (n);
-           Mat          f       (n);
-           Mat          d       (n);
-           Integer      knotyp  ();
-           Integer [io] nknots  ();
-           Mat     [io] t       (tsize=CALC(2*$SIZE(n)+4));
-           Mat     [o]  bcoef   (bsize=CALC(2*$SIZE(n)));
-           Integer [o]  ndim    ();
-           Integer [o]  kord    ();
-           Integer [o]  ierr    ();
-          ',
-'Computes the B-spline representation of the PCH function
+pp_def('pchip_chbs',
+  Pars => 'x(n); f(n); d(n); longlong knotyp(); longlong [io]nknots(); [io]t(tsize=CALC(2*$SIZE(n)+4));
+    [o]bcoef(bsize=CALC(2*$SIZE(n))); longlong [o]ndim(); longlong [o]kord(); longlong [o]ierr()',
+  GenericTypes => $F,
+  Code => pp_line_numbers(__LINE__, <<'EOF'),
+/* Local variables */
+PDL_Indx n = $SIZE(n), ndim = $ndim() = n << 1;
+$kord() = 4;
+$ierr() = 0;
+/*  Check argument validity.  Set up knot sequence if OK. */
+if ($knotyp() > 2) {
+  $ierr() = -1;
+  $CROAK("KNOTYP GREATER THAN 2");
+}
+if ($knotyp() < 0) {
+  if ($nknots() != $ndim() + 4) {
+    $ierr() = -2;
+    $CROAK("KNOTYP.LT.0 AND NKNOTS.NE.(2*N+4)");
+  }
+} else {
+/*      Set up knot sequence. */
+  $nknots() = $ndim() + 4;
+  do { /* inline dpchkt */
+/*  Set interior knots. */
+    PDL_Indx j = 0;
+    loop (n) %{
+      j += 2;
+      $t(tsize=>j+1) = $t(tsize=>j) = $x();
+    %}
+/*   Assertion:  At this point T(3),...,T(NDIM+2) have been set and */
+/*         J=NDIM+1. */
+/*  Set end knots according to KNOTYP. */
+    $GENERIC() hbeg = $x(n=>1) - $x(n=>0);
+    $GENERIC() hend = $x(n=>n-1) - $x(n=>n-2);
+    if ($knotyp() == 1) {
+/*      Extrapolate. */
+      $t(tsize=>1) = $x(n=>0) - hbeg;
+      $t(tsize=>ndim+2) = $x(n=>n-1) + hend;
+    } else if ($knotyp() == 2) {
+/*      Periodic. */
+      $t(tsize=>1) = $x(n=>0) - hend;
+      $t(tsize=>ndim+2) = $x(n=>n-1) + hbeg;
+    } else {
+/*      Quadruple end knots. */
+      $t(tsize=>1) = $x(n=>0);
+      $t(tsize=>ndim+2) = $x(n=>n-1);
+    }
+    $t(tsize=>0) = $t(tsize=>1);
+    $t(tsize=>ndim+3) = $t(tsize=>ndim+2);
+  } while (0); /* end inline dpchkt */
+}
+/*  Compute B-spline coefficients. */
+$GENERIC() hnew = $t(tsize=>2) - $t(tsize=>0);
+loop (n) %{
+  $GENERIC() hold = hnew;
+/*      The following requires mixed mode arithmetic. */
+  $GENERIC() dov3 = $d() / 3;
+  $bcoef(bsize=>2*n) = $f() - hold * dov3;
+/*      The following assumes T(2*K+1) = X(K). */
+  hnew = $t(tsize=>2*n+4) - $t(tsize=>2*n+2);
+  $bcoef(bsize=>2*n+1) = $f() + hnew * dov3;
+%}
+EOF
+  Doc => <<'EOF',
+=for ref
+
+Piecewise Cubic Hermite function to B-Spline converter.
+
+Computes the B-spline representation of the PCH function
 determined by N,X,F,D. The output is the B-representation for the
 function:  NKNOTS, T, BCOEF, NDIM, KORD.
 
@@ -6005,11 +6059,7 @@ Error status returned by C<$ierr>:
 
 References: F. N. Fritsch, "Representations for parametric cubic
 splines," Computer Aided Geometric Design 6 (1989), pp.79-82.
-
-=cut
-
-',
-'Piecewise Cubic Hermite function to B-Spline converter.'
+EOF
 );
 
 pp_def('pchip_bvalu',
