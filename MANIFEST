@@ -146,7 +146,6 @@ lib/PDL/PP/Dims.pm
 lib/PDL/PP/PDLCode.pm
 lib/PDL/PP/PdlParObj.pm
 lib/PDL/PP/Signature.pm
-lib/PDL/Primitive-pchip.c
 lib/PDL/Primitive-xoshiro256plus.c
 lib/PDL/Primitive.pd
 lib/PDL/QuickStart.pod

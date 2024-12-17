@@ -6,7 +6,7 @@ my $AF = [map $_->ppsym, grep !$_->integer, types];
 $AF = [(grep $_ ne 'D', @$AF), 'D']; # so defaults to D if non-float given
 
 { no warnings 'once'; # pass info back to Makefile.PL
-$PDL::Core::Dev::EXTRAS{$::PDLMOD}{OBJECT} .= " $::PDLBASE-xoshiro256plus\$(OBJ_EXT) $::PDLBASE-pchip\$(OBJ_EXT)";
+$PDL::Core::Dev::EXTRAS{$::PDLMOD}{OBJECT} .= " $::PDLBASE-xoshiro256plus\$(OBJ_EXT)";
 }
 
 pp_addpm({At=>'Top'},<<'EOD');
@@ -4133,140 +4133,6 @@ Find all numbers less that 100 that are of the form 2*y and 3*x
 sub PDL::intersect { setops($_[0], 'AND', $_[1]) }
 EOD
 
-sub intcopy {
-  my ($cvarname, $rvalue) = @_; # closures
-  (sub {"&".$cvarname->(@_)}, sub {"PDL_LongLong *"},
-    sub {"PDL_LongLong ".$cvarname->(@_)." = ".$rvalue->(@_).";"});
-}
-# defslatec( $pdlname, $funcnames, $argstr, $docstring, $funcref )
-#
-# $pdlname is the name of the PDL function to be created
-# $funcnames is a reference to a hash array, whose keys define
-# the single (S), and double precision (D) names of the
-# SLATEC routines to be linked to.
-#
-# $argstr is a list of arguments expected by the SLATEC routine
-# - some of the allowed type names are:
-#   FuncRet
-#     - specifies that this is a function, not a subroutine, and
-#       that the output of the function should be stored in this
-#       variable
-#   IntVal
-#     - used for passing in a value to func, either calculated or a constant,
-#       but not a caller-supplied arg
-#   Logical
-#     - A Fortran Boolean, defined as same size as REAL/INTEGER so 'long'
-#
-# $docstring gives the text to be used as the function documentation
-#
-# $funcref gets placed within a '=for ref' pod statement at the
-# start of the documentation - ie it is placed before the
-# text within $docstring. This string gets printed out
-# in the perldl shell after a '?? string' command
-#
-# [Par_forcetype(undef=none,ref=OtherPar), C_argin, C_paramtype, C_decl_value]
-my %KIND2I = (
-  Mat => ['', sub{"\$P($_[0][2])"}, sub {PDL::Type->new($_[0])->ctype." *"}],
-  FuncRet => ['', sub {()}, sub {()}],
-  Integer => ['longlong ', sub{"\$P($_[0][2])"}, sub {"PDL_LongLong *"}],
-  IntScalar => ['longlong ', sub{"\$$_[0][2]()"}, sub {"PDL_LongLong "}],
-  MatScalar => ['', sub{"\$$_[0][2]()"}, sub {PDL::Type->new($_[0])->ctype." "}],
-  Logical => ['int ', sub{"\$P($_[0][2])"}, sub {"PDL_Long *"}],
-  OtherParDim => [\'PDL_LongLong ', intcopy(sub {"dim_$_[0][2]"}, sub {"\$SIZE($_[0][2])"})],
-  IntVal => [undef, sub {$_[0][4]}, sub {"PDL_LongLong "}],
-);
-my %ignore_ppar = map +($_=>1), qw(IntVal OtherParDim);
-my %prototype = ( F => "float", D => "double" );
-my %ftypes = (S => 'F', D => 'D');
-our $debug = 0;  # print out calls to pp_def; use "local $debug=1" before func
-sub defslatec {
-    my ($pname,$fnames,$argstr,$docstring,$funcref) = @_;
-    my @args = grep /\S/, split ';', $argstr;
-    my @args2 = map {
-		/^\s*([a-zA-Z]+)\s+	# "Type name"
-		  ((?:\[[^]]*\])?)\s*	# Options
-		  ([a-zA-Z]+)\s*	# Par name
-		  (?:
-		    ((?:\(.*\))?)\s*$	# Dims
-		    |
-		    =\s*((?:.*?)?)\s*$	# value for IntVal
-		  )
-		 /x or die("Invalid slatec par $_");
-		[$1,$2,$3,$4,$5]} @args;
-    # is this for a function (Type name eq "FuncRet")
-    # or a subroutine?
-    die "Only one FuncRet allowed in pars list.\n"
-      if (my @funcret = grep $_->[0] eq "FuncRet", @args2) > 1;
-    my $fpar = @funcret ? "\$$funcret[0][2]()" : undef;
-    my $pars = join '; ', map
-      +($KIND2I{$_->[0]}[0] // die "Invalid ppars ",join(',',@$_),"\n") .
-        join(' ', grep length, $_->[1], "$_->[2]$_->[3]"),
-      grep !$ignore_ppar{$_->[0]}, @args2;
-    my $otherpars = join ';', map
-      ${$KIND2I{$_->[0]}[0]} . join(' => ', @$_[2,2]),
-      grep ref $KIND2I{$_->[0]}[0], @args2;
-    my $argorder;
-    if ($otherpars) {
-      my @mand = map $_->[2], grep $_->[1] !~ /\bo\b/, @args2;
-      my @opt = map $_->[2], grep $_->[1] =~ /\bo\b/, @args2;
-      $argorder = [@mand, @opt];
-    }
-    my @talts = map
-      [$ftypes{$_} // die("FTYPE $_ NOT THERE\n"),$fnames->{$_}],
-      sort keys %$fnames;
-    my $func = "\$T".join('',map {$_->[0]} @talts) . "(" .
-      join(',',map qq{$_->[1]}, @talts).")";
-    if ( defined $fpar ) { $func = "$fpar = $func"; }
-    my $funcargs = join ',', map $KIND2I{$_->[0]}[1]->($_), @args2;
-    my @protos = map $KIND2I{$_->[0]}[2], @args2;
-    my @cheaders;
-    foreach my $t ( @talts ) {
-        my @decl_args;
-        for my $ind (0..$#protos) {
-          my $arg = $protos[$ind];
-          next unless my @ret = $arg->($t->[0]);
-          push @decl_args, "$ret[0]$args2[$ind][2]";
-        }
-        push @cheaders, (defined $fpar ? $prototype{$t->[0]} : "void")
-          . " $t->[1](" .
-          join(',', @decl_args) . ");";
-    }
-    # add on the function reference, if supplied, to the start of
-    # the doc string
-    if ( defined $docstring ) {
-      $docstring = "=for ref\n\n$funcref\n\n$docstring" if defined $funcref;
-    } else {
-      $docstring = '';
-    }
-    # IntVals
-    my @intcopy_code = map +($KIND2I{$_->[0]}[3]||sub{})->($_), @args2;
-    my $code = join("\n", @intcopy_code, "$func($funcargs);");
-    print <<"ENDDBG" if $debug;
-pp_def('$pname',
-  Pars => '$pars',@{[ !$otherpars ? '' : "
-  OtherPars => '$otherpars',"]}@{[ !$argorder ? '' : "
-  ArgOrder => [qw(@$argorder)],"]}
-  Code => pp_line_numbers(__LINE__, <<'EOF'),
-$code
-EOF
-  CHeader => '@cheaders',
-  GenericTypes => [qw(@{[join ", ", map $_->[0], @talts]})],
-  Doc => <<'EOF',
-$docstring
-EOF
-);
-ENDDBG
-    pp_def($pname,
-      Pars => $pars,
-      ($otherpars ? (OtherPars => $otherpars) : ()),
-      $argorder ? (ArgOrder => $argorder) : (),
-      Code => $code,
-      CHeader => join("\n", @cheaders),
-      GenericTypes => [map $_->[0], @talts],
-      Doc => $docstring,
-    );
-}
-
 pp_add_macros(
 PCHDF => sub {my ($k, $x, $s, $out) = @_; '
 /* PDL version: K, X, S are var names, 4th param output */
@@ -5687,19 +5553,25 @@ which should never happen.
 EOF
 );
 
-defslatec('pchip_chfe',
-	  {D => 'dpchfe'},
-	  'IntVal	n=$SIZE(n);
-           Mat          x       (n);
-           Mat          f       (n);
-           Mat          d       (n);
-           Logical [io] skip    ();
-           IntVal       ne=$SIZE(ne);
-           Mat          xe      (ne);
-           Mat     [o]  fe      (ne);
-           Integer [o]  ierr    ();
-          ',
-'Given a piecewise cubic Hermite function - such as from
+pp_def('pchip_chfe',
+  Pars => 'x(n); f(n); d(n); int [io] skip(); xe(ne);
+    [o] fe(ne); longlong [o] ierr()',
+  RedoDimsCode => <<'EOF',
+if ($SIZE(n) < 2)  $CROAK("NUMBER OF DATA POINTS LESS THAN TWO");
+if ($SIZE(ne) < 1) $CROAK("NUMBER OF EVALUATION POINTS LESS THAN ONE");
+EOF
+  Code => pp_line_numbers(__LINE__, <<'EOF'),
+$CHFD(0);
+EOF
+  GenericTypes => $F,
+  Doc => <<'EOF',
+=for ref
+
+Evaluate a piecewise cubic Hermite function at an array of points.
+May be used by itself for Hermite interpolation, or as an evaluator
+for L</pchip_chim> or L</pchip_chic>.
+
+Given a piecewise cubic Hermite function - such as from
 L</pchip_chim> - evaluate the function (C<$fe>) at
 a set of points (C<$xe>).
 If derivative values are also required, use L</pchip_chfd>.
@@ -5767,13 +5639,7 @@ E<gt>0 if extrapolation was performed at C<ierr> points
 (The FE-array has not been changed in any of these cases.)
 NOTE:  The above errors are checked in the order listed,
 and following arguments have B<NOT> been validated.
-
-=cut
-
-',
-'Evaluate a piecewise cubic Hermite function at an array of points.
-May be used by itself for Hermite interpolation, or as an evaluator
-for L</pchip_chim> or L</pchip_chic>.'
+EOF
 );
 
 pp_def('pchip_chia',
