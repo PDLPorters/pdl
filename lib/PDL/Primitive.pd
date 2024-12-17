@@ -4398,7 +4398,7 @@ for (ir = 1; ir < n && jfirst < ne; ++ir) {
 );
 
 pp_def('pchip_chim',
-  Pars => 'x(n); f(n); [o]d(n); longlong [o]ierr();',
+  Pars => 'x(n); f(n); [o]d(n); indx [o]ierr();',
   RedoDimsCode => <<'EOF',
 if ($SIZE(n) < 2) $CROAK("NUMBER OF DATA POINTS LESS THAN TWO");
 EOF
@@ -4565,8 +4565,8 @@ EOF
 );
 
 pp_def('pchip_chic',
-  Pars => 'longlong ic(two=2); vc(two=2); mflag(); x(n); f(n);
-    [o]d(n); longlong [o]ierr();
+  Pars => 'sbyte ic(two=2); vc(two=2); mflag(); x(n); f(n);
+    [o]d(n); indx [o]ierr();
     [t]h(nless1=CALC($SIZE(n)-1)); [t]slope(nless1);',
   GenericTypes => $F,
   RedoDimsCode => <<'EOF',
@@ -5187,8 +5187,8 @@ EOF
 );
 
 pp_def('pchip_chsp',
-  Pars => 'longlong ic(two=2); vc(two=2); x(n); f(n);
-    [o]d(n); longlong [o]ierr();
+  Pars => 'sbyte ic(two=2); vc(two=2); x(n); f(n);
+    [o]d(n); indx [o]ierr();
     [t]dx(n); [t]dy_dx(n);
   ',
   GenericTypes => $F,
@@ -5476,7 +5476,7 @@ EOF
 
 pp_def('pchip_chfd',
   Pars => 'x(n); f(n); d(n); int [io] skip(); xe(ne);
-    [o] fe(ne); [o] de(ne); longlong [o] ierr()',
+    [o] fe(ne); [o] de(ne); indx [o] ierr()',
   RedoDimsCode => <<'EOF',
 if ($SIZE(n) < 2)  $CROAK("NUMBER OF DATA POINTS LESS THAN TWO");
 if ($SIZE(ne) < 1) $CROAK("NUMBER OF EVALUATION POINTS LESS THAN ONE");
@@ -5555,7 +5555,7 @@ EOF
 
 pp_def('pchip_chfe',
   Pars => 'x(n); f(n); d(n); int [io] skip(); xe(ne);
-    [o] fe(ne); longlong [o] ierr()',
+    [o] fe(ne); indx [o] ierr()',
   RedoDimsCode => <<'EOF',
 if ($SIZE(n) < 2)  $CROAK("NUMBER OF DATA POINTS LESS THAN TWO");
 if ($SIZE(ne) < 1) $CROAK("NUMBER OF EVALUATION POINTS LESS THAN ONE");
@@ -5644,7 +5644,7 @@ EOF
 
 pp_def('pchip_chia',
   Pars => 'x(n); f(n); d(n); int [io]skip(); la(); lb();
-    [o]ans(); longlong [o]ierr()',
+    [o]ans(); indx [o]ierr()',
   GenericTypes => $F,
   RedoDimsCode => <<'EOF',
 if ($SIZE(n) < 2) $CROAK("NUMBER OF DATA POINTS LESS THAN TWO");
@@ -5822,8 +5822,8 @@ EOF
 
 pp_def('pchip_chid',
   Pars => 'x(n); f(n); d(n);
-    int [io]skip(); longlong ia(); longlong ib();
-    [o]ans(); longlong [o]ierr()',
+    int [io]skip(); indx ia(); indx ib();
+    [o]ans(); indx [o]ierr()',
   RedoDimsCode => <<'EOF',
 if ($SIZE(n) < 2) $CROAK("NUMBER OF DATA POINTS LESS THAN TWO");
 EOF
@@ -5903,7 +5903,7 @@ EOF
 
 pp_def('pchip_chbs',
   Pars => 'x(n); f(n); d(n); longlong knotyp(); longlong [io]nknots(); [io]t(tsize=CALC(2*$SIZE(n)+4));
-    [o]bcoef(bsize=CALC(2*$SIZE(n))); longlong [o]ndim(); longlong [o]kord(); longlong [o]ierr()',
+    [o]bcoef(bsize=CALC(2*$SIZE(n))); longlong [o]ndim(); longlong [o]kord(); indx [o]ierr()',
   GenericTypes => $F,
   Code => pp_line_numbers(__LINE__, <<'EOF'),
 /* Local variables */
