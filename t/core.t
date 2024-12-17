@@ -803,8 +803,11 @@ my $oneway_slice = $y->slice('0:1');
 is_pdl $oneway_slice, pdl '[4 5]';
 eval {$oneway_slice .= 11};
 isnt $@, '', 'error on assigning into one-way slice';
-my $c = $y->flowing->_convert_int(cdouble->enum);
-ok $c->fflows, 'flowing -> converted has "flowing" on';
+ok $y->flowing->_convert_int(cdouble->enum)->fflows, 'flowing -> converted has "flowing" on';
+czip((my $r = float(3))->flowing, float(2)->flowing, my $c = cfloat(0));
+is_pdl $c, cfloat('3+2i');
+$r++;
+is_pdl $c, cfloat('4+2i');
 }
 
 {
