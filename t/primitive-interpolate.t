@@ -58,14 +58,9 @@ subtest PCHIP => sub {
   is_pdl $integral, pdl(55.6298611111111,20.7538265306122), 'pchip_chia';
   ($integral) = pchip_chid($x, $y, $g, [0,0], 3, 4);
   is_pdl $integral, pdl(55.6298611111111,20.7538265306122), 'pchip_chid';
-  my $nknots = zeroes(longlong, 2);
-  my $t = zeroes( 2*$x->dim(0)+4, 2 );
-  my ($bcoef, $ndim, $kord) = pchip_chbs($x, $y, $g, 0, $nknots, $t);
-  is_pdl $nknots, longlong(24,24), 'pchip_chbs nknots';
+  my ($t, $bcoef) = pchip_chbs($x, $y, $g, 0);
   is_pdl $t, pdl('0 0 0 0 1 1 2 2 3 3 4 4 5 5 6 6 7 7 8 8 9 9 9 9; 0 0 0 0 1 1 2 2 3 3 4 4 5 5 6 6 7 7 8 8 9 9 9 9'), 'pchip_chbs t';
   is_pdl $bcoef, pdl('43.3 43.3 43.8 44.8 46.05 48.55 50.355556 54.244444 56.675 61.925 65 71.6 75.327778 83.272222 87.657143 96.942857 101.9875 112.6125 118.3 124.3; -23 -23 -22.583333 -21.416667 -18.410256 -11.589744 -4.3690476 12.369048 25.646259 56.353741 77.653509 126.34649 157.65749 228.34251 271.65991 368.34009 425.66149 552.33851 625.66667 706'), 'pchip_chbs bcoef';
-  is_pdl $ndim, longlong(20,20), 'pchip_chbs ndim';
-  is_pdl $kord, longlong(4,4), 'pchip_chbs kord';
   my $x_slice = $x->slice('*1,0:-2'); # because calling with last value is out of range
   my ($val) = pchip_bvalu($t, $bcoef, 0, $x_slice);
   is_pdl $val->t, pdl('43.3 44.3 47.3 52.3 59.3 68.3 79.3 92.3 107.3; -23 -22 -15 4 41 102 193 320 489'), 'pchip_bvalu';

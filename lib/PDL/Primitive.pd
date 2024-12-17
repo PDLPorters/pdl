@@ -5902,33 +5902,27 @@ EOF
 );
 
 pp_def('pchip_chbs',
-  Pars => 'x(n); f(n); d(n); longlong knotyp(); longlong [io]nknots(); [io]t(tsize=CALC(2*$SIZE(n)+4));
-    [o]bcoef(bsize=CALC(2*$SIZE(n))); longlong [o]ndim(); longlong [o]kord(); indx [o]ierr()',
+  Pars => 'x(n); f(n); d(n); sbyte knotyp();
+    [o]t(nknots=CALC(2*$SIZE(n)+4));
+    [o]bcoef(ndim=CALC(2*$SIZE(n))); indx [o]ierr()',
   GenericTypes => $F,
   Code => pp_line_numbers(__LINE__, <<'EOF'),
 /* Local variables */
-PDL_Indx n = $SIZE(n), ndim = $ndim() = n << 1;
-$kord() = 4;
+PDL_Indx n = $SIZE(n), ndim = $SIZE(ndim);
 $ierr() = 0;
 /*  Check argument validity.  Set up knot sequence if OK. */
 if ($knotyp() > 2) {
   $ierr() = -1;
   $CROAK("KNOTYP GREATER THAN 2");
 }
-if ($knotyp() < 0) {
-  if ($nknots() != $ndim() + 4) {
-    $ierr() = -2;
-    $CROAK("KNOTYP.LT.0 AND NKNOTS.NE.(2*N+4)");
-  }
-} else {
+if ($knotyp() >= 0) {
 /*      Set up knot sequence. */
-  $nknots() = $ndim() + 4;
   do { /* inline dpchkt */
 /*  Set interior knots. */
     PDL_Indx j = 0;
     loop (n) %{
       j += 2;
-      $t(tsize=>j+1) = $t(tsize=>j) = $x();
+      $t(nknots=>j+1) = $t(nknots=>j) = $x();
     %}
 /*   Assertion:  At this point T(3),...,T(NDIM+2) have been set and */
 /*         J=NDIM+1. */
@@ -5937,31 +5931,31 @@ if ($knotyp() < 0) {
     $GENERIC() hend = $x(n=>n-1) - $x(n=>n-2);
     if ($knotyp() == 1) {
 /*      Extrapolate. */
-      $t(tsize=>1) = $x(n=>0) - hbeg;
-      $t(tsize=>ndim+2) = $x(n=>n-1) + hend;
+      $t(nknots=>1) = $x(n=>0) - hbeg;
+      $t(nknots=>ndim+2) = $x(n=>n-1) + hend;
     } else if ($knotyp() == 2) {
 /*      Periodic. */
-      $t(tsize=>1) = $x(n=>0) - hend;
-      $t(tsize=>ndim+2) = $x(n=>n-1) + hbeg;
+      $t(nknots=>1) = $x(n=>0) - hend;
+      $t(nknots=>ndim+2) = $x(n=>n-1) + hbeg;
     } else {
 /*      Quadruple end knots. */
-      $t(tsize=>1) = $x(n=>0);
-      $t(tsize=>ndim+2) = $x(n=>n-1);
+      $t(nknots=>1) = $x(n=>0);
+      $t(nknots=>ndim+2) = $x(n=>n-1);
     }
-    $t(tsize=>0) = $t(tsize=>1);
-    $t(tsize=>ndim+3) = $t(tsize=>ndim+2);
+    $t(nknots=>0) = $t(nknots=>1);
+    $t(nknots=>ndim+3) = $t(nknots=>ndim+2);
   } while (0); /* end inline dpchkt */
 }
 /*  Compute B-spline coefficients. */
-$GENERIC() hnew = $t(tsize=>2) - $t(tsize=>0);
+$GENERIC() hnew = $t(nknots=>2) - $t(nknots=>0);
 loop (n) %{
   $GENERIC() hold = hnew;
 /*      The following requires mixed mode arithmetic. */
   $GENERIC() dov3 = $d() / 3;
-  $bcoef(bsize=>2*n) = $f() - hold * dov3;
+  $bcoef(ndim=>2*n) = $f() - hold * dov3;
 /*      The following assumes T(2*K+1) = X(K). */
-  hnew = $t(tsize=>2*n+4) - $t(tsize=>2*n+2);
-  $bcoef(bsize=>2*n+1) = $f() + hnew * dov3;
+  hnew = $t(nknots=>2*n+4) - $t(nknots=>2*n+2);
+  $bcoef(ndim=>2*n+1) = $f() + hnew * dov3;
 %}
 EOF
   Doc => <<'EOF',
@@ -5989,12 +5983,8 @@ Restrictions/assumptions:
    1. N.GE.2 .  (not checked)
    2. X(i).LT.X(i+1), i=1,...,N .  (not checked)
    4. KNOTYP.LE.2 .  (error return if not)
-  *5. NKNOTS = NDIM+4 = 2*N+4 .  (error return if not)
   *6. T(2*k+1) = T(2*k) = X(k), k=1,...,N .  (not checked)
      * Indicates this applies only if KNOTYP.LT.0 .
-
-Array sizes: C<tsize = 2*n + 4>, C<bsize = 2*n>,
-and C<ndim = 2*n>.
 
 C<f> is the array of dependent variable values.
 C<f(I)> is the value corresponding to C<x(I)>.
