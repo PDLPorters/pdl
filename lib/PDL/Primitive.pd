@@ -4418,12 +4418,9 @@ $skip() = 1;
 /*  LOOP OVER INTERVALS.    (   INTERVAL INDEX IS  IL = IR-1  . ) */
 /*                ( INTERVAL IS X(IL).LE.X.LT.X(IR) . ) */
 PDL_Indx n = $SIZE(n), ne = $SIZE(ne);
-PDL_Indx jfirst = 0;
-PDL_Indx ir = 1;
-while (1) {
+PDL_Indx jfirst = 0, ir;
+for (ir = 1; ir < n && jfirst < ne; ++ir) {
 /*   SKIP OUT OF LOOP IF HAVE PROCESSED ALL EVALUATION POINTS. */
-  if (jfirst >= ne)
-    break;
 /*   LOCATE ALL POINTS IN INTERVAL. */
   char located = 0;
   PDL_Indx j = jfirst;
@@ -4439,12 +4436,8 @@ while (1) {
 /*   HAVE LOCATED FIRST POINT BEYOND INTERVAL. */
   PDL_Indx nj = j - jfirst;
 /*   SKIP EVALUATION IF NO POINTS IN INTERVAL. */
-  if (nj == 0) {
-    ++ir;
-    if (ir < n)
-      continue;
-    break;
-  }
+  if (nj == 0)
+    continue;
 /*   EVALUATE CUBIC AT XE(I),  I = JFIRST (1) J-1 . */
 /*     ---------------------------------------------------------------- */
   PDL_Indx next[] = {0,0};
@@ -4495,7 +4488,8 @@ while (1) {
     if (ir < 2) {
 /*        THESE ARE ACTUALLY EXTRAPOLATION POINTS. */
       $ierr() += next[0];
-      goto L49_$PPSYM();
+      jfirst = j;
+      continue;
     }
 /*        XE IS NOT ORDERED RELATIVE TO X, SO MUST ADJUST */
 /*        EVALUATION INTERVAL. */
@@ -4531,11 +4525,8 @@ while (1) {
 /* Computing MAX */
     ir = PDLMAX(0,i-1);
   }
-L49_$PPSYM():
   jfirst = j;
 /*   END OF IR-LOOP. */
-  ++ir;
-  if (ir >= n) break;
 }
 '},
 );
