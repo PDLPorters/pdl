@@ -789,8 +789,8 @@ isnt $y->trans_parent, undef, '$y has parent';
 isnt PDL::Core::pdumphash($x), undef, 'pdumphash works';
 isnt $y->trans_parent, undef, '$y still has parent after pdumphash';
 $x += 3;
-is "$x", "[3 4 5]", '$x right value';
-is "$y", "[4 5 6]", '$y right value';
+is_pdl $x, pdl("[3 4 5]"), '$x right value';
+is_pdl $y, pdl("[4 5 6]"), '$y right value';
 ok !$y->fflows, 'y not "flowing"';
 $y->flowing;
 ok $y->fflows, 'y "flowing" on';
@@ -800,11 +800,23 @@ ok !$y->fflows, 'y "flowing" off again';
 eval {$y += 4};
 isnt $@, '', 'error on assigning to ndarray with inward but no outward flow';
 my $oneway_slice = $y->slice('0:1');
-is "$oneway_slice", '[4 5]';
+is_pdl $oneway_slice, pdl '[4 5]';
 eval {$oneway_slice .= 11};
 isnt $@, '', 'error on assigning into one-way slice';
 my $c = $y->flowing->_convert_int(cdouble->enum);
 ok $c->fflows, 'flowing -> converted has "flowing" on';
+}
+
+{
+my $x = sequence 3;
+my $c = $x->_convert_int(cdouble->enum);
+isnt $c->trans_parent, undef, 'converted has trans_parent';
+$c++;
+is_pdl $x, pdl(1..3);
+my $cf = $c->_convert_int(cfloat->enum);
+isnt $cf->trans_parent, undef, 'converted2 has trans_parent';
+$cf++;
+is_pdl $x, pdl(2..4);
 }
 
 my $notouch = sequence(4);
