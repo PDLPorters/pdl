@@ -14,6 +14,9 @@ is_pdl rvals(3,3,{center=>[2,2]}), $x1->sqrt, "centre/center synonyms";
 is_pdl rvals(3,3,{ceNteR=>[2,2]}), $x1->sqrt, "ceNteR option capitalization";
 is_pdl rvals(3,3,{center=>[2,2],squared=>1}), $x1, "both center and squared options";
 
+is_pdl ndcoords(2,2), pdl('[0 0; 1 0] [0 1; 1 1]');
+is_pdl PDL::Basic::ndcoords(2,2), pdl('[0 0; 1 0] [0 1; 1 1]');
+
 # test (x|y|z)(lin|log)vals: shape and values
 {
 my $a1=zeroes(101,51,26);

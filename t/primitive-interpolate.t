@@ -6,38 +6,34 @@ use PDL::LiteF;
 use Test::PDL;
 
 subtest interpol => sub {
-
     subtest real => sub {
-        my $yvalues = PDL->new( 0 .. 5 ) - 20;
-        my $xvalues = -PDL->new( 0 .. 5 ) * .5;
-        my $x       = PDL->new(-2);
-        is( $x->interpol( $xvalues, $yvalues ), -16, "result" );
+        my $yvalues = pdl( 0 .. 5 ) - 20;
+        my $xvalues = -pdl( 0 .. 5 ) * .5;
+        my $x       = pdl(-2);
+        is( $x->interpol( $xvalues, $yvalues ), pdl(-16), "result" );
     };
 
     subtest complex => sub {
-        my $yvalues = ( PDL->new( 0 .. 5 ) - 20 ) * ( 1 + i() );
-        my $xvalues = -PDL->new( 0 .. 5 ) * .5;
-        my $x       = PDL->new(-2);
-
-
-        ok( all( $x->interpol( $xvalues, $yvalues ) == ( -16 - 16 * i ) ),
-            "result" );
-
+        my $yvalues = ( pdl( 0 .. 5 ) - 20 ) * ( 1 + i() );
+        my $xvalues = -pdl( 0 .. 5 ) * .5;
+        my $x       = pdl(-2);
+        is_pdl $x->interpol( $xvalues, $yvalues ), -16 - 16 * i;
         throws_ok { $x->interpol( $xvalues * i(), $yvalues ) }
             qr/must be real/,
             "x must be real";
     };
-
 };
 
 subtest interpND => sub {
     my $x     = xvals( 10, 10 ) + yvals( 10, 10 ) * 10;
     my $index = cat( 3 + xvals( 5, 5 ) * 0.25, 7 + yvals( 5, 5 ) * 0.25 )
       ->reorder( 2, 0, 1 );
-    my $z = 73 + xvals( 5, 5 ) * 0.25 + 2.5 * yvals( 5, 5 );
+    my $z = pdl '73 73.25 73.5 73.75 74; 75.5 75.75 76 76.25 76.5;
+      78 78.25 78.5 78.75 79; 80.5 80.75 81 81.25 81.5;
+      83 83.25 83.5 83.75 84';
     my $y;
     lives_ok { $y = $x->interpND($index) } 'interpND';
-    ok !any( $y != $z ), "result";
+    is_pdl $y, $z;
 };
 
 subtest PCHIP => sub {

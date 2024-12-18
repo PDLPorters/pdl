@@ -3201,19 +3201,18 @@ sub PDL::interpND {
   barf 'Usage: interp_nd($source,$index,[{%options}])\n'
     if(defined $options   and    ref $options ne 'HASH');
 
-  my($opt) = (defined $options) ? $options : {};
+  my $opt = defined $options ? $options : {};
 
-  my($method)   = $opt->{m} || $opt->{meth} || $opt->{method} || $opt->{Method};
+  my $method = $opt->{m} || $opt->{meth} || $opt->{method} || $opt->{Method};
   $method //= $source->type->integer ? 'sample' : 'linear';
 
-  my($boundary) = $opt->{b} || $opt->{boundary} || $opt->{Boundary} || $opt->{bound} || $opt->{Bound} || 'extend';
-  my($bad) = $opt->{bad} || $opt->{Bad} || 0.0;
+  my $boundary = $opt->{b} || $opt->{boundary} || $opt->{Boundary} || $opt->{bound} || $opt->{Bound} || 'extend';
+  my $bad = $opt->{bad} || $opt->{Bad} || 0.0;
 
-  if($method =~ m/^s(am(p(le)?)?)?/i) {
-    return $source->range(PDL::Math::floor($index+0.5),0,$boundary);
-  }
+  return $source->range(PDL::Math::floor($index+0.5),0,$boundary)
+    if $method =~ m/^s(am(p(le)?)?)?/i;
 
-  elsif (($method eq 1) || $method =~ m/^l(in(ear)?)?/i) {
+  if (($method eq 1) || $method =~ m/^l(in(ear)?)?/i) {
     ## key: (ith = index broadcast; cth = cube broadcast; sth = source broadcast)
     my $d = $index->dim(0);
     my $di = $index->ndims - 1;
@@ -3234,8 +3233,7 @@ sub PDL::interpND {
 
     # a & b are the weighting coefficients.
     my($x,$y);
-    my($indexwhere);
-    ($indexwhere = $index->where( 0 * $index )) .= -10; # Change NaN to invalid
+    $index->where( 0 * $index ) .= -10; # Change NaN to invalid
     {
       my $bb = PDL::Math::floor($index);
       $x = ($index - $bb)     -> dummy(1,$crnr->dim(1)); # index, clst, ith
