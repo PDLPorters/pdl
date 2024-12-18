@@ -145,7 +145,7 @@ pdl *pdl_get_convertedpdl(pdl *old,int type) {
 
 pdl_error pdl_allocdata(pdl *it) {
   pdl_error PDL_err = {0, NULL, 0};
-  PDLDEBUG_f(printf("pdl_allocdata %p, %"IND_FLAG", %d\n",(void*)it, it->nvals,
+  PDLDEBUG_f(printf("pdl_allocdata %p, %"IND_FLAG", %d\n",it, it->nvals,
 	  it->datatype));
   if(it->nvals < 0)
     return pdl_make_error(PDL_EUSERERROR, "Tried to allocdata with %"IND_FLAG" values", it->nvals);
@@ -206,7 +206,7 @@ pdl* pdl_pdlnew() {
      it->ntrans_children = 0;
      it->magic = 0;
      it->hdrsv = 0;
-     PDLDEBUG_f(printf("pdl_pdlnew %p (size=%zu)\n",(void*)it,sizeof(pdl)));
+     PDLDEBUG_f(printf("pdl_pdlnew %p (size=%zu)\n",it,sizeof(pdl)));
      return it;
 }
 
@@ -242,7 +242,7 @@ pdl_error pdl_vafftrans_alloc(pdl *it)
 /* Recursive! */
 void pdl_vafftrans_remove(pdl * it, char this_one)
 {
-	PDLDEBUG_f(printf("pdl_vafftrans_remove: %p, this_one=%d\n", (void*)it, (int)this_one));
+	PDLDEBUG_f(printf("pdl_vafftrans_remove: %p, this_one=%d\n", it, (int)this_one));
 	PDL_DECL_CHILDLOOP(it);
 	PDL_START_CHILDLOOP(it)
 		pdl_trans *t = PDL_CHILDLOOP_THISCHILD(it);
@@ -258,15 +258,15 @@ void pdl_vafftrans_remove(pdl * it, char this_one)
    to be called when the time is right */
 pdl_error pdl__free(pdl *it) {
     pdl_error PDL_err = {0, NULL, 0};
-    PDLDEBUG_f(printf("pdl__free %p\n",(void*)it));
+    PDLDEBUG_f(printf("pdl__free %p\n",it));
     PDL_CHKMAGIC(it);
     /* now check if magic is still there */
     if (pdl__ismagic(it))
-      PDLDEBUG_f(printf("%p is still magic\n",(void*)it);pdl__print_magic(it));
+      PDLDEBUG_f(printf("%p is still magic\n",it);pdl__print_magic(it));
     it->magicno = 0x42424245;
-    if (it->dims       != it->def_dims)       free((void*)it->dims);
-    if (it->dimincs    != it->def_dimincs)    free((void*)it->dimincs);
-    if (it->broadcastids  != it->def_broadcastids)  free((void*)it->broadcastids);
+    if (it->dims       != it->def_dims)       free(it->dims);
+    if (it->dimincs    != it->def_dimincs)    free(it->dimincs);
+    if (it->broadcastids  != it->def_broadcastids)  free(it->broadcastids);
     if (it->vafftrans) {
 	pdl_vafftrans_free(it);
     }
@@ -294,7 +294,7 @@ pdl_error pdl__free(pdl *it) {
 	it->hdrsv = 0;
     }
     free(it);
-    PDLDEBUG_f(printf("pdl__free end %p\n",(void*)it));
+    PDLDEBUG_f(printf("pdl__free end %p\n",it));
     return PDL_err;
 }
 
@@ -393,7 +393,7 @@ pdl_error pdl_destroytransform(pdl_trans *trans, int ensure, int recurse_count)
     destbuffer[j]->state &= ~PDL_DESTROYING; /* safe, set by us */
     PDL_ACCUMERROR(PDL_err, pdl__destroy_recprotect(destbuffer[j], recurse_count+1));
   }
-  PDLDEBUG_f(printf("pdl_destroytransform leaving %p\n", (void*)trans));
+  PDLDEBUG_f(printf("pdl_destroytransform leaving %p\n", trans));
   return PDL_err;
 }
 
@@ -475,7 +475,7 @@ pdl_error pdl__destroy_recprotect(pdl *it, int recurse_count) {
       trans->vtable->npdls - trans->vtable->nparents > 1, recurse_count+1));
 /* Here, this is a child but has no children - fall through to hard_destroy */
   PDL_RETERROR(PDL_err, pdl__free(it));
-  PDLDEBUG_f(printf("pdl_destroy end %p\n",(void*)it));
+  PDLDEBUG_f(printf("pdl_destroy end %p\n",it));
   return PDL_err;
 }
 
@@ -752,7 +752,7 @@ pdl_error pdl_make_trans_mutual(pdl_trans *trans)
       }
     PDL_ACCUMERROR(PDL_err, pdl_destroytransform(trans,0,0));
   }
-  PDLDEBUG_f(printf("make_trans_mutual exit %p\n",(void*)trans));
+  PDLDEBUG_f(printf("make_trans_mutual exit %p\n",trans));
   return PDL_err;
 } /* pdl_make_trans_mutual() */
 
@@ -802,7 +802,7 @@ pdl_error pdl__make_physical_recprotect(pdl *it, int recurse_count) {
   pdl_error PDL_err = {0, NULL, 0};
   int i, vaffinepar=0;
   PDL_RECURSE_CHECK(recurse_count);
-  PDLDEBUG_f(printf("make_physical %p\n",(void*)it));
+  PDLDEBUG_f(printf("make_physical %p\n",it));
   pdl_trans *trans = it->trans_parent;
   PDL_CHKMAGIC(it);
   if (
@@ -833,8 +833,7 @@ pdl_error pdl_changed(pdl *it, int what, int recursing) {
   pdl_error PDL_err = {0, NULL, 0};
   PDL_Indx i, j;
   PDLDEBUG_f(
-    printf("pdl_changed: entry for pdl %p recursing: %d, what=",
-           (void*)it,recursing);
+    printf("pdl_changed: entry for pdl %p recursing: %d, what=",it,recursing);
     pdl_dump_flags_fixspace(what,0,PDL_FLAGS_PDL);
   );
   pdl_trans *trans = it->trans_parent;
@@ -850,7 +849,7 @@ pdl_error pdl_changed(pdl *it, int what, int recursing) {
       && (what & PDL_PARENTDATACHANGED)) {
     if (it->vafftrans) {
       if (it->state & PDL_ALLOCATED) {
-        PDLDEBUG_f(printf("pdl_changed: calling writebackdata_vaffine (pdl %p)\n",(void*)it));
+        PDLDEBUG_f(printf("pdl_changed: calling writebackdata_vaffine (pdl %p)\n",it));
         PDL_ACCUMERROR(PDL_err, pdl_writebackdata_vaffine(it));
       }
       CHANGED(it->vafftrans->from,what,0);
@@ -872,7 +871,7 @@ pdl_error pdl_changed(pdl *it, int what, int recursing) {
           CHANGED(trans->pdls[j],what,1);
     PDL_END_CHILDLOOP(it)
   }
-  PDLDEBUG_f(printf("pdl_changed: exiting for pdl %p\n",(void*)it));
+  PDLDEBUG_f(printf("pdl_changed: exiting for pdl %p\n", it));
   return PDL_err;
 }
 
@@ -889,9 +888,9 @@ pdl_error pdl__make_physvaffine_recprotect(pdl *it, int recurse_count)
 {
   pdl_error PDL_err = {0, NULL, 0};
   PDL_Indx i,j;
-  PDLDEBUG_f(printf("make_physvaffine %p calling ",(void*)it)); PDL_RETERROR(PDL_err, pdl__make_physdims_recprotect(it, recurse_count+1));
+  PDLDEBUG_f(printf("make_physvaffine %p calling ",it)); PDL_RETERROR(PDL_err, pdl__make_physdims_recprotect(it, recurse_count+1));
   if (!it->trans_parent || !(it->trans_parent->flags & PDL_ITRANS_ISAFFINE)) {
-    PDLDEBUG_f(printf("make_physvaffine handing off to make_physical %p\n",(void*)it));
+    PDLDEBUG_f(printf("make_physvaffine handing off to make_physical %p\n",it));
     return pdl__make_physical_recprotect(it, recurse_count+1);
   }
   if (!it->vafftrans || it->vafftrans->ndims < it->ndims) {

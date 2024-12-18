@@ -89,7 +89,7 @@ void *pdl__call_magic(pdl *it,int which)
 			if((*foo)->what & PDL_MAGIC_DELAYED)
 				pdl_add_delayed_magic(*foo);
 			else
-				ret = (void *)((*foo)->vtable->cast(*foo));
+				ret = (*foo)->vtable->cast(*foo);
 					/* Cast spell */
 		}
 		foo = &((*foo)->next);
@@ -114,7 +114,7 @@ pdl_magic *pdl__print_magic(pdl *it)
 {
         pdl_magic **foo = (pdl_magic **)(&(it->magic));
 	while(*foo) {
-	  printf("Magic %p\ttype: ",(void*)(*foo));
+	  printf("Magic %p\ttype: ",*foo);
 		if((*foo)->what & PDL_MAGIC_MARKCHANGED)
 		  printf("PDL_MAGIC_MARKCHANGED");
 		else if ((*foo)->what & PDL_MAGIC_THREADING)

@@ -201,7 +201,7 @@ PDL_Indx pdl_safe_indterm( PDL_Indx dsz, PDL_Indx at, char *file, int lineno)
 void* pdl_smalloc ( STRLEN nbytes ) {
    SV* work = sv_2mortal(newSVpv("", 0));
    SvGROW( work, nbytes);
-   return (void *) SvPV_nolen(work);
+   return SvPV_nolen(work);
 }
 
 /*********** Stuff for barfing *************/

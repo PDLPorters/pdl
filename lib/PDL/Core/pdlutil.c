@@ -155,7 +155,7 @@ PDL_TYPELIST_ALL(X)
 #undef X
     NULL
   };
-  printf("DUMPBROADCAST %p\n",(void*)broadcast);
+  printf("DUMPBROADCAST %p\n",broadcast);
   if (broadcast->transvtable) {
     pdl_transvtable *vtable = broadcast->transvtable;
     psp; printf("Funcname: %s\n",vtable->name);
@@ -248,7 +248,7 @@ PDL_TYPELIST_ALL(X)
   psp; printf("Realdims: "); pdl_print_iarr(broadcast->realdims,broadcast->npdls); printf("\n");
   psp; printf("Pdls: (");
   for (i=0;i<broadcast->npdls;i++)
-    printf("%s%p",(i?" ":""),(void*)(broadcast->pdls[i]));
+    printf("%s%p",(i?" ":""),(broadcast->pdls[i]));
   printf(")\n");
   psp; printf("Per pdl flags: (");
   for (i=0;i<broadcast->npdls;i++)
@@ -406,7 +406,7 @@ PDL_LIST_FLAGS_PDLVTABLE(X)
 void pdl_dump_trans_fixspace (pdl_trans *it, int nspac) {
 	PDL_Indx i;
 	SET_SPACE(spaces, nspac);
-	printf("%sDUMPTRANS %p (%s)\n%s   Flags: ",spaces,(void*)it,it->vtable->name,spaces);
+	printf("%sDUMPTRANS %p (%s)\n%s   Flags: ",spaces,it,it->vtable->name,spaces);
 	pdl_dump_flags_fixspace(it->flags,nspac+3, PDL_FLAGS_TRANS);
 	printf("%s   vtable flags ",spaces);
 	pdl_dump_flags_fixspace(it->vtable->flags,nspac+3,PDL_FLAGS_VTABLE);
@@ -429,10 +429,10 @@ void pdl_dump_trans_fixspace (pdl_trans *it, int nspac) {
 	pdl_print_iarr(it->inc_sizes, it->vtable->nind_ids); printf("\n");
 	printf("%s   INPUTS: (",spaces);
 	for(i=0; i<it->vtable->nparents; i++)
-		printf("%s%p",(i?" ":""),(void*)(it->pdls[i]));
+		printf("%s%p",(i?" ":""),(it->pdls[i]));
 	printf(")     OUTPUTS: (");
 	for(;i<it->vtable->npdls; i++)
-		printf("%s%p",(i>it->vtable->nparents?" ":""),(void*)(it->pdls[i]));
+		printf("%s%p",(i>it->vtable->nparents?" ":""),(it->pdls[i]));
 	printf(")\n");
 }
 
@@ -440,26 +440,26 @@ void pdl_dump_fixspace(pdl *it,int nspac) {
   PDL_DECL_CHILDLOOP(it)
   PDL_Indx i;
   SET_SPACE(spaces, nspac);
-  printf("%sDUMPING %p     datatype: %d\n%s   State: ",spaces,(void*)it,it->datatype,spaces);
+  printf("%sDUMPING %p     datatype: %d\n%s   State: ",spaces,it,it->datatype,spaces);
   pdl_dump_flags_fixspace(it->state,nspac+3,PDL_FLAGS_PDL);
   printf("%s   transvtable: %p, trans: %p, sv: %p\n",spaces,
-    (void*)(it->trans_parent?it->trans_parent->vtable:0), (void*)(it->trans_parent), (void*)(it->sv));
+    it->trans_parent?it->trans_parent->vtable:0, it->trans_parent, it->sv);
   if (it->datasv)
     printf("%s   datasv: %p, Svlen: %lld, refcnt: %lld\n", spaces,
-      (void*)it->datasv, (long long)SvCUR((SV*)it->datasv), (long long)SvREFCNT((SV*)it->datasv));
+      it->datasv, (long long)SvCUR((SV*)it->datasv), (long long)SvREFCNT((SV*)it->datasv));
   if (it->data)
     printf("%s   data: %p, nbytes: %"IND_FLAG", nvals: %"IND_FLAG"\n", spaces,
-      (void*)(it->data), it->nbytes, it->nvals);
+      it->data, it->nbytes, it->nvals);
   if (it->hdrsv)
     printf("%s   hdrsv: %p, reftype %s\n", spaces,
-      (void*)it->hdrsv, sv_reftype((SV*)it->hdrsv, TRUE));
-  printf("%s   Dims: %p ",spaces,(void*)it->dims);
+      it->hdrsv, sv_reftype((SV*)it->hdrsv, TRUE));
+  printf("%s   Dims: %p ",spaces,it->dims);
   pdl_print_iarr(it->dims, it->ndims);
-  printf("\n%s   BroadcastIds: %p ",spaces,(void*)(it->broadcastids));
+  printf("\n%s   BroadcastIds: %p ",spaces,it->broadcastids);
   pdl_print_iarr(it->broadcastids, it->nbroadcastids);
   if (it->vafftrans) {
     printf("\n%s   Vafftrans: %p (parent), o:%"IND_FLAG", i:",
-      spaces,(void*)(it->vafftrans->from),it->vafftrans->offs);
+      spaces,it->vafftrans->from,it->vafftrans->offs);
     pdl_print_iarr(PDL_REPRINCS(it), it->vafftrans->ndims);
   }
   if (it->state & PDL_BADVAL) {

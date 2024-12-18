@@ -342,7 +342,7 @@ pdl_error pdl_initbroadcaststruct(int nobl,
   char *flags_UNUSED /*CORE21*/, int noPthreadFlag
 ) {
   pdl_error PDL_err = {0, NULL, 0};
-  PDLDEBUG_f(printf("initbroadcaststruct(%p)\n", (void*)broadcast));
+  PDLDEBUG_f(printf("initbroadcaststruct(%p)\n", broadcast));
   char already_alloced = (broadcast->magicno == PDL_BRC_MAGICNO &&
       broadcast->gflags & PDL_BROADCAST_INITIALIZED);
   PDL_Indx already_nthr = already_alloced ? broadcast->mag_nthr : -1;

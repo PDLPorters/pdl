@@ -249,7 +249,7 @@ pdl_transvtable pdl_converttypei_vtable = {
 
 pdl_error pdl_converttypei_new(pdl  *PARENT,pdl  *CHILD,int  totype) {
   pdl_error PDL_err = {0, NULL, 0};
-  pdl_trans *trans = (void *)pdl_create_trans(&pdl_converttypei_vtable);
+  pdl_trans *trans = pdl_create_trans(&pdl_converttypei_vtable);
   pdl_params_converttypei *params = trans->params;
   trans->pdls[0] = PARENT;
   trans->pdls[1] = CHILD;

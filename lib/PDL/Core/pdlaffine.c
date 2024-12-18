@@ -112,7 +112,7 @@ pdl_transvtable pdl_affine_vtable = {
 
 pdl_error pdl_affine_new(pdl *PARENT,pdl *CHILD,PDL_Indx offset,PDL_Indx *dims,PDL_Indx dims_count, PDL_Indx *incs, PDL_Indx incs_count) {
   pdl_error PDL_err = {0, NULL, 0};
-  pdl_trans *trans = (void *)pdl_create_trans(&pdl_affine_vtable);
+  pdl_trans *trans = pdl_create_trans(&pdl_affine_vtable);
   pdl_params_affine *params = trans->params;
   trans->pdls[0] = PARENT;
   trans->pdls[1] = CHILD;
