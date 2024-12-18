@@ -2223,7 +2223,7 @@ sub _prep_table {
 	$internaltype[$i] = 'P';
 
 	my $dims = $var->shape;
-	(my $t = $dims->slice("(0)")) .= 1;
+	(my $t = $dims->slice("(0)")) .= pdl($dims->type, 1);
 	$rpt = $dims->prod;
 
 =pod

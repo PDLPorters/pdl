@@ -3198,7 +3198,7 @@ sub PDL::interpND {
   my $index = shift;
   my $options = shift;
 
-  barf 'Usage: interp_nd($source,$index,[{%options}])\n'
+  barf 'Usage: interpND($source,$index[,{%options}])'
     if(defined $options   and    ref $options ne 'HASH');
 
   my $opt = defined $options ? $options : {};
@@ -3254,6 +3254,7 @@ sub PDL::interpND {
 	$out = $out->setbadif($baddies);
     }
 
+    $out = $out->convert($source->type->enum) if $out->type != $source->type;
     return $out;
 
   } elsif(($method eq 3) || $method =~ m/^c(u(b(e|ic)?)?)?/i) {
@@ -3299,6 +3300,7 @@ sub PDL::interpND {
 	  $y = $y->slice(":,($i)");
       }
 
+      $samp = $samp->convert($source->type->enum) if $samp->type != $source->type;
       return $samp;
 
   } elsif($method =~ m/^f(ft|ourier)?/i) {
@@ -3334,7 +3336,7 @@ sub PDL::interpND {
      }
      my $out = cos($phase + $phref ) * $mag;
      $out = $out->clump($source->ndims)->sumover;
-
+     $out = $out->convert($source->type->enum) if $out->type != $source->type;
      return $out;
  }  else {
      barf("interpND: unknown method '$method'; valid ones are 'linear' and 'sample'.\n");
@@ -4072,8 +4074,8 @@ sub PDL::setops {
     # are not equal to their neighbours.
     #
     my $ts;
-    ($ts = $s1->index($i1)) .= 1 if $i1->nelem() > 0;
-    ($ts = $s2->index($i2)) .= 1 if $i2->nelem() > 0;
+    ($ts = $s1->index($i1)) .= byte(1) if $i1->nelem() > 0;
+    ($ts = $s2->index($i2)) .= byte(1) if $i2->nelem() > 0;
 
     my $inds=which($s1 == $s2);
 

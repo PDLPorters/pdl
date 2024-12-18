@@ -356,10 +356,10 @@ sub PDL::ndcoords {
   unshift(@d,scalar(@dims));
   unshift(@d,$type) if defined($type);
   my $out = PDL->zeroes(@d);
-  for my $d(0..$#dims) {
+  for my $d (0..$#dims) {
     my $w = $out->index($d);
     $w = $w->mv($d,0) if $d != 0;
-    $w .= xvals($w);
+    $w .= xvals($w->type, $w->dims);
   }
   $out;
 }

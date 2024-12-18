@@ -261,8 +261,8 @@ is_pdl $im, $im2, "polyfill using default algorithm";
   # fits of order 1,2,3, with/without restriction to shift-and-scale-only
   foreach my $deg (2,3,4) {
     my $fit = zeroes(byte,$deg,$deg,2);
-    $fit->slice(':,(0),(0)').=1;
-    $fit->slice('(0),:,(1)').=1;
+    $fit->slice(':,(0),(0)') .= byte(1);
+    $fit->slice('(0),:,(1)') .= byte(1);
     foreach my $unrestrict ('un', '') {
       my ($pxn,$pyn) = fitwarp2d($x,$y,$u,$v,$deg,$unrestrict?{}:{FIT=>$fit});
       my $out = warp2d($shift,$pxn,$pyn);

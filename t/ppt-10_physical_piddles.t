@@ -16,6 +16,7 @@ BEGIN {
 use threads;
 use threads::shared;
 use Test::More;
+use Test::PDL;
 use Test::Exception;
 use PDL::LiteF;
 use PDL::Parallel::threads qw(retrieve_pdls);
@@ -82,11 +83,11 @@ threads->create(sub {
 
 		# Have this thread touch one of the values, and have it double-check
 		# that the value is correctly set
-		my $tid_plus_1 = double($tid + 1);
-		my $five       = double(5);
-		$workspace($tid) .= pdl($workspace->type, $tid_plus_1->sqrt + $five->sqrt);
+		my $val = pdl($tid+1)->sqrt + pdl(5)->sqrt;
+		$val = $val->convert($workspace->type->enum);
+		$workspace($tid) .= $val;
 		my $to_test = zeros($workspace->type, 1);
-		$to_test(0) .= pdl($workspace->type, $tid_plus_1->sqrt + $five->sqrt);
+		$to_test(0) .= $val;
 		$success_hash{$type_letter}
 			= ($workspace->at($tid,0) == $to_test->at(0));
 	}
@@ -120,8 +121,7 @@ for my $type_letter (keys %workspaces) {
 	$expected .= (zeroes($N_threads, 2)->xvals + 1)->sqrt + pdl(5)->sqrt;
 	# Perform an exact comparison. The operations may have high bit coverage,
 	# but they should also be free from bit noise, I hope.
-	ok(all($workspace == $expected), "Sharing $type ndarrays works")
-		or diag("Got workspace of $workspace; expected $expected");
+	is_pdl $workspace, $expected, "Sharing $type ndarrays works";
 }
 
 ######################################################
