@@ -180,7 +180,7 @@ pdl_error pdl_converttypei_readdata(pdl_trans *trans) {
   extern struct Core PDL;
   struct Core *PDLptr = &PDL;
 #define PDL PDLptr /* so PDL_DECLARE_PARAMETER_BADVAL can get bvals */
-  PDLDEBUG_f(printf("pdl_converttypei_readdata %s=%p from parent to type=%d: ", trans->vtable->name, trans, totype); pdl_dump(trans->pdls[0]));
+  PDLDEBUG_f(printf("pdl_converttypei_readdata %s=%p to type=%d from parent: ", trans->vtable->name, trans, totype); pdl_dump(trans->pdls[0]));
 #define FROMpdl_indx 0
 #define TOpdl_indx 1
 #define X_OUTER(datatype_from, ctype_from, ppsym_from, ...) \

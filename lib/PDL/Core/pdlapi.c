@@ -411,70 +411,68 @@ pdl_error pdl_destroytransform(pdl_trans *trans, int ensure, int recurse_count)
   parent.
 */
 pdl_error pdl__destroy_recprotect(pdl *it, int recurse_count) {
-    pdl_error PDL_err = {0, NULL, 0};
-    int nback=0,nback2=0,nforw=0;
-    int nafn=0;
-    PDL_DECL_CHILDLOOP(it);
-    PDL_CHKMAGIC(it);
-    PDLDEBUG_f(printf("pdl_destroy: ");pdl_dump(it));
-    if(it->state & PDL_DESTROYING) {
-        PDLDEBUG_f(printf("  already destroying, returning\n"));
-	return PDL_err;
+  pdl_error PDL_err = {0, NULL, 0};
+  int nback=0,nback2=0,nforw=0;
+  int nafn=0;
+  PDL_DECL_CHILDLOOP(it);
+  PDL_CHKMAGIC(it);
+  PDLDEBUG_f(printf("pdl_destroy: ");pdl_dump(it));
+  if (it->state & PDL_DESTROYING) {
+    PDLDEBUG_f(printf("  already destroying, returning\n"));
+    return PDL_err;
+  }
+  it->state |= PDL_DESTROYING;
+  /* Clear the sv field so that there will be no dangling ptrs */
+  if (it->sv) {
+    mg_free((SV *)it->sv);
+    sv_setiv(it->sv, 0);
+    it->sv = NULL;
+  }
+  /* 1. count the trans_children that do flow */
+  PDL_START_CHILDLOOP(it)
+    pdl_trans *curt = PDL_CHILDLOOP_THISCHILD(it);
+    if (curt->flags & PDL_ITRANS_DO_DATAFLOW_F)
+      nforw++;
+    if (curt->flags & PDL_ITRANS_DO_DATAFLOW_B) {
+      nback++;
+      /* where more than two in relationship must always be soft-destroyed */
+      if (curt->vtable->npdls > 2) nback2++;
     }
-    it->state |= PDL_DESTROYING;
-    /* Clear the sv field so that there will be no dangling ptrs */
-    if(it->sv) {
-	    mg_free((SV *)it->sv);
-	    sv_setiv(it->sv, 0);
-	    it->sv = NULL;
-    }
-    /* 1. count the trans_children that do flow */
-    PDL_START_CHILDLOOP(it)
-	pdl_trans *curt = PDL_CHILDLOOP_THISCHILD(it);
-	if(curt->flags & PDL_ITRANS_DO_DATAFLOW_F)
-		nforw ++;
-	if(curt->flags & PDL_ITRANS_DO_DATAFLOW_B)
-	{
-		nback ++;
-		/* Cases where more than two in relationship
-		 * must always be soft-destroyed */
-		if(curt->vtable->npdls > 2) nback2++;
-	}
-	if ((curt->flags & PDL_ITRANS_ISAFFINE) && !(curt->pdls[1]->state & PDL_ALLOCATED))
-		nafn ++;
-    PDL_END_CHILDLOOP(it)
-/* First case where we may not destroy */
-    if(nback2 > 0) goto soft_destroy;
-    if(nback > 1) goto soft_destroy;
-/* Also not here */
-    if(it->trans_parent && nforw) goto soft_destroy;
+    if ((curt->flags & PDL_ITRANS_ISAFFINE) && !(curt->pdls[1]->state & PDL_ALLOCATED))
+      nafn++;
+  PDL_END_CHILDLOOP(it)
+  char soft_destroy = 0;
+  PDLDEBUG_f(printf(" nba(%d, %d), nforw(%d), tra(%p=%s), nafn(%d)\n",
+    nback, nback2, nforw, it->trans_parent, it->trans_parent?it->trans_parent->vtable->name:"", nafn));
+  if (nback2 > 0) { PDLDEBUG_f(printf(" soft_destroy: nback2=%d\n", nback2)); soft_destroy = 1; }
+  if (nback > 1) { PDLDEBUG_f(printf(" soft_destroy: nback=%d\n", nback)); soft_destroy = 1; }
+  if (it->trans_parent && nforw) { PDLDEBUG_f(printf(" soft_destroy: has parent and nforw=%d\n", nforw)); soft_destroy = 1; }
 /* Also, we do not wish to destroy if the trans_children would be larger
- * than the parent and are currently not allocated (e.g. lags).
- * Because this is too much work to check, we refrain from destroying
- * for now if there is an affine child that is not allocated
- */
-    if(nafn) goto soft_destroy;
-    if(pdl__magic_isundestroyable(it)) {
-        PDLDEBUG_f(printf("pdl_destroy not destroying as magic %p\n",(void*)it));
-	goto soft_destroy;
-    }
-    PDL_START_CHILDLOOP(it)
-	PDL_RETERROR(PDL_err, pdl_destroytransform(PDL_CHILDLOOP_THISCHILD(it), 1, recurse_count+1));
-    PDL_END_CHILDLOOP(it)
-    pdl_trans *trans = it->trans_parent;
-    if (trans)
-        /* Ensure only if there are other children! */
-      PDL_RETERROR(PDL_err, pdl_destroytransform(trans,
-        trans->vtable->npdls - trans->vtable->nparents > 1, recurse_count+1));
-/* Here, this is a child but has no children - fall through to hard_destroy */
-   PDL_RETERROR(PDL_err, pdl__free(it));
-   PDLDEBUG_f(printf("pdl_destroy end %p\n",(void*)it));
-   return PDL_err;
-  soft_destroy:
-    PDLDEBUG_f(printf("pdl_destroy may have dependencies, not destroy %p, nba(%d, %d), nforw(%d), tra(%p=%s), nafn(%d)\n",
-	it, nback, nback2, nforw, it->trans_parent, it->trans_parent?it->trans_parent->vtable->name:"", nafn));
+* than the parent and are currently not allocated (e.g. lags).
+* Because this is too much work to check, we refrain from destroying
+* for now if there is an affine child that is not allocated
+*/
+  if (nafn) { PDLDEBUG_f(printf(" soft_destroy: nafn=%d\n", nafn)); soft_destroy = 1; }
+  if (pdl__magic_isundestroyable(it)) {
+    PDLDEBUG_f(printf(" not destroying as magic %p\n", it));
+    soft_destroy = 1;
+  }
+  if (soft_destroy) {
     it->state &= ~PDL_DESTROYING;
     return PDL_err;
+  }
+  PDL_START_CHILDLOOP(it)
+    PDL_RETERROR(PDL_err, pdl_destroytransform(PDL_CHILDLOOP_THISCHILD(it), 1, recurse_count+1));
+  PDL_END_CHILDLOOP(it)
+  pdl_trans *trans = it->trans_parent;
+  if (trans)
+      /* Ensure only if there are other children! */
+    PDL_RETERROR(PDL_err, pdl_destroytransform(trans,
+      trans->vtable->npdls - trans->vtable->nparents > 1, recurse_count+1));
+/* Here, this is a child but has no children - fall through to hard_destroy */
+  PDL_RETERROR(PDL_err, pdl__free(it));
+  PDLDEBUG_f(printf("pdl_destroy end %p\n",(void*)it));
+  return PDL_err;
 }
 
 pdl_error pdl_destroy(pdl *it) {
@@ -797,31 +795,29 @@ pdl_error pdl_redodims_default(pdl_trans *trans) {
 }
 
 pdl_error pdl__make_physical_recprotect(pdl *it, int recurse_count) {
-	pdl_error PDL_err = {0, NULL, 0};
-	int i, vaffinepar=0;
-	PDL_RECURSE_CHECK(recurse_count);
-	PDLDEBUG_f(printf("make_physical %p\n",(void*)it));
-	pdl_trans *trans = it->trans_parent;
-	PDL_CHKMAGIC(it);
-	if (
-		!(it->state & PDL_ANYCHANGED) && /* unchanged and */
-		!(trans && !(it->state & PDL_ALLOCATED) && (trans->flags & PDL_ITRANS_ISAFFINE)) /* not pure vaffine in waiting */
-	)  {
-		PDL_ENSURE_ALLOCATED(it);
-		goto mkphys_end;
-	}
-	if (!trans) {
-		return pdl_make_error_simple(PDL_EFATAL, "PDL Not physical but doesn't have parent");
-	}
-	if (trans->flags & PDL_ITRANS_ISAFFINE) {
-		PDLDEBUG_f(printf("make_physical: affine\n"));
-		trans->pdls[1]->state |= PDL_PARENTDATACHANGED;
-		PDL_RETERROR(PDL_err, pdl__make_physvaffine_recprotect(it, recurse_count+1));
-	} else
-		PDL_RETERROR(PDL_err, pdl__ensure_trans(trans,0,1,recurse_count+1));
-  mkphys_end:
-	PDLDEBUG_f(printf("make_physical exiting: "); pdl_dump(it));
-	return PDL_err;
+  pdl_error PDL_err = {0, NULL, 0};
+  int i, vaffinepar=0;
+  PDL_RECURSE_CHECK(recurse_count);
+  PDLDEBUG_f(printf("make_physical %p\n",(void*)it));
+  pdl_trans *trans = it->trans_parent;
+  PDL_CHKMAGIC(it);
+  if (
+    !(it->state & PDL_ANYCHANGED) && /* unchanged and */
+    !(trans && !(it->state & PDL_ALLOCATED) && (trans->flags & PDL_ITRANS_ISAFFINE)) /* not pure vaffine in waiting */
+  ) {
+    PDL_ENSURE_ALLOCATED(it);
+  } else {
+    if (!trans)
+      return pdl_make_error_simple(PDL_EFATAL, "PDL Not physical but doesn't have parent");
+    if (trans->flags & PDL_ITRANS_ISAFFINE) {
+      PDLDEBUG_f(printf("make_physical: affine\n"));
+      trans->pdls[1]->state |= PDL_PARENTDATACHANGED;
+      PDL_RETERROR(PDL_err, pdl__make_physvaffine_recprotect(it, recurse_count+1));
+    } else
+      PDL_RETERROR(PDL_err, pdl__ensure_trans(trans,0,1,recurse_count+1));
+  }
+  PDLDEBUG_f(printf("make_physical exiting: "); pdl_dump(it));
+  return PDL_err;
 }
 
 pdl_error pdl_make_physical(pdl *it) {
