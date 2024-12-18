@@ -412,7 +412,7 @@ pdl_error pdl_destroytransform(pdl_trans *trans, int ensure, int recurse_count)
 */
 pdl_error pdl__destroy_recprotect(pdl *it, int recurse_count) {
   pdl_error PDL_err = {0, NULL, 0};
-  int nback=0,nback2=0,nforw=0;
+  int nback=0,nback2=0,nforw=0,nforw2=0;
   int nafn=0;
   PDL_DECL_CHILDLOOP(it);
   PDL_CHKMAGIC(it);
@@ -431,8 +431,11 @@ pdl_error pdl__destroy_recprotect(pdl *it, int recurse_count) {
   /* 1. count the trans_children that do flow */
   PDL_START_CHILDLOOP(it)
     pdl_trans *curt = PDL_CHILDLOOP_THISCHILD(it);
-    if (curt->flags & PDL_ITRANS_DO_DATAFLOW_F)
+    if (curt->flags & PDL_ITRANS_DO_DATAFLOW_F) {
       nforw++;
+      /* where more than two inputs must always be soft-destroyed */
+      if (curt->vtable->nparents > 1) nforw2++;
+    }
     if (curt->flags & PDL_ITRANS_DO_DATAFLOW_B) {
       nback++;
       /* where more than two in relationship must always be soft-destroyed */
@@ -442,11 +445,12 @@ pdl_error pdl__destroy_recprotect(pdl *it, int recurse_count) {
       nafn++;
   PDL_END_CHILDLOOP(it)
   char soft_destroy = 0;
-  PDLDEBUG_f(printf(" nba(%d, %d), nforw(%d), tra(%p=%s), nafn(%d)\n",
-    nback, nback2, nforw, it->trans_parent, it->trans_parent?it->trans_parent->vtable->name:"", nafn));
+  PDLDEBUG_f(printf(" nba(%d, %d), nforw(%d, %d), tra(%p=%s), nafn(%d)\n",
+    nback, nback2, nforw, nforw2, it->trans_parent, it->trans_parent?it->trans_parent->vtable->name:"", nafn));
   if (nback2 > 0) { PDLDEBUG_f(printf(" soft_destroy: nback2=%d\n", nback2)); soft_destroy = 1; }
   if (nback > 1) { PDLDEBUG_f(printf(" soft_destroy: nback=%d\n", nback)); soft_destroy = 1; }
   if (it->trans_parent && nforw) { PDLDEBUG_f(printf(" soft_destroy: has parent and nforw=%d\n", nforw)); soft_destroy = 1; }
+  if (nforw2 > 0) { PDLDEBUG_f(printf(" soft_destroy: nforw2=%d\n", nforw2)); soft_destroy = 1; }
 /* Also, we do not wish to destroy if the trans_children would be larger
 * than the parent and are currently not allocated (e.g. lags).
 * Because this is too much work to check, we refrain from destroying
