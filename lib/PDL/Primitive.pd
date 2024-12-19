@@ -3230,7 +3230,6 @@ sub PDL::interpND {
     # (the 'x' is the normal perl repeat operator)
     my $crnr = PDL::Basic::ndcoords( (2) x $index->dim(0) ) # (index,cth)
              ->mv(0,-1)->clump($index->dim(0))->mv(-1,0); # (index, clst)
-
     # a & b are the weighting coefficients.
     my($x,$y);
     $index->where( 0 * $index ) .= -10; # Change NaN to invalid

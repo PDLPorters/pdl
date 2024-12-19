@@ -119,8 +119,8 @@ sub _at_1D ($$) {                           # Called by wcols and swcols
 
 # squeezes "fluffy" perl list values into column data type
 sub _burp_1D {
-   my $data = $_[0]->[0];
-   my $databox = $_[0]->[1];
+   my $data = $_[0][0];
+   my $databox = $_[0][1];
    my $index = $_[1];
    my $start = $index - @{$databox} + 1;
    if (ref $data eq 'ARRAY') {
@@ -128,7 +128,7 @@ sub _burp_1D {
    } elsif ( ref($databox->[0]) eq "ARRAY" ) {
       # could add POSIX::strtol for hex and octal support but
       # can't break float conversions (how?)
-      $data->slice(":,$start:$index") .= pdl($databox);
+      $data->slice(":,$start:$index") .= pdl($data->type, $databox);
    } else {
       # could add POSIX::strtol for hex and octal support but
       # can't break float conversions (how?)

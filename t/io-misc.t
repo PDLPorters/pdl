@@ -172,6 +172,10 @@ is_pdl $y, long(2,4,6,8), "rcols: deftype option";
 is_pdl $x, ushort(1,3,-5,7), "rcols: types option";
 is_pdl $y, double(2,4,6,8), "rcols: types option";
 
+# capturing problem in PDL::CCS
+my $ix = PDL->rcols($file, [0,1], { TYPES => [ indx ], IGNORE => qr/^\s*#/ });
+is_pdl $ix, indx('1 3 -5 7; 2 4 6 8'), "rcols: types option";
+
 isa_ok $PDL::IO::Misc::deftype, "PDL::Type", "PDL::IO::Misc::deftype";
 is $PDL::IO::Misc::deftype, 'double', "PDL::IO::Misc::deftype check";
 

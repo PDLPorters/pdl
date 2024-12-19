@@ -2988,7 +2988,7 @@ sub PDL::reshape :lvalue {
     $pdl->make_physical;
     if ($pdl->nelem > $nelem) {
 	my $tmp = $pdl->flat->slice("$nelem:-1");
-	$tmp .= 0;
+	$tmp .= pdl($tmp->type, 0);
     }
     $_[0] = $pdl;
     return $pdl;

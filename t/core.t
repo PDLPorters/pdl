@@ -492,16 +492,12 @@ ok !$y->is_inplace,"new_or_inplace clears the inplace flag";
 }
 
 {
-# check reshape and dims.  While we're at it, check null & empty creation too.
+# check empty creation
+is empty(float)->type, 'float', 'empty(float) works';
 my $empty = empty();
 is $empty->type->enum, 0, 'empty() gives lowest-numbered type';
-is empty(float)->type, 'float', 'empty(float) works';
 is $empty->nelem, 0, "you can make an empty PDL with zeroes(0)";
 like "$empty", qr/Empty/, "an empty PDL prints 'Empty'";
-}
-
-{
-my $empty = empty();
 my $null = null;
 is $null->nbytes, 0, 'a null has 0 nbytes';
 is $null->info, 'PDL->null', "null ndarray's info is 'PDL->null'";
@@ -531,6 +527,9 @@ is_pdl $x, short([[3,4],[5,6]]), "reshape moved the elements to the right place"
 my $y = $x->slice(":,:");
 eval { $y->reshape(4); };
 unlike $@, qr/Can't/, "reshape doesn't fail on a PDL with a parent";
+my $nzai = zeroes(indx,6)->slice('');
+eval {$nzai = $nzai->reshape(30)};
+is $@, '', 'no reshape error';
 }
 
 {
@@ -803,8 +802,7 @@ my $oneway_slice = $y->slice('0:1');
 is_pdl $oneway_slice, pdl '[4 5]';
 eval {$oneway_slice .= 11};
 isnt $@, '', 'error on assigning into one-way slice';
-my $c = $y->flowing->_convert_int(cdouble->enum);
-ok $c->fflows, 'flowing -> converted has "flowing" on';
+ok $y->flowing->_convert_int(cdouble->enum)->fflows, 'flowing -> converted has "flowing" on';
 }
 
 {
