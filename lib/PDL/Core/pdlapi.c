@@ -1079,12 +1079,34 @@ pdl_trans *pdl_create_trans(pdl_transvtable *vtable) {
     return it;
 }
 
+static inline pdl_datatypes pdl__type_detect(pdl_trans *trans) {
+  pdl_datatypes retval = PDL_INVALID, last_dtype = PDL_INVALID;
+  PDL_Indx i;
+  pdl_transvtable *vtable = trans->vtable;
+  for (i=0; i<vtable->npdls; i++) {
+    pdl *pdl = trans->pdls[i];
+    short flags = vtable->par_flags[i];
+    if (flags & (PDL_PARAM_ISIGNORE|PDL_PARAM_ISTYPED|PDL_PARAM_ISCREATEALWAYS))
+      continue;
+    if (retval < pdl->datatype && (
+      !(flags & PDL_PARAM_ISCREAT) ||
+      ((flags & PDL_PARAM_ISCREAT) && !((pdl->state & PDL_NOMYDIMS) && pdl->trans_parent == NULL))
+    ))
+      retval = pdl->datatype;
+  }
+  for (i=0; vtable->gentypes[i]!=-1; i++) {
+    last_dtype = vtable->gentypes[i];
+    if (retval != last_dtype) continue;
+    return retval;
+  }
+  return last_dtype;
+}
+
 pdl_error pdl_type_coerce(pdl_trans *trans) {
   pdl_error PDL_err = {0, NULL, 0};
   PDL_Indx i;
   pdl_transvtable *vtable = trans->vtable;
   pdl **pdls = trans->pdls;
-  trans->__datatype = -1;
   char p2child_has_badvalue = (vtable->npdls == 2 && pdls[0]->has_badvalue
       && (vtable->par_flags[1] & PDL_PARAM_ISCREATEALWAYS));
   PDL_Anyval parent_badvalue = p2child_has_badvalue ? pdls[0]->badvalue : (PDL_Anyval){PDL_INVALID, {0}};
@@ -1093,26 +1115,7 @@ pdl_error pdl_type_coerce(pdl_trans *trans) {
     outputs, possibly after being converted, leaving the passed-in ones
     alone to be picked up for use in CopyBadStatusCode */
   for (i=vtable->nparents; i<vtable->npdls; i++) pdls[i+nchildren] = pdls[i];
-  for (i=0; i<vtable->npdls; i++) {
-    pdl *pdl = pdls[i];
-    short flags = vtable->par_flags[i];
-    if (flags & (PDL_PARAM_ISIGNORE|PDL_PARAM_ISTYPED|PDL_PARAM_ISCREATEALWAYS))
-      continue;
-    if (trans->__datatype < pdl->datatype && (
-      !(flags & PDL_PARAM_ISCREAT) ||
-      ((flags & PDL_PARAM_ISCREAT) && !((pdl->state & PDL_NOMYDIMS) && pdl->trans_parent == NULL))
-    ))
-      trans->__datatype = pdl->datatype;
-  }
-  int type_match = 0, last_dtype = -1;
-  for (i=0;vtable->gentypes[i]!=-1; i++) {
-    last_dtype = vtable->gentypes[i];
-    if (trans->__datatype != last_dtype) continue;
-    type_match = 1;
-    break;
-  }
-  if (!type_match) trans->__datatype = last_dtype;
-  pdl_datatypes trans_dtype = trans->__datatype;
+  pdl_datatypes trans_dtype = trans->__datatype = pdl__type_detect(trans);
   for (i=0; i<vtable->npdls; i++) {
     pdl *pdl = pdls[i];
     short flags = vtable->par_flags[i];
