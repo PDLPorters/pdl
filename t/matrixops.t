@@ -171,6 +171,7 @@ is_pdl identity(zeroes 2, 3), pdl('1 0; 0 1'), "identity matrix with dimensioned
 is_pdl identity(zeroes 2, 3, 4)->shape, indx([2,2,4]), "identity matrix with multi-dimensioned ndarray";
 is_pdl stretcher(pdl(2,3)), pdl('2 0;0 3'), "stretcher 2x2";
 is_pdl stretcher(pdl('2 3;3 4')), pdl('[2 0;0 3][3 0;0 4]'), "stretcher 2x2x2";
+is_pdl stretcher(ldouble('0.14142135623731 0.14142135623731')), ldouble('0.14142135623731 0;0 0.14142135623731'), "stretcher ldouble 2x2";
 }
 
 {

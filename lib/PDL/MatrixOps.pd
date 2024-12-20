@@ -175,13 +175,15 @@ pp_addpm(<<'EOD');
 
 =for ref
 
-Return a diagonal matrix with the specified diagonal elements
+Return a diagonal matrix with the specified diagonal elements.
+Preserves higher dimensions.
+As of 2.096, it will also have the same datatype.
 
 =cut
 
 sub stretcher {
   my $in = shift;
-  my $out = zeroes($in->dim(0),$in->dims);
+  my $out = zeroes($in->type, $in->dim(0), $in->dims);
   $out->diagonal(0,1) += $in;
   $out;
 }
