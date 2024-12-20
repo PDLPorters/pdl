@@ -1035,15 +1035,12 @@ sub PDL::rld {
 }
 EOD
         Code => pp_line_numbers(__LINE__, <<'EOF'),
-          PDL_Indx i,j=0,an;
-          $GENERIC(b) bv;
+          PDL_Indx j=0;
           loop (n) %{
-            an = $a();
-            bv = $b();
-            for (i=0;i<an;i++) {
-              $c(m=>j) = bv;
-              j++;
-            }
+            PDL_Indx jlim = j + $a();
+            $GENERIC(b) bv = $b();
+            loop (m=j:jlim) %{ $c() = bv; %}
+            j = jlim;
           %}
 EOF
         Doc => <<'EOD'
@@ -1202,11 +1199,9 @@ EOC
        Code =>pp_line_numbers(__LINE__, <<'EOC'),
   PDL_Indx cn=0;
   loop (uniqvals) %{
-    PDL_Indx i, nrows = $a();
-    for (i=0; i<nrows; i++) {
-      loop (M) %{ $c(decodedvals=>cn) = $b(); %}
-      cn++;
-    }
+    PDL_Indx cnlim = cn + $a();
+    loop (decodedvals=cn:cnlim,M) %{ $c() = $b(); %}
+    cn = cnlim;
    %}
 EOC
   Doc =><<'EOD'
@@ -1276,9 +1271,8 @@ EOC
   PDL_Indx mi=0;
   loop (N) %{
     PDL_Indx     len = $a(), li;
-    for (li=0; li < len; ++li, ++mi) {
+    for (li=0; li < len; ++li, ++mi)
       $c(M=>mi) = $b() + li;
-    }
   %}
 EOC
   Doc =><<'EOD'
