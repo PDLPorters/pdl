@@ -1083,6 +1083,8 @@ static inline pdl_datatypes pdl__type_detect(pdl_trans *trans) {
   pdl_datatypes retval = PDL_INVALID, last_dtype = PDL_INVALID;
   PDL_Indx i;
   pdl_transvtable *vtable = trans->vtable;
+  if (vtable->gentypes[0] != PDL_INVALID && vtable->gentypes[0] == PDL_INVALID)
+    return vtable->gentypes[0]; /* only one allowed type, use that */
   for (i=0; i<vtable->npdls; i++) {
     pdl *pdl = trans->pdls[i];
     short flags = vtable->par_flags[i];
