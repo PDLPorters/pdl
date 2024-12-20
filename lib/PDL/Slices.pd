@@ -1270,9 +1270,9 @@ EOC
        Code =>pp_line_numbers(__LINE__, <<'EOC'),
   PDL_Indx mi=0;
   loop (N) %{
-    PDL_Indx     len = $a(), li;
-    for (li=0; li < len; ++li, ++mi)
-      $c(M=>mi) = $b() + li;
+    PDL_Indx milim = mi + $a(), li = 0;
+    loop (M=mi:milim) %{ $c() = $b() + li++; %}
+    mi = milim;
   %}
 EOC
   Doc =><<'EOD'
