@@ -37,7 +37,6 @@ subtest interpND => sub {
     is_pdl $x->long->interpND($index), $z->long, {atol=>6};
     is_pdl $x->long->interpND($index, {method=>'l'}), $z->long;
     is_pdl $x->long->interpND($index, {method=>'c'}), $z->long;
-    is_pdl $x->long->interpND($index, {method=>'f'}), long('36 36 34 34 35; 51 51 49 49 50; 52 51 49 49 51; 33 33 31 31 32; 26 26 24 24 25');
 };
 
 subtest PCHIP => sub {

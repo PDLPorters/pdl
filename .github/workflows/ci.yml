@@ -215,6 +215,7 @@ jobs:
         run: |
             curl -L https://install.perlbrew.pl | bash
             source ~/perl5/perlbrew/etc/bashrc
+            yes|sudo perl -MCPAN -e 'CPAN::Shell->notest("install","Devel::PatchPerl")'
             perlbrew install --notest -D ${{ matrix.weirdness }} perl-5.40.0 --as perl-5.40.0-${{ matrix.weirdness }} || (cat ~/perl5/perlbrew/build.perl-5.40.0.log; false)
       - name: run tests
         env:
@@ -223,7 +224,7 @@ jobs:
           MAKEFLAGS: --jobs=4
         run: |
             source ~/perl5/perlbrew/etc/bashrc
-            perlbrew switch perl-5.32.0-${{ matrix.weirdness }}
+            perlbrew switch perl-5.40.0-${{ matrix.weirdness }}
             perlbrew install-cpanm
             perl -V|grep archname
             (cpanm -n ExtUtils::MakeMaker Devel::CheckLib File::Which && cpanm -n --installdeps .) || ( cat ~/.cpanm/build.log && false )
