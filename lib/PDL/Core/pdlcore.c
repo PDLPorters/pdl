@@ -742,7 +742,16 @@ PDL_Indx pdl_setav_ ## ppsym_dest(ctype_dest* dest_data, AV* av, \
         *dest_data = (ctype_dest) undefval; \
         undef_count++; \
       } else {              /* scalar case */ \
-        *dest_data = SvIOK(el) ? (ctype_dest) SvIV(el) : (ctype_dest) SvNV(el); \
+        if (!SvIOK(el)) { /* cf ANYVAL_FROM_SV, COPYCONVERT */ \
+          NV tmp_NV = SvNV(el); \
+          *dest_data = PDL_GENTYPE_IS_UNSIGNED_##ppsym_dest \
+            ? (ctype_dest)(intmax_t) tmp_NV \
+            : (ctype_dest)           tmp_NV; \
+        } else if (SvIsUV(el)) { \
+          *dest_data = (ctype_dest) SvUV(el); \
+        } else { \
+          *dest_data = (ctype_dest) SvIV(el); \
+        } \
       } \
       /* Pad dim if we are not deep enough */ \
       if (level < ndims-1) { \

@@ -35,6 +35,7 @@
 - add Primitive::pchip_{chsp,chic,chim,chfe,chfd,chia,chid,chbs,bvalu}
 - repository directory structure now like a normal Perl distro with lib/ (#119)
 - IO::Dumper fixed to deal with multiple refs to same ndarray (#508,#509) - thanks @d-lamb for report, thanks @shawnlaffan for fix
+- stop pdl([-6,18446744073709551615,-4]) being pdl([-6,-1,-4]) (#511)
 
 2.095 2024-11-03
 - add PDL_GENTYPE_IS_{REAL,FLOATREAL,COMPLEX,SIGNED,UNSIGNED}_##ppsym (#502)

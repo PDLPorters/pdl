@@ -139,14 +139,14 @@ is_pdl $x->modeover, longlong(3,0), "modeover";
 #   .... 0000 1010
 #   .... 1111 1100
 #OR:.... 1111 1110 = -2
-is pdl([10,0,-4])->borover(), -2, "borover with no BAD values";
+is longlong([10,0,-4])->borover(), -2, "borover with no BAD values";
 
 #     .... 1111 1111
 #     .... 1111 1010
 #     .... 1111 1100
 #AND: .... 1111 1000 = -8
 
-is( pdl([-6,~0,-4])->bandover(), -8, "bandover with no BAD values");
+is( longlong([-6,~0,-4])->bandover(), -8, "bandover with no BAD values");
 
 #   0000 1010
 #   1111 1100

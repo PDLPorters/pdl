@@ -345,11 +345,9 @@ like($@, qr/found disallowed character\(s\) 'po'/, 'Gives meaningful explanation
 
 # checks for croaking behavior for consecutive signs like +-2:
 eval{ pdl q[1 +-2 3] };
-isnt($@, '', 'Croaks when it finds consecutive signs');
-like($@, qr/found a \w+ sign/, 'Gives meaningful explanation of problem');
+like($@, qr/found a \w+ sign/, 'Good error when consecutive signs');
 eval{ pdl q[1 -+2 3] };
-isnt($@, '', 'Croaks when it finds consecutive signs');
-like($@, qr/found a \w+ sign/, 'Gives meaningful explanation of problem');
+like($@, qr/found a \w+ sign/, 'Good error when consecutive signs');
 
 # 'larger word' croak checks (36)
 foreach my $special (qw(bad inf pi)) {
@@ -402,6 +400,10 @@ while( my ($case_string, $expected_string) = each %$cases ) {
 		is($bad_pdl->string, $expected_string, "PDL stringifies back to input string: @{[ $bad_pdl->string ]}");
 	};
 }
+
+is pdl(ushort, ['-5'])."", "[65531]", "ushort-typed ['-5'] converted right";
+is pdl(ushort, '[-5]')."", "[65531]", "ushort-typed '[-5]' converted right";
+is pdl(ushort, [-5])."", "[65531]", "ushort-typed [-5] converted right";
 
 done_testing;
 
