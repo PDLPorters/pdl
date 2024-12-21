@@ -132,7 +132,7 @@ sub _burp_1D {
    } else {
       # could add POSIX::strtol for hex and octal support but
       # can't break float conversions (how?)
-      $data->slice("$start:$index") .= pdl($data->type, $databox);
+      $data->slice("$start:$index") .= pdl($databox);
    }
    $_[0] = [ $data, [] ];
 }

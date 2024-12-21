@@ -31,6 +31,13 @@ is_pdl $pa, $pb, "original image recovered";
 }
 
 {
+    my $x     = xvals( 10, 10 ) + yvals( 10, 10 ) * 10;
+    my $index = cat( 3 + xvals( 5, 5 ) * 0.25, 7 + yvals( 5, 5 ) * 0.25 )
+      ->reorder( 2, 0, 1 );
+    is_pdl $x->long->interpND($index, {method=>'f'}), long('36 36 34 34 35; 51 51 49 49 50; 52 51 49 49 51; 33 33 31 31 32; 26 26 24 24 25');
+}
+
+{
 my $pb = $pa->copy;
 my $pc = $pb->zeroes;
 my $pd=czip($pb, $pc);

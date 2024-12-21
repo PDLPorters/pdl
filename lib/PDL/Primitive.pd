@@ -3304,14 +3304,13 @@ sub PDL::interpND {
 
   } elsif($method =~ m/^f(ft|ourier)?/i) {
 
-     local $@;
-     eval "use PDL::FFT;";
+     require PDL::FFT;
      my $fftref = $opt->{fft};
      $fftref = [] unless(ref $fftref eq 'ARRAY');
      if(@$fftref != 2) {
 	 my $x = $source->copy;
 	 my $y = zeroes($source);
-	 fftnd($x,$y);
+	 PDL::FFT::fftnd($x,$y);
 	 $fftref->[0] = sqrt($x*$x+$y*$y) / $x->nelem;
 	 $fftref->[1] = - atan2($y,$x);
      }
