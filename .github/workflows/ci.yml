@@ -190,7 +190,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: Chocobo1/setup-ccache-action@v1
         with:
-          override_cache_key: ccache-v0.0-ubuntu-weirdperls
+          override_cache_key: ccache-v0.0-ubuntu-${{ matrix.weirdness }}
       - name: Build perl ...
         env:
           MAKEFLAGS: --jobs=4
