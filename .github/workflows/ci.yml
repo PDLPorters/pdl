@@ -211,11 +211,15 @@ jobs:
     name: Perl with ${{ matrix.weirdness }}
     steps:
       - uses: actions/checkout@v4
+      - uses: Chocobo1/setup-ccache-action@v1
+        with:
+          override_cache_key: ccache-v0.0-ubuntu-weirdperls
       - name: Build perl ...
+        env:
+          MAKEFLAGS: --jobs=4
         run: |
-            curl -L https://install.perlbrew.pl | bash
-            source ~/perl5/perlbrew/etc/bashrc
-            yes|sudo perl -MCPAN -e 'CPAN::Shell->notest("install","Devel::PatchPerl")'
+            sudo apt-get update && sudo apt-get install perlbrew
+            perlbrew init
             perlbrew install --notest -D ${{ matrix.weirdness }} perl-5.40.0 --as perl-5.40.0-${{ matrix.weirdness }} || (cat ~/perl5/perlbrew/build.perl-5.40.0.log; false)
       - name: run tests
         env:
