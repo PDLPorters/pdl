@@ -659,7 +659,7 @@ sub bswap {
     $size == 8 ? \&PDL::bswap8 :
     $size == 16 ? \&PDL::bswap16 :
     $size == 32 ? \&PDL::bswap32 :
-    PDL::Core::barf("bswap couldn't find swap function for $_[0][1]{shortctype}");
+    PDL::Core::barf("bswap couldn't find swap function for $_[0][1]{shortctype}, size was '$size'");
 }
 
 sub howbig {
