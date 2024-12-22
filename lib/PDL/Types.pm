@@ -653,14 +653,9 @@ sub bswap {
   my $size = $_[0]->howbig;
   return $bswap_cache{$_[0][0]} = sub {} if $size < 2;
   require PDL::IO::Misc;
-  $bswap_cache{$_[0][0]} =
-    $size == 2 ? \&PDL::bswap2 :
-    $size == 4 ? \&PDL::bswap4 :
-    $size == 8 ? \&PDL::bswap8 :
-    $size == 12 ? \&PDL::bswap12 :
-    $size == 16 ? \&PDL::bswap16 :
-    $size == 32 ? \&PDL::bswap32 :
-    PDL::Core::barf("bswap couldn't find swap function for $_[0][1]{shortctype}, size was '$size'");
+  my $swapper = PDL->can("bswap$size");
+  PDL::Core::barf("Type::bswap couldn't find swap function for $_[0][1]{shortctype}, size was '$size'") if !defined $swapper;
+  $bswap_cache{$_[0][0]} = $swapper;
 }
 
 sub howbig {

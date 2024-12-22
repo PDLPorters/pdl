@@ -85,6 +85,7 @@ defswap(4, "Swaps quads of bytes in argument x()");
 defswap(8, "Swaps octets of bytes in argument x()");
 defswap(12, "Swaps 12s of bytes in argument x()");
 defswap(16, "Swaps 16s of bytes in argument x()");
+defswap(24, "Swaps 24s of bytes in argument x()");
 defswap(32, "Swaps 32s of bytes in argument x()");
 
 pp_addpm(<<'!NO!SUBS!');
