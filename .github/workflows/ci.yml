@@ -8,14 +8,7 @@ on:
   pull_request:
   create:
 jobs:
-  notify:
-    runs-on: ubuntu-latest
-    continue-on-error: true
-    if: ${{ always() }}
-    steps:
-      - uses: PDLPorters/devops/github-actions/irc-notifications@master
-        with:
-          target-notifications: true
+
   ci:
     runs-on: ${{ matrix.os }}
     if: ${{ github.event_name == 'push' || github.event_name == 'pull_request' }}
@@ -44,9 +37,6 @@ jobs:
             test-installed: true # test not from blib but after installing
           - perl-version: '5.30'
             os: ubuntu-latest
-            disable-fortran: true # what if we don't have Fortran installed?
-          - perl-version: '5.30'
-            os: ubuntu-latest
             use-clang: true # use `clang` instead of `gcc` default
           - perl-version: '5.26'
             os: windows-latest
@@ -60,12 +50,7 @@ jobs:
           target-setup-perl: true
           perl-version: ${{ matrix.perl-version }}
           perl-threaded: ${{ matrix.perl-threaded }}
-
       # conditional config
-      - name: Maybe gfortran
-        if: "!matrix.disable-fortran"
-        uses: PDLPorters/devops/github-actions/install-dep-gfortran@master
-
       - name: Use clang?
         # clang is already installed in Travis-CI environment. Using PERL_MM_OPT does not work with subdirectory Makefile.PLs so we override Config.pm
         # Also, both $Config{cc} and $Config{ld} need to be set because under ELF environments (such as Travis-CI's Ubuntu), this is what Perl's Config.pm does.
@@ -74,39 +59,32 @@ jobs:
           [ -d build_aux ] || mkdir build_aux
           echo 'package pdl_config_override; use ExtUtils::MakeMaker::Config; $Config{cc} = $Config{ld} = "clang"; 1;' > build_aux/pdl_config_override.pm
           echo "PERL5OPT=${PERL5OPT:+${PERL5OPT} }-I$(pwd)/build_aux -Mpdl_config_override" >> $GITHUB_ENV
-
       - name: EUMM blead?
         if: matrix.eumm-blead
         uses: PDLPorters/devops/github-actions/install-dep-eumm-blead@master
-
       - name: Install PDL dependencies
         uses: PDLPorters/devops/github-actions/install-dep-pdl-dep@master
-
       - name: 'ci-dist: target-install-dist-perl-deps'
         uses: PDLPorters/devops/github-actions/ci-dist@master
         with:
           target-install-dist-perl-deps: true
           dist-perl-deps-configure: ExtUtils::MakeMaker Devel::CheckLib File::Which
-
       - name: 'ci-dist: target-test-release-testing'
         uses: PDLPorters/devops/github-actions/ci-dist@master
         with:
           target-test-release-testing: true
           test-enable-release-testing: ${{ matrix.release-test }}
-
       - name: 'ci-dist: target-test (no coverage)'
         uses: PDLPorters/devops/github-actions/ci-dist@master
         if: '!matrix.coverage && !matrix.disttest'
         with:
           target-test: true
           test-enable-coverage: ${{ matrix.coverage }}
-
       - name: 'disttest'
         if: matrix.disttest
         run: |
           set -e
           ( [ -f Makefile ] || $MYPERL Makefile.PL ) && make disttest
-
       - name: Run tests after install (no coverage)
         if: '!matrix.coverage && matrix.test-installed'
         run: |
@@ -115,7 +93,6 @@ jobs:
           make install
           make clean # clean is to ensure no blib
           prove -j4 t
-
       - name: 'ci-dist: target-test (with coverage)'
         uses: PDLPorters/devops/github-actions/ci-dist@master
         if: matrix.coverage
