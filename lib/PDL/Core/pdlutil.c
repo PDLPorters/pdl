@@ -116,21 +116,9 @@ void pdl_print_iarr(PDL_Indx *iarr, int n) {
   printf(")");
 }
 
-void pdl_dump_broadcast(pdl_broadcast *broadcast) {
-  int i, j, found=0, sz=0, nspac=4;
+void pdl_dump_transvtable(pdl_transvtable *vtable, int nspac) {
+  int i, j, found=0, sz=0;
   SET_SPACE(spaces, nspac);
-  int flagval[] = {
-#define X(f) f,
-PDL_LIST_FLAGS_PDLBROADCAST(X)
-#undef X
-    0
-  };
-  char *flagchar[] = {
-#define X(f) #f,
-PDL_LIST_FLAGS_PDLBROADCAST(X)
-#undef X
-    NULL
-  };
   int paramflagval[] = {
 #define X(f) f,
 PDL_LIST_FLAGS_PARAMS(X)
@@ -155,55 +143,71 @@ PDL_TYPELIST_ALL(X)
 #undef X
     NULL
   };
-  printf("DUMPBROADCAST %p\n",broadcast);
-  if (broadcast->transvtable) {
-    pdl_transvtable *vtable = broadcast->transvtable;
-    psp; printf("Funcname: %s\n",vtable->name);
-    psp; printf("Types: ");
-    found=0; sz=0;
-    for (i=0;vtable->gentypes[i]!=-1; i++) {
-      char *this_str = typechar[vtable->gentypes[i]];
-      size_t thislen = strlen(this_str);
-      if ((sz+thislen)>PDL_MAXLIN) {sz=nspac*2; printf("\n%s%s",spaces,spaces);}
-      printf("%s%s",found ? ",":"",this_str); found = 1;
-      sz += thislen;
+  psp; printf("Funcname: %s\n",vtable->name);
+  psp; printf("Types: ");
+  found=0; sz=0;
+  for (i=0;vtable->gentypes[i]!=-1; i++) {
+    char *this_str = typechar[vtable->gentypes[i]];
+    size_t thislen = strlen(this_str);
+    if ((sz+thislen)>PDL_MAXLIN) {sz=nspac*2; printf("\n%s%s",spaces,spaces);}
+    printf("%s%s",found ? ",":"",this_str); found = 1;
+    sz += thislen;
+  }
+  printf("\n");
+  psp; printf("Parameters:\n");
+  for (i=0;i<vtable->npdls;i++) {
+    psp; psp; printf("%s(",vtable->par_names[i]);
+    found=0;
+    for (j=0;j<vtable->par_realdims[i];j++) {
+      if (found) printf(","); found=1;
+      printf("%s",vtable->ind_names[PDL_IND_ID(vtable, i, j)]);
     }
-    printf("\n");
-    psp; printf("Parameters:\n");
-    for (i=0;i<vtable->npdls;i++) {
-      psp; psp; printf("%s(",vtable->par_names[i]);
-      found=0;
-      for (j=0;j<vtable->par_realdims[i];j++) {
-        if (found) printf(","); found=1;
-        printf("%s",vtable->ind_names[PDL_IND_ID(vtable, i, j)]);
-      }
-      printf(") (");
-      if (vtable->par_types[i] < 0) printf("no type");
-      else {
-	for (j=0;typeval[j]>=0; j++)
-	  if (vtable->par_types[i] == typeval[j]) {
-	    printf("%s",typechar[j]);
-	    break;
-	  }
-      }
-      printf("): ");
-      found=0; sz=0;
-      for (j=0;paramflagval[j]!=0; j++)
-        if (vtable->par_flags[i] & paramflagval[j]) {
-          char *this_str = paramflagchar[j];
-          size_t thislen = strlen(this_str);
-          if ((sz+thislen)>PDL_MAXLIN) {sz=nspac*3; printf("\n%s%s%s",spaces,spaces,spaces);}
-          printf("%s%s",found ? "|":"",this_str); found = 1;
-          sz += thislen;
+    printf(") (");
+    if (vtable->par_types[i] < 0) printf("no type");
+    else {
+      for (j=0;typeval[j]>=0; j++)
+        if (vtable->par_types[i] == typeval[j]) {
+          printf("%s",typechar[j]);
+          break;
         }
-      if (!found) printf("(no flags set)");
-      printf("\n");
     }
-    psp; printf("Indices: ");
-    for (i=0;i<vtable->ninds;i++)
-      printf("%s ",vtable->ind_names[i]);
+    printf("): ");
+    found=0; sz=0;
+    for (j=0;paramflagval[j]!=0; j++)
+      if (vtable->par_flags[i] & paramflagval[j]) {
+        char *this_str = paramflagchar[j];
+        size_t thislen = strlen(this_str);
+        if ((sz+thislen)>PDL_MAXLIN) {sz=nspac*3; printf("\n%s%s%s",spaces,spaces,spaces);}
+        printf("%s%s",found ? "|":"",this_str); found = 1;
+        sz += thislen;
+      }
+    if (!found) printf("(no flags set)");
     printf("\n");
   }
+  psp; printf("Indices: ");
+  for (i=0;i<vtable->ninds;i++)
+    printf("%s ",vtable->ind_names[i]);
+  printf("\n");
+}
+
+void pdl_dump_broadcast(pdl_broadcast *broadcast) {
+  int i, j, found=0, sz=0, nspac=4;
+  SET_SPACE(spaces, nspac);
+  int flagval[] = {
+#define X(f) f,
+PDL_LIST_FLAGS_PDLBROADCAST(X)
+#undef X
+    0
+  };
+  char *flagchar[] = {
+#define X(f) #f,
+PDL_LIST_FLAGS_PDLBROADCAST(X)
+#undef X
+    NULL
+  };
+  printf("DUMPBROADCAST %p\n",broadcast);
+  if (broadcast->transvtable)
+    pdl_dump_transvtable(broadcast->transvtable, 4);
   psp; printf("Flags: ");
   found=0; sz=0;
   for (i=0;flagval[i]!=0; i++)

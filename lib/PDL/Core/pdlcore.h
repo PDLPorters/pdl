@@ -63,6 +63,7 @@ typedef enum {
 } pdl_flags;
 pdl_error pdl_croak_param(pdl_transvtable *transvtable, int paramIndex, char *pat, ...);
 void pdl_print_iarr(PDL_Indx *iarr, int n);
+void pdl_dump_transvtable(pdl_transvtable *vtable, int nspac);
 void pdl_dump_broadcast(pdl_broadcast *broadcast);
 void pdl_dump_broadcasting_info(
   int npdls, PDL_Indx* creating, int target_pthread,
