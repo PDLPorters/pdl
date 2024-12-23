@@ -1,6 +1,11 @@
 name: perl
 on:
-  create:
+  push:
+    branches:
+     - '*'
+    tags-ignore:
+      - '*'
+  pull_request:
 jobs:
 
   cygwin:
@@ -10,9 +15,10 @@ jobs:
       PERL_MB_OPT: --install_base /cygdrive/c/cx
       PERL_MM_OPT: INSTALL_BASE=/cygdrive/c/cx
       CYGWIN_NOWINPATH: 1
+      HARNESS_OPTIONS: j4
+      MAKEFLAGS: --jobs=4
     runs-on: windows-latest
     # only run on tag because cygwin is slow
-    if: ${{ github.event.ref_type == 'tag' }}
     strategy:
       fail-fast: false
     defaults:
@@ -82,10 +88,11 @@ jobs:
   build-status:
     runs-on: ubuntu-latest
     continue-on-error: true
-    if: ${{ always() }}
+    if: ${{ failure() }}
     needs: [ 'cygwin' ]
     steps:
       - uses: PDLPorters/devops/github-actions/irc-notifications@master
         with:
           target-build-status: true
+          build-status-source: 'cygwin'
           needs: ${{ toJSON(needs) }}
