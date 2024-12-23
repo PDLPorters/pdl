@@ -1,0 +1,91 @@
+name: perl
+on:
+  create:
+jobs:
+
+  cygwin:
+    env:
+      PERL5LIB: /cygdrive/c/cx/lib/perl5:/cygdrive/c/cx/lib/perl5/MSWin32-x64-multi-thread
+      PERL_LOCAL_LIB_ROOT: /cygdrive/cx
+      PERL_MB_OPT: --install_base /cygdrive/c/cx
+      PERL_MM_OPT: INSTALL_BASE=/cygdrive/c/cx
+      CYGWIN_NOWINPATH: 1
+    runs-on: windows-latest
+    # only run on tag because cygwin is slow
+    if: ${{ github.event.ref_type == 'tag' }}
+    strategy:
+      fail-fast: false
+    defaults:
+      run:
+        shell: C:\tools\cygwin\bin\bash.exe --login --norc -eo pipefail -o igncr '{0}'
+    steps:
+      - name: Set git to use LF
+        run: |
+          git config --global core.autocrlf false
+          git config --global core.eol lf
+        shell: powershell
+      - uses: actions/checkout@v4
+      - name: Cache Cygwin
+        uses: actions/cache@v1
+        with:
+          path: |
+            c:\tools\cygwin
+            !c:\tools\cygwin\home
+          key: ${{ runner.os }}-build-cygwin-tools
+          restore-keys: ${{ runner.os }}-build-cygwin-tools
+      - name: Set up Cygwin
+        uses: egor-tensin/setup-cygwin@v3
+        with:
+          platform: x64
+          packages: make perl gcc-core gcc-g++ pkg-config libcrypt-devel libssl-devel libnsl-devel git
+      - name: perl -V
+        run: |
+          perl -V
+          gcc --version
+      - name: Prepare for cache
+        run: |
+          perl -V > perlversion.txt
+          gcc --version >> perlversion.txt
+          ls perlversion.txt
+      - name: Cache CPAN modules
+        uses: actions/cache@v1
+        with:
+          path: c:\cx
+          key: ${{ runner.os }}-build-cygwin-${{ hashFiles('perlversion.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-build-cygwin-${{ hashFiles('perlversion.txt') }}
+      - name: Install Static Dependencies
+        run: |
+          export PATH="/cygdrive/c/cx/bin:$PATH"
+          cd $( cygpath -u $GITHUB_WORKSPACE )
+          yes | cpan App::cpanminus || true
+      - name: Install Dynamic Dependencies
+        run: |
+          export PATH="/cygdrive/c/cx/bin:$PATH"
+          cd $( cygpath -u $GITHUB_WORKSPACE )
+          (cpanm -n Devel::CheckLib File::Which && cpanm -n --installdeps .) || ( cat ~/.cpanm/build.log && false )
+      - name: Run tests (no coverage)
+        env:
+          HARNESS_OPTIONS: j4
+        run: |
+          export PATH="/cygdrive/c/cx/bin:$PATH"
+          cd $( cygpath -u $GITHUB_WORKSPACE )
+          perl Makefile.PL && make test
+      - run: |
+          export PATH="/cygdrive/c/cx/bin:$PATH"
+          cd $( cygpath -u $GITHUB_WORKSPACE )
+      - name: CPAN log
+        if: ${{ failure() }}
+        run: |
+          cat ~/.cpanm/latest-build/build.log
+
+  build-status:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    if: ${{ always() }}
+    needs: [ 'cygwin' ]
+    steps:
+      - uses: PDLPorters/devops/github-actions/irc-notifications@master
+        with:
+          target-build-status: true
+          needs: ${{ toJSON(needs) }}
