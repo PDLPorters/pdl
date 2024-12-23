@@ -349,14 +349,20 @@ void
 trans_children(self)
   pdl *self
   PPCODE:
-    PDL_DECL_CHILDLOOP(self);
-    PDL_START_CHILDLOOP(self)
-      pdl_trans *t = PDL_CHILDLOOP_THISCHILD(self);
-      if (!t) continue;
-      SV *sv = sv_newmortal();
-      sv_setref_pv(sv, "PDL::Trans", (void*)t);
-      XPUSHs(sv);
-    PDL_END_CHILDLOOP(self)
+    U8 gimme = GIMME_V;
+    if (gimme == G_SCALAR)
+      mXPUSHu(self->ntrans_children);
+    else if (gimme == G_ARRAY) {
+      EXTEND(SP, self->ntrans_children);
+      PDL_DECL_CHILDLOOP(self);
+      PDL_START_CHILDLOOP(self)
+        pdl_trans *t = PDL_CHILDLOOP_THISCHILD(self);
+        if (!t) continue;
+        SV *sv = sv_newmortal();
+        sv_setref_pv(sv, "PDL::Trans", (void*)t);
+        PUSHs(sv);
+      PDL_END_CHILDLOOP(self)
+    }
 
 INCLUDE_COMMAND: $^X -e "require q{./Core/Dev.pm}; PDL::Core::Dev::generate_core_flags()"
 

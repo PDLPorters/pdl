@@ -37,6 +37,7 @@
 - IO::Dumper fixed to deal with multiple refs to same ndarray (#508,#509) - thanks @d-lamb for report, thanks @shawnlaffan for fix
 - stop pdl([-6,18446744073709551615,-4]) being pdl([-6,-1,-4]) (#511)
 - bswap{12,24} added as long double can be 12 bytes
+- Core::trans_children in scalar context now returns how many
 
 2.095 2024-11-03
 - add PDL_GENTYPE_IS_{REAL,FLOATREAL,COMPLEX,SIGNED,UNSIGNED}_##ppsym (#502)

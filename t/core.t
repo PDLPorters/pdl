@@ -764,6 +764,7 @@ my $s = sequence(3);
 is $s->trans_parent, undef, 'trans_parent without trans undef';
 my $slice = $s->slice;
 isnt +(my $tp=$slice->trans_parent), undef, 'trans_parent with trans defined';
+is 0+$s->trans_children, 1, 'scalar trans_children';
 is ${($s->trans_children)[0]}, $$tp, 'correct trans_children';
 my @parents = $tp->parents;
 is ${$parents[0]}, $s->address, 'correct parent ndarray';
