@@ -1092,6 +1092,8 @@ static inline pdl_error pdl__transtype_select(
   }
   for (i=0; i<vtable->npdls; i++) {
     pdl *pdl = trans->pdls[i];
+    if (pdl->state & PDL_NOMYDIMS)
+      continue;
     short flags = vtable->par_flags[i];
     if (flags & (PDL_PARAM_ISIGNORE|PDL_PARAM_ISTYPED|PDL_PARAM_ISCREATEALWAYS))
       continue;
