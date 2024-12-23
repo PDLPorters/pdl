@@ -5,11 +5,7 @@ use Test::Exception;
 use PDL::LiteF;
 use Test::PDL;
 
-TODO: { local $TODO = 'Some CPAN Testers fails for OpenBSD'; subtest 'random' => sub {
-
-    # check that our random functions work with Perl's srand
-    # local $TODO = ;
-
+subtest 'random' => sub {
     subtest 'random and srandom' => sub {
         srandom 5;
         my $r1 = random 10;
@@ -25,7 +21,7 @@ TODO: { local $TODO = 'Some CPAN Testers fails for OpenBSD'; subtest 'random' =>
         my $r2 = grandom 10;
         is_pdl $r1, $r2, "grandom and srandom";
     };
-}; }
+};
 
 subtest 'types' => sub {
 

@@ -145,21 +145,9 @@ ok(all($got == $expected), 'Empty bracket is correctly interpreted');
 # Bad, inf, nan checks #
 my $bad_values = pdl q[nan inf -inf bad];
 
-# Bad value testing depends on whether nan and inf are represented as bad
-# values
-
-TODO: {
-	# conditional TODO
-	local $TODO = 'ActivePerl and/or perls built using MS compilers might fail this test'
-		if($ActivePerl::VERSION || $Config{cc} eq 'cl');
-	SKIP: {
-		skip "broken for PDL_Index", 1;
-		ok($bad_values->at(0) != $bad_values->at(0), 'properly handles nan')
-			or diag("Zeroeth bad value should be nan but it describes itself as "
-			. $bad_values->at(0));
-	}
-}
-
+ok $bad_values->at(0) != $bad_values->at(0), 'properly handles nan'
+        or diag("Zeroeth bad value should be nan but it describes itself as "
+        . $bad_values->at(0));
 # inf test: inf == inf but inf * 0 != 0
 ok((	$bad_values->at(1) == $bad_values->at(1)
 		and $bad_values->at(1) * 0.0 != 0.0), 'properly handles inf')
@@ -176,63 +164,28 @@ my $infty = inf();
 my $min_inf = -inf();
 my $nan = nan();
 
-my $nan2 = $^O =~ /MSWin32/i && !$ActivePerl::VERSION && $Config{cc} ne 'cl' ? pdl (-((-1) ** 0.5))
-                             : pdl '-nan';
 my $bad = pdl 'bad';
 
-TODO: {
-	# conditional TODO
-	local $TODO = 'ActivePerl and/or perls built using MS compilers might fail this test'
-		if($ActivePerl::VERSION || $Config{cc} eq 'cl');
-	ok((	$infty == $infty and $infty * 0.0 != 0.0), "pdl 'inf' works by itself")
-		or diag("pdl 'inf' gave me $infty");
-	ok((	$min_inf == $min_inf and $min_inf * 0.0 != 0.0), "pdl '-inf' works by itself")
-		or diag("pdl '-inf' gave me $min_inf");
-}
-
+ok $infty == $infty && $infty * 0.0 != 0.0, "pdl 'inf' works by itself"
+        or diag "pdl 'inf' gave me $infty";
+ok $min_inf == $min_inf && $min_inf * 0.0 != 0.0, "pdl '-inf' works by itself"
+        or diag "pdl '-inf' gave me $min_inf";
 ok($min_inf == -$infty, "pdl '-inf' == -pdl 'inf'");
 
-TODO: {
-	local $TODO = 'Sign of Nan depends on platform, still some loose ends';
-	# conditional TODO for a different reason
-	local $TODO = 'Cygwin perl and/or ActivePerl might fail these tests'
-		if($ActivePerl::VERSION || $^O =~ /cygwin/i);
-	ok((   $nan != $nan), "pdl 'nan' works by itself")
-	       or diag("pdl 'nan' gave me $nan");
-	ok((   $nan2 != $nan2), "pdl '-nan' works by itself")
-	       or diag("pdl '-nan' gave me $nan2");
-	# On MS Windows, nan is -1.#IND and -nan is 1.#QNAN. IOW, nan has
-	# a leading minus sign, and -nan is not signed.
-	if($^O =~ /MSWin32/i) {
-		ok((   $nan =~ /-/), "pdl 'nan' has a negative sign (MS Windows only)")
-		       or diag("pdl 'nan' gave me $nan");
-		ok((   $nan2 !~ /-/), "pdl '-nan' doesn't have a negative sign (MS Windows only)")
-		       or diag("pdl -'nan' gave me $nan2");
-	}
-	else {
-		ok((   $nan !~ /-/), "pdl 'nan' has a positive sign")
-		       or diag("pdl 'nan' gave me $nan");
-		ok((   $nan2 =~ /-/), "pdl '-nan' has a negative sign")
-		       or diag("pdl '-nan' gave me $nan2");
-	}
-}
+ok((   $nan != $nan), "pdl 'nan' works by itself")
+   or diag("pdl 'nan' gave me $nan");
 
-ok($bad->isbad, "pdl 'bad' works by itself")
-	or diag("pdl 'bad' gave me $bad");
+ok $bad->isbad, "pdl 'bad' works by itself"
+	or diag "pdl 'bad' gave me $bad";
 
 # Checks for windows strings:
 $infty = pdl q[1.#INF];
 $nan = pdl q[-1.#IND];
 
-TODO: {
-	# conditional TODO
-	local $TODO = 'ActivePerl and/or perls built using MS compilers might fail this test'
-		if($ActivePerl::VERSION || $Config{cc} eq 'cl');
-	ok((	$infty == $infty and $infty * 0 != 0), "pdl '1.#INF' works")
-		or diag("pdl '1.#INF' gave me $infty");
-	ok((	$nan != $nan), "pdl '-1.#IND' works")
-		or diag("pdl '-1.#IND' gave me $nan");
-}
+ok $infty == $infty && $infty * 0 != 0, "pdl '1.#INF' works"
+        or diag "pdl '1.#INF' gave me $infty";
+ok $nan != $nan, "pdl '-1.#IND' works"
+        or diag "pdl '-1.#IND' gave me $nan";
 
 # Pi and e checks #
 $expected = pdl(1)->exp;
