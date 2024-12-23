@@ -111,7 +111,7 @@ pdl_error pdl__ensure_trans(pdl_trans *trans, int what, char inputs_only, int re
   return PDL_err;
 }
 
-pdl *pdl_null() {
+pdl *pdl_null(void) {
 	PDLDEBUG_f(printf("pdl_null\n"));
 	return pdl_pdlnew();
 }
@@ -182,7 +182,7 @@ pdl_error pdl_allocdata(pdl *it) {
   return PDL_err;
 }
 
-pdl* pdl_pdlnew() {
+pdl* pdl_pdlnew(void) {
      pdl *it = (pdl*) malloc(sizeof(pdl));
      if (!it) return it;
      memset(it, 0, sizeof(pdl));
@@ -800,7 +800,6 @@ pdl_error pdl_redodims_default(pdl_trans *trans) {
 
 pdl_error pdl__make_physical_recprotect(pdl *it, int recurse_count) {
   pdl_error PDL_err = {0, NULL, 0};
-  int i, vaffinepar=0;
   PDL_RECURSE_CHECK(recurse_count);
   PDLDEBUG_f(printf("make_physical %p\n",it));
   pdl_trans *trans = it->trans_parent;
@@ -906,7 +905,6 @@ pdl_error pdl__make_physvaffine_recprotect(pdl *it, int recurse_count)
       PDL_Indx incsleft[it->ndims];
       /* For all dimensions of the childest ndarray */
       for(i=0; i<it->ndims; i++) {
-        PDL_Indx offset_left = it->vafftrans->offs;
         /* inc = the increment at the current stage */
         PDL_Indx inc = it->vafftrans->incs[i], incsign = (inc >= 0 ? 1:-1), newinc = 0;
         inc *= incsign;

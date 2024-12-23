@@ -414,7 +414,7 @@ pp_def('map',
         Pars=>'k0()',  # Dummy to set type (should match the type of "in").
         OtherPars=>'pdl *in; pdl *out; pdl *map; SV *boundary; SV *method;
                     long big; double blur; double sv_min; char flux; SV *bv',
-        CHeader => <<'+==EOD_map_auxiliary==',
+        CHeader => pp_line_numbers(__LINE__, <<'+==EOD_map_auxiliary=='),
 /*
  * Singular-value decomposition code is borrowed from
  * MatrixOps -- cut-and-pasted here because of linker trouble.
@@ -423,7 +423,7 @@ pp_def('map',
 static inline void pdl_xform_svd(PDL_Double *W, PDL_Double *Z, PDL_Indx nRow, PDL_Indx nCol)
 {
   int i, j, k, EstColRank, RotCount, SweepCount, slimit;
-  PDL_Double eps, e2, tol, vt, p, h2, x0, y0, q, r, c0, s0, c2, d1, d2;
+  PDL_Double eps, e2, tol, vt, p, x0, y0, q, r, c0, s0, d1, d2;
   eps = 1e-6;
   slimit = nCol/4;
   if (slimit < 6.0)
@@ -607,7 +607,7 @@ static inline PDL_Double PDL_xform_aux ( pdl *map, PDL_Indx *coords, PDL_Double 
   return max_sv;
 }
 +==EOD_map_auxiliary==
-        Code => <<'+==EOD_map_c_code==',
+        Code => pp_line_numbers(__LINE__, <<'+==EOD_map_c_code=='),
 
 /*
  * Pixel interpolation & averaging code
@@ -643,7 +643,7 @@ static inline PDL_Double PDL_xform_aux ( pdl *map, PDL_Indx *coords, PDL_Double 
  PDL_Double blur;           /* Scaling of filter                        */
  PDL_Double sv_min;         /* minimum singular value                   */
  char flux;                 /* Flag to indicate flux conservation       */
- PDL_Indx i, j;
+ PDL_Indx i;
  $GENERIC() badval = SvNV($COMP(bv));
  #define HANNING_LOOKUP_SIZE 2500
  static PDL_Double hanning_lookup[HANNING_LOOKUP_SIZE + 2];

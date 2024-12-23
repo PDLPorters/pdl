@@ -344,10 +344,7 @@ int ppm_quant(byte *rin, byte *gin, byte *bin, int cols, int rows, byte *pic8, b
 
 
 /****************************************************************************/
-static chist_vec mediancut( chv, colors, sum, maxval, newcolors )
-     chist_vec chv;
-     int colors, sum, newcolors;
-     int maxval;
+static chist_vec mediancut( chist_vec chv, int colors, int sum, int maxval, int newcolors )
 {
   chist_vec colormap;
   box_vector bv;
@@ -508,32 +505,28 @@ static chist_vec mediancut( chv, colors, sum, maxval, newcolors )
 
 
 /**********************************/
-static int redcompare(p1, p2)
-     const void *p1, *p2;
+static int redcompare(const void *p1, const void *p2)
 {
   return (int) PPM_GETR( ((chist_vec)p1)->color ) -
          (int) PPM_GETR( ((chist_vec)p2)->color );
 }
 
 /**********************************/
-static int greencompare(p1, p2)
-     const void *p1, *p2;
+static int greencompare(const void *p1, const void *p2)
 {
   return (int) PPM_GETG( ((chist_vec)p1)->color ) -
          (int) PPM_GETG( ((chist_vec)p2)->color );
 }
 
 /**********************************/
-static int bluecompare(p1, p2)
-     const void *p1, *p2;
+static int bluecompare(const void *p1, const void *p2)
 {
   return (int) PPM_GETB( ((chist_vec)p1)->color ) -
          (int) PPM_GETB( ((chist_vec)p2)->color );
 }
 
 /**********************************/
-static int sumcompare(p1, p2)
-     const void *p1, *p2;
+static int sumcompare(const void *p1, const void *p2)
 {
   return ((box_vector) p2)->sum - ((box_vector) p1)->sum;
 }
@@ -542,10 +535,7 @@ static int sumcompare(p1, p2)
 
 /****************************************************************************/
 static chist_vec
-  ppm_computechist(pixels, cols, rows, maxcolors, colorsP)
-     pixel** pixels;
-     int cols, rows, maxcolors;
-     int* colorsP;
+  ppm_computechist(pixel** pixels, int cols, int rows, int maxcolors, int* colorsP)
 {
   chash_table cht;
   chist_vec chv;
@@ -560,11 +550,8 @@ static chist_vec
 
 
 /****************************************************************************/
-static chash_table ppm_computechash(pixels, cols, rows,
-					    maxcolors, colorsP )
-     pixel** pixels;
-     int cols, rows, maxcolors;
-     int* colorsP;
+static chash_table ppm_computechash(pixel** pixels, int cols, int rows,
+					    int maxcolors, int* colorsP )
 {
   chash_table cht;
   register pixel* pP;
@@ -604,7 +591,7 @@ static chash_table ppm_computechash(pixels, cols, rows,
 
 
 /****************************************************************************/
-static chash_table ppm_allocchash()
+static chash_table ppm_allocchash(void)
 {
   chash_table cht;
   int i;
@@ -620,9 +607,7 @@ static chash_table ppm_allocchash()
 
 
 /****************************************************************************/
-static chist_vec ppm_chashtochist( cht, maxcolors )
-     chash_table cht;
-     int maxcolors;
+static chist_vec ppm_chashtochist( chash_table cht, int maxcolors )
 {
   chist_vec chv;
   chist_list chl;
@@ -648,16 +633,14 @@ static chist_vec ppm_chashtochist( cht, maxcolors )
 
 
 /****************************************************************************/
-static void ppm_freechist( chv )
-     chist_vec chv;
+static void ppm_freechist( chist_vec chv )
 {
   free( (char*) chv );
 }
 
 
 /****************************************************************************/
-static void ppm_freechash( cht )
-     chash_table cht;
+static void ppm_freechash( chash_table cht )
 {
   int i;
   chist_list chl, chlnext;

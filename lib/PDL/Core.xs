@@ -550,7 +550,7 @@ get_autopthread_dim()
 void
 _ci(...)
  PPCODE:
-  PDL_XS_SCALAR(PDL_CD, C, 0 + 1I)
+  PDL_XS_SCALAR(PDL_CD, C, 0 + I)
 
 void
 _nan(...)

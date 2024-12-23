@@ -108,12 +108,12 @@ pdl_magic *pdl_add_svmagic(pdl *,SV *);
 /* A kind of "dowhenidle" system */
 
 void pdl_add_delayed_magic(pdl_magic *);
-void pdl_run_delayed_magic();
+void pdl_run_delayed_magic(void);
 
 /* Threading magic */
 
 /* Deferred barfing and warning when pthreading  */
-char pdl_pthread_main_thread();
+char pdl_pthread_main_thread(void);
 int pdl_pthread_barf_or_warn(const char* pat, int iswarn, va_list *args);
 void pdl_pthread_realloc_vsnprintf(char **p, size_t *len, size_t extralen, const char *pat, va_list *args, char add_newline);
 void pdl_pthread_free(void *p);

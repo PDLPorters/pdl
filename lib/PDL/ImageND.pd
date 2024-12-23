@@ -47,51 +47,6 @@ EOD
 
 # N-dim utilities
 
-pp_addhdr('
-
-/* Compute offset of (x,y,z,...) position in row-major list */
-
-static inline PDL_Indx ndim_get_offset(PDL_Indx* pos, PDL_Indx* dims, PDL_Long ndims) {
-   PDL_Long i;
-   PDL_Indx result,size;
-   size = 1;
-   result = 0;
-   for (i=0; i<ndims; i++) {
-       if (i>0)
-          size = size*dims[i-1];
-       result = result + pos[i]*size;
-   }
-   return result;
-}
-
-/* Increment a position pointer array by one row */
-
-static inline void ndim_row_plusplus ( PDL_Indx* pos, PDL_Indx* dims, PDL_Long ndims ) {
-
-    PDL_Long  noescape;
-    PDL_Indx i;
-
-    i=1; noescape=1;
-
-    while(noescape) {
-
-       (pos[i])++;
-
-       if (pos[i]==dims[i]) { /* Carry */
-          if (i>=(ndims)-1)  {
-             noescape = 0; /* Exit */
-          }else{
-             pos[i]=0;
-             i++;
-          }
-       }else{
-          noescape = 0;    /* Exit */
-       }
-    }
-}
-
-');
-
 pp_addpm(<<'EOD');
 
 use Carp;
@@ -151,6 +106,40 @@ sub PDL::convolve {
      if (dimsb[i]>=dimsa[i])
        $CROAK("Second argument must be smaller in all dimensions that first");
         ',
+        CHeader => <<'EOF',
+/* Compute offset of (x,y,z,...) position in row-major list */
+static inline PDL_Indx ndim_get_offset(PDL_Indx* pos, PDL_Indx* dims, PDL_Long ndims) {
+   PDL_Long i;
+   PDL_Indx result,size;
+   size = 1;
+   result = 0;
+   for (i=0; i<ndims; i++) {
+       if (i>0)
+          size = size*dims[i-1];
+       result = result + pos[i]*size;
+   }
+   return result;
+}
+/* Increment a position pointer array by one row */
+static inline void ndim_row_plusplus ( PDL_Indx* pos, PDL_Indx* dims, PDL_Long ndims ) {
+    PDL_Long  noescape;
+    PDL_Indx i;
+    i=1; noescape=1;
+    while(noescape) {
+       (pos[i])++;
+       if (pos[i]==dims[i]) { /* Carry */
+          if (i>=(ndims)-1)  {
+             noescape = 0; /* Exit */
+          }else{
+             pos[i]=0;
+             i++;
+          }
+       }else{
+          noescape = 0;    /* Exit */
+       }
+    }
+}
+EOF
         Code => '
    PDL_Indx *dimsa = $P(adims);
    PDL_Indx *dimsb = $P(bdims);

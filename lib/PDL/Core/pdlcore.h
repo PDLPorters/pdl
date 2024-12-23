@@ -82,9 +82,9 @@ void pdl_dump_anyval(PDL_Anyval v);
 #define PDL_CORE_LIST(X) \
   X(SvPDLV, pdl*, ( SV* )) \
   X(SetSV_PDL, void, ( SV *sv, pdl *it )) \
-  X(pdlnew, pdl*, ()) \
+  X(pdlnew, pdl*, (void)) \
   X(destroy, pdl_error, (pdl *it)) \
-  X(null, pdl*, ()) \
+  X(null, pdl*, (void)) \
   X(scalar, pdl*, (PDL_Anyval anyval)) \
   X(hard_copy, pdl*, ( pdl* )) \
   X(converttype, pdl_error, ( pdl*, int )) \
@@ -143,9 +143,9 @@ void pdl_dump_anyval(PDL_Anyval v);
   X(dump, void, (pdl *it)) \
   X(sever, pdl_error, (pdl *a)) \
   X(slice_args_parse_sv, pdl_slice_args*, ( SV* )) \
-  X(online_cpus, int, ()) \
+  X(online_cpus, int, (void)) \
   X(magic_get_thread, int, (pdl *)) \
-  X(pdl_seed, uint64_t, ()) \
+  X(pdl_seed, uint64_t, (void)) \
   X(trans_check_pdls, pdl_error, (pdl_trans *trans)) \
   X(make_error, pdl_error, (pdl_error_type e, const char *fmt, ...)) \
   X(make_error_simple, pdl_error, (pdl_error_type e, const char *msg)) \

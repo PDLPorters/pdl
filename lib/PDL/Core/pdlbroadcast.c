@@ -214,7 +214,7 @@ pdl_error pdl_dim_checks(
   PDL_Indx *ind_sizes, char load_only
 ) {
   pdl_error PDL_err = {0, NULL, 0};
-  PDL_Indx i, j, ind_id;
+  PDL_Indx i, j;
   PDLDEBUG_f(printf("pdl_dim_checks(load_only=%d) %p:\n", load_only, ind_sizes);
     printf("  ind_sizes: "); pdl_print_iarr(ind_sizes, vtable->ninds);printf("\n"));
   for (i=0; i<vtable->npdls; i++) {
@@ -515,7 +515,7 @@ See the manual for why this is impossible");
 
 int pdl_startbroadcastloop(pdl_broadcast *broadcast,pdl_error (*func)(pdl_trans *),
       pdl_trans *t, pdl_error *error_ret) {
-  PDL_Indx i, j, npdls = broadcast->npdls;
+  PDL_Indx j, npdls = broadcast->npdls;
   if ((broadcast->gflags & (PDL_BROADCAST_MAGICKED | PDL_BROADCAST_MAGICK_BUSY))
        == PDL_BROADCAST_MAGICKED ) {
     /* If no function supplied (i.e. being called from PDL::broadcast_over), don't run in parallel */

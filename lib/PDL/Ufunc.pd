@@ -185,9 +185,9 @@ foreach my $func ( sort keys %over ) {
 	   HandleBad => 1,
 	   GenericTypes => $over{$func}{alltypes} ? [ppdefs_all] : $T,
 	   Pars => 'a(n); ' . $otype . ' [o]b();',
-           Code => <<EOF,
+           Code => pp_line_numbers(__LINE__, <<EOF),
 $def = $init;
-int flag = 0;
+PDL_IF_BAD(int flag = 0;,)
 loop(n) %{
   PDL_IF_BAD(if ( \$ISBAD(a()) ) continue; flag = 1;,)
   $op
@@ -663,10 +663,8 @@ EOPM
 
 pp_add_exported('', 'minmax');
 
-pp_addhdr(PDL::PP::pp_line_numbers(__LINE__, <<'EOF'));
-PDL_TYPELIST_REAL(PDL_QSORT)
-
-/* Internal utility sorting routine for median/qsort/qsortvec routines. */
+my $chdr_qsort = 'PDL_TYPELIST_REAL(PDL_QSORT)';
+my $chdr_qsorti = PDL::PP::pp_line_numbers(__LINE__, <<'EOF');
 #define X(symbol, ctype, ppsym, ...) \
   static inline void qsort_ind_ ## ppsym(ctype* xx,  PDL_Indx* ix, PDL_Indx a, PDL_Indx b) { \
      PDL_Indx i,j; \
@@ -691,7 +689,8 @@ PDL_TYPELIST_REAL(PDL_QSORT)
   }
 PDL_TYPELIST_REAL(X)
 #undef X
-
+EOF
+my $chdr_qsortvec_def = PDL::PP::pp_line_numbers(__LINE__, <<'EOF');
 #define X(symbol, ctype, ppsym, ...) \
     /******* \
      * qsortvec helper routines \
@@ -709,7 +708,6 @@ PDL_TYPELIST_REAL(X)
  }
 PDL_TYPELIST_REAL(X)
 #undef X
-
 #define PDL_QSORTVEC(ppsym, RECURSE, INDEXTERM, swapcode) \
     PDL_Indx i,j, median_ind; \
     i = a;  \
@@ -735,7 +733,8 @@ PDL_TYPELIST_REAL(X)
       RECURSE( ppsym, a, j ); \
     if (i < b) \
       RECURSE( ppsym, i, b );
-
+EOF
+my $chdr_qsortvec = PDL::PP::pp_line_numbers(__LINE__, <<'EOF');
 #define PDL_QSORTVEC_INDEXTERM(indexterm) indexterm
 #define PDL_QSORTVEC_RECURSE(ppsym, ...) pdl_qsortvec_ ## ppsym(xx, n, __VA_ARGS__)
 #define X(symbol, ctype, ppsym, ...) \
@@ -754,7 +753,8 @@ PDL_TYPELIST_REAL(X)
 #undef X
 #undef PDL_QSORTVEC_INDEXTERM
 #undef PDL_QSORTVEC_RECURSE
-
+EOF
+my $chdr_qsortvec_ind = PDL::PP::pp_line_numbers(__LINE__, <<'EOF');
 #define PDL_QSORTVEC_INDEXTERM(indexterm) ix[indexterm]
 #define PDL_QSORTVEC_RECURSE(ppsym, ...) pdl_qsortvec_ind_ ## ppsym(xx, ix, n, __VA_ARGS__)
 #define X(symbol, ctype, ppsym, ...) \
@@ -769,25 +769,13 @@ PDL_TYPELIST_REAL(X)
 #undef X
 #undef PDL_QSORTVEC_INDEXTERM
 #undef PDL_QSORTVEC_RECURSE
-#undef PDL_QSORTVEC
 EOF
-
-sub generic_qsort {
-    my $pdl = shift;
-    'qsort_$PPSYM() ($P(' . $pdl . '), 0, nn);';
-}
-
-sub generic_qsortvec {
-    my $pdl = shift;
-    my $ndim = shift;
-    'pdl_qsortvec_$PPSYM() ($P(' . $pdl . '), '. $ndim.', 0, nn);';
-}
 
 # when copying the data over to the temporary array,
 # ignore the bad values and then only send the number
 # of good elements to the sort routines
 # should use broadcastloop ?
-my $copy_to_temp = '
+my $copy_to_temp = pp_line_numbers(__LINE__, '
         if ($PDL(a)->nvals == 0)
           $CROAK("cannot process empty ndarray");
         PDL_Indx nn = PDL_IF_BAD(0,$SIZE(n)-1);
@@ -799,7 +787,7 @@ my $copy_to_temp = '
            $SETBAD(b());
         } else {
            nn -= 1;,{)
-' . generic_qsort('tmp');
+qsort_$PPSYM() ($P(tmp), 0, nn);');
 
 my $find_median_average = '
            PDL_Indx nn1 = nn/2, nn2 = nn1+1;
@@ -814,6 +802,7 @@ pp_def(
        HandleBad => 1,
        Pars => 'a(n); [o]b(); [t]tmp(n);',
        Doc => projectdocs('median','medover',''),
+       CHeader => 'PDL_TYPELIST_REAL(PDL_QSORT)',
        Code => $copy_to_temp . $find_median_average . '}',
        ); # pp_def: medover
 
@@ -833,6 +822,7 @@ value. The lower-odd median is just the lower of these two values
 and so it ALWAYS sits on an actual data value which is useful in
 some circumstances.
 	'),
+       CHeader => 'PDL_TYPELIST_REAL(PDL_QSORT)',
        Code => $copy_to_temp . $find_median_lower . '}',
 ); # pp_def: oddmedover
 
@@ -851,6 +841,7 @@ mode is calculated.
 C<modeover> treats BAD the same as any other value:  if
 BAD is the most common element, the returned value is also BAD.
 '),
+	 CHeader => 'PDL_TYPELIST_INTEGER(PDL_QSORT)',
 	 Code => <<'EOCODE',
 	       PDL_Indx i = 0;
 	       PDL_Indx most = 0;
@@ -917,6 +908,7 @@ implemented here is based on the interpolation variant described at
 L<http://en.wikipedia.org/wiki/Percentile> as used by Microsoft Excel
 and recommended by NIST.
 '),
+       CHeader => 'PDL_TYPELIST_REAL(PDL_QSORT)',
        Code => $copy_to_temp . $find_pct_interpolate . '}',
 );
 
@@ -930,6 +922,7 @@ falls between two values, the nearest data value is the result.
 The algorithm implemented is from the textbook version described
 first at L<http://en.wikipedia.org/wiki/Percentile>.
 '),
+       CHeader => 'PDL_TYPELIST_REAL(PDL_QSORT)',
        Code =>
 	   $copy_to_temp . '
            PDL_Indx np = PDLMAX(0,PDLMIN(nn,(nn+1)*$p()));
@@ -972,11 +965,12 @@ pp_def('qsort',
     HandleBad => 1,
     Inplace => 1,
     Pars => 'a(n); [o]b(n);',
-    Code => '
+    CHeader => 'PDL_TYPELIST_REAL(PDL_QSORT)',
+    Code => PDL::PP::pp_line_numbers(__LINE__, '
 register PDL_Indx nn = PDL_IF_BAD(0,$SIZE(n));
 char is_inplace = ($P(a) == $P(b));
 PDL_IF_BAD(register PDL_Indx nb = $SIZE(n) - 1;,)
-'.qsort_returnempty().'
+').qsort_returnempty().'
 PDL_IF_BAD(
 loop(n) %{
   if ($ISGOOD(a())) {
@@ -993,7 +987,7 @@ loop(n) %{
 if (!is_inplace) loop(n) %{ $b() = $a(); %}
 )
 if ( nn == 0 ) continue; nn -= 1;
-' . generic_qsort('b'),
+qsort_$PPSYM() ($P(b), 0, nn);',
     Doc => '
 =for ref
 
@@ -1016,24 +1010,20 @@ Bad values are moved to the end of the array:
 ',
 );
 
-sub generic_qsort_ind {
-    'qsort_ind_$PPSYM() ($P(a), $P(indx),
-            0, nn);';
-}
-
 pp_def('qsorti',
        HandleBad => 1,
        Pars => 'a(n); indx [o]indx(n);',
-       Code => '
-register PDL_Indx nn = PDL_IF_BAD(0,$SIZE(n)-1), nb = $SIZE(n) - 1;
-'.qsort_returnempty().'
+       CHeader => $chdr_qsorti,
+       Code => PDL::PP::pp_line_numbers(__LINE__, '
+register PDL_Indx nn = PDL_IF_BAD(0,$SIZE(n)-1), nb = $SIZE(n) - 1; (void)nb;
+').qsort_returnempty().'
 loop(n) %{
   PDL_IF_BAD(if ($ISBAD(a())) { $indx(n=>nb) = n; nb--; }
   else                        { $indx(n=>nn) = n; nn++; } /* play safe since nn used more than once */
   ,$indx() = n;)
 %}
 PDL_IF_BAD(if ( nn == 0 ) continue; nn -= 1;,)
-' . generic_qsort_ind(),
+qsort_ind_$PPSYM() ($P(a), $P(indx), 0, nn);',
        BadDoc =>
 'Bad elements are moved to the end of the array:
 
@@ -1062,12 +1052,12 @@ pp_def('qsortvec',
     HandleBad => 1,
     Inplace => 1,
     Pars => 'a(n,m); [o]b(n,m);',
+    CHeader => $chdr_qsortvec_def . $chdr_qsortvec,
     Code => '
-register PDL_Indx nn = PDL_IF_BAD(0,$SIZE(m)-1), nb = $SIZE(m) - 1;
+register PDL_Indx nn = PDL_IF_BAD(0,$SIZE(m)-1);
 char is_inplace = ($P(a) == $P(b));
-PDL_Indx nd = $SIZE(n);
 '.qsort_returnempty().'
-PDL_IF_BAD(loop(m) %{
+PDL_IF_BAD(register PDL_Indx nb = $SIZE(m) - 1; loop(m) %{
   char allgood_a = 1;
   loop(n) %{ if ( $ISBAD(a()) ) { allgood_a = 0; break; } %}
   PDL_Indx copy_dest = allgood_a ? nn++ : nb--;
@@ -1096,7 +1086,8 @@ PDL_IF_BAD(loop(m) %{
 %}
 if ( nn == 0 ) continue; nn -= 1;,
 if (!is_inplace) { loop(n,m) %{ $b() = $a(); %} }
-)' . generic_qsortvec('b','nd'),
+)
+pdl_qsortvec_$PPSYM() ($P(b), $SIZE(n), 0, nn);',
     Doc => '
 =for ref
 
@@ -1133,18 +1124,13 @@ Vectors with bad components are moved to the end of the array:
 ',
 );
 
-sub generic_qsortvec_ind {
-    my $pdl = shift;
-    my $ndim = shift;
-    'pdl_qsortvec_ind_$PPSYM() ($P(' . $pdl . '), $P(indx), '. $ndim.', 0, nn);';
-}
-
 pp_def('qsortveci',
     HandleBad => 1,
     Pars => 'a(n,m); indx [o]indx(m);',
+    CHeader => $chdr_qsortvec_def . $chdr_qsortvec_ind,
     Code =>
-'register PDL_Indx nn = PDL_IF_BAD(0,$SIZE(m)-1), nb = $SIZE(m) - 1;
-PDL_Indx nd = $SIZE(n);
+'register PDL_Indx nn = PDL_IF_BAD(0,$SIZE(m)-1);
+PDL_IF_BAD(register PDL_Indx nb = $SIZE(m) - 1;,)
 '.qsort_returnempty().'
 loop(m) %{
   PDL_IF_BAD(
@@ -1156,8 +1142,8 @@ loop(m) %{
   $indx()=m;
   )
 %}
-PDL_IF_BAD(if ( nn == 0 ) continue; nn -= 1;,)' .
-generic_qsortvec_ind('a','nd'),
+PDL_IF_BAD(if ( nn == 0 ) continue; nn -= 1;,)
+pdl_qsortvec_ind_$PPSYM() ($P(a), $P(indx), $SIZE(n), 0, nn);',
     Doc => '
 =for ref
 

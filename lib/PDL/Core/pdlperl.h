@@ -70,7 +70,7 @@ static inline pdl *PDL_XS_pdlinit(pTHX_ char *objname, HV *bless_stash, SV *to_p
           PDL_XS_PERLINIT_initsv(out ## _SV);
 
 #define PDL_XS_SCALAR(thistype, ppsym, val) \
-  PDL_Anyval av = {PDL_CLD, {.H=0 + 0I}}; /* guarantee all bits set */ \
+  PDL_Anyval av = {PDL_CLD, {.H=0}}; /* guarantee all bits set */ \
   av.type = thistype; av.value.ppsym=val; \
   pdl *b = pdl_scalar(av); \
   if (!b) XSRETURN_UNDEF; \

@@ -1130,7 +1130,7 @@ pdl_slice_args* pdl_slice_args_parse_sv(SV* sv) {
  *
  * Used to seed PDL's built-in RNG.
  */
-uint64_t pdl_pdl_seed() {
+uint64_t pdl_pdl_seed(void) {
 	/* This implementation is from section 7.1 Seeding of
 	 *
 	 * Helmut G. Katzgraber. "Random Numbers in Scientific Computing:

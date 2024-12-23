@@ -663,7 +663,7 @@ static double cmod(complex double a)
   }
 }
 
-static void mcon()
+static void mcon(void)
      /* mcon provides machine constants used in various parts of the
 	program.  The user may either set them directly or use the
 	statements below to compute them.  The meaning of the four

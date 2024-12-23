@@ -39,7 +39,7 @@ static imT* my_allocarray(int cols, int rows)
 
 int getnewsize(PDL_Indx cols, PDL_Indx rows, float fangle, PDL_Indx *newcols, PDL_Indx *newrows)
 {
-    float xshearfac, yshearfac, new0;
+    float xshearfac, yshearfac;
     PDL_Indx tempcols, yshearjunk, x2shearjunk;
 
     if ( fangle < -90.0 || fangle > 90.0 )

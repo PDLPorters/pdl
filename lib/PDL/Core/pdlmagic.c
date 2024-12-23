@@ -148,7 +148,7 @@ void pdl_add_delayed_magic(pdl_magic *mag) {
 	delayed = realloc(delayed,sizeof(*delayed)*++ndelayed);
 	delayed[ndelayed-1] = mag;
 }
-void pdl_run_delayed_magic() {
+void pdl_run_delayed_magic(void) {
 	PDL_Indx i;
 	pdl_magic **oldd = delayed; /* In case someone makes new delayed stuff */
 	PDL_Indx nold = ndelayed;
@@ -367,7 +367,7 @@ pdl_error pdl_add_threading_magic(pdl *it,PDL_Indx nthdim,PDL_Indx nthreads)
 	return PDL_err;
 }
 
-char pdl_pthread_main_thread() {
+char pdl_pthread_main_thread(void) {
   return !done_pdl_main_pthreadID_init || pthread_equal( pdl_main_pthreadID, pthread_self() );
 }
 

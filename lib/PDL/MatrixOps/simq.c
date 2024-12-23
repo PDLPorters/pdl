@@ -48,17 +48,15 @@
 /*							simq	2 */
 
 #include <stdio.h>
-int simq( A, B, X, n, flag, IPS )
-double A[], B[], X[];
-int n, flag;
-int IPS[];
+#include <math.h>
+
+int simq( double A[], double B[], double X[], int n, int flag, int IPS[] )
 {
 int i, j, ij, ip, ipj, ipk, ipn;
 int idxpiv = 0, iback;
 int k, kp, kp1, kpk, kpn;
 int nip, nkp, nm1 = n-1;
 double em, q, rownrm, big, size, pivot, sum;
-double fabs();
 
 if( flag < 0 )
 	goto solve;

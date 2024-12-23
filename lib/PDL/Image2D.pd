@@ -115,8 +115,6 @@ pp_export_nothing();   # Clear the export list
 
 pp_addhdr('
 
-#define IsNaN(x) (x != x)
-
 /* Fast Modulus with proper negative behaviour */
 
 #define REALMOD(a,b) {while ((a)>=(b)) (a) -= (b); while ((a)<0) (a) += (b);}
@@ -249,10 +247,10 @@ sub PDL::conv2d {
            init_vars() .
            init_map("i") .
            init_map("j") .
-'
+pp_line_numbers(__LINE__, <<'EOF'),
 broadcastloop %{
 loop(n,m) %{
-  int flag = 0;
+  PDL_IF_BAD(int flag = 0;,)
   PDL_CLDouble tmp = 0;
   loop (q) %{
      j2 = mapj[n-q];
@@ -262,7 +260,7 @@ loop(n,m) %{
            if (i2 >= 0) {
               PDL_IF_BAD(if ( $ISGOOD(a(m=>i2,n=>j2)) && $ISGOOD(kern()) ),) {
                  tmp += $a(m=>i2,n=>j2) * $kern();
-                 flag = 1;
+                 PDL_IF_BAD(flag = 1;,)
               } /* if: good */
            } /* if: i2 >= 0 */
         %}
@@ -272,12 +270,8 @@ loop(n,m) %{
   else,)                  { $b() = tmp; }
 %}
 %}
-',
-); # pp_def: conv2d
-
-pp_addhdr(<<'EOF');
-PDL_TYPELIST_REAL(PDL_QSORT)
 EOF
+); # pp_def: conv2d
 
 pp_def('med2d', Doc=> <<'EOD',
 =for ref
@@ -313,7 +307,7 @@ kernel are bad, the output is set bad.',
        HandleBad => 1,
         Pars => 'a(m,n); kern(p,q); [o]b(m,n); double+ [t]tmp(pq=CALC($SIZE(p)*$SIZE(q))); indx [t]mapi(isize=CALC($SIZE(p) + $SIZE(m))); indx [t]mapj(jsize=CALC($SIZE(q) + $SIZE(n)))',
         OtherPars => 'int opt;',
-        PMCode => <<'EOF',
+        PMCode => pp_line_numbers(__LINE__, <<'EOF'),
 sub PDL::med2d {
    my $opt; $opt = pop @_ if ref($_[$#_]) eq 'HASH';
    die 'Usage: med2d( a(m,n), kern(p,q), [o]b(m,n), {Options} )'
@@ -328,41 +322,40 @@ sub PDL::med2d {
    return $c;
 }
 EOF
+        CHeader => 'PDL_TYPELIST_FLOATREAL(PDL_QSORT)',
         Code =>
            init_vars() .
            init_map("i") .
            init_map("j") .
-'
-           broadcastloop %{
-           loop (n,m) %{
-              PDL_Indx count = 0;
-              int flag = 0;
-              loop (q) %{
-                 j2 = mapj[n-q];
-                 if (j2 >= 0)
-                    loop (p) %{
-                       i2 = mapi[m-p];
-                       if (i2 >= 0) {
-                          PDL_LDouble kk = $kern(), aa = $a(m=>i2,n=>j2);
-                          PDL_IF_BAD(if ( $ISGOODVAR(kk,kern) && $ISGOODVAR(aa,a) ),) {
-                             flag = 1;
-                             if ( kk > 0 ) {
-                                $tmp(pq=>count++) = aa * kk;
-                             }
-                          }
-                       } /* if: i2 >= 0 */
-                    %}
-              %}
-              PDL_IF_BAD(if ( flag == 0 ) {
-                 $SETBAD(b());
-              } else,) {
-                 qsort_$PPSYM(tmp)( $P(tmp), 0, count-1 );
-                 $b() = $tmp(pq=>(count-1)/2);
-              }
-           %}
-           %}
-'
-
+pp_line_numbers(__LINE__, <<'EOF'),
+broadcastloop %{
+loop (n,m) %{
+  PDL_Indx count = 0;
+  PDL_IF_BAD(int flag = 0;,)
+  loop (q) %{
+    j2 = mapj[n-q];
+    if (j2 >= 0)
+      loop (p) %{
+        i2 = mapi[m-p];
+        if (i2 >= 0) {
+          PDL_LDouble kk = $kern(), aa = $a(m=>i2,n=>j2);
+          PDL_IF_BAD(if ( $ISGOODVAR(kk,kern) && $ISGOODVAR(aa,a) ),) {
+            PDL_IF_BAD(flag = 1;,)
+            if ( kk > 0 )
+              $tmp(pq=>count++) = aa * kk;
+          }
+        } /* if: i2 >= 0 */
+      %}
+  %}
+  PDL_IF_BAD(if ( flag == 0 ) {
+    $SETBAD(b());
+  } else,) {
+    qsort_$PPSYM(tmp)( $P(tmp), 0, count-1 );
+    $b() = $tmp(pq=>(count-1)/2);
+  }
+%}
+%}
+EOF
 ); # pp_def: med2d
 
 pp_def('med2df', Doc=> <<'EOD',
@@ -595,42 +588,42 @@ bad values, depending on the pattern of bad values in the input ndarray.',
        HandleBad => 1,
         Pars => 'a(m,n); [o]b(m,n);',
         GenericTypes => $A,
-        Code =>
-        'int i1,j1, flag = 0;
-      broadcastloop %{
-         loop(n,m) %{
-	    $GENERIC(a) a_val = $a();
-	    PDL_IF_BAD(if ( !$ISGOODVAR(a_val,a) ) {
-	       PDL_CLDouble tmp = 0; PDL_Indx norm=0;
-	       for(j1=-1; j1<=1; j1++) {
-		  PDL_Indx j2 = n+j1;
-		  if ( j2<0 || j2>=$SIZE(n) ) continue;
-		  for(i1=-1; i1<=1; i1++) {
-		     /* ignore central pixel, which we know is bad */
-		     if ( i1==0 && j1==0 ) continue;
-		     PDL_Indx i2 = m+i1;
-		     if ( i2<0 || i2>=$SIZE(m) ) continue;
-		     a_val = $a(m=>i2,n=>j2);
-		     if ( $ISBADVAR(a_val,a) ) continue;
-		     tmp += a_val;
-		     norm++;
-		  } /* for: i1 */
-	       } /* for: j1 */
-	       /* Patch */
-	       if (norm>0) {
-		  $b() = tmp/norm;
-	       } else {
-		  $SETBAD(b());
-		  flag = 1;
-	       }
-	    } else,) {
-	       $b() = a_val;
-	    } /* if: ISGOODVAR() */
-         %}
-      %} /* broadcastloop */
-         /* handle bad flag */
-         PDL_IF_BAD(if ( flag ) $PDLSTATESETBAD(b);,)
-         ',
+        Code => pp_line_numbers(__LINE__, <<'EOF'),
+PDL_IF_BAD(int flag = 0;,)
+broadcastloop %{
+   loop(n,m) %{
+      $GENERIC(a) a_val = $a();
+      PDL_IF_BAD(if ( !$ISGOODVAR(a_val,a) ) {
+         PDL_CLDouble tmp = 0; PDL_Indx norm=0; int i1; int j1;
+         for(j1=-1; j1<=1; j1++) {
+            PDL_Indx j2 = n+j1;
+            if ( j2<0 || j2>=$SIZE(n) ) continue;
+            for(i1=-1; i1<=1; i1++) {
+               /* ignore central pixel, which we know is bad */
+               if ( i1==0 && j1==0 ) continue;
+               PDL_Indx i2 = m+i1;
+               if ( i2<0 || i2>=$SIZE(m) ) continue;
+               a_val = $a(m=>i2,n=>j2);
+               if ( $ISBADVAR(a_val,a) ) continue;
+               tmp += a_val;
+               norm++;
+            } /* for: i1 */
+         } /* for: j1 */
+         /* Patch */
+         if (norm>0) {
+            $b() = tmp/norm;
+         } else {
+            $SETBAD(b());
+            flag = 1;
+         }
+      } else,) {
+         $b() = a_val;
+      } /* if: ISGOODVAR() */
+   %}
+%} /* broadcastloop */
+/* handle bad flag */
+PDL_IF_BAD(if ( flag ) $PDLSTATESETBAD(b);,)
+EOF
 );
 
 pp_def('max2d_ind',
@@ -659,7 +652,7 @@ EOD
         PDL_LDouble cur = 0;
         PDL_Indx curind1 = PDL_IF_BAD(-1,0), curind2 = PDL_IF_BAD(-1,0);
         loop(m,n) %{
-          if (!(PDL_IF_BAD($ISGOOD(a()) &&,) ( (!n && !m) || $a() > cur || IsNaN(cur)))) continue;
+          if (!(PDL_IF_BAD($ISGOOD(a()) &&,) ( (!n && !m) || $a() > cur || isnan(cur)))) continue;
           cur = $a(); curind1 = m; curind2 = n;
         %}
         PDL_IF_BAD(if ( curind1 < 0 ) {

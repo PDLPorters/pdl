@@ -1261,7 +1261,7 @@ for(
     {Name => 'histogram',
      WeightPar => '',
      HistType => 'int+',
-     HistOp => '++',
+     HistOp => '+= 1',
      Doc => $histogram_doc,
      },
     {Name => 'whistogram',
@@ -1365,7 +1365,7 @@ for(
     {Name => 'histogram2d',
      WeightPar => '',
      HistType => 'int+',
-     HistOp => '++',
+     HistOp => '+= 1',
      Doc => $histogram2d_doc,
 	},
     {Name => 'whistogram2d',
@@ -3578,9 +3578,9 @@ pp_def('approx_artol',
   GenericTypes => [ppdefs_all],
   ArgOrder => 1,
   HandleBad => 1,
-  Code => <<'EOF',
+  Code => pp_line_numbers(__LINE__, <<'EOF'),
 double atol2 = $COMP(atol)*$COMP(atol), rtol2 = $COMP(rtol)*$COMP(rtol);
-char got_badflag = !!$PDLSTATEISBAD(got), exp_badflag = !!$PDLSTATEISBAD(expected);
+PDL_IF_BAD(char got_badflag = !!$PDLSTATEISBAD(got); char exp_badflag = !!$PDLSTATEISBAD(expected);,)
 broadcastloop %{
 $GENERIC() expctd = $expected();
 if (PDL_ISNAN_$PPSYM()($got()) && PDL_ISNAN_$PPSYM()(expctd)) { $result() = 1; continue; }
@@ -4162,19 +4162,19 @@ PCHDF => sub {my ($k, $x, $s, $out) = @_; '
 /*  CHECK FOR LEGAL VALUE OF K. */
 {
 /* Local variables */
-  PDL_Indx i, j, k = '.$k.';
+  PDL_Indx i, j, k_cached = '.$k.';
   $GENERIC() *x = '.$x.', *s = '.$s.';
-  if (k < 3) $CROAK("K LESS THAN THREE");
+  if (k_cached < 3) $CROAK("K LESS THAN THREE");
 /*  COMPUTE COEFFICIENTS OF INTERPOLATING POLYNOMIAL. */
-  for (j = 2; j < k; ++j) {
-    PDL_Indx itmp = k - j;
+  for (j = 2; j < k_cached; ++j) {
+    PDL_Indx itmp = k_cached - j;
     for (i = 0; i < itmp; ++i)
       s[i] = (s[i+1] - s[i]) / (x[i + j] - x[i]);
   }
 /*  EVALUATE DERIVATIVE AT X(K). */
   $GENERIC() value = s[0];
-  for (i = 1; i < k-1; ++i)
-    value = s[i] + value * (x[k-1] - x[i]);
+  for (i = 1; i < k_cached-1; ++i)
+    value = s[i] + value * (x[k_cached-1] - x[i]);
   '.$out.' = value;
 }
 '},
@@ -4322,10 +4322,10 @@ for (ir = 1; ir < n && jfirst < ne; ++ir) {
     $GENERIC() del2 = (d2 - delta) / h;
 /*                       (DELTA IS NO LONGER NEEDED.) */
     $GENERIC() c2 = -(del1 + del1 + del2);
-    $GENERIC() c2t2 = c2 + c2;
+    '.($do_deriv ? '$GENERIC() c2t2 = c2 + c2;' : '').'
     $GENERIC() c3 = (del1 + del2) / h;
 /*                 (H, DEL1 AND DEL2 ARE NO LONGER NEEDED.) */
-    $GENERIC() c3t3 = c3 + c3 + c3;
+    '.($do_deriv ? '$GENERIC() c3t3 = c3 + c3 + c3;' : '').'
 /*  EVALUATION LOOP. */
     loop (ne=:nj) %{
       $GENERIC() x = $xe(ne=>ne+jfirst) - x1;
@@ -4570,7 +4570,7 @@ pp_def('pchip_chic',
   RedoDimsCode => <<'EOF',
 if ($SIZE(n) < 2) $CROAK("NUMBER OF DATA POINTS LESS THAN TWO");
 EOF
-  Code => <<'EOF',
+  Code => pp_line_numbers(__LINE__, <<'EOF'),
 const $GENERIC() d1mach = $TFDE(FLT_EPSILON,DBL_EPSILON,LDBL_EPSILON);
 /*  VALIDITY-CHECK ARGUMENTS. */
 loop (n=1) %{
@@ -5322,7 +5322,7 @@ if (iend != 1) {
   } else {
     $GENERIC() g;
     if (iend == 0) {
-      if (n == 2 || n == 3 && ibeg == 0) {
+      if (n == 2 || (n == 3 && ibeg == 0)) {
 /*       EITHER (N=3 AND NOT-A-KNOT ALSO AT LEFT) OR (N=2 AND *NOT* */
 /*       NOT-A-KNOT AT LEFT END POINT). */
         $d(n=>n-1) = 2. * $dy_dx(n=>n-1);

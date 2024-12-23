@@ -50,6 +50,7 @@ my $pred_floatreal = sub {$_[0]->real && !$_[0]->integer};
 my $pred_complex = sub {!$_[0]->real};
 my $pred_signed = sub {$_[0]->integer && !$_[0]->unsigned};
 my $pred_unsigned = sub {$_[0]->unsigned};
+my $pred_integer = sub {$_[0]->integer};
 print OUT makelister('ALL', 0, $pred_all);
 # extra as macro gets expanded twice, gets painted blue
 print OUT makelister('ALL', 1, $pred_all);
@@ -58,6 +59,7 @@ print OUT makelister('FLOATREAL', 0, $pred_floatreal);
 print OUT makelister('COMPLEX', 0, $pred_complex);
 print OUT makelister('SIGNED', 0, $pred_signed);
 print OUT makelister('UNSIGNED', 0, $pred_unsigned);
+print OUT makelister('INTEGER', 0, $pred_integer);
 
 sub makepredicate {
   my ($name, $pred) = @_;
@@ -68,6 +70,7 @@ print OUT makepredicate('FLOATREAL', $pred_floatreal);
 print OUT makepredicate('COMPLEX', $pred_complex);
 print OUT makepredicate('SIGNED', $pred_signed);
 print OUT makepredicate('UNSIGNED', $pred_unsigned);
+print OUT makepredicate('INTEGER', $pred_integer);
 
 print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  __FILE__;
 print OUT <<'EOF';

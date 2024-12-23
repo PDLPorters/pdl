@@ -339,8 +339,8 @@ FFTRADIX (REAL Re [],
    REALFIX c1, c2, c3, cd;
    REALFIX s1, s2, s3, sd;
 
-   REALFIX *Rtmp, *Itmp, *Cos, *Sin;
-   int *Perm;
+   REALFIX *Rtmp=NULL, *Itmp=NULL, *Cos=NULL, *Sin=NULL;
+   int *Perm=NULL;
    FFTRADIX_MALLOC(REALFIX, Rtmp, maxFactors); /* temp space for real part */
    FFTRADIX_MALLOC(REALFIX, Itmp, maxFactors); /* temp space for imag part */
    FFTRADIX_MALLOC(REALFIX, Cos, maxFactors); /* Cosine values */
