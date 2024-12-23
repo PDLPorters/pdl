@@ -1105,6 +1105,13 @@ static inline pdl_error pdl__transtype_select(
       return pdl_make_error(PDL_EUSERERROR,
         "%s: ndarray %s must be real, but is type %s",
         vtable->name, vtable->par_names[i], PDL_TYPENAME(new_transtype));
+    if (flags & PDL_PARAM_ISREAL) { /* opposite test/actions from convert */
+      if (new_transtype < PDL_CF)
+        new_transtype = PDLMAX(PDL_CF, new_transtype + (PDL_CF - PDL_F));
+    } else if (flags & PDL_PARAM_ISCOMPLEX) {
+      if (new_transtype >= PDL_CF)
+        new_transtype -= PDL_CF - PDL_F;
+    }
     if (*retval < new_transtype && (
       !(flags & PDL_PARAM_ISCREAT) ||
       ((flags & PDL_PARAM_ISCREAT) && !((pdl->state & PDL_NOMYDIMS) && pdl->trans_parent == NULL))
