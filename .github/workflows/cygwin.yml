@@ -1,4 +1,4 @@
-name: perl
+name: Cygwin
 on:
   push:
     branches:
