@@ -674,7 +674,7 @@ void hqr2(int n, int low, int upp, int maxits, double macheps,
   for(i=0; i<n; i++) {
     for(j=k; j<n; j++)
       norm+=fabs(h[i][j]);
-    k=i-1;
+    k=i;
   } /* for i */
 
   for(en=n-1; en>=0; en--) {
