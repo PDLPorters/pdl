@@ -18,7 +18,6 @@ jobs:
       HARNESS_OPTIONS: j4
       MAKEFLAGS: --jobs=4
     runs-on: windows-latest
-    # only run on tag because cygwin is slow
     strategy:
       fail-fast: false
     defaults:

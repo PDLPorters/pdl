@@ -1,0 +1,56 @@
+name: Valgrind
+on:
+  push:
+    branches:
+     - '*'
+    tags-ignore:
+      - '*'
+  pull_request:
+jobs:
+
+  valgrind:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        perl-version: ['5.40']
+    steps:
+      - uses: actions/checkout@v4
+      - name: install valgrind
+        run: sudo apt-get update && sudo apt-get install valgrind
+      - name: 'ci-dist: target-setup-perl'
+        uses: PDLPorters/devops/github-actions/ci-dist@master
+        with:
+          target-setup-perl: true
+          perl-version: ${{ matrix.perl-version }}
+      - name: Install PDL dependencies
+        uses: PDLPorters/devops/github-actions/install-dep-pdl-dep@master
+      - name: 'ci-dist: target-install-dist-perl-deps'
+        uses: PDLPorters/devops/github-actions/ci-dist@master
+        with:
+          target-install-dist-perl-deps: true
+          dist-perl-deps-configure: ExtUtils::MakeMaker Devel::CheckLib File::Which
+      - name: build
+        env:
+          MAKEFLAGS: --jobs=4
+        run: |
+            perl Makefile.PL
+            make
+      - name: write valgrind suppression file
+        run: |
+            perl -E 'say "{\n  Cwd\n  Memcheck:Overlap\n  fun:__memcpy_chk\n  fun:XS_Cwd_abs_path\n}"' >.valgrind-suppress
+      - name: valgrind tests
+        run: |
+            perl -e '$status = 0; for (@ARGV) { $status += !!system(qw(valgrind --suppressions=.valgrind-suppress --error-exitcode=1 --track-origins=yes --leak-check=no --read-var-info=yes), $^X, "-Mblib", $_); } print "final status=$status\n"; exit $status' t/*.t
+
+  build-status:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    if: ${{ failure() }}
+    needs: [ 'valgrind' ]
+    steps:
+      - uses: PDLPorters/devops/github-actions/irc-notifications@master
+        with:
+          target-build-status: true
+          build-status-source: 'valgrind'
+          needs: ${{ toJSON(needs) }}
