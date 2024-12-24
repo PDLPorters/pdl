@@ -143,7 +143,6 @@ lives_ok {
 	    ##############################
 	    #check that no resampling methods produce segfaults for transformations
 	    #was segfaulting on 'g' only
-	    use PDL::IO::FITS;
 	    use PDL::Transform::Cartography;
 	    my $m51 = raster2fits(sequence(long, 10, 10), @PDL::Transform::Cartography::PLATE_CARREE);
 	    my $tp = t_perspective(r0=>200,iu=>'arcmin',origin=>[-10,3]);

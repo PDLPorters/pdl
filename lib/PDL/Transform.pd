@@ -725,10 +725,7 @@ static inline PDL_Double PDL_xform_aux ( pdl *map, PDL_Indx *coords, PDL_Double 
   if(mlen==0)
         method = 'h';
   else switch(*mstr) {
-    case 'H':                 // H - rigorous hanning window
-      method='H'; break;
     case 'h':                 // h - lookup-table hanning window
-      method = 'h';
       if( needs_hanning_calc ) {
          int i;
          for(i=0;i<HANNING_LOOKUP_SIZE;i++) {
@@ -738,10 +735,10 @@ static inline PDL_Double PDL_xform_aux ( pdl *map, PDL_Indx *coords, PDL_Double 
          hanning_lookup[HANNING_LOOKUP_SIZE+1] = 0;
          needs_hanning_calc = 0;
       }
-      zeta = HANNING_LOOKUP_SIZE / blur;
-      hanning_offset = (blur >= 1) ?
-                0 :
-                0.5 * (1.0 - blur);
+      zeta = HANNING_LOOKUP_SIZE / blur; /* fall-through deliberate */
+    case 'H':                 // H - rigorous hanning window
+      method = *mstr;
+      hanning_offset = (blur >= 1) ? 0 : 0.5 * (1.0 - blur);
       break;
 
     case 'g': case 'j':       // Gaussian and/or Jacobian, using lookup table
@@ -949,14 +946,14 @@ static inline PDL_Double PDL_xform_aux ( pdl *map, PDL_Indx *coords, PDL_Double 
            /* the contents of cache pretty well.                               */
            alpha = 1;
            cp = tmp;
-           for(i=0; i<ndims; i++) {
+           for (i=0; i<ndims; i++) {
              PDL_Indx lodex;
              PDL_Indx hidex;
              PDL_Double beta;
-              dd = 0;
+             dd = 0;
              ap = tvec;
              /* Get the matrix-multiply element for this dimension */
-             for(j=0;j<ndims; j++)
+             for (j=0;j<ndims; j++)
                dd += *(ap++) * *(cp++);
 
              /* Do linear interpolation from the table */
@@ -966,15 +963,15 @@ static inline PDL_Double PDL_xform_aux ( pdl *map, PDL_Indx *coords, PDL_Double 
              /* value on the pixel edge at 0.5.  For blur greater than unity, we    */
              /* scale simply. */
              beta = fabs(dd) - hanning_offset;
-             if(beta > 0) {
-               if(beta >= blur) {
+             if (beta > 0) {
+               if (beta >= blur) {
                  alpha = 0;
                  i = ndims;
                } else {
                  beta *= zeta;
                  lodex = beta;
                  beta -= lodex;  //lodex now has the integer part, beta has the fractional part
-                 if(lodex > HANNING_LOOKUP_SIZE)
+                 if (lodex > HANNING_LOOKUP_SIZE)
                  lodex = HANNING_LOOKUP_SIZE;
                  hidex = lodex+1;
                  //do a linear interpolation between the two nearest values
@@ -989,13 +986,13 @@ static inline PDL_Double PDL_xform_aux ( pdl *map, PDL_Indx *coords, PDL_Double 
           /* in case someone actually wants the slower longer method. */
                alpha = 1;
                cp = tmp;
-               for(i=0; i<ndims; i++) {
+               for (i=0; i<ndims; i++) {
                  dd = 0;
                  ap = tvec;
-                 for(j=0;j<ndims; j++)
+                 for (j=0;j<ndims; j++)
                      dd += *(ap++) * *(cp++);
                  dd = (fabs(dd) - hanning_offset) / blur;
-                 if( dd > 1 ) {
+                 if ( dd > 1 ) {
                      alpha = 0;
                      i = ndims;
                  } else
@@ -1083,7 +1080,7 @@ static inline PDL_Double PDL_xform_aux ( pdl *map, PDL_Indx *coords, PDL_Double 
        /* Advance input accumulation loop.  */
        /* We both increment the total vector and also advance the index. */
        carry = 1;
-       for(i=0; i<ndims && carry; i++) {
+       for (i=0; i<ndims && carry; i++) {
          /* Advance the current element of the offset vector */
          ivec[i]++;
          j = ivec[i] + ibvec[i];
@@ -1126,7 +1123,7 @@ static inline PDL_Double PDL_xform_aux ( pdl *map, PDL_Indx *coords, PDL_Double 
          }
 
          /* Now check for carry */
-         if(ivec[i] <= psize) {
+         if (ivec[i] <= psize) {
            /* Normal case -- copy the current offset to the faster-running dim stashes */
            PDL_Indx k;
            for(k=0;k<i;k++) {
@@ -1150,7 +1147,7 @@ static inline PDL_Double PDL_xform_aux ( pdl *map, PDL_Indx *coords, PDL_Double 
            }
          }
        } /* End of counter-advance loop */
-     } while(carry==0);  /* end of total data accumulation loop (termination condition has carry on last dim) */
+     } while (carry==0);  /* end of total data accumulation loop (termination condition has carry on last dim) */
 
      {
        PDL_Double *ac = acc;
@@ -1162,17 +1159,12 @@ static inline PDL_Double PDL_xform_aux ( pdl *map, PDL_Indx *coords, PDL_Double 
        for(i=0;i<ndims;i++)
          dat += out->dimincs[i] * ovec[i];
 
-       if(!flux) {
+       if (!flux) {
          /* Flux flag is NOT set -- normal case.  Copy the weighted accumulated data. */
-         for(i=0; i < out->dims[ndims]; i++) {
-	   if(*wg && (*wg2 / *wg) < 1.5 ) {
-              *dat = *(ac++) / *(wg++);
-	      wg2++;
-           } else {
-	      *dat = badval;
-	      ac++; wg++; wg2++;
-	   }
-              dat += out->dimincs[ndims];
+         for (i=0; i < out->dims[ndims]; i++) {
+           *dat = (*wg && (*wg2 / *wg) < 1.5) ? *ac / *wg : badval;
+           ac++; wg++; wg2++;
+           dat += out->dimincs[ndims];
          }
        } else {
          /* Flux flag is set - scale by the (unpadded) determinant of the Jacobian */
