@@ -859,7 +859,7 @@ for ([\&float,\&cfloat,\&cdouble], [\&double,\&cdouble,\&cfloat], [\&ldouble,\&c
     is_pdl $o_cmplx, $ct->(0), 'current wrong answer from flowing, supplied output '.$rt->();
   }
   eval {czip($rt->(3)->flowing, $rt->(2), $ct->(0)->slice(''))};
-  is $@, '', 'current wrongly no error when supply output with parent to flowing';
+  is $@, '', 'current wrongly no error when supply output with parent to flowing '.$rt->();
   next if !$other_ct;
   czip($rt->(3)->flowing, $rt->(2), $o_cmplx = $other_ct->(0));
   is_pdl $o_cmplx, $other_ct->(0), 'current wrong answer from flowing, input '.$rt->().', supplied output '.$other_ct->();

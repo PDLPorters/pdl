@@ -732,7 +732,7 @@ pdl_error pdl_make_trans_mutual(pdl_trans *trans)
       child->state |= PDL_PARENTDIMSCHANGED | ((trans->flags & PDL_ITRANS_ISAFFINE) ? 0 : PDL_PARENTDATACHANGED);
       PDLDEBUG_f(printf("make_trans_mutual after change="); pdl_dump_flags_fixspace(child->state, 0, PDL_FLAGS_PDL));
     }
-    if (dataflow || wasnull[i]) child->trans_parent = trans;
+    if (!child->trans_parent || wasnull[i]) child->trans_parent = trans;
     if (wasnull[i])
       child->state = (child->state & ~PDL_NOMYDIMS) | PDL_MYDIMS_TRANS;
   }
