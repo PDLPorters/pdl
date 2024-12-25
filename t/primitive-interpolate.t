@@ -10,7 +10,7 @@ subtest interpol => sub {
         my $yvalues = pdl( 0 .. 5 ) - 20;
         my $xvalues = -pdl( 0 .. 5 ) * .5;
         my $x       = pdl(-2);
-        is( $x->interpol( $xvalues, $yvalues ), pdl(-16), "result" );
+        is_pdl $x->interpol( $xvalues, $yvalues ), pdl(-16);
     };
 
     subtest complex => sub {
@@ -22,6 +22,13 @@ subtest interpol => sub {
             qr/must be real/,
             "x must be real";
     };
+};
+
+subtest interpolate => sub {
+  my $yvalues = pdl( 0 .. 5 ) - 20;
+  my $xvalues = -pdl( 0 .. 5 ) * .5;
+  my $x       = pdl(-2);
+  is_pdl +($x->interpolate( $xvalues, $yvalues ))[0], pdl(-16);
 };
 
 subtest interpND => sub {
