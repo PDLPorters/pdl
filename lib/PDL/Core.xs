@@ -684,6 +684,12 @@ par_names(x)
       }
     }
 
+void
+dump(x)
+  pdl_transvtable *x;
+  CODE:
+    pdl_dump_transvtable(x, 0);
+
 MODULE = PDL::Core     PACKAGE = PDL::Core
 
 IV

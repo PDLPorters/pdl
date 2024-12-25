@@ -1,4 +1,5 @@
 #include "pdl.h"      /* Data structure declarations */
+#define PDL_IN_CORE
 #include "pdlcore.h"  /* Core declarations */
 #include <stdarg.h>
 
@@ -147,9 +148,9 @@ PDL_TYPELIST_ALL(X)
   psp; printf("Types: ");
   found=0; sz=0;
   for (i=0;vtable->gentypes[i]!=-1; i++) {
-    char *this_str = typechar[vtable->gentypes[i]];
+    char *this_str = typechar[vtable->gentypes[i]] + 4; /* "PDL_" */
     size_t thislen = strlen(this_str);
-    if ((sz+thislen)>PDL_MAXLIN) {sz=nspac*2; printf("\n%s%s",spaces,spaces);}
+    if ((sz+thislen)>PDL_MAXLIN) {sz=nspac+4; printf("\n%s    ",spaces);}
     printf("%s%s",found ? ",":"",this_str); found = 1;
     sz += thislen;
   }
@@ -167,7 +168,7 @@ PDL_TYPELIST_ALL(X)
     else {
       for (j=0;typeval[j]>=0; j++)
         if (vtable->par_types[i] == typeval[j]) {
-          printf("%s",typechar[j]);
+          printf("%s",typechar[j] + 4);
           break;
         }
     }
@@ -177,7 +178,7 @@ PDL_TYPELIST_ALL(X)
       if (vtable->par_flags[i] & paramflagval[j]) {
         char *this_str = paramflagchar[j];
         size_t thislen = strlen(this_str);
-        if ((sz+thislen)>PDL_MAXLIN) {sz=nspac*3; printf("\n%s%s%s",spaces,spaces,spaces);}
+        if ((sz+thislen)>PDL_MAXLIN) {sz=nspac+8; printf("\n%s        ",spaces);}
         printf("%s%s",found ? "|":"",this_str); found = 1;
         sz += thislen;
       }
