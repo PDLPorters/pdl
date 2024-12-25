@@ -10,7 +10,7 @@ our %INVALID_PAR = map +($_=>1), qw(
 );
 
 my $typeregex = join '|', map $_->ppforcetype, types;
-my $complex_regex = join '|', qw(real complex);
+my $complex_regex = join '|', qw(real complex !complex);
 our $sqbr_re = qr/\[([^]]*)\]/x;
 our $pars_re = qr/^
 	\s*(?:($complex_regex|$typeregex)\b([+]*)|)\s*	# $1,2: first option then plus
@@ -27,11 +27,13 @@ my %flag2info = (
   phys => [[qw(FlagPhys)]],
   real => [[qw(FlagTypeOverride FlagReal)]],
   complex => [[qw(FlagTypeOverride FlagComplex)]],
+  '!complex' => [[qw(FlagTypeOverride FlagNotComplex)]],
   (map +($_->ppforcetype => [[qw(FlagTypeOverride FlagTyped)], 'Type']), types),
 );
 my %flag2c = qw(
   FlagReal PDL_PARAM_ISREAL
   FlagComplex PDL_PARAM_ISCOMPLEX
+  FlagNotComplex PDL_PARAM_ISNOTCOMPLEX
   FlagTyped PDL_PARAM_ISTYPED
   FlagTplus PDL_PARAM_ISTPLUS
   FlagCreat PDL_PARAM_ISCREAT
@@ -144,7 +146,7 @@ sub getcreatedims {
 sub adjusted_type {
   my ($this, $generic) = @_;
   confess "adjusted_type given undefined generic type\n" if !defined $generic;
-  return $generic->realversion if $this->{FlagReal};
+  return $generic->realversion if $this->{FlagReal} || $this->{FlagNotComplex};
   return $generic->complexversion if $this->{FlagComplex};
   return $generic unless $this->{FlagTyped};
   return $this->{Type}->numval > $generic->numval

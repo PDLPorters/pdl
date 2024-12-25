@@ -2986,22 +2986,11 @@ for my $func ( [
 ###############################################################
 
 pp_def('interpolate',
-       HandleBad => 0,
-       BadDoc => 'needs major (?) work to handles bad values',
-	Pars => 'real xi(); real x(n); y(n); [o] yi(); int [o] err()',
-	GenericTypes => $AF,
-	PMCode=>pp_line_numbers(__LINE__, <<'EOD'),
-		sub PDL::interpolate {
-			my ($xi, $x, $y, $yi, $err) = @_;
-			croak "x must be real" if (ref($x) && ! $x->type->real);
-			croak "xi must be real" if (ref($xi) && ! $xi->type->real);
-			$yi //= PDL->null;
-			$err //= PDL->null;
-			PDL::_interpolate_int($xi, $x, $y, $yi, $err);
-			($yi, $err);
-		}
-EOD
-	Code => '
+  HandleBad => 0,
+  BadDoc => 'needs major (?) work to handles bad values',
+  Pars => '!complex xi(); !complex x(n); y(n); [o] yi(); int [o] err()',
+  GenericTypes => $AF,
+  Code => pp_line_numbers(__LINE__, <<'EOF'),
 PDL_Indx n = $SIZE(n), n1 = n-1;
 broadcastloop %{
   PDL_Indx jl = -1, jh = n;
@@ -3027,8 +3016,8 @@ broadcastloop %{
   $yi() = d*$y(n => jl) + (1-d)*$y(n => jh);
   $err() = carp;
 %}
-', Doc=><<'EOD');
-
+EOF
+  Doc => <<'EOD',
 =for ref
 
 routine for 1D linear interpolation
@@ -3061,6 +3050,7 @@ C<$x> and C<$xi> must be real.
 =cut
 
 EOD
+);
 
 pp_add_exported('', 'interpol');
 pp_addpm(<<'EOD');

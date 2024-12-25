@@ -38,6 +38,7 @@
 - stop pdl([-6,18446744073709551615,-4]) being pdl([-6,-1,-4]) (#511)
 - bswap{12,24} added as long double can be 12 bytes
 - Core::trans_children in scalar context now returns how many
+- add Pars type-spec "!complex" which make it an error to supply complex values (#511)
 
 2.095 2024-11-03
 - add PDL_GENTYPE_IS_{REAL,FLOATREAL,COMPLEX,SIGNED,UNSIGNED}_##ppsym (#502)

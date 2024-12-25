@@ -909,6 +909,10 @@ and C<Doc> omitted):
     Code => '$c() = $r();'
   );
 
+As of 2.096, there is also a C<!complex> type, which means if a
+complex-valued ndarray is supplied to the operation, an error will
+be thrown. In the normal case, its type will be as if C<real> were given.
+
 Finally, there are the C<type+> qualifiers. Let's illustrate the C<int+>
 qualifier with the actual definition of sumover:
 

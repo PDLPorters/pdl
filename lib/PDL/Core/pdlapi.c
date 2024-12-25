@@ -1,7 +1,10 @@
 /* pdlapi.c - functions for manipulating pdl structs  */
 
 #include "pdl.h"      /* Data structure declarations */
+#define PDL_IN_CORE
 #include "pdlcore.h"  /* Core declarations */
+
+extern Core PDL; /* for PDL_TYPENAME */
 
 /* CORE21 incorporate error in here if no vtable function */
 #define VTABLE_OR_DEFAULT(errcall, trans, is_fwd, func, default_func) \
@@ -1097,11 +1100,16 @@ static inline pdl_error pdl__transtype_select(
     short flags = vtable->par_flags[i];
     if (flags & (PDL_PARAM_ISIGNORE|PDL_PARAM_ISTYPED|PDL_PARAM_ISCREATEALWAYS))
       continue;
-    if (*retval < pdl->datatype && (
+    pdl_datatypes new_transtype = pdl->datatype;
+    if (flags & PDL_PARAM_ISNOTCOMPLEX && new_transtype >= PDL_CF)
+      return pdl_make_error(PDL_EUSERERROR,
+        "%s: ndarray %s must be real, but is type %s",
+        vtable->name, vtable->par_names[i], PDL_TYPENAME(new_transtype));
+    if (*retval < new_transtype && (
       !(flags & PDL_PARAM_ISCREAT) ||
       ((flags & PDL_PARAM_ISCREAT) && !((pdl->state & PDL_NOMYDIMS) && pdl->trans_parent == NULL))
     ))
-      *retval = pdl->datatype;
+      *retval = new_transtype;
   }
   for (i=0; vtable->gentypes[i]!=-1; i++) {
     last_dtype = vtable->gentypes[i];
@@ -1135,7 +1143,7 @@ pdl_error pdl_type_coerce(pdl_trans *trans) {
     if (flags & PDL_PARAM_ISTYPED) {
       new_dtype = vtable->par_types[i];
       if (flags & PDL_PARAM_ISTPLUS) new_dtype = PDLMAX(new_dtype, trans_dtype);
-    } else if (flags & PDL_PARAM_ISREAL) {
+    } else if (flags & (PDL_PARAM_ISREAL|PDL_PARAM_ISNOTCOMPLEX)) {
       if (trans_dtype >= PDL_CF) new_dtype = trans_dtype - (PDL_CF - PDL_F);
     } else if (flags & PDL_PARAM_ISCOMPLEX) {
       if (trans_dtype < PDL_CF) new_dtype = PDLMAX(PDL_CF, trans_dtype + (PDL_CF - PDL_F));
