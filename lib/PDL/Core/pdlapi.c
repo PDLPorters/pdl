@@ -129,17 +129,26 @@ pdl *pdl_scalar(PDL_Anyval anyval) {
 	return it;
 }
 
-pdl *pdl_get_convertedpdl(pdl *old, pdl_datatypes type) {
+pdl_error pdl__converttypei_new_recprotect(pdl *PARENT, pdl *CHILD, pdl_datatypes totype, int recurse_count);
+pdl_error pdl__get_convertedpdl_recprotect(pdl *old, pdl **retval, pdl_datatypes type, int recurse_count) {
+  pdl_error PDL_err = {0, NULL, 0};
+  PDL_RECURSE_CHECK(recurse_count);
   PDLDEBUG_f(printf("pdl_get_convertedpdl\n"));
-  if(old->datatype == type) return old;
+  if (old->datatype == type) { *retval = old; return PDL_err; }
   char was_flowing = (old->state & PDL_DATAFLOW_F);
   pdl *it = pdl_pdlnew();
-  if (!it) return it;
-  pdl_error PDL_err = pdl_converttypei_new(old,it,type);
-  if (PDL_err.error) { pdl_destroy(it); return NULL; }
+  if (!it) return pdl_make_error_simple(PDL_EFATAL, "Out of Memory\n");
+  PDL_err = pdl__converttypei_new_recprotect(old, it, type, recurse_count + 1);
+  if (PDL_err.error) { pdl_destroy(it); return PDL_err; }
   if (was_flowing)
     it->state |= PDL_DATAFLOW_F;
-  return it;
+  *retval = it;
+  return PDL_err;
+}
+pdl *pdl_get_convertedpdl(pdl *old, pdl_datatypes type) {
+  pdl *retval;
+  pdl_error PDL_err = pdl__get_convertedpdl_recprotect(old, &retval, type, 0);
+  return PDL_err.error ? NULL : retval;
 }
 
 pdl_error pdl_allocdata(pdl *it) {
@@ -1130,8 +1139,9 @@ static inline pdl_error pdl__transtype_select(
   return PDL_err;
 }
 
-pdl_error pdl_type_coerce(pdl_trans *trans) {
+pdl_error pdl__type_coerce_recprotect(pdl_trans *trans, int recurse_count) {
   pdl_error PDL_err = {0, NULL, 0};
+  PDL_RECURSE_CHECK(recurse_count);
   pdl_datatypes trans_dtype;
   PDL_RETERROR(PDL_err, pdl__transtype_select(trans, &trans_dtype));
   trans->__datatype = trans_dtype;
@@ -1164,9 +1174,7 @@ pdl_error pdl_type_coerce(pdl_trans *trans) {
       pdl->datatype = new_dtype;
     } else if (new_dtype != pdl->datatype) {
       PDLDEBUG_f(printf("pdl_type_coerce (%s) pdl=%"IND_FLAG" from %d to %d\n", vtable->name, i, pdl->datatype, new_dtype));
-      pdl = pdl_get_convertedpdl(pdl, new_dtype);
-      if (!pdl)
-        return pdl_make_error(PDL_EFATAL, "%s got NULL pointer from get_convertedpdl on param %s", vtable->name, vtable->par_names[i]);
+      PDL_RETERROR(PDL_err, pdl__get_convertedpdl_recprotect(pdl, &pdl, new_dtype, recurse_count + 1));
       if (pdl->datatype != new_dtype)
         return pdl_make_error_simple(PDL_EFATAL, "type not expected value after get_convertedpdl\n");
       /* if type-convert output, put in end-area */
@@ -1174,6 +1182,9 @@ pdl_error pdl_type_coerce(pdl_trans *trans) {
     }
   }
   return PDL_err;
+}
+pdl_error pdl_type_coerce(pdl_trans *trans) {
+  return pdl__type_coerce_recprotect(trans, 0);
 }
 
 char pdl_trans_badflag_from_inputs(pdl_trans *trans) {
