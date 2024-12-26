@@ -1088,6 +1088,17 @@ static inline pdl_error pdl__transtype_select(
   pdl_datatypes last_dtype = PDL_INVALID;
   PDL_Indx i;
   pdl_transvtable *vtable = trans->vtable;
+  for (i=0; i<vtable->npdls; i++) {
+    pdl *pdl = trans->pdls[i];
+    if (pdl->state & PDL_NOMYDIMS)
+      continue;
+    short flags = vtable->par_flags[i];
+    pdl_datatypes dtype = pdl->datatype;
+    if (flags & PDL_PARAM_ISNOTCOMPLEX && dtype >= PDL_CF)
+      return pdl_make_error(PDL_EUSERERROR,
+        "%s: ndarray %s must be real, but is type %s",
+        vtable->name, vtable->par_names[i], PDL_TYPENAME(dtype));
+  }
   if (vtable->gentypes[0] != PDL_INVALID &&
     vtable->gentypes[1] == PDL_INVALID) {
     *retval = vtable->gentypes[0]; /* only one allowed type, use that */
@@ -1101,10 +1112,6 @@ static inline pdl_error pdl__transtype_select(
     if (flags & (PDL_PARAM_ISIGNORE|PDL_PARAM_ISTYPED|PDL_PARAM_ISCREATEALWAYS))
       continue;
     pdl_datatypes new_transtype = pdl->datatype;
-    if (flags & PDL_PARAM_ISNOTCOMPLEX && new_transtype >= PDL_CF)
-      return pdl_make_error(PDL_EUSERERROR,
-        "%s: ndarray %s must be real, but is type %s",
-        vtable->name, vtable->par_names[i], PDL_TYPENAME(new_transtype));
     if (flags & PDL_PARAM_ISREAL) { /* opposite test/actions from convert */
       if (new_transtype < PDL_CF)
         new_transtype = PDLMAX(PDL_CF, new_transtype + (PDL_CF - PDL_F));
