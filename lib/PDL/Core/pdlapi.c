@@ -1090,7 +1090,6 @@ static inline pdl_error pdl__transtype_select(
 ) {
   pdl_error PDL_err = {0, NULL, 0};
   *retval = PDL_INVALID;
-  pdl_datatypes last_dtype = PDL_INVALID;
   PDL_Indx i;
   pdl_transvtable *vtable = trans->vtable;
   for (i=0; i<vtable->npdls; i++) {
@@ -1104,8 +1103,11 @@ static inline pdl_error pdl__transtype_select(
         "%s: ndarray %s must be real, but is type %s",
         vtable->name, vtable->par_names[i], PDL_TYPENAME(dtype));
   }
-  if (vtable->gentypes[0] != PDL_INVALID &&
-    vtable->gentypes[1] == PDL_INVALID) {
+  char type_avail[PDL.ntypes]; for (i=0; i<PDL.ntypes; i++) type_avail[i] = 0;
+  pdl_datatypes last_dtype = PDL_INVALID;
+  for (i=0; vtable->gentypes[i]!=-1; i++)
+    type_avail[last_dtype = vtable->gentypes[i]] = 1;
+  if (vtable->gentypes[0] == last_dtype) {
     *retval = vtable->gentypes[0]; /* only one allowed type, use that */
     return PDL_err;
   }
@@ -1130,12 +1132,7 @@ static inline pdl_error pdl__transtype_select(
     ))
       *retval = new_transtype;
   }
-  for (i=0; vtable->gentypes[i]!=-1; i++) {
-    last_dtype = vtable->gentypes[i];
-    if (*retval != last_dtype) continue;
-    return PDL_err;
-  }
-  *retval = last_dtype;
+  if (*retval == PDL_INVALID || !type_avail[*retval]) *retval = last_dtype;
   return PDL_err;
 }
 

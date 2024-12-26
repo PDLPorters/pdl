@@ -1016,7 +1016,7 @@ sub PDL::swcols{
   The default value is to assign C<$PDL::undefval> to undefined values,
   but if C<UNDEFINED> is set this is used instead. This would normally
   be set to a number, but if it is set to C<Bad> and PDL is compiled
-  with Badvalue support (see L<PDL::Bad/>) then undefined values are set to
+  with Badvalue support (see L<PDL::Bad>) then undefined values are set to
   the appropriate badvalue and the column is marked as bad.
 
   DEFTYPE: Sets the default type of the columns - see the documentation for
