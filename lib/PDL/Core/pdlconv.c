@@ -248,7 +248,7 @@ pdl_transvtable pdl_converttypei_vtable = {
 };
 
 pdl_error pdl__set_output_type_badvalue(pdl_trans *trans, int recurse_count);
-pdl_error pdl__converttypei_new_recprotect(pdl *PARENT, pdl *CHILD, pdl_datatypes totype, int recurse_count) {
+pdl_error pdl__converttypei_new_recprotect(pdl *PARENT, pdl *CHILD, pdl_datatypes totype, pdl_datatypes force_intype, int recurse_count) {
   pdl_error PDL_err = {0, NULL, 0};
   PDL_RECURSE_CHECK(recurse_count);
   pdl_trans *trans = pdl_create_trans(&pdl_converttypei_vtable);
@@ -260,7 +260,7 @@ pdl_error pdl__converttypei_new_recprotect(pdl *PARENT, pdl *CHILD, pdl_datatype
     trans->bvalflag = 1;
     trans->pdls[1]->state |= PDL_BADVAL;
   }
-  trans->__datatype = PARENT->datatype;
+  trans->__datatype = PARENT->datatype = force_intype;
   PDL_RETERROR(PDL_err, pdl__set_output_type_badvalue(trans, recurse_count + 1));
   trans->pdls[2] = trans->pdls[1]; /* copy for make_trans_mutual */
   trans->pdls[1]->datatype = params->totype = totype;
@@ -268,5 +268,5 @@ pdl_error pdl__converttypei_new_recprotect(pdl *PARENT, pdl *CHILD, pdl_datatype
   return PDL_err;
 }
 pdl_error pdl_converttypei_new(pdl *PARENT, pdl *CHILD, pdl_datatypes totype) {
-  return pdl__converttypei_new_recprotect(PARENT, CHILD, totype, 0);
+  return pdl__converttypei_new_recprotect(PARENT, CHILD, totype, PARENT->datatype, 0);
 }

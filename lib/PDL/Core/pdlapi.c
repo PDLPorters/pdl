@@ -129,16 +129,26 @@ pdl *pdl_scalar(PDL_Anyval anyval) {
 	return it;
 }
 
-pdl_error pdl__converttypei_new_recprotect(pdl *PARENT, pdl *CHILD, pdl_datatypes totype, int recurse_count);
-pdl_error pdl__get_convertedpdl_recprotect(pdl *old, pdl **retval, pdl_datatypes type, int recurse_count) {
+pdl_error pdl__converttypei_new_recprotect(pdl *PARENT, pdl *CHILD, pdl_datatypes totype, pdl_datatypes force_intype, int recurse_count);
+pdl_error pdl__get_convertedpdl_recprotect(pdl *old, pdl **retval, pdl_datatypes type, char switch_sense, int recurse_count) {
   pdl_error PDL_err = {0, NULL, 0};
   PDL_RECURSE_CHECK(recurse_count);
-  PDLDEBUG_f(printf("pdl_get_convertedpdl\n"));
+  PDLDEBUG_f(printf("pdl_get_convertedpdl switch_sense=%d\n", (int)switch_sense));
   if (old->datatype == type) { *retval = old; return PDL_err; }
   char was_flowing = (old->state & PDL_DATAFLOW_F);
   pdl *it = pdl_pdlnew();
   if (!it) return pdl_make_error_simple(PDL_EFATAL, "Out of Memory\n");
-  PDL_err = pdl__converttypei_new_recprotect(old, it, type, recurse_count + 1);
+  if (switch_sense) {
+    PDL_err = pdl__converttypei_new_recprotect(it, old, old->datatype, type, recurse_count + 1);
+    if (PDL_err.error) { pdl_destroy(it); return PDL_err; }
+    PDL_err = pdl_setdims(it, old->dims, old->ndims);
+    if (!PDL_err.error && switch_sense > 1 && old->data) { /* NULL data = unallocated "zeroes" */
+      PDLDEBUG_f(printf("pdl_get_convertedpdl back-pump because inplace\n"));
+      PDL_err = pdl__make_physical_recprotect(it, recurse_count + 1);
+      if (!PDL_err.error) WRITEDATA(old->trans_parent);
+    }
+  } else
+    PDL_err = pdl__converttypei_new_recprotect(old, it, type, old->datatype, recurse_count + 1);
   if (PDL_err.error) { pdl_destroy(it); return PDL_err; }
   if (was_flowing)
     it->state |= PDL_DATAFLOW_F;
@@ -147,7 +157,7 @@ pdl_error pdl__get_convertedpdl_recprotect(pdl *old, pdl **retval, pdl_datatypes
 }
 pdl *pdl_get_convertedpdl(pdl *old, pdl_datatypes type) {
   pdl *retval;
-  pdl_error PDL_err = pdl__get_convertedpdl_recprotect(old, &retval, type, 0);
+  pdl_error PDL_err = pdl__get_convertedpdl_recprotect(old, &retval, type, 0, 0);
   return PDL_err.error ? NULL : retval;
 }
 
@@ -1177,7 +1187,24 @@ pdl_error pdl__type_convert(pdl_trans *trans, int recurse_count) {
   pdl_transvtable *vtable = trans->vtable;
   pdl **pdls = trans->pdls;
   PDL_Indx i, nparents = vtable->nparents, nchildren = vtable->npdls - nparents;
-  for (i=0; i<vtable->npdls; i++) {
+  PDL_Indx j, inplace_input_ind = -1, inplace_output_ind = -1;
+  PDL_BITFIELD_ENT is_inout[PDL_BITFIELD_SIZE(nchildren)];
+  PDL_BITFIELD_ZEROISE(is_inout, nchildren);
+  for (i=0; i < nchildren; i++) {
+    if (!(vtable->par_flags[i + nparents] & PDL_PARAM_ISCREAT)) {
+      PDL_BITFIELD_SET(is_inout, i);
+      continue;
+    }
+    pdl *child = trans->pdls[i + nparents];
+    for (j=0; j < nparents; j++) {
+      pdl *parent = trans->pdls[j];
+      if (parent != child) continue;
+      PDL_BITFIELD_SET(is_inout, i);
+      inplace_output_ind = nparents + i, inplace_input_ind = j;
+      break;
+    }
+  }
+  for (i=vtable->npdls-1; i>=0; i--) {
     short flags = vtable->par_flags[i];
     if (flags & PDL_PARAM_ISIGNORE) continue;
     pdl *pdl = pdls[i];
@@ -1190,9 +1217,15 @@ pdl_error pdl__type_convert(pdl_trans *trans, int recurse_count) {
         "%s: cannot convert output ndarray %s from type %s to %s with parent",
         vtable->name, vtable->par_names[i],
         PDL_TYPENAME(pdl->datatype), PDL_TYPENAME(new_dtype));
-    PDL_RETERROR(PDL_err, pdl__get_convertedpdl_recprotect(pdl, &pdl, new_dtype, recurse_count + 1));
+    PDL_RETERROR(PDL_err, pdl__get_convertedpdl_recprotect(
+      pdl, &pdl, new_dtype,
+      (i < nparents) ? 0 : 1 + PDL_BITFIELD_ISSET(is_inout, i-nparents),
+      recurse_count + 1
+    ));
     if (pdl->datatype != new_dtype)
       return pdl_make_error_simple(PDL_EFATAL, "type not expected value after get_convertedpdl\n");
+    if (i == inplace_output_ind)
+      pdls[inplace_input_ind] = pdl;
     /* if type-convert output, put in end-area */
     pdls[i + (i >= nparents ? nchildren : 0)] = pdl;
   }
