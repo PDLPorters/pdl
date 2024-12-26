@@ -19,7 +19,7 @@ void pdl_SetSV_PDL ( SV *sv, pdl *it ) {
 }
 
 /* Size of data type information */
-size_t pdl_howbig (int datatype) {
+size_t pdl_howbig (pdl_datatypes datatype) {
 #define X(datatype, ctype, ...) \
     return sizeof(ctype);
   PDL_GENERICSWITCH(PDL_TYPELIST_ALL, datatype, X, croak("Not a known data type code=%d", datatype))
@@ -427,10 +427,10 @@ PDL_Indx av_ndcheck(AV* av, AV* dims, int level, int *datalevel)
 }
 
 /* helper function used in pdl_from_array */
-static int _detect_datatype(AV *av) {
+static pdl_datatypes _detect_datatype(AV *av) {
   SV **item;
   AV *array;
-  int count, i;
+  PDL_Indx count, i;
   if (!av) return PDL_D;
   count = av_len(av);
   for (i = 0; i < count; i++) {
@@ -459,9 +459,9 @@ static int _detect_datatype(AV *av) {
  * Core.xs) - it breaks out to pdl_setav_<type>, below, based on the
  * type of the destination PDL.
  */
-pdl* pdl_from_array(AV* av, AV* dims, int dtype, pdl* dest_pdl)
+pdl* pdl_from_array(AV* av, AV* dims, pdl_datatypes dtype, pdl* dest_pdl)
 {
-  int ndims, i, level=0;
+  PDL_Indx ndims, i, level=0;
   PDL_Anyval undefval = { PDL_INVALID, {0} };
   ndims = av_len(dims)+1;
   PDL_Indx dest_dims[ndims];
@@ -519,7 +519,7 @@ PDL_Anyval pdl_at0( pdl* it ) {
 }
 
 /*CORE21 unused*/
-PDL_Anyval pdl_at( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims,
+PDL_Anyval pdl_at( void* x, pdl_datatypes datatype, PDL_Indx* pos, PDL_Indx* dims,
 	PDL_Indx* incs, PDL_Indx offset, PDL_Indx ndims) {
   PDL_Anyval result = { PDL_INVALID, {0} };
   PDL_Indx ioff = pdl_get_offset(pos, dims, incs, offset, ndims);
@@ -529,7 +529,7 @@ PDL_Anyval pdl_at( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims,
 }
 
 /* Set value at position (x,y,z...) */
-pdl_error pdl_set( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims, PDL_Indx* incs, PDL_Indx offs, PDL_Indx ndims, PDL_Anyval value) {
+pdl_error pdl_set( void* x, pdl_datatypes datatype, PDL_Indx* pos, PDL_Indx* dims, PDL_Indx* incs, PDL_Indx offs, PDL_Indx ndims, PDL_Anyval value) {
   pdl_error PDL_err = {0, NULL, 0};
   PDL_Indx ioff = pdl_get_offset(pos, dims, incs, offs, ndims);
   if (ioff < 0)
@@ -1026,7 +1026,7 @@ pdl_slice_args* pdl_slice_args_parse_sv(SV* sv) {
           barf("slice: non-ARRAY ref in the argument list!");
         /*** It *is* an array ref!  Expand it into an AV so we can read it. ***/
         AV *sublist = (AV *)(SvRV(this));
-        int nelem = !sublist ? 0 : av_len(sublist) + 1;
+        PDL_Indx nelem = !sublist ? 0 : av_len(sublist) + 1;
         if (nelem > 3) barf("slice: array refs can have at most 3 elements!");
         if (nelem==0) {      /* No elements - keep it all */
           all_flag = 1;

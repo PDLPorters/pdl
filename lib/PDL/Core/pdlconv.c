@@ -25,7 +25,7 @@ extern struct Core PDL;
 pdl_error pdl_ ## name(pdl *a) { \
   pdl_error PDL_err = {0, NULL, 0}; \
   PDL_Indx i, j; \
-  int intype = a->datatype; \
+  pdl_datatypes intype = a->datatype; \
   if (!a->vafftrans) \
     return pdl_make_error_simple(PDL_EUSERERROR, "pdl_" #name " without vafftrans"); \
   if (a->nvals && !a->data) \
@@ -42,7 +42,7 @@ VAFF_IO(writebackdata_vaffine, X)
 #undef X
 #undef XCODE
 
-pdl_error pdl_converttype( pdl* a, int targtype ) {
+pdl_error pdl_converttype( pdl* a, pdl_datatypes targtype ) {
     pdl_error PDL_err = {0, NULL, 0};
     PDLDEBUG_f(printf("pdl_converttype to %d: ", targtype); pdl_dump(a));
     if (a->state & PDL_DONTTOUCHDATA)
@@ -51,7 +51,7 @@ pdl_error pdl_converttype( pdl* a, int targtype ) {
       return pdl_make_error(PDL_EUSERERROR, "converttype called with NULL data on pdl %p", a);
 
     PDL_RETERROR(PDL_err, pdl_make_physical(a));
-    int intype = a->datatype;
+    pdl_datatypes intype = a->datatype;
     if (intype == targtype)
        return PDL_err;
 
@@ -129,7 +129,7 @@ pdl_error pdl_converttype( pdl* a, int targtype ) {
 pp_def(
         'converttypei',
         GlobalNew => 'converttypei_new',
-        OtherPars => 'int totype;',
+        OtherPars => 'pdl_datatypes totype;',
         Identity => 1,
 # Forced types
         FTypes => {CHILD => '$COMP(totype)'},
@@ -141,7 +141,7 @@ pp_def(
 #define PDL_ALL_GENTYPES { PDL_SB, PDL_B, PDL_S, PDL_US, PDL_L, PDL_UL, PDL_IND, PDL_ULL, PDL_LL, PDL_F, PDL_D, PDL_LD, PDL_CF, PDL_CD, PDL_CLD, -1 }
 
 typedef struct pdl_params_converttypei {
-  int  totype;
+  pdl_datatypes  totype;
 } pdl_params_converttypei;
 
 pdl_error pdl_converttypei_redodims(pdl_trans *trans) {
@@ -176,7 +176,7 @@ pdl_error pdl_converttypei_redodims(pdl_trans *trans) {
 pdl_error pdl_converttypei_readdata(pdl_trans *trans) {
   pdl_error PDL_err = {0, NULL, 0};
   pdl_params_converttypei *params = trans->params;
-  int fromtype = trans->__datatype, totype = params->totype;
+  pdl_datatypes fromtype = trans->__datatype, totype = params->totype;
   extern struct Core PDL;
   struct Core *PDLptr = &PDL;
 #define PDL PDLptr /* so PDL_DECLARE_PARAMETER_BADVAL can get bvals */
@@ -203,7 +203,7 @@ pdl_error pdl_converttypei_readdata(pdl_trans *trans) {
 pdl_error pdl_converttypei_writebackdata(pdl_trans *trans) {
   pdl_error PDL_err = {0, NULL, 0};
   pdl_params_converttypei *params = trans->params;
-  int fromtype = params->totype, totype = trans->__datatype;
+  pdl_datatypes fromtype = params->totype, totype = trans->__datatype;
   extern struct Core PDL;
   struct Core *PDLptr = &PDL;
 #define PDL PDLptr /* so PDL_DECLARE_PARAMETER_BADVAL can get bvals */
@@ -247,7 +247,7 @@ pdl_transvtable pdl_converttypei_vtable = {
   sizeof(pdl_params_converttypei),"converttypei_new"
 };
 
-pdl_error pdl_converttypei_new(pdl  *PARENT,pdl  *CHILD,int  totype) {
+pdl_error pdl_converttypei_new(pdl *PARENT, pdl *CHILD, pdl_datatypes totype) {
   pdl_error PDL_err = {0, NULL, 0};
   pdl_trans *trans = pdl_create_trans(&pdl_converttypei_vtable);
   pdl_params_converttypei *params = trans->params;

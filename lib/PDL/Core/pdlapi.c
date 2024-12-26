@@ -75,10 +75,6 @@ extern Core PDL; /* for PDL_TYPENAME */
 #define CHANGED(...) \
     PDL_ACCUMERROR(PDL_err, pdl_changed(__VA_ARGS__))
 
-#define PDL_RECURSE_CHECK(var) \
-  if (var > 1000) \
-    return pdl_make_error_simple(PDL_EUSERERROR, "PDL:Internal Error: data structure recursion limit exceeded (max 1000 levels)\n\tThis could mean that you have found an infinite-recursion error in PDL, or\n\tthat you are building data structures with very long dataflow dependency\n\tchains.  You may want to try using sever() to break the dependency")
-
 extern Core PDL;
 
 pdl_error pdl__make_physical_recprotect(pdl *it, int recurse_count);
@@ -133,7 +129,7 @@ pdl *pdl_scalar(PDL_Anyval anyval) {
 	return it;
 }
 
-pdl *pdl_get_convertedpdl(pdl *old,int type) {
+pdl *pdl_get_convertedpdl(pdl *old, pdl_datatypes type) {
   PDLDEBUG_f(printf("pdl_get_convertedpdl\n"));
   if(old->datatype == type) return old;
   char was_flowing = (old->state & PDL_DATAFLOW_F);
@@ -956,7 +952,7 @@ pdl_error pdl_make_physvaffine(pdl *it)
   return pdl__make_physvaffine_recprotect(it, 0);
 }
 
-pdl_error pdl_set_datatype(pdl *a, int datatype)
+pdl_error pdl_set_datatype(pdl *a, pdl_datatypes datatype)
 {
     pdl_error PDL_err = {0, NULL, 0};
     PDL_DECL_CHILDLOOP(a)
@@ -1032,7 +1028,7 @@ void pdl_propagate_badvalue( pdl *it ) {
 } /* pdl_propagate_badvalue */
 
 /*CORE21 unused*/
-PDL_Anyval pdl_get_badvalue( int datatype ) {
+PDL_Anyval pdl_get_badvalue( pdl_datatypes datatype ) {
   PDL_Anyval retval = { PDL_INVALID, {0} };
 #define X(datatype, ctype, ppsym, ...) \
   retval.type = datatype; retval.value.ppsym = PDL.bvals.ppsym;

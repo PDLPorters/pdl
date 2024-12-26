@@ -29,6 +29,10 @@
 #define PDL_TYPENAME(t) (!PDL->type_names ? "ERROR: type_names not set" : (t < 0 || t >= PDL->ntypes) ? "INVALID" : PDL->type_names[t])
 #endif
 
+#define PDL_RECURSE_CHECK(var) \
+  if (var > 1000) \
+    return pdl_make_error_simple(PDL_EUSERERROR, "PDL:Internal Error: data structure recursion limit exceeded (max 1000 levels)\n\tThis could mean that you have found an infinite-recursion error in PDL, or\n\tthat you are building data structures with very long dataflow dependency\n\tchains.  You may want to try using sever() to break the dependency")
+
 #include "pdl.h"
 /* the next one causes trouble in c++ compiles - exclude for now */
 #ifndef __cplusplus
@@ -48,7 +52,7 @@
 #define warn PDL_CORE_(pdl_warn)
 
 PDL_Indx av_ndcheck(AV* av, AV* dims, int level, int *datalevel);
-pdl* pdl_from_array(AV* av, AV* dims, int type, pdl* p);
+pdl* pdl_from_array(AV* av, AV* dims, pdl_datatypes type, pdl* p);
 pdl_error pdl_writebackdata_vaffine(pdl *it);
 pdl_error pdl_readdata_vaffine(pdl *it);
 pdl_error pdl_dim_checks(pdl_transvtable *vtable, pdl **pdls,
@@ -89,9 +93,9 @@ void pdl_dump_anyval(PDL_Anyval v);
   X(null, pdl*, (void)) \
   X(scalar, pdl*, (PDL_Anyval anyval)) \
   X(hard_copy, pdl*, ( pdl* )) \
-  X(converttype, pdl_error, ( pdl*, int )) \
+  X(converttype, pdl_error, ( pdl*, pdl_datatypes )) \
   X(smalloc, void*, ( STRLEN )) \
-  X(howbig, size_t, ( int )) \
+  X(howbig, size_t, ( pdl_datatypes )) \
   X(packdims, PDL_Indx*, ( SV* sv, PDL_Indx *ndims )) \
   X(setdims, pdl_error, ( pdl* it, PDL_Indx* dims, PDL_Indx ndims )) \
   X(at0, PDL_Anyval, ( pdl* x )) /*CORE21*/ \
@@ -116,12 +120,12 @@ void pdl_dump_anyval(PDL_Anyval v);
     Size_t param)) /* Automagic destructor */ \
   X(setdims_careful, pdl_error, (pdl *pdl)) \
   X(get_offs, PDL_Anyval, (pdl *pdl,PDL_Indx offs)) /*CORE21*/ \
-  X(set, pdl_error, ( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims, \
+  X(set, pdl_error, ( void* x, pdl_datatypes datatype, PDL_Indx* pos, PDL_Indx* dims, \
     PDL_Indx *incs, PDL_Indx offs, PDL_Indx ndims, PDL_Anyval value)) \
   X(create_trans, pdl_trans *, (pdl_transvtable *vtable)) \
   X(type_coerce, pdl_error, (pdl_trans *trans)) \
   X(trans_badflag_from_inputs, char, (pdl_trans *trans)) \
-  X(get_convertedpdl, pdl *, (pdl *pdl,int type)) \
+  X(get_convertedpdl, pdl *, (pdl *pdl, pdl_datatypes type)) \
   X(make_trans_mutual, pdl_error, (pdl_trans *trans)) \
   X(make_physical, pdl_error, (pdl *it)) \
   X(make_physdims, pdl_error, (pdl *it)) \
@@ -134,14 +138,14 @@ void pdl_dump_anyval(PDL_Anyval v);
   X(propagate_badvalue, void, (pdl *it)) \
   X(changed, pdl_error, (pdl *it, int what, int recursing)) \
   X(get_pdl_badvalue, PDL_Anyval, (pdl *it)) /*CORE21*/ \
-  X(get_badvalue, PDL_Anyval, (int datatype)) /*CORE21*/ \
-  X(set_datatype, pdl_error, (pdl *a, int datatype)) \
+  X(get_badvalue, PDL_Anyval, (pdl_datatypes datatype)) /*CORE21*/ \
+  X(set_datatype, pdl_error, (pdl *a, pdl_datatypes datatype)) \
   X(hdr_copy, SV *, (SV *hdrp)) \
   X(hdr_childcopy, void, (pdl_trans *trans)) \
   X(readdata_affine, pdl_error, (pdl_trans *trans)) \
   X(writebackdata_affine, pdl_error, (pdl_trans *trans)) \
   X(affine_new, pdl_error, (pdl *par,pdl *child,PDL_Indx offs,PDL_Indx *dims,PDL_Indx ndims,PDL_Indx *incs,PDL_Indx nincs)) \
-  X(converttypei_new, pdl_error, (pdl *par,pdl *child,int type)) \
+  X(converttypei_new, pdl_error, (pdl *par,pdl *child,pdl_datatypes type)) \
   X(dump, void, (pdl *it)) \
   X(sever, pdl_error, (pdl *a)) \
   X(slice_args_parse_sv, pdl_slice_args*, ( SV* )) \
@@ -185,7 +189,7 @@ struct Core {
 #undef X
 
   char **type_names;
-  int ntypes;
+  pdl_datatypes ntypes;
 };
 
 typedef struct Core Core;
