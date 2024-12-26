@@ -1118,21 +1118,23 @@ static inline pdl_error pdl__transtype_select(
   }
   char type_avail[PDL.ntypes]; for (i=0; i<PDL.ntypes; i++) type_avail[i] = 0;
   pdl_datatypes last_dtype = PDL_INVALID;
-  for (i=0; vtable->gentypes[i]!=-1; i++)
+  for (i=0; vtable->gentypes[i] != PDL_INVALID; i++)
     type_avail[last_dtype = vtable->gentypes[i]] = 1;
   if (vtable->gentypes[0] == last_dtype) {
     *retval = vtable->gentypes[0]; /* only one allowed type, use that */
     return PDL_err;
   }
-  for (i=0; i<vtable->npdls; i++) {
+  for (i=vtable->npdls-1; i>= 0; i--) {
     pdl *pdl = trans->pdls[i];
-    if (pdl->state & PDL_NOMYDIMS) continue;
     short flags = vtable->par_flags[i];
-    if (flags & (PDL_PARAM_ISIGNORE|PDL_PARAM_ISTYPED|PDL_PARAM_ISCREATEALWAYS))
-      continue;
-    pdl_datatypes new_transtype = PDL_TYPE_ADJUST_FROM_SUPPLIED(pdl->datatype, flags);
-    if (*retval >= new_transtype) continue;
-    *retval = new_transtype;
+    if (!(pdl->state & PDL_NOMYDIMS) &&
+      !(flags & (PDL_PARAM_ISIGNORE|PDL_PARAM_ISTYPED|PDL_PARAM_ISCREATEALWAYS))
+    ) {
+      pdl_datatypes new_transtype = PDL_TYPE_ADJUST_FROM_SUPPLIED(pdl->datatype, flags);
+      if (new_transtype != PDL_INVALID && type_avail[new_transtype] && *retval < new_transtype)
+        *retval = new_transtype;
+    }
+    if (i == vtable->nparents && *retval != PDL_INVALID) return PDL_err;
   }
   if (*retval == PDL_INVALID || !type_avail[*retval]) *retval = last_dtype;
   return PDL_err;

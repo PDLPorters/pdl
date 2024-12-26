@@ -835,11 +835,10 @@ is $o_double->trans_parent->vtable->name, 'PDL::Ops::plus', 'right trans_parent 
 is 0+$o_double->trans_children, 0, '0 trans_children on output from flowing';
 
 PDL::plus(my $i_double = double(1)->flowing, double(2), $o_float = float(0), 0);
-is +($i_double->trans_children)[0]->vtable->name, 'PDL::Ops::plus', 'current trans_children[0] is NOT convert on input from flowing output type < inputs';
-is_pdl $o_float, float(0), 'current output wrongly 0 from flowing output type < inputs';
-is $o_float->trans_parent, undef, 'current no trans_parent from flowing output type < inputs';
-is 0+$o_float->trans_children, 1, 'current 1 trans_children from flowing output type < inputs';
-is +($o_float->trans_children)[0]->vtable->name, 'converttypei_new', 'current trans_children[0] is convert output type < inputs';
+is +($i_double->trans_children)[0]->vtable->name, 'converttypei_new', 'input.trans_children[0] IS convert from flowing output type < inputs';
+is_pdl $o_float, float(3), 'output right from flowing output type < inputs';
+is $o_float->trans_parent->vtable->name, 'PDL::Ops::plus', 'trans_parent of output is plus from flowing output type < inputs';
+is 0+$o_float->trans_children, 0, '0 trans_children on output from flowing output type < inputs';
 
 eval {PDL::plus(double(1)->flowing, double(2), float(0)->slice(''), 0)};
 is $@, '', "current no error when flowing output to flowing xform, out type < input";
@@ -858,11 +857,7 @@ for ([\&float,\&cfloat,\&cdouble], [\&double,\&cdouble,\&cfloat], [\&ldouble,\&c
   is $@, '', 'current wrongly no error when supply output with parent to flowing '.$rt->();
   next if !$other_ct;
   czip($rt->(3)->flowing, $rt->(2), $o_cmplx = $other_ct->(0));
-  if ($other_ct->() eq 'cdouble') {
-    is_pdl $o_cmplx, $other_ct->('3+2i'), 'right answer from flowing, input '.$rt->().', supplied output '.$other_ct->();
-  } else {
-    is_pdl $o_cmplx, $other_ct->(0), 'current wrong answer from flowing, input '.$rt->().', supplied output '.$other_ct->();
-  }
+  is_pdl $o_cmplx, $other_ct->('3+2i'), 'right answer from flowing, input '.$rt->().', supplied output '.$other_ct->();
 }
 }
 
