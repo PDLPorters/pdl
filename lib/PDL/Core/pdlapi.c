@@ -675,7 +675,7 @@ static inline pdl_error pdl_trans_flow_null_checks(pdl_trans *trans, char *disab
     pdl *parent = trans->pdls[i];
     if (_trans_forward_only(parent))
       input_forward_only = 1;
-    if (parent->state & PDL_NOMYDIMS)
+    if (parent->state & PDL_NOMYDIMS && !(vtable->par_flags[i] & PDL_PARAM_ALLOW_NULL))
       return pdl_make_error(PDL_EUSERERROR,
 	"Error in %s: input parameter '%s' is null",
 	vtable->name, vtable->par_names[i]

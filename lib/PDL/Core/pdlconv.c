@@ -229,7 +229,7 @@ static char pdl_converttypei_vtable_flags[] = { 0, 0 }; /*CORE21*/
 static PDL_Indx pdl_converttypei_vtable_realdims[] = { 0, 0 };
 static char *pdl_converttypei_vtable_parnames[] = { "PARENT","CHILD" };
 static short pdl_converttypei_vtable_parflags[] = {
-  PDL_PARAM_ISPHYS,
+  PDL_PARAM_ALLOW_NULL|PDL_PARAM_ISPHYS,
   PDL_PARAM_ISCREAT|PDL_PARAM_ISCREATEALWAYS|PDL_PARAM_ISIGNORE|PDL_PARAM_ISOUT|PDL_PARAM_ISPHYS|PDL_PARAM_ISWRITE
 };
 static pdl_datatypes pdl_converttypei_vtable_partypes[] = { -1, -1 };
