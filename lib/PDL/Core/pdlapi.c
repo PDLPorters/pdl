@@ -1085,6 +1085,19 @@ pdl_trans *pdl_create_trans(pdl_transvtable *vtable) {
     return it;
 }
 
+#define PDL_TYPE_ADJUST_FROM_SUPPLIED(type, f) ( \
+  /* opposite test/actions from convert, complex only */ \
+  ((f) & PDL_PARAM_ISREAL && (type) < PDL_CF) ? PDLMAX(PDL_CF,(type)+PDL_CF-PDL_F) : \
+  ((f) & PDL_PARAM_ISCOMPLEX && (type) >= PDL_CF) ? (type)-PDL_CF+PDL_F : \
+  (type))
+#define PDL_TYPE_ADJUST_FROM_TRANS(ttype, f, par_type) ( \
+  ((f) & PDL_PARAM_ISTYPED) ? \
+    (!((f) & PDL_PARAM_ISTPLUS) ? (par_type) : PDLMAX((par_type), (ttype))) : \
+  ((f) & (PDL_PARAM_ISREAL|PDL_PARAM_ISNOTCOMPLEX) && (ttype) >= PDL_CF) ? \
+    (ttype) - PDL_CF + PDL_F : \
+  ((f) & PDL_PARAM_ISCOMPLEX && (ttype) < PDL_CF) ? \
+    PDLMAX(PDL_CF, trans_dtype + PDL_CF - PDL_F) : \
+  (ttype))
 static inline pdl_error pdl__transtype_select(
   pdl_trans *trans, pdl_datatypes *retval
 ) {
@@ -1113,24 +1126,13 @@ static inline pdl_error pdl__transtype_select(
   }
   for (i=0; i<vtable->npdls; i++) {
     pdl *pdl = trans->pdls[i];
-    if (pdl->state & PDL_NOMYDIMS)
-      continue;
+    if (pdl->state & PDL_NOMYDIMS) continue;
     short flags = vtable->par_flags[i];
     if (flags & (PDL_PARAM_ISIGNORE|PDL_PARAM_ISTYPED|PDL_PARAM_ISCREATEALWAYS))
       continue;
-    pdl_datatypes new_transtype = pdl->datatype;
-    if (flags & PDL_PARAM_ISREAL) { /* opposite test/actions from convert */
-      if (new_transtype < PDL_CF)
-        new_transtype = PDLMAX(PDL_CF, new_transtype + (PDL_CF - PDL_F));
-    } else if (flags & PDL_PARAM_ISCOMPLEX) {
-      if (new_transtype >= PDL_CF)
-        new_transtype -= PDL_CF - PDL_F;
-    }
-    if (*retval < new_transtype && (
-      !(flags & PDL_PARAM_ISCREAT) ||
-      ((flags & PDL_PARAM_ISCREAT) && !((pdl->state & PDL_NOMYDIMS) && pdl->trans_parent == NULL))
-    ))
-      *retval = new_transtype;
+    pdl_datatypes new_transtype = PDL_TYPE_ADJUST_FROM_SUPPLIED(pdl->datatype, flags);
+    if (*retval >= new_transtype) continue;
+    *retval = new_transtype;
   }
   if (*retval == PDL_INVALID || !type_avail[*retval]) *retval = last_dtype;
   return PDL_err;
@@ -1155,16 +1157,8 @@ pdl_error pdl__type_coerce_recprotect(pdl_trans *trans, int recurse_count) {
   for (i=0; i<vtable->npdls; i++) {
     pdl *pdl = pdls[i];
     short flags = vtable->par_flags[i];
-    pdl_datatypes new_dtype = trans_dtype;
     if (flags & PDL_PARAM_ISIGNORE) continue;
-    if (flags & PDL_PARAM_ISTYPED) {
-      new_dtype = vtable->par_types[i];
-      if (flags & PDL_PARAM_ISTPLUS) new_dtype = PDLMAX(new_dtype, trans_dtype);
-    } else if (flags & (PDL_PARAM_ISREAL|PDL_PARAM_ISNOTCOMPLEX)) {
-      if (trans_dtype >= PDL_CF) new_dtype = trans_dtype - (PDL_CF - PDL_F);
-    } else if (flags & PDL_PARAM_ISCOMPLEX) {
-      if (trans_dtype < PDL_CF) new_dtype = PDLMAX(PDL_CF, trans_dtype + (PDL_CF - PDL_F));
-    }
+    pdl_datatypes new_dtype = PDL_TYPE_ADJUST_FROM_TRANS(trans_dtype, flags, vtable->par_types[i]);
     if ((pdl->state & PDL_NOMYDIMS) && (!pdl->trans_parent || pdl->trans_parent == trans)) {
       pdl->badvalue = parent_badvalue;
       pdl->has_badvalue = p2child_has_badvalue;
