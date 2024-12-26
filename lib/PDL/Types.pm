@@ -539,7 +539,7 @@ Returns the macro used to represent this type in C code (eg 'PDL_Long').
 
 =item convertfunc
 
-Synonym for C<ctype>.
+Lower-case version of the C<shortctype>.
 
 =item ppsym
 

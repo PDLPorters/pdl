@@ -33,7 +33,6 @@
 #include "pdlmagic.h"
 #endif
 
-#define BIGGESTOF(a,b) ( a->nvals>b->nvals ? a->nvals : b->nvals )
 #define SVavref(x) (SvROK(x) && SvTYPE(SvRV(x))==SVt_PVAV)
 
 /*  Use our own barf and our own warn.

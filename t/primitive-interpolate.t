@@ -17,7 +17,7 @@ subtest interpol => sub {
         my $yvalues = ( pdl( 0 .. 5 ) - 20 ) * ( 1 + i() );
         my $xvalues = -pdl( 0 .. 5 ) * .5;
         my $x       = pdl(-2);
-        is_pdl $x->interpol( $xvalues, $yvalues ), -16 - 16 * i;
+        is_pdl $x->interpol( $xvalues, $yvalues ), pdl('-16-16i');
         throws_ok { $x->interpol( $xvalues * i(), $yvalues ) }
             qr/must be real/,
             "x must be real";
@@ -25,10 +25,14 @@ subtest interpol => sub {
 };
 
 subtest interpolate => sub {
-  my $yvalues = pdl( 0 .. 5 ) - 20;
-  my $xvalues = -pdl( 0 .. 5 ) * .5;
+  my $yvalues = pdl(0 .. 5) - 20;
+  my $xvalues = -pdl(0 .. 5) * .5;
   my $x       = pdl(-2);
-  is_pdl +($x->interpolate( $xvalues, $yvalues ))[0], pdl(-16);
+  is_pdl +($x->interpolate($xvalues, $yvalues))[0], pdl(-16);
+  eval {cdouble(-2)->interpolate($xvalues, $yvalues)};
+  like $@, qr/must be real/;
+  eval {$x->interpolate($xvalues->cdouble, $yvalues)};
+  like $@, qr/must be real/;
 };
 
 subtest interpND => sub {

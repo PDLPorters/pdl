@@ -36,7 +36,7 @@ extern int pdl_debugging;
 typedef struct pdl pdl;
 EOF
 
-my @methods = qw(symbol ctype ppsym shortctype defbval realctype floatsuffix);
+my @methods = qw(symbol ctype ppsym shortctype defbval realctype convertfunc floatsuffix);
 sub makelister {
   my ($name, $underscore, $pred) = @_;
   my @list = map { my $t = $_; [map $t->$_, @methods] } grep $pred->($_), PDL::Types::types();

@@ -839,13 +839,12 @@ type qualifiers precede creation qualifiers (C<[o]> and C<[t]>).
 
 The above example also demonstrates typical usage of the C<$GENERIC()>
 macro.  It expands to the current type in a so called generic
-loop. What is a generic loop? As you already heard a PP function has a
+switch. What is a generic switch? As you already heard a PP function has a
 runtime datatype as determined by the type of the pdl arguments it has
-been invoked with.  The PP generated XS code for this function
+been invoked with.  The PP generated C code for this function
 therefore contains a switch like C<switch (type) {case PDL_Byte: ... case
 PDL_Double: ...}> that selects a case based on the runtime
-datatype of the function (it's called a type ``loop''
-because there is a loop in PP code that generates the cases).
+datatype of the function.
 In any case your code is inserted once for each PDL type
 into this switch statement. The C<$GENERIC()> macro just expands to
 the respective type in each copy of your parsed code in this C<switch>
@@ -910,8 +909,7 @@ and C<Doc> omitted):
     Code => '$c() = $r();'
   );
 
-Finally, there are the C<type+> qualifiers where type is one of C<int>
-or C<float>. What shall that mean. Let's illustrate the C<int+>
+Finally, there are the C<type+> qualifiers. Let's illustrate the C<int+>
 qualifier with the actual definition of sumover:
 
   pp_def('sumover',

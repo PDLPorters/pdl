@@ -170,7 +170,7 @@ static inline pdl *PDL_XS_pdlinit(pTHX_ char *objname, HV *bless_stash, SV *to_p
   sv_setiv(outsv, (IV)(inany.value.ppsym));
 #define ANYVAL_FLOATREAL_X(outsv, inany, sym, ctype, ppsym, ...) \
   sv_setnv(outsv, (NV)(inany.value.ppsym));
-#define ANYVAL_COMPLEX_X(outsv, inany, sym, ctype, ppsym, shortctype, defbval, realctype, floatsuffix, ...) \
+#define ANYVAL_COMPLEX_X(outsv, inany, sym, ctype, ppsym, shortctype, defbval, realctype, convertfunc, floatsuffix, ...) \
   PDL_MAKE_PERL_COMPLEX(outsv, creal ## floatsuffix(inany.value.ppsym), cimag ## floatsuffix(inany.value.ppsym));
 #define ANYVAL_TO_SV(outsv,inany) do { switch (inany.type) { \
   PDL_TYPELIST_UNSIGNED(PDL_GENERICSWITCH_CASE, ANYVAL_UNSIGNED_X, (outsv,inany,),) \
