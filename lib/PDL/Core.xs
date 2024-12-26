@@ -47,6 +47,13 @@
 #define setflag(reg,flagval,val) (val?(reg |= flagval):(reg &= ~flagval))
 
 Core PDL; /* Struct holding pointers to shared C routines */
+static char *type_names[] = {
+#define X(symbol, ctype, ppsym, shortctype, defbval, realctype, convertfunc, ...) \
+  #convertfunc,
+  PDL_TYPELIST_ALL(X)
+#undef X
+  NULL
+};
 
 int pdl_debugging=0;
 int pdl_autopthread_targ   = 0; /* No auto-pthreading unless set using the set_autopthread_targ */
@@ -827,6 +834,8 @@ BOOT:
  PDL.bvals.ppsym = defbval;
    PDL_TYPELIST_ALL(X)
 #undef X
+  PDL.type_names = type_names;
+  PDL.ntypes = sizeof(type_names) / sizeof(type_names[0]) - 1;
   /* "Publish" pointer to this structure in perl variable for use
      by other modules */
   sv_setiv(get_sv("PDL::SHARE",TRUE|GV_ADDMULTI), PTR2IV(&PDL));

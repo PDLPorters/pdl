@@ -3,6 +3,8 @@
 #include "pdlcore.h"  /* Core declarations */
 #include <stdarg.h>
 
+extern Core PDL; /* for PDL_TYPENAME */
+
 #define msgptr_advance()                        \
 do {                                            \
   int N      = strlen(msgptr);                  \
@@ -157,37 +159,29 @@ PDL_TYPELIST_ALL(X)
   printf("\n");
   psp; printf("Parameters:\n");
   for (i=0;i<vtable->npdls;i++) {
-    psp; psp; printf("%s(",vtable->par_names[i]);
+    psp; sz = nspac + printf("  %s(",vtable->par_names[i]);
     found=0;
     for (j=0;j<vtable->par_realdims[i];j++) {
-      if (found) printf(","); found=1;
-      printf("%s",vtable->ind_names[PDL_IND_ID(vtable, i, j)]);
+      if (found) sz += printf(","); found=1;
+      sz += printf("%s",vtable->ind_names[PDL_IND_ID(vtable, i, j)]);
     }
-    printf(") (");
-    if (vtable->par_types[i] < 0) printf("no type");
-    else {
-      for (j=0;typeval[j]>=0; j++)
-        if (vtable->par_types[i] == typeval[j]) {
-          printf("%s",typechar[j] + 4);
-          break;
-        }
-    }
-    printf("): ");
-    found=0; sz=0;
+    if (vtable->par_flags[i] & PDL_PARAM_ISTYPED)
+      sz += printf(") (%s", PDL_TYPENAME(vtable->par_types[i]));
+    sz += printf("): ");
+    found=0;
     for (j=0;paramflagval[j]!=0; j++)
       if (vtable->par_flags[i] & paramflagval[j]) {
         char *this_str = paramflagchar[j];
         size_t thislen = strlen(this_str);
         if ((sz+thislen)>PDL_MAXLIN) {sz=nspac+8; printf("\n%s        ",spaces);}
-        printf("%s%s",found ? "|":"",this_str); found = 1;
-        sz += thislen;
+        sz += printf("%s%s",found ? "|":"",this_str); found = 1;
       }
     if (!found) printf("(no flags set)");
     printf("\n");
   }
-  psp; printf("Indices: ");
+  psp; printf("Indices:");
   for (i=0;i<vtable->ninds;i++)
-    printf("%s ",vtable->ind_names[i]);
+    printf(" %s",vtable->ind_names[i]);
   printf("\n");
 }
 

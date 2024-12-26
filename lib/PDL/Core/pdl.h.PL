@@ -432,7 +432,7 @@ typedef struct pdl_transvtable {
  X(PDL_ITRANS_ISAFFINE)
 
 #define PDL_MAXSPACE 256 /* maximal number of prefix spaces in dump routines */
-#define PDL_MAXLIN 60
+#define PDL_MAXLIN 75
 
 // These define struct pdl_trans and all derived structures. There are many
 // structures that defined in other parts of the code that can be referenced

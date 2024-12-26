@@ -23,8 +23,10 @@
 
 #ifdef PDL_IN_CORE
 #define PDL_CORE_(func) pdl_##func
+#define PDL_TYPENAME(t) (!PDL.type_names ? "ERROR: type_names not set" : (t < 0 || t >= PDL.ntypes) ? "INVALID" : PDL.type_names[t])
 #else
 #define PDL_CORE_(func) PDL->func
+#define PDL_TYPENAME(t) (!PDL->type_names ? "ERROR: type_names not set" : (t < 0 || t >= PDL->ntypes) ? "INVALID" : PDL->type_names[t])
 #endif
 
 #include "pdl.h"
@@ -181,6 +183,9 @@ struct Core {
   rettype (*sym) args;
   PDL_CORE_LIST(X)
 #undef X
+
+  char **type_names;
+  int ntypes;
 };
 
 typedef struct Core Core;
