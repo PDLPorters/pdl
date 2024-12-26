@@ -236,7 +236,7 @@ subtest 'dim compatibility' => sub {
     [\&polyroots, [ones(2), zeroes(2,2), zeroes(1,1), zeroes(1,2)], 2, qr/implicit dim/, '[phys] outputs=[1,1],[1,2] not ok broadcast over output explicit dim'],
     # phys params with (n,n)
     [\&simq, [identity(3)+1, sequence(3,1), null, null, 0], 2, [[-0.75,0.25,1.25]], '[phys] output=[3,3]'],
-    [\&simq, [[[2,1,1]], sequence(3,1), null, null, 0], 2, qr/dim has size/, '[phys] input=[3,1] output=[3,3] no expand input phys multi-used dim of 1'],
+    [\&simq, [pdl([[2,1,1]]), sequence(3,1), null, null, 0], 2, qr/dim has size/, '[phys] input=[3,1] output=[3,3] no expand input phys multi-used dim of 1'],
     [\&simq, [identity(3)+1, sequence(3,2), null, null, 0], 2, qr/implicit dim/, '[phys] inputs:n,n=[3,3],n=[3,2] no broadcast over [io]'],
   ) {
     my ($func, $args, $exp_index, $exp, $label) = @$_;
@@ -842,6 +842,11 @@ is 0+$o_float->trans_children, 0, '0 trans_children on output from flowing outpu
 
 eval {PDL::eqvec(double([1,2]), double([1,2]), float(0)->slice(''))};
 like $@, qr/cannot convert/, "error when flowing output to xform, out forcetype != supplied out type";
+
+PDL::eqvec(double([1,2])->flowing, double([1,2]), $o_float = float([0]));
+is 0+$o_float->trans_children, 1, 'converted output of flowing xform wrongly has trans_children';
+is $o_float->trans_parent, undef, 'converted output of flowing xform wrongly has no trans_parent';
+is_pdl $o_float, float([0]), 'converted output of flowing xform has currently wrong value';
 
 for ([\&float,\&cfloat,\&cdouble], [\&double,\&cdouble,\&cfloat], [\&ldouble,\&cldouble]) {
   my ($rt, $ct, $other_ct) = @$_;
