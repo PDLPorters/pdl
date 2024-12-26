@@ -761,13 +761,7 @@ sub _interp_hermite {
     my ( $self, $xi, $x, $y ) = @_;
     # get gradient
     my $g = $self->_get_value( 'g' );
-    my @highest_dims;
-    for my $param ($x,$y,$g,$xi) {
-      my @this_dims = $param->dims;
-      @highest_dims = @this_dims if @this_dims > @highest_dims;
-    }
-    shift @highest_dims; # don't care about bottom one
-    my ( $yi, $ierr ) = PDL::Primitive::pchip_chfe( $x, $y, $g, PDL->ones(PDL::long(),@highest_dims), $xi );
+    my ( $yi, $ierr ) = PDL::Primitive::pchip_chfe( $x, $y, $g, $xi );
     $self->{flags}{routine} = "pchip_chfe";
     $self->_set_value( err => $ierr );
     if ( all $ierr == 0 ) {
@@ -814,7 +808,7 @@ sub gradient {
     # get values in one go
     my ( $x, $y, $g ) = $self->_get_value( qw( x y g ) );
 
-    my ( $yi, $gi, $ierr ) = PDL::Primitive::pchip_chfd( $x, $y, $g, 0, $xi );
+    my ( $yi, $gi, $ierr ) = PDL::Primitive::pchip_chfd( $x, $y, $g, $xi );
     $self->{flags}{routine} = "pchip_chfd";
     $self->_set_value( err => $ierr );
 
@@ -903,7 +897,7 @@ sub integrate {
     my ( $ans, $ierr );
 
     if ( $type eq "x" ) {
-	( $ans, $ierr ) = PDL::Primitive::pchip_chia( $x, $y, $g, 0, $lo, $hi );
+	( $ans, $ierr ) = PDL::Primitive::pchip_chia( $x, $y, $g, $lo, $hi );
 	$self->{flags}{routine} = "pchip_chia";
 
 	if ( all $ierr == 0 ) {
@@ -918,7 +912,7 @@ sub integrate {
 	}
 
     } else {
-	( $ans, $ierr ) = PDL::Primitive::pchip_chid( $x, $y, $g, 0, $lo, $hi );
+	( $ans, $ierr ) = PDL::Primitive::pchip_chid( $x, $y, $g, $lo, $hi );
 	$self->{flags}->{routine} = "pchip_chid";
 
 	if ( all $ierr == 0 ) {
