@@ -247,7 +247,7 @@ pdl_transvtable pdl_converttypei_vtable = {
   sizeof(pdl_params_converttypei),"converttypei_new"
 };
 
-pdl_error pdl__type_coerce_recprotect(pdl_trans *trans, int recurse_count);
+pdl_error pdl__set_output_type_badvalue(pdl_trans *trans, int recurse_count);
 pdl_error pdl__converttypei_new_recprotect(pdl *PARENT, pdl *CHILD, pdl_datatypes totype, int recurse_count) {
   pdl_error PDL_err = {0, NULL, 0};
   PDL_RECURSE_CHECK(recurse_count);
@@ -256,14 +256,15 @@ pdl_error pdl__converttypei_new_recprotect(pdl *PARENT, pdl *CHILD, pdl_datatype
   trans->pdls[0] = PARENT;
   trans->pdls[1] = CHILD;
   PDL_RETERROR(PDL_err, pdl_trans_check_pdls(trans));
-  char badflag_cache = pdl_trans_badflag_from_inputs((pdl_trans *)trans);
-  PDL_RETERROR(PDL_err, pdl__type_coerce_recprotect(trans, recurse_count + 1));
-  PARENT = trans->pdls[0];
-  CHILD = trans->pdls[1];
-  CHILD->datatype = params->totype = totype;
+  if (PARENT->state & PDL_BADVAL) {
+    trans->bvalflag = 1;
+    trans->pdls[1]->state |= PDL_BADVAL;
+  }
+  trans->__datatype = PARENT->datatype;
+  PDL_RETERROR(PDL_err, pdl__set_output_type_badvalue(trans, recurse_count + 1));
+  trans->pdls[2] = trans->pdls[1]; /* copy for make_trans_mutual */
+  trans->pdls[1]->datatype = params->totype = totype;
   PDL_RETERROR(PDL_err, pdl_make_trans_mutual((pdl_trans *)trans));
-  if (badflag_cache)
-    CHILD->state |= PDL_BADVAL;
   return PDL_err;
 }
 pdl_error pdl_converttypei_new(pdl *PARENT, pdl *CHILD, pdl_datatypes totype) {

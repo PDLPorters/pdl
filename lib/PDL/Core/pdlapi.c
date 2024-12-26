@@ -978,7 +978,6 @@ pdl_error pdl_set_datatype(pdl *a, pdl_datatypes datatype)
     return PDL_err;
 }
 
-/* do SetSV_PDL first, else .sv will be false and destroytransform will destroy src */
 pdl_error pdl_sever(pdl *src)
 {
     pdl_error PDL_err = {0, NULL, 0};
@@ -1140,6 +1139,59 @@ static inline pdl_error pdl__transtype_select(
   return PDL_err;
 }
 
+#define PDL_HAS_OTHER_PARENT(p, t) \
+  ((p)->trans_parent && (p)->trans_parent != (t))
+pdl_error pdl__set_output_type_badvalue(pdl_trans *trans, int recurse_count) {
+  pdl_error PDL_err = {0, NULL, 0};
+  PDL_RECURSE_CHECK(recurse_count);
+  pdl_datatypes trans_dtype = trans->__datatype;
+  pdl_transvtable *vtable = trans->vtable;
+  pdl **pdls = trans->pdls;
+  PDL_Indx i;
+  char p2child_has_badvalue = (vtable->npdls == 2 && pdls[0]->has_badvalue
+      && (vtable->par_flags[1] & PDL_PARAM_ISCREATEALWAYS));
+  PDL_Anyval parent_badvalue = p2child_has_badvalue ? pdls[0]->badvalue : (PDL_Anyval){PDL_INVALID, {0}};
+  for (i=0; i<vtable->npdls; i++) {
+    short flags = vtable->par_flags[i];
+    if (flags & PDL_PARAM_ISIGNORE) continue;
+    pdl *pdl = pdls[i];
+    if (!(pdl->state & PDL_NOMYDIMS) || PDL_HAS_OTHER_PARENT(pdl, trans)) continue;
+    pdl->badvalue = parent_badvalue;
+    pdl->has_badvalue = p2child_has_badvalue;
+    pdl->datatype = PDL_TYPE_ADJUST_FROM_TRANS(trans_dtype, flags, vtable->par_types[i]);
+  }
+  return PDL_err;
+}
+
+pdl_error pdl__type_convert(pdl_trans *trans, int recurse_count) {
+  pdl_error PDL_err = {0, NULL, 0};
+  PDL_RECURSE_CHECK(recurse_count);
+  pdl_datatypes trans_dtype = trans->__datatype;
+  pdl_transvtable *vtable = trans->vtable;
+  pdl **pdls = trans->pdls;
+  PDL_Indx i, nparents = vtable->nparents, nchildren = vtable->npdls - nparents;
+  for (i=0; i<vtable->npdls; i++) {
+    short flags = vtable->par_flags[i];
+    if (flags & PDL_PARAM_ISIGNORE) continue;
+    pdl *pdl = pdls[i];
+    if ((pdl->state & PDL_NOMYDIMS) && !PDL_HAS_OTHER_PARENT(pdl, trans)) continue;
+    pdl_datatypes new_dtype = PDL_TYPE_ADJUST_FROM_TRANS(trans_dtype, flags, vtable->par_types[i]);
+    if (new_dtype == pdl->datatype) continue;
+    PDLDEBUG_f(printf("pdl_type_coerce (%s) pdl=%"IND_FLAG" from %d to %d\n", vtable->name, i, pdl->datatype, new_dtype));
+    if (i >= nparents && PDL_HAS_OTHER_PARENT(pdl, trans))
+      return pdl_make_error(PDL_EUSERERROR,
+        "%s: cannot convert output ndarray %s from type %s to %s with parent",
+        vtable->name, vtable->par_names[i],
+        PDL_TYPENAME(pdl->datatype), PDL_TYPENAME(new_dtype));
+    PDL_RETERROR(PDL_err, pdl__get_convertedpdl_recprotect(pdl, &pdl, new_dtype, recurse_count + 1));
+    if (pdl->datatype != new_dtype)
+      return pdl_make_error_simple(PDL_EFATAL, "type not expected value after get_convertedpdl\n");
+    /* if type-convert output, put in end-area */
+    pdls[i + (i >= nparents ? nchildren : 0)] = pdl;
+  }
+  return PDL_err;
+}
+
 pdl_error pdl__type_coerce_recprotect(pdl_trans *trans, int recurse_count) {
   pdl_error PDL_err = {0, NULL, 0};
   PDL_RECURSE_CHECK(recurse_count);
@@ -1148,37 +1200,13 @@ pdl_error pdl__type_coerce_recprotect(pdl_trans *trans, int recurse_count) {
   trans->__datatype = trans_dtype;
   pdl_transvtable *vtable = trans->vtable;
   pdl **pdls = trans->pdls;
-  char p2child_has_badvalue = (vtable->npdls == 2 && pdls[0]->has_badvalue
-      && (vtable->par_flags[1] & PDL_PARAM_ISCREATEALWAYS));
-  PDL_Anyval parent_badvalue = p2child_has_badvalue ? pdls[0]->badvalue : (PDL_Anyval){PDL_INVALID, {0}};
   PDL_Indx i, nparents = vtable->nparents, nchildren = vtable->npdls - nparents;
   /* copy the "real" (passed-in) outputs to the end-area to use as actual
     outputs, possibly after being converted, leaving the passed-in ones
     alone to be picked up for use in CopyBadStatusCode */
   for (i=nparents; i<vtable->npdls; i++) pdls[i+nchildren] = pdls[i];
-  for (i=0; i<vtable->npdls; i++) {
-    pdl *pdl = pdls[i];
-    short flags = vtable->par_flags[i];
-    if (flags & PDL_PARAM_ISIGNORE) continue;
-    pdl_datatypes new_dtype = PDL_TYPE_ADJUST_FROM_TRANS(trans_dtype, flags, vtable->par_types[i]);
-    if ((pdl->state & PDL_NOMYDIMS) && (!pdl->trans_parent || pdl->trans_parent == trans)) {
-      pdl->badvalue = parent_badvalue;
-      pdl->has_badvalue = p2child_has_badvalue;
-      pdl->datatype = new_dtype;
-    } else if (new_dtype != pdl->datatype) {
-      PDLDEBUG_f(printf("pdl_type_coerce (%s) pdl=%"IND_FLAG" from %d to %d\n", vtable->name, i, pdl->datatype, new_dtype));
-      if (i >= nparents && pdl->trans_parent && pdl->trans_parent != trans)
-        return pdl_make_error(PDL_EUSERERROR,
-          "%s: cannot convert output ndarray %s from type %s to %s with parent",
-          vtable->name, vtable->par_names[i],
-          PDL_TYPENAME(pdl->datatype), PDL_TYPENAME(new_dtype));
-      PDL_RETERROR(PDL_err, pdl__get_convertedpdl_recprotect(pdl, &pdl, new_dtype, recurse_count + 1));
-      if (pdl->datatype != new_dtype)
-        return pdl_make_error_simple(PDL_EFATAL, "type not expected value after get_convertedpdl\n");
-      /* if type-convert output, put in end-area */
-      pdls[i + (i >= nparents ? nchildren : 0)] = pdl;
-    }
-  }
+  PDL_RETERROR(PDL_err, pdl__set_output_type_badvalue(trans, recurse_count+1));
+  PDL_RETERROR(PDL_err, pdl__type_convert(trans, recurse_count+1));
   return PDL_err;
 }
 pdl_error pdl_type_coerce(pdl_trans *trans) {
