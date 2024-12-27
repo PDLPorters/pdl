@@ -442,7 +442,7 @@ sub pdlpp_mkgen {
     my $basename = $is_lib_path ? $maybe_lib_base : (split '/', $prefix)[-1];
     my $pp_call_arg = _pp_call_arg($mod, $mod, $basename, '', 0); # 0 so guarantee not create pp-*.c
     #there is no way to use PDL::PP from perl code, thus calling via system()
-    my $rv = system $^X, @in, $pp_call_arg, "$basename.pd";
+    my $rv = system $^X, @in, $pp_call_arg, $is_lib_path ? "$basename.pd" : basename($pd);
     my $basefile = "$basename.pm";
     die "pdlpp_mkgen: cannot convert '$pd'\n" unless $rv == 0 && -f $basefile;
     File::Copy::copy($basefile, $outfile) or die "$outfile: $!";
