@@ -450,7 +450,7 @@ pp_def("eigens_sym",
   RedoDimsCode => $TRIANGULAR_REDODIMS,
   GenericTypes => ['D'],
   Code => <<'EOF',
-extern void eigens( double *A, double *RR, double *E, int N );
+extern void eigens( double *A, double *EV, double *E, int N );
 eigens($P(a), $P(ev), $P(e), $SIZE(n));
 EOF
   PMCode => <<'EOF',
@@ -495,6 +495,8 @@ runs across their components.
     ($ev,$e) = eigens_sym $x;  # Make eigenvector matrix
     $vector = $ev->slice($n);       # Select nth eigenvector as a column-vector
     $vector = $ev->slice("($n)");     # Select nth eigenvector as a row-vector
+
+As of 2.096, the eigenvalues are returned in ascending order.
 
 To compare with L<PDL::LinearAlgebra>:
 
