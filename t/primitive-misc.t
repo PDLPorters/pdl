@@ -34,7 +34,7 @@ subtest glue => sub {
 };
 
 subtest 'fibonacci' => sub {
-    is_pdl fibonacci(15), indx('1 1 2 3 5 8 13 21 34 55 89 144 233 377 610'), 'Fibonacci sequence';
+    is_pdl fibonacci(15), pdl('1 1 2 3 5 8 13 21 34 55 89 144 233 377 610'), 'Fibonacci sequence';
 };
 
 subtest 'indadd' => sub {

@@ -1436,6 +1436,13 @@ EOD
           confess "ERROR in pp_def($name): Inplace Pars $in and $out inds ".join('=',@$in_ind{qw(Name Value)})." and ".join('=',@$out_ind{qw(Name Value)})." not compatible"
             if $in_ind->{Value} != $out_ind->{Value};
         }
+        my ($in_flags, $out_flags) = map [sort grep /^FlagType/, keys %$_], $in_obj, $out_obj;
+        confess "ERROR in pp_def($name): Inplace args $in and $out have different type specifications '@$in_flags' vs '@$out_flags'"
+          if "@$in_flags" ne "@$out_flags";
+        confess "ERROR in pp_def($name): Inplace args $in and $out have different type specifications '@$in_obj{@$in_flags}' vs '@$out_obj{@$out_flags}"
+          if "@$in_obj{@$in_flags}" ne "@$out_obj{@$out_flags}";
+        confess "ERROR in pp_def($name): Inplace args $in and $out have different type specifications '@{[($in_obj->{Type}//'NONE')]}' vs '@{[($out_obj->{Type}//'NONE')]}'"
+          if ($in_obj->{Type}//'NONE') ne ($out_obj->{Type}//'NONE');
         [$in, $out];
       }),
    PDL::PP::Rule->new(["InplaceCode"], [qw(InplaceNormalised)],

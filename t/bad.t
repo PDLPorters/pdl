@@ -5,6 +5,7 @@ use PDL::LiteF;
 use PDL::Math;
 use PDL::Types qw(types);
 use Test::Warn;
+use Test::PDL;
 
 # although approx() caches the tolerance value, we
 # use it in every call just to document things
@@ -338,8 +339,7 @@ $x->setbadat(1);
 $y = hist $x, 0, 6, 1;
 is( PDL::Core::string($y), "[0 2 2 2 2 1]", "hist()" );
 
-$x->inplace->isfinite;
-is( PDL::Core::string($x), "[1 0 1 1 1 1 1 1 1 1]", "isfinite()" );
+is_pdl $x->isfinite, long("[1 0 1 1 1 1 1 1 1 1]"), "isfinite()";
 
 # histogram2d
 $x = long(1,1,1,2,2);

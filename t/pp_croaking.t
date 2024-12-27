@@ -42,6 +42,20 @@ eval { pp_def( "func", Code => ';',
 ) };
 like $@, qr/Invalid OtherPars name/;
 
+for (
+  'short a(o,c); short [o]b(o,c)',
+) {
+  eval { pp_def( "func", Code => ';', Pars => $_, Inplace => 1) };
+  is $@, '', "Pars=>'$_'";
+}
+for (
+  'a(); int [o]mask();',
+  'r(m=2); float+ [o]p(m=2);',
+) {
+  eval { pp_def( "func", Code => ';', Pars => $_, Inplace => 1) };
+  like $@, qr/have different type specifications/, "Pars=>'$_'";
+}
+
 eval { pp_def( "func", Code => ';',
   Pars => "[o] a();",
   Inplace => ['a'],

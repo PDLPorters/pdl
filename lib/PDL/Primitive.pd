@@ -1410,7 +1410,7 @@ broadcastloop %{
 ###########################################################
 
 pp_def('fibonacci',
-        Pars => 'i(n); indx [o]x(n)',
+        Pars => 'i(n); [o]x(n)',
         Inplace => 1,
         GenericTypes => [ppdefs_all],
 	Doc=>'Constructor - a vector with Fibonacci\'s sequence',

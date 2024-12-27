@@ -43,6 +43,8 @@
 - xforms now select datatype from outputs only if can (#511)
 - xforms now give error if supply output with trans_parent needing converting (#511)
 - eigens_sym now sorts output like EISPACK
+- Math::isfinite no longer works inplace due to mismatch between Pars (#511)
+- now an error to specify Inplace between differently-typed Pars (#511)
 
 2.095 2024-11-03
 - add PDL_GENTYPE_IS_{REAL,FLOATREAL,COMPLEX,SIGNED,UNSIGNED}_##ppsym (#502)
