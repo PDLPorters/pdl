@@ -1394,7 +1394,7 @@ EOD
       sub { PDL::PP::Signature->new('', @_[0,1], join(';', grep defined() && /[^\s;]/, @_[2..$#_])) }),
    PDL::PP::Rule->new("CompStruct", ["CompObj"], sub {$_[0]->getcomp}),
 
-   PDL::PP::Rule->new("InplaceNormalised", ["SignatureObj","Inplace"],
+   PDL::PP::Rule->new("InplaceNormalised", [qw(Name SignatureObj Inplace)],
 		      'interpret Inplace and Signature to get input/output',
       # Inplace can be supplied several values
       #   => 1
@@ -1406,7 +1406,7 @@ EOD
       #     input ndarray is a(), output ndarray is 'b'
       # this will set InplaceNormalised to [input,output]
       sub {
-        my ($sig, $arg) = @_;
+        my ($name, $sig, $arg) = @_;
         confess 'Inplace given false value' if !$arg;
         confess "Inplace array-ref (@$arg) > 2 elements" if ref($arg) eq "ARRAY" and @$arg > 2;
         # find input and output ndarrays
@@ -1419,21 +1419,21 @@ EOD
           $in = $$arg[0];
           $out = $$arg[1] if @$arg > 1;
         }
-        confess "ERROR: Inplace does not know name of input ndarray"
+        confess "ERROR in pp_def($name): Inplace does not know name of input ndarray"
             unless defined $in;
-        confess "ERROR: Inplace input ndarray '$in' is actually output"
+        confess "ERROR in pp_def($name): Inplace input ndarray '$in' is actually output"
             if $is_out{$in};
-        confess "ERROR: Inplace does not know name of output ndarray"
+        confess "ERROR in pp_def($name): Inplace does not know name of output ndarray"
             unless defined $out;
         my ($in_obj, $out_obj) = map $sig->objs->{$_}, $in, $out;
-        confess "ERROR: Inplace output arg $out not [o]\n" if !$$out_obj{FlagW};
+        confess "ERROR in pp_def($name): Inplace output arg $out not [o]\n" if !$$out_obj{FlagW};
         my ($in_inds, $out_inds) = map $_->{IndObjs}, $in_obj, $out_obj;
-        confess "ERROR: Inplace args $in and $out different number of dims"
+        confess "ERROR in pp_def($name): Inplace args $in and $out different number of dims"
           if @$in_inds != @$out_inds;
         for my $i (0..$#$in_inds) {
           my ($in_ind, $out_ind) = map $_->[$i], $in_inds, $out_inds;
           next if grep !defined $_->{Value}, $in_ind, $out_ind;
-          confess "ERROR: Inplace Pars $in and $out inds ".join('=',@$in_ind{qw(Name Value)})." and ".join('=',@$out_ind{qw(Name Value)})." not compatible"
+          confess "ERROR in pp_def($name): Inplace Pars $in and $out inds ".join('=',@$in_ind{qw(Name Value)})." and ".join('=',@$out_ind{qw(Name Value)})." not compatible"
             if $in_ind->{Value} != $out_ind->{Value};
         }
         [$in, $out];
