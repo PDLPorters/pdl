@@ -62,53 +62,85 @@ pdl_error pdl_make_error_simple(pdl_error_type e, const char *msg) {
   return PDL_err;
 }
 
-pdl_error pdl_croak_param(pdl_transvtable *vtable,int paramIndex, char *pat, ...)
-{
-  // I make a pdl_error with a string such as "PDL: function(a,b,c): Parameter 'b' errormessage"
-
+pdl_error pdl_param_error(
+  pdl_transvtable *vtable, int paramIndex,
+  pdl **pdls, PDL_Indx nimpl, PDL_Indx *creating,
+  char *pat, ...
+) {
+  // I make a pdl_error with a string such as "function(a,b,c): parameter 'b': errormessage"
   char message  [4096] = {'\0'};
-  int i;
+  int i,j,maxrealdims;
   va_list args;
-
   char* msgptr    = message;
   int   remaining = sizeof(message);
-
-  if(vtable)
-  {
-    if(paramIndex < 0 || paramIndex >= vtable->npdls)
-    {
-      strcat(msgptr, "ERROR: UNKNOWN PARAMETER");
+  if(paramIndex < 0 || paramIndex >= vtable->npdls) {
+    strcat(msgptr, "ERROR: UNKNOWN PARAMETER");
+    msgptr_advance();
+  } else {
+    snprintf(msgptr, remaining, "%s(", vtable->name);
+    msgptr_advance();
+    for(i=0; i<vtable->npdls; i++) {
+      snprintf(msgptr, remaining, "%s", vtable->par_names[i]);
       msgptr_advance();
-    }
-    else
-    {
-      snprintf(msgptr, remaining, "PDL: %s(", vtable->name);
-      msgptr_advance();
-
-      for(i=0; i<vtable->npdls; i++)
-      {
-        snprintf(msgptr, remaining, "%s", vtable->par_names[i]);
+      if(i < vtable->npdls-1) {
+        snprintf(msgptr, remaining, ",");
         msgptr_advance();
-
-        if(i < vtable->npdls-1)
-        {
-          snprintf(msgptr, remaining, ",");
-          msgptr_advance();
-        }
       }
-
-      snprintf(msgptr, remaining, "): Parameter '%s':\n",
-               vtable->par_names[paramIndex]);
+    }
+    snprintf(msgptr, remaining, "): parameter '%s': ",
+             vtable->par_names[paramIndex]);
+    msgptr_advance();
+  }
+  va_start(args,pat);
+  vsnprintf(msgptr, remaining, pat, args);
+  va_end(args);
+  msgptr_advance();
+  snprintf(msgptr, remaining,
+    "\nThere are %"IND_FLAG" PDLs in the expression; %"IND_FLAG" broadcast dim%s.\n",
+    vtable->npdls,nimpl,(nimpl==1)?"":"s"
+  );
+  msgptr_advance();
+  for(i=maxrealdims=0; i<vtable->npdls; i++)
+    if(vtable->par_realdims[i]>maxrealdims)
+      maxrealdims=vtable->par_realdims[i];
+  snprintf(msgptr, remaining, "   PDL IN EXPR.    ");
+  msgptr_advance();
+  if(maxrealdims > 0) {
+    char format[80];
+    snprintf(format, sizeof(format)-1, "%%%ds", 8 * maxrealdims + 3);
+    snprintf(msgptr,remaining,format,"ACTIVE DIMS | ");
+    msgptr_advance();
+  }
+  snprintf(msgptr, remaining,"BROADCAST DIMS\n");
+  msgptr_advance();
+  for(i=0; i<vtable->npdls; i++) {
+    snprintf(msgptr,remaining,"   #%3d (%s",i,creating[i]?"null)\n":"normal): ");
+    msgptr_advance();
+    if(creating[i])
+      continue;
+    if(maxrealdims == 1) {
+      snprintf(msgptr,remaining,"    ");
       msgptr_advance();
     }
+    for(j=0; j< maxrealdims - vtable->par_realdims[i]; j++) {
+      snprintf(msgptr,remaining,"%8s"," ");
+      msgptr_advance();
+    }
+    for(j=0; j< vtable->par_realdims[i]; j++) {
+      snprintf(msgptr,remaining,"%8"IND_FLAG,pdls[i]->dims[j]);
+      msgptr_advance();
+    }
+    if(maxrealdims) {
+      snprintf(msgptr,remaining," | ");
+      msgptr_advance();
+    }
+    for(j=0; j<nimpl && j + vtable->par_realdims[i] < pdls[i]->ndims; j++) {
+      snprintf(msgptr,remaining,"%8"IND_FLAG,pdls[i]->dims[j+vtable->par_realdims[i]]);
+      msgptr_advance();
+    }
+    snprintf(msgptr,remaining,"\n");
+    msgptr_advance();
   }
-
-  va_start(args,pat);
-
-  vsnprintf(msgptr, remaining, pat, args);
-
-  va_end(args);
-
   return pdl_make_error(PDL_EUSERERROR, "%s", message);
 }
 
@@ -272,62 +304,6 @@ void pdl_dump_broadcasting_info(
   printf("\nTarget Pthread = %d\n"
     "maxPthread = %d, maxPthreadPDL = %d, maxPthreadDim = %d\n",
     target_pthread, maxPthread, maxPthreadPDL, maxPthreadDim);
-}
-
-void pdl_broadcast_mismatch_msg(
-  char *s,
-  pdl **pdls, pdl_broadcast *broadcast,
-  PDL_Indx i, PDL_Indx j, PDL_Indx nimpl,
-  PDL_Indx *realdims,PDL_Indx *creating
-) {
-  /* This probably uses a lot more lines than necessary */
-  int ii,jj,maxrealdims;
-  sprintf(s,
-    "  Mismatched implicit broadcast dimension %"IND_FLAG": size %"IND_FLAG" vs. %"IND_FLAG"\nThere are %"IND_FLAG" PDLs in the expression; %"IND_FLAG" broadcast dim%s.\n",
-    i,broadcast->dims[i],pdls[j]->dims[i+realdims[j]],
-    broadcast->npdls,nimpl,(nimpl==1)?"":"s"
-  );
-  s += strlen(s);
-  for(ii=maxrealdims=0; ii<broadcast->npdls; ii++)
-    if(broadcast->realdims[ii]>maxrealdims)
-      maxrealdims=broadcast->realdims[ii];
-  sprintf(s,  "   PDL IN EXPR.    "); s += strlen(s);
-  if(maxrealdims > 0) {
-    char format[80];
-    sprintf(format,"%%%ds",8 * maxrealdims + 3);
-    sprintf(s,format,"ACTIVE DIMS | ");
-    s += strlen(s);
-  }
-  sprintf(s,"BROADCAST DIMS\n");
-  s += strlen(s);
-  for(ii=0; ii<broadcast->npdls; ii++) {
-    sprintf(s,"   #%3d (%s",ii,creating[ii]?"null)\n":"normal): ");
-    s += strlen(s);
-    if(creating[ii])
-      continue;
-    if(maxrealdims == 1) {
-      sprintf(s,"    ");
-      s += strlen(s);
-    }
-    for(jj=0; jj< maxrealdims - broadcast->realdims[ii]; jj++) {
-      sprintf(s,"%8s"," ");
-      s += strlen(s);
-    }
-    for(jj=0; jj< broadcast->realdims[ii]; jj++) {
-      sprintf(s,"%8"IND_FLAG,pdls[ii]->dims[jj]);
-      s += strlen(s);
-    }
-    if(maxrealdims) {
-      sprintf(s," | ");
-      s += strlen(s);
-    }
-    for(jj=0; jj<nimpl && jj + broadcast->realdims[ii] < pdls[ii]->ndims; jj++) {
-      sprintf(s,"%8"IND_FLAG,pdls[ii]->dims[jj+broadcast->realdims[ii]]);
-      s += strlen(s);
-    }
-    sprintf(s,"\n");
-    s += strlen(s);
-  }
 }
 
 void pdl_dump_flags_fixspace(int flags, int nspac, pdl_flags type)

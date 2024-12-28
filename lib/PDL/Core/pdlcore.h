@@ -56,7 +56,7 @@ pdl* pdl_from_array(AV* av, AV* dims, pdl_datatypes type, pdl* p);
 pdl_error pdl_writebackdata_vaffine(pdl *it);
 pdl_error pdl_readdata_vaffine(pdl *it);
 pdl_error pdl_dim_checks(pdl_transvtable *vtable, pdl **pdls,
-  pdl_broadcast *broadcast, PDL_Indx *creating,
+  pdl_broadcast *broadcast, PDL_Indx nimpl, PDL_Indx *creating,
   PDL_Indx *ind_sizes, char load_only);
 PDL_Indx pdl_get_offset(PDL_Indx* pos, PDL_Indx* dims, PDL_Indx *incs, PDL_Indx offset, PDL_Indx ndims);
 
@@ -66,7 +66,11 @@ typedef enum {
   PDL_FLAGS_PDL,
   PDL_FLAGS_VTABLE
 } pdl_flags;
-pdl_error pdl_croak_param(pdl_transvtable *transvtable, int paramIndex, char *pat, ...);
+pdl_error pdl_param_error(
+  pdl_transvtable *vtable, int paramIndex,
+  pdl **pdls, PDL_Indx nimpl, PDL_Indx *creating,
+  char *pat, ...
+);
 void pdl_print_iarr(PDL_Indx *iarr, int n);
 void pdl_dump_transvtable(pdl_transvtable *vtable, int nspac);
 void pdl_dump_broadcast(pdl_broadcast *broadcast);
@@ -74,12 +78,6 @@ void pdl_dump_broadcasting_info(
   int npdls, PDL_Indx* creating, int target_pthread,
   PDL_Indx *nbroadcastedDims, PDL_Indx **broadcastedDims, PDL_Indx **broadcastedDimSizes,
   int maxPthreadPDL, int maxPthreadDim, int maxPthread
-);
-void pdl_broadcast_mismatch_msg(
-  char *s,
-  pdl **pdls, pdl_broadcast *broadcast,
-  PDL_Indx i, PDL_Indx j, PDL_Indx nimpl,
-  PDL_Indx *realdims,PDL_Indx *creating
 );
 void pdl_dump_flags_fixspace(int flags, int nspac, pdl_flags type);
 void pdl_dump_trans_fixspace(pdl_trans *it, int nspac);

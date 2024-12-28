@@ -210,7 +210,7 @@ pdl_error pdl_autopthreadmagic( pdl **pdls, int npdls, PDL_Indx* realdims, PDL_I
 
 pdl_error pdl_dim_checks(
   pdl_transvtable *vtable, pdl **pdls,
-  pdl_broadcast *broadcast, PDL_Indx *creating,
+  pdl_broadcast *broadcast, PDL_Indx nimpl, PDL_Indx *creating,
   PDL_Indx *ind_sizes, char load_only
 ) {
   pdl_error PDL_err = {0, NULL, 0};
@@ -237,30 +237,32 @@ pdl_error pdl_dim_checks(
         continue;
       }
       if (j >= ndims && isoutput && ind_sz != 1)
-        return pdl_make_error(PDL_EUSERERROR,
-          "Error in %s: parameter '%s' index '%s' size %"IND_FLAG", can't broadcast over output ndarray with size > 1\n",
-          vtable->name, vtable->par_names[i], vtable->ind_names[ind_id], ind_sz
+        return pdl_param_error(vtable,i,
+          pdls, nimpl, creating,
+          "index '%s' size %"IND_FLAG", can't broadcast over output ndarray with size > 1",
+          vtable->ind_names[ind_id], ind_sz
         );
       if (isoutput && ind_sz != 1 && pdl->vafftrans && pdl->vafftrans->incs[j] == 0)
-        return pdl_make_error(PDL_EUSERERROR,
-          "Error in %s: output parameter '%s' index '%s' size %"IND_FLAG", can't broadcast over dummy dim with size > 1\n",
-          vtable->name, vtable->par_names[i], vtable->ind_names[ind_id], ind_sz
+        return pdl_param_error(vtable,i,
+          pdls, nimpl, creating,
+          "index '%s' size %"IND_FLAG", can't broadcast over dummy dim with size > 1",
+          vtable->ind_names[ind_id], ind_sz
         );
       if (j < ndims && ind_sz != dims[j] && (isoutput || dims[j] != 1))
-        return pdl_make_error(PDL_EUSERERROR,
-          "Error in %s: parameter '%s' index '%s' size %"IND_FLAG", but ndarray dim has size %"IND_FLAG"\n",
-          vtable->name, vtable->par_names[i], vtable->ind_names[ind_id],
-          ind_sz, dims[j]
+        return pdl_param_error(vtable,i,
+          pdls, nimpl, creating,
+          "index '%s' size %"IND_FLAG", but ndarray dim has size %"IND_FLAG,
+          vtable->ind_names[ind_id], ind_sz, dims[j]
         );
       if (j < ndims && ind_sz != dims[j] &&
         !load_only && !creating[i] &&
         ind_sz > 1 &&
         (flags & PDL_PARAM_ISPHYS)
       )
-        return pdl_make_error(PDL_EUSERERROR,
-          "Error in %s: [phys] parameter '%s' index '%s' size %"IND_FLAG", but ndarray dim has size %"IND_FLAG"\n",
-          vtable->name, vtable->par_names[i], vtable->ind_names[ind_id],
-          ind_sz, dims[j]
+        return pdl_param_error(vtable,i,
+          pdls, nimpl, creating,
+          "index '%s' size %"IND_FLAG", but ndarray dim has size %"IND_FLAG,
+          vtable->ind_names[ind_id], ind_sz, dims[j]
         );
     }
   }
@@ -281,36 +283,36 @@ static pdl_error pdl_broadcast_dim_checks(
     for (j=0; j<npdls; j++) {                    // Now loop over the PDLs to be merged
       if (creating[j]) continue;                 // If jth PDL is null, don't bother trying to match
       char isoutput = (vtable && j >= vtable->nparents);
-      if (nth >= pdls[j]->broadcastids[0]-realdims[j]) { /* off end of current PDLs dimlist */
+      if (nth >= pdls[j]->broadcastids[0]-realdims[j]) { /* off end of current PDL's dimlist */
         if (isoutput && broadcast->dims[nth] != 1)
-          return pdl_make_error(PDL_EUSERERROR,
-            "Error in %s: output parameter '%s' implicit dim %"IND_FLAG" size %"IND_FLAG", can't broadcast over output ndarray with size > 1\n",
-            vtable->name, vtable->par_names[j], nth, broadcast->dims[nth]
+          return pdl_param_error(vtable,nth,
+            pdls, nimpl, creating,
+            "implicit dim %"IND_FLAG" size %"IND_FLAG", can't broadcast over output ndarray with size > 1",
+            nth, broadcast->dims[nth]
           );
         continue;
       }
       PDL_Indx cur_pdl_dim = pdls[j]->dims[nth+realdims[j]];
       if (isoutput && cur_pdl_dim == 1 && cur_pdl_dim != broadcast->dims[nth])
-        return pdl_make_error(PDL_EUSERERROR,
-          "Error in %s: output parameter '%s' implicit dim %"IND_FLAG" size %"IND_FLAG", but dim has size %"IND_FLAG"\n",
-          vtable->name, vtable->par_names[j], nth, broadcast->dims[nth],
-          cur_pdl_dim
+        return pdl_param_error(vtable,nth,
+          pdls, nimpl, creating,
+          "implicit dim %"IND_FLAG" size %"IND_FLAG", but dim has size %"IND_FLAG,
+          nth, broadcast->dims[nth], cur_pdl_dim
         );
       if (isoutput && cur_pdl_dim != 1 && pdls[j]->vafftrans && pdls[j]->vafftrans->incs[nth+realdims[j]] == 0)
-        return pdl_make_error(PDL_EUSERERROR,
-          "Error in %s: output parameter '%s' implicit dim %"IND_FLAG" size %"IND_FLAG", but dim is dummy\n",
-          vtable->name, vtable->par_names[j], nth, broadcast->dims[nth]
+        return pdl_param_error(vtable,nth,
+          pdls, nimpl, creating,
+          "implicit dim %"IND_FLAG" size %"IND_FLAG", but dim is dummy",
+          nth, broadcast->dims[nth]
         );
       if (cur_pdl_dim != 1) { // If the current dim in the current PDL is not 1,
         if (broadcast->dims[nth] != 1) {            //   ... and the current planned size isn't 1,
-          if (broadcast->dims[nth] != cur_pdl_dim) { //   ... then check to make sure they're the same.
-            char buf0[BUFSIZ];
-            buf0[0] = '\0';
-            pdl_broadcast_mismatch_msg(
-              buf0, pdls, broadcast, nth, j, nimpl, realdims, creating
+          if (broadcast->dims[nth] != cur_pdl_dim)  //   ... then check to make sure they're the same.
+            return pdl_param_error(vtable,j,
+              pdls, nimpl, creating,
+              "Mismatched implicit broadcast dimension %"IND_FLAG": size %"IND_FLAG" vs. %"IND_FLAG,
+              nth,broadcast->dims[nth],pdls[j]->dims[nth+realdims[j]]
             );
-            return pdl_croak_param(vtable,j,"%s",buf0);
-          }
           /* If we're still here, they're the same -- OK! */
         } else {                                // current planned size is 1 -- mod it to match this PDL
           broadcast->dims[nth] = cur_pdl_dim;
@@ -378,7 +380,9 @@ pdl_error pdl_initbroadcaststruct(int nobl,
       (nthr = pdl_magic_thread_nthreads(pdls[j],&nthrd))
     ) {
       if ((broadcast->mag_nth = nthrd - realdims[j]) < 0)
-        return pdl_croak_param(vtable,j,"Cannot magick non-broadcasted dims\n\t");
+        return pdl_param_error(vtable,j,
+          pdls, nimpl, creating,
+          "Cannot magick non-broadcasted dims");
       broadcast->mag_nthpdl = j;
       broadcast->mag_nthr = nthr;
     }
@@ -447,7 +451,9 @@ pdl_error pdl_initbroadcaststruct(int nobl,
           broadcast->dims[nth] = mydim;
         } else {
           if (broadcast->dims[nth] != mydim)
-            return pdl_croak_param(vtable,j,"Mismatched implicit broadcast dimension %"IND_FLAG": should be %"IND_FLAG", is %"IND_FLAG"",
+            return pdl_param_error(vtable,j,
+              pdls, nimpl, creating,
+              "Mismatched implicit broadcast dimension %"IND_FLAG": should be %"IND_FLAG", is %"IND_FLAG"",
               i,
               broadcast->dims[nth],
               pdl->dims[i+realdims[j]]);
@@ -488,9 +494,12 @@ pdl_error pdl_broadcast_create_parameter(pdl_broadcast *broadcast, PDL_Indx j,PD
 	PDL_Indx i;
 	PDL_Indx td = temp ? 0 : broadcast->nimpl;
 	if (!temp && broadcast->nimpl != broadcast->ndims - broadcast->nextra) {
-		return pdl_croak_param(broadcast->transvtable,j,
-			"Trying to create parameter while explicitly broadcasting.\
-See the manual for why this is impossible");
+		return pdl_make_error(PDL_EUSERERROR,
+		  "%s: trying to create parameter '%s' while explicitly broadcasting.\n"
+		  "See the manual for why this is impossible",
+		  broadcast->transvtable->name,
+		  broadcast->transvtable->par_names[j]
+		);
 	}
 	if (!broadcast->pdls[j] && !(broadcast->pdls[j] = pdl_pdlnew()))
 	    return pdl_make_error_simple(PDL_EFATAL, "Error in pdlnew");

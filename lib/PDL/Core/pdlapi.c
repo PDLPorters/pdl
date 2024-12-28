@@ -41,7 +41,7 @@ extern Core PDL; /* for PDL_TYPENAME */
           PDL_DIMS_FROM_TRANS(trans,pdls[i]); \
       errcall(PDL_err, pdl_dim_checks( \
 	vtable, pdls, \
-	NULL, creating, \
+	NULL, trans->broadcast.nimpl, creating, \
 	(trans)->ind_sizes, 1)); \
     } \
     if ((trans)->dims_redone) { \
@@ -778,7 +778,7 @@ pdl_error pdl_redodims_default(pdl_trans *trans) {
       vtable->par_realdims, creating, vtable->npdls, vtable,
       &trans->broadcast, NULL, NULL,
       NULL, vtable->flags & PDL_TRANS_NO_PARALLEL));
-    PDL_RETERROR(PDL_err, pdl_dim_checks(vtable, pdls, &trans->broadcast, creating, trans->ind_sizes, 0));
+    PDL_RETERROR(PDL_err, pdl_dim_checks(vtable, pdls, &trans->broadcast, trans->broadcast.nimpl, creating, trans->ind_sizes, 0));
     for (i=0; i<vtable->npdls; i++) {
       PDL_Indx ninds = vtable->par_realdims[i];
       short flags = vtable->par_flags[i];
