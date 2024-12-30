@@ -72,6 +72,14 @@ print OUT makepredicate('SIGNED', $pred_signed);
 print OUT makepredicate('UNSIGNED', $pred_unsigned);
 print OUT makepredicate('INTEGER', $pred_integer);
 
+for my $type (PDL::Types::types()) {
+  my ($ppsym) = map $type->$_, qw(ppsym);
+  my $expr = !$type->usenan ? 0 : $type->isnan('x') . '?1:0'; # isnan can return any non-0
+  print OUT "#define PDL_ISNAN_$ppsym(x) ($expr)\n";
+  my $expr2 = !$type->usenan ? 1 : $type->isfinite('x') . '?1:0';
+  print OUT "#define PDL_ISFINITE_$ppsym(x) ($expr2)\n";
+}
+
 print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  __FILE__;
 print OUT <<'EOF';
 
@@ -127,10 +135,7 @@ extern int pdl_autopthread_actual;
     is used to define that threshold (in M-elements, or 2^20 elements ) */
 extern int pdl_autopthread_size;
 extern PDL_Indx pdl_autopthread_dim;
-EOF
 
-print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  __FILE__;
-print OUT <<'EOF';
 #define PDL_EMPTY()
 #define PDL_DEFER(id) id PDL_EMPTY()
 #define PDL_OBSTRUCT(...) __VA_ARGS__ PDL_DEFER(PDL_EMPTY)()
@@ -163,18 +168,7 @@ print OUT <<'EOF';
     outany.type = -1; outany.value.B = 0, \
     outany, inval, \
   )
-EOF
 
-for my $type (PDL::Types::types()) {
-  my ($ppsym) = map $type->$_, qw(ppsym);
-  my $expr = !$type->usenan ? 0 : $type->isnan('x') . '?1:0'; # isnan can return any non-0
-  print OUT "#define PDL_ISNAN_$ppsym(x) ($expr)\n";
-  my $expr2 = !$type->usenan ? 1 : $type->isfinite('x') . '?1:0';
-  print OUT "#define PDL_ISFINITE_$ppsym(x) ($expr2)\n";
-}
-
-print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  __FILE__;
-print OUT <<'!NO!SUBS!';
 #define ANYVAL_TO_ANYVAL_NEWTYPE_X_OUTER(from_val, to_val, newtype, datatype_from, ctype_from, ppsym_from, ...) \
   ctype_from cvalue_from = from_val.value.ppsym_from;
 #define ANYVAL_TO_ANYVAL_NEWTYPE_X_INNER(from_val, to_val, newtype, datatype_to, ctype_to, ppsym_to, ...) \
@@ -675,5 +669,4 @@ typedef struct pdl_slice_args {
 
 /* __PDL_H */
 #endif
-
-!NO!SUBS!
+EOF
