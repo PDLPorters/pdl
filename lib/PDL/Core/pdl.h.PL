@@ -79,9 +79,37 @@ for my $type (PDL::Types::types()) {
   my $expr2 = !$type->usenan ? 1 : $type->isfinite('x') . '?1:0';
   print OUT "#define PDL_ISFINITE_$ppsym(x) ($expr2)\n";
 }
+print OUT "#define PDL_NTYPES (@{[0+PDL::Types::types()]})\n";
 
 print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  __FILE__;
 print OUT <<'EOF';
+
+#define PDL_BITFIELD_ENT uint64_t
+#define PDL_BITFIELD_ENTSIZE (sizeof(PDL_BITFIELD_ENT))
+#define PDL_BITFIELD_SIZE(nbits) \
+  (((nbits) + PDL_BITFIELD_ENTSIZE - 1) / PDL_BITFIELD_ENTSIZE)
+#define PDL_BITFIELD_ENTOF(vec, bit) (vec[bit/PDL_BITFIELD_ENTSIZE])
+#define PDL_BITFIELD_BITOFFSET(bit) (bit % PDL_BITFIELD_ENTSIZE)
+#define PDL_BITFIELD_BITMASK(bit) (1 << PDL_BITFIELD_BITOFFSET(bit))
+#define PDL_BITFIELD_ISSET(vec, bit) \
+  ((PDL_BITFIELD_ENTOF(vec, bit) & PDL_BITFIELD_BITMASK(bit)) ? 1 : 0)
+#define PDL_BITFIELD_SET(vec, bit) do { \
+    PDL_Indx PDL_BITFIELD_i = bit; \
+    PDL_BITFIELD_ENTOF(vec, PDL_BITFIELD_i) |= PDL_BITFIELD_BITMASK(PDL_BITFIELD_i); \
+  } while (0)
+#define PDL_BITFIELD_CLR(vec, bit) do { \
+    PDL_Indx PDL_BITFIELD_i = bit; \
+    PDL_BITFIELD_ENTOF(vec, PDL_BITFIELD_i) &= ~PDL_BITFIELD_BITMASK(PDL_BITFIELD_i); \
+  } while (0)
+#define PDL_BITFIELD_SETTO(vec, bit, cond) do { \
+    PDL_Indx PDL_BITFIELD_i = bit; \
+    if (cond) PDL_BITFIELD_SET(vec, PDL_BITFIELD_i); else PDL_BITFIELD_CLR(vec, PDL_BITFIELD_i); \
+  } while (0)
+#define PDL_BITFIELD_ZEROISE(vec, nbits) do { \
+    PDL_Indx PDL_BITFIELD_i, PDL_BITFIELD_n = PDL_BITFIELD_SIZE(nbits); \
+    for (PDL_BITFIELD_i = 0; PDL_BITFIELD_i < PDL_BITFIELD_n; PDL_BITFIELD_i++) \
+      vec[PDL_BITFIELD_i] = 0; \
+  } while (0)
 
 #define X(sym, ...) \
   , sym

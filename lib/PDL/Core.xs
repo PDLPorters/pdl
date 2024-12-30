@@ -47,7 +47,7 @@
 #define setflag(reg,flagval,val) (val?(reg |= flagval):(reg &= ~flagval))
 
 Core PDL; /* Struct holding pointers to shared C routines */
-static char *type_names[] = {
+static char *type_names[PDL_NTYPES+1] = {
 #define X(symbol, ctype, ppsym, shortctype, defbval, realctype, convertfunc, ...) \
   #convertfunc,
   PDL_TYPELIST_ALL(X)
@@ -835,7 +835,7 @@ BOOT:
    PDL_TYPELIST_ALL(X)
 #undef X
   PDL.type_names = type_names;
-  PDL.ntypes = sizeof(type_names) / sizeof(type_names[0]) - 1;
+  PDL.ntypes = PDL_NTYPES;
   /* "Publish" pointer to this structure in perl variable for use
      by other modules */
   sv_setiv(get_sv("PDL::SHARE",TRUE|GV_ADDMULTI), PTR2IV(&PDL));

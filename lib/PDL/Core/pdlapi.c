@@ -727,11 +727,12 @@ pdl_error pdl_make_trans_mutual(pdl_trans *trans)
   PDLDEBUG_f(printf("make_trans_mutual dataflow=%d disable_back=%d\n", (int)dataflow, (int)disable_back));
   if (dataflow && disable_back)
     trans->flags &= ~PDL_ITRANS_DO_DATAFLOW_B;
-  char wasnull[npdls];
+  PDL_BITFIELD_ENT wasnull[PDL_BITFIELD_SIZE(npdls)];
+  PDL_BITFIELD_ZEROISE(wasnull, npdls);
   for (i=nparents; i<npdls; i++) {
     pdl *child = pdls[i];
-    wasnull[i] = !!(child->state & PDL_NOMYDIMS);
-    PDLDEBUG_f(printf("make_trans_mutual child=%p wasnull[%"IND_FLAG"]=%d\n", child, i, (int)wasnull[i]));
+    if (child->state & PDL_NOMYDIMS) PDL_BITFIELD_SET(wasnull, i);
+    PDLDEBUG_f(printf("make_trans_mutual child=%p wasnull[%"IND_FLAG"]=%d\n", child, i, PDL_BITFIELD_ISSET(wasnull, i)));
     if (dataflow) {
       /* This is because for "+=" (a = a + b) we must check for
          previous parent transformations and mutate if they exist
@@ -740,8 +741,8 @@ pdl_error pdl_make_trans_mutual(pdl_trans *trans)
       child->state |= PDL_PARENTDIMSCHANGED | ((trans->flags & PDL_ITRANS_ISAFFINE) ? 0 : PDL_PARENTDATACHANGED);
       PDLDEBUG_f(printf("make_trans_mutual after change="); pdl_dump_flags_fixspace(child->state, 0, PDL_FLAGS_PDL));
     }
-    if (!child->trans_parent || wasnull[i]) child->trans_parent = trans;
-    if (wasnull[i])
+    if (!child->trans_parent || PDL_BITFIELD_ISSET(wasnull, i)) child->trans_parent = trans;
+    if (PDL_BITFIELD_ISSET(wasnull, i))
       child->state = (child->state & ~PDL_NOMYDIMS) | PDL_MYDIMS_TRANS;
   }
   if (!dataflow) {
@@ -752,9 +753,9 @@ pdl_error pdl_make_trans_mutual(pdl_trans *trans)
       for (i=vtable->nparents; i<vtable->npdls; i++) {
         pdl *child = trans->pdls[i];
         char isvaffine = !!PDL_VAFFOK(child);
-        PDLDEBUG_f(printf("make_trans_mutual isvaffine=%d wasnull=%d\n", (int)isvaffine, (int)wasnull[i]));
-        if (!isvaffine || wasnull[i])
-          CHANGED(child, wasnull[i] ? PDL_PARENTDIMSCHANGED : PDL_PARENTDATACHANGED, 0);
+        PDLDEBUG_f(printf("make_trans_mutual isvaffine=%d wasnull=%d\n", (int)isvaffine, PDL_BITFIELD_ISSET(wasnull, i)));
+        if (!isvaffine || PDL_BITFIELD_ISSET(wasnull, i))
+          CHANGED(child, PDL_BITFIELD_ISSET(wasnull, i) ? PDL_PARENTDIMSCHANGED : PDL_PARENTDATACHANGED, 0);
         if (isvaffine)
           CHANGED(child->vafftrans->from,PDL_PARENTDATACHANGED,0);
       }
@@ -1115,10 +1116,11 @@ static inline pdl_error pdl__transtype_select(
         "%s: ndarray %s must be real, but is type %s",
         vtable->name, vtable->par_names[i], PDL_TYPENAME(dtype));
   }
-  char type_avail[PDL.ntypes]; for (i=0; i<PDL.ntypes; i++) type_avail[i] = 0;
+  PDL_BITFIELD_ENT type_avail[PDL_BITFIELD_SIZE(PDL_NTYPES)];
+  PDL_BITFIELD_ZEROISE(type_avail, PDL_NTYPES);
   pdl_datatypes last_dtype = PDL_INVALID;
   for (i=0; vtable->gentypes[i] != PDL_INVALID; i++)
-    type_avail[last_dtype = vtable->gentypes[i]] = 1;
+    PDL_BITFIELD_SET(type_avail, last_dtype = vtable->gentypes[i]);
   if (vtable->gentypes[0] == last_dtype) {
     *retval = vtable->gentypes[0]; /* only one allowed type, use that */
     return PDL_err;
@@ -1130,12 +1132,12 @@ static inline pdl_error pdl__transtype_select(
       !(flags & (PDL_PARAM_ISIGNORE|PDL_PARAM_ISTYPED|PDL_PARAM_ISCREATEALWAYS))
     ) {
       pdl_datatypes new_transtype = PDL_TYPE_ADJUST_FROM_SUPPLIED(pdl->datatype, flags);
-      if (new_transtype != PDL_INVALID && type_avail[new_transtype] && *retval < new_transtype)
+      if (new_transtype != PDL_INVALID && PDL_BITFIELD_ISSET(type_avail, new_transtype) && *retval < new_transtype)
         *retval = new_transtype;
     }
     if (i == vtable->nparents && *retval != PDL_INVALID) return PDL_err;
   }
-  if (*retval == PDL_INVALID || !type_avail[*retval]) *retval = last_dtype;
+  if (*retval == PDL_INVALID || !PDL_BITFIELD_ISSET(type_avail, *retval)) *retval = last_dtype;
   return PDL_err;
 }
 
