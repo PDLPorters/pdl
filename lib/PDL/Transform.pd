@@ -724,7 +724,7 @@ static inline PDL_Double PDL_xform_aux ( pdl *map, PDL_Indx *coords, PDL_Double 
 
   if(mlen==0)
         method = 'h';
-  else switch(*mstr) {
+  switch(*mstr) {
     case 'h':                 // h - lookup-table hanning window
       if( needs_hanning_calc ) {
          int i;
