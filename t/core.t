@@ -53,10 +53,10 @@ ok $p3->allocated;
 $p3->set_datatype(byte->enum);
 $p3->setdims([50]);
 $p3->set_donttouchdata;
-is $p3->datasv_refcount, 2;
+my $refcount = $p3->datasv_refcount; # varies on some Perls
 is $p3->nbytes, 50;
 undef $datasv_ref;
-is $p3->datasv_refcount, 1;
+is $p3->datasv_refcount, $refcount - 1;
 }
 
 {
