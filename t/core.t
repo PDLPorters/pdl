@@ -840,6 +840,9 @@ is_pdl $o_float, float(3), 'output right from flowing output type < inputs';
 is $o_float->trans_parent->vtable->name, 'PDL::Ops::plus', 'trans_parent of output is plus from flowing output type < inputs';
 is 0+$o_float->trans_children, 0, '0 trans_children on output from flowing output type < inputs';
 
+is_pdl +(sequence(2,2)->simq(pdl('4 9'),0))[0], pdl('-1.5 4'), 'unconverted [io] works';
+is_pdl +(sequence(2,2)->float->simq(pdl('4 9'),0))[0], pdl('-1.5 4'), 'converted [io] works';
+
 my $double_mask = double('0 0 1 1 1 1 1');
 $double_mask   &= double('1 1 1 1 1 0 0');
 is_pdl $double_mask, double('0 0 1 1 1 0 0');
