@@ -200,7 +200,7 @@ eval {(my $tmp=null) .= null}; like $@, qr/input.*null/;
 # pptest for OtherPars=>named dim
 is_pdl +(5*sequence(5))->maximum_n_ind(3), indx(4,3,2), 'named dim';
 # pptest for dim with fixed value
-is_pdl crossp([1..3],[4..6]), longlong(-3,6,-3), 'named dim=3';
+is_pdl crossp([1..3],[4..6]), longlong(-3,6,-3), {test_name=>'named dim=3', require_equal_types=>0};
 
 subtest 'dim compatibility' => sub {
   for (
