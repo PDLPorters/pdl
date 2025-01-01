@@ -685,6 +685,11 @@ static inline pdl_error pdl_trans_flow_null_checks(pdl_trans *trans, char *disab
     pdl *child = trans->pdls[i];
     if (_trans_forward_only(child))
       return pdl_make_error(PDL_EUSERERROR, "%s: cannot output to parameter '%s' with inward but no backward flow", vtable->name, vtable->par_names[i]);
+    if (child->state & PDL_NOMYDIMS && !(vtable->par_flags[i] & PDL_PARAM_ISCREAT))
+      return pdl_make_error(PDL_EUSERERROR,
+	"Error in %s: io parameter '%s' is null",
+	vtable->name, vtable->par_names[i]
+      );
   }
   *disable_back = input_forward_only;
   return PDL_err;
