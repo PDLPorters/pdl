@@ -1,6 +1,8 @@
 package Test::PDL;
 
-# ABSTRACT: Test Perl Data Language arrays (a.k.a. ndarrays) for equality
+=head1 NAME
+
+Test::PDL - Test Perl Data Language arrays (a.k.a. ndarrays) for equality
 
 =head1 SYNOPSIS
 

@@ -3,7 +3,9 @@ use warnings;
 
 package Test::Deep::PDL;
 
-# ABSTRACT: Test ndarrays inside data structures with Test::Deep
+=head1 NAME 
+
+Test::Deep::PDL - Test ndarrays inside data structures with Test::Deep
 
 our $VERSION = '0.22';
 
