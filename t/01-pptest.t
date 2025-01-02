@@ -89,21 +89,6 @@ pp_def("gelsd",
         Code => '$CROAK("croaking");'
 );
 
-pp_def( 'broadcastloop_continue',
-	 Pars => 'in(); [o] out()',
-        GenericTypes => ['F'],
-	 Code => q[
-	    int cnt = 0;
-	    threadloop %{
-
-	    if ( ++cnt %2 )
-	      continue;
-
-	    $out() = $in();
-	 %}
-        ],
-       );
-
 pp_def('succ',
   Pars => 'a(); [o] b()',
   GenericTypes => ['F'],
@@ -446,17 +431,6 @@ local $SIG{__WARN__} = sub { push @msg, @_ };
 eval { nan(2,2)->gelsd(nan(2,2), -3) };
 like $@, qr/croaking/, 'right error message';
 is_deeply \@msg, [], 'no warnings' or diag explain \@msg;
-}
-
-# test that continues in a broadcastloop work
-{
-    my $in = sequence(10);
-    my $got = $in->zeroes;
-    my $exp = $in->copy;
-    my $tmp = $exp->where( ! ($in % 2) );
-    $tmp .= 0;
-    broadcastloop_continue( $in, $got );
-    is_pdl $got, $exp, "continue works in broadcastloop";
 }
 
 polyfill_pp(zeroes(5,5), ones(2,3), 1);

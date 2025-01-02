@@ -853,10 +853,25 @@ is_pdl $double_mask, double('0 0 1 1 1 0 0');
 eval {PDL::eqvec(double([1,2]), double([1,2]), float(0)->slice(''))};
 like $@, qr/cannot convert/, "error when flowing output to xform, out forcetype != supplied out type";
 
-PDL::eqvec(double([1,2])->flowing, double([1,2]), $o_float = float([0]));
+PDL::eqvec(double([1,2])->flowing, double([1,2]), $o_float = float(0));
 is 0+$o_float->trans_children, 1, 'converted output of flowing xform wrongly has trans_children';
 is $o_float->trans_parent, undef, 'converted output of flowing xform wrongly has no trans_parent';
-is_pdl $o_float, float([0]), 'converted output of flowing xform has currently wrong value';
+is_pdl $o_float, float(0), 'converted output of flowing xform has currently wrong value';
+
+PDL::eqvec(double([1,2],3,4)->flowing, double([1,2],3,5), my $o_byte = byte([0,0,0]));
+is 0+$o_byte->trans_children, 1, 'converted output of flowing xform wrongly has trans_children';
+is $o_byte->trans_parent, undef, 'converted output of flowing xform wrongly has no trans_parent';
+is_pdl $o_byte, byte([0,0,0]), 'converted output of flowing xform has currently wrong value';
+
+{
+  my $in = sequence(byte, 10);
+  my $got = $in->zeroes;
+  my $exp = $in->copy;
+  my $tmp = $exp->where( ! ($in % 2) );
+  $tmp .= 0;
+  PDL::acosh( $in, $got );
+  is_pdl $got, byte('0 0 1 1 2 2 2 2 2 2'), "convert of thing with trans_children no NULL data";
+}
 
 for ([\&float,\&cfloat,\&cdouble], [\&double,\&cdouble,\&cfloat], [\&ldouble,\&cldouble]) {
   my ($rt, $ct, $other_ct) = @$_;
