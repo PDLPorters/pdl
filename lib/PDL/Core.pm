@@ -7,8 +7,7 @@ use warnings;
 use PDL::Exporter;
 use DynaLoader;
 our @ISA    = qw( PDL::Exporter DynaLoader );
-our $VERSION = '2.096'; # as of 2.096 this is the real one
-$PDL::VERSION = $VERSION; # needed by at least PDL::CCS which only loads PDL::Core - https://github.com/moocow-the-bovine/PDL-CCS/pull/13
+our $VERSION = '2.096'; # as of 2.097 it's back in lib/PDL.pm - EUMM XSMULTI extracts version from this as the XS_VERSION for the object, so no override it
 bootstrap PDL::Core $VERSION;
 use PDL::Types ':All';
 use Config;

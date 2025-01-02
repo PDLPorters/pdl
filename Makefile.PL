@@ -102,7 +102,7 @@ my %makefile_hash = (
   },
   MIN_PERL_VERSION => '5.016',
   NAME => 'PDL',
-  VERSION_FROM => 'lib/PDL/Core.pm',
+  VERSION_FROM => 'lib/PDL.pm',
   EXE_FILES => \@exe_files,
   META_MERGE => {
      "meta-spec" => { version => 2 },

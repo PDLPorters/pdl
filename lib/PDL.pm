@@ -3,10 +3,8 @@ package PDL;
 use strict;
 use warnings;
 
-# set the version - NB as of 2.096, the real version is in PDL::Core
-our $VERSION = '2.095';
-require PDL::Core;
-$VERSION = $PDL::Core::VERSION;
+# set the version - this is the real location again
+our $VERSION = '2.096';
 
 =head1 NAME
 
