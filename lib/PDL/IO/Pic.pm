@@ -541,7 +541,7 @@ to byte if the input if of type float/double.  Input data that is of a
 signed integer type and contains negative numbers will be rejected.
 
 If you append C<.gz> or C<.Z> to the end of the file name, the final
-file will be automatically compresed with L<"gzip"|gzip> |
+file will be automatically compressed with L<"gzip"|gzip> |
 L<"compress"|compress>, respectively.
 
 OPTIONS

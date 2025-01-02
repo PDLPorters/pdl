@@ -542,7 +542,7 @@ you know what's going on if you get this. :-)
 
 =back
 
-=item C<< share_pdls passed data under '$name' that it doesn't know how to
+=item C<< share_pdls passed data under '$name' that it does not know how to
 store >>
 
 C<share_pdls> only knows how to store raw data
