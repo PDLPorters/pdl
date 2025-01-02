@@ -894,13 +894,17 @@ use Carp 'carp';        # for carping (warnings in caller's context)
 # 4) use of inf when the data type does not support inf (i.e. the integers)
 
 my @types = PDL::Types::types;
+my $STR_nan = PDL::_nan();
+my $STR_i = PDL::_ci();
+my $STR_inf = PDL::_inf();
+my $STR_pi = 4 * atan2(1, 1);
+my $STR_e = exp(1);
 sub PDL::Core::new_pdl_from_string {
    my ($new, $original_value, $this, $type) = @_;
    my $value = $original_value;
 
    # Check for input that would generate empty ndarrays as output:
-   return zeroes($types[$type], 1)->where(zeroes(1) < 0)
-      if ($value eq '' or $value eq '[]');
+   return zeroes($types[$type], 0) if $value eq '' or $value eq '[]';
 
    # I check for invalid characters later, but arbitrary strings of e will
    # pass that check, so I'll check for that here, first.
@@ -1013,18 +1017,13 @@ sub PDL::Core::new_pdl_from_string {
 
    # Replace the place-holder strings with strings that will evaluate to their
    # correct numerical values
-   my $bad = $types[$type]->badvalue;
+   my $bad = $has_bad ? $types[$type]->badvalue : undef;
    $value =~ s/\bEE\b/bad/g;
-   my $nan = PDL::_nan();
    $value =~ s/\bee\b/nan/g;
-   my $i = PDL::_ci();
    $value =~ s/([-+]*)(\d*)EeE\b/$1 . (length($2) ? $2 : '1') . 'i'/ge
       if $has_i;
-   my $inf = PDL::_inf();
    $value =~ s/\bEe\b/inf/g;
-   my $pi = 4 * atan2(1, 1);
    $value =~ s/\beE\b/pi/g;
-   my $e = exp(1);
 
    my $val = eval {
       # Install the warnings handler:
@@ -1045,7 +1044,7 @@ sub PDL::Core::new_pdl_from_string {
 
       # Let's see if we can parse it as an array-of-arrays:
       local $_ = $value;
-      PDL::Core::parse_basic_string($inf, $nan, $bad, $e, $pi, $i, $has_i);
+      PDL::Core::parse_basic_string($bad, $has_i);
    };
 
    if (ref $val ne 'ARRAY') {
@@ -1079,7 +1078,7 @@ sub PDL::Core::parse_basic_string {
 	# descent to handle the nested nature of the data. The string should have
 	# no whitespace and should be something that would evaluate into a Perl
 	# array-of-arrays (except that strings like 'inf', etc, are allowed).
-	my ($inf, $nan, $bad, $e, $pi, $i, $has_i) = @_;
+	my ($bad, $has_i) = @_;
 	# First character should be a bracket:
 	die "Internal error: input string -->$_<-- did not start with an opening bracket\n"
 		unless s/^\[//;
@@ -1112,24 +1111,24 @@ sub PDL::Core::parse_basic_string {
 			push @to_return, $bad;
 		}
 		elsif (s/^inf//i or s/1\.\#INF//i) {
-			push @to_return, $sign * $inf;
+			push @to_return, $sign * $STR_inf;
 		}
 		elsif (s/^nan//i or s/^1\.\#IND//i) {
-			push @to_return, $sign * $nan;
+			push @to_return, $sign * $STR_nan;
 		}
 		elsif (s/^pi//i) {
-			push @to_return, $sign * $pi;
+			push @to_return, $sign * $STR_pi;
 		}
 		elsif (s/^e//i) {
-			push @to_return, $sign * $e;
+			push @to_return, $sign * $STR_e;
 		}
 		elsif ($has_i and s/^${NUM_RE}i//i) {
-			my $val = $sign * $1 * $i;
+			my $val = $sign * $1 * $STR_i;
 			push @to_return, $val;
 		}
 		elsif ($has_i and s/^$NUM_RE([-+])${NUM_RE}i//i) {
 			my $val = $sign * $1;
-			my $imag = $3 * ($2 eq '-' ? -1 : 1) * $i;
+			my $imag = $3 * ($2 eq '-' ? -1 : 1) * $STR_i;
 			push @to_return, $val + $imag;
 		}
 		elsif (s/^$NUM_RE([^e])/$2/i) {
