@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 # set the version - this is the real location again
-our $VERSION = '2.096';
+our $VERSION = '2.097';
 
 =head1 NAME
 
