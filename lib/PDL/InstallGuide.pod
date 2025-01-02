@@ -181,7 +181,7 @@ Add the DWORD value heap_chunk_in_mb and set it to the desired
 memory limit in decimal MB. It is preferred to do this in Cygwin
 using the regtool program included in the Cygwin package. (For more
 information about regtool or the other Cygwin utilities, see the
-section called “Cygwin Utilities” or use the --help option of each
+section called "Cygwin Utilities" or use the --help option of each
 util.) You should always be careful when using regtool since damaging
 your system registry can result in an unusable system. This example
 sets memory limit to 1024 MB:
