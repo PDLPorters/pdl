@@ -7,7 +7,7 @@ use warnings;
 use PDL::Exporter;
 use DynaLoader;
 our @ISA    = qw( PDL::Exporter DynaLoader );
-our $VERSION = '2.095'; # as of 2.096 this is the real one
+our $VERSION = '2.096'; # as of 2.096 this is the real one
 $PDL::VERSION = $VERSION; # needed by at least PDL::CCS which only loads PDL::Core - https://github.com/moocow-the-bovine/PDL-CCS/pull/13
 bootstrap PDL::Core $VERSION;
 use PDL::Types ':All';
