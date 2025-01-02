@@ -230,7 +230,7 @@ thread-specific fashion based on the parallel thread id.
  # Share it.
  $to_sum->share_as('to-sum');
 
- # Also allocate some shared, temproary memory:
+ # Also allocate some shared, temporary memory:
  my $N_threads = 10;
  zeroes($N_threads)->share_as('workspace');
 
