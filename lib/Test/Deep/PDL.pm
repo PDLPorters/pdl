@@ -3,7 +3,7 @@ use warnings;
 
 package Test::Deep::PDL;
 
-=head1 NAME 
+=head1 NAME
 
 Test::Deep::PDL - Test ndarrays inside data structures with Test::Deep
 
