@@ -864,13 +864,13 @@ is $o_byte->trans_parent->vtable->name, 'converttypei_new', 'converted output of
 is_pdl $o_byte, byte([1,1,0]), 'converted output of flowing xform has right value';
 
 {
-  my $in = sequence(byte, 10);
+  my $in = byte('1 2 3 4 5 6 7 8 9 10');
   my $got = $in->zeroes;
   my $exp = $in->copy;
   my $tmp = $exp->where( ! ($in % 2) );
   $tmp .= 0;
   PDL::acosh( $in, $got );
-  is_pdl $got, byte('0 0 1 1 2 2 2 2 2 2'), "convert of thing with trans_children no NULL data";
+  is_pdl $got, byte('0 1 1 2 2 2 2 2 2 2'), "convert of thing with trans_children no NULL data";
 }
 
 for ([\&float,\&cfloat,\&cdouble], [\&double,\&cdouble,\&cfloat], [\&ldouble,\&cldouble]) {
