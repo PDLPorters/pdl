@@ -69,7 +69,7 @@ my $hdeps = join ' ', map catfile(qw(lib PDL Core), $_), qw(pdl.h pdlperl.h pdlc
 my @cfiles = qw(pdlcore pdlapi pdlbroadcast pdlconv pdlmagic pdlaffine pdlutil);
 my $cobj = join ' ', map catfile(qw(lib PDL Core), qq{$_\$(OBJ_EXT)}), @cfiles;
 push @cleanup, $cobj;
-my $core_obj = catfile(qw(lib PDL), 'Core$(OBJ_EXT)');
+my $core_obj = join('/', qw(lib PDL), 'Core$(OBJ_EXT)'); # EUMM XSMULTI targets are / not catfile
 
 # the modules in PDL::LiteF, used in t/core.t
 my @BUILD_CORE = qw(Bad Core Math MatrixOps Ops Primitive Slices Ufunc);
@@ -145,8 +145,8 @@ my %makefile_hash = (
     $core_obj => $hdeps,
     $cobj => $hdeps,
     (map +(
-      "build_dynamic_PDL_".(s#/#_#gr) => "\$(INST_ARCHLIB)/auto/PDL/$_/".(s#.*/##gr).".\$(DLEXT)",
-      "build_static_PDL_".(s#/#_#gr) => "\$(INST_ARCHLIB)/auto/PDL/$_/".(s#.*/##gr)."\$(LIB_EXT)",
+      "build_dynamic_PDL_".(s#/#_#gr) => catfile(qw($(INST_ARCHLIB) auto PDL), $_, (s#.*/##gr).".\$(DLEXT)"),
+      "build_static_PDL_".(s#/#_#gr) => catfile(qw($(INST_ARCHLIB) auto PDL), $_, (s#.*/##gr)."\$(LIB_EXT)"),
     ), @BUILD_CORE, @BUILD_BASIC),
   },
   dist => { COMPRESS => 'gzip', SUFFIX => 'gz', PREOP => $preop },
@@ -192,7 +192,7 @@ ${pdlroot}$::Config{exe_ext} : ${pdlroot}.c
 EOT
   my $typespm = ::catfile(qw(lib PDL Types.pm));
   for (qw(pdl.h)) {
-    my $base = "lib/PDL/Core/$_"; # no catfile as init_PM uses File::Find which normalises to /
+    my $base = ::catfile(qw(lib PDL Core), $_);
     $text .= "$base :: $base.PL $typespm\n\t\$(PERLRUN) $base.PL $base\n";
   }
   $text .= "\n" . ::coretarget($self);
@@ -207,9 +207,9 @@ EOT
     io-misc
   );
   $text .= <<EOF;
-basictest : basic pm_to_blib core
+basictest : basic
 	\$(FULLPERLRUN) "$::Config{bin}/prove" -b $basictest
-coretest : core pm_to_blib
+coretest : core
 	\$(FULLPERLRUN) "$::Config{bin}/prove" -b $coretest
 update-ppport:
 	\$(PERLRUN) -MDevel::PPPort -e'Devel::PPPort::WriteFile' && \$(PERLRUN) lib/PDL/Core/ppport.h --strip
@@ -223,7 +223,7 @@ sub init_PM {
   $self->SUPER::init_PM;
   my ($pm, $plf) = @$self{qw(PM PL_FILES)};
   for my $f (grep /pdl\.h\.PL$/, keys %$pm) {
-    $pm->{ _nopl($f) } = _nopl(delete $pm->{$f}); # dealing in postamble but still install
+    $pm->{ ::catfile(split '/', _nopl($f)) } = _nopl(delete $pm->{$f}); # dealing in postamble but still install
   }
   for my $f (grep /\.PL$/, keys %$pm) {
     $pm->{ $plf->{$f} = _nopl($f) } = _nopl(delete $pm->{$f});
@@ -242,8 +242,8 @@ sub coretarget {
     # @prereqs are named targets - undef=[]
     # all a left's rights are made concurrently, no sequence - list ALL prereqs
     my @left2rights = (
-      [core => [ map qq{build_\$(LINKTYPE)_PDL_}.(s#/#_#gr), @BUILD_CORE ]],
-      [basic => [(map qq{build_\$(LINKTYPE)_PDL_}.(s#/#_#gr), @BUILD_BASIC)]],
+      [core => [ 'pm_to_blib', map qq{build_\$(LINKTYPE)_PDL_}.(s#/#_#gr), @BUILD_CORE ]],
+      [basic => ['core', (map qq{build_\$(LINKTYPE)_PDL_}.(s#/#_#gr), @BUILD_BASIC)]],
     );
     join "\n", map flatten_parallel_target($self, $_), @left2rights;
 }

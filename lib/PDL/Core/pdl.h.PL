@@ -8,7 +8,8 @@ print "Extracting $file\n";
 open OUT,">$file" or die "Can't create $file: $!";
 chmod 0644, $file;
 
-print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  __FILE__;
+my $FILE = __FILE__ =~ s#\\#/#gr; # so Windows no get \ error
+print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  $FILE;
 print OUT <<'EOF';
 /*
  * THIS FILE IS GENERATED FROM pdl.h.PL! Do NOT edit!
@@ -81,7 +82,7 @@ for my $type (PDL::Types::types()) {
 }
 print OUT "#define PDL_NTYPES (@{[0+PDL::Types::types()]})\n";
 
-print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  __FILE__;
+print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  $FILE;
 print OUT <<'EOF';
 
 #define PDL_BITFIELD_ENT uint64_t
