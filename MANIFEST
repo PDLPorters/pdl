@@ -60,7 +60,6 @@ lib/PDL/Demos/Transform_demo.pm
 lib/PDL/DeveloperGuide.pod
 lib/PDL/DiskCache.pm
 lib/PDL/Doc.pm
-lib/PDL/Doc/Config.pm
 lib/PDL/Doc/Perldl.pm
 lib/PDL/Exporter.pm
 lib/PDL/FAQ.pod
