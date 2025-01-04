@@ -1,4 +1,5 @@
 - fix test that assumed acosh(0)->byte, i.e. nan()->byte, was always 0 (#514) - thanks @eserte for report
+- separate PDL::Type POD documentation
 
 2.098 2025-01-03
 - fix Windows build problems

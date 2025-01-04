@@ -160,6 +160,7 @@ lib/PDL/Transform/Cartography/earth_height-2048x1024.jpg
 lib/PDL/Transform/Cartography/earth_night.jpg
 lib/PDL/Transform/Cartography/earth_water-2048x1024.png
 lib/PDL/Tutorials.pod
+lib/PDL/Type.pod
 lib/PDL/Types.pm
 lib/PDL/Ufunc.pd
 lib/PDLdb.pl

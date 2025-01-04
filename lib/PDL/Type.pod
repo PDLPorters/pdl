@@ -1,0 +1,110 @@
+package PDL::Type;
+
+=head1 NAME
+
+PDL::Type - Objects encapsulating datatypes for PDL transformations
+
+=head1 SYNOPSIS
+
+  $p = pdl('1 2 3');
+  print $p->type;
+  # double
+
+=head1 DESCRIPTION
+
+This module declares one class - of this class The L<type|PDL::Core/type>
+method of an ndarray returns a C<PDL::Type> object.
+For further examples check again the L<type|PDL::Core/type> method.
+
+Comparison and stringification are overloaded so that
+you can compare and print type objects, e.g.
+
+  $nofloat = 1 if $pdl->type < float;
+  die "must be double" if $type != double;
+
+It has methods to access type information.
+
+=head1 METHODS
+
+=head2 enum
+
+Returns the number representing this datatype (see L<get_datatype|PDL::Core/PDL::get_datatype>).
+
+=head2 symbol
+
+Returns one of 'PDL_SB', 'PDL_B', 'PDL_S', 'PDL_US', 'PDL_L',
+'PDL_UL', 'PDL_IND', 'PDL_ULL', 'PDL_LL', 'PDL_F', 'PDL_D', 'PDL_LD',
+'PDL_CF', 'PDL_CD', or 'PDL_CLD'.
+
+=head2 ctype
+
+Returns the macro used to represent this type in C code (eg 'PDL_Long').
+
+=head2 convertfunc
+
+Lower-case version of the C<shortctype>.
+
+=head2 ppsym
+
+The letter used to represent this type in PP code (eg 'U' for L<ushort|PDL::Core/ushort>).
+
+=head2 realctype
+
+The actual C type used to store this type.
+
+=head2 shortctype
+
+The value returned by C<ctype> without the 'PDL_' prefix.
+
+=head2 badvalue
+
+The special numerical value used to represent bad values for this type.
+See L<PDL::Bad/badvalue> for more details.
+
+=head2 isnan
+
+Given a string representing a C value, will return a C expression for
+this type that indicates whether that value is NaN (for complex values,
+if I<either> is NaN).
+
+=head2 isfinite
+
+Given a string representing a C value, will return a C expression for
+this type that indicates whether that value is finite (for complex values,
+if I<both> are finite).
+
+=head2 floatsuffix
+
+The string appended to floating-point functions for this floating-point
+type. Returns C<INVALID> if called on non-floating-point type.
+
+=head2 orig_badvalue
+
+The default special numerical value used to represent bad values for this
+type. (You can change the value that represents bad values for each type
+during runtime.) See the
+L<orig_badvalue routine in PDL::Bad|PDL::Bad/orig_badvalue> for more details.
+
+=head2 bswap
+
+Returns the appropriate C<bswap*> from L<PDL::IO::Misc> for the size of
+this type, including a no-op for types of size 1. Note this means a
+one-line construction means you must call the return value:
+
+  $pdl->type->bswap->($pdl);
+
+=head2 real
+
+Returns whether the type is real-only (true) or can hold complex values
+(false).
+
+  die "Real data only!" if !$pdl->type->real;
+
+=head2 unsigned
+
+Returns whether the type can hold signed values (false) or not (true).
+
+=head2 integer
+
+Returns whether the type can hold non-integer, a.k.a. floating-point,
+values (false) or not (true).

@@ -505,108 +505,7 @@ A C99 complex "long double" - see above for description.
 
 =back
 
-=head1 PDL::Type OBJECTS
-
-This module declares one class - C<PDL::Type> - objects of this class
-are returned by the L<type|PDL::Core/type> method of an ndarray.  It has
-several methods, listed below, which provide an easy way to access
-type information:
-
-Additionally, comparison and stringification are overloaded so that
-you can compare and print type objects, e.g.
-
-  $nofloat = 1 if $pdl->type < float;
-  die "must be double" if $type != double;
-
-For further examples check again the
-L<type|PDL::Core/type> method.
-
-=over 4
-
-=item enum
-
-Returns the number representing this datatype (see L<get_datatype|PDL::Core/PDL::get_datatype>).
-
-=item symbol
-
-Returns one of 'PDL_SB', 'PDL_B', 'PDL_S', 'PDL_US', 'PDL_L',
-'PDL_UL', 'PDL_IND', 'PDL_ULL', 'PDL_LL', 'PDL_F', 'PDL_D', 'PDL_LD',
-'PDL_CF', 'PDL_CD', or 'PDL_CLD'.
-
-=item ctype
-
-Returns the macro used to represent this type in C code (eg 'PDL_Long').
-
-=item convertfunc
-
-Lower-case version of the C<shortctype>.
-
-=item ppsym
-
-The letter used to represent this type in PP code (eg 'U' for L<ushort|PDL::Core/ushort>).
-
-=item realctype
-
-The actual C type used to store this type.
-
-=item shortctype
-
-The value returned by C<ctype> without the 'PDL_' prefix.
-
-=item badvalue
-
-The special numerical value used to represent bad values for this type.
-See L<PDL::Bad/badvalue> for more details.
-
-=item isnan
-
-Given a string representing a C value, will return a C expression for
-this type that indicates whether that value is NaN (for complex values,
-if I<either> is NaN).
-
-=item isfinite
-
-Given a string representing a C value, will return a C expression for
-this type that indicates whether that value is finite (for complex values,
-if I<both> are finite).
-
-=item floatsuffix
-
-The string appended to floating-point functions for this floating-point
-type. Returns C<INVALID> if called on non-floating-point type.
-
-=item orig_badvalue
-
-The default special numerical value used to represent bad values for this
-type. (You can change the value that represents bad values for each type
-during runtime.) See the
-L<orig_badvalue routine in PDL::Bad|PDL::Bad/orig_badvalue> for more details.
-
-=item bswap
-
-Returns the appropriate C<bswap*> from L<PDL::IO::Misc> for the size of
-this type, including a no-op for types of size 1. Note this means a
-one-line construction means you must call the return value:
-
-  $pdl->type->bswap->($pdl);
-
-=item real
-
-Returns whether the type is real-only (true) or can hold complex values
-(false).
-
-  die "Real data only!" if !$pdl->type->real;
-
-=item unsigned
-
-Returns whether the type can hold signed values (false) or not (true).
-
-=item integer
-
-Returns whether the type can hold non-integer, a.k.a. floating-point,
-values (false) or not (true).
-
-=back
+As of 2.099, documentation for L<PDL::Type> is separate. See there for more.
 
 =cut
 
@@ -616,6 +515,7 @@ sub types { @CACHED_TYPES }
 
 {
 package PDL::Type;
+
 use Carp;
 sub new {
   my ($type,$val) = @_;
@@ -811,10 +711,7 @@ String - the complex version of this type (e.g. double -> 'C').
 
 =back
 
-Also have a look at the entries at the top of F<Types.pm.PL>.
-
-The syntax is not written into stone yet and might change as the
-concept matures.
+Also have a look at the entries at the top of F<lib/PDL/Types.pm>.
 
 =head2 Other things you need to do
 
@@ -823,13 +720,9 @@ part of the directory tree). In the future we might add fields to
 type entries to automate this. This requires changes to those IO
 modules first though.
 
-You should also make sure that any type macros in PP files
-(i.e. C<$TBSULFD...>) are updated to reflect the new type. PDL::PP::Dump
-has a mode to check for type macros requiring updating. Do something like
-
-    find . -name \*.pd -exec perl -Mblib=. -M'PDL::PP::Dump=typecheck' {} \;
-
-from the PDL root directory I<after> updating F<Types.pm.PL> to check
-for such places.
+You may also need to update any type macros in PP files
+(i.e. C<$TBSULFD...>) to reflect the new type - PP will throw an
+error if you have a C<$T...> macro which misses types supported by
+the operation.
 
 =cut
