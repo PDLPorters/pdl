@@ -47,7 +47,8 @@
 #   PDL::PP::Rule::Substitute->new($target,$condition)
 # $target and $condition must be scalars.
 
-package PDL::PP::Rule;
+package # hide from PAUSE/MetaCPAN
+  PDL::PP::Rule;
 
 use strict;
 use warnings;
@@ -197,7 +198,8 @@ sub apply {
 }
 
 
-package PDL::PP::Rule::Croak;
+package # hide from PAUSE/MetaCPAN
+  PDL::PP::Rule::Croak;
 
 # Croaks if all of the input variables are defined. Use this to identify
 # incompatible arguments.
@@ -216,7 +218,8 @@ sub apply {
     croak($self->{doc}) if $self->should_apply($pars);
 }
 
-package PDL::PP::Rule::Returns;
+package # hide from PAUSE/MetaCPAN
+  PDL::PP::Rule::Returns;
 use strict;
 use Carp;
 
@@ -255,7 +258,8 @@ sub apply {
     $pars->{$target} = $self->{"returns.value"};
 }
 
-package PDL::PP::Rule::Returns::Zero;
+package # hide from PAUSE/MetaCPAN
+  PDL::PP::Rule::Returns::Zero;
 
 use strict;
 
@@ -265,7 +269,8 @@ sub new {
     shift->SUPER::new(@_,0);
 }
 
-package PDL::PP::Rule::Returns::One;
+package # hide from PAUSE/MetaCPAN
+  PDL::PP::Rule::Returns::One;
 
 use strict;
 
@@ -275,7 +280,8 @@ sub new {
     shift->SUPER::new(@_,1);
 }
 
-package PDL::PP::Rule::Returns::EmptyString;
+package # hide from PAUSE/MetaCPAN
+  PDL::PP::Rule::Returns::EmptyString;
 
 use strict;
 
@@ -285,7 +291,8 @@ sub new {
     shift->SUPER::new(@_,"");
 }
 
-package PDL::PP::Rule::Returns::NULL;
+package # hide from PAUSE/MetaCPAN
+  PDL::PP::Rule::Returns::NULL;
 
 use strict;
 
@@ -295,7 +302,8 @@ sub new {
     shift->SUPER::new(@_,"NULL");
 }
 
-package PDL::PP::Rule::InsertName;
+package # hide from PAUSE/MetaCPAN
+  PDL::PP::Rule::InsertName;
 
 use strict;
 use Carp;
@@ -333,7 +341,8 @@ sub apply {
 
 # PDL::PP::Rule::Substitute->new($target,$condition)
 #   $target and $condition must be scalars.
-package PDL::PP::Rule::Substitute;
+package # hide from PAUSE/MetaCPAN
+  PDL::PP::Rule::Substitute;
 
 use strict;
 use Carp;

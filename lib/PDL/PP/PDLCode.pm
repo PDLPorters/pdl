@@ -4,7 +4,8 @@
 # This is what makes the nice loops go around etc.
 #
 
-package PDL::PP::Code;
+package # hide from PAUSE/MetaCPAN
+  PDL::PP::Code;
 
 use strict;
 use warnings;
@@ -348,7 +349,8 @@ sub report_error {
 # 	new - constructor
 #	get_str - get the string to be put into the xsub.
 
-package PDL::PP::Block;
+package # hide from PAUSE/MetaCPAN
+  PDL::PP::Block;
 
 sub new { my($type) = @_; bless [],$type; }
 
@@ -398,7 +400,8 @@ sub enter {
 # - ie create something like
 #   if ( badflag ) { badcode } else { goodcode }
 #
-package PDL::PP::BadSwitch;
+package # hide from PAUSE/MetaCPAN
+  PDL::PP::BadSwitch;
 our @ISA = "PDL::PP::Block";
 
 sub new {
@@ -428,7 +431,8 @@ if ( \$PRIV(bvalflag) ) { /* ** do 'bad' Code ** */
 EOF
 }
 
-package PDL::PP::Loop;
+package # hide from PAUSE/MetaCPAN
+  PDL::PP::Loop;
 our @ISA = "PDL::PP::Block";
 
 sub new { my($type,$args,$sizeprivs,$parent) = @_;
@@ -479,7 +483,8 @@ sub mypostlude { my($this,$parent,$context) = @_;
   return join '', map "}} /* Close $_ */", @{$this->[0]};
 }
 
-package PDL::PP::GenericSwitch;
+package # hide from PAUSE/MetaCPAN
+  PDL::PP::GenericSwitch;
 use Carp;
 our @ISA = "PDL::PP::Block";
 
@@ -559,7 +564,8 @@ sub mypostlude {
 # This relies on PP.pm making sure that initbroadcaststruct always sets
 # up the two first dimensions even when they are not necessary.
 #
-package PDL::PP::BroadcastLoop;
+package # hide from PAUSE/MetaCPAN
+  PDL::PP::BroadcastLoop;
 use Carp;
 our @ISA = "PDL::PP::Block";
 
@@ -580,7 +586,8 @@ sub mypostlude {my($this,$parent,$context,$backcode) = @_;
 # Simple subclass of BroadcastLoop to implement writeback code
 #
 #
-package PDL::PP::BackCodeBroadcastLoop;
+package # hide from PAUSE/MetaCPAN
+  PDL::PP::BackCodeBroadcastLoop;
 use Carp;
 our @ISA = "PDL::PP::BroadcastLoop";
 
@@ -602,7 +609,8 @@ sub mypostlude {
 #
 # Encapsulate a types() switch
 #
-package PDL::PP::Types;
+package # hide from PAUSE/MetaCPAN
+  PDL::PP::Types;
 use Carp;
 use PDL::Types ':All';
 our @ISA = "PDL::PP::Block";
@@ -624,7 +632,8 @@ sub get_str {
 }
 
 
-package PDL::PP::Access;
+package # hide from PAUSE/MetaCPAN
+  PDL::PP::Access;
 use Carp;
 
 sub new { my($type,$pdl,$inds) = @_;
@@ -639,7 +648,8 @@ sub get_str { my($this,$parent,$context) = @_;
 ###########################
 # Encapsulate a check on whether a value is good or bad
 # handles both checking (good/bad) and setting (bad)
-package PDL::PP::BadAccess;
+package # hide from PAUSE/MetaCPAN
+  PDL::PP::BadAccess;
 use Carp;
 
 sub new {
@@ -682,7 +692,8 @@ sub get_str {
 }
 
 
-package PDL::PP::MacroAccess;
+package # hide from PAUSE/MetaCPAN
+  PDL::PP::MacroAccess;
 use Carp;
 use PDL::Types ':All';
 my $types = join '',ppdefs_all;
@@ -712,7 +723,8 @@ sub get_str {
     $type2value->{$parent->{Gencurtype}[-1]->ppsym};
 }
 
-package PDL::PP::GentypeAccess;
+package # hide from PAUSE/MetaCPAN
+  PDL::PP::GentypeAccess;
 use Carp;
 
 sub new { my($type,$pdl,$inds) = @_; bless [$inds],$type; }
@@ -725,7 +737,8 @@ sub get_str {my($this,$parent,$context) = @_;
   $pobj->adjusted_type($type)->ctype;
 }
 
-package PDL::PP::PpsymAccess;
+package # hide from PAUSE/MetaCPAN
+  PDL::PP::PpsymAccess;
 use Carp;
 
 sub new { my($type,$pdl,$inds) = @_; bless [$inds],$type; }

@@ -1,4 +1,5 @@
-package PDL::PP::Signature;
+package # hide from PAUSE/MetaCPAN
+  PDL::PP::Signature;
 
 use strict; use warnings;
 use PDL::PP::PdlParObj;

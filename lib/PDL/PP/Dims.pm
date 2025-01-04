@@ -1,5 +1,6 @@
 ##############################################
-package PDL::PP::PdlDimsObj; # Hold more dims
+package # hide from PAUSE/MetaCPAN
+  PDL::PP::PdlDimsObj; # Hold more dims
 use strict;
 use warnings;
 use Carp;
@@ -29,7 +30,8 @@ sub ind_notfromcomp {grep !defined $_->{From}, values %{$_[0]}}
 #
 # Encapsulate one index.
 
-package PDL::PP::Ind;
+package # hide from PAUSE/MetaCPAN
+  PDL::PP::Ind;
 use Carp;
 
 sub new {

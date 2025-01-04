@@ -2,7 +2,8 @@
 # Type contains the size of arrays, which is either constant
 # or resolved (into an object) from resolveobj.
 
-package PDL::PP::CType;
+package # hide from PAUSE/MetaCPAN
+  PDL::PP::CType;
 use strict;
 use warnings;
 use Carp;

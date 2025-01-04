@@ -1,4 +1,5 @@
-package PDL::PP::PdlParObj;
+package # hide from PAUSE/MetaCPAN
+  PDL::PP::PdlParObj;
 
 use strict;
 use warnings;

@@ -1,7 +1,8 @@
 # the filter for the PDL pod format (which is a valid general perl
 # pod format but with special interpretation of some =for directives)
 
-package PDL::PodParser;
+package # hide from PAUSE/MetaCPAN
+  PDL::PodParser;
 use strict;
 use warnings;
 use PDL::Core '';
