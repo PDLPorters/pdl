@@ -1,27 +1,17 @@
-# Test ->clump(). This is not yet good enough: we need
-# nasty test cases
-
-use Test::More tests => 5;
-use PDL::LiteF;
-
 use strict;
 use warnings;
 
-$|=1;
+# Test ->clump(). This is not yet good enough: we need
+# nasty test cases
+
+use Test::More;
+use PDL::LiteF;
+use Test::PDL;
 
 #  PDL::Core::set_debugging(1);
 kill 'INT',$$  if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 
-#$pa = zeroes(4,4) * zeroes(4,4);
-# $pa = zeroes(4,4) ;
-
-#print $pa;
-#
-#print $pa->at(3,3);
-#
-#exit 4;
-
-my $eps = 0.01; # tolerance for tests
+sub abstol { {atol=>0.01, test_name=>$_[0]} } # tolerance for tests
 
 if(0) {
 	# TODO dead code
@@ -66,7 +56,7 @@ if(0) {
 
 	note $pb;
 
-	ok(all(PDL::approx($pb,pdl([0,1,2,10,11,12,20,21,22]), $eps)),'clump(-1) entire ndarray');
+	is_pdl $pb, pdl([0,1,2,10,11,12,20,21,22]), abstol 'clump(-1) entire ndarray';
 
 	my $pc = $pa->slice('0:2:2,:');
 
@@ -82,9 +72,9 @@ if(0) {
 	# ok(2,$@ =~ /^clump: Increments do not match/);
 	# Clump supports this now.
 
-	ok(all(PDL::approx($pd,pdl([0,2,10,12,20,22]), $eps)),'clump(-1) slice with skip and whole dim');
+	is_pdl $pd,pdl([0,2,10,12,20,22]), abstol 'clump(-1) slice with skip and whole dim';
 
-	ok(all(PDL::approx($pe,pdl([10,12,20]), $eps)),'clump(-1) slice');
+	is_pdl $pe,pdl([10,12,20]), abstol 'clump(-1) slice';
 
         # SF bug #406 clump(-N) failure
         ##-- test data
@@ -98,3 +88,5 @@ if(0) {
         ok($a1->ndims == 2, "no-op clump(-2)");
         ok($b2->ndims == 2, "general clump(-2)");
 }
+
+done_testing;

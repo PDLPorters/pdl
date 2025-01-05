@@ -7,10 +7,7 @@ use PDL::Types qw(types);
 use Test::Warn;
 use Test::PDL;
 
-# although approx() caches the tolerance value, we
-# use it in every call just to document things
-#
-use constant ABSTOL => 1.0e-4;
+sub abstol { {atol=>1.0e-4, test_name=>$_[0]} }
 
 {
   my $a_bad = pdl double, '[1 BAD 3]';
@@ -181,12 +178,12 @@ is( $x->check_badflag, 0, "check_badflag did not find a bad value" );
 $x = pdl( qw(42 47 98 13 22 96 74 41 79 76 96 3 32 76 25 59 5 96 32 6) );
 $y = $x->setbadif( $x < 20 );
 my @s = $y->stats();
-ok( approx( $s[0], 61.9375, ABSTOL ), "setbadif/stats test 1" );
-ok( approx( $s[1], 27.6079, ABSTOL ), "setbadif/stats test 2" );
-is( $s[2], 66.5, "setbadif/stats test 3" );
-is( $s[3], 22, "setbadif/stats test 4" );
-is( $s[4], 98, "setbadif/stats test 5" );
-ok( approx( $s[6], 26.7312, ABSTOL ), "setbadif/stats test 6" );
+is_pdl $s[0], pdl(61.9375), abstol("setbadif/stats test 1");
+is_pdl $s[1], pdl(27.6079), abstol("setbadif/stats test 2");
+is_pdl $s[2], pdl(66.5), "setbadif/stats test 3";
+is_pdl $s[3], pdl(22), "setbadif/stats test 4";
+is_pdl $s[4], pdl(98), "setbadif/stats test 5";
+is_pdl $s[6], pdl(26.7312), abstol("setbadif/stats test 6");
 
 # how about setbadtoval
 empty()->setbadtoval(20); # shouldn't segfault
@@ -315,7 +312,7 @@ is( PDL::Core::string( $x->rotate(2) ), "[4 5 0 1 BAD]", "rotate()" );
 $x = float( 2, 0, 2, 2 )->setvaltobad(0.0);
 $y = $x->norm;
 $c = $x/sqrt(sum($x*$x));
-ok( all( approx( $y, $c, ABSTOL ) ), "norm()" ) or diag "got=$y\nexpected=$c";
+is_pdl $y, $c, abstol("norm()");
 
 # propagation of badflag using inplace ops (ops.pd)
 
