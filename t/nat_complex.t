@@ -21,6 +21,16 @@ ok !$x->type->real, 'complex type not real';
 ok double->real, 'real type is real';
 ok !$x->sumover->type->real, 'sumover type=complex';
 
+for (qw(conj re im)) {
+  eval {double(5)->$_};
+  is $@, '', "NO error if give real data to $_";
+}
+for (qw(carg)) {
+  eval {double(5)->$_};
+  like $@, qr/must be complex/, "error if give real data to $_";
+}
+eval {czip(cdouble(5),1)};
+like $@, qr/must be real/, "error if give complex data to czip";
 $x = cdouble(2,3);
 $x-=i2C(3);
 is type($x), 'cdouble', 'type promotion ndarray - i';

@@ -410,13 +410,13 @@ ufunc('exp','exp',1,'the exponential function',GenericTypes => [@$C, @$F]);
 ufunc('log','log',1,'the natural logarithm',GenericTypes => [@$C, @$F], Exception => '$a() <= 0');
 
 # no export these because clash with Test::Deep (re) or internal (_*abs)
-cfunc('re', 'creal', 1, 'Returns the real part of a complex number.',
+cfunc('re', 'creal', 1, 0, 'Returns the real part of a complex number.',
   '$complexv() = $b() + I * cimag($complexv());'
 );
-cfunc('im', 'cimag', 1, 'Returns the imaginary part of a complex number.',
+cfunc('im', 'cimag', 1, 0, 'Returns the imaginary part of a complex number.',
   '$complexv() = creal($complexv()) + I * $b();'
 );
-cfunc('_cabs', 'fabs', 1, 'Returns the absolute (length) of a complex number.', undef,
+cfunc('_cabs', 'fabs', 1, 0, 'Returns the absolute (length) of a complex number.', undef,
     PMFunc=>'',
 );
 my $rabs_code = '
@@ -476,14 +476,14 @@ PDL_IF_BAD(if (anybad) $PDLSTATESETBAD(b);,)
 # special functions for complex data types that don't work well with
 # the ufunc/bifunc logic
 sub cfunc {
-    my ($name, $func, $make_real, $doc, $backcode, %extra) = @_;
+    my ($name, $func, $make_real, $force_complex, $doc, $backcode, %extra) = @_;
     my $codestr = pp_line_numbers(__LINE__-1,"\$b() = $func(\$complexv());");
     pp_def($name,
 	   GenericTypes=>$C,
-	   Pars => 'complexv(); '.($make_real ? 'real' : '').' [o]b()',
+	   Pars => ($force_complex ? '!real ' : '').'complexv(); '.($make_real ? 'real' : '').' [o]b()',
 	   HandleBad => 1,
 	   NoBadifNaN => 1,
-	   ($make_real ? () : (Inplace => 1)),
+	   (($make_real || $force_complex) ? () : (Inplace => 1)),
 	   Code => pp_line_numbers(__LINE__-1, qq{
 PDL_IF_BAD(if ( \$ISBAD(complexv()) ) \$SETBAD(b()); else,)
   $codestr
@@ -502,11 +502,11 @@ PDL_IF_BAD(if ( \$ISBAD(complexv()) ) \$SETBAD(b()); else,)
     );
 }
 
-cfunc('carg', 'carg', 1, 'Returns the polar angle of a complex number.', undef);
-cfunc('conj', 'conj', 0, 'complex conjugate.', undef);
+cfunc('carg', 'carg', 1, 1, 'Returns the polar angle of a complex number.', undef);
+cfunc('conj', 'conj', 0, 0, 'complex conjugate.', undef);
 
 pp_def('czip',
-  Pars => 'r(); i(); complex [o]c()',
+  Pars => '!complex r(); !complex i(); complex [o]c()',
   Doc => <<'EOF',
 convert real, imaginary to native complex, (sort of) like LISP zip
 function. Will add the C<r> ndarray to "i" times the C<i> ndarray. Only
