@@ -293,6 +293,8 @@ PDL_TYPELIST_ALL(X)
 #define  PDL_PARENTDATACHANGED   (1 << 1)
   /* Parent dims or incs has been altered without changing this pdl.        */
 #define  PDL_PARENTDIMSCHANGED   (1 << 2)
+  /* Marked read-only by user; throw error if given as output to xform.     */
+#define  PDL_READONLY            (1 << 3)
   /* Physical data representation of the parent has changed (e.g.           */
   /* physical transposition), so incs etc. need to be recalculated.         */
 #define  PDL_ANYCHANGED          (PDL_PARENTDATACHANGED|PDL_PARENTDIMSCHANGED)
@@ -327,6 +329,7 @@ PDL_TYPELIST_ALL(X)
  X(PDL_ALLOCATED) \
  X(PDL_PARENTDATACHANGED) \
  X(PDL_PARENTDIMSCHANGED) \
+ X(PDL_READONLY) \
  X(PDL_DATAFLOW_F) \
  X(PDL_NOMYDIMS) \
  X(PDL_MYDIMS_TRANS) \
@@ -419,6 +422,7 @@ typedef struct pdl_transvtable {
 #define PDL_PARAM_ISIGNORE           (1 << 10)
 #define PDL_PARAM_ISNOTCOMPLEX       (1 << 11)
 #define PDL_PARAM_ALLOW_NULL         (1 << 12)
+#define PDL_PARAM_ISNOTREAL          (1 << 13)
 
 #define PDL_LIST_FLAGS_PARAMS(X) \
  X(PDL_PARAM_ISREAL) \
@@ -433,7 +437,8 @@ typedef struct pdl_transvtable {
  X(PDL_PARAM_ISPHYS) \
  X(PDL_PARAM_ISIGNORE) \
  X(PDL_PARAM_ISNOTCOMPLEX) \
- X(PDL_PARAM_ALLOW_NULL)
+ X(PDL_PARAM_ALLOW_NULL) \
+ X(PDL_PARAM_ISNOTREAL)
 
 /* All trans must start with this */
 
