@@ -851,7 +851,7 @@ $double_mask   &= double('1 1 1 1 1 0 0');
 is_pdl $double_mask, double('0 0 1 1 1 0 0');
 
 eval {PDL::eqvec(double([1,2]), double([1,2]), float(0)->slice(''))};
-like $@, qr/cannot convert/, "error when flowing output to xform, out forcetype != supplied out type";
+like $@, qr/cannot convert/, "error when flowing xform given non-available-typed output with parent";
 
 PDL::eqvec(double([1,2])->flowing, double([1,2]), $o_float = float(0));
 is 0+$o_float->trans_children, 0, 'converted output of flowing xform has no trans_children';
@@ -873,6 +873,10 @@ is_pdl $o_byte, byte([1,1,0]), 'converted output of flowing xform has right valu
   is_pdl $got, byte('0 1 1 2 2 2 2 2 2 2'), "convert of thing with trans_children no NULL data";
 }
 
+is_pdl PDL::and2(byte(3), byte(1)), byte(1), 'both input available-typed';
+is_pdl PDL::and2(double(3), double(1)), longlong(1), 'both input non-available-typed';
+is_pdl PDL::and2(byte(3), double(1)), longlong(1), 'inputs one avail, one non-available-typed -> last-given type';
+
 for ([\&float,\&cfloat,\&cdouble], [\&double,\&cdouble,\&cfloat], [\&ldouble,\&cldouble]) {
   my ($rt, $ct, $other_ct) = @$_;
   my $o_cmplx = czip($rt->(3), $rt->(2));
@@ -884,7 +888,7 @@ for ([\&float,\&cfloat,\&cdouble], [\&double,\&cdouble,\&cfloat], [\&ldouble,\&c
   czip($rt->(3)->flowing, $rt->(2), $o_cmplx = $ct->(0));
   is_pdl $o_cmplx, $ct->('3+2i'), 'right answer from flowing, supplied output '.$rt->();
   eval {czip($rt->(3)->flowing, $rt->(2), $ct->(0)->slice(''))};
-  is $@, '', 'current wrongly no error when supply output with parent to flowing '.$rt->();
+  is $@, '', 'no error when supply right-typed output with parent to flowing '.$rt->();
   next if !$other_ct;
   czip($rt->(3)->flowing, $rt->(2), $o_cmplx = $other_ct->(0));
   is_pdl $o_cmplx, $other_ct->('3+2i'), 'right answer from flowing, input '.$rt->().', supplied output '.$other_ct->();

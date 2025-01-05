@@ -1140,6 +1140,7 @@ static inline pdl_error pdl__transtype_select(
     *retval = vtable->gentypes[0]; /* only one allowed type, use that */
     return PDL_err;
   }
+  char use_last_dtype = 0;
   for (i=vtable->npdls-1; i>= 0; i--) {
     pdl *pdl = trans->pdls[i];
     short flags = vtable->par_flags[i];
@@ -1147,12 +1148,16 @@ static inline pdl_error pdl__transtype_select(
       !(flags & (PDL_PARAM_ISIGNORE|PDL_PARAM_ISTYPED|PDL_PARAM_ISCREATEALWAYS))
     ) {
       pdl_datatypes new_transtype = PDL_TYPE_ADJUST_FROM_SUPPLIED(pdl->datatype, flags);
-      if (new_transtype != PDL_INVALID && PDL_BITFIELD_ISSET(type_avail, new_transtype) && *retval < new_transtype)
+      char newtype_is_avail = PDL_BITFIELD_ISSET(type_avail, new_transtype);
+      if (!newtype_is_avail && new_transtype > last_dtype)
+        use_last_dtype = 1;
+      if (new_transtype != PDL_INVALID && newtype_is_avail && *retval < new_transtype)
         *retval = new_transtype;
     }
     if (i == vtable->nparents && *retval != PDL_INVALID) return PDL_err;
   }
-  if (*retval == PDL_INVALID || !PDL_BITFIELD_ISSET(type_avail, *retval)) *retval = last_dtype;
+  if (use_last_dtype || *retval == PDL_INVALID || !PDL_BITFIELD_ISSET(type_avail, *retval))
+    *retval = last_dtype;
   return PDL_err;
 }
 
