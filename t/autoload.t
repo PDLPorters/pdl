@@ -4,8 +4,9 @@ use warnings;
 use Test::More;
 use PDL::LiteF;
 use PDL::NiceSlice;
+use Test::PDL;
 
-plan skip_all => 'This test must be run from t/..' if !-f 't/func.pdl';
+plan skip_all => 'This test must be run from t/..' if !-f 't/autoload_func.pdl';
 
 use_ok('PDL::AutoLoader');
 
@@ -15,9 +16,7 @@ our @PDLLIB = ("./t"); # this means you have to run the test from t/..
 
 my $x = long(2 + ones(2,2));
 
-my $y = func($x);
-
-ok approx(sum($y), 4*29), 'Check autoload of func.pdl' or diag "got=$y";
+is_pdl autoload_func($x), pdl('29 29; 29 29'), 'autoloaded func worked';
 { no warnings 'once';
 is $::GLOBAL_VAR, '$'.'COMP(max_it)', "NiceSlice didn't mangle text";
 }
