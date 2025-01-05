@@ -1126,6 +1126,10 @@ static inline pdl_error pdl__transtype_select(
       continue;
     short flags = vtable->par_flags[i];
     pdl_datatypes dtype = pdl->datatype;
+    if (flags & PDL_PARAM_ISNOTREAL && dtype < PDL_CF)
+      return pdl_make_error(PDL_EUSERERROR,
+        "%s: ndarray %s must be complex, but is type %s",
+        vtable->name, vtable->par_names[i], PDL_TYPENAME(dtype));
     if (flags & PDL_PARAM_ISNOTCOMPLEX && dtype >= PDL_CF)
       return pdl_make_error(PDL_EUSERERROR,
         "%s: ndarray %s must be real, but is type %s",

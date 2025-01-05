@@ -2,6 +2,7 @@
 - separate PDL::Type POD documentation
 - partly restoring pre-2.096 xform type-selection: if xform given no typed outputs, and non-available (greater than last-given type) typed inputs, use last-given (#511, https://github.com/moocow-the-bovine/PDL-CCS/issues/18)
 - fix Math::polyroots with native-complex input and supplied null output
+- add Pars type-spec "!real" which makes it an error to supply real values (#511)
 
 2.098 2025-01-03
 - fix Windows build problems

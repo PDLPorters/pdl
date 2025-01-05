@@ -11,7 +11,7 @@ our %INVALID_PAR = map +($_=>1), qw(
 );
 
 my $typeregex = join '|', map $_->ppforcetype, types;
-my $complex_regex = join '|', qw(real complex !complex);
+my $complex_regex = join '|', qw(real complex !real !complex);
 our $sqbr_re = qr/\[([^]]*)\]/x;
 our $pars_re = qr/^
 	\s*(?:($complex_regex|$typeregex)\b([+]*)|)\s*	# $1,2: first option then plus
@@ -28,12 +28,14 @@ my %flag2info = (
   phys => [[qw(FlagPhys)]],
   real => [[qw(FlagTypeOverride FlagReal)]],
   complex => [[qw(FlagTypeOverride FlagComplex)]],
+  '!real' => [[qw(FlagTypeOverride FlagNotReal)]],
   '!complex' => [[qw(FlagTypeOverride FlagNotComplex)]],
   (map +($_->ppforcetype => [[qw(FlagTypeOverride FlagTyped)], 'Type']), types),
 );
 my %flag2c = qw(
   FlagReal PDL_PARAM_ISREAL
   FlagComplex PDL_PARAM_ISCOMPLEX
+  FlagNotReal PDL_PARAM_ISNOTREAL
   FlagNotComplex PDL_PARAM_ISNOTCOMPLEX
   FlagTyped PDL_PARAM_ISTYPED
   FlagTplus PDL_PARAM_ISTPLUS
