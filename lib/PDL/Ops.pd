@@ -131,6 +131,8 @@ EOF
 
     my $bitwise = delete $extra{Bitwise};
     pp_addpm(make_overload($op, $name, $mutator, $bitwise));
+    my $sp = ' ' x (length($name) - length($op) + 2); # line up example table
+    my $mutate_doc = !$mutator ? '' : " \$x $op= \$y;$sp             # equivalent to above\n";
     pp_def($name,
 	   Pars => 'a(); b(); [o]c();',
 	   OtherPars => 'int $swap',
@@ -155,17 +157,17 @@ $doc
 
 =for example
 
-   \$c = \$x $op \$y;               # overloaded call
-   \$c = PDL::$name(\$x, \$y);     # explicit call with default swap of 0
-   \$c = PDL::$name(\$x, \$y, 0);  # explicit call with explicit swap of 0
-   \$c = PDL::$name(\$x, \$y, 1);  # explicit call with trailing 1 to swap args
-   PDL::$name(\$x, \$y, \$c, 1);   # all params given
-   \$x->$name(\$y, \$c, 0);        # method call, all params given
-   \$c = \$x->$name(\$y);          # method call
-   \$x->inplace->$name(\$y);      # modify \$x inplace
-
+ \$c = \$x $op \$y;$sp         # overloaded call
+ \$c = PDL::$name(\$x, \$y);    # explicit call with default swap of 0
+ \$c = PDL::$name(\$x, \$y, 0); # explicit call with explicit swap of 0
+ \$c = PDL::$name(\$x, \$y, 1); # explicit call with trailing 1 to swap args
+ PDL::$name(\$x, \$y, \$c, 1);  # all params given
+ \$x->$name(\$y, \$c, 0);       # method call, all params given
+ \$c = \$x->$name(\$y);         # method call
+ \$x->inplace->$name(\$y);     # modify \$x inplace
+$mutate_doc
 It can be made to work inplace with the C<< \$x->inplace >> syntax.
-This function is used to overload the binary C<$optxt> operator.
+This function is used to overload the two-operand C<$optxt> operator.
 As of 2.065, when calling this function explicitly you can omit
 the third argument (see second example), or supply it (see third one).
 
@@ -223,7 +225,9 @@ sub bifunc {
   }
 EOH
     # is this one to be used as a function or operator ?
-    my $ovcall = "\$c = ".($isop ? "\$a $funcov" : "$funcov \$a,")." \$b;    # overloaded use";
+    my $sp = ' ' x (length($name) - length($funcov)+($isop?1:0) + 1); # line up example table
+    my $ovcall = "\$c = ".($isop ? "\$a $funcov" : "$funcov \$a,")." \$b;$sp       # overloaded use";
+    my $mutate_doc = !$mutator ? '' : "   \$x $funcov= \$y;$sp           # equivalent to above\n";
 
     my $codestr;
     if ($extra{unsigned}){
@@ -266,11 +270,11 @@ $doc
 
 =for example
 
-   \$c = \$x->$name(\$y);    # explicit call with default swap of 0
-   \$c = \$x->$name(\$y, 1); # explicit call with trailing 1 to swap args
+   \$c = \$x->$name(\$y);       # explicit call with default swap of 0
+   \$c = \$x->$name(\$y, 1);    # explicit call with trailing 1 to swap args
    $ovcall
-   \$x->inplace->$name(\$y,0);     # modify \$x inplace
-
+   \$x->inplace->$name(\$y,0); # modify \$x inplace
+$mutate_doc
 It can be made to work inplace with the C<\$x-E<gt>inplace> syntax.
 This function is used to overload the binary C<$funcovp> function.
 As of 2.065, when calling this function explicitly you can omit
@@ -379,17 +383,17 @@ biop('ne','!=',0,'binary I<not equal to> operation (C<!=>)', Comparison => 1, Ge
 
 ## bit ops
 # those need to be limited to the right types
-biop('shiftleft','<<',1,'leftshift C<$a> by C<$b>',GenericTypes => $T);
-biop('shiftright','>>',1,'rightshift C<$a> by C<$b>',GenericTypes => $T);
-biop('or2','|',1,'binary I<or> of two ndarrays',GenericTypes => $T,
+biop('shiftleft','<<',1,'bitwise leftshift C<$a> by C<$b>',GenericTypes => $T);
+biop('shiftright','>>',1,'bitwise rightshift C<$a> by C<$b>',GenericTypes => $T);
+biop('or2','|',1,'bitwise I<or> of two ndarrays',GenericTypes => $T,
       Bitwise => 1);
-biop('and2','&',1,'binary I<and> of two ndarrays',GenericTypes => $T,
+biop('and2','&',1,'bitwise I<and> of two ndarrays',GenericTypes => $T,
       Bitwise => 1);
-biop('xor','^',1,'binary I<exclusive or> of two ndarrays',GenericTypes => $T,
+biop('xor','^',1,'bitwise I<exclusive or> of two ndarrays',GenericTypes => $T,
       Bitwise => 1);
 
 # really an ufunc
-ufunc('bitnot','~',1,'unary bit negation',GenericTypes => $T);
+ufunc('bitnot','~',1,'unary bitwise negation',GenericTypes => $T);
 
 # some standard binary functions
 bifunc('power',['pow','op**'],1,'raise ndarray C<$a> to the power C<$b>',GenericTypes => [@$C, @$F]);
