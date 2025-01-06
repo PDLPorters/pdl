@@ -1111,6 +1111,9 @@ upd_data(self, keep_datasv=0)
 	  self->data = SvPV_nolen((SV*)self->datasv);
 	} else if (self->datasv) {
 	  PDLDEBUG_f(printf("upd_data zap datasv\n"));
+	  Size_t svsize = SvCUR((SV*)self->datasv);
+	  if (svsize != self->nbytes)
+            croak("Trying to upd_data but datasv now length %zu instead of %td", svsize, self->nbytes);
 	  memmove(self->data, SvPV_nolen((SV*)self->datasv), self->nbytes);
 	  SvREFCNT_dec(self->datasv);
 	  self->datasv = NULL;
