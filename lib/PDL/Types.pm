@@ -16,15 +16,9 @@ my @TYPE_VERBATIM = (@TYPE_CHECK, qw(
 my @TYPE_MODIFIED = qw(realversion complexversion isnan isfinite);
 
 sub packtypeof_PDL_Indx {
-   if ($Config{'ivsize'} == 8) {
-      return 'q*';
-   }
-   elsif ($Config{'ivsize'} == 4 ) {
-      return 'l*';
-   }
-   else {
-      die "Types.pm.PL: packtype for ivsize==$Config{'ivsize'} not handled\n";
-   }
+  return 'q*' if $Config{ptrsize} == 8;
+  return 'l*' if $Config{ptrsize} == 4;
+  die "PDL::Types: packtype for ptrsize==$Config{ptrsize} not handled\n";
 }
 
 # Data types *must* be listed in order of complexity!!
@@ -593,8 +587,7 @@ __END__
 
 You can change the types that PDL knows about by editing entries in
 the definition of the variable C<@types> that appears close to the
-top of the file F<Types.pm.PL> (i.e. the file from which this module
-was generated).
+top of the file F<lib/PDL/Types.pm>.
 
 =head2 Format of a type entry
 

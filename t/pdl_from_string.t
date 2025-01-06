@@ -358,6 +358,9 @@ is pdl(ushort, ['-5'])."", "[65531]", "ushort-typed ['-5'] converted right";
 is pdl(ushort, '[-5]')."", "[65531]", "ushort-typed '[-5]' converted right";
 is pdl(ushort, [-5])."", "[65531]", "ushort-typed [-5] converted right";
 
+# capture indx() on big-endian - https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=1092246
+is pdl(indx, 2)."", "2", "indx-typed 2 packed/upd_data-ed right";
+
 done_testing;
 
 # Basic 2D array

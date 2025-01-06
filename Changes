@@ -4,6 +4,7 @@
 - fix Math::polyroots with native-complex input and supplied null output
 - add Pars type-spec "!real" which makes it an error to supply real values (#511)
 - now an error to call Ops::carg on a real value, or Ops::czip on complex inputs (#511)
+- fix packsize for indx to base on ptrsize, not ivsize (https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=1092246) - thanks Helge Deller for report
 
 2.098 2025-01-03
 - fix Windows build problems
