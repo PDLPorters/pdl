@@ -236,19 +236,18 @@ subtest 'broadcast_dimensions' => sub {
 ## see https://github.com/moocow-the-bovine/PDL-VectorValued/issues/4
 subtest intersect_implicit_dims => sub {
 
-# intersectvec: from ETJ/mowhawk2 a la https://stackoverflow.com/a/71446817/3857002
+# intersectvec: from ETJ/mohawk2 a la https://stackoverflow.com/a/71446817/3857002
     my $toto  = pdl( [ 1, 2, 3 ], [ 4, 5, 6 ] );
     my $titi  = pdl( 1, 2, 3 );
     my $notin = pdl( 7, 8, 9 );
-    my ($c);
 
-    is_pdl $c = intersectvec( $titi, $toto ), pdl([ [ 1, 2, 3 ] ]),
+    is_pdl scalar intersectvec( $titi, $toto ), pdl([ [ 1, 2, 3 ] ]),
       'intersectvec - implicit dims - titi&toto';
-    is_pdl $c = intersectvec( $notin, $toto ), zeroes( 3, 0 ),
+    is_pdl scalar intersectvec( $notin, $toto ), zeroes( 3, 0 ),
       'intersectvec - implicit dims - notin&toto';
-    is_pdl $c = intersectvec( $titi->dummy(1), $toto ), pdl([ [ 1, 2, 3 ] ]),
+    is_pdl scalar intersectvec( $titi->dummy(1), $toto ), pdl([ [ 1, 2, 3 ] ]),
       'intersectvec - implicit dims - titi(*1)&toto';
-    is_pdl $c = intersectvec( $notin->dummy(1), $toto ), zeroes( 3, 0 ),
+    is_pdl scalar intersectvec( $notin->dummy(1), $toto ), zeroes( 3, 0 ),
       'intersectvec - implicit dims - notin(*1)&toto';
 
     my $needle0_in    = pdl( [ 1, 2, 3 ] );                  # 3
