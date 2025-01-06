@@ -286,7 +286,9 @@ SKIP:
   #and for big numbers (bigger than INT_MAX=2147483647)
   my $INT_MAX = 2147483647;
   cmp_ok long($INT_MAX)%1      , '==', 0, "big long modulus: $INT_MAX % 1";
-  cmp_ok indx($INT_MAX*4)%2    , '==', 0, "big indx modulus: @{[$INT_MAX*4]} % 2";
+  if ($Config{ptrsize} > 4) {
+    cmp_ok indx($INT_MAX*4)%2    , '==', 0, "big indx modulus: @{[$INT_MAX*4]} % 2";
+  }
   cmp_ok longlong($INT_MAX*4)%2, '==', 0, "big longlong modulus: @{[$INT_MAX*4]} % 2";
   cmp_ok ulonglong($INT_MAX*4)%2, '==', 0, "big ulonglong modulus: @{[$INT_MAX*4]} % 2";
   #skip float intentionally here, since float($INT_MAX)!=$INT_MAX
