@@ -7,6 +7,7 @@
 - fix packsize for indx to base on ptrsize, not ivsize (https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=1092246) - thanks Helge Deller for report
 - now an error to upd_data if datasv set to different size from nbytes
 - add PDL::readonly method (#516) - thanks @wlmb for suggestion
+- rename Ufunc::diffover to Ufunc::numdiff (#516)
 
 2.098 2025-01-03
 - fix Windows build problems

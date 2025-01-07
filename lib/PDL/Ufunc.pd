@@ -204,7 +204,7 @@ as it will not contain any bad values.',
 	   );
 } # foreach: $func
 
-pp_def('diffover',
+pp_def('numdiff',
   Pars  => 'x(t); [o]dx(t)',
   Inplace   => 1,
   GenericTypes => [ppdefs_all],
@@ -217,7 +217,7 @@ EOF
   Doc => <<'EOF',
 =for ref
 
-Differencing. DX(t) = X(t) - X(t-1), DX(0) = X(0). Can be done inplace.
+Numerical differencing. DX(t) = X(t) - X(t-1), DX(0) = X(0). Can be done inplace.
 
 Unlike L</diff2>, output vector is same length.
 Originally by Maggie J. Xiong.
@@ -246,7 +246,7 @@ EOF
 Numerically differentiates a vector along 0th dimension.
 
 By using L<PDL::Slices/xchg> etc. it is possible to use I<any> dimension.
-Unlike L</diffover>, output vector is one shorter.
+Unlike L</numdiff>, output vector is one shorter.
 
 =for usage
 
