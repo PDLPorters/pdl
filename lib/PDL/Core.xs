@@ -294,6 +294,19 @@ inplace(self, ...)
     RETVAL
 
 SV *
+readonly(self)
+  SV *self
+  CODE:
+    pdl *p = pdl_SvPDLV(self);
+    if (!p) barf("Failed to get PDL from arg");
+    if (p->state & PDL_NOMYDIMS)
+      barf("Tried to set readonly on a null");
+    p->state |= PDL_READONLY;
+    SvREFCNT_inc(RETVAL = self);
+  OUTPUT:
+    RETVAL
+
+SV *
 flowing(self)
   SV *self
   CODE:

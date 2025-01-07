@@ -1118,10 +1118,14 @@ static inline pdl_error pdl__transtype_select(
 ) {
   pdl_error PDL_err = {0, NULL, 0};
   *retval = PDL_INVALID;
-  PDL_Indx i;
   pdl_transvtable *vtable = trans->vtable;
+  PDL_Indx i, nparents = vtable->nparents;
   for (i=0; i<vtable->npdls; i++) {
     pdl *pdl = trans->pdls[i];
+    if (i >= nparents && pdl->state & PDL_READONLY)
+      return pdl_make_error(PDL_EUSERERROR,
+        "%s error: output parameter %s is read-only",
+        vtable->name, vtable->par_names[i]);
     if (pdl->state & PDL_NOMYDIMS)
       continue;
     short flags = vtable->par_flags[i];
@@ -1158,7 +1162,7 @@ static inline pdl_error pdl__transtype_select(
       if (new_transtype != PDL_INVALID && newtype_is_avail && *retval < new_transtype)
         *retval = new_transtype;
     }
-    if (i == vtable->nparents && *retval != PDL_INVALID) return PDL_err;
+    if (i == nparents && *retval != PDL_INVALID) return PDL_err;
   }
   if (use_last_dtype || *retval == PDL_INVALID || !PDL_BITFIELD_ISSET(type_avail, *retval))
     *retval = last_dtype;

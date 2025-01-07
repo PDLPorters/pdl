@@ -819,6 +819,39 @@ sub piddle {PDL->pdl(@_)}
 sub pdl {PDL->pdl(@_)}
 sub PDL::pdl { shift->new(@_) }
 
+=head2 readonly
+
+=for ref
+
+Make an ndarray read-only, returning the ndarray argument.
+This means any future transformation (a.k.a. PDL
+operation) applied to this ndarray I<as an output> will cause an exception:
+
+  $x = sequence(3)->readonly; # also works: $x = sequence(3); $x->readonly;
+  $y = $x + 1; # fine
+  $x .= 5; # error
+  $x += 5; # also error
+
+Not exported.
+
+=for usage
+
+ $x->readonly;
+
+=head2 is_readonly
+
+=for ref
+
+Test whether an ndarray is read-only.
+
+  $bool = $x->is_readonly;
+
+Not exported.
+
+=for usage
+
+ $x->is_readonly;
+
 =head2 flowing
 
 =for ref

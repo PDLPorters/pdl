@@ -77,6 +77,19 @@ eval {PDL->inplace};
 like $@, qr/called object method/, 'error on PDL->obj_method';
 
 {
+  isa_ok sequence(3)->readonly, 'PDL', 'returns object';
+  my $x = sequence(3);
+  ok !$x->is_readonly, 'not readonly';
+  $x->readonly;
+  ok $x->is_readonly, 'now is readonly';
+  is_pdl $x + 1, pdl '1 2 3';
+  eval {$x .= 5};
+  like $@, qr/is read-only/, 'assgn causes error';
+  eval {$x += 5};
+  like $@, qr/is read-only/, 'inplace causes error';
+}
+
+{
 my $p = sequence(3);
 my $p2 = sequence(2);
 eval {$p->set(1,$p2)};
