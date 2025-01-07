@@ -5,11 +5,41 @@
 
 extern struct Core PDL;
 
+/* Note this is *perl's* magic, similar in principle, but unrelated to pdlmagic.{h,c}
+ * This is used for linkage from a PDL object to the PDL struct.
+ * PDL objects also store the struct pointer in the SV as an int, or HV as a key,
+ * but looking up magic is faster than verifying the reftype and class.
+ */
+static int pdl_perl_extension_magic_free(pTHX_ SV* sv, MAGIC* mg) {
+   /* Do nothing, for now, because PDL destruction happens during DESTROY */
+  return 0;
+}
+static MGVTBL pdl_perl_extension_magic_vtbl= {
+  0, /* get */
+  0, /* set */
+  0, /* length */
+  0, /* clear */
+  pdl_perl_extension_magic_free /* free */
+#ifdef MGf_COPY
+  , 0 /* copy magic to new variable */
+#endif
+#ifdef MGf_DUP
+  , 0 /* dup for new threads */
+#endif
+#ifdef MGf_LOCAL
+  , 0 /* local */
+#endif
+};
+
 void pdl_SetSV_PDL ( SV *sv, pdl *it ) {
         SV *newref;
         if (!it->sv) {
+                MAGIC *magic;
                 newref = newRV_noinc(it->sv = newSViv(PTR2IV(it)));
                 (void)sv_bless(newref,gv_stashpv("PDL",TRUE));
+                magic= sv_magicext(it->sv, NULL, PERL_MAGIC_ext,
+                                   &pdl_perl_extension_magic_vtbl, (const char*) it, 0);
+               (void)magic; // suppress warning
         } else {
                 newref = newRV_inc(it->sv);
                 SvAMAGIC_on(newref);
@@ -49,6 +79,17 @@ pdl* pdl_SvPDLV ( SV* sv ) {
    /* If execution reaches here, then sv is NOT a scalar
     * (i.e. it is a ref).
     */
+
+   /* Make the common case fast - if the ref'd object has a pdl struct attached via magic,
+    * then return that before inspecting anything further. */
+   if (SvMAGICAL(SvRV(sv))) {
+      MAGIC *magic;
+      /* Iterate magic attached to this SV/AV/HV, looking for one with our vtable */
+      for (magic = SvMAGIC(SvRV(sv)); magic; magic = magic->mg_moremagic)
+         if (magic->mg_virtual == &pdl_perl_extension_magic_vtbl)
+            /* If found, the mg_ptr points to the fields structure. */
+            return (pdl*) magic->mg_ptr;
+   }
 
    if (SvTYPE(SvRV(sv)) == SVt_PVHV) {
       HV *hash = (HV*)SvRV(sv);
