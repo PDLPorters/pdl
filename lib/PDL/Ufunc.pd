@@ -217,12 +217,55 @@ EOF
   Doc => <<'EOF',
 =for ref
 
-Numerical differencing. DX(t) = X(t) - X(t-1), DX(0) = X(0). Can be done inplace.
+Numerical differencing. DX(t) = X(t) - X(t-1), DX(0) = X(0).
+Can be done inplace.
+Combined with C<slice('-1:0')>, can be used for backward differencing.
 
 Unlike L</diff2>, output vector is same length.
 Originally by Maggie J. Xiong.
 
 Compare to L</cumusumover>, which acts as the converse of this.
+See also L</diff2>, L</diffcentred>, L<PDL::Primitive/pchip_chim>.
+EOF
+);
+
+pp_def('diffcentred',
+  HandleBad => 1,
+  Pars => 'a(n); [o]o(n)',
+  GenericTypes => [ppdefs_all],
+  Code => <<'EOF',
+loop(n) %{
+  PDL_Indx left = n-1, right = n+1;
+  if (left < 0) left = $SIZE(n)-1;
+  if (right >= $SIZE(n)) right = 0;
+  PDL_IF_BAD(if ($ISBAD($a(n=>left)) || $ISBAD($a(n=>right))) {
+    $SETBAD(o()); continue;
+  },)
+  $o() = ($a(n=>right) - $a(n=>left))/2;
+%}
+EOF
+  Doc => <<'EOF',
+=for ref
+
+Calculates centred differences along a vector's 0th dimension.
+Always periodic on boundaries; currently to change this, you must
+pad your data, and/or trim afterwards. This is so that when using
+with L</partial>, the size of data stays the same and therefore
+compatible if differentiated along different dimensions, e.g.
+calculating "curl".
+
+By using L<PDL::Slices/xchg> etc. it is possible to use I<any> dimension.
+
+See also L</diff2>, L</numdiff>, L<PDL::Primitive/pchip_chim>.
+
+=for usage
+
+  print pdl(q[3 4 2 3 2 3 1])->diff2;
+  # [1 -2 1 -1 1 -2]
+EOF
+  BadDoc => <<'EOF',
+A bad value at C<n> means the affected output values at C<n-2>,C<n>
+(if in boounds) are set bad.
 EOF
 );
 
@@ -243,10 +286,13 @@ EOF
   Doc => <<'EOF',
 =for ref
 
-Numerically differentiates a vector along 0th dimension.
+Numerically forward differentiates a vector along 0th dimension.
 
 By using L<PDL::Slices/xchg> etc. it is possible to use I<any> dimension.
 Unlike L</numdiff>, output vector is one shorter.
+Combined with C<slice('-1:0')>, can be used for backward differencing.
+
+See also L</numdiff>, L</diffcentred>, L<PDL::Primitive/pchip_chim>.
 
 =for usage
 
@@ -262,8 +308,7 @@ EOF
 # this would need a lot of work to support bad values
 # plus it gives me a chance to check out HandleBad => 0 ;)
 #
-pp_def(
-       'intover',
+pp_def('intover',
        HandleBad => 0,
        Pars => 'a(n); float+ [o]b();',
        Code =>
@@ -331,8 +376,7 @@ sub synonym {
 
 sub make_average {
   my ($prefix, $outpar_type, $extra) = @_;
-  pp_def(
-	"${prefix}average",
+  pp_def("${prefix}average",
 	HandleBad => 1,
 	Pars => "a(n); $outpar_type [o]b();",
         Code => <<'EOF',
@@ -369,8 +413,7 @@ for my $which (
 	       ) {
     my ($name, $op, $synonym) = @$which;
 
-    pp_def(
-	    $name,
+    pp_def($name,
 	    HandleBad => 1,
 	    Pars => 'a(n); [o]c();',
 	    Code =>
@@ -395,8 +438,7 @@ for ways of masking NaNs.
 	    );
     synonym($name, $synonym);
 
-    pp_def(
-	    "${name}_ind",
+    pp_def("${name}_ind",
 	    HandleBad => 1,
 	    Pars => 'a(n); indx [o] c();',
 	    Code =>
@@ -421,8 +463,7 @@ for ways of masking NaNs.
 	    );
     synonym("${name}_ind", "${synonym}_ind");
 
-    pp_def(
-	    "${name}_n_ind",
+    pp_def("${name}_n_ind",
 	    HandleBad => 1,
 	    Pars => 'a(n); indx [o]c(m);',
 	    OtherPars => 'PDL_Indx m_size => m;',
@@ -483,8 +524,7 @@ for ways of masking NaNs.
     synonym("${name}_n_ind", "${synonym}_n_ind");
 } # foreach: $which
 
-pp_def(
-	'minmaximum',
+pp_def('minmaximum',
 	HandleBad => 1,
 	Pars => 'a(n); [o]cmin(); [o] cmax(); indx [o]cmin_ind(); indx [o]cmax_ind();',
 	Code => <<'EOF',
@@ -797,8 +837,7 @@ my $find_median_average = '
            else {
 	      $b() = 0.5*( $tmp(n => nn1) + $tmp(n => nn2)  );
            }';
-pp_def(
-       'medover',
+pp_def('medover',
        HandleBad => 1,
        Pars => 'a(n); [o]b(); [t]tmp(n);',
        Doc => projectdocs('median','medover',''),
@@ -809,8 +848,7 @@ pp_def(
 my $find_median_lower = '
         PDL_Indx nn1 = nn/2;
 	$b() = $tmp(n => nn1);';
-pp_def(
-       'oddmedover',
+pp_def('oddmedover',
        HandleBad => 1,
        Pars => 'a(n); [o]b(); [t]tmp(n);',
        Doc => projectdocs('oddmedian','oddmedover','

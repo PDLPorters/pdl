@@ -246,6 +246,14 @@ subtest numdiff => sub {
   is_pdl $a, pdl(2, 1, 1, 1, 1), "numdiff inplace";
 };
 
+subtest diffcentred => sub {
+  my $a = sequence(6) + 2;
+  is_pdl $a->diffcentred, pdl(-2, 1, 1, 1, 1, -2), "diffcentred";
+  is_pdl +($a**2)->diffcentred, pdl('-20 6 8 10 12 -16'), "diffcentred of x^2";
+  $a->setbadat(2);
+  is_pdl +($a**2)->diffcentred, pdl('-20 BAD 8 BAD 12 -16'), "diffcentred of x^2 with bad";
+};
+
 subtest diff2 => sub {
   my $got = pdl('[BAD 2 3 4]')->diff2;
   is "$got", "[2 1 1]", 'first bad';
