@@ -8,7 +8,7 @@
 - now an error to upd_data if datasv set to different size from nbytes
 - add PDL::readonly method (#516) - thanks @wlmb for suggestion
 - rename Ufunc::diffover to Ufunc::numdiff (#516)
-- add Ufunc::diffcentred (#516)
+- add Ufunc::{diffcentred,partial} (#516)
 
 2.098 2025-01-03
 - fix Windows build problems

@@ -9,6 +9,8 @@ pp_addpm({At=>'Top'},<<'EOD');
 use strict;
 use warnings;
 
+=encoding utf8
+
 =head1 NAME
 
 PDL::Ufunc - primitive ufunc operations for pdl
@@ -225,7 +227,7 @@ Unlike L</diff2>, output vector is same length.
 Originally by Maggie J. Xiong.
 
 Compare to L</cumusumover>, which acts as the converse of this.
-See also L</diff2>, L</diffcentred>, L<PDL::Primitive/pchip_chim>.
+See also L</diff2>, L</diffcentred>, L</partial>, L<PDL::Primitive/pchip_chim>.
 EOF
 );
 
@@ -256,7 +258,7 @@ calculating "curl".
 
 By using L<PDL::Slices/xchg> etc. it is possible to use I<any> dimension.
 
-See also L</diff2>, L</numdiff>, L<PDL::Primitive/pchip_chim>.
+See also L</diff2>, L</partial>, L</numdiff>, L<PDL::Primitive/pchip_chim>.
 
 =for usage
 
@@ -268,6 +270,71 @@ A bad value at C<n> means the affected output values at C<n-2>,C<n>
 (if in boounds) are set bad.
 EOF
 );
+
+pp_add_exported('partial');
+pp_addpm(<<'EOF');
+=head2 partial
+
+=for ref
+
+Take a numerical partial derivative along a given dimension, either
+forward, backward, or centred.
+
+See also L</numdiff>, L</diffcentred>, and L<PDL::Slices/mv>, which
+are currently used to implement this.
+See also L<PDL::Primitive/pchip_chim> and  L</numdiff>.
+
+Can be used to implement divergence and curl calculations (adapted
+from Luis Mochán's work at
+https://sourceforge.net/p/pdl/mailman/message/58843767/):
+
+  use v5.36;
+  use PDL;
+  sub curl ($f) {
+    my ($f0, $f1, $f2) = $f->using(0..2);
+    my $o = {dir=>'c'};
+    pdl(
+      $f2->partial(1,$o) - $f1->partial(2,$o),
+      $f0->partial(2,$o) - $f2->partial(0,$o),
+      $f1->partial(0,$o) - $f0->partial(1,$o),
+    )->mv(-1,0);
+  }
+  sub div ($f) {
+    my ($f0, $f1, $f2) = $f->using(0..2);
+    my $o = {dir=>'c'};
+    $f0->partial(0,$o) + $f1->partial(1,$o) + $f2->partial(2,$o);
+  }
+  sub trim3d ($f) { $f->slice(':,1:-2,1:-2,1:-2') } # adjust if change "dir"
+  my $z=zeroes(5,5,5);
+  my $v=pdl(-$z->yvals, $z->xvals, $z->zvals)->mv(-1,0);
+  say trim3d(curl($v));
+  say div($v);
+
+=for usage
+
+  $pdl->partial(2);           # along dim 2, centred
+  $pdl->partial(2, {d=>'c'}); # along dim 2, centred
+  $pdl->partial(2, {d=>'f'}); # along dim 2, forward
+  $pdl->partial(2, {d=>'b'}); # along dim 2, backward
+
+=cut
+
+my %dirtype2func = (
+  f => \&numdiff,
+  b => sub { $_[0]->slice('-1:0')->numdiff },
+  c => \&diffcentred,
+);
+*partial = \&PDL::partial;
+sub PDL::partial {
+  my ($f, $dim, $opts) = @_;
+  $opts ||= {};
+  my $difftype = $opts->{dir} || $opts->{d} || 'c';
+  my $func = $dirtype2func{$difftype} || barf "partial: unknown 'dir' option '$difftype', only know (@{[sort keys %dirtype2func]})";
+  $f = $f->mv($dim, 0) if $dim;
+  my $ret = $f->$func;
+  $dim ? $ret->mv(0, $dim) : $ret;
+}
+EOF
 
 pp_def('diff2',
   HandleBad => 1,
@@ -292,7 +359,7 @@ By using L<PDL::Slices/xchg> etc. it is possible to use I<any> dimension.
 Unlike L</numdiff>, output vector is one shorter.
 Combined with C<slice('-1:0')>, can be used for backward differencing.
 
-See also L</numdiff>, L</diffcentred>, L<PDL::Primitive/pchip_chim>.
+See also L</numdiff>, L</diffcentred>, L</partial>, L<PDL::Primitive/pchip_chim>.
 
 =for usage
 

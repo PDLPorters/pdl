@@ -239,6 +239,18 @@ subtest 'minimum_n_ind' => sub {
     }
 };
 
+subtest partial => sub {
+  my $a = (sequence(4,4) + 2) ** 2;
+  is_pdl $a->partial(0), pdl('-8 6 8 -6; -16 14 16 -14;
+    -24 22 24 -22; -32 30 32 -30'), "partial(0)";
+  is_pdl $a->partial(0,{d=>'f'}), pdl('4 5 7 9; 36 13 15 17;
+    100 21 23 25; 196 29 31 33'), "partial(0,f)";
+  is_pdl $a->partial(1), pdl('-80 -88 -96 -104; 48 56 64 72;
+    80 88 96 104; -48 -56 -64 -72'), "partial(1)";
+  is_pdl $a->partial(1,{d=>'f'}), pdl('4 9 16 25; 32 40 48 56;
+    64 72 80 88; 96 104 112 120'), "partial(1,f)";
+};
+
 subtest numdiff => sub {
   my $a = sequence(5) + 2;
   is_pdl $a->numdiff, pdl(2, 1, 1, 1, 1), "numdiff";
