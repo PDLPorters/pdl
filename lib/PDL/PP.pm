@@ -1428,11 +1428,11 @@ EOD
           $in = $$arg[0];
           $out = $$arg[1] if @$arg > 1;
         }
-        confess "ERROR in pp_def($name): Inplace does not know name of input ndarray"
+        confess "ERROR in pp_def($name): Inplace does not know name of input ndarray, options were (@in)"
             unless defined $in;
         confess "ERROR in pp_def($name): Inplace input ndarray '$in' is actually output"
             if $is_out{$in};
-        confess "ERROR in pp_def($name): Inplace does not know name of output ndarray"
+        confess "ERROR in pp_def($name): Inplace does not know name of output ndarray, options were (@out)"
             unless defined $out;
         my ($in_obj, $out_obj) = map $sig->objs->{$_}, $in, $out;
         confess "ERROR in pp_def($name): Inplace output arg $out not [o]\n" if !$$out_obj{FlagW};

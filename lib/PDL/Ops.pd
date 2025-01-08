@@ -516,6 +516,7 @@ EOF
 );
 
 pp_def('ipow',
+   Inplace => [qw(a ans)],
    Doc => qq{
 =for ref
 

@@ -10,6 +10,7 @@
 - rename Ufunc::diffover to Ufunc::numdiff (#516)
 - add Ufunc::{diffcentred,partial} (#516)
 - fix xforms without [o] Pars not getting bvalflag set, a regression in 2.083 (#517) - thanks @vitstradal for report
+- Ops::ipow now actually works inplace like doc says (#519)
 
 2.098 2025-01-03
 - fix Windows build problems
