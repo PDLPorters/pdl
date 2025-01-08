@@ -1197,11 +1197,11 @@ $PDL::PP::deftbl =
          my ($bf, $name, $code) = @_;
          my $str;
          if ( not defined($bf) ) {
-            $str = "$name does not process bad values.\n";
+            $str = "C<$name> does not process bad values.\n";
          } elsif ( $bf ) {
-            $str = "$name processes bad values.\n";
+            $str = "C<$name> processes bad values.\n";
          } else {
-            $str = "$name ignores the bad-value flag of the input ndarrays.\n";
+            $str = "C<$name> ignores the bad-value flag of the input ndarrays.\n";
          }
          if ( not defined($code) ) {
             $str .= "It will set the bad-value flag of all output ndarrays if " .
@@ -1216,61 +1216,6 @@ $PDL::PP::deftbl =
 
    # Default: no otherpars
    PDL::PP::Rule::Returns::EmptyString->new("OtherPars"),
-
-   # the docs
-   PDL::PP::Rule->new("PdlDoc", "FullDoc", sub {
-         my $fulldoc = shift;
-         # Append a final cut if it doesn't exist due to heredoc shinanigans
-         $fulldoc .= "\n\n=cut\n" unless $fulldoc =~ /\n=cut\n*$/;
-         # Make sure the =head1 FUNCTIONS section gets added
-         $::DOCUMENTED++;
-         return $fulldoc;
-      }
-   ),
-   PDL::PP::Rule->new("PdlDoc", [qw(Name Pars? OtherPars Doc BadDoc?)],
-      sub {
-        my ($name,$pars,$otherpars,$doc,$baddoc) = @_;
-        return '' if !defined $doc # Allow explicit non-doc using Doc=>undef
-            or $doc =~ /^\s*internal\s*$/i;
-        # If the doc string is one line let's have two for the
-        # reference card information as well
-        $doc = "=for ref\n\n".$doc if $doc !~ /\n/;
-        $::DOCUMENTED++;
-        $pars = "P(); C()" unless $pars;
-        # Strip leading whitespace and trailing semicolons and whitespace
-        $pars =~ s/^\s*(.+[^;])[;\s]*$/$1/;
-        $otherpars =~ s/^\s*(.+[^;])[;\s]*$/$1/ if $otherpars;
-        my $sig = "$pars".( $otherpars ? "; $otherpars" : "");
-        $doc =~ s/\n(=cut\s*\n)+(\s*\n)*$/\n/m; # Strip extra =cut's
-        if ( defined $baddoc ) {
-                # Strip leading newlines and any =cut markings
-            $baddoc =~ s/\n(=cut\s*\n)+(\s*\n)*$/\n/m;
-            $baddoc =~ s/^\n+//;
-            $baddoc = "=for bad\n\n$baddoc";
-        }
-        my $baddoc_function_pod = <<"EOD" ;
-
-XXX=head2 $name
-
-XXX=for sig
-
-  Signature: ($sig)
-
-$doc
-
-$baddoc
-
-XXX=cut
-
-EOD
-        $baddoc_function_pod =~ s/^XXX=/=/gms;
-        return $baddoc_function_pod;
-      }
-   ),
-
-   ##################
-   # Done with Docs #
-   ##################
 
    # Notes
    # Suffix 'NS' means, "Needs Substitution". In other words, the string
@@ -1465,6 +1410,57 @@ EOD
         "  PDL_XS_INPLACE($in, $out)\n";
       }),
    PDL::PP::Rule::Returns::EmptyString->new("InplaceCode", []),
+
+   # the docs
+   PDL::PP::Rule->new("PdlDoc", "FullDoc", sub {
+         my $fulldoc = shift;
+         # Append a final cut if it doesn't exist due to heredoc shinanigans
+         $fulldoc .= "\n\n=cut\n" unless $fulldoc =~ /\n=cut\n*$/;
+         # Make sure the =head1 FUNCTIONS section gets added
+         $::DOCUMENTED++;
+         return $fulldoc;
+      }
+   ),
+   PDL::PP::Rule->new("PdlDoc", [qw(Name Pars? OtherPars Doc BadDoc?)],
+      sub {
+        my ($name,$pars,$otherpars,$doc,$baddoc) = @_;
+        return '' if !defined $doc # Allow explicit non-doc using Doc=>undef
+            or $doc =~ /^\s*internal\s*$/i;
+        # If the doc string is one line let's have two for the
+        # reference card information as well
+        $doc = "=for ref\n\n".$doc if $doc !~ /\n/;
+        $::DOCUMENTED++;
+        $pars = "P(); C()" unless $pars;
+        # Strip leading whitespace and trailing semicolons and whitespace
+        $pars =~ s/^\s*(.+[^;])[;\s]*$/$1/;
+        $otherpars =~ s/^\s*(.+[^;])[;\s]*$/$1/ if $otherpars;
+        my $sig = "$pars".( $otherpars ? "; $otherpars" : "");
+        $doc =~ s/\n(=cut\s*\n)+(\s*\n)*$/\n/m; # Strip extra =cut's
+        if ( defined $baddoc ) {
+                # Strip leading newlines and any =cut markings
+            $baddoc =~ s/\n(=cut\s*\n)+(\s*\n)*$/\n/m;
+            $baddoc =~ s/^\n+//;
+            $baddoc = "=for bad\n\n$baddoc";
+        }
+        my $baddoc_function_pod = <<"EOD" ;
+
+XXX=head2 $name
+
+XXX=for sig
+
+  Signature: ($sig)
+
+$doc
+
+$baddoc
+
+XXX=cut
+
+EOD
+        $baddoc_function_pod =~ s/^XXX=/=/gms;
+        $baddoc_function_pod;
+      }
+   ),
 
    PDL::PP::Rule::Returns::EmptyString->new("HdrCode", [],
     'Code that will be inserted before the call to the RunFunc'),
