@@ -22,8 +22,6 @@ pp_addpm({At=>'Top'},<<'EOD');
 use strict;
 use warnings;
 
-my %OVERLOADS;
-
 =head1 NAME
 
 PDL::Ops - Fundamental mathematical operators
@@ -176,32 +174,31 @@ EOD
 
 sub make_overload {
     my ($op, $name, $mutator, $bitwise, $one_arg) = @_;
-    my $ret;
+    my $ret = "{ package # hide from MetaCPAN\n PDL;\n";
     my $bitwise_passon = $bitwise ? '$_[2]?@_[1,0]:@_[0,1]' : '@_';
     if ($one_arg) {
-      $ret = pp_line_numbers(__LINE__, <<EOF);
-BEGIN { \$OVERLOADS{'$op'} = sub { PDL::$name(\$_[0]) } }
+      $ret .= pp_line_numbers(__LINE__, <<EOF);
+use overload '$op' => sub { PDL::$name(\$_[0]) };
 EOF
     } else {
-      $ret = pp_line_numbers(__LINE__, <<EOF);
+      $ret .= pp_line_numbers(__LINE__, <<EOF);
 {
   my (\$foo, \$overload_sub);
-  BEGIN { \$OVERLOADS{'$op'} = \$overload_sub = sub(;\@) {
+  use overload '$op' => \$overload_sub = sub(;\@) {
       return PDL::$name($bitwise_passon) unless ref \$_[1]
               && (ref \$_[1] ne 'PDL')
               && defined(\$foo = overload::Method(\$_[1], '$op'))
               && \$foo != \$overload_sub; # recursion guard
       goto &\$foo;
-  }; }
+  };
 }
 EOF
     }
     $ret .= pp_line_numbers(__LINE__, <<EOF) if $mutator;
-BEGIN {
 # in1, in2, out, swap if true
-\$OVERLOADS{'$op='} = sub { PDL::$name(\$_[0]->inplace, \$_[1]); \$_[0] };
-}
+use overload '$op=' => sub { PDL::$name(\$_[0]->inplace, \$_[1]); \$_[0] };
 EOF
+    $ret .= "}\n"; # close package override
     $ret;
 }
 
@@ -623,7 +620,7 @@ sub warn_non_numeric_op_wrapper {
 
 { package # hide from MetaCPAN
     PDL;
-  use overload %OVERLOADS,
+  use overload
     "eq"    => PDL::Ops::warn_non_numeric_op_wrapper(\&PDL::eq, 'eq'),
     ".="    => sub {
       my @args = !$_[2] ? @_[1,0] : @_[0,1];
