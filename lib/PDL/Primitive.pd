@@ -15,16 +15,6 @@ use warnings;
 use PDL::Slices;
 use Carp;
 
-{ package # hide from MetaCPAN
-    PDL;
-  use overload (
-    'x' => sub {
-      PDL::Primitive::matmult(@_[0,1], my $foo=$_[0]->null());
-      $foo;
-    },
-  );
-}
-
 =head1 NAME
 
 PDL::Primitive - primitive operations for pdl
@@ -204,6 +194,7 @@ pp_def('matmult',
 	HandleBad=>1,
 	Pars => 'a(t,h); b(w,t); [o]c(w,h);',
 	GenericTypes => [ppdefs_all],
+	Overload => 'x',
 	PMCode => pp_line_numbers(__LINE__, <<'EOPM'),
 sub PDL::matmult {
     my ($x,$y,$c) = @_;

@@ -522,6 +522,7 @@ sub import {
   $::PDLMULTI_C_PREFIX = $deep ? "$base-" : "";
   $::PDLOBJ = "PDL"; # define pp-funcs in this package
   $::PDLXS="";
+  $::PDLOVERLOAD="";
   $::PDLBEGIN="";
   $::PDLPMROUT="";
   for ('Top','Bot','Middle') { $::PDLPM{$_}="" }
@@ -806,6 +807,7 @@ $::PDL_IFBEGINWRAP[0]
    push \@PDL::Core::PP, __PACKAGE__;
    bootstrap $::PDLMOD $::PDLMODVERSION;
 $::PDL_IFBEGINWRAP[-1]
+$::PDLOVERLOAD
 EOF
 } # end pp_done
 
@@ -1429,10 +1431,51 @@ $PDL::PP::deftbl =
      }),
    PDL::PP::Rule::Returns::EmptyString->new("InplaceDoc", []),
 
+   PDL::PP::Rule->new([],
+     [qw(Name SignatureObj Overload Inplace?)],
+     'implement Perl overloaded operators',
+     sub {
+       my ($name, $sig, $ovl, $inplace) = @_;
+       confess "$name Overload given false value" if !$ovl;
+       $ovl = [$ovl] if !ref $ovl;
+       my ($op, $mutator, $bitwise) = @$ovl;
+       confess "$name Overload trying to define mutator but no inplace"
+         if $mutator && !$inplace;
+       my $one_arg = $sig->names_in == 1;
+       my $ret = "{ package # hide from MetaCPAN\n $::PDLOBJ;\n";
+       my $bitwise_passon = $bitwise ? '$_[2]?@_[1,0]:@_[0,1]' : '@_';
+       my $fullname = $::PDLOBJ."::$name";
+       if ($one_arg) {
+         $ret .= pp_line_numbers(__LINE__, <<EOF);
+use overload '$op' => sub { $fullname(\$_[0]) };
+EOF
+       } else {
+         $ret .= pp_line_numbers(__LINE__, <<EOF);
+{
+  my (\$foo, \$overload_sub);
+  use overload '$op' => \$overload_sub = sub(;\@) {
+      return $fullname($bitwise_passon) unless ref \$_[1]
+              && (ref \$_[1] ne '$::PDLOBJ')
+              && defined(\$foo = overload::Method(\$_[1], '$op'))
+              && \$foo != \$overload_sub; # recursion guard
+      goto &\$foo;
+  };
+}
+EOF
+       }
+       $ret .= pp_line_numbers(__LINE__, <<EOF) if $mutator;
+# in1, in2, out, swap if true
+use overload '$op=' => sub { $fullname(\$_[0]->inplace, \$_[1]); \$_[0] };
+EOF
+       $::PDLOVERLOAD .= "$ret}\n";
+       ();
+     }),
+   PDL::PP::Rule::Returns::Zero->new("Overload"),
+
    # the docs
    PDL::PP::Rule->new("PdlDoc", "FullDoc", sub {
          my $fulldoc = shift;
-         # Append a final cut if it doesn't exist due to heredoc shinanigans
+         # Append a final cut if it doesn't exist due to heredoc shenanigans
          $fulldoc .= "\n\n=cut\n" unless $fulldoc =~ /\n=cut\n*$/;
          # Make sure the =head1 FUNCTIONS section gets added
          $::DOCUMENTED++;

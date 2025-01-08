@@ -12,6 +12,7 @@
 - fix xforms without [o] Pars not getting bvalflag set, a regression in 2.083 (#517) - thanks @vitstradal for report
 - Ops::ipow now actually works inplace like doc says (#519)
 - InplaceDoc now automatically generated like BadDoc, Signature doc includes types
+- Overload key added to PP (#519)
 
 2.098 2025-01-03
 - fix Windows build problems

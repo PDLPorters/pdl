@@ -1875,7 +1875,8 @@ If bad values are being used, care must be taken to ensure the
 propagation of the badflag when inplace is being used;
 consider this excerpt from F<lib/PDL/Bad.pd>:
 
-  pp_def('setbadtoval',HandleBad => 1,
+  pp_def('setbadtoval',
+    HandleBad => 1,
     Pars => 'a(); [o]b();',
     OtherPars => 'double newval',
     Inplace => 1,
@@ -1890,9 +1891,19 @@ automatically flagged to indicate that it can be executed inplace,
 similar to how C<HandleBad> sets C<BadDoc> if it's not
 supplied. This can be overridden by supplying C<InplaceDoc>.
 
+=head3 Overload
+
+  # in Ops.pd
+  Overload => '>',
+  Overload => ['+', 1],    # mutator
+  Overload => ['|', 1, 1], # bitwise
+
+Implements overloading of Perl operators.
+Added in PDL 2.099. Will overload in the current C<pp_bless> package,
+which defaults to C<PDL>.
+
 =head3 FTypes
 
-  # in slices.pd
   FTypes => {CHILD => '$COMP(totype)'},
 
 The value is a hash-ref mapping parameter-names to an expression giving

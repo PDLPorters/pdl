@@ -128,7 +128,6 @@ EOF
     }
 
     my $bitwise = delete $extra{Bitwise};
-    pp_addpm(make_overload($op, $name, $mutator, $bitwise));
     my $sp = ' ' x (length($name) - length($op) + 2); # line up example table
     my $mutate_doc = !$mutator ? '' : " \$x $op= \$y;$sp             # equivalent to above\n";
     pp_def($name,
@@ -138,6 +137,7 @@ EOF
 	   HandleBad => 1,
 	   NoBadifNaN => 1,
 	   Inplace => [ 'a' ],
+	   Overload => [$op, $mutator, $bitwise],
 	   Code => pp_line_numbers(__LINE__, <<EOF),
 PDL_IF_BAD(char anybad = 0;,)
 broadcastloop %{
@@ -171,36 +171,6 @@ the third argument (see second example), or supply it (see third one).
 
 EOD
 } # sub: biop()
-
-sub make_overload {
-    my ($op, $name, $mutator, $bitwise, $one_arg) = @_;
-    my $ret = "{ package # hide from MetaCPAN\n PDL;\n";
-    my $bitwise_passon = $bitwise ? '$_[2]?@_[1,0]:@_[0,1]' : '@_';
-    if ($one_arg) {
-      $ret .= pp_line_numbers(__LINE__, <<EOF);
-use overload '$op' => sub { PDL::$name(\$_[0]) };
-EOF
-    } else {
-      $ret .= pp_line_numbers(__LINE__, <<EOF);
-{
-  my (\$foo, \$overload_sub);
-  use overload '$op' => \$overload_sub = sub(;\@) {
-      return PDL::$name($bitwise_passon) unless ref \$_[1]
-              && (ref \$_[1] ne 'PDL')
-              && defined(\$foo = overload::Method(\$_[1], '$op'))
-              && \$foo != \$overload_sub; # recursion guard
-      goto &\$foo;
-  };
-}
-EOF
-    }
-    $ret .= pp_line_numbers(__LINE__, <<EOF) if $mutator;
-# in1, in2, out, swap if true
-use overload '$op=' => sub { PDL::$name(\$_[0]->inplace, \$_[1]); \$_[0] };
-EOF
-    $ret .= "}\n"; # close package override
-    $ret;
-}
 
 #simple binary functions
 sub bifunc {
@@ -240,7 +210,6 @@ ENDCODE
     }
     delete $extra{unsigned}; #remove the key so it doesn't get added in pp_def.
 
-    pp_addpm(make_overload($funcov, $name, $mutator));
     pp_def($name,
 	   HandleBad => 1,
 	   NoBadifNaN => 1,
@@ -248,6 +217,7 @@ ENDCODE
 	   OtherPars => 'int $swap',
 	   OtherParsDefaults => { swap => 0 },
 	   Inplace => [ 'a' ],
+	   Overload => [$funcov, $mutator],
 	   Code => pp_line_numbers(__LINE__, <<EOF),
 PDL_IF_BAD(char anybad = 0;,)
 broadcastloop %{
@@ -303,7 +273,6 @@ sub ufunc {
             (map 'types('.$_->ppsym.') %{$b() = c'.$func.$_->floatsuffix.'($a());%}', @Ctypes),
             ;
     }
-    pp_addpm(make_overload($funcov, $name, 0, 0, 1)) if $overload;
     # do not have to worry about propagation of the badflag when
     # inplace since only input ndarray is a, hence its badflag
     # won't change
@@ -313,6 +282,7 @@ sub ufunc {
 	   HandleBad => 1,
 	   NoBadifNaN => 1,
 	   Inplace => 1,
+	   !$overload ? () : (Overload => $funcov),
 	   Code => pp_line_numbers(__LINE__, <<EOF),
 PDL_IF_BAD(if ( \$ISBAD(a()) ) \$SETBAD(b()); else {,)
   $codestr
@@ -558,7 +528,6 @@ Returns the absolute value of a number.
 
 sub PDL::abs { $_[0]->type->real ? goto &PDL::_rabs : goto &PDL::_cabs }
 EOPM
-pp_addpm(make_overload(qw(abs abs), 0, 0, 1));
 
 pp_def('abs2',
   GenericTypes=>$A,
@@ -627,6 +596,7 @@ sub warn_non_numeric_op_wrapper {
       PDL::Ops::assgn(@args);
       return $args[1];
     },
+    'abs' => sub { PDL::abs($_[0]) },
     '++' => sub { $_[0] += ($PDL::Core::pdl_ones[$_[0]->get_datatype]//barf "Couldn't find 'one' for type ", $_[0]->get_datatype) },
     '--' => sub { $_[0] -= ($PDL::Core::pdl_ones[$_[0]->get_datatype]//barf "Couldn't find 'one' for type ", $_[0]->get_datatype) },
     ;
