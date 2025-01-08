@@ -488,11 +488,12 @@ pp_def(
     Code => <<'EOF',
 loop(n) %{
   register PDL_Indx this_ind = $ind();
-  if ( PDL_IF_BAD($ISBADVAR(this_ind,ind) ||,) this_ind<0 || this_ind>=$SIZE(m) )
-    $CROAK("invalid index %"IND_FLAG"; range 0..%"IND_FLAG, this_ind, $SIZE(m));
   PDL_IF_BAD(
-  if ( $ISBAD(input()) ) { $SETBAD(sum(m => this_ind)); }
-  else,)                 { $sum(m => this_ind) += $input(); }
+    if ($ISBADVAR(this_ind,ind)) $CROAK("bad index %"IND_FLAG, n);
+    if ($ISBAD(input())) { $SETBAD(sum(m => this_ind)); continue; },)
+  if (this_ind<0 || this_ind>=$SIZE(m))
+    $CROAK("invalid index %"IND_FLAG"; range 0..%"IND_FLAG, this_ind, $SIZE(m));
+  $sum(m => this_ind) += $input();
 %}
 EOF
     BadDoc => '

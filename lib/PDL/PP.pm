@@ -1822,12 +1822,13 @@ sub make_vfn_args {
    PDL::PP::Rule::Returns::EmptyString->new("NewXSCoerceMustNS"),
    PDL::PP::Rule::Substitute->new("NewXSCoerceMustCompSubd", "NewXSCoerceMustNS"),
 
-   PDL::PP::Rule->new("NewXSFindBadStatusNS", [qw(StructName SignatureObj)],
+   PDL::PP::Rule->new("NewXSFindBadStatusNS", [qw(StructName)],
       "Rule to find the bad value status of the input ndarrays",
       sub {
-        my $str = "PDL_RETERROR(PDL_err, PDL->trans_check_pdls($_[0]));\n";
-        $str .= "char \$BADFLAGCACHE() = PDL->trans_badflag_from_inputs($_[0]); (void)\$BADFLAGCACHE();\n" if $_[1]->names_out;
-        indent(2, $str);
+        indent(2, <<EOF);
+PDL_RETERROR(PDL_err, PDL->trans_check_pdls($_[0]));
+char \$BADFLAGCACHE() = PDL->trans_badflag_from_inputs($_[0]); (void)\$BADFLAGCACHE();
+EOF
       }),
 
    PDL::PP::Rule->new("NewXSCopyBadStatusNS",

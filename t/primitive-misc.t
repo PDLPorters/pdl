@@ -2,6 +2,7 @@ use Test::More;
 use PDL::LiteF;
 use PDL::Types;
 use Test::PDL;
+use Test::Exception; # subtest is making $@ be blank even after a die
 
 subtest hist => sub {
   my $y = pdl( 0.7422, 0.0299, 0.6629, 0.9118, 0.1224, 0.6173, 0.9203, 0.9999,
@@ -42,7 +43,14 @@ subtest 'indadd' => sub {
     my $ind = pdl( 1, 4, 6 );
     my $sum = zeroes(10);
     indadd( $a1, $ind, $sum );
-    is_pdl $sum->sum, pdl(6), "indadd";
+    is_pdl $sum, my $exp = pdl('0 1 0 0 2 0 3 0 0 0'), "indadd";
+    eval {indadd($a1, indx(-1), $sum)};
+    like $@, qr/invalid index/, 'invalid index right error';
+    is_pdl $sum, $exp, "indadd same after invalid ind";
+    my $bad_ind = indx('0 1 2');
+    $bad_ind->badvalue(0); $bad_ind->badflag(1);
+    throws_ok {indadd($a1, $bad_ind, $sum)} qr/bad index/, "[io] but no [o] still gets bvalflag set with $bad_ind";
+    is_pdl $sum, $exp, "indadd same after bad ind";
 };
 
 subtest 'one2nd' => sub {
