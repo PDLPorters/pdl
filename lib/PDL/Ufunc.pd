@@ -280,9 +280,9 @@ pp_addpm(<<'EOF');
 Take a numerical partial derivative along a given dimension, either
 forward, backward, or centred.
 
-See also L</numdiff>, L</diffcentred>, and L<PDL::Slices/mv>, which
-are currently used to implement this.
-See also L<PDL::Primitive/pchip_chim> and  L</numdiff>.
+See also L</numdiff>, L</diffcentred>,
+L<PDL::Primitive/pchip_chim>, L<PDL::Primitive/pchip_chsp>,
+and L<PDL::Slices/mv>, which are currently used to implement this.
 
 Can be used to implement divergence and curl calculations (adapted
 from Luis Mochán's work at
@@ -316,6 +316,8 @@ https://sourceforge.net/p/pdl/mailman/message/58843767/):
   $pdl->partial(2, {d=>'c'}); # along dim 2, centred
   $pdl->partial(2, {d=>'f'}); # along dim 2, forward
   $pdl->partial(2, {d=>'b'}); # along dim 2, backward
+  $pdl->partial(2, {d=>'p'}); # along dim 2, piecewise cubic Hermite
+  $pdl->partial(2, {d=>'s'}); # along dim 2, cubic spline
 
 =cut
 
@@ -323,6 +325,8 @@ my %dirtype2func = (
   f => \&numdiff,
   b => sub { $_[0]->slice('-1:0')->numdiff },
   c => \&diffcentred,
+  p => sub {(PDL::Primitive::pchip_chim($_[0]->xvals, $_[0]))[0]},
+  s => sub {(PDL::Primitive::pchip_chsp([0,0], [0,0], $_[0]->xvals, $_[0]))[0]},
 );
 *partial = \&PDL::partial;
 sub PDL::partial {
