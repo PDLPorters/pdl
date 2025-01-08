@@ -610,6 +610,14 @@ address(self)
   OUTPUT:
     RETVAL
 
+IV
+bvalflag(x)
+  pdl_trans *x
+  CODE:
+    RETVAL = x->bvalflag;
+  OUTPUT:
+    RETVAL
+
 void
 flags(x)
   pdl_trans *x

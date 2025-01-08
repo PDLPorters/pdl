@@ -383,6 +383,7 @@ void pdl_dump_trans_fixspace (pdl_trans *it, int nspac) {
 	SET_SPACE(spaces, nspac);
 	printf("%sDUMPTRANS %p (%s)\n%s   Flags: ",spaces,it,it->vtable->name,spaces);
 	pdl_dump_flags_fixspace(it->flags,nspac+3, PDL_FLAGS_TRANS);
+	printf("%s   bvalflag: %d\n",spaces,it->bvalflag);
 	printf("%s   vtable flags ",spaces);
 	pdl_dump_flags_fixspace(it->vtable->flags,nspac+3,PDL_FLAGS_VTABLE);
 	if(it->flags & PDL_ITRANS_ISAFFINE) {

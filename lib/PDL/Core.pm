@@ -2230,6 +2230,7 @@ sub pdump_trans {
   my $vtable = $trans->vtable;
   my @lines = (
     "State: ${\join '|', $trans->flags}",
+    "bvalflag: ${\$trans->bvalflag}",
     "vtable flags: ${\join '|', $vtable->flags}",
   );
   my @ins = $trans->parents;
