@@ -1439,20 +1439,26 @@ $PDL::PP::deftbl =
          return $fulldoc;
       }
    ),
-   PDL::PP::Rule->new("PdlDoc", [qw(Name Pars? OtherPars Doc InplaceDoc BadDoc?)],
+   PDL::PP::Rule->new("PdlDoc", [qw(Name Pars OtherPars GenericTypes Doc InplaceDoc BadDoc?)],
       sub {
-        my ($name,$pars,$otherpars,$doc,$inplacedoc,$baddoc) = @_;
+        my ($name,$pars,$otherpars,$gentypes,$doc,$inplacedoc,$baddoc) = @_;
         return '' if !defined $doc # Allow explicit non-doc using Doc=>undef
             or $doc =~ /^\s*internal\s*$/i;
         # If the doc string is one line let's have two for the
         # reference card information as well
         $doc = "=for ref\n\n".$doc if $doc !~ /\n/;
         $::DOCUMENTED++;
-        $pars = "P(); C()" unless $pars;
         # Strip leading whitespace and trailing semicolons and whitespace
         $pars =~ s/^\s*(.+[^;])[;\s]*$/$1/;
         $otherpars =~ s/^\s*(.+[^;])[;\s]*$/$1/ if $otherpars;
         my $sig = "$pars".( $otherpars ? "; $otherpars" : "");
+        my @typenames = map PDL::Type->new($_)->ioname, @$gentypes;
+        my @typesigparts = '';
+        while (@typenames) {
+          push @typesigparts, '' if length $typesigparts[-1] > 40;
+          $typesigparts[-1] .= ($typesigparts[-1]&&' ') . shift @typenames;
+        }
+        my $typesig = join "\n   ", @typesigparts;
         $doc =~ s/\n(=cut\s*\n)+(\s*\n)*$/\n/m; # Strip extra =cut's
         if ( defined $baddoc ) {
                 # Strip leading newlines and any =cut markings
@@ -1466,7 +1472,8 @@ XXX=head2 $name
 
 XXX=for sig
 
-  Signature: ($sig)
+ Signature: ($sig)
+ Types: ($typesig)
 
 $doc
 
