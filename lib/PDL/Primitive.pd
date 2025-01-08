@@ -5066,12 +5066,12 @@ set to 0 at all switch points. NOTES:
 
 =over
 
-item *
+=item *
 
 This will cause D to be set to zero at all switch points, thus
 forcing extrema there.
 
-item *
+=item *
 
 The result of using this option with the default boundary conditions
 will be identical to using DPCHIM, but will generally cost more
