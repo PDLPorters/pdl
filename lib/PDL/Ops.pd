@@ -164,9 +164,7 @@ $doc
  PDL::$name(\$x, \$y, \$c, 1);  # all params given
  \$x->$name(\$y, \$c, 0);       # method call, all params given
  \$c = \$x->$name(\$y);         # method call
- \$x->inplace->$name(\$y);     # modify \$x inplace
 $mutate_doc
-It can be made to work inplace with the C<< \$x->inplace >> syntax.
 This function is used to overload the two-operand C<$optxt> operator.
 As of 2.065, when calling this function explicitly you can omit
 the third argument (see second example), or supply it (see third one).
@@ -273,9 +271,7 @@ $doc
    \$c = \$x->$name(\$y);       # explicit call with default swap of 0
    \$c = \$x->$name(\$y, 1);    # explicit call with trailing 1 to swap args
    $ovcall
-   \$x->inplace->$name(\$y,0); # modify \$x inplace
 $mutate_doc
-It can be made to work inplace with the C<\$x-E<gt>inplace> syntax.
 This function is used to overload the binary C<$funcovp> function.
 As of 2.065, when calling this function explicitly you can omit
 the third argument (see first example), or supply it (see second one).
@@ -334,9 +330,7 @@ $doc
 =for example
 
    \$y = $funcov \$x;
-   \$x->inplace->$name;  # modify \$x inplace
 
-It can be made to work inplace with the C<\$x-E<gt>inplace> syntax.
 This function is used to overload the unary C<$funcovp> operator/function.
 
 =cut
@@ -526,14 +520,8 @@ raise ndarray C<\$a> to integer power C<\$b>
 
    \$c = \$x->ipow(\$y);     # as method
    \$c = ipow \$x, \$y;
-   \$x->inplace->ipow(\$y);  # modify \$x inplace
-
-It can be made to work inplace with the C<\$x-E<gt>inplace> syntax.
 
 Algorithm from L<Wikipedia|http://en.wikipedia.org/wiki/Exponentiation_by_squaring>
-
-=cut
-
 },
    Pars => 'a(); longlong b(); [o] ans()',
    GenericTypes => $AF,

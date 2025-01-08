@@ -979,11 +979,6 @@ $PDLSTATESETGOOD(c);
 '=for ref
 
 Clears all C<infs> and C<nans> in C<$a> to the corresponding value in C<$b>.
-
-badmask can be run with C<$x> inplace:
-
-  badmask($x->inplace,0);
-  $x->inplace->badmask(0);
 ',
        BadDoc =>
        'If bad values are present, these are also cleared.',

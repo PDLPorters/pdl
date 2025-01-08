@@ -197,11 +197,6 @@ PDL_IF_BAD(if ( \$ISBAD($x()) || \$ISBAD($y()) ) { \$SETBAD($c()); } else,)
 EOF
 }
 
-sub inplace_doc {
-    my $func = shift;
-    return "$doco{$func} Works inplace.";
-}
-
 foreach my $func (@ufuncs1) {
     my $got_complex = PDL::Core::Dev::got_complex_version($func, 1);
     pp_def($func,
@@ -210,7 +205,7 @@ foreach my $func (@ufuncs1) {
 	   GenericTypes => [($got_complex ? @$C : ()), @$F],
 	   Pars => 'a(); [o]b();',
 	   Inplace => 1,
-	   Doc => inplace_doc( $func ),
+	   Doc => $doco{$func},
 	   Code => code_ufunc($func),
 	   );
 }
@@ -221,7 +216,7 @@ foreach my $func (@ufuncs1g) {
 	   NoBadifNaN => 1,
 	   Pars => 'a(); [o]b();',
 	   Inplace => 1,
-	   Doc => inplace_doc( $func ),
+	   Doc => $doco{$func},
 	   Code => code_ufunc($func),
 	   );
 }
@@ -234,7 +229,7 @@ foreach my $func (@bifuncs1) {
 	   Pars => 'a(); b(); [o]c();',
 	   Inplace => [ 'a' ],
 	   GenericTypes => [($got_complex ? @$C : ()), @$R],
-	   Doc => inplace_doc( $func ),
+	   Doc => $doco{$func},
 	   Code => code_bifunc($func),
 	   );
 }
@@ -247,7 +242,7 @@ foreach my $func (@ufuncs2) {
 	   GenericTypes => $F,
 	   Pars => 'a(); [o]b();',
 	   Inplace => 1,
-	   Doc => inplace_doc( $func ),
+	   Doc => $doco{$func},
 	   Code => code_ufunc($func),
 	   );
 }
@@ -260,7 +255,7 @@ foreach my $func (@besufuncs) {
 	   GenericTypes => $F,
 	   Pars => 'a(); [o]b();',
 	   Inplace => 1,
-	   Doc => inplace_doc( $fname ),
+	   Doc => $doco{$fname},
 	   Code => code_ufunc($func),
 	   );
 }
@@ -273,7 +268,7 @@ foreach my $func (@besbifuncs) {
 	   GenericTypes => $F,
 	   Pars => 'a(); int n(); [o]b();',
 	   Inplace => [ 'a' ],
-	   Doc => inplace_doc( $fname ),
+	   Doc => $doco{$fname},
 	   Code => code_bifunc($func,'n','a','b'),
 	   );
 }
@@ -317,7 +312,7 @@ broadcastloop %{
 $PDLSTATESETGOOD(mask);
 EOF
   Doc =>
-'Sets C<$mask> true if C<$a> is not a C<NaN> or C<inf> (either positive or negative). Works inplace.',
+'Sets C<$mask> true if C<$a> is not a C<NaN> or C<inf> (either positive or negative).',
   BadDoc =>
 'Bad values are treated as C<NaN> or C<inf>.',
 );
@@ -329,7 +324,7 @@ pp_def("erfi",
        GenericTypes => $F,
        Pars => 'a(); [o]b()',
        Inplace => 1,
-       Doc => inplace_doc( "erfi" ),
+       Doc => "erfi",
        Code =>
        'extern double SQRTH;
         PDL_IF_BAD(if ( $ISBAD(a()) ) { $SETBAD(b()); }
@@ -342,7 +337,7 @@ pp_def("ndtri",
        GenericTypes => $F,
        Pars => 'a(); [o]b()',
        Inplace => 1,
-       Doc => inplace_doc( "ndtri" ),
+       Doc => "ndtri",
        Code =>
        'PDL_IF_BAD(if ( $ISBAD(a()) ) { $SETBAD(b()); }
 	else,) { $b() = ndtri((double)$a()); }',

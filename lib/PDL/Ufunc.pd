@@ -220,7 +220,6 @@ EOF
 =for ref
 
 Numerical differencing. DX(t) = X(t) - X(t-1), DX(0) = X(0).
-Can be done inplace.
 Combined with C<slice('-1:0')>, can be used for backward differencing.
 
 Unlike L</diff2>, output vector is same length.

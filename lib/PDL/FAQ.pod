@@ -830,8 +830,8 @@ And also from the doc !!:
     applied in situ (e.g. convolve()) unexpected effects may
     occur!
 
-=for comment Check the list of PDL functions at the end of PDL.pod which points out
-C<inplace>-safe functions.  No longer in PDL.pod, need to fix!!
+As of PDL 2.099, all functions' inplace capability are automatically
+inserted in their documentation.
 
 
 =head2 Q: 6.7    What is this strange usage of the string concatenation operator  C<.=>  in PDL scripts?  

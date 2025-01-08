@@ -1885,10 +1885,10 @@ consider this excerpt from F<lib/PDL/Bad.pd>:
 Since this routine removes all bad values, the output ndarray had
 its bad flag cleared. This is then propagated to both parents and children.
 
-NOTE: one idea is that the documentation for the routine could be 
+The documentation for the routine is now (as of 2.099)
 automatically flagged to indicate that it can be executed inplace,
-ie something similar to how C<HandleBad> sets C<BadDoc> if it's not 
-supplied (it's not an ideal solution).
+similar to how C<HandleBad> sets C<BadDoc> if it's not
+supplied. This can be overridden by supplying C<InplaceDoc>.
 
 =head3 FTypes
 

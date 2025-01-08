@@ -1410,6 +1410,24 @@ $PDL::PP::deftbl =
         "  PDL_XS_INPLACE($in, $out)\n";
       }),
    PDL::PP::Rule::Returns::EmptyString->new("InplaceCode", []),
+   PDL::PP::Rule->new("InplaceDoc",
+     [qw(Name SignatureObj OtherParsDefaults? ArgOrder? InplaceNormalised)],
+     'doc describing usage inplace',
+     sub {
+       my ($name, $sig, $otherdefaults, $argorder, $inplace) = @_;
+       $argorder = [reorder_args($sig, $otherdefaults)] if $argorder and !ref $argorder;
+       my @args = @{ $argorder || $sig->allnames(1, 1) };
+       my %inplace_involved = map +($_=>1), my ($in, $out) = @$inplace;
+       my $meth_call = $args[0] eq $in;
+       @args = grep !$inplace_involved{$_}, @args;
+       $meth_call &&= " \$$in->inplace->$name".(
+           !@args ? '' : "(@{[join ',', map qq{\$$_}, @args]})"
+         ).";\n";
+       "Can be used inplace:\n\n$meth_call $name(\$$in->inplace".(
+           !@args ? '' : ",@{[join ',', map qq{\$$_}, @args]}"
+         ).");\n\n";
+     }),
+   PDL::PP::Rule::Returns::EmptyString->new("InplaceDoc", []),
 
    # the docs
    PDL::PP::Rule->new("PdlDoc", "FullDoc", sub {
@@ -1421,9 +1439,9 @@ $PDL::PP::deftbl =
          return $fulldoc;
       }
    ),
-   PDL::PP::Rule->new("PdlDoc", [qw(Name Pars? OtherPars Doc BadDoc?)],
+   PDL::PP::Rule->new("PdlDoc", [qw(Name Pars? OtherPars Doc InplaceDoc BadDoc?)],
       sub {
-        my ($name,$pars,$otherpars,$doc,$baddoc) = @_;
+        my ($name,$pars,$otherpars,$doc,$inplacedoc,$baddoc) = @_;
         return '' if !defined $doc # Allow explicit non-doc using Doc=>undef
             or $doc =~ /^\s*internal\s*$/i;
         # If the doc string is one line let's have two for the
@@ -1452,7 +1470,7 @@ XXX=for sig
 
 $doc
 
-$baddoc
+$inplacedoc$baddoc
 
 XXX=cut
 
