@@ -129,7 +129,6 @@ EOF
 
     my $bitwise = delete $extra{Bitwise};
     my $sp = ' ' x (length($name) - length($op) + 2); # line up example table
-    my $mutate_doc = !$mutator ? '' : " \$x $op= \$y;$sp             # equivalent to above\n";
     pp_def($name,
 	   Pars => 'a(); b(); [o]c();',
 	   OtherPars => 'int $swap',
@@ -155,22 +154,14 @@ $doc
 
 =for example
 
- \$c = \$x $op \$y;$sp         # overloaded call
  \$c = PDL::$name(\$x, \$y);    # explicit call with default swap of 0
  \$c = PDL::$name(\$x, \$y, 0); # explicit call with explicit swap of 0
  \$c = PDL::$name(\$x, \$y, 1); # explicit call with trailing 1 to swap args
  PDL::$name(\$x, \$y, \$c, 1);  # all params given
  \$x->$name(\$y, \$c, 0);       # method call, all params given
  \$c = \$x->$name(\$y);         # method call
-$mutate_doc
-This function is used to overload the two-operand C<$optxt> operator.
-As of 2.065, when calling this function explicitly you can omit
-the third argument (see second example), or supply it (see third one).
-
-=cut
-
 EOD
-} # sub: biop()
+}
 
 #simple binary functions
 sub bifunc {
@@ -191,8 +182,6 @@ sub bifunc {
 EOH
     # is this one to be used as a function or operator ?
     my $sp = ' ' x (length($name) - length($funcov)+($isop?1:0) + 1); # line up example table
-    my $ovcall = "\$c = ".($isop ? "\$a $funcov" : "$funcov \$a,")." \$b;$sp       # overloaded use";
-    my $mutate_doc = !$mutator ? '' : "   \$x $funcov= \$y;$sp           # equivalent to above\n";
 
     my $codestr;
     if ($extra{unsigned}){
@@ -237,16 +226,8 @@ $doc
 
    \$c = \$x->$name(\$y);       # explicit call with default swap of 0
    \$c = \$x->$name(\$y, 1);    # explicit call with trailing 1 to swap args
-   $ovcall
-$mutate_doc
-This function is used to overload the binary C<$funcovp> function.
-As of 2.065, when calling this function explicitly you can omit
-the third argument (see first example), or supply it (see second one).
-
-=cut
-
 EOD
-} # sub: bifunc()
+}
 
 # simple unary functions and operators
 sub ufunc {
@@ -293,17 +274,8 @@ EOF
 =for ref
 
 $doc
-
-=for example
-
-   \$y = $funcov \$x;
-
-This function is used to overload the unary C<$funcovp> operator/function.
-
-=cut
-
 EOD
-} # sub: ufunc()
+}
 
 ######################################################################
 
@@ -353,7 +325,6 @@ biop('and2','&',1,'bitwise I<and> of two ndarrays',GenericTypes => $T,
 biop('xor','^',1,'bitwise I<exclusive or> of two ndarrays',GenericTypes => $T,
       Bitwise => 1);
 
-# really an ufunc
 ufunc('bitnot','~',1,'unary bitwise negation',GenericTypes => $T);
 
 # some standard binary functions

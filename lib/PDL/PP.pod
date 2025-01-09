@@ -1898,7 +1898,7 @@ supplied. This can be overridden by supplying C<InplaceDoc>.
   Overload => ['+', 1],    # mutator
   Overload => ['|', 1, 1], # bitwise
 
-Implements overloading of Perl operators.
+Implements overloading of Perl operators. Documented automatically.
 Added in PDL 2.099. Will overload in the current C<pp_bless> package,
 which defaults to C<PDL>.
 

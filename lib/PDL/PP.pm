@@ -1431,11 +1431,11 @@ $PDL::PP::deftbl =
      }),
    PDL::PP::Rule::Returns::EmptyString->new("InplaceDoc", []),
 
-   PDL::PP::Rule->new([],
-     [qw(Name SignatureObj Overload Inplace?)],
-     'implement Perl overloaded operators',
+   PDL::PP::Rule->new("OverloadDoc",
+     [qw(Name SignatureObj Overload Inplace? OtherParsDefaults? ArgOrder?)],
+     'implement and doc Perl overloaded operators',
      sub {
-       my ($name, $sig, $ovl, $inplace) = @_;
+       my ($name, $sig, $ovl, $inplace, $otherdefaults, $argorder) = @_;
        confess "$name Overload given false value" if !$ovl;
        $ovl = [$ovl] if !ref $ovl;
        my ($op, $mutator, $bitwise) = @$ovl;
@@ -1468,9 +1468,19 @@ EOF
 use overload '$op=' => sub { $fullname(\$_[0]->inplace, \$_[1]); \$_[0] };
 EOF
        $::PDLOVERLOAD .= "$ret}\n";
-       ();
+       $argorder = [reorder_args($sig, $otherdefaults)] if $argorder and !ref $argorder;
+       my @args = @{ $argorder || $sig->allnames(1, 1) };
+       my @outs = $sig->names_out;
+       confess "$name error in Overload doc: !=1 output (@outs)" if @outs != 1;
+       my @ins = $sig->names_in;
+       my $call = " \$$outs[0] = ".(
+         !$one_arg ? "\$$ins[0] $op \$$ins[1]" :
+         $op.($op =~ /[^a-z]/ ? '' : ' ')."\$$ins[0]"
+       ).";\n";
+       $call .= " \$$ins[0] $op= \$$ins[1];\n" if $mutator;
+       "Overloads the Perl '$op' operator:\n\n$call\n";
      }),
-   PDL::PP::Rule::Returns::Zero->new("Overload"),
+   PDL::PP::Rule::Returns::EmptyString->new("OverloadDoc", []),
 
    # the docs
    PDL::PP::Rule->new("PdlDoc", "FullDoc", sub {
@@ -1482,9 +1492,9 @@ EOF
          return $fulldoc;
       }
    ),
-   PDL::PP::Rule->new("PdlDoc", [qw(Name Pars OtherPars GenericTypes Doc InplaceDoc BadDoc?)],
+   PDL::PP::Rule->new("PdlDoc", [qw(Name Pars OtherPars GenericTypes Doc BadDoc? InplaceDoc OverloadDoc)],
       sub {
-        my ($name,$pars,$otherpars,$gentypes,$doc,$inplacedoc,$baddoc) = @_;
+        my ($name,$pars,$otherpars,$gentypes,$doc,$baddoc,@docparts) = @_;
         return '' if !defined $doc # Allow explicit non-doc using Doc=>undef
             or $doc =~ /^\s*internal\s*$/i;
         # If the doc string is one line let's have two for the
@@ -1509,6 +1519,7 @@ EOF
             $baddoc =~ s/^\n+//;
             $baddoc = "=for bad\n\n$baddoc";
         }
+        my $miscdocs = join '', grep $_, @docparts, $baddoc;
         my $baddoc_function_pod = <<"EOD" ;
 
 XXX=head2 $name
@@ -1520,7 +1531,7 @@ XXX=for sig
 
 $doc
 
-$inplacedoc$baddoc
+$miscdocs
 
 XXX=cut
 
