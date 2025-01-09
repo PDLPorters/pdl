@@ -167,22 +167,22 @@ eval { pp_def( "func", Code => '$a(n=>1 + 2);',
 ) };
 like $@, qr/func\).*no spaces/, 'useful error when no "=>" in ndarray access';
 
-my $got = [PDL::PP::reorder_args(PDL::PP::Signature->new(
-   my $pars = "a(n=2); [o] b(m=3);", 'name', "int x; char *y", {}
-))];
+my $got = PDL::PP::Signature->new(
+   my $pars = "a(n=2); [o] b(m=3);", 'name', "int x; char *y", {}, 1
+)->args_callorder;
 is_deeply $got, [qw(a x y b)], 'right reorder no defaults' or diag explain $got;
-is_deeply $got = [PDL::PP::reorder_args(PDL::PP::Signature->new(
-   $pars, 'name', "int x; char *y", {x=>1}
-))], [qw(a y x b)],
+is_deeply $got = PDL::PP::Signature->new(
+   $pars, 'name', "int x; char *y", {x=>1}, 1
+)->args_callorder, [qw(a y x b)],
   'right reorder with default'
   or diag explain $got;
-is_deeply $got = [PDL::PP::reorder_args(PDL::PP::Signature->new(
-   $pars, 'name', "[o] int x; char *y; double z", {}
-))], [qw(a y z b x)], 'right reorder, output other, no defaults'
+is_deeply $got = PDL::PP::Signature->new(
+   $pars, 'name', "[o] int x; char *y; double z", {}, 1
+)->args_callorder, [qw(a y z b x)], 'right reorder, output other, no defaults'
   or diag explain $got;
-is_deeply $got = [PDL::PP::reorder_args(PDL::PP::Signature->new(
-   $pars, 'name', "[o] int x; char *y; double z", {y=>'""'}
-))], [qw(a z y b x)],
+is_deeply $got = PDL::PP::Signature->new(
+   $pars, 'name', "[o] int x; char *y; double z", {y=>'""'}, 1
+)->args_callorder, [qw(a z y b x)],
   'right reorder, output other, with default'
   or diag explain $got;
 

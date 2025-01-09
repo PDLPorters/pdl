@@ -24,11 +24,12 @@ Internal module to handle signatures
 sub nospacesplit {grep /\S/, split $_[0],$_[1]}
 
 sub new {
-  my ($type,$pars,$opname,$otherpars,$otherparsdefaults) = @_;
+  my ($type,$pars,$opname,$otherpars,$otherparsdefaults,$argorder) = @_;
   my @objects = map PDL::PP::PdlParObj->new($_, $opname), nospacesplit ';',$pars;
   my $this = bless {
     Names=>[map $_->name, @objects], Objects=>{map +($_->name => $_), @objects},
     OtherParsDefaults=>$otherparsdefaults||{},
+    ArgOrder=>$argorder,
   }, $type;
   my @objects_sorted = ((grep !$_->{FlagW}, @objects), (grep $_->{FlagW}, @objects));
   $objects_sorted[$_]{Number} = $_ for 0..$#objects_sorted;
@@ -165,6 +166,19 @@ sub getcopy {
   my ($self, $to_pat) = @_;
   my $objs = $self->otherobjs;
   PDL::PP::indent(2, join '', map $objs->{$_}->get_copy($_,sprintf $to_pat,$_)."\n", @{$self->othernames(0)});
+}
+
+sub args_callorder {
+  my ($self) = @_;
+  my $argorder = $self->{ArgOrder};
+  return $self->allnames(1, 1) if !$argorder;
+  return $argorder if ref $argorder;
+  my $otherdefaults = $self->{OtherParsDefaults};
+  my %optionals = map +($_=>1), keys(%$otherdefaults);
+  my @other_mand = grep !$optionals{$_} && !$self->other_is_out($_),
+    my @other = @{$self->othernames(1, 1)};
+  my @other_opt = grep $optionals{$_}, @other;
+  [$self->names_in, @other_mand, @other_opt, $self->names_out, $self->other_out];
 }
 
 sub realdims {

@@ -1021,16 +1021,6 @@ sub callTypemap {
   $ret;
 }
 
-sub reorder_args {
-  my ($sig) = @_;
-  my $otherdefaults = $sig->{OtherParsDefaults};
-  my %optionals = map +($_=>1), keys(%$otherdefaults);
-  my @other_mand = grep !$optionals{$_} && !$sig->other_is_out($_),
-    my @other = @{$sig->othernames(1, 1)};
-  my @other_opt = grep $optionals{$_}, @other;
-  ($sig->names_in, @other_mand, @other_opt, $sig->names_out, $sig->other_out);
-}
-
 ###########################################################
 # Name       : extract_signature_from_fulldoc
 # Usage      : $sig = extract_signature_from_fulldoc($fulldoc)
@@ -1338,7 +1328,7 @@ $PDL::PP::deftbl =
 # Parameters in the 'a(x,y); [o]b(y)' format, with
 # fixed nos of real, unbroadcast-over dims.
 # Also "Other pars", the parameters which are usually not pdls.
-   PDL::PP::Rule->new("SignatureObj", [qw(Pars Name OtherPars OtherParsDefaults?)],
+   PDL::PP::Rule->new("SignatureObj", [qw(Pars Name OtherPars OtherParsDefaults? ArgOrder?)],
       sub { PDL::PP::Signature->new(@_) }),
 
 # Compiled representations i.e. what the RunFunc function leaves
@@ -1414,12 +1404,11 @@ $PDL::PP::deftbl =
       }),
    PDL::PP::Rule::Returns::EmptyString->new("InplaceCode", []),
    PDL::PP::Rule->new("InplaceDoc",
-     [qw(Name SignatureObj ArgOrder? InplaceNormalised)],
+     [qw(Name SignatureObj InplaceNormalised)],
      'doc describing usage inplace',
      sub {
-       my ($name, $sig, $argorder, $inplace) = @_;
-       $argorder = [reorder_args($sig)] if $argorder and !ref $argorder;
-       my @args = @{ $argorder || $sig->allnames(1, 1) };
+       my ($name, $sig, $inplace) = @_;
+       my @args = @{ $sig->args_callorder };
        my %inplace_involved = map +($_=>1), my ($in, $out) = @$inplace;
        my $meth_call = $args[0] eq $in;
        @args = grep !$inplace_involved{$_}, @args;
@@ -1433,10 +1422,10 @@ $PDL::PP::deftbl =
    PDL::PP::Rule::Returns::EmptyString->new("InplaceDoc", []),
 
    PDL::PP::Rule->new("OverloadDoc",
-     [qw(Name SignatureObj Overload Inplace? ArgOrder?)],
+     [qw(Name SignatureObj Overload Inplace?)],
      'implement and doc Perl overloaded operators',
      sub {
-       my ($name, $sig, $ovl, $inplace, $argorder) = @_;
+       my ($name, $sig, $ovl, $inplace) = @_;
        confess "$name Overload given false value" if !$ovl;
        $ovl = [$ovl] if !ref $ovl;
        my ($op, $mutator, $bitwise) = @$ovl;
@@ -1469,8 +1458,7 @@ EOF
 use overload '$op=' => sub { $fullname(\$_[0]->inplace, \$_[1]); \$_[0] };
 EOF
        $::PDLOVERLOAD .= "$ret}\n";
-       $argorder = [reorder_args($sig)] if $argorder and !ref $argorder;
-       my @args = @{ $argorder || $sig->allnames(1, 1) };
+       my @args = @{ $sig->args_callorder };
        my @outs = $sig->names_out;
        confess "$name error in Overload doc: !=1 output (@outs)" if @outs != 1;
        my @ins = $sig->names_in;
@@ -1591,12 +1579,11 @@ EOD
       sub {
         my($name,$sig,
            $otherdefaults,$argorder,$inplace) = @_;
-        $argorder = [reorder_args($sig)] if $argorder and !ref $argorder;
-        my $optypes = $sig->otherobjs;
-        my @args = @{ $argorder || $sig->allnames(1, 1) };
+        my @args = @{ $sig->args_callorder };
         my %other = map +($_=>1), @{$sig->othernames(1, 1)};
         $otherdefaults ||= {};
         my $ci = 2;  # current indenting
+        my $optypes = $sig->otherobjs;
         my %ptypes = map +($_=>$$optypes{$_} ? $$optypes{$_}->get_decl('', {VarArrays2Ptrs=>1}) : 'pdl *'), @args;
         my %out = map +($_=>1), $sig->names_out_nca;
         my %outca = map +($_=>1), $sig->names_oca;
