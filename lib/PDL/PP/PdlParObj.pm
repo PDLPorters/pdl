@@ -63,9 +63,8 @@ my $calc_re = qr{
   )
 }xo;
 sub new {
-  my ($type,$string,$badflag,$sig) = @_;
-  $badflag ||= 0;
-  my $this = bless {Number => "PDL_UNDEF_NUMBER", BadFlag => $badflag, Sig => $sig},$type;
+  my ($type,$string,$sig) = @_;
+  my $this = bless {Number => "PDL_UNDEF_NUMBER", Sig => $sig},$type;
   $string =~ $pars_re or croak "pp_def($this->{Sig}{OpName}): Invalid pdl def $string (regex $pars_re)\n";
   my($opt1,$opt_plus,$sqbr_opt,$name,$inds) = map $_ // '', $1,$2,$3,$4,$5;
   print "PDL: '$opt1$opt_plus', '$sqbr_opt', '$name', '$inds'\n"
@@ -230,11 +229,11 @@ sub do_indterm { my($this,$pdl,$ind,$subst,$context) = @_;
   "(".($this->get_incname($ind,1))."*($index))";
 }
 
-sub get_xsdatapdecl { 
-    my($this,$ctype,$nulldatacheck,$ppsym) = @_;
+sub get_xsdatapdecl {
+    my ($this,$ctype,$nulldatacheck,$ppsym,$badflag) = @_;
     my $pdl = $this->get_nname;
     my $name = $this->{Name};
-    my $macro = "PDL_DECLARE_PARAMETER".($this->{BadFlag} ? "_BADVAL" : "");
+    my $macro = "PDL_DECLARE_PARAMETER".($badflag ? "_BADVAL" : "");
     "$macro($ctype, $name, $pdl, $nulldatacheck, $ppsym)";
 }
 

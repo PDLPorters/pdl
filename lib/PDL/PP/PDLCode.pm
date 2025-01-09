@@ -70,6 +70,7 @@ sub new {
         Generictypes => $generictypes,   # so that MacroAccess can check it
         Name => $name,
         NullDataCheck => $nulldatacheck,
+        BadFlag => $handlebad,
     }, $class;
 
     my @codes = $code;
@@ -157,7 +158,7 @@ sub params_declare {
     my ($this) = @_;
     my ($ord,$pdls) = $this->get_pdls;
     my %istyped = map +($_=>1), grep $pdls->{$_}{FlagTypeOverride}, @$ord;
-    my @decls = map $_->get_xsdatapdecl($istyped{$_->name} ? "PDL_TYPE_PARAM_".$_->name : "PDL_TYPE_OP", $this->{NullDataCheck}, $istyped{$_->name} ? "PDL_PPSYM_PARAM_".$_->name : "PDL_PPSYM_OP"),
+    my @decls = map $_->get_xsdatapdecl($istyped{$_->name} ? "PDL_TYPE_PARAM_".$_->name : "PDL_TYPE_OP", $this->{NullDataCheck}, $istyped{$_->name} ? "PDL_PPSYM_PARAM_".$_->name : "PDL_PPSYM_OP", $this->{BadFlag}),
       map $pdls->{$_}, @$ord;
     my @param_names = ("PDL_TYPE_OP", "PDL_PPSYM_OP", map +("PDL_TYPE_PARAM_$_","PDL_PPSYM_PARAM_$_"), grep $istyped{$_}, @$ord);
     <<EOF;
@@ -531,7 +532,7 @@ sub myitemstart {
       grep $istyped{$_}, @$ord);
     my $decls = keys %{$this->[2]} == @$ord
       ? "PDL_DECLARE_PARAMS_$parent->{Name}_$parent->{NullDataCheck}(@{[join ',', @param_ctypes]})\n"
-      : join '', map $_->get_xsdatapdecl($_->adjusted_type($item)->ctype, $parent->{NullDataCheck}, $_->adjusted_type($item)->ppsym),
+      : join '', map $_->get_xsdatapdecl($_->adjusted_type($item)->ctype, $parent->{NullDataCheck}, $_->adjusted_type($item)->ppsym, $parent->{BadFlag}),
           map $parent->{ParObjs}{$_}, sort keys %{$this->[2]};
     my @gentype_decls = !$this->[4] ? () : map "#define PDL_IF_GENTYPE_".uc($_)."(t,f) ".
 	($item->$_ ? 't' : 'f')."\n",

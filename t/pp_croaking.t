@@ -168,14 +168,14 @@ eval { pp_def( "func", Code => '$a(n=>1 + 2);',
 like $@, qr/func\).*no spaces/, 'useful error when no "=>" in ndarray access';
 
 my $got = [PDL::PP::reorder_args(my $sig = PDL::PP::Signature->new(
-   "a(n=2); [o] b(m=3);", 'name', 1, "int x; char *y"
+   "a(n=2); [o] b(m=3);", 'name', "int x; char *y"
 ), {})];
 is_deeply $got, [qw(a x y b)], 'right reorder no defaults' or diag explain $got;
 is_deeply $got = [PDL::PP::reorder_args($sig, {x=>1})], [qw(a y x b)],
   'right reorder with default'
   or diag explain $got;
 is_deeply $got = [PDL::PP::reorder_args($sig = PDL::PP::Signature->new(
-   "a(n=2); [o] b(m=3);", 'name', 1, "[o] int x; char *y; double z"
+   "a(n=2); [o] b(m=3);", 'name', "[o] int x; char *y; double z"
 ), {})], [qw(a y z b x)], 'right reorder, output other, no defaults'
   or diag explain $got;
 is_deeply $got = [PDL::PP::reorder_args($sig, {y=>'""'})], [qw(a z y b x)],
