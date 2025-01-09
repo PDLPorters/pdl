@@ -1022,7 +1022,8 @@ sub callTypemap {
 }
 
 sub reorder_args {
-  my ($sig, $otherdefaults) = @_;
+  my ($sig) = @_;
+  my $otherdefaults = $sig->{OtherParsDefaults};
   my %optionals = map +($_=>1), keys(%$otherdefaults);
   my @other_mand = grep !$optionals{$_} && !$sig->other_is_out($_),
     my @other = @{$sig->othernames(1, 1)};
@@ -1337,7 +1338,7 @@ $PDL::PP::deftbl =
 # Parameters in the 'a(x,y); [o]b(y)' format, with
 # fixed nos of real, unbroadcast-over dims.
 # Also "Other pars", the parameters which are usually not pdls.
-   PDL::PP::Rule->new("SignatureObj", [qw(Pars Name OtherPars)],
+   PDL::PP::Rule->new("SignatureObj", [qw(Pars Name OtherPars OtherParsDefaults?)],
       sub { PDL::PP::Signature->new(@_) }),
 
 # Compiled representations i.e. what the RunFunc function leaves
@@ -1413,11 +1414,11 @@ $PDL::PP::deftbl =
       }),
    PDL::PP::Rule::Returns::EmptyString->new("InplaceCode", []),
    PDL::PP::Rule->new("InplaceDoc",
-     [qw(Name SignatureObj OtherParsDefaults? ArgOrder? InplaceNormalised)],
+     [qw(Name SignatureObj ArgOrder? InplaceNormalised)],
      'doc describing usage inplace',
      sub {
-       my ($name, $sig, $otherdefaults, $argorder, $inplace) = @_;
-       $argorder = [reorder_args($sig, $otherdefaults)] if $argorder and !ref $argorder;
+       my ($name, $sig, $argorder, $inplace) = @_;
+       $argorder = [reorder_args($sig)] if $argorder and !ref $argorder;
        my @args = @{ $argorder || $sig->allnames(1, 1) };
        my %inplace_involved = map +($_=>1), my ($in, $out) = @$inplace;
        my $meth_call = $args[0] eq $in;
@@ -1432,10 +1433,10 @@ $PDL::PP::deftbl =
    PDL::PP::Rule::Returns::EmptyString->new("InplaceDoc", []),
 
    PDL::PP::Rule->new("OverloadDoc",
-     [qw(Name SignatureObj Overload Inplace? OtherParsDefaults? ArgOrder?)],
+     [qw(Name SignatureObj Overload Inplace? ArgOrder?)],
      'implement and doc Perl overloaded operators',
      sub {
-       my ($name, $sig, $ovl, $inplace, $otherdefaults, $argorder) = @_;
+       my ($name, $sig, $ovl, $inplace, $argorder) = @_;
        confess "$name Overload given false value" if !$ovl;
        $ovl = [$ovl] if !ref $ovl;
        my ($op, $mutator, $bitwise) = @$ovl;
@@ -1468,7 +1469,7 @@ EOF
 use overload '$op=' => sub { $fullname(\$_[0]->inplace, \$_[1]); \$_[0] };
 EOF
        $::PDLOVERLOAD .= "$ret}\n";
-       $argorder = [reorder_args($sig, $otherdefaults)] if $argorder and !ref $argorder;
+       $argorder = [reorder_args($sig)] if $argorder and !ref $argorder;
        my @args = @{ $argorder || $sig->allnames(1, 1) };
        my @outs = $sig->names_out;
        confess "$name error in Overload doc: !=1 output (@outs)" if @outs != 1;
@@ -1590,7 +1591,7 @@ EOD
       sub {
         my($name,$sig,
            $otherdefaults,$argorder,$inplace) = @_;
-        $argorder = [reorder_args($sig, $otherdefaults)] if $argorder and !ref $argorder;
+        $argorder = [reorder_args($sig)] if $argorder and !ref $argorder;
         my $optypes = $sig->otherobjs;
         my @args = @{ $argorder || $sig->allnames(1, 1) };
         my %other = map +($_=>1), @{$sig->othernames(1, 1)};
