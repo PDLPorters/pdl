@@ -340,14 +340,9 @@ _default_badvalue_int(type)
     RETVAL
 EOF
 
-pp_def('isbad' . <<'=cut',
-
-=head2 isbad
-
-=for sig
-
-  Signature: (a(); int [o]b())
-
+pp_def('isbad',
+  Pars => q(a(); int [o]b()),
+  Doc => <<'EOF',
 =for ref
 
 Returns a binary mask indicating which values of
@@ -364,28 +359,20 @@ Similar to L<isfinite|PDL::Math/isfinite>.
  $y = isbad($x);
  print $y, "\n";
  [0 1 0]
-
-=for bad
-
+EOF
+  BadDoc => <<'EOF',
 This method works with input ndarrays that are bad. The output ndarray
 will never contain bad values, but its bad value flag will be the
 same as the input ndarray's flag.
+EOF
+  HandleBad => 1,
+  Code => '$b() = PDL_IF_BAD($ISBAD(a()),0);',
+  GenericTypes => $A,
+);
 
-=cut
-       HandleBad => 1,
-       Code => 
-       '$b() = PDL_IF_BAD($ISBAD(a()),0);',
-       GenericTypes => $A,
-       );
-
-pp_def('isgood' . <<'=cut',
-
-=head2 isgood
-
-=for sig
-
-  Signature: (a(); int [o]b())
-
+pp_def('isgood',
+  Pars => q(a(); int [o]b()),
+  Doc => <<'EOF',
 =for ref
 
 Is a value good?
@@ -401,32 +388,22 @@ Also see L<isfinite|PDL::Math/isfinite>.
  $y = isgood($x);
  print $y, "\n";
  [1 0 1]
-
-=for bad
-
+EOF
+  BadDoc => <<'EOF',
 This method works with input ndarrays that are bad. The output ndarray
 will never contain bad values, but its bad value flag will be the
 same as the input ndarray's flag.
-
-=cut
-
-       HandleBad => 1,
-       Code => 
-       '$b() = PDL_IF_BAD($ISGOOD(a()),1);',
-       GenericTypes => $A,
-       );
-
+EOF
+  HandleBad => 1,
+  Code => '$b() = PDL_IF_BAD($ISGOOD(a()),1);',
+  GenericTypes => $A,
+);
 
 # perhaps these should have pm code which returns the
 # answer if the bad flag is not set
-pp_def('nbadover' . <<'=cut',
-
-=head2 nbadover
-
-=for sig
-
-  Signature: (a(n); indx [o] b())
-
+pp_def('nbadover',
+  Pars => q(a(n); indx [o] b()),
+  Doc => <<'EOF',
 =for ref
 
 Find the number of bad elements along the 1st dimension.
@@ -444,34 +421,24 @@ it is possible to perform this calculation over I<any> dimension.
 =for example
 
  $spectrum = nbadover $image->transpose
-
-=for bad
-
+EOF
+  BadDoc => <<'EOF',
 nbadover processes input values that are bad. The output ndarray will not have
 any bad values, but the bad flag will be set if the input ndarray had its bad
 flag set.
-
-=cut
-
-    HandleBad => 1,
-    Code => q{
-        PDL_Indx cnt = 0;
-        PDL_IF_BAD(loop(n) %{
-            if ( $ISBAD(a()) ) { cnt++; }
-        %},)
-        $b() = cnt;
-    },
-    GenericTypes => $A,
+EOF
+  HandleBad => 1,
+  Code => q{
+    PDL_Indx cnt = 0;
+    PDL_IF_BAD(loop(n) %{ if ( $ISBAD(a()) ) { cnt++; } %},)
+    $b() = cnt;
+  },
+  GenericTypes => $A,
 );
 
-pp_def('ngoodover' . <<'=cut',
-
-=head2 ngoodover
-
-=for sig
-
-  Signature: (a(n); indx [o] b())
-
+pp_def('ngoodover',
+  Pars => q(a(n); indx [o] b()),
+  Doc => <<'EOF',
 =for ref
 
 Find the number of good elements along the 1st dimension.
@@ -490,23 +457,19 @@ I<any> dimension.
 =for example
 
  $spectrum = ngoodover $image->transpose
-
-=for bad
-
+EOF
+  BadDoc => <<'EOF',
 ngoodover processes input values that are bad. The output ndarray will not have
 any bad values, but the bad flag will be set if the input ndarray had its bad
 flag set.
-
-=cut
-       HandleBad => 1,
-       Code => 
-       'PDL_Indx cnt = PDL_IF_BAD(0,$SIZE(n));
-	PDL_IF_BAD(loop(n) %{
-           if ( $ISGOOD(a()) ) { cnt++; }
-        %},)
-        $b() = cnt;',
-       GenericTypes => $A,
-       );
+EOF
+  HandleBad => 1,
+  Code => 
+   'PDL_Indx cnt = PDL_IF_BAD(0,$SIZE(n));
+    PDL_IF_BAD(loop(n) %{ if ( $ISGOOD(a()) ) { cnt++; } %},)
+    $b() = cnt;',
+  GenericTypes => $A,
+);
 
 # Generate small ops functions to do entire array
 foreach my $op ( 
@@ -624,14 +587,9 @@ if ( 0 ) {
 # always make sure the output is "bad"
 
 # note: have made the mask be an integer
-pp_def('setbadif' . <<'=cut',
-
-=head2 setbadif
-
-=for sig
-
-  Signature: (a(); int mask(); [o]b())
-
+pp_def('setbadif',
+  Pars => q(a(); int mask(); [o]b()),
+  Doc => <<'EOF',
 =for ref
 
 Set elements bad based on the supplied mask, otherwise
@@ -656,9 +614,8 @@ Unfortunately, this routine can I<not> be run inplace, since the
 current implementation can not handle the same ndarray used as
 C<a> and C<mask> (eg C<< $x->inplace->setbadif($x%2) >> fails).
 Even more unfortunate: we can't catch this error and tell you.
-
-=for bad
-
+EOF
+  BadDoc => <<'EOF',
 The output always has its bad flag set, even if it does not contain
 any bad values (use L</check_badflag> to check
 whether there are any bad values in the output). 
@@ -666,36 +623,29 @@ The input ndarray can have bad values: any bad values in the input ndarrays
 are copied across to the output ndarray.
 
 Also see L</setvaltobad> and L</setnantobad>.
-
-=cut
-
-    HandleBad => 1,
-    %setbadif_extra,
-    Code =>
-    '
+EOF
+  HandleBad => 1,
+  %setbadif_extra,
+  Code => '
 broadcastloop %{
-    /* if the bad value == 0 then all points are going to be selected ... */
-     if ( PDL_IF_BAD($ISBAD(mask()) ||,) $mask() ) {
-        $SETBAD(b());
-     } else {
-        $b() = $a();
-     }
+  /* if the bad value == 0 then all points are going to be selected ... */
+  if ( PDL_IF_BAD($ISBAD(mask()) ||,) $mask() ) {
+    $SETBAD(b());
+  } else {
+    $b() = $a();
+  }
 %}
 $PDLSTATESETBAD(b);
-     ',
-     GenericTypes => $A,
-); # pp_def: setbadif
+  ',
+  GenericTypes => $A,
+);
 
 # this is useful because $x->setbadif( $x == 23 )
 # is common and that can't be done inplace
-pp_def('setvaltobad' . <<'=cut',
-
-=head2 setvaltobad
-
-=for sig
-
-  Signature: (a(); [o]b(); double value)
-
+pp_def('setvaltobad',
+  Pars => q(a(); [o]b()),
+  OtherPars => q(double value),
+  Doc => <<'EOF',
 =for ref
 
 Set bad all those elements which equal the supplied value.
@@ -710,39 +660,31 @@ Set bad all those elements which equal the supplied value.
 This is a simpler version of L</setbadif>, but this
 function can be done inplace.  See L</setnantobad>
 if you want to convert NaN to the bad value.
-
-=for bad
-
+EOF
+  BadDoc => <<'EOF',
 The output always has its bad flag set, even if it does not contain
 any bad values (use L</check_badflag> to check
 whether there are any bad values in the output). 
 Any bad values in the input ndarrays are copied across to the output ndarray.
-
-=cut
-
-    HandleBad => 1,
-    Inplace => 1,
-    Code => q[
+EOF
+  HandleBad => 1,
+  Inplace => 1,
+  Code => q[
 broadcastloop %{
-        if ( $a() == ($GENERIC(a)) $COMP(value) ) {
-            $SETBAD(b());
-        } else {
-            $b() = $a();
-        }
+  if ( $a() == ($GENERIC(a)) $COMP(value) ) {
+    $SETBAD(b());
+  } else {
+    $b() = $a();
+  }
 %}
 $PDLSTATESETBAD(b);
-    ],
-    GenericTypes => $A,
-); # pp_def: setvaltobad
+  ],
+  GenericTypes => $A,
+);
 
-pp_def('setnantobad' . <<'=cut',
-
-=head2 setnantobad
-
-=for sig
-
-  Signature: (a(); [o]b())
-
+pp_def('setnantobad',
+  Pars => q(a(); [o]b()),
+  Doc => <<'EOF',
 =for ref
 
 Sets NaN values (for complex, where either is NaN) in the input ndarray bad
@@ -753,44 +695,35 @@ Can be done inplace.
 
  $y = $x->setnantobad;
  $x->inplace->setnantobad;
-
-=for bad
-
+EOF
+  BadDoc => <<'EOF',
 This method can process ndarrays with bad values: those bad values
 are propagated into the output ndarray. Any value that is not a number
 (before version 2.040 the test was for "not finite")
 is also set to bad in the output ndarray. If all values from the input
 ndarray are good, the output ndarray will B<not> have its
 bad flag set.
+EOF
+  HandleBad => 1,
+  GenericTypes => $AF,
+  Inplace => 1,
+  Code => q[
+    int flag = 0;
+    broadcastloop %{
+      if ( PDL_ISNAN_$PPSYM()($a()) ) {
+        $SETBAD(b());
+        flag = 1;
+      } else {
+        $b() = $a();
+      }
+    %}
+    if ( flag ) $PDLSTATESETBAD(b);
+  ],
+);
 
-=cut
-
-    HandleBad => 1,
-    GenericTypes => $AF,
-    Inplace => 1,
-    Code => q[
-        int flag = 0;
-        broadcastloop %{
-            if ( PDL_ISNAN_$PPSYM()($a()) ) {
-                $SETBAD(b());
-                flag = 1;
-            }
-            else {
-                $b() = $a();
-            }
-        %}
-        if ( flag ) $PDLSTATESETBAD(b);
-    ],
-); # pp_def: setnantobad
-
-pp_def('setinftobad' . <<'=cut',
-
-=head2 setinftobad
-
-=for sig
-
-  Signature: (a(); [o]b())
-
+pp_def('setinftobad',
+  Pars => q(a(); [o]b()),
+  Doc => <<'EOF',
 =for ref
 
 Sets non-finite values (for complex, where either is non-finite) in
@@ -801,17 +734,14 @@ Can be done inplace.
 
  $y = $x->setinftobad;
  $x->inplace->setinftobad;
-
-=for bad
-
+EOF
+  BadDoc => <<'EOF',
 This method can process ndarrays with bad values: those bad values
 are propagated into the output ndarray. Any value that is not finite
 is also set to bad in the output ndarray. If all values from the input
 ndarray are finite, the output ndarray will B<not> have its
 bad flag set.
-
-=cut
-
+EOF
     HandleBad => 1,
     GenericTypes => $AF,
     Inplace => 1,
@@ -828,16 +758,11 @@ bad flag set.
         %}
         if ( flag ) $PDLSTATESETBAD(b);
     ],
-); # pp_def: setinftobad
+);
 
-pp_def('setnonfinitetobad' . <<'=cut',
-
-=head2 setnonfinitetobad
-
-=for sig
-
-  Signature: (a(); [o]b())
-
+pp_def('setnonfinitetobad',
+  Pars => q(a(); [o]b()),
+  Doc => <<'EOF',
 =for ref
 
 Sets non-finite values (for complex, where either is non-finite) in
@@ -848,43 +773,34 @@ Can be done inplace.
 
  $y = $x->setnonfinitetobad;
  $x->inplace->setnonfinitetobad;
-
-=for bad
-
+EOF
+  BadDoc => <<'EOF',
 This method can process ndarrays with bad values: those bad values
 are propagated into the output ndarray. Any value that is not finite
 is also set to bad in the output ndarray. If all values from the input
 ndarray are finite, the output ndarray will B<not> have its
 bad flag set.
+EOF
+  HandleBad => 1,
+  GenericTypes => $AF,
+  Inplace => 1,
+  Code => q[
+    int flag = 0;
+    broadcastloop %{
+      if ( !PDL_ISFINITE_$PPSYM()($a()) ) {
+        $SETBAD(b());
+        flag = 1;
+      } else {
+        $b() = $a();
+      }
+    %}
+    if ( flag ) $PDLSTATESETBAD(b);
+  ],
+);
 
-=cut
-
-    HandleBad => 1,
-    GenericTypes => $AF,
-    Inplace => 1,
-    Code => q[
-        int flag = 0;
-        broadcastloop %{
-            if ( !PDL_ISFINITE_$PPSYM()($a()) ) {
-                $SETBAD(b());
-                flag = 1;
-            }
-            else {
-                $b() = $a();
-            }
-        %}
-        if ( flag ) $PDLSTATESETBAD(b);
-    ],
-); # pp_def: setnonfinitetobad
-
-pp_def('setbadtonan' . <<'=cut',
-
-=head2 setbadtonan
-
-=for sig
-
-  Signature: (a(); [o] b();)
-
+pp_def('setbadtonan',
+  Pars => q(a(); [o] b();),
+  Doc => <<'EOF',
 =for ref
 
 Sets Bad values to NaN
@@ -896,39 +812,32 @@ of any type, but if done inplace, the input must be floating point.
 
  $y = $x->setbadtonan;
  $x->inplace->setbadtonan;
-
-=for bad
-
+EOF
+  BadDoc => <<'EOF',
 This method processes input ndarrays with bad values. The output ndarrays will
 not contain bad values (insofar as NaN is not Bad as far as PDL is concerned)
 and the output ndarray does not have its bad flag set. As an inplace
 operation, it clears the bad flag.
-
-=cut
-    
-    HandleBad => 1,
-    GenericTypes => $AF,
-    Inplace => 1,
-    Code => q{
+EOF
+  HandleBad => 1,
+  GenericTypes => $AF,
+  Inplace => 1,
+  Code => q{
 broadcastloop %{
-        if ( $ISBAD(a()) ) {
-            $b() = $TFDEGCH(NAN,NAN,NAN,NAN+I*NAN,NAN+I*NAN,NAN+I*NAN);
-        }
-        else {
-            $b() = $a();
-        }
+  if ( $ISBAD(a()) ) {
+    $b() = $TFDEGCH(NAN,NAN,NAN,NAN+I*NAN,NAN+I*NAN,NAN+I*NAN);
+  } else {
+    $b() = $a();
+  }
 %}
 $PDLSTATESETGOOD(b);
-    },
-); # pp_def: setbadtonan
+  },
+);
 
-pp_def('setbadtoval' . <<'=cut',
-=head2 setbadtoval
-
-=for sig
-
-  Signature: (a(); [o]b(); double newval)
-
+pp_def('setbadtoval',
+  Pars => q(a(); [o]b()),
+  OtherPars => q(double newval),
+  Doc => <<'EOF',
 =for ref
 
 Replace any bad values by a (non-bad) value. 
@@ -941,57 +850,50 @@ L</badmask>.
  $x->inplace->setbadtoval(23);
  print "a badflag: ", $x->badflag, "\n";
  a badflag: 0
-
-=for bad
-
+EOF
+  BadDoc => <<'EOF',
 The output always has its bad flag cleared.
 If the input ndarray does not have its bad flag set, then
 values are copied with no replacement.
+EOF
+  HandleBad => 1,
+  Inplace => 1,
+  Code => q{
+    PDL_IF_BAD($GENERIC(b) replace = ($GENERIC(b)) $COMP(newval);,)
+    broadcastloop %{
+      $GENERIC(b) a_val = $a();
+      $b() = PDL_IF_BAD($ISBADVAR(a_val,a) ? replace : ,) a_val;
+    %}
+  },
+  CopyBadStatusCode => q{
+    PDL->propagate_badflag( b, 0 ); /* always make sure the output is "good" */
+  },
+  GenericTypes => $A,
+);
 
-=cut
-    HandleBad => 1,
-    Inplace => 1,
-    Code => q{
-        PDL_IF_BAD($GENERIC(b) replace = ($GENERIC(b)) $COMP(newval);,)
-        broadcastloop %{
-            $GENERIC(b) a_val = $a();
-            $b() = PDL_IF_BAD($ISBADVAR(a_val,a) ? replace : ,) a_val;
-        %}
-    },
-    CopyBadStatusCode => q{
-        PDL->propagate_badflag( b, 0 ); /* always make sure the output is "good" */
-    },
-    GenericTypes => $A,
-); # pp_def: setbadtoval
-
-pp_def(
-       'badmask',
-       Pars => 'a(); b(); [o]c();',
-       Inplace => [ 'a' ],
-       HandleBad => 1,
-       Code => '
+pp_def('badmask',
+  Pars => 'a(); b(); [o]c();',
+  Inplace => [ 'a' ],
+  HandleBad => 1,
+  Code => '
 broadcastloop %{
-       $c() = ( isfinite((double) $a()) PDL_IF_BAD(&& $ISGOOD(a()),) ) ? $a() : $b();
+  $c() = ( isfinite((double) $a()) PDL_IF_BAD(&& $ISGOOD(a()),) ) ? $a() : $b();
 %}
 $PDLSTATESETGOOD(c);
-       ',
-       Doc =>
-'=for ref
+',
+  Doc => <<'EOF',
+=for ref
 
 Clears all C<infs> and C<nans> in C<$a> to the corresponding value in C<$b>.
-',
-       BadDoc =>
-       'If bad values are present, these are also cleared.',
-       );
+EOF
+  BadDoc => <<'EOF',
+If bad values are present, these are also cleared.
+EOF
+);
 
-pp_def('copybad'.<<'=cut',
-
-=head2 copybad
-
-=for sig
-
-  Signature: (a(); mask(); [o]b())
-
+pp_def('copybad',
+  Pars => q(a(); mask(); [o]b()),
+  Doc => <<'EOF',
 =for ref
 
 Copies values from one ndarray to another, setting them
@@ -1012,51 +914,48 @@ Can be done inplace.
 It is equivalent to:
 
  $c = $x + $mask * 0
-
-=for bad
-
+EOF
+  BadDoc => <<'EOF',
 This handles input ndarrays that are bad. If either C<$x>
 or C<$mask> have bad values, those values will be marked
 as bad in the output ndarray and the output ndarray will have
 its bad value flag set to true.
-
-=cut
-
-    HandleBad => 1,
-    Inplace => [ 'a' ],
-    Code => q{
+EOF
+  HandleBad => 1,
+  Inplace => [ 'a' ],
+  Code => q{
 char anybad = 0;
 broadcastloop %{
-        PDL_IF_BAD(if ( $ISBAD(mask()) ) {
-            $SETBAD(b());
-            anybad = 1;
-        } else,) {
-            $b() = $a();
-        }
+      PDL_IF_BAD(if ( $ISBAD(mask()) ) {
+          $SETBAD(b());
+          anybad = 1;
+      } else,) {
+          $b() = $a();
+      }
 %}
 if (anybad) $PDLSTATESETBAD(b);
-    },
-    GenericTypes => $A,
-); # pp_def: copybad
+  },
+  GenericTypes => $A,
+);
 
 pp_def('locf',
-    Pars => 'a(n); [o]b(n);',
-    HandleBad => 1,
-    GenericTypes => $A,
-    Doc => <<'EOF',
+  Pars => 'a(n); [o]b(n);',
+  HandleBad => 1,
+  GenericTypes => $A,
+  Doc => <<'EOF',
 =for ref
 
 Last Observation Carried Forward - replace
 every BAD value with the most recent non-BAD value prior to it.
 Any leading BADs will be set to 0.
 EOF
-    Code => q{
-        $GENERIC() tmp = 0;
-        loop(n) %{
-            if ( $ISGOOD(a()) ) tmp = $a();
-            $b() = tmp;
-        %}
-    },
+  Code => q{
+    $GENERIC() tmp = 0;
+    loop(n) %{
+      if ( $ISGOOD(a()) ) tmp = $a();
+      $b() = tmp;
+    %}
+  },
 );
 
 #########################################################
