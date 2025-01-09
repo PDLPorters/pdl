@@ -21,16 +21,6 @@ eval {pp_def(test1 => Pars => 'a(n)', Code => '$CROAK("$iisframe must be in rang
 is $@, '', '$var without brackets in a string is not error';
 #like $@, qr/Expected brackets/, 'var access without ()';
 
-eval {
-  pp_def(test1 =>
-    Pars => 'a(n)',
-    OtherPars => 'int b; int c',
-    OtherParsDefaults => { b => 0 },
-    Code => q{;},
-  );
-};
-isnt $@, '', 'error to give default for non-last params';
-
 eval { pp_def( "func", Code => ';',
   Pars => "I(m);",
 ) };
@@ -118,41 +108,6 @@ like $@, qr/Inplace Pars a and b inds n=2 and m=3 not compatible/;
 
 eval { pp_def( "func", Code => ';',
   Pars => "a(n=2); [o] b(m=3);",
-  OtherPars => "int x; char *y",
-  ArgOrder => [qw(a x y)],
-) };
-like $@, qr/missed params/;
-
-eval { pp_def( "func", Code => ';',
-  Pars => "a(n=2); [o] b(m=3);",
-  OtherPars => "int x; char *y",
-  ArgOrder => [qw(a x y b c)],
-) };
-like $@, qr/too many params/;
-
-eval { pp_def( "func", Code => ';',
-  Pars => "a(n=2); [o] b(m=3);",
-  OtherPars => "int x; char *y",
-  ArgOrder => [qw(a x b y)],
-) };
-like $@, qr/optional argument/;
-
-eval { pp_def( "func", Code => ';',
-  Pars => "a(n=2); [o] b(m=3);",
-  OtherPars => "int x; char *y",
-  ArgOrder => 1,
-) };
-is $@, '', 'non-ref true value OK';
-
-eval { pp_def( "func", Code => ';',
-  Pars => "a(n=2); [o] b(m=3);",
-  OtherPars => "int x; char *y",
-  ArgOrder => [qw(a x y b)],
-) };
-is $@, '', 'valid order OK';
-
-eval { pp_def( "func", Code => ';',
-  Pars => "a(n=2); [o] b(m=3);",
   GenericTypes => [qw(B INVALID)],
 ) };
 like $@, qr/INVALID/, 'invalid GenericTypes caught';
@@ -167,21 +122,40 @@ eval { pp_def( "func", Code => '$a(n=>1 + 2);',
 ) };
 like $@, qr/func\).*no spaces/, 'useful error when no "=>" in ndarray access';
 
+my @boilerplate = (my $pars = "a(n=2); [o] b(m=3)", "func", my $otherpars = "int x; char *y");
+eval { PDL::PP::Signature->new(@boilerplate, {x=>0}, undef) };
+isnt $@, '', 'error to give default for non-last params';
+
+eval { PDL::PP::Signature->new(@boilerplate, {}, [qw(a x y)]) };
+like $@, qr/missed params/;
+
+eval { PDL::PP::Signature->new(@boilerplate, {}, [qw(a x y b c)]) };
+like $@, qr/too many params/;
+
+eval { PDL::PP::Signature->new(@boilerplate, {}, [qw(a x b y)]) };
+like $@, qr/optional argument/;
+
+eval { PDL::PP::Signature->new(@boilerplate, {}, 1) };
+is $@, '', 'non-ref true value OK';
+
+eval { PDL::PP::Signature->new(@boilerplate, undef, [qw(a x y b)]) };
+is $@, '', 'valid order OK';
+
 my $got = PDL::PP::Signature->new(
-   my $pars = "a(n=2); [o] b(m=3);", 'name', "int x; char *y", {}, 1
+   $pars, 'name', $otherpars, {}, 1
 )->args_callorder;
 is_deeply $got, [qw(a x y b)], 'right reorder no defaults' or diag explain $got;
 is_deeply $got = PDL::PP::Signature->new(
-   $pars, 'name', "int x; char *y", {x=>1}, 1
+   $pars, 'name', $otherpars, {x=>1}, 1
 )->args_callorder, [qw(a y x b)],
   'right reorder with default'
   or diag explain $got;
 is_deeply $got = PDL::PP::Signature->new(
-   $pars, 'name', "[o] int x; char *y; double z", {}, 1
+   $pars, 'name', "[o] $otherpars; double z", {}, 1
 )->args_callorder, [qw(a y z b x)], 'right reorder, output other, no defaults'
   or diag explain $got;
 is_deeply $got = PDL::PP::Signature->new(
-   $pars, 'name', "[o] int x; char *y; double z", {y=>'""'}, 1
+   $pars, 'name', "[o] $otherpars; double z", {y=>'""'}, 1
 )->args_callorder, [qw(a z y b x)],
   'right reorder, output other, with default'
   or diag explain $got;

@@ -1535,43 +1535,6 @@ EOD
    PDL::PP::Rule::Returns::EmptyString->new("FtrCode", [],
     'Code that will be inserted after the call to the RunFunc'),
 
-   PDL::PP::Rule->new([], [qw(Name SignatureObj ArgOrder OtherParsDefaults?)],
-      "Check for ArgOrder errors",
-      sub {
-        my ($name, $sig, $argorder, $otherdefaults) = @_;
-        return if $argorder and !ref $argorder;
-        confess "$name ArgOrder given false value" if !ref $argorder;
-        my @names = @{ $sig->allnames(1, 1) };
-        my %namehash = map +($_=>1), @names;
-        delete @namehash{@$argorder};
-        confess "$name ArgOrder missed params: ".join(' ', keys %namehash) if keys %namehash;
-        my %orderhash = map +($_=>1), @$argorder;
-        delete @orderhash{@names};
-        confess "$name ArgOrder too many params: ".join(' ', keys %orderhash) if keys %orderhash;
-        my %optionals = map +($_=>1), keys(%$otherdefaults), $sig->names_out, $sig->other_out;
-        my $optional = '';
-        for (@$argorder) {
-          $optional = $_, next if exists $optionals{$_};
-          confess "$name got mandatory argument '$_' after optional argument '$optional'"
-            if $optional and !exists $optionals{$_};
-        }
-        ();
-      }),
-
-   PDL::PP::Rule->new([], [qw(Name SignatureObj OtherParsDefaults)],
-      "Check the OtherPars defaults aren't for ones after ones without",
-      sub {
-        my ($name,$sig,$otherdefaults) = @_;
-        my @other_args = @{ $sig->othernames(1, 1) };
-        return if keys %$otherdefaults == @other_args;
-        my $default_seen = '';
-        for (@other_args) {
-          $default_seen = $_ if exists $otherdefaults->{$_};
-          confess "$name got default-less arg '$_' after default-ful arg '$default_seen'"
-            if $default_seen and !exists $otherdefaults->{$_};
-        }
-        ();
-      }),
    PDL::PP::Rule->new("VarArgsXSHdr",
       [qw(Name SignatureObj
        OtherParsDefaults? ArgOrder? InplaceNormalised?)],

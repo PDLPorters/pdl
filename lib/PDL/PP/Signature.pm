@@ -25,6 +25,7 @@ sub nospacesplit {grep /\S/, split $_[0],$_[1]}
 
 sub new {
   my ($type,$pars,$opname,$otherpars,$otherparsdefaults,$argorder) = @_;
+  confess "$opname ArgOrder given defined but false value" if defined $argorder and !$argorder;
   my @objects = map PDL::PP::PdlParObj->new($_, $opname), nospacesplit ';',$pars;
   my $this = bless {
     Names=>[map $_->name, @objects], Objects=>{map +($_->name => $_), @objects},
@@ -37,8 +38,40 @@ sub new {
   $this->{DimsObj} = my $dimsobj = PDL::PP::PdlDimsObj->new;
   $_->add_inds($dimsobj) for @objects;
   @$this{qw(OtherNames OtherObjs OtherAnyOut OtherFlags)} = $this->_otherPars_nft($otherpars||'', $opname);
+  $this->_validate($opname);
   my $i=0; $dimsobj->ind_obj($_)->set_index($i++) for sort $dimsobj->ind_names;
   $this;
+}
+
+sub _validate {
+  my ($sig, $name) = @_;
+  my ($argorder, $otherdefaults) = @$sig{qw(ArgOrder OtherParsDefaults)};
+  if (!$argorder and
+    keys(%$otherdefaults) != (my @other_args = @{ $sig->{OtherNames} })
+  ) {
+    my $default_seen = '';
+    for (@other_args) {
+      $default_seen = $_ if exists $otherdefaults->{$_};
+      confess "$name got default-less arg '$_' after default-ful arg '$default_seen'"
+        if $default_seen and !exists $otherdefaults->{$_};
+    }
+  }
+  if ($argorder and ref $argorder) {
+    my @names = @{ $sig->allnames(1, 1) };
+    my %namehash = map +($_=>1), @names;
+    delete @namehash{@$argorder};
+    confess "$name ArgOrder missed params: ".join(' ', keys %namehash) if keys %namehash;
+    my %orderhash = map +($_=>1), @$argorder;
+    delete @orderhash{@names};
+    confess "$name ArgOrder too many params: ".join(' ', keys %orderhash) if keys %orderhash;
+    my %optionals = map +($_=>1), keys(%$otherdefaults), $sig->names_out, $sig->other_out;
+    my $optional = '';
+    for (@$argorder) {
+      $optional = $_, next if exists $optionals{$_};
+      confess "$name got mandatory argument '$_' after optional argument '$optional'"
+        if $optional and !exists $optionals{$_};
+    }
+  }
 }
 
 sub _otherPars_nft {
