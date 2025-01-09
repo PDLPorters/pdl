@@ -25,31 +25,29 @@ sub nospacesplit {grep /\S/, split $_[0],$_[1]}
 
 sub new {
   my ($type,$pars,$opname,$otherpars) = @_;
-  my $this = bless {OpName=>$opname}, $type;
-  my @objects = map PDL::PP::PdlParObj->new($_, $this), nospacesplit ';',$pars;
-  $this->{Names} = [ map $_->name, @objects ];
-  $this->{Objects} = { map +($_->name => $_), @objects };
+  my @objects = map PDL::PP::PdlParObj->new($_, $opname), nospacesplit ';',$pars;
+  my $this = bless {Names=>[map $_->name, @objects], Objects=>{map +($_->name => $_), @objects}}, $type;
   my @objects_sorted = ((grep !$_->{FlagW}, @objects), (grep $_->{FlagW}, @objects));
   $objects_sorted[$_]{Number} = $_ for 0..$#objects_sorted;
   $this->{NamesSorted} = [ map $_->name, @objects_sorted ];
   $this->{DimsObj} = my $dimsobj = PDL::PP::PdlDimsObj->new;
   $_->add_inds($dimsobj) for @objects;
-  @$this{qw(OtherNames OtherObjs OtherAnyOut OtherFlags)} = $this->_otherPars_nft($otherpars||'');
+  @$this{qw(OtherNames OtherObjs OtherAnyOut OtherFlags)} = $this->_otherPars_nft($otherpars||'', $opname);
   my $i=0; $dimsobj->ind_obj($_)->set_index($i++) for sort $dimsobj->ind_names;
   $this;
 }
 
 sub _otherPars_nft {
-    my ($sig,$otherpars) = @_;
+    my ($sig,$otherpars,$opname) = @_;
     my $dimobjs = $sig && $sig->dims_obj;
     my (@names,%types,$type,$any_out,%allflags);
     for (nospacesplit(';',$otherpars)) {
 	my (%flags);
 	if (s/^\s*$PDL::PP::PdlParObj::sqbr_re\s*//) {
 	  %flags = my %lflags = map +($_=>1), split /\s*,\s*/, my $opts = $1;
-	  croak "pp_def($sig->{OpName}): Can't have both [io] and [o]" if $lflags{o} && $lflags{io};
+	  croak "pp_def($opname): Can't have both [io] and [o]" if $lflags{o} && $lflags{io};
 	  my $this_out = delete($lflags{o}) || delete($lflags{io});
-	  croak "pp_def($sig->{OpName}): Invalid options '$opts' in '$_'" if keys %lflags;
+	  croak "pp_def($opname): Invalid options '$opts' in '$_'" if keys %lflags;
 	  $any_out ||= $this_out;
 	}
 	if (/^\s*([^=]+?)\s*=>\s*(\S+)\s*$/) {
@@ -62,7 +60,7 @@ sub _otherPars_nft {
 	    $type = PDL::PP::CType->new($_);
 	}
 	my $name = $type->protoname;
-	croak "pp_def($sig->{OpName}): Invalid OtherPars name: $name"
+	croak "pp_def($opname): Invalid OtherPars name: $name"
 	  if $PDL::PP::PdlParObj::INVALID_PAR{$name};
 	push @names,$name;
 	$types{$name} = $type;
