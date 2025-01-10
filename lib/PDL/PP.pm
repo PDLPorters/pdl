@@ -1403,7 +1403,7 @@ $PDL::PP::deftbl =
         "  PDL_XS_INPLACE($in, $out)\n";
       }),
    PDL::PP::Rule::Returns::EmptyString->new("InplaceCode", []),
-   PDL::PP::Rule->new("InplaceDoc",
+   PDL::PP::Rule->new("InplaceDocValues",
      [qw(Name SignatureObj InplaceNormalised)],
      'doc describing usage inplace',
      sub {
@@ -1412,16 +1412,20 @@ $PDL::PP::deftbl =
        my %inplace_involved = map +($_=>1), my ($in, $out) = @$inplace;
        my $meth_call = $args[0] eq $in;
        @args = grep !$inplace_involved{$_}, @args;
-       $meth_call &&= " \$$in->inplace->$name".(
+       my @vals = !$meth_call ? () : [
+        "\$$in->inplace->$name".(
            !@args ? '' : "(@{[join ',', map qq{\$$_}, @args]})"
-         ).";\n";
-       "Can be used inplace:\n\n$meth_call $name(\$$in->inplace".(
+         ).";", []
+       ];
+       push @vals, [ "$name(\$$in->inplace".(
            !@args ? '' : ",@{[join ',', map qq{\$$_}, @args]}"
-         ).");\n\n";
+         ).");", []];
+       $vals[0][1] = ["can be used inplace"];
+       \@vals;
      }),
-   PDL::PP::Rule::Returns::EmptyString->new("InplaceDoc", []),
+   PDL::PP::Rule::Returns->new("InplaceDocValues", []),
 
-   PDL::PP::Rule->new("OverloadDoc",
+   PDL::PP::Rule->new("OverloadDocValues",
      [qw(Name SignatureObj Overload Inplace?)],
      'implement and doc Perl overloaded operators',
      sub {
@@ -1462,20 +1466,22 @@ EOF
        my @outs = $sig->names_out;
        confess "$name error in Overload doc: !=1 output (@outs)" if @outs != 1;
        my @ins = $sig->names_in;
-       my $call = " \$$outs[0] = ".(
+       my @vals = ["\$$outs[0] = ".(
          !$one_arg ? "\$$ins[0] $op \$$ins[1]" :
          $op.($op =~ /[^a-z]/ ? '' : ' ')."\$$ins[0]"
-       ).";\n";
-       $call .= " \$$ins[0] $op= \$$ins[1];\n" if $mutator;
-       "Overloads the Perl '$op' operator:\n\n$call\n";
+       ).";", 
+       ["overloads the Perl '$op' operator"]
+       ];
+       push @vals, ["\$$ins[0] $op= \$$ins[1];", []] if $mutator;
+       \@vals;
      }),
-   PDL::PP::Rule::Returns::EmptyString->new("OverloadDoc", []),
+   PDL::PP::Rule::Returns->new("OverloadDocValues", []),
 
    PDL::PP::Rule->new("UsageDoc",
-     [qw(Name Doc? SignatureObj OtherParsDefaults? ArgOrder?)],
+     [qw(Name Doc? SignatureObj OtherParsDefaults? ArgOrder? OverloadDocValues InplaceDocValues)],
      'generate "usage" section of doc',
      sub {
-       my ($name, $doc, $sig, $otherdefaults, $argorder) = @_;
+       my ($name, $doc, $sig, $otherdefaults, $argorder, $overloadvals, $inplacevals) = @_;
        return '' if $doc && $doc =~ /^=for usage/m;
        $otherdefaults ||= {};
        my @args = @{ $sig->args_callorder };
@@ -1510,7 +1516,8 @@ EOF
            if keys %any_out;
          push @argsets, [\@args, [], ['all arguments given']];
        }
-       my @invocs = map [(!@{$_->[1]} ? '' :
+       my @invocs = @$overloadvals;
+       push @invocs, map [(!@{$_->[1]} ? '' :
            @{$_->[1]} == 1 ? "\$$_->[1][0] = " :
            "(".join(", ", map "\$$_", @{$_->[1]}).") = "
          )."$name(".join(", ", map "\$$_", @{$_->[0]}).");",
@@ -1525,6 +1532,7 @@ EOF
            "(".join(", ", map "\$$_", @{$_->[0]}[1..$#{$_->[0]}]).")"
          ).";",
          [@{$_->[2]}]], grep @{$_->[0]}, @argsets;
+       push @invocs, @$inplacevals;
        require List::Util;
        my $maxlen = List::Util::max(map length($_->[0]), @invocs);
        join '', "\n=for usage\n\n",
@@ -1542,9 +1550,9 @@ EOF
          return $fulldoc;
       }
    ),
-   PDL::PP::Rule->new("PdlDoc", [qw(Name Pars OtherPars GenericTypes Doc UsageDoc BadDoc? InplaceDoc OverloadDoc)],
+   PDL::PP::Rule->new("PdlDoc", [qw(Name Pars OtherPars GenericTypes Doc UsageDoc BadDoc?)],
       sub {
-        my ($name,$pars,$otherpars,$gentypes,$doc,$usagedoc,$baddoc,@docparts) = @_;
+        my ($name,$pars,$otherpars,$gentypes,$doc,$usagedoc,$baddoc) = @_;
         return '' if !defined $doc # Allow explicit non-doc using Doc=>undef
             or $doc =~ /^\s*internal\s*$/i;
         # If the doc string is one line let's have two for the
@@ -1569,7 +1577,7 @@ EOF
             $baddoc =~ s/^\n+//;
             $baddoc = "=for bad\n\n$baddoc";
         }
-        my $miscdocs = join '', grep $_, @docparts, $baddoc;
+        my $miscdocs = join '', grep $_, $baddoc;
         my $baddoc_function_pod = <<"EOD" ;
 
 XXX=head2 $name
