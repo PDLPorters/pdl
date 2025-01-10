@@ -1816,12 +1816,7 @@ my $rotate_code = pp_line_numbers(__LINE__, <<'EOF');
 EOF
 pp_def('rotate',
         GenericTypes => [ppdefs_all],
-        Doc => <<'EOD',
-=for ref
-
-Shift vector elements along with wrap. Flows data back&forth.
-=cut
-EOD
+        Doc => 'Shift vector elements along with wrap.',
         Pars=>'x(n); indx shift(); [oca]y(n)',
         DefaultFlow => 1,
         TwoWay => 1,
@@ -1847,9 +1842,6 @@ Put some dimensions to a broadcastid.
 =for example
 
  $y = $x->broadcastI(0,1,5); # broadcast over dims 1,5 in id 1
-
-=cut
-
 EOD
         P2Child => 1,
         TwoWay => 1,

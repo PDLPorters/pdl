@@ -53,6 +53,14 @@ pp_def('foop',
 	Pars => 'byte [phys]a1(n); byte [o,phys]b(n)',
 	GenericTypes => [B],
 	Code => 'ppcp($P(b),$P(a1),$SIZE(n));',
+	Doc      => '
+
+=for ref
+
+Sample standard deviation.
+
+=cut
+  ',
 );
 
 # test single-used phys dim of 1 ok

@@ -1550,9 +1550,15 @@ EOF
          return $fulldoc;
       }
    ),
-   PDL::PP::Rule->new("PdlDoc", [qw(Name Pars OtherPars GenericTypes Doc UsageDoc BadDoc?)],
+   PDL::PP::Rule::Returns::Zero->new("NoPthread"), # assume we can pthread, unless indicated otherwise
+   PDL::PP::Rule->new("PdlDoc", [qw(
+      Name Pars OtherPars GenericTypes Doc UsageDoc BadDoc?
+      HaveBroadcasting NoPthread IsAffineFlag TwoWayFlag DefaultFlowFlag
+      )],
       sub {
-        my ($name,$pars,$otherpars,$gentypes,$doc,$usagedoc,$baddoc) = @_;
+        my ($name,$pars,$otherpars,$gentypes,$doc,$usagedoc,$baddoc,
+          $havebroadcasting, $noPthreadFlag, $affflag, $revflag, $flowflag
+        ) = @_;
         return '' if !defined $doc # Allow explicit non-doc using Doc=>undef
             or $doc =~ /^\s*internal\s*$/i;
         # If the doc string is one line let's have two for the
@@ -1566,7 +1572,7 @@ EOF
         my @typenames = map PDL::Type->new($_)->ioname, @$gentypes;
         my @typesigparts = '';
         while (@typenames) {
-          push @typesigparts, '' if length $typesigparts[-1] > 40;
+          push @typesigparts, '' if length $typesigparts[-1] > 50;
           $typesigparts[-1] .= ($typesigparts[-1]&&' ') . shift @typenames;
         }
         my $typesig = join "\n   ", @typesigparts;
@@ -1575,9 +1581,14 @@ EOF
                 # Strip leading newlines and any =cut markings
             $baddoc =~ s/\n(=cut\s*\n)+(\s*\n)*$/\n/m;
             $baddoc =~ s/^\n+//;
-            $baddoc = "=for bad\n\n$baddoc";
+            $baddoc = "\n=for bad\n\n$baddoc";
         }
-        my $miscdocs = join '', grep $_, $baddoc;
+        my @misc = $havebroadcasting ? "Broadcasts over its inputs.\n" : "Does not broadcast.\n";
+        push @misc, "Can't use POSIX threads.\n" if $noPthreadFlag;
+        push @misc, "Makes L<virtual affine|PDL::Indexing> ndarrays.\n" if $affflag;
+        push @misc, "Creates data-flow".(!$revflag ? "" : " back and forth").
+          " by default.\n" if $flowflag;
+        my $miscdocs = join '', grep $_, @misc, $baddoc;
         my $baddoc_function_pod = <<"EOD" ;
 
 XXX=head2 $name
@@ -1588,6 +1599,8 @@ XXX=for sig
  Types: ($typesig)
 $usagedoc
 $doc
+
+=pod
 
 $miscdocs
 
@@ -2003,7 +2016,6 @@ EOF
       "Rule to print out XS code when variable argument list XS processing is enabled",
       sub {make_xs_code('','',@_)}),
 
-   PDL::PP::Rule::Returns::Zero->new("NoPthread"), # assume we can pthread, unless indicated otherwise
    PDL::PP::Rule->new("VTableDef",
       ["VTableName","ParamStructType","RedoDimsFuncName","ReadDataFuncName",
        "WriteBackDataFuncName","FreeFuncName",
