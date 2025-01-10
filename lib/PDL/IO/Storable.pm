@@ -14,7 +14,7 @@ use DynaLoader;
 
 =head1 NAME
 
-PDL::IO::Storable - helper functions to make PDL usable with Storable
+PDL::IO::Storable - helper functions to make PDL usable with serialisation packages
 
 =head1 SYNOPSIS
 
@@ -26,11 +26,22 @@ PDL::IO::Storable - helper functions to make PDL usable with Storable
           };
   store $hash, 'perlhash.dat';
 
+  use JSON::MaybeXS;
+  $encoder = JSON::MaybeXS->new(allow_tags => 1);
+  my $ndarray = xvals (5,2);
+  my $encoded_json = $encoder->encode ($ndarray);
+  my $decoded_ndarray = $encoder->decode ($encoded_json);
+
 =head1 DESCRIPTION
 
-C<Storable> implements object persistence for Perl data structures that can
+Serialisation packages such as C<Storable>, C<Sereal>, C<JSON::MaybeXS> and C<CBOR::XS> implement
+object persistence for Perl data structures that can
 contain arbitrary Perl objects. This module implements the relevant methods to
-be able to store and retrieve ndarrays via Storable.
+be able to store and retrieve ndarrays via C<Storable> as well as packages that support
+the C<Types::Serialiser> protocol (currently C<Sereal>, C<CBOR::XS> and JSON packages).
+
+Note that packages supporting the C<Types::Serialiser> protocol need to have their
+respective flags enabled so that the FREEZE and THAW callbacks are used.
 
 =head1 FUNCTIONS
 
@@ -233,6 +244,11 @@ sub pdlunpack {
   }
 
   print "thawing PDL, Dims: [",join(',',@dims),"]\n" if $PDL::verbose;
+
+  use Scalar::Util qw /blessed/;
+  if (!blessed $pdl) {  #  set_datatype needs an object, not a class name
+    $pdl = $pdl->new;
+  }
   $pdl->set_sv_to_null_pdl; # make this a real ndarray -- this is the tricky bit!
   $pdl->set_datatype($type);
   $pdl->setdims([@dims]);
@@ -291,6 +307,28 @@ freeze an ndarray using L<Storable>
 
 sub store  { require Storable; Storable::store(@_) }
 sub freeze { require Storable; Storable::freeze(@_) }
+
+sub FREEZE {
+  my ($self, $serialiser, @data) = @_;
+  #  non-JSON can use the Storable code
+  return $self->STORABLE_freeze ($serialiser, @data)
+    if $serialiser ne 'JSON';
+  #  JSON needs to use a plain text format to avoid encoding issues
+  #  so we unpdl it and let JSON do the rest.
+  #  Stringify type so it does not need FREEZE/THAW methods
+  my $type = '' . $self->type;
+  return ($type, $self->unpdl);
+}
+
+sub THAW {
+  my ($class, $serialiser, @data) = @_;
+  return $class->STORABLE_thaw (undef, @data)
+    if $serialiser ne 'JSON';
+  #  The type has been stringified when frozen so reinstantiate it.
+  $data[0] = PDL::Type->new($data[0]);
+  return PDL->new (@data);
+}
+
 }
 
 =head1 AUTHOR
