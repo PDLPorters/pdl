@@ -1441,25 +1441,35 @@ $PDL::PP::deftbl =
        my $fullname = $::PDLOBJ."::$name";
        if ($one_arg) {
          $ret .= pp_line_numbers(__LINE__, <<EOF);
-use overload '$op' => sub { $fullname(\$_[0]) };
+use overload '$op' => sub {
+  Carp::confess("$fullname: overloaded '$op' given undef")
+    if grep !defined, \$_[0];
+  $fullname(\$_[0]);
+};
 EOF
        } else {
          $ret .= pp_line_numbers(__LINE__, <<EOF);
 {
   my (\$foo, \$overload_sub);
   use overload '$op' => \$overload_sub = sub(;\@) {
-      return $fullname($bitwise_passon) unless ref \$_[1]
-              && (ref \$_[1] ne '$::PDLOBJ')
-              && defined(\$foo = overload::Method(\$_[1], '$op'))
-              && \$foo != \$overload_sub; # recursion guard
-      goto &\$foo;
+    Carp::confess("$fullname: overloaded '$op' given undef")
+      if grep !defined, \@_[0,1];
+    return $fullname($bitwise_passon) unless ref \$_[1]
+            && (ref \$_[1] ne '$::PDLOBJ')
+            && defined(\$foo = overload::Method(\$_[1], '$op'))
+            && \$foo != \$overload_sub; # recursion guard
+    goto &\$foo;
   };
 }
 EOF
        }
        $ret .= pp_line_numbers(__LINE__, <<EOF) if $mutator;
 # in1, in2, out, swap if true
-use overload '$op=' => sub { $fullname(\$_[0]->inplace, \$_[1]); \$_[0] };
+use overload '$op=' => sub {
+  Carp::confess("$fullname: overloaded '$op=' given undef")
+    if grep !defined, \@_[0,1];
+  $fullname(\$_[0]->inplace, \$_[1]); \$_[0]
+};
 EOF
        $::PDLOVERLOAD .= "$ret}\n";
        my @args = @{ $sig->args_callorder };

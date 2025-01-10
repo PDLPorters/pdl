@@ -14,6 +14,7 @@
 - InplaceDoc now automatically generated like BadDoc, Signature doc includes types
 - Overload key added to PP (#519)
 - "usage" section of xform docs now automatically generated (#519)
+- overloaded operators now throw exception if given undef argument (#519) - thanks @cgtinney for report
 
 2.098 2025-01-03
 - fix Windows build problems

@@ -182,6 +182,11 @@ is $@, '', 'inplace += worked';
 is $pa.'', 2, 'inplace += right value after';
 }
 
+eval { my $res = pdl(3) + undef };
+like $@, qr/given undef/, 'error on overloaded op with undef arg';
+eval { (my $t = pdl(3)) += undef };
+like $@, qr/given undef/, 'error on overloaded op= with undef arg';
+
 {
 # log10 now uses C library
 # check using scalars and ndarrays
