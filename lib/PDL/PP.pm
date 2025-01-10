@@ -1619,7 +1619,7 @@ EOD
         join ",", map exists $otherdefaults->{$_} ? "$_=$otherdefaults->{$_}" :
              $out{$_} || $other_out{$_} ? "[$_]" : $_, @inargs
     ]}) (you may leave [outputs] and values with =defaults out of list)");}
-          unless $only_one || $argorder || ($nmaxonstack - ($xs_arg_cnt+1) == keys(%valid_itemcounts)-1);
+          unless $only_one || $argorder || ($nmaxonstack == keys(%valid_itemcounts) + $xs_arg_cnt);
         my $preamble = @preinit ? qq[\n PREINIT:@{[join "\n  ", "", @preinit]}\n INPUT:\n] : '';
         join '', qq[
 \nNO_OUTPUT pdl_error
