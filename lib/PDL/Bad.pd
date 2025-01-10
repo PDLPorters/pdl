@@ -413,14 +413,6 @@ number of bad elements along the 1st dimension. In this sense it shares
 much in common with the functions defined in L<PDL::Ufunc>. In particular,
 by using L<xchg|PDL::Slices/xchg> and similar dimension rearranging methods,
 it is possible to perform this calculation over I<any> dimension.
-
-=for usage
-
- $x = nbadover($y);
-
-=for example
-
- $spectrum = nbadover $image->transpose
 EOF
   BadDoc => <<'EOF',
 nbadover processes input values that are bad. The output ndarray will not have
@@ -449,14 +441,6 @@ along the 1st dimension.
 
 By using L<xchg|PDL::Slices/xchg> etc. it is possible to use
 I<any> dimension.
-
-=for usage
-
- $x = ngoodover($y);
-
-=for example
-
- $spectrum = ngoodover $image->transpose
 EOF
   BadDoc => <<'EOF',
 ngoodover processes input values that are bad. The output ndarray will not have
@@ -495,10 +479,6 @@ pp_addpm(<<'!NO!SUBS!');
 =for ref
 
 Returns the number of bad values in an ndarray
-
-=for usage
-
- $x = nbad($data);
 
 =for bad
 
@@ -689,12 +669,6 @@ pp_def('setnantobad',
 
 Sets NaN values (for complex, where either is NaN) in the input ndarray bad
 (only relevant for floating-point ndarrays).
-Can be done inplace.
-
-=for usage
-
- $y = $x->setnantobad;
- $x->inplace->setnantobad;
 EOF
   BadDoc => <<'EOF',
 This method can process ndarrays with bad values: those bad values
@@ -728,12 +702,6 @@ pp_def('setinftobad',
 
 Sets non-finite values (for complex, where either is non-finite) in
 the input ndarray bad (only relevant for floating-point ndarrays).
-Can be done inplace.
-
-=for usage
-
- $y = $x->setinftobad;
- $x->inplace->setinftobad;
 EOF
   BadDoc => <<'EOF',
 This method can process ndarrays with bad values: those bad values
@@ -767,12 +735,6 @@ pp_def('setnonfinitetobad',
 
 Sets non-finite values (for complex, where either is non-finite) in
 the input ndarray bad (only relevant for floating-point ndarrays).
-Can be done inplace.
-
-=for usage
-
- $y = $x->setnonfinitetobad;
- $x->inplace->setnonfinitetobad;
 EOF
   BadDoc => <<'EOF',
 This method can process ndarrays with bad values: those bad values
@@ -807,11 +769,6 @@ Sets Bad values to NaN
 
 This is only relevant for floating-point ndarrays. The input ndarray can be
 of any type, but if done inplace, the input must be floating point.
-
-=for usage
-
- $y = $x->setbadtonan;
- $x->inplace->setbadtonan;
 EOF
   BadDoc => <<'EOF',
 This method processes input ndarrays with bad values. The output ndarrays will
@@ -842,8 +799,7 @@ pp_def('setbadtoval',
 
 Replace any bad values by a (non-bad) value. 
 
-Can be done inplace. Also see
-L</badmask>.
+Also see L</badmask>.
 
 =for example
 
@@ -898,8 +854,6 @@ pp_def('copybad',
 
 Copies values from one ndarray to another, setting them
 bad if they are bad in the supplied mask.
-
-Can be done inplace.
 
 =for example
 

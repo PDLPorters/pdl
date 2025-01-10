@@ -129,13 +129,6 @@ give rise to ludicrously large bins in a plain Golomb code; such large jumps
 
 Working on astronomical or solar image data, typical compression ratios of 
 2-3 are achieved.
-
-=for usage
-
-  $out = $pdl->rice_compress($blocksize);
-  ($out, $len, $blocksize, $dim0) = $pdl->rice_compress;
-
-  $new = $out->rice_expand;
 EOD
 	PMCode => <<'EOD',
 sub PDL::rice_compress {
@@ -179,11 +172,6 @@ pp_def(
 =for ref
 
 Unsquishes a PDL that has been squished by rice_compress.
-
-=for usage
-
-     ($out, $len, $blocksize, $dim0) = $pdl->rice_compress;
-     $copy = $out->rice_expand($dim0, $blocksize);
 EOD
 	CHeader => qq{#include "ricecomp.h"\n},
 	Code=><<'EOD',

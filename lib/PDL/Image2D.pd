@@ -522,10 +522,6 @@ pp_def('patch2d',
 
 patch bad pixels out of 2D images using a mask
 
-=for usage
-
- $patched = patch2d $data, $bad;
-
 C<$bad> is a 2D mask array where 1=bad pixel 0=good pixel.
 Pixels are replaced by the average of their non-bad neighbours;
 if all neighbours are bad, the original data value is
@@ -572,10 +568,6 @@ pp_def('patchbad2d',
 =for ref
 
 patch bad pixels out of 2D images containing bad values
-
-=for usage
-
- $patched = patchbad2d $data;
 
 Pixels are replaced by the average of their non-bad neighbours;
 if all neighbours are bad, the output is set bad.

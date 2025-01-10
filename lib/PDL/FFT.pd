@@ -99,11 +99,6 @@ pp_def('fft',
 
 Complex 1-D FFT of the "real" and "imag" arrays [inplace]. A single
 cfloat/cdouble input ndarray can also be used.
-
-=for usage
-
-  fft($real,$imag);
-  fft($complex);
 EOF
 	PMCode=><<'EOF',
 sub PDL::fft {
@@ -147,11 +142,6 @@ pp_def('ifft',
 
 Complex inverse 1-D FFT of the "real" and "imag" arrays [inplace]. A single
 cfloat/cdouble input ndarray can also be used.
-
-=for usage
-
-  ifft($real,$imag);
-  ifft($complex);
 EOF
 	PMCode=><<'EOF',
 sub PDL::ifft {

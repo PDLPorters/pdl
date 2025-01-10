@@ -55,18 +55,7 @@ by one by taking the $name along the 1st dimension.
 By using L<xchg|PDL::Slices/xchg> etc. it is possible to use
 I<any> dimension.
 
-=for usage
-
- \$y = $op(\$x);
-
-=for example
-
- \$spectrum = $op \$image->transpose
-
 $extras
-
-=cut
-
 EOD
 
 } # sub: projectdocs()
@@ -90,18 +79,7 @@ I<any> dimension.
 The sum is started so that the first element in the cumulative $name
 is the first element of the parameter.
 
-=for usage
-
- \$y = $op(\$x);
-
-=for example
-
- \$spectrum = $op \$image->transpose
-
 $extras
-
-=cut
-
 EOD
 
 } # sub: cumuprojectdocs()
@@ -258,11 +236,6 @@ calculating "curl".
 By using L<PDL::Slices/xchg> etc. it is possible to use I<any> dimension.
 
 See also L</diff2>, L</partial>, L</numdiff>, L<PDL::Primitive/pchip_chim>.
-
-=for usage
-
-  print pdl(q[3 4 2 3 2 3 1])->diff2;
-  # [1 -2 1 -1 1 -2]
 EOF
   BadDoc => <<'EOF',
 A bad value at C<n> means the affected output values at C<n-2>,C<n>
@@ -364,7 +337,7 @@ Combined with C<slice('-1:0')>, can be used for backward differencing.
 
 See also L</numdiff>, L</diffcentred>, L</partial>, L<PDL::Primitive/pchip_chim>.
 
-=for usage
+=for example
 
   print pdl(q[3 4 2 3 2 3 1])->diff2;
   # [1 -2 1 -1 1 -2]
@@ -627,7 +600,7 @@ EOF
 
 Find minimum and maximum and their indices for a given ndarray;
 
-=for usage
+=for example
 
  pdl> $x=pdl [[-2,3,4],[1,0,3]]
  pdl> ($min, $max, $min_ind, $max_ind)=minmaximum($x)
@@ -1096,17 +1069,7 @@ if (!is_inplace) loop(n) %{ $b() = $a(); %}
 )
 if ( nn == 0 ) continue; nn -= 1;
 qsort_$PPSYM() ($P(b), 0, nn);',
-    Doc => '
-=for ref
-
-Quicksort a vector into ascending order.
-
-=for example
-
- print qsort random(10);
-
-=cut
-',
+    Doc => 'Quicksort a vector into ascending order.',
     BadDoc =>
 '
 Bad values are moved to the end of the array:
@@ -1149,8 +1112,6 @@ Quicksort a vector and return index of elements in ascending order.
 
  $ix = qsorti $x;
  print $x->index($ix); # Sorted list
-
-=cut
 '
 );
 

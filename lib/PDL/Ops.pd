@@ -128,7 +128,6 @@ EOF
     }
 
     my $bitwise = delete $extra{Bitwise};
-    my $sp = ' ' x (length($name) - length($op) + 2); # line up example table
     pp_def($name,
 	   Pars => 'a(); b(); [o]c();',
 	   OtherPars => 'int $swap',
@@ -147,20 +146,8 @@ broadcastloop %{
 PDL_IF_BAD(if (anybad) \$PDLSTATESETBAD(c);,)
 EOF
 	   %extra,
-	   Doc => << "EOD");
-=for ref
-
-$doc
-
-=for example
-
- \$c = PDL::$name(\$x, \$y);    # explicit call with default swap of 0
- \$c = PDL::$name(\$x, \$y, 0); # explicit call with explicit swap of 0
- \$c = PDL::$name(\$x, \$y, 1); # explicit call with trailing 1 to swap args
- PDL::$name(\$x, \$y, \$c, 1);  # all params given
- \$x->$name(\$y, \$c, 0);       # method call, all params given
- \$c = \$x->$name(\$y);         # method call
-EOD
+	   Doc => $doc,
+    );
 }
 
 #simple binary functions
@@ -181,7 +168,6 @@ sub bifunc {
   }
 EOH
     # is this one to be used as a function or operator ?
-    my $sp = ' ' x (length($name) - length($funcov)+($isop?1:0) + 1); # line up example table
 
     my $codestr;
     if ($extra{unsigned}){
@@ -217,16 +203,8 @@ broadcastloop %{
 PDL_IF_BAD(if (anybad) \$PDLSTATESETBAD(c);,)
 EOF
 	   %extra,
-	   Doc => << "EOD");
-=for ref
-
-$doc
-
-=for example
-
-   \$c = \$x->$name(\$y);       # explicit call with default swap of 0
-   \$c = \$x->$name(\$y, 1);    # explicit call with trailing 1 to swap args
-EOD
+	   Doc => $doc,
+    );
 }
 
 # simple unary functions and operators
@@ -270,11 +248,8 @@ PDL_IF_BAD(if ( \$ISBAD(a()) ) \$SETBAD(b()); else {,)
 PDL_IF_BAD(},)
 EOF
 	   %extra,
-	   Doc => << "EOD");
-=for ref
-
-$doc
-EOD
+	   Doc => $doc,
+    );
 }
 
 ######################################################################
@@ -453,11 +428,6 @@ pp_def('ipow',
 =for ref
 
 raise ndarray C<\$a> to integer power C<\$b>
-
-=for example
-
-   \$c = \$x->ipow(\$y);     # as method
-   \$c = ipow \$x, \$y;
 
 Algorithm from L<Wikipedia|http://en.wikipedia.org/wiki/Exponentiation_by_squaring>
 },

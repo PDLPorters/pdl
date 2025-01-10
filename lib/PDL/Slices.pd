@@ -1050,13 +1050,6 @@ Run-length decode a vector
 
 Given a vector C<$x> of the numbers of instances of values C<$y>, run-length
 decode to C<$c>.
-
-=for example
-
- rld($x,$y,$c=null);
-
-=cut
-
 EOD
 );
 
@@ -1695,10 +1688,6 @@ Returns an ndarray of lags to parent.
 
 Usage:
 
-=for usage
-
-  $lags = $x->lags($nthdim,$step,$nlags);
-
 I.e. if C<$x> contains
 
  [0,1,2,3,4,5,6,7]
@@ -1725,14 +1714,14 @@ EOD
         P2Child => 1,
         TwoWay => 1,
         AffinePriv => 1,
-        OtherPars => join('', map "PDL_Indx $_;", qw(nthdim step n)),
+        OtherPars => join('', map "PDL_Indx $_;", qw(nthdim step nlags)),
         RedoDims => pp_line_numbers(__LINE__, <<'EOF'),
                 PDL_Indx i;
                 if ($COMP(nthdim) < 0)  /* the usual conventions */
                    $COMP(nthdim) += $PDL(PARENT)->ndims;
                 if ($COMP(nthdim) < 0 || $COMP(nthdim) >= $PDL(PARENT)->ndims)
                    $CROAK("dim out of range");
-                if ($COMP(n) < 1)
+                if ($COMP(nlags) < 1)
                    $CROAK("number of lags must be positive");
                 if ($COMP(step) < 1)
                    $CROAK("step must be positive");
@@ -1743,10 +1732,10 @@ EOD
                         $PDL(CHILD)->dims[i] = $PDL(PARENT)->dims[i];
                         $PRIV(incs)[i] = $PDL(PARENT)->dimincs[i];
                 }
-                $PDL(CHILD)->dims[i] = $PDL(PARENT)->dims[i] - $COMP(step) * ($COMP(n)-1);
+                $PDL(CHILD)->dims[i] = $PDL(PARENT)->dims[i] - $COMP(step) * ($COMP(nlags)-1);
                 if ($PDL(CHILD)->dims[i] < 1)
                   $CROAK("product of step size and number of lags too large");
-                $PDL(CHILD)->dims[i+1] = $COMP(n);
+                $PDL(CHILD)->dims[i+1] = $COMP(nlags);
                 $PRIV(incs)[i] = ($PDL(PARENT)->dimincs[i]);
                 $PRIV(incs)[i+1] = - $PDL(PARENT)->dimincs[i] * $COMP(step);
                 $PRIV(offs) += ($PDL(CHILD)->dims[i+1] - 1) * (-$PRIV(incs)[i+1]);
@@ -2132,7 +2121,7 @@ EOD
 #  --CED 12-Sep-2013
 pp_def('slice',
         Doc => <<'EOD-slice',
-=for usage
+=for example
 
   $slice = $data->slice([2,3],'x',[2,2,0],"-1:1:-1", "*3");
 

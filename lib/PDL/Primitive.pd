@@ -402,7 +402,6 @@ sub crassgn {
 
 pp_def('crossp',
        Doc => <<'EOD',
-
 =for ref
 
 Cross product of two 3D vectors
@@ -415,9 +414,6 @@ After
 
 the inner product C<$c*$x> and C<$c*$y> will be zero, i.e. C<$c> is
 orthogonal to C<$x> and C<$y>
-
-=cut
-
 EOD
        Pars => 'a(tri=3); b(tri); [o] c(tri)',
        GenericTypes => [ppdefs_all],
@@ -894,30 +890,7 @@ EOD
 
 } # for: my $opt
 
-pp_add_exported('', 'clip');
-pp_addpm(<<'EOD');
-=head2 clip
-
-=for ref
-
-Clip (threshold) an ndarray by (optional) upper or lower bounds.
-
-=for usage
-
- $y = $x->clip(0,3);
- $c = $x->clip(undef, $x);
-
-=for bad
-
-clip handles bad values since it is just a
-wrapper around L</hclip> and
-L</lclip>.
-
-=cut
-EOD
-
-pp_def(
-	'clip',
+pp_def('clip',
 	HandleBad => 1,
 	Pars => 'a(); l(); h(); [o] c()',
 	Code => <<'EOBC',
@@ -928,6 +901,16 @@ pp_def(
            $c() = PDLMIN($h(), PDLMAX($l(), $a()));
          }
 EOBC
+	Doc => <<'EOD',
+=for ref
+
+Clip (threshold) an ndarray by (optional) upper or lower bounds.
+
+=for usage
+
+ $y = $x->clip(0,3);
+ $c = $x->clip(undef, $x);
+EOD
        PMCode=>pp_line_numbers(__LINE__, <<'EOPM'),
 *clip = \&PDL::clip;
 sub PDL::clip {
@@ -1737,7 +1720,7 @@ broadcastloop %{
 
 Routine for searching N-dimensional values - akin to vsearch() for vectors.
 
-=for usage
+=for example
 
  $found   = vsearchvec($find, $which);
  $nearest = $which->dice_axis(1,$found);
@@ -3014,10 +2997,6 @@ EOF
 
 routine for 1D linear interpolation
 
-=for usage
-
- ( $yi, $err ) = interpolate($xi, $x, $y)
-
 Given a set of points C<($x,$y)>, use linear interpolation
 to find the values C<$yi> at a set of points C<$xi>.
 
@@ -3531,7 +3510,7 @@ inplace.
 
 By using L<PDL::Slices/xchg> etc. it is possible to use I<any> dimension.
 
-=for usage
+=for example
 
   my $a = pdl q[3 4 2 3 2 3 1];
   my $b = $a->uniq;
@@ -3636,7 +3615,7 @@ While C<where> works OK for most N-dimensional cases, it does not
 broadcast properly over (for example) the (N+1)th dimension in data
 that is compared to an N-dimensional mask.  Use C<whereND> for that.
 
-=for usage
+=for example
 
  $i = $x->where($x+5 > 0); # $i contains those elements of $x
                            # where mask ($x+5 > 0) is 1
@@ -5824,8 +5803,6 @@ EOF
 Evaluate the definite integral of a piecewise cubic Hermite function
 over an interval whose endpoints are data points.
 
-=for usage
-
 Evaluate the definite integral of a a piecewise cubic Hermite
 function between C<x($ia)> and C<x($ib)>.
 
@@ -6196,8 +6173,6 @@ EOF
 
 Evaluate the B-representation of a B-spline at X for the
 function value or any of its derivatives.
-
-=for usage
 
 Evaluates the B-representation C<(T,A,N,K)> of a B-spline
 at C<X> for the function value on C<IDERIV = 0> or any of its

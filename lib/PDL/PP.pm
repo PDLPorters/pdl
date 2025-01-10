@@ -1471,6 +1471,67 @@ EOF
      }),
    PDL::PP::Rule::Returns::EmptyString->new("OverloadDoc", []),
 
+   PDL::PP::Rule->new("UsageDoc",
+     [qw(Name Doc? SignatureObj OtherParsDefaults? ArgOrder?)],
+     'generate "usage" section of doc',
+     sub {
+       my ($name, $doc, $sig, $otherdefaults, $argorder) = @_;
+       return '' if $doc && $doc =~ /^=for usage/m;
+       $otherdefaults ||= {};
+       my @args = @{ $sig->args_callorder };
+       my %any_out = map +($_=>1), $sig->names_out_nca, $sig->other_out;
+       my %outca = map +($_=>1), $sig->names_oca;
+       my @inargs = grep !$outca{$_}, @args;
+       my $noptional = grep $any_out{$_} ||
+         exists $otherdefaults->{$_}, @inargs;
+       my @argsets;
+       my $plural = keys(%$otherdefaults) > 1 ? "s" : "";
+       my $override = !keys(%$otherdefaults) ? '' : " of ".join(", ", map "$_=$otherdefaults->{$_}", grep exists $otherdefaults->{$_}, @args);
+       if (keys %outca) {
+         push @argsets, [\@inargs, [ grep $outca{$_}, @args ], []];
+       } elsif ($argorder) {
+         my @allouts = grep $any_out{$_} || $outca{$_}, @args;
+         push @argsets, map [[ @inargs[0..$_] ], \@allouts, []],
+           ($#inargs-$noptional)..$#inargs;
+         push @{$argsets[-1][2]}, 'all arguments given';
+         unshift @{$argsets[0][2]}, "using default$plural$override" if $override;
+       } else {
+         push @argsets, [
+           [grep !($any_out{$_} || exists $otherdefaults->{$_}), @args],
+           [grep $any_out{$_}, @args],
+           ["using default value$plural$override"],
+         ]
+           if keys %any_out && keys %$otherdefaults;
+         push @argsets, [
+           [grep !$any_out{$_},@args],
+           [grep $any_out{$_},@args],
+           [keys %$otherdefaults ? "overriding default$plural" : ()],
+         ]
+           if keys %any_out;
+         push @argsets, [\@args, [], ['all arguments given']];
+       }
+       my @invocs = map [(!@{$_->[1]} ? '' :
+           @{$_->[1]} == 1 ? "\$$_->[1][0] = " :
+           "(".join(", ", map "\$$_", @{$_->[1]}).") = "
+         )."$name(".join(", ", map "\$$_", @{$_->[0]}).");",
+         [@{$_->[2]}]], @argsets;
+       $argsets[0][2] = ['method call'];
+       $argsets[$_][2] = [] for 1..$#argsets; # they get the idea
+       push @invocs, map [(!@{$_->[1]} ? '' :
+           @{$_->[1]} == 1 ? "\$$_->[1][0] = " :
+           "(".join(", ", map "\$$_", @{$_->[1]}).") = "
+         )."\$$_->[0][0]->$name".(
+           @{$_->[0]} <= 1 ? '' :
+           "(".join(", ", map "\$$_", @{$_->[0]}[1..$#{$_->[0]}]).")"
+         ).";",
+         [@{$_->[2]}]], grep @{$_->[0]}, @argsets;
+       require List::Util;
+       my $maxlen = List::Util::max(map length($_->[0]), @invocs);
+       join '', "\n=for usage\n\n",
+         (map !@{$_->[1]} ? " $_->[0]\n" : sprintf(" %-${maxlen}s%s\n", $_->[0], " # ".join ", ", @{$_->[1]}), @invocs), "\n";
+     }),
+   PDL::PP::Rule::Returns::EmptyString->new("UsageDoc", []),
+
    # the docs
    PDL::PP::Rule->new("PdlDoc", "FullDoc", sub {
          my $fulldoc = shift;
@@ -1481,9 +1542,9 @@ EOF
          return $fulldoc;
       }
    ),
-   PDL::PP::Rule->new("PdlDoc", [qw(Name Pars OtherPars GenericTypes Doc BadDoc? InplaceDoc OverloadDoc)],
+   PDL::PP::Rule->new("PdlDoc", [qw(Name Pars OtherPars GenericTypes Doc UsageDoc BadDoc? InplaceDoc OverloadDoc)],
       sub {
-        my ($name,$pars,$otherpars,$gentypes,$doc,$baddoc,@docparts) = @_;
+        my ($name,$pars,$otherpars,$gentypes,$doc,$usagedoc,$baddoc,@docparts) = @_;
         return '' if !defined $doc # Allow explicit non-doc using Doc=>undef
             or $doc =~ /^\s*internal\s*$/i;
         # If the doc string is one line let's have two for the
@@ -1517,7 +1578,7 @@ XXX=for sig
 
  Signature: ($sig)
  Types: ($typesig)
-
+$usagedoc
 $doc
 
 $miscdocs
