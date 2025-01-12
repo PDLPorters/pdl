@@ -374,14 +374,14 @@ trans_children(self)
       mXPUSHu(self->ntrans_children);
     else if (gimme == G_ARRAY) {
       EXTEND(SP, self->ntrans_children);
-      PDL_DECL_CHILDLOOP(self);
-      PDL_START_CHILDLOOP(self)
-        pdl_trans *t = PDL_CHILDLOOP_THISCHILD(self);
+      PDL_Indx i;
+      for (i = 0; i < self->ntrans_children_allocated; i++) {
+        pdl_trans *t = self->trans_children[i];
         if (!t) continue;
         SV *sv = sv_newmortal();
         sv_setref_pv(sv, "PDL::Trans", (void*)t);
         PUSHs(sv);
-      PDL_END_CHILDLOOP(self)
+      }
     }
 
 INCLUDE_COMMAND: $^X -e "require q{./Core/Dev.pm}; PDL::Core::Dev::generate_core_flags()"
@@ -1339,6 +1339,7 @@ PPCODE:
   PDL_Indx *thesedims = x->dims, *theseincs = PDL_REPRINCS(x), ndimsm1 = x->ndims-1;
   PDL_Indx i, howmany = x->dims[ndimsm1], thisoffs = 0, topinc = x->dimincs[ndimsm1];
   EXTEND(SP, howmany);
+  pdl_barf_if_error(pdl_prealloc_trans_children(x, x->ntrans_children_allocated + howmany));
   for (i = 0; i < howmany; i++, thisoffs += topinc) {
     pdl *childpdl = pdl_pdlnew();
     if (!childpdl) pdl_pdl_barf("Error making null pdl");

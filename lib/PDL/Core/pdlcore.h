@@ -158,6 +158,7 @@ void pdl_dump_anyval(PDL_Anyval v);
   X(packpdls, pdl **, ( SV* sv, PDL_Indx *npdls )) \
   X(unpackpdls, SV*, ( pdl **, PDL_Indx npdls )) \
   X(packstrings, char **, ( SV* sv, PDL_Indx *nstrings )) \
+  X(prealloc_trans_children, pdl_error, (pdl *it, PDL_Indx howmany)) \
 
 /*************** Function prototypes *********************/
 #define X(sym, rettype, args) \

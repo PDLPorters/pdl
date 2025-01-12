@@ -415,7 +415,6 @@ void pdl_dump_trans_fixspace (pdl_trans *it, int nspac) {
 }
 
 void pdl_dump_fixspace(pdl *it,int nspac) {
-  PDL_DECL_CHILDLOOP(it)
   PDL_Indx i;
   SET_SPACE(spaces, nspac);
   printf("%sDUMPING %p     datatype: %d\n%s   State: ",spaces,it,it->datatype,spaces);
@@ -475,9 +474,11 @@ void pdl_dump_fixspace(pdl *it,int nspac) {
   }
   if (it->ntrans_children) {
     printf("%s   CHILDREN:\n",spaces);
-    PDL_START_CHILDLOOP(it)
-      pdl_dump_trans_fixspace(PDL_CHILDLOOP_THISCHILD(it),nspac+4);
-    PDL_END_CHILDLOOP(it)
+    for (i = 0; i < it->ntrans_children_allocated; i++) {
+      pdl_trans *t = it->trans_children[i];
+      if (!t) continue;
+      pdl_dump_trans_fixspace(t, nspac+4);
+    }
   }
 }
 

@@ -89,7 +89,10 @@ of the file F<pdlcore.h>. So what does the structure look like:
 	   unsigned char *broadcastids;  /* Starting index of the broadcast index set n */
 	   unsigned char nbroadcastids;
 
-	   pdl_trans_children trans_children;
+	   pdl_trans *def_trans_children[PDL_NCHILDREN];
+	   PDL_Indx ntrans_children_allocated;
+	   PDL_Indx first_trans_child_available;
+	   struct pdl_trans *trans_children;
 
 	   PDL_Indx   def_dims[PDL_NDIMS];   /* Preallocated space for efficiency */
 	   PDL_Indx   def_dimincs[PDL_NDIMS];   /* Preallocated space for efficiency */

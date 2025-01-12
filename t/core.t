@@ -474,6 +474,8 @@ for ([[], qr/at least/], [[5]], [[4,5]]) {
 is 0+@list, 1, "dog on pure-vaff works";
 }
 
+zeroes(1,1000)->dog; # no segfault please
+
 {
 my $x = sequence(byte,5);
 $x->inplace;

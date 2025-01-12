@@ -281,7 +281,7 @@ PDL_TYPELIST_ALL(X)
 */
 
 #define PDL_NDIMS      6 /* Number of dims[] to preallocate */
-#define PDL_NCHILDREN  8 /* Number of trans_children ptrs to preallocate */
+#define PDL_NCHILDREN  6 /* Number of trans_children ptrs to preallocate */
 #define PDL_NBROADCASTIDS 4 /* Number of different broadcastids/pdl to preallocate */
 
 /* Constants for pdl.state - not all combinations make sense */
@@ -520,11 +520,6 @@ typedef struct pdl_vaffine {
 
 #define PDL_REPRP(pdl) (PDL_VAFFOK(pdl) ? pdl->vafftrans->from->data : pdl->data)
 
-typedef struct pdl_trans_children {
-        pdl_trans *trans[PDL_NCHILDREN];
-        struct pdl_trans_children *next;
-} pdl_trans_children;
-
 struct pdl_magic;
 
 /****************************************
@@ -578,7 +573,10 @@ struct pdl {
    PDL_Indx *broadcastids;  /* Starting index of the broadcast index set n */
    PDL_Indx nbroadcastids;
 
-   pdl_trans_children trans_children;
+   pdl_trans *def_trans_children[PDL_NCHILDREN];
+   PDL_Indx ntrans_children_allocated;
+   PDL_Indx first_trans_child_available;
+   pdl_trans **trans_children;
 
    PDL_Indx   def_dims[PDL_NDIMS];   /* Preallocated space for efficiency */
    PDL_Indx   def_dimincs[PDL_NDIMS];   /* Preallocated space for efficiency */
@@ -598,27 +596,6 @@ typedef struct pdl_slice_args {
   char dummy, squish; /* boolean */
   struct pdl_slice_args *next; /* NULL is last */
 } pdl_slice_args;
-
-/*************
- * Some macros for looping over the trans_children of a given PDL
- */
-#define PDL_DECL_CHILDLOOP(p) \
-  int p##__i; pdl_trans_children *p##__c; PDL_Indx p##__unfound;
-#define PDL_START_CHILDLOOP(p) \
-  p##__c = &p->trans_children; p##__unfound = p->ntrans_children; \
-  do { \
-    if (p##__unfound <= 0) break; \
-    for (p##__i=0; p##__i<PDL_NCHILDREN; p##__i++) { \
-      if (p##__c->trans[p##__i]) { \
-        p##__unfound--;
-#define PDL_CHILDLOOP_THISCHILD(p) p##__c->trans[p##__i]
-#define PDL_END_CHILDLOOP(p) \
-      } \
-    } \
-    if (!p##__c) break; \
-    if (!p##__c->next) break; \
-    p##__c=p##__c->next; \
-  } while (1);
 
 #define PDL_USESTRUCTVALUE(it) \
         (it->nbytes <= sizeof(it->value))
