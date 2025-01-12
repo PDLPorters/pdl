@@ -318,9 +318,9 @@ pdl_error pdl__free(pdl *it) {
 
 /* NULL out the pdl from the trans's inputs, and the trans from the
    pdl's trans_children */
-void pdl__removetrans_children(pdl *it,pdl_trans *trans)
+void pdl__remove_pdl_as_trans_input(pdl *it,pdl_trans *trans)
 {
-	PDLDEBUG_f(printf("pdl__removetrans_children(%s=%p): %p\n",
+	PDLDEBUG_f(printf("pdl__remove_pdl_as_trans_input(%s=%p): %p\n",
 	  trans->vtable->name, trans, it));
 	PDL_Indx i; int flag = 0;
 	for(i=0; i<trans->vtable->nparents; i++)
@@ -342,14 +342,14 @@ void pdl__removetrans_children(pdl *it,pdl_trans *trans)
 
 /* NULL out the trans's nth pdl in/output, and this trans as pdl's
    trans_parent */
-void pdl__removetrans_parent(pdl *it, pdl_trans *trans, PDL_Indx nth)
+void pdl__remove_pdl_as_trans_output(pdl *it, pdl_trans *trans, PDL_Indx nth)
 {
-	PDLDEBUG_f(printf("pdl__removetrans_parent from %p (%s=%p): %"IND_FLAG"\n",
+	PDLDEBUG_f(printf("pdl__remove_pdl_as_trans_output from %p (%s=%p): %"IND_FLAG"\n",
 	  it, trans->vtable->name, trans, nth));
 	trans->pdls[nth] = 0;
 	if (it->trans_parent != trans) return; /* only do rest if trans is parent */
 	it->trans_parent = 0;
-	PDLDEBUG_f(printf("pdl__removetrans_parent turning off MYDIMS_TRANS and ANYCHANGED, was: "); pdl_dump_flags_fixspace(it->state, 0, PDL_FLAGS_PDL));
+	PDLDEBUG_f(printf("pdl__remove_pdl_as_trans_output turning off MYDIMS_TRANS and ANYCHANGED, was: "); pdl_dump_flags_fixspace(it->state, 0, PDL_FLAGS_PDL));
 	it->state &= ~(PDL_MYDIMS_TRANS | PDL_ANYCHANGED);
 }
 
@@ -389,7 +389,7 @@ pdl_error pdl_destroytransform(pdl_trans *trans, int ensure, int recurse_count)
     pdl *parent = trans->pdls[j];
     if (!parent) continue;
     PDL_CHKMAGIC(parent);
-    pdl__removetrans_children(parent,trans);
+    pdl__remove_pdl_as_trans_input(parent,trans);
     if (!(parent->state & PDL_DESTROYING) && !parent->sv) {
       parent->state |= PDL_DESTROYING; /* so no mark twice */
       destbuffer[ndest++] = parent;
@@ -398,7 +398,7 @@ pdl_error pdl_destroytransform(pdl_trans *trans, int ensure, int recurse_count)
   for (j=vtable->nparents; j<vtable->npdls; j++) {
     pdl *child = trans->pdls[j];
     PDL_CHKMAGIC(child);
-    pdl__removetrans_parent(child,trans,j);
+    pdl__remove_pdl_as_trans_output(child,trans,j);
     if (ismutual && child->vafftrans) pdl_vafftrans_remove(child, 1);
     if ((!(child->state & PDL_DESTROYING) && !child->sv) ||
         (vtable->par_flags[j] & PDL_PARAM_ISTEMP)) {
@@ -622,10 +622,10 @@ PDL_Anyval pdl_get_offs(pdl *it, PDL_Indx offs) {
   return result;
 }
 
-pdl_error pdl__addchildtrans(pdl *it,pdl_trans *trans)
+pdl_error pdl__add_pdl_as_trans_input(pdl *it,pdl_trans *trans)
 {
 	pdl_error PDL_err = {0, NULL, 0};
-	PDLDEBUG_f(printf("pdl__addchildtrans add to %p trans=%s\n", it, trans->vtable?trans->vtable->name:""));
+	PDLDEBUG_f(printf("pdl__add_pdl_as_trans_input add to %p trans=%s\n", it, trans->vtable?trans->vtable->name:""));
 	int i; pdl_trans_children *c = &it->trans_children;
 	do {
 	    if (c->next) { c=c->next; continue; } else {
@@ -732,7 +732,7 @@ pdl_error pdl_make_trans_mutual(pdl_trans *trans)
   }
   for (i=0; i<nparents; i++) {
     pdl *parent = pdls[i];
-    PDL_RETERROR(PDL_err, pdl__addchildtrans(parent,trans));
+    PDL_RETERROR(PDL_err, pdl__add_pdl_as_trans_input(parent,trans));
     if (parent->state & PDL_DATAFLOW_F) {
       parent->state &= ~PDL_DATAFLOW_F;
       trans->flags |= PDL_ITRANS_DO_DATAFLOW_F;
