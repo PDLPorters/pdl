@@ -658,6 +658,15 @@ incs(x)
     EXTEND(SP, max);
     for(i=0; i<max; i++) mPUSHi(x->incs[i]);
 
+# CORE21 hook up to own data
+void
+trans_children_indices(x)
+  pdl_trans *x;
+  PPCODE:
+    PDL_Indx i, max = x->vtable->ninds + x->vtable->nparents;
+    EXTEND(SP, max);
+    for(i=x->vtable->ninds; i<max; i++) mPUSHi(x->ind_sizes[i]);
+
 void
 ind_sizes(x)
   pdl_trans *x;

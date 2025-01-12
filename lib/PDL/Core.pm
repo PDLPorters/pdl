@@ -2243,6 +2243,7 @@ sub pdump_trans {
   push @lines,
     "ind_sizes: (@{[$trans->ind_sizes]})",
     "inc_sizes: (@{[$trans->inc_sizes]})",
+    "trans_children_indices: (@{[$trans->trans_children_indices]})",
     "INPUTS: (@{[map sprintf('0x%x', $_->address), @ins]})  OUTPUTS: (@{[map sprintf('0x%x', $_->address), @outs]})",
     ;
   join '', "PDUMPTRANS 0x${\sprintf '%x', $trans->address} (${\$vtable->name})\n", map "  $_\n", @lines;

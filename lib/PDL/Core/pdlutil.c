@@ -403,6 +403,8 @@ void pdl_dump_trans_fixspace (pdl_trans *it, int nspac) {
 	pdl_print_iarr(it->ind_sizes, it->vtable->ninds); printf("\n");
 	printf("%s   inc_sizes: ",spaces);
 	pdl_print_iarr(it->inc_sizes, it->vtable->nind_ids); printf("\n");
+	printf("%s   input trans_children_indices: ",spaces); /* CORE21 hook up to own data */
+	pdl_print_iarr(it->ind_sizes+it->vtable->ninds, it->vtable->nparents); printf("\n");
 	printf("%s   INPUTS: (",spaces);
 	for(i=0; i<it->vtable->nparents; i++)
 		printf("%s%p",(i?" ":""),(it->pdls[i]));

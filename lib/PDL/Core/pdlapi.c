@@ -318,26 +318,25 @@ pdl_error pdl__free(pdl *it) {
 
 /* NULL out the pdl from the trans's inputs, and the trans from the
    pdl's trans_children */
-void pdl__remove_pdl_as_trans_input(pdl *it,pdl_trans *trans)
+void pdl__remove_pdl_as_trans_input(pdl *it,pdl_trans *trans, PDL_Indx param_ind)
 {
-	PDLDEBUG_f(printf("pdl__remove_pdl_as_trans_input(%s=%p): %p\n",
-	  trans->vtable->name, trans, it));
-	PDL_Indx i; int flag = 0;
-	for (i=0; i<trans->vtable->nparents; i++)
-		if (trans->pdls[i] == it)
-			trans->pdls[i] = NULL;
-	PDL_DECL_CHILDLOOP(it);
-	PDL_START_CHILDLOOP(it)
-		if (PDL_CHILDLOOP_THISCHILD(it) != trans) continue;
-		PDL_CHILDLOOP_THISCHILD(it) = NULL;
-		flag = 1;
-		it->ntrans_children--;
-		/* Can't return; might be many times (e.g. $x+$x) */
-	PDL_END_CHILDLOOP(it)
-	/* this might be due to a croak when performing the trans; so
-	   warn only for now, otherwise we leave trans undestructed ! */
-	if (!flag)
-		pdl_pdl_warn("Child not found for pdl %p, trans %p=%s\n",it, trans, trans->vtable->name);
+  pdl_transvtable *vtable = trans->vtable;
+  PDLDEBUG_f(printf("pdl__remove_pdl_as_trans_input(%s=%p, pdl=%p, param_ind=%td): \n",
+    vtable->name, trans, it, param_ind));
+  PDL_Indx trans_children_index = trans->ind_sizes[vtable->ninds + param_ind];
+  pdl_trans_children *c = &it->trans_children;
+  while (trans_children_index >= PDL_NCHILDREN) {
+    trans_children_index -= PDL_NCHILDREN;
+    c = c->next;
+  }
+  if (c->trans[trans_children_index] != trans) {
+    /* this might be due to a croak when performing the trans; so
+       warn only for now, otherwise we leave trans undestructed ! */
+    pdl_pdl_warn("Child not found for pdl %p, trans %p=%s\n",it, trans, vtable->name);
+    return;
+  }
+  c->trans[trans_children_index] = NULL;
+  it->ntrans_children--;
 }
 
 /* NULL out the trans's nth pdl in/output, and this trans as pdl's
@@ -389,7 +388,7 @@ pdl_error pdl_destroytransform(pdl_trans *trans, int ensure, int recurse_count)
     pdl *parent = trans->pdls[j];
     if (!parent) continue;
     PDL_CHKMAGIC(parent);
-    pdl__remove_pdl_as_trans_input(parent,trans);
+    pdl__remove_pdl_as_trans_input(parent,trans,j);
     if (!(parent->state & PDL_DESTROYING) && !parent->sv) {
       parent->state |= PDL_DESTROYING; /* so no mark twice */
       destbuffer[ndest++] = parent;
@@ -622,16 +621,19 @@ PDL_Anyval pdl_get_offs(pdl *it, PDL_Indx offs) {
   return result;
 }
 
-pdl_error pdl__add_pdl_as_trans_input(pdl *it,pdl_trans *trans)
+pdl_error pdl__add_pdl_as_trans_input(pdl *it,pdl_trans *trans, PDL_Indx param_ind)
 {
   pdl_error PDL_err = {0, NULL, 0};
-  PDLDEBUG_f(printf("pdl__add_pdl_as_trans_input add to %p trans=%s\n", it, trans->vtable?trans->vtable->name:""));
+  pdl_transvtable *vtable = trans->vtable;
+  PDLDEBUG_f(printf("pdl__add_pdl_as_trans_input add to %p trans=%s param_ind=%td\n", it, vtable->name, param_ind));
   int i; pdl_trans_children *c = &it->trans_children;
+  PDL_Indx trans_children_index = 0;
   do {
-    if (c->next) { c=c->next; continue; }
+    if (c->next) { trans_children_index += PDL_NCHILDREN; c=c->next; continue; }
     for (i=0; i<PDL_NCHILDREN; i++) {
-      if (c->trans[i]) continue;
+      if (c->trans[i]) { trans_children_index++; continue; }
       it->ntrans_children++;
+      trans->ind_sizes[vtable->ninds + param_ind] = trans_children_index;
       c->trans[i] = trans; return PDL_err;
     }
     break;
@@ -640,6 +642,7 @@ pdl_error pdl__add_pdl_as_trans_input(pdl *it,pdl_trans *trans)
   if (!c) return pdl_make_error_simple(PDL_EFATAL, "Out of Memory\n");
   c->trans[0] = trans;
   it->ntrans_children++;
+  trans->ind_sizes[vtable->ninds + param_ind] = trans_children_index;
   for (i=1; i<PDL_NCHILDREN; i++)
     c->trans[i] = 0;
   c->next = 0;
@@ -731,7 +734,7 @@ pdl_error pdl_make_trans_mutual(pdl_trans *trans)
   }
   for (i=0; i<nparents; i++) {
     pdl *parent = pdls[i];
-    PDL_RETERROR(PDL_err, pdl__add_pdl_as_trans_input(parent,trans));
+    PDL_RETERROR(PDL_err, pdl__add_pdl_as_trans_input(parent,trans,i));
     if (parent->state & PDL_DATAFLOW_F) {
       parent->state &= ~PDL_DATAFLOW_F;
       trans->flags |= PDL_ITRANS_DO_DATAFLOW_F;
@@ -1087,9 +1090,12 @@ pdl_trans *pdl_create_trans(pdl_transvtable *vtable) {
     PDL_CLRMAGIC(&it->broadcast);
     it->broadcast.inds = 0;
     it->broadcast.gflags = 0;
-    it->ind_sizes = (PDL_Indx *)malloc(sizeof(PDL_Indx) * vtable->ninds);
+    it->ind_sizes = (PDL_Indx *)malloc(sizeof(PDL_Indx) * (
+      vtable->ninds +
+      vtable->nparents /* CORE21 make separate member "trans_children_indices" */
+    ));
     if (!it->ind_sizes) return NULL;
-    int i; for (i=0; i<vtable->ninds; i++) it->ind_sizes[i] = -1;
+    int i; for (i=0; i<vtable->ninds + vtable->nparents; i++) it->ind_sizes[i] = -1;
     it->inc_sizes = (PDL_Indx *)malloc(sizeof(PDL_Indx) * vtable->nind_ids);
     if (!it->inc_sizes) return NULL;
     for (i=0; i<vtable->nind_ids; i++) it->inc_sizes[i] = -1;
