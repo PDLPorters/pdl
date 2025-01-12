@@ -1451,7 +1451,7 @@ EOF
          $ret .= pp_line_numbers(__LINE__, <<EOF);
 {
   my (\$foo, \$overload_sub);
-  use overload '$op' => \$overload_sub = sub(;\@) {
+  use overload '$op' => \$overload_sub = sub {
     Carp::confess("$fullname: overloaded '$op' given undef")
       if grep !defined, \@_[0,1];
     return $fullname($bitwise_passon) unless ref \$_[1]
