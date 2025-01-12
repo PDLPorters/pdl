@@ -66,7 +66,7 @@ extern Core PDL; /* for PDL_TYPENAME */
     } \
   } while (0)
 #define FREETRANS(trans, destroy) \
-    if(trans->vtable->freetrans) { \
+    if (trans->vtable->freetrans) { \
 	PDLDEBUG_f(printf("call freetrans\n")); \
 	PDL_ACCUMERROR(PDL_err, trans->vtable->freetrans(trans, destroy)); \
 	    /* ignore error for now as need to still free rest */ \
@@ -165,13 +165,13 @@ pdl_error pdl_allocdata(pdl *it) {
   pdl_error PDL_err = {0, NULL, 0};
   PDLDEBUG_f(printf("pdl_allocdata %p, %"IND_FLAG", %d\n",it, it->nvals,
 	  it->datatype));
-  if(it->nvals < 0)
+  if (it->nvals < 0)
     return pdl_make_error(PDL_EUSERERROR, "Tried to allocdata with %"IND_FLAG" values", it->nvals);
   PDL_Indx nbytes = it->nvals * pdl_howbig(it->datatype);
   PDL_Indx ncurr  = it->nbytes;
   if (ncurr == nbytes)
     return PDL_err;    /* Nothing to be done */
-  if(it->state & PDL_DONTTOUCHDATA)
+  if (it->state & PDL_DONTTOUCHDATA)
     return pdl_make_error_simple(PDL_EUSERERROR, "Trying to touch data of an untouchable (mmapped?) pdl");
   char was_useheap = (ncurr > sizeof(it->value)),
     will_useheap = (nbytes > sizeof(it->value));
@@ -219,7 +219,7 @@ pdl* pdl_pdlnew(void) {
      it->broadcastids = it->def_broadcastids;
      it->broadcastids[0] = it->ndims = 1;
      PDL_Indx i;
-     for(i=0; i<PDL_NCHILDREN; i++) {it->trans_children.trans[i]=NULL;}
+     for (i=0; i<PDL_NCHILDREN; i++) {it->trans_children.trans[i]=NULL;}
      it->trans_children.next = NULL;
      it->ntrans_children = 0;
      it->magic = 0;
@@ -230,9 +230,9 @@ pdl* pdl_pdlnew(void) {
 
 void pdl_vafftrans_free(pdl *it)
 {
-	if(it->vafftrans && it->vafftrans->incs)
+	if (it->vafftrans && it->vafftrans->incs)
 		free(it->vafftrans->incs);
-	if(it->vafftrans)
+	if (it->vafftrans)
 		free(it->vafftrans);
 	it->vafftrans=0;
 	it->state &= ~PDL_OPT_VAFFTRANSOK;
@@ -241,14 +241,14 @@ void pdl_vafftrans_free(pdl *it)
 pdl_error pdl_vafftrans_alloc(pdl *it)
 {
 	pdl_error PDL_err = {0, NULL, 0};
-	if(!it->vafftrans) {
+	if (!it->vafftrans) {
 		it->vafftrans = malloc(sizeof(*(it->vafftrans)));
 		if (!it->vafftrans) return pdl_make_error_simple(PDL_EFATAL, "Out of Memory\n");
 		it->vafftrans->incs = 0;
 		it->vafftrans->ndims = 0;
 	}
-	if(!it->vafftrans->incs || it->vafftrans->ndims < it->ndims ) {
-		if(it->vafftrans->incs) free(it->vafftrans->incs);
+	if (!it->vafftrans->incs || it->vafftrans->ndims < it->ndims ) {
+		if (it->vafftrans->incs) free(it->vafftrans->incs);
 		it->vafftrans->incs = malloc(sizeof(*(it->vafftrans->incs))
 					     * (size_t)it->ndims);
 		if (!it->vafftrans->incs) return pdl_make_error_simple(PDL_EFATAL, "Out of Memory\n");
@@ -264,9 +264,9 @@ void pdl_vafftrans_remove(pdl * it, char this_one)
 	PDL_DECL_CHILDLOOP(it);
 	PDL_START_CHILDLOOP(it)
 		pdl_trans *t = PDL_CHILDLOOP_THISCHILD(it);
-		if(!(t->flags & PDL_ITRANS_ISAFFINE)) continue;
+		if (!(t->flags & PDL_ITRANS_ISAFFINE)) continue;
 		int i;
-		for(i=t->vtable->nparents; i<t->vtable->npdls; i++)
+		for (i=t->vtable->nparents; i<t->vtable->npdls; i++)
 			pdl_vafftrans_remove(t->pdls[i], 1);
 	PDL_END_CHILDLOOP(it)
 	if (this_one) pdl_vafftrans_free(it);
@@ -306,7 +306,7 @@ pdl_error pdl__free(pdl *it) {
     } else if (it->data && it->data != &it->value) {
 	    pdl_pdl_warn("Warning: special data without datasv is not freed currently!!");
     }
-    if(it->hdrsv) {
+    if (it->hdrsv) {
 	PDLDEBUG_f(printf("SvREFCNT_dec hdrsv=%p\n",it->hdrsv));
 	SvREFCNT_dec(it->hdrsv);
 	it->hdrsv = 0;
@@ -323,8 +323,8 @@ void pdl__remove_pdl_as_trans_input(pdl *it,pdl_trans *trans)
 	PDLDEBUG_f(printf("pdl__remove_pdl_as_trans_input(%s=%p): %p\n",
 	  trans->vtable->name, trans, it));
 	PDL_Indx i; int flag = 0;
-	for(i=0; i<trans->vtable->nparents; i++)
-		if(trans->pdls[i] == it)
+	for (i=0; i<trans->vtable->nparents; i++)
+		if (trans->pdls[i] == it)
 			trans->pdls[i] = NULL;
 	PDL_DECL_CHILDLOOP(it);
 	PDL_START_CHILDLOOP(it)
@@ -336,7 +336,7 @@ void pdl__remove_pdl_as_trans_input(pdl *it,pdl_trans *trans)
 	PDL_END_CHILDLOOP(it)
 	/* this might be due to a croak when performing the trans; so
 	   warn only for now, otherwise we leave trans undestructed ! */
-	if(!flag)
+	if (!flag)
 		pdl_pdl_warn("Child not found for pdl %p, trans %p=%s\n",it, trans, trans->vtable->name);
 }
 
@@ -358,7 +358,7 @@ pdl_error pdl_trans_finaldestroy(pdl_trans *trans)
   pdl_error PDL_err = {0, NULL, 0};
   PDLDEBUG_f(printf("pdl_trans_finaldestroy %p\n", trans));
   FREETRANS(trans, 1);
-  if(trans->vtable->flags & PDL_TRANS_DO_BROADCAST)
+  if (trans->vtable->flags & PDL_TRANS_DO_BROADCAST)
     pdl_freebroadcaststruct(&trans->broadcast);
   trans->vtable = 0; /* Make sure no-one uses this */
   PDLDEBUG_f(printf("call free\n"));
@@ -519,8 +519,8 @@ pdl *pdl_hard_copy(pdl *src) {
 pdl_error pdl_reallocdims(pdl *it, PDL_Indx ndims) {
    pdl_error PDL_err = {0, NULL, 0};
    if (it->ndims < ndims) {  /* Need to realloc for more */
-      if(it->dims != it->def_dims) free(it->dims);
-      if(it->dimincs != it->def_dimincs) free(it->dimincs);
+      if (it->dims != it->def_dims) free(it->dims);
+      if (it->dimincs != it->def_dimincs) free(it->dimincs);
       if (ndims>PDL_NDIMS) {  /* Need to malloc */
          if (!(it->dims = malloc(ndims*sizeof(*(it->dims)))))
             return pdl_make_error_simple(PDL_EFATAL, "Out of Memory\n");
@@ -543,25 +543,25 @@ pdl_error pdl_reallocbroadcastids(pdl *it, PDL_Indx n) {
 	pdl_error PDL_err = {0, NULL, 0};
 	PDL_Indx i;
 	PDL_Indx *olds; PDL_Indx nold;
-	if(n <= it->nbroadcastids) {
+	if (n <= it->nbroadcastids) {
 		it->nbroadcastids = n;
 		it->broadcastids[n-1] = it->ndims;
 		return PDL_err;
 	}
 	nold = it->nbroadcastids; olds = it->broadcastids;
-	if(n > PDL_NBROADCASTIDS) {
+	if (n > PDL_NBROADCASTIDS) {
 		it->broadcastids = malloc(sizeof(*(it->broadcastids))*n);
 		if (!it->broadcastids) return pdl_make_error_simple(PDL_EFATAL, "Out of Memory\n");
 	} else {
 		it->broadcastids = it->def_broadcastids;
 	}
 	it->nbroadcastids = n;
-	if(it->broadcastids != olds) {
-		for(i=0; i<nold && i<n; i++)
+	if (it->broadcastids != olds) {
+		for (i=0; i<nold && i<n; i++)
 			it->broadcastids[i] = olds[i];
 	}
-	if(olds != it->def_broadcastids) { free(olds); }
-	for(i=nold; i<it->nbroadcastids; i++) {
+	if (olds != it->def_broadcastids) { free(olds); }
+	for (i=nold; i<it->nbroadcastids; i++) {
 		it->broadcastids[i] = it->ndims;
 	}
 	return PDL_err;
@@ -570,7 +570,7 @@ pdl_error pdl_reallocbroadcastids(pdl *it, PDL_Indx n) {
 /* Recalculate default increments */
 void pdl_resize_defaultincs(pdl *it) {
     PDL_Indx inc = 1, i = 0;
-    for(i=0; i<it->ndims; i++) {
+    for (i=0; i<it->ndims; i++) {
 	it->dimincs[i] = inc; inc *= it->dims[i];
     }
     if (it->nvals != inc) /* Need to realloc only if nvals changed */
@@ -597,7 +597,7 @@ pdl_error pdl_setdims(pdl* it, PDL_Indx * dims, PDL_Indx ndims) {
       if (dims[i] != it->dims[i]) { what |= PDL_PARENTDIMSCHANGED; break; }
   if (!what) { PDLDEBUG_f(printf("pdl_setdims NOOP\n")); return PDL_err; }
   PDL_RETERROR(PDL_err, pdl_reallocdims(it,ndims));
-  for(i=0; i<ndims; i++) it->dims[i] = dims[i];
+  for (i=0; i<ndims; i++) it->dims[i] = dims[i];
   pdl_resize_defaultincs(it);
   PDL_RETERROR(PDL_err, pdl_reallocbroadcastids(it,1));
   it->broadcastids[0] = ndims;
@@ -624,27 +624,26 @@ PDL_Anyval pdl_get_offs(pdl *it, PDL_Indx offs) {
 
 pdl_error pdl__add_pdl_as_trans_input(pdl *it,pdl_trans *trans)
 {
-	pdl_error PDL_err = {0, NULL, 0};
-	PDLDEBUG_f(printf("pdl__add_pdl_as_trans_input add to %p trans=%s\n", it, trans->vtable?trans->vtable->name:""));
-	int i; pdl_trans_children *c = &it->trans_children;
-	do {
-	    if (c->next) { c=c->next; continue; } else {
-		for(i=0; i<PDL_NCHILDREN; i++)
-		    if(! c->trans[i]) {
-			it->ntrans_children++;
-			c->trans[i] = trans; return PDL_err;
-		    }
-		break;
-	    }
-	} while(1);
-	c = c->next = malloc(sizeof(pdl_trans_children));
-	if (!c) return pdl_make_error_simple(PDL_EFATAL, "Out of Memory\n");
-	c->trans[0] = trans;
-	it->ntrans_children++;
-	for(i=1; i<PDL_NCHILDREN; i++)
-		c->trans[i] = 0;
-	c->next = 0;
-	return PDL_err;
+  pdl_error PDL_err = {0, NULL, 0};
+  PDLDEBUG_f(printf("pdl__add_pdl_as_trans_input add to %p trans=%s\n", it, trans->vtable?trans->vtable->name:""));
+  int i; pdl_trans_children *c = &it->trans_children;
+  do {
+    if (c->next) { c=c->next; continue; }
+    for (i=0; i<PDL_NCHILDREN; i++) {
+      if (c->trans[i]) continue;
+      it->ntrans_children++;
+      c->trans[i] = trans; return PDL_err;
+    }
+    break;
+  } while (1);
+  c = c->next = malloc(sizeof(pdl_trans_children));
+  if (!c) return pdl_make_error_simple(PDL_EFATAL, "Out of Memory\n");
+  c->trans[0] = trans;
+  it->ntrans_children++;
+  for (i=1; i<PDL_NCHILDREN; i++)
+    c->trans[i] = 0;
+  c->next = 0;
+  return PDL_err;
 }
 
 pdl_error pdl__make_physdims_recprotect(pdl *it, int recurse_count) {
@@ -889,7 +888,7 @@ pdl_error pdl_changed(pdl *it, int what, int recursing) {
     PDL_START_CHILDLOOP(it)
       pdl_trans *trans = PDL_CHILDLOOP_THISCHILD(it);
       if (!(trans->flags & PDL_ITRANS_DO_DATAFLOW_F)) continue;
-      for(j=trans->vtable->nparents; j<trans->vtable->npdls; j++)
+      for (j=trans->vtable->nparents; j<trans->vtable->npdls; j++)
         if (trans->pdls[j] != it && (trans->pdls[j]->state & what) != what)
           CHANGED(trans->pdls[j],what,1);
     PDL_END_CHILDLOOP(it)
@@ -918,7 +917,7 @@ pdl_error pdl__make_physvaffine_recprotect(pdl *it, int recurse_count)
   }
   if (!it->vafftrans || it->vafftrans->ndims < it->ndims) {
     PDL_RETERROR(PDL_err, pdl_vafftrans_alloc(it));
-    for(i=0; i<it->ndims; i++) it->vafftrans->incs[i] = it->dimincs[i];
+    for (i=0; i<it->ndims; i++) it->vafftrans->incs[i] = it->dimincs[i];
     it->vafftrans->offs = 0;
     pdl *current = it;
     pdl_trans *t=it->trans_parent;
@@ -928,12 +927,12 @@ pdl_error pdl__make_physvaffine_recprotect(pdl *it, int recurse_count)
       pdl *parent = t->pdls[0];
       PDL_Indx incsleft[it->ndims];
       /* For all dimensions of the childest ndarray */
-      for(i=0; i<it->ndims; i++) {
+      for (i=0; i<it->ndims; i++) {
         /* inc = the increment at the current stage */
         PDL_Indx inc = it->vafftrans->incs[i], incsign = (inc >= 0 ? 1:-1), newinc = 0;
         inc *= incsign;
         /* For all dimensions of the current ndarray */
-        for(j=current->ndims-1; j>=0 && current->dimincs[j] != 0; j--) {
+        for (j=current->ndims-1; j>=0 && current->dimincs[j] != 0; j--) {
           /* If the absolute value > this so */
           /* we have a contribution from this dimension */
           if (inc < current->dimincs[j]) continue;
@@ -944,10 +943,10 @@ pdl_error pdl__make_physvaffine_recprotect(pdl *it, int recurse_count)
         }
         incsleft[i] = incsign*newinc;
       }
-      for(i=0; i<it->ndims; i++) it->vafftrans->incs[i] = incsleft[i];
+      for (i=0; i<it->ndims; i++) it->vafftrans->incs[i] = incsleft[i];
       PDL_Indx offset_left = it->vafftrans->offs;
       PDL_Indx newinc = 0;
-      for(j=current->ndims-1; j>=0 && current->dimincs[j] != 0; j--) {
+      for (j=current->ndims-1; j>=0 && current->dimincs[j] != 0; j--) {
         PDL_Indx cur_offset = offset_left / current->dimincs[j];
         offset_left -= cur_offset * current->dimincs[j];
         newinc += t->incs[j]*cur_offset;
@@ -1004,7 +1003,7 @@ pdl_error pdl_sever(pdl *src)
 }
 
 #define PDL_MAYBE_PROPAGATE_BADFLAG(t, newval) \
-  for( i = 0; i < (t)->vtable->npdls; i++ ) { \
+  for ( i = 0; i < (t)->vtable->npdls; i++ ) { \
     pdl *tpdl = (t)->pdls[i]; \
     /* make sure we propagate if changed */ \
     if (!!newval != !!(tpdl->state & PDL_BADVAL)) \
@@ -1035,7 +1034,7 @@ void pdl_propagate_badvalue( pdl *it ) {
     PDL_START_CHILDLOOP(it)
 	pdl_trans *trans = PDL_CHILDLOOP_THISCHILD(it);
 	PDL_Indx i;
-	for( i = trans->vtable->nparents; i < trans->vtable->npdls; i++ ) {
+	for ( i = trans->vtable->nparents; i < trans->vtable->npdls; i++ ) {
 	    pdl *child = trans->pdls[i];
             PDL_Anyval typedval;
             ANYVAL_TO_ANYVAL_NEWTYPE(it->badvalue, typedval, child->datatype);
