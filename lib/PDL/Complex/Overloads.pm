@@ -6,6 +6,16 @@ use overload fallback => 1;
 
 sub cplx { bless &Math::Complex::cplx, __PACKAGE__ }
 
+#  needed for JSON serialisation
+sub FREEZE {
+    my ($self, $serialiser) = @_;
+    return %$self;
+}
+sub THAW {
+    my ($self, $serialiser, @data) = @_;
+    return bless {@data}, $self;
+}
+
 =head1 NAME
 
 PDL::Complex::Overloads - subclass of Math::Complex with overload fallbacks

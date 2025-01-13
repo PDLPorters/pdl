@@ -75,6 +75,63 @@ substr $f2, -20, 20, $data;
 is_pdl thaw($f2), sequence(long,5), "thawed byte-swapped";
 }
 
+#  packages supporting Types::Serialiser protocol
+{
+  #  add to if needed
+  my @possibles = qw/Sereal CBOR::XS JSON::MaybeXS/;
+
+  my @serialisers;
+  for my $module (@possibles) {
+    if (eval "require $module") {
+      if ($module eq 'JSON::MaybeXS') {
+        my $impl = eval { $module->JSON };
+        note("JSON::XS wants data to encode, JSON::PP wants encoded: can't work with JSON::PP"), next
+          if ($impl || '') eq 'JSON::PP';
+      }
+      push @serialisers, $module;
+    }
+    else {
+      note "package $module not available for serialisation, not testing it";
+    }
+  }
+
+  if (!@serialisers) {
+    diag "No serialisation modules installed that support the Types::Serialiser protocol, skipping those tests";
+  }
+
+  my @ndarrays = (
+      [ xvals => xvals(2, 2) ],
+      [ cdouble => pdl(cdouble, 2, 3) ],
+      [ cdouble2 => xvals(cdouble, 3, 5) + 10 - 2 * xvals(3, 5) * i ],
+      [ indx => pdl(indx, 2, 3) ],
+      [ ldouble => pdl(ldouble, 2, 3) ],
+  );
+
+  my ($encoder, $decoder);
+
+  foreach my $serialiser (@serialisers) {
+    if ($serialiser eq 'Sereal') {
+      $encoder = Sereal::Encoder->new({ freeze_callbacks => 1 });
+      $decoder = Sereal::Decoder->new({ freeze_callbacks => 1 });
+    }
+    elsif ($serialiser eq 'CBOR::XS') {
+      $encoder = CBOR::XS->new;
+      $decoder = CBOR::XS->new;
+    }
+    elsif ($serialiser eq 'JSON::MaybeXS') {
+      $encoder = JSON::MaybeXS->new(allow_tags => 1);
+      $decoder = JSON::MaybeXS->new(allow_tags => 1);
+    }
+
+    foreach my $pair (@ndarrays) {
+      my ($name, $ndarray) = @$pair;
+      my $frozen = $encoder->encode($ndarray);
+      my $thawed = $decoder->decode($frozen);
+      is_pdl($thawed, $ndarray, "$name thawed correctly using $serialiser");
+    }
+  }
+}
+
 done_testing;
 
 # tests loading some files made on different architectures. All these files were
