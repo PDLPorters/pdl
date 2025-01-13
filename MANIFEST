@@ -180,7 +180,6 @@ t/autoload.t
 t/autoload_func.pdl
 t/bad.t
 t/basic.t
-t/bigmem.t
 t/bool.t
 t/clump.t
 t/compression.t
