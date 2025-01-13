@@ -1487,14 +1487,24 @@ EOF
      }),
    PDL::PP::Rule::Returns->new("OverloadDocValues", []),
 
-   PDL::PP::Rule->new("UsageDoc",
-     [qw(Name Doc? SignatureObj OtherParsDefaults? ArgOrder? OverloadDocValues InplaceDocValues)],
+   PDL::PP::Rule->new([qw(UsageDoc ParamDoc)],
+     [qw(Name Doc? SignatureObj OtherParsDefaults? ArgOrder?
+       OverloadDocValues InplaceDocValues ParamDesc?
+     )],
      'generate "usage" section of doc',
      sub {
-       my ($name, $doc, $sig, $otherdefaults, $argorder, $overloadvals, $inplacevals) = @_;
-       return '' if $doc && $doc =~ /^=for usage/m;
+       my ($name, $doc, $sig, $otherdefaults, $argorder,
+         $overloadvals, $inplacevals, $paramdesc,
+       ) = @_;
        $otherdefaults ||= {};
+       $paramdesc ||= {};
+       confess "pp_def($name): non-ref ParamDesc given" if !ref $paramdesc;
        my @args = @{ $sig->args_callorder };
+       my $paramdoc = !keys(%$paramdesc) ? '' : join('',
+         "=head3 Parameters\n\n=over\n\n", (
+         map "=item $_\n\n$paramdesc->{$_}\n\n", grep $paramdesc->{$_}, @args,
+         ), "=back\n\n");
+       return ('',$paramdoc) if $doc && $doc =~ /^=for usage/m;
        my %any_out = map +($_=>1), $sig->names_out_nca, $sig->other_out;
        my %outca = map +($_=>1), $sig->names_oca;
        my @inargs = grep !$outca{$_}, @args;
@@ -1545,8 +1555,10 @@ EOF
        push @invocs, @$inplacevals;
        require List::Util;
        my $maxlen = List::Util::max(map length($_->[0]), @invocs);
-       join '', "\n=for usage\n\n",
-         (map !@{$_->[1]} ? " $_->[0]\n" : sprintf(" %-${maxlen}s%s\n", $_->[0], " # ".join ", ", @{$_->[1]}), @invocs), "\n";
+       (join('', "\n=for usage\n\n",
+         (map !@{$_->[1]} ? " $_->[0]\n" : sprintf(" %-${maxlen}s%s\n", $_->[0], " # ".join ", ", @{$_->[1]}), @invocs), "\n\n"),
+         $paramdoc,
+       );
      }),
    PDL::PP::Rule::Returns::EmptyString->new("UsageDoc", []),
 
@@ -1564,10 +1576,12 @@ EOF
    PDL::PP::Rule->new("PdlDoc", [qw(
       Name Pars OtherPars GenericTypes Doc UsageDoc BadDoc?
       HaveBroadcasting NoPthread IsAffineFlag TwoWayFlag DefaultFlowFlag
+      ParamDoc
       )],
       sub {
         my ($name,$pars,$otherpars,$gentypes,$doc,$usagedoc,$baddoc,
-          $havebroadcasting, $noPthreadFlag, $affflag, $revflag, $flowflag
+          $havebroadcasting, $noPthreadFlag, $affflag, $revflag, $flowflag,
+          $paramdoc,
         ) = @_;
         return '' if !defined $doc # Allow explicit non-doc using Doc=>undef
             or $doc =~ /^\s*internal\s*$/i;
@@ -1598,7 +1612,7 @@ EOF
         push @misc, "Makes L<virtual affine|PDL::Indexing> ndarrays.\n" if $affflag;
         push @misc, "Creates data-flow".(!$revflag ? "" : " back and forth").
           " by default.\n" if $flowflag;
-        my $miscdocs = join '', grep $_, @misc, $baddoc;
+        my $miscdocs = join '', grep $_, $paramdoc, @misc, $baddoc;
         my $baddoc_function_pod = <<"EOD" ;
 
 XXX=head2 $name

@@ -1902,6 +1902,29 @@ Implements overloading of Perl operators. Documented automatically.
 Added in PDL 2.099. Will overload in the current C<pp_bless> package,
 which defaults to C<PDL>.
 
+=head3 ParamDesc
+
+  # in Primitive.pd
+  ParamDesc => {
+    x => 'ordinate data',
+    f => <<'EOF',
+  array of dependent variable values to be
+  interpolated. F(I) is value corresponding to
+  X(I). C<pchip_chim> is designed for monotonic data, but it will
+  work for any F-array.  It will force extrema at points where
+  monotonicity switches direction. If some other treatment of
+  switch points is desired, DPCHIC should be used instead.
+  EOF
+    # ...
+  },
+
+Hash-ref of parameter name to POD description of that parameter.
+Ensure the case of the parameter name is correct, as any missing
+parameters (docs are generated in order of the parameter list) will
+be omitted. Intended to take care of the surrounding POD markup,
+for easy, consistent-looking documentation with no effort.
+Added in PDL 2.099.
+
 =head3 FTypes
 
   FTypes => {CHILD => '$COMP(totype)'},
