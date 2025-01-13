@@ -96,7 +96,7 @@ is_pdl thaw($f2), sequence(long,5), "thawed byte-swapped";
   }
 
   if (!@serialisers) {
-    diag "No serialisation modules installed that support the Types::Serialiser protocol, skipping those tests";
+    note "No serialisation modules installed that support the Types::Serialiser protocol, skipping those tests";
   }
 
   my @ndarrays = (

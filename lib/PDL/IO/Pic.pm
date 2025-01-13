@@ -86,7 +86,7 @@ sub init_converter_table {
   $Dflags = '';
   %converter = ();
 
-  if (eval {require PDL::IO::GD; 1}) {
+  if (eval {require PDL::IO::GD; PDL::IO::GD->can ('to_rpic') && PDL::IO::GD->can ('write_Jpeg')}) {
     $converter{JPEG} = {referral => {
       put => sub {
         my $pdl = $_[0];

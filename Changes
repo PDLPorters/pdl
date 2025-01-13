@@ -18,6 +18,7 @@
 - Core::dog now scales linearly with length of top dim, not O(n^2) (#421) - thank @djerius for report
 - PDL::IO::Storable now also supports Sereal, JSON::MaybeXS, CBOR::XS (#510,#520) - thanks @shawnlaffan
 - add ParamDesc PP key
+- fix IO::Pic problem with older IO::GD installed (#522) - thanks @shawnlaffan
 
 2.098 2025-01-03
 - fix Windows build problems
