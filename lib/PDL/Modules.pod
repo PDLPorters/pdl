@@ -110,23 +110,6 @@ Interpolation-related functions.
 
 
 
-=head1 GRAPHICS
-
-=head2 3D Graphics
-
-=over 5
-
-=item L<PDL::Graphics::TriD>
-
-3D graphics core module.
-
-=item L<PDL::Graphics::TriD::Rout>
-
-Helper routines for 3D graphics.
-
-=back
-
-
 =head1 IMAGE PROCESSING
 
 =over 5
@@ -157,18 +140,6 @@ RGB image data handling.
 
 Fast Fourier Transform (native implementation).
 
-=item L<PDL::Filter::LinPred>
-
-Linear predictive filtering.
-
-=item L<PDL::Filter::Linear>
-
-Linear filtering.
-
-=item L<PDL::Opt::Simplex>
-
-Simplex optimization routines.
-
 =back
 
 
@@ -183,10 +154,6 @@ Coordinate transforms, image warping, and N-D functions.
 =item L<PDL::Transform::Cartography>
 
 Cartographic projections.
-
-=item L<PDL::Transform::Proj4>
-
-PDL interface to the Proj (formerly known as Proj4) projection library.
 
 =back
 
@@ -235,14 +202,6 @@ PDL support for FITS images.
 
 PDL support for PNM images.
 
-=item L<PDL::IO::GD>
-
-PDL interface to the GD image library.
-
-=item L<PDL::IO::HDF>
-
-PDL interface to the HDF4 image library.
-
 =back
 
 
@@ -258,122 +217,6 @@ Convenience class for 2D matrix work.
 =item L<PDL::MatrixOps>
 
 Additional matrix operators.
-
-=back
-
-
-
-=head1 GNU SCIENTIFIC LIBRARY
-
-=over 5
-
-=item L<PDL::GSL::DIFF>
-
-Numerical differentiation.
-
-=item L<PDL::GSL::INTEG>
-
-Numerical integration.
-
-=item L<PDL::GSL::INTERP>
-
-Interpolation.
-
-=item L<PDL::GSL::MROOT>
-
-Multidimensional root-finding.
-
-=item L<PDL::GSL::RNG>
-
-RNG and randist.
-
-=back
-
-
-
-=head2 Special Functions
-
-=over 5
-
-=item L<PDL::GSLSF::AIRY>
-
-=item L<PDL::GSLSF::BESSEL>
-
-=item L<PDL::GSLSF::CLAUSEN>
-
-=item L<PDL::GSLSF::COULOMB>
-
-=item L<PDL::GSLSF::COUPLING>
-
-=item L<PDL::GSLSF::DAWSON>
-
-=item L<PDL::GSLSF::DEBYE>
-
-=item L<PDL::GSLSF::DILOG>
-
-=item L<PDL::GSLSF::ELEMENTARY>
-
-=item L<PDL::GSLSF::ELLINT>
-
-=item L<PDL::GSLSF::ELLJAC>
-
-=item L<PDL::GSLSF::ERF>
-
-=item L<PDL::GSLSF::EXP>
-
-=item L<PDL::GSLSF::EXPINT>
-
-=item L<PDL::GSLSF::FERMI_DIRAC>
-
-=item L<PDL::GSLSF::GAMMA>
-
-=item L<PDL::GSLSF::GEGENBAUER>
-
-=item L<PDL::GSLSF::HYPERG>
-
-=item L<PDL::GSLSF::LAGUERRE>
-
-=item L<PDL::GSLSF::LEGENDRE>
-
-=item L<PDL::GSLSF::LOG>
-
-=item L<PDL::GSLSF::POLY>
-
-=item L<PDL::GSLSF::POW_INT>
-
-=item L<PDL::GSLSF::PSI>
-
-=item L<PDL::GSLSF::SYNCHROTRON>
-
-=item L<PDL::GSLSF::TRANSPORT>
-
-=item L<PDL::GSLSF::TRIG>
-
-=item L<PDL::GSLSF::ZETA>
-
-=back
-
-
-
-=head1 FITTING FUNCTIONS
-
-=over 5
-
-=item L<PDL::Fit::Gaussian>
-
-Fit gaussian curves.
-
-=item L<PDL::Fit::Polynomial>
-
-Fit polynomials.
-
-=item L<PDL::Fit::Linfit>
-
-Fit linear combinations of functions.
-
-=item L<PDL::Fit::LM>
-
-Fit functions using the Levenberg-Marquardt algorithm.
 
 =back
 
@@ -396,8 +239,6 @@ Manage many ndarrays through a disk cache.
 If you want to sub-class from PDL.
 
 =back
-
-
 
 
 =head1 COPYRIGHT

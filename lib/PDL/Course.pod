@@ -66,6 +66,13 @@ way to slice and dice your ndarrays.  Read the Synopsis, then
 scroll down to The New Slicing Syntax.  After you've read to
 the bottom, return to and read the stuff at the top.
 
+=item * L<PDL::Ops>
+
+Defines the standard Perl-overloadable operators, like + and .=, for
+example.  Since pretty much all of these operators and functions are
+discussed elsewhere, there's usually no need to read this documentation
+or use this module.
+
 =item * L<PDL::Primitive>
 
 Defines a whole slew of useful built-in functions.  These
@@ -106,7 +113,9 @@ Shell, with instant feedback!
 =item * L<PDL>
 
 The main workhorse module. You'll include this in nearly every PDL
-program you write.
+program you write. But if you don't use mathematical or I/O functions or
+matrix operations, you might get quicker startup with L<PDL::LiteF>,
+or that plus no namespace pollution with L<PDL::Lite>.
 
 =back
 
@@ -129,6 +138,10 @@ many dimension-handling functions such as C<mv>, C<xchg>, and
 C<reorder>.  This also thoroughly documents the C<range> function, which
 can be very powerful, and covers a number of internal functions, which
 can probably be skipped.
+
+=item * L<PDL::Dataflow>
+
+Covers data flow, which is a somewhat unique feature of PDL.
 
 =item * L<PDL::Indexing>
 
@@ -183,13 +196,6 @@ PDL's own Fast Fourier Transform.  If you have FFTW, then you
 should probably make use of it; this is PDL's internal
 implementation and should always be available.
 
-=item * GSL
-
-PDL does not have bindings for every sub-library in the GNU Scientific
-Library, but it has quite a few. If you have GSL installed on your
-machine then chances are decent that your PDL has the GSL bindings.
-For a full list of the GSL bindings, check L<PDL::Index>.
-
 =item * L<PDL::Func>
 
 A somewhat uniform interface to the different interpolation modules in PDL.
@@ -243,12 +249,6 @@ Cartesian coordinates, you could create a transform object to convert
 them to Spherical-Polar coordinates (although many such standard
 coordinate transformations are predefined for you, in this case it's
 called C<t_spherical>).
-
-=item * L<PDL::Opt::Simplex>
-
-This package states that it "implements the commonly used simplex
-optimization algorithm." I'm going to assume that if you need this
-algorithm then you already know what it is.
 
 =item * L<PDL::Math>
 
@@ -342,13 +342,13 @@ makefiles (but see L<PDL::pptemplate> for help on that).
 
 =item * L<PDL::PP>
 
-The PDL Pre-Processor, which vastly simplifies making you
+The PDL Pre-Processor, which vastly simplifies making your
 C or Fortran code play with Perl and ndarrays.  Most of PDL's
 basic functionality is written using PDL::PP, so if you're
 thinking about how you might integrate some numerical
 library written in C, look no further.
 
-=item * L<PDL::pptemplate>
+=item * L<pptemplate>
 
 A script that automates the creation of modules that use L<PDL::PP>,
 which should make your life as a module author a bit simpler.
@@ -399,36 +399,6 @@ differently, if you want to understand how PDL::PP works, you'll need
 to read this.
 
 =back
-
-=begin questionable
-
-=head1 Other Documents
-
-These documents are part of the PDL distribution but don't
-seem to fit anywhere above.
-
-=over
-
-=item * L<PDL::Dataflow>
-
-Covers data flow, a cool feature to be sure, but from what I can tell
-it is not currently supported.
-
-=item * L<PDL::Ops>
-
-Defines the standard Perl-overloadable operators, like + and .=, for
-example.  Since pretty much all of these operators and functions are
-discussed elsewhere, there's usually no need to read this documentation
-or use this module.
-
-=item * L<PDL::Gaussian>
-
-An apparently broken module to help generate and work with Gaussian
-distributions.
-
-=back
-
-=end questionable
 
 
 =head1 COPYRIGHT

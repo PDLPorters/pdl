@@ -196,227 +196,7 @@ L<PDL::FFT> - FFTs for PDL
 
 =item *
 
-L<PDL::Filter::LinPred> - Linear predictive filtering
-
-=item *
-
-L<PDL::Filter::Linear> - linear filtering for PDL
-
-=item *
-
-L<PDL::Fit::Gaussian> - routines for fitting gaussians
-
-=item *
-
-L<PDL::Fit::LM> - Levenberg-Marquardt fitting routine for PDL
-
-=item *
-
-L<PDL::Fit::Linfit> - routines for fitting data with linear combinations of functions.
-
-=item *
-
-L<PDL::Fit::Polynomial> - routines for fitting with polynomials
-
-=item *
-
 L<PDL::Func> - interpolation, integration, & gradient estimation (differentiation) of functions
-
-=item *
-
-L<PDL::GSL::CDF> - PDL interface to GSL Cumulative Distribution Functions
-
-=item *
-
-L<PDL::GSL::DIFF> - PDL interface to numerical differentiation routines in GSL
-
-=item *
-
-L<PDL::GSL::INTEG> - PDL interface to numerical integration routines in GSL
-
-=item *
-
-L<PDL::GSL::INTERP> - PDL interface to Interpolation routines in GSL
-
-=item *
-
-L<PDL::GSL::LINALG> - PDL interface to linear algebra routines in GSL
-
-=item *
-
-L<PDL::GSL::MROOT> - PDL interface to multidimensional root-finding routines in GSL
-
-=item *
-
-L<PDL::GSL::RNG> - PDL interface to RNG and randist routines in GSL
-
-=item *
-
-L<PDL::GSLSF::AIRY> - PDL interface to GSL Special Functions
-
-=item *
-
-L<PDL::GSLSF::BESSEL> - PDL interface to GSL Special Functions
-
-=item *
-
-L<PDL::GSLSF::CLAUSEN> - PDL interface to GSL Special Functions
-
-=item *
-
-L<PDL::GSLSF::COULOMB> - PDL interface to GSL Special Functions
-
-=item *
-
-L<PDL::GSLSF::COUPLING> - PDL interface to GSL Special Functions
-
-=item *
-
-L<PDL::GSLSF::DAWSON> - PDL interface to GSL Special Functions
-
-=item *
-
-L<PDL::GSLSF::DEBYE> - PDL interface to GSL Special Functions
-
-=item *
-
-L<PDL::GSLSF::DILOG> - PDL interface to GSL Special Functions
-
-=item *
-
-L<PDL::GSLSF::ELEMENTARY> - PDL interface to GSL Special Functions
-
-=item *
-
-L<PDL::GSLSF::ELLINT> - PDL interface to GSL Special Functions
-
-=item *
-
-L<PDL::GSLSF::ELLJAC> - PDL interface to GSL Special Functions
-
-=item *
-
-L<PDL::GSLSF::ERF> - PDL interface to GSL Special Functions
-
-=item *
-
-L<PDL::GSLSF::EXP> - PDL interface to GSL Special Functions
-
-=item *
-
-L<PDL::GSLSF::EXPINT> - PDL interface to GSL Special Functions
-
-=item *
-
-L<PDL::GSLSF::FERMI_DIRAC> - PDL interface to GSL Special Functions
-
-=item *
-
-L<PDL::GSLSF::GAMMA> - PDL interface to GSL Special Functions
-
-=item *
-
-L<PDL::GSLSF::GEGENBAUER> - PDL interface to GSL Special Functions
-
-=item *
-
-L<PDL::GSLSF::HYPERG> - PDL interface to GSL Special Functions
-
-=item *
-
-L<PDL::GSLSF::LAGUERRE> - PDL interface to GSL Special Functions
-
-=item *
-
-L<PDL::GSLSF::LEGENDRE> - PDL interface to GSL Special Functions
-
-=item *
-
-L<PDL::GSLSF::LOG> - PDL interface to GSL Special Functions
-
-=item *
-
-L<PDL::GSLSF::POLY> - PDL interface to GSL Special Functions
-
-=item *
-
-L<PDL::GSLSF::POW_INT> - PDL interface to GSL Special Functions
-
-=item *
-
-L<PDL::GSLSF::PSI> - PDL interface to GSL Special Functions
-
-=item *
-
-L<PDL::GSLSF::SYNCHROTRON> - PDL interface to GSL Special Functions
-
-=item *
-
-L<PDL::GSLSF::TRANSPORT> - PDL interface to GSL Special Functions
-
-=item *
-
-L<PDL::GSLSF::TRIG> - PDL interface to GSL Special Functions
-
-=item *
-
-L<PDL::GSLSF::ZETA> - PDL interface to GSL Special Functions
-
-=item *
-
-L<PDL::Gaussian> - Gaussian distributions.
-
-=item *
-
-L<PDL::Graphics::OpenGL::Perl::OpenGL> - PDL TriD OpenGL interface using POGL
-
-=item *
-
-L<PDL::Graphics::OpenGLQ> - quick routines to plot lots of stuff from ndarrays.
-
-=item *
-
-L<PDL::Graphics::TriD> - PDL 3D interface
-
-=item *
-
-L<PDL::Graphics::TriD::ButtonControl> - default event handler subroutines
-
-=item *
-
-L<PDL::Graphics::TriD::Contours> - 3D Surface contours for TriD
-
-=item *
-
-L<PDL::Graphics::TriD::Graph> - PDL 3D graph object with axes
-
-=item *
-
-L<PDL::Graphics::TriD::Labels> - Text tools
-
-=item *
-
-L<PDL::Graphics::TriD::MathGraph> - Mathematical Graph objects for PDL
-
-=item *
-
-L<PDL::Graphics::TriD::Objects> - Simple Graph Objects for TriD
-
-=item *
-
-L<PDL::Graphics::TriD::Rout> - Helper routines for Three-dimensional graphics
-
-=item *
-
-L<PDL::Graphics::TriD::Tk> - A Tk widget interface to the PDL::Graphics::TriD.
-
-=item *
-
-L<PDL::Graphics::TriD::VRML> - TriD VRML backend
-
-=item *
-
-L<PDL::IO::Dicom> - a module for reading DICOM images.
 
 =item *
 
@@ -433,26 +213,6 @@ L<PDL::IO::FastRaw> - A simple, fast and convenient io format for PerlDL.
 =item *
 
 L<PDL::IO::FlexRaw> - A flexible binary I/O format for PerlDL
-
-=item *
-
-L<PDL::IO::GD> - Interface to the GD image library.
-
-=item *
-
-L<PDL::IO::HDF> - A PDL interface to the HDF4 library.
-
-=item *
-
-L<PDL::IO::HDF::SD> - PDL interface to the HDF4 SD library.
-
-=item *
-
-L<PDL::IO::HDF::VS> - An interface library for HDF4 files.
-
-=item *
-
-L<PDL::IO::IDL> - I/O of IDL Save Files
 
 =item *
 
@@ -520,10 +280,6 @@ L<PDL::Ops> - Fundamental mathematical operators
 
 =item *
 
-L<PDL::Opt::Simplex> - Simplex optimization routines
-
-=item *
-
 L<PDL::Options> - simplifies option passing by hash in PerlDL
 
 =item *
@@ -545,10 +301,6 @@ L<PDL::Transform> - Coordinate transforms, image warping, and N-D functions
 =item *
 
 L<PDL::Transform::Cartography> - Useful cartographic projections
-
-=item *
-
-L<PDL::Transform::Proj4> - PDL::Transform interface to the Proj4 projection library
 
 =item *
 
