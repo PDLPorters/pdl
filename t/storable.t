@@ -83,6 +83,11 @@ is_pdl thaw($f2), sequence(long,5), "thawed byte-swapped";
   my @serialisers;
   for my $module (@possibles) {
     if (eval "require $module") {
+      if ($module eq 'JSON::MaybeXS') {
+        my $impl = eval { $module->JSON };
+        note("JSON::XS wants data to encode, JSON::PP wants encoded: can't work with JSON::PP"), next
+          if ($impl || '') eq 'JSON::PP';
+      }
       push @serialisers, $module;
     }
     else {
@@ -120,10 +125,8 @@ is_pdl thaw($f2), sequence(long,5), "thawed byte-swapped";
 
     foreach my $pair (@ndarrays) {
       my ($name, $ndarray) = @$pair;
-
       my $frozen = $encoder->encode($ndarray);
       my $thawed = $decoder->decode($frozen);
-
       is_pdl($thawed, $ndarray, "$name thawed correctly using $serialiser");
     }
   }

@@ -34,14 +34,22 @@ PDL::IO::Storable - helper functions to make PDL usable with serialisation packa
 
 =head1 DESCRIPTION
 
-Serialisation packages such as C<Storable>, C<Sereal>, C<JSON::MaybeXS> and C<CBOR::XS> implement
+Serialisation packages such as C<Storable>, C<Sereal>, C<JSON::MaybeXS>
+and C<CBOR::XS> implement
 object persistence for Perl data structures that can
 contain arbitrary Perl objects. This module implements the relevant methods to
 be able to store and retrieve ndarrays via C<Storable> as well as packages that support
-the C<Types::Serialiser> protocol (currently C<Sereal>, C<CBOR::XS> and JSON packages).
+the L<Types::Serialiser> protocol (currently L<Sereal>, L<CBOR::XS> and JSON packages).
 
 Note that packages supporting the C<Types::Serialiser> protocol need to have their
 respective flags enabled so that the FREEZE and THAW callbacks are used.
+
+Note also that while L<JSON::MaybeXS> is supported, if it has to
+fall back to L<JSON::PP>, it will fail. L<JSON::XS> treats the data
+it gets back from C<FREEZE> as items to encode, while L<JSON::PP>
+treats the list it gets as strings already encoded. They are
+fundamentally incompatible, so this module supports the JSON::XS
+option.
 
 =head1 FUNCTIONS
 
