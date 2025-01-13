@@ -1316,8 +1316,8 @@ further. Perl can help you again(!) in doing this. In many libraries
 you have certain calling conventions. This can be exploited. In short,
 you can write a little parser (which is really not difficult in Perl) that
 then generates the calls to C<pp_def> from parsed descriptions of the
-functions in that library. For an example, please check the I<Slatec>
-interface in the C<Lib> tree of the PDL distribution. If you want to check
+functions in that library. For an example, please check the L<PDL::OpenCV>
+interface on CPAN. If you want to check
 (during debugging) which calls to PP functions your Perl code generated
 then set C<$::PP_VERBOSE> to a true value just before the relevant
 C<pp_def> call, or at the top of the file.

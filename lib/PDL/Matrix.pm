@@ -29,7 +29,7 @@ vectors resp and matrices can be typed in using traditional matrix
 convention.
 
 If you want to know more about matrix operation support in PDL, you 
-want to read L<PDL::MatrixOps> or L<PDL::Slatec>.
+want to read L<PDL::MatrixOps> or L<PDL::LinearAlgebra>.
 
 The original pdl class refers to the first index as the first row,
 the second index as the first column of a matrix. Consider

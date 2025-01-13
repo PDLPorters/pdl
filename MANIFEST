@@ -197,7 +197,6 @@ t/fits-noafh.t
 t/fits.t
 t/flexraw-iotypes.t
 t/flexraw.t
-t/flexraw_fortran.t
 t/func.t
 t/image2d.t
 t/imagend.t

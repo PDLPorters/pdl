@@ -536,10 +536,6 @@ L<PDL::Reduce> - a C<reduce> function for PDL
 
 =item *
 
-L<PDL::Slatec> - PDL interface to the slatec numerical programming library
-
-=item *
-
 L<PDL::Slices> - Indexing, slicing, and dicing
 
 =item *

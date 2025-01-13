@@ -273,7 +273,7 @@ eigenvalues, inverting square matrices, LU-decomposition, and solving
 a system of linear equations.  Though it is not built on L<PDL::Matrix>,
 it should generally work with that module.  Also, the methods
 provided by this module do not depend on external libraries such as
-Slatec or GSL.
+LAPACK or GSL.
 
 =item * L<PDL::Reduce>
 

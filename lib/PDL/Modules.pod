@@ -169,12 +169,7 @@ Linear filtering.
 
 Simplex optimization routines.
 
-=item L<PDL::Slatec>
-
-PDL interface to the Slatec library.
-
 =back
-
 
 
 =head1 COORDINATE TRANSFORMATIONS

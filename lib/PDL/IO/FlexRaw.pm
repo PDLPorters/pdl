@@ -183,6 +183,76 @@ and return the PDLs mapped before the problem arose.  This can be
 dealt with either by reorganizing the data file (large types first
 helps, as a rule-of-thumb), or more simply by using C<readflex>.
 
+=head2 Fortran code to create data
+
+Until PDL 2.099, the test file F<t/flexraw_fortran.t> compiled a
+Fortran program, ran it, then byte-swapped its output, to test this
+module's ability to do that. Version 2.099 has dropped external
+dependencies, including the use of Fortran. The code it used is
+shown here for historical curiosity:
+
+  c Program to test i/o of F77 unformatted files
+        program rawtest
+        implicit none
+        integer i
+        $f77type a($ndata)
+        do i = 1, $ndata
+          a(i) = $val
+        enddo
+        open(8,file=
+       \$'$data'
+       \$,status='new',form='unformatted')
+        i = $ndata
+        write (8) i
+        write (8) a
+        close(8)
+        end
+
+with this FlexRaw header:
+
+  # FlexRaw file header
+  f77
+  long 1 1
+  # Data
+  $pdltype 1 $ndata
+
+C<$ndata> was set to 10, C<$val> was C<100.*sin(0.01* i)>, C<$data>
+was a filename. C<$f77type> was set to C<real*4> and C<real*8>.
+
+There was also a more complex program:
+
+  c Program to test i/o of F77 unformatted files
+        program rawtest
+        implicit none
+        character a
+        integer*2 i
+        integer*4 l
+        real*4    f
+        real*8    d
+        d = 4*atan(1.)
+        f = d
+        l = 10**d
+        i = l
+        a = ' '
+        open(8,file=
+       \$'$data'
+       \$,status='new',form='unformatted')
+  c Choose bad boundaries...
+        write (8) a,i,l,f,d
+        close(8)
+        end
+
+with this FlexRaw header:
+
+  # FlexRaw file header
+  byte 1 4
+  byte 0
+  short 0
+  long 0
+  float 0
+  double 0
+  byte 1 4
+
 =head1 FUNCTIONS
 
 =cut
