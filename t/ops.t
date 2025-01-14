@@ -112,6 +112,34 @@ if ($can_complex_power) {
 is $pa->at(0), '16', 'sqrt orig value ok';
 }
 
+{   # csqrt_up
+    my $pi=4*atan2(1,1);
+    my $eiO = exp(i()*sequence(8)*$pi/4);
+    my $eiO2 = exp(i()*sequence(8)*$pi/8);
+    my $sqrt=csqrt_up($eiO);
+    is_pdl($sqrt, $eiO2, "Square of csqrt_up of complex");
+    my $i=csqrt_up(-1);
+    is_pdl($i, i(), "csqrt_up of real -1");
+    my $squares="-9 -4 -1 0 1 4 9";
+    my $roots="3i 2i i 0 1 2 3";
+    my $lsqrt=long($squares)->csqrt_up;
+    is_pdl($lsqrt, cdouble($roots), "csqrt_up of long");
+    my $llsqrt=longlong($squares)->csqrt_up;
+    is_pdl($llsqrt, cdouble($roots), "csqrt_up of longlong");
+    my $fsqrt=float($squares)->csqrt_up;
+    is_pdl($fsqrt, cfloat($roots), "csqrt_up of float");
+    my $dsqrt=double($squares)->csqrt_up;
+    is_pdl($dsqrt,cdouble($roots), "csqrt_up of double");
+    my $ldsqrt=ldouble($squares)->csqrt_up;
+    is_pdl($ldsqrt, cldouble($roots), "csqrt_up of ldouble");
+    my $cfsqrt=cfloat($squares)->csqrt_up;
+    is_pdl($cfsqrt, cfloat($roots), "csqrt_up of cfloat");
+    my $cdsqrt=cdouble($squares)->csqrt_up;
+    is_pdl($cdsqrt,cdouble($roots), "csqrt_up of cdouble");
+    my $cldsqrt=cldouble($squares)->csqrt_up;
+    is_pdl($cldsqrt,cldouble($roots), "csqrt_up of cldouble");
+}
+
 {
     is_pdl(r2C(long(1)), cdouble(1), "r2C of long");
     is_pdl(r2C(longlong(1)), cdouble(1), "r2C of longlong");
