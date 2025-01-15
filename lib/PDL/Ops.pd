@@ -422,6 +422,21 @@ EOF
   Code => '$c() = $r() + $i() * I;'
 );
 
+pp_def('csqrt',
+    GenericTypes => $AF,
+    Pars => 'i(); complex [o] o()',
+    Doc => <<'EOF',
+Take the complex square root of a number choosing that with
+non-negative real part, i.e., a square root with a branch cut
+'infinitesimally' below the negative real axis, the standard choice.
+EOF
+    Code => q{
+        $TFDEGCH(PDL_CFloat,PDL_CDouble,PDL_CLDouble,PDL_CFloat,PDL_CDouble,PDL_CLDouble) tmp=$i();
+        tmp=csqrt(tmp);
+        $o() = tmp;
+    },
+);
+
 pp_def('csqrt_up',
     GenericTypes => $AF,
     Pars => 'i(); complex [o] o()',
