@@ -5,6 +5,7 @@ use PDL::LiteF;
 use Config;
 kill 'INT',$$ if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 use Test::Exception;
+use Test::PDL;
 require PDL::Core::Dev;
 
 kill 'INT',$$ if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
@@ -109,6 +110,17 @@ if ($can_complex_power) {
   ok(all( approx($pb,(cdouble 4,8,3,i()))),'sqrt of pdl(16,64,9,-1)');
 }
 is $pa->at(0), '16', 'sqrt orig value ok';
+}
+
+{
+    is_pdl(r2C(long(1)), cdouble(1), "r2C of long");
+    is_pdl(r2C(longlong(1)), cdouble(1), "r2C of longlong");
+    is_pdl(r2C(float(1)), cfloat(1), "r2C of float");
+    is_pdl(r2C(double(1)), cdouble(1), "r2C of double");
+    is_pdl(r2C(ldouble(1)), cldouble(1), "r2C of ldouble");
+    is_pdl(r2C(cfloat(1)), cfloat(1), "r2C of cfloat");
+    is_pdl(r2C(cdouble(1)), cdouble(1), "r2C of cdouble");
+    is_pdl(r2C(cldouble(1)), cldouble(1), "r2C of cldouble");
 }
 
 {
