@@ -87,8 +87,7 @@ sub new {
 	$str = _rcharpack2($value,$maxlength,0,\@dims);
   }
   $self->setdims([reverse @dims]);
-  ${$self->get_dataref} = $str;
-  $self->upd_data();
+  $self->update_data_from($str);
   return bless $self, $type;
 }
 

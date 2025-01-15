@@ -1221,8 +1221,7 @@ our $tile_compressors = {
 	my @dims = $compressed->dims;
 	$dims[0] *= $tbl->{ZVAL2};
 	my $cd2 = zeroes( byte, @dims );
-	${ $cd2->get_dataref } = ${ $compressed->get_dataref };
-	$cd2->upd_data;
+	$cd2->update_data_from(${ $compressed->get_dataref });
 	$compressed = $cd2;
       }
       $tbl->{COMPRESSED_DATA} = $compressed->mv(0,-1);

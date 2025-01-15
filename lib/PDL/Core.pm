@@ -720,7 +720,22 @@ NOTE: NOT a method! This is because get_datatype returns
 
 =for ref
 
+Update an ndarray's internal data for from packed data.
+
+  $data = read_from_datasource();
+  $pdl->update_data_from($data);
+
+Throws an exception if the argument is the wrong size for that ndarray.
+
+=head2 get_dataref
+
+=for ref
+
 Return the internal data for an ndarray, as a perl SCALAR ref.
+
+If you are using this in order to manipulate the SV, then call
+L</upd_data>, then as of 2.099 you are recommended instead to just
+use L</update_data_from> to streamline the process.
 
 Most ndarrays hold their internal data in a packed perl string, to take
 advantage of perl's memory management.  This gives you direct access
@@ -749,6 +764,9 @@ Update the data pointer in an ndarray to match its perl SV.
 This is useful if you've been monkeying with the packed string
 representation of the PDL, which you probably shouldn't be doing
 anyway.  (see L</get_dataref>.)
+
+As of 2.099 you are recommended instead to just use
+L</update_data_from> to streamline the process.
 
 =cut
 
@@ -1242,8 +1260,7 @@ sub PDL::new {
       } else {
          $new->setdims([]);
          if ($value) {
-           ${$new->get_dataref} = pack( $pack[$new->get_datatype], $value );
-           $new->upd_data;
+           $new->update_data_from( pack $pack[$new->get_datatype], $value );
          } else { # do nothing if 0 - allocdata already memsets to 0
            $new->make_physical;
          }

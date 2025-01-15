@@ -1152,6 +1152,19 @@ upd_data(self, keep_datasv=0)
 	}
 	PDLDEBUG_f(printf("upd_data end: "); pdl_dump(self));
 
+void
+update_data_from(self, sv)
+  pdl *self
+  SV *sv
+CODE:
+  PDLDEBUG_f(printf("update_data_from: "); pdl_dump(self));
+  pdl_barf_if_error(pdl_make_physvaffine(self));
+  Size_t svsize = SvCUR(sv);
+  if (svsize != self->nbytes)
+    croak("Trying to update_data_from but sv length %zu instead of %td", svsize, self->nbytes);
+  memmove(self->data, SvPV_nolen(sv), self->nbytes);
+  PDLDEBUG_f(printf("update_data_from end: "); pdl_dump(self));
+
 int
 badflag(x,newval=0)
     pdl *x

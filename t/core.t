@@ -21,6 +21,13 @@ my $p = sequence(100); # big enough to not fit in "value" field
 my $ref = $p->get_dataref;
 $p->reshape(3); # small enough now
 $p->upd_data;
+is_pdl $p, pdl('0 1 2');
+my $other_numbers = (sequence(3)+6)->get_dataref;
+$p->update_data_from($$other_numbers);
+is_pdl $p, pdl('6 7 8');
+$other_numbers = sequence(4)->get_dataref;
+eval {$p->update_data_from($$other_numbers)};
+like $@, qr/but sv length/, 'error if update_data_from wrong size';
 }
 
 {
