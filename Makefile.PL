@@ -188,7 +188,7 @@ doc_perl_install ::
 EOF
   $text .= <<EOT if $^O !~ /MSWin/;
 $pdlroot$::Config{exe_ext} : $pdlroot.c
-\t\$(CC) \$(CCFLAGS) \$(OPTIMIZE) \$(LDFLAGS) \$(CCCDLFLAGS) $pdlroot.c -o \$\@
+\t\$(CC) \$(CCFLAGS) \$(CPPFLAGS) \$(OPTIMIZE) \$(LDFLAGS) \$(CCCDLFLAGS) $pdlroot.c -o \$\@
 EOT
   my $typespm = ::catfile(qw(lib PDL Types.pm));
   for (qw(pdl.h)) {
