@@ -187,8 +187,8 @@ doc_perl_install ::
 	$(NOECHO) $(PERLRUNINST) utils$(DFSEP)scantree.pl "$(DESTDIR)$(INSTALLARCHLIB)"
 EOF
   $text .= <<EOT if $^O !~ /MSWin/;
-${pdlroot}$::Config{exe_ext} : ${pdlroot}.c
-\t\$(CC) \$(CFLAGS) \$(LDFLAGS) \$(CCCDLFLAGS) ${pdlroot}.c -o \$\@
+$pdlroot$::Config{exe_ext} : $pdlroot.c
+\t\$(CC) \$(CCFLAGS) \$(OPTIMIZE) \$(LDFLAGS) \$(CCCDLFLAGS) $pdlroot.c -o \$\@
 EOT
   my $typespm = ::catfile(qw(lib PDL Types.pm));
   for (qw(pdl.h)) {
