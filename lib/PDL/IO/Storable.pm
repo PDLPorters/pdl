@@ -51,6 +51,10 @@ treats the list it gets as strings already encoded. They are
 fundamentally incompatible, so this module supports the JSON::XS
 option.
 
+Finally, L<data flow|PDL::Dataflow> is not preserved.  If a data structure
+containing ndarrays connected by data flow is serialised then this will need to be
+explicitly reinstated on deserialisation.
+
 =head1 FUNCTIONS
 
 =cut
