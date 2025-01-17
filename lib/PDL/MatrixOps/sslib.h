@@ -26,9 +26,6 @@
 #  define PI 3.141592653589793238462643
 #endif
 
-/***** A boolean type       *****/
-typedef enum {false=0, true=1} bool;
-
 /***** Pratical macros      *****/
 #define min(x, y)   ((x)>(y))?(y):(x)
 #define max(x, y)   ((x)>(y))?(x):(y)
