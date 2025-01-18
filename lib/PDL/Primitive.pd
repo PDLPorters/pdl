@@ -2066,6 +2066,7 @@ pp_def('vcos',
   GenericTypes => [ppdefs_all],
   HandleBad => 1,
   Code => pp_line_numbers(__LINE__, <<'EOF'),
+broadcastloop %{
 $GENERIC(vcos) bnorm = 0;
 loop(M) %{
   PDL_IF_BAD(if ($ISBAD(b())) continue;,)
@@ -2097,12 +2098,10 @@ loop (N) %{
     $vcos() = NAN;
   }
 %}
+%}
+if ( $PDLSTATEISBAD(a) || $PDLSTATEISBAD(b) )
+  $PDLSTATESETBAD(vcos);
 EOF
-  CopyBadStatusCode => q{
-   if ( $ISPDLSTATEBAD(a) || $ISPDLSTATEBAD(b) ) {
-     $SETPDLSTATEBAD(vcos);
-   }
-},
   Doc => q{
 Computes the vector cosine similarity of a dense vector $b() with respect
 to each row $a(*,i) of a dense PDL $a().  This is basically the same
