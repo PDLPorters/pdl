@@ -3466,8 +3466,7 @@ EOF
 =for ref
 
 Collects the coordinates of non-zero, non-bad values in each 1D mask in
-ndarray at the start of the output, and fills the rest with -1. Works
-inplace.
+ndarray at the start of the output, and fills the rest with -1.
 
 By using L<PDL::Slices/xchg> etc. it is possible to use I<any> dimension.
 
