@@ -1180,10 +1180,6 @@ $PDL::PP::deftbl =
    PDL::PP::Rule::Returns->new("Doc", [], 'Sets the default doc string',
     "\n=for ref\n\ninfo not available\n"),
 
-   # try and automate the docs
-   # could be really clever and include the sig to see about
-   # input/output params, for instance
-
    PDL::PP::Rule->new("BadDoc", [qw(BadFlag Name CopyBadStatusCode?)],
               'Sets the default documentation for handling of bad values',
       sub {
@@ -1820,8 +1816,6 @@ END
           "pdl_error $func_name($longpars)");
       }),
 
-   PDL::PP::Rule->new("NewXSMakeNow", ["SignatureObj"],
-      sub { join '', map "$_ = PDL->make_now($_);\n", @{ $_[0]->names } }),
    PDL::PP::Rule->new("IgnoreTypesOf", ["FTypes","SignatureObj"], sub {
       my ($ftypes, $sig) = @_;
       my ($pnames, $pobjs) = ($sig->names_sorted, $sig->objs);
@@ -2009,7 +2003,6 @@ EOF
         "NewXSStructInit0",
         "NewXSSetTransPDLs",
         "NewXSFindBadStatusSubd",
-        #     NewXSMakeNow, # this is unnecessary since families never got implemented
         "NewXSTypeCoerceSubd",
         "NewXSExtractTransPDLs",
         "MakeCompiledReprSubd",
