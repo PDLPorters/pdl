@@ -22,6 +22,7 @@
 - r2C and i2C now handle long double both real and complex (#524) - thanks @wlmb for report
 - add "update_data_from" method as streamlined get_dataref/upd_data
 - add Ops::csqrt{,_up} (#524) - thanks @wlmb
+- Core::upd_data now sets DATACHANGED so will work for flowing ops
 
 2.098 2025-01-03
 - fix Windows build problems

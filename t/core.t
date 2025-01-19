@@ -70,14 +70,19 @@ is $p3->datasv_refcount, $refcount - 1;
   my $pa = pdl 2,3,4;
   $pa->flowing;
   my $pb = $pa + $pa;
-  is "$pb", '[4 6 8]';
+  is_pdl $pb, pdl '[4 6 8]';
   $pa->set(0,50);
-  is "$pb", '[100 6 8]';
+  is_pdl $pb, pdl '[100 6 8]';
+  ${$pa->get_dataref} = ${pdl(51,3,4)->get_dataref};
+  $pa->upd_data;
+  is_pdl $pb, pdl('[102 6 8]'), 'after upd_data, change reflected';
+  $pa->update_data_from(${pdl(50,3,4)->get_dataref});
+  is_pdl $pb, pdl('[100 6 8]'), 'after update_data_from, change reflected';
   eval {$pa->set_datatype(PDL::float()->enum)};
   like $@, qr/ndarray has child/, 'set_datatype if has child dies';
   $pb->set_datatype(PDL::float()->enum);
   $pa->set(0,60);
-  is "$pb", '[100 6 8]', 'dataflow broken by set_datatype';
+  is_pdl $pb, float('[100 6 8]'), 'dataflow broken by set_datatype';
 }
 
 eval {PDL->inplace};

@@ -831,28 +831,27 @@ listref_c(x)
 
 void
 set_c(x,pos,value)
-    pdl*	x
-    PDL_Indx pos_count=0;
-    PDL_Indx *pos
-    PDL_Anyval	value
-   PREINIT:
-    PDL_Indx ipos;
-   CODE:
-    pdl_barf_if_error(pdl_make_physvaffine( x ));
-    if (pos == NULL || pos_count < x->ndims)
+  pdl*	x
+  PDL_Indx pos_count=0;
+  PDL_Indx *pos
+  PDL_Anyval	value
+CODE:
+  pdl_barf_if_error(pdl_make_physvaffine( x ));
+  if (pos == NULL || pos_count < x->ndims)
+     croak("Invalid position");
+  /*  allow additional trailing indices
+   *  which must be all zero, i.e. a
+   *  [3,1,5] ndarray is treated as an [3,1,5,1,1,1,....]
+   *  infinite dim ndarray
+   */
+  PDL_Indx ipos;
+  for (ipos=x->ndims; ipos<pos_count; ipos++)
+    if (pos[ipos] != 0)
        croak("Invalid position");
-    /*  allow additional trailing indices
-     *  which must be all zero, i.e. a
-     *  [3,1,5] ndarray is treated as an [3,1,5,1,1,1,....]
-     *  infinite dim ndarray
-     */
-    for (ipos=x->ndims; ipos<pos_count; ipos++)
-      if (pos[ipos] != 0)
-         croak("Invalid position");
-    pdl_barf_if_error(pdl_set(PDL_REPRP(x), x->datatype, pos, x->dims,
-        PDL_REPRINCS(x), PDL_REPROFFS(x),
-	x->ndims,value));
-    pdl_barf_if_error(pdl_changed(PDL_VAFFOK(x)?x->vafftrans->from:x, PDL_PARENTDATACHANGED, 0));
+  pdl_barf_if_error(pdl_set(PDL_REPRP(x), x->datatype, pos, x->dims,
+      PDL_REPRINCS(x), PDL_REPROFFS(x),
+      x->ndims,value));
+  pdl_barf_if_error(pdl_changed(x, PDL_PARENTDATACHANGED, 0));
 
 BOOT:
   /* Initialize structure of pointers to core C routines */
@@ -1131,26 +1130,27 @@ get_dataref(self)
 
 void
 upd_data(self, keep_datasv=0)
-	pdl *self
-	IV keep_datasv
-	CODE:
-	if(self->state & PDL_DONTTOUCHDATA)
-	  croak("Trying to touch dataref of magical (mmaped?) pdl");
-	PDLDEBUG_f(printf("upd_data: "); pdl_dump(self));
-	if (keep_datasv || !PDL_USESTRUCTVALUE(self)) {
-	  self->data = SvPV_nolen((SV*)self->datasv);
-	} else if (self->datasv) {
-	  PDLDEBUG_f(printf("upd_data zap datasv\n"));
-	  Size_t svsize = SvCUR((SV*)self->datasv);
-	  if (svsize != self->nbytes)
-            croak("Trying to upd_data but datasv now length %zu instead of %td", svsize, self->nbytes);
-	  memmove(self->data, SvPV_nolen((SV*)self->datasv), self->nbytes);
-	  SvREFCNT_dec(self->datasv);
-	  self->datasv = NULL;
-	} else {
-	  PDLDEBUG_f(printf("upd_data datasv gone, maybe reshaped\n"));
-	}
-	PDLDEBUG_f(printf("upd_data end: "); pdl_dump(self));
+  pdl *self
+  IV keep_datasv
+CODE:
+  if(self->state & PDL_DONTTOUCHDATA)
+    croak("Trying to touch dataref of magical (mmaped?) pdl");
+  PDLDEBUG_f(printf("upd_data: "); pdl_dump(self));
+  if (keep_datasv || !PDL_USESTRUCTVALUE(self)) {
+    self->data = SvPV_nolen((SV*)self->datasv);
+  } else if (self->datasv) {
+    PDLDEBUG_f(printf("upd_data zap datasv\n"));
+    Size_t svsize = SvCUR((SV*)self->datasv);
+    if (svsize != self->nbytes)
+      croak("Trying to upd_data but datasv now length %zu instead of %td", svsize, self->nbytes);
+    memmove(self->data, SvPV_nolen((SV*)self->datasv), self->nbytes);
+    SvREFCNT_dec(self->datasv);
+    self->datasv = NULL;
+  } else {
+    PDLDEBUG_f(printf("upd_data datasv gone, maybe reshaped\n"));
+  }
+  pdl_barf_if_error(pdl_changed(self, PDL_PARENTDATACHANGED, 0));
+  PDLDEBUG_f(printf("upd_data end: "); pdl_dump(self));
 
 void
 update_data_from(self, sv)
@@ -1163,6 +1163,7 @@ CODE:
   if (svsize != self->nbytes)
     croak("Trying to update_data_from but sv length %zu instead of %td", svsize, self->nbytes);
   memmove(self->data, SvPV_nolen(sv), self->nbytes);
+  pdl_barf_if_error(pdl_changed(self, PDL_PARENTDATACHANGED, 0));
   PDLDEBUG_f(printf("update_data_from end: "); pdl_dump(self));
 
 int
