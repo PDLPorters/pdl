@@ -23,6 +23,7 @@
 - add "update_data_from" method as streamlined get_dataref/upd_data
 - add Ops::csqrt{,_up} (#524) - thanks @wlmb
 - Core::upd_data now sets DATACHANGED so will work for flowing ops
+- remove CopyBadStatusCode key from PP (#517)
 
 2.098 2025-01-03
 - fix Windows build problems

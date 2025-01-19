@@ -188,7 +188,9 @@ ok $x->badflag, 'badflag wrongly set on input after setbadif';
 
 # how about setbadtoval
 empty()->setbadtoval(20); # shouldn't segfault
+ok $y->badflag, 'badflag on';
 $x = $y->setbadtoval(20) - pdl(qw(42 47 98 20 22 96 74 41 79 76 96 20 32 76 25 59 20 96 32 20));
+ok $y->badflag, 'badflag still on';
 ok( all($x == 0), "setbadtoval() worked" );
 
 # and inplace?

@@ -820,10 +820,15 @@ EOF
       $GENERIC(b) a_val = $a();
       $b() = PDL_IF_BAD($ISBADVAR(a_val,a) ? replace : ,) a_val;
     %}
+    char input_was_bad = !!$PDLSTATEISBAD(a);
+    PDL->propagate_badflag( $PDL(b), 0 ); /* always make sure the output is "good" */
+    if (input_was_bad && $PDL(a) != $PDL(b)) $PDLSTATESETBAD(a);
   },
-  CopyBadStatusCode => q{
-    PDL->propagate_badflag( b, 0 ); /* always make sure the output is "good" */
-  },
+  NewXSFindBadStatusNS => <<'EOF',
+PDL_RETERROR(PDL_err, PDL->trans_check_pdls(__privtrans));
+char $BADFLAGCACHE() = PDL->trans_badflag_from_inputs(__privtrans);
+$BADFLAGCACHE() = 0; /* override, but still need to call the above */
+EOF
   GenericTypes => $A,
 );
 

@@ -100,8 +100,8 @@ but it will run slower since you are going to have to handle the presence of bad
 If you create an ndarray, it will have its bad-value flag set to 0. To change
 this, use C<< $pdl->badflag($new_bad_status) >>, where C<$new_bad_status> can be 0 or 1.
 When a routine creates an ndarray, its bad-value flag will depend on the input
-ndarrays: unless over-ridden (see the C<CopyBadStatusCode> option to C<pp_def>), the
-bad-value flag will be set true if any of the input ndarrays contain bad values.
+ndarrays: the
+bad-value flag will be set true if any of the input ndarrays have the bad-value flag.
 To check that an ndarray really contains bad data, use the C<check_badflag> method.
 
 I<NOTE>: propagation of the badflag

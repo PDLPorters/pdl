@@ -371,10 +371,6 @@ sub dosubst_private {
       CROAK => sub {"return PDL->make_error(PDL_EUSERERROR, \"Error in $name:\" @{[join ',', @_]})"},
       NAME => sub {return $name},
       MODULE => sub {return $::PDLMOD},
-      SETPDLSTATEBAD  => sub { "$_[0]\->state |= PDL_BADVAL" },
-      SETPDLSTATEGOOD => sub { "$_[0]\->state &= ~PDL_BADVAL" },
-      ISPDLSTATEBAD   => \&badflag_isset,
-      ISPDLSTATEGOOD  => sub {"!".badflag_isset($_[0])},
       BADFLAGCACHE    => sub { "badflag_cache" },
       PDLSTATESETBAD => sub { ($sig->objs->{$_[0]}//confess "Can't get PDLSTATESETBAD for unknown ndarray '$_[0]'")->do_pdlaccess."->state |= PDL_BADVAL" },
       PDLSTATESETGOOD => sub { ($sig->objs->{$_[0]}->do_pdlaccess//confess "Can't get PDLSTATESETGOOD for unknown ndarray '$_[0]'")."->state &= ~PDL_BADVAL" },
@@ -1180,10 +1176,10 @@ $PDL::PP::deftbl =
    PDL::PP::Rule::Returns->new("Doc", [], 'Sets the default doc string',
     "\n=for ref\n\ninfo not available\n"),
 
-   PDL::PP::Rule->new("BadDoc", [qw(BadFlag Name CopyBadStatusCode?)],
+   PDL::PP::Rule->new("BadDoc", [qw(BadFlag Name)],
               'Sets the default documentation for handling of bad values',
       sub {
-         my ($bf, $name, $code) = @_;
+         my ($bf, $name) = @_;
          my $str;
          if ( not defined($bf) ) {
             $str = "C<$name> does not process bad values.\n";
@@ -1192,14 +1188,8 @@ $PDL::PP::deftbl =
          } else {
             $str = "C<$name> ignores the bad-value flag of the input ndarrays.\n";
          }
-         if ( not defined($code) ) {
-            $str .= "It will set the bad-value flag of all output ndarrays if " .
-            "the flag is set for any of the input ndarrays.\n";
-         } elsif (  $code eq '' ) {
-            $str .= "The output ndarrays will NOT have their bad-value flag set.\n";
-         } else {
-            $str .= "The state of the bad-value flag of the output ndarrays is unknown.\n";
-         }
+         $str .= "It will set the bad-value flag of all output ndarrays if " .
+           "the flag is set for any of the input ndarrays.\n";
       }
    ),
 
@@ -1958,15 +1948,6 @@ EOF
       }),
 
    PDL::PP::Rule->new("NewXSCopyBadStatusNS",
-      ["CopyBadStatusCode"],
-      "Use CopyBadStatusCode if given",
-      sub {
-        my ($badcode) = @_;
-        confess "PDL::PP ERROR: CopyBadStatusCode contains '\$PRIV(bvalflag)'; replace with \$BADFLAGCACHE()"
-          if $badcode =~ m/\$PRIV(bvalflag)/;
-        $badcode;
-      }),
-   PDL::PP::Rule->new("NewXSCopyBadStatusNS",
       ["SignatureObj"],
       "Rule to copy the bad value status to the output ndarrays",
       # note: this is executed before the trans_mutual call
@@ -1977,7 +1958,7 @@ EOF
         return '' if @{$sig->names} == (my @outs = $sig->names_out); # no input pdls, no badflag copying needed
         !@outs ? '' : PDL::PP::indent(2, join '', # no outs, ditto
           "if (\$BADFLAGCACHE()) {\n",
-          (map "  \$SETPDLSTATEBAD($_);\n", @outs),
+          (map "  $_->state |= PDL_BADVAL;\n", @outs),
           "}\n");
       }),
 

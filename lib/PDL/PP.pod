@@ -1175,22 +1175,7 @@ I<TODO:> mention C<$PISBAD()> etc macros.
 =head2 PDL STATE macros
 
 If you want access to the value of the badflag for a given
-ndarray, you can use the PDL STATE macros,
-for use in L</CopyBadStatusCode>.
-
-=over 4
-
-=item $ISPDLSTATEBAD(pdl)
-
-=item $ISPDLSTATEGOOD(pdl)
-
-=item $SETPDLSTATEBAD(pdl)
-
-=item $SETPDLSTATEGOOD(pdl)
-
-=back
-
-And for use in C<Code> sections:
+ndarray, you can use the PDL STATE macros.
 
 =over 4
 
@@ -1871,21 +1856,6 @@ completeness.
 
 =back
 
-If bad values are being used, care must be taken to ensure the
-propagation of the badflag when inplace is being used;
-consider this excerpt from F<lib/PDL/Bad.pd>:
-
-  pp_def('setbadtoval',
-    HandleBad => 1,
-    Pars => 'a(); [o]b();',
-    OtherPars => 'double newval',
-    Inplace => 1,
-    CopyBadStatusCode => 'PDL->propagate_badflag( b, 0 );',
-    ...
-
-Since this routine removes all bad values, the output ndarray had
-its bad flag cleared. This is then propagated to both parents and children.
-
 The documentation for the routine is now (as of 2.099)
 automatically flagged to indicate that it can be executed inplace,
 similar to how C<HandleBad> sets C<BadDoc> if it's not
@@ -2461,20 +2431,6 @@ If C<HandleBad> is true and C<BadCode> is not supplied, the C<Code>
 section will be reused, on the assumption it will use
 C<#ifdef PDL_BAD_CODE> to handle bad values.
 As of 2.073, you can, and are recommended to, use C<PDL_IF_BAD(iftrue,iffalse)>.
-
-=head3 CopyBadStatusCode
-
-As of 2.079, this is deprecated due to being largely unnecessary;
-instead, just use C<$PDLSTATESETBAD(pdlname)> in your C<Code> section
-and the badflag setting will be propagated to all its parents and
-children.
-
-The default code here sets the bad flag of the output ndarrays if
-C<$BADFLAGCACHE()> is true after the code has been
-evaluated.  Sometimes C<CopyBadStatusCode> is set to an empty string,
-with the responsibility of setting the badflag of the output ndarray
-left to the C<BadCode> section (e.g. the C<xxxover> routines
-in F<lib/PDL/Ufunc.pd>).
 
 =head3 GenericTypes
 
