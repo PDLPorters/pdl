@@ -750,7 +750,18 @@ pdl_error pdl_make_trans_mutual(pdl_trans *trans)
   for (i=vtable->nparents; i<vtable->npdls; i++) pdls[i] = pdls[i+nchildren];
   PDLDEBUG_f(printf("make_trans_mutual after copy converted ");pdl_dump_trans_fixspace(trans,0));
   PDL_TR_CHKMAGIC(trans);
-  char disable_back = 0;
+  char disable_back = 0, inputs_bad = 0;
+  for (i=0; i<npdls; i++) {
+    pdl *pdl = pdls[i];
+    if ((vtable->par_flags[i] & (PDL_PARAM_ISOUT|PDL_PARAM_ISTEMP)) ||
+        !(pdl->state & PDL_BADVAL)) continue;
+    inputs_bad = trans->bvalflag = 1;
+    break;
+  }
+  if (trans->bvalflag && (vtable->flags & PDL_TRANS_BADIGNORE)) {
+    pdl_pdl_warn("WARNING: %s does not handle bad values", vtable->name);
+    trans->bvalflag = 0; /* but still return true */
+  }
   PDL_err = pdl_trans_flow_null_checks(trans, &disable_back);
   if (PDL_err.error) {
     PDL_ACCUMERROR(PDL_err, pdl_trans_finaldestroy(trans));
@@ -786,6 +797,9 @@ pdl_error pdl_make_trans_mutual(pdl_trans *trans)
     if (PDL_BITFIELD_ISSET(wasnull, i))
       child->state = (child->state & ~PDL_NOMYDIMS) | PDL_MYDIMS_TRANS;
   }
+  if (inputs_bad)
+    for (i=nparents; i<npdls; i++)
+      pdls[i]->state |= PDL_BADVAL;
   if (!dataflow) {
     PDL_ACCUMERROR(PDL_err, pdl__ensure_trans(trans, PDL_PARENTDIMSCHANGED, 0, 0));
     if (PDL_err.error)
@@ -1312,22 +1326,7 @@ pdl_error pdl_type_coerce(pdl_trans *trans) {
 }
 
 char pdl_trans_badflag_from_inputs(pdl_trans *trans) {
-  PDL_Indx i;
-  pdl_transvtable *vtable = trans->vtable;
-  pdl **pdls = trans->pdls;
-  char retval = 0;
-  for (i=0; i<vtable->npdls; i++) {
-    pdl *pdl = pdls[i];
-    if ((vtable->par_flags[i] & (PDL_PARAM_ISOUT|PDL_PARAM_ISTEMP)) ||
-        !(pdl->state & PDL_BADVAL)) continue;
-    trans->bvalflag = retval = 1;
-    break;
-  }
-  if (retval && (vtable->flags & PDL_TRANS_BADIGNORE)) {
-    pdl_pdl_warn("WARNING: %s does not handle bad values", vtable->name);
-    trans->bvalflag = 0; /* but still return true */
-  }
-  return retval;
+  return 0; /* CORE21 get rid */
 }
 
 pdl_error pdl_trans_check_pdls(pdl_trans *trans) {
