@@ -59,6 +59,7 @@ pdl_error pdl_dim_checks(pdl_transvtable *vtable, pdl **pdls,
   pdl_broadcast *broadcast, PDL_Indx nimpl, PDL_Indx *creating,
   PDL_Indx *ind_sizes, char load_only);
 PDL_Indx pdl_get_offset(PDL_Indx* pos, PDL_Indx* dims, PDL_Indx *incs, PDL_Indx offset, PDL_Indx ndims);
+pdl_error pdl_propagate_badflag_dir(pdl *it, int newval, char is_fwd, int recurse_count);
 
 /* pdlutil.c */
 typedef enum {
@@ -159,7 +160,6 @@ void pdl_dump_anyval(PDL_Anyval v);
   X(unpackpdls, SV*, ( pdl **, PDL_Indx npdls )) \
   X(packstrings, char **, ( SV* sv, PDL_Indx *nstrings )) \
   X(prealloc_trans_children, pdl_error, (pdl *it, PDL_Indx howmany)) \
-  X(propagate_badflag_dir, pdl_error, (pdl *it, int newval, char is_fwd, int recurse_count)) \
 
 /*************** Function prototypes *********************/
 #define X(sym, rettype, args) \

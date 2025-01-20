@@ -820,7 +820,7 @@ EOF
       $GENERIC(b) a_val = $a();
       $b() = PDL_IF_BAD($ISBADVAR(a_val,a) ? replace : ,) a_val;
     %}
-    PDL->propagate_badflag_dir($PDL(b), 0, 1, 1); /* always make sure the output is "good" */
+    $PDLSTATESETGOOD(b); /* always make sure the output is "good" */
   },
   GenericTypes => $A,
 );
