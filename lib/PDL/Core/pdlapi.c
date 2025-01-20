@@ -1316,9 +1316,11 @@ pdl_error pdl__type_convert(pdl_trans *trans, int recurse_count) {
   return PDL_err;
 }
 
+pdl_error pdl__trans_check_pdls_actual(pdl_trans *trans);
 pdl_error pdl__type_coerce_recprotect(pdl_trans *trans, int recurse_count) {
   pdl_error PDL_err = {0, NULL, 0};
   PDL_RECURSE_CHECK(recurse_count);
+  PDL_RETERROR(PDL_err, pdl__trans_check_pdls_actual(trans));
   pdl_datatypes trans_dtype;
   PDL_RETERROR(PDL_err, pdl__transtype_select(trans, &trans_dtype));
   trans->__datatype = trans_dtype;
@@ -1341,7 +1343,7 @@ char pdl_trans_badflag_from_inputs(pdl_trans *trans) {
   return 0; /* CORE21 get rid */
 }
 
-pdl_error pdl_trans_check_pdls(pdl_trans *trans) {
+pdl_error pdl__trans_check_pdls_actual(pdl_trans *trans) {
   pdl_error PDL_err = {0, NULL, 0};
   PDL_Indx i;
   pdl_transvtable *vtable = trans->vtable;
@@ -1361,4 +1363,8 @@ pdl_error pdl_trans_check_pdls(pdl_trans *trans) {
           vtable->par_names[i], trans->pdls[i]->ndims, vtable->par_realdims[i]
         );
   return PDL_err;
+}
+pdl_error pdl_trans_check_pdls(pdl_trans *trans) {
+  pdl_error PDL_err = {0, NULL, 0};
+  return PDL_err; /* CORE21 get rid */
 }

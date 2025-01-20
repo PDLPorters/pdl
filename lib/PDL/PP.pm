@@ -1937,15 +1937,6 @@ sub make_vfn_args {
    PDL::PP::Rule::Returns::EmptyString->new("NewXSCoerceMustNS"),
    PDL::PP::Rule::Substitute->new("NewXSCoerceMustCompSubd", "NewXSCoerceMustNS"),
 
-   PDL::PP::Rule->new("NewXSFindBadStatusNS", [qw(StructName)],
-      "Rule to find the bad value status of the input ndarrays",
-      sub {
-        indent(2, <<EOF);
-PDL_RETERROR(PDL_err, PDL->trans_check_pdls($_[0]));
-EOF
-      }),
-   PDL::PP::Rule::Substitute->new("NewXSFindBadStatusSubd", "NewXSFindBadStatusNS"),
-
    PDL::PP::Rule->new("NewXSStructInit0",
 		      ["StructName","VTableName","ParamStructName","ParamStructType"],
 		      "Rule to create and initialise the private trans structure",
@@ -1962,7 +1953,6 @@ EOF
       ["RunFuncHdr",
         "NewXSStructInit0",
         "NewXSSetTransPDLs",
-        "NewXSFindBadStatusSubd",
         "NewXSTypeCoerceSubd",
         "NewXSExtractTransPDLs",
         "MakeCompiledReprSubd",

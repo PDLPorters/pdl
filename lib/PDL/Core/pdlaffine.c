@@ -116,8 +116,6 @@ pdl_error pdl_affine_new(pdl *PARENT,pdl *CHILD,PDL_Indx offset,PDL_Indx *dims,P
   pdl_params_affine *params = trans->params;
   trans->pdls[0] = PARENT;
   trans->pdls[1] = CHILD;
-  PDL_RETERROR(PDL_err, pdl_trans_check_pdls(trans));
-  char badflag_cache = pdl_trans_badflag_from_inputs((pdl_trans *)trans);
   pdl_type_coerce((pdl_trans *)trans);
   PARENT = trans->pdls[0];
   CHILD = trans->pdls[1];
@@ -137,7 +135,5 @@ pdl_error pdl_affine_new(pdl *PARENT,pdl *CHILD,PDL_Indx offset,PDL_Indx *dims,P
     params->sincs[i] = incs[i];
   }
   PDL_RETERROR(PDL_err, pdl_make_trans_mutual((pdl_trans *)trans));
-  if (badflag_cache)
-    CHILD->state |= PDL_BADVAL;
   return PDL_err;
 }
