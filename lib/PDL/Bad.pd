@@ -822,11 +822,6 @@ EOF
     %}
     PDL->propagate_badflag_dir($PDL(b), 0, 1, 1); /* always make sure the output is "good" */
   },
-  NewXSFindBadStatusNS => <<'EOF',
-PDL_RETERROR(PDL_err, PDL->trans_check_pdls(__privtrans));
-char $BADFLAGCACHE() = PDL->trans_badflag_from_inputs(__privtrans);
-$BADFLAGCACHE() = 0; /* override, but still need to call the above */
-EOF
   GenericTypes => $A,
 );
 

@@ -371,7 +371,6 @@ sub dosubst_private {
       CROAK => sub {"return PDL->make_error(PDL_EUSERERROR, \"Error in $name:\" @{[join ',', @_]})"},
       NAME => sub {return $name},
       MODULE => sub {return $::PDLMOD},
-      BADFLAGCACHE    => sub { "badflag_cache" },
       PDLSTATESETBAD => sub { ($sig->objs->{$_[0]}//confess "Can't get PDLSTATESETBAD for unknown ndarray '$_[0]'")->do_pdlaccess."->state |= PDL_BADVAL" },
       PDLSTATESETGOOD => sub { ($sig->objs->{$_[0]}->do_pdlaccess//confess "Can't get PDLSTATESETGOOD for unknown ndarray '$_[0]'")."->state &= ~PDL_BADVAL" },
       PDLSTATEISBAD => sub {badflag_isset(($sig->objs->{$_[0]}//confess "Can't get PDLSTATEISBAD for unknown ndarray '$_[0]'")->do_pdlaccess)},
@@ -1943,29 +1942,9 @@ sub make_vfn_args {
       sub {
         indent(2, <<EOF);
 PDL_RETERROR(PDL_err, PDL->trans_check_pdls($_[0]));
-char \$BADFLAGCACHE() = PDL->trans_badflag_from_inputs($_[0]); (void)\$BADFLAGCACHE();
 EOF
       }),
-
-   PDL::PP::Rule->new("NewXSCopyBadStatusNS",
-      ["SignatureObj"],
-      "Rule to copy the bad value status to the output ndarrays",
-      # note: this is executed before the trans_mutual call
-      # is made, since the state may be changed by the
-      # Code section
-      sub {
-        my ( $sig ) = @_;
-        return '' if @{$sig->names} == (my @outs = $sig->names_out); # no input pdls, no badflag copying needed
-        !@outs ? '' : PDL::PP::indent(2, join '', # no outs, ditto
-          "if (\$BADFLAGCACHE()) {\n",
-          (map "  $_->state |= PDL_BADVAL;\n", @outs),
-          "}\n");
-      }),
-
- # expand macros in ...BadStatusCode
- #
    PDL::PP::Rule::Substitute->new("NewXSFindBadStatusSubd", "NewXSFindBadStatusNS"),
-   PDL::PP::Rule::Substitute->new("NewXSCopyBadStatusSubd", "NewXSCopyBadStatusNS"),
 
    PDL::PP::Rule->new("NewXSStructInit0",
 		      ["StructName","VTableName","ParamStructName","ParamStructType"],
@@ -1989,7 +1968,6 @@ EOF
         "MakeCompiledReprSubd",
         "NewXSCoerceMustCompSubd",
         "NewXSRunTrans",
-        "NewXSCopyBadStatusSubd",
       ],
       "Generate C function with idiomatic arg list to maybe call from XS",
       sub {
