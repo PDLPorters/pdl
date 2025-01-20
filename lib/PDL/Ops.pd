@@ -371,8 +371,8 @@ pp_def(
        Code => pp_line_numbers(__LINE__-1, q{
 PDL_IF_BAD(char anybad = 0;,)
 broadcastloop %{
-  PDL_IF_BAD(if ( $ISBAD(a()) ) { anybad = 1; $SETBAD(b()); } else,)
-    $b() = $a();
+  PDL_IF_BAD(if ($ISBAD(a())) { anybad = 1; $SETBAD(b()); continue; },)
+  $b() = $a();
 %}
 PDL_IF_BAD(if (anybad) $PDLSTATESETBAD(b);,)
        }),

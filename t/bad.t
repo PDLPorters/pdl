@@ -184,7 +184,7 @@ is_pdl $s[2], pdl(66.5), "setbadif/stats test 3";
 is_pdl $s[3], pdl(22), "setbadif/stats test 4";
 is_pdl $s[4], pdl(98), "setbadif/stats test 5";
 is_pdl $s[6], pdl(26.7312), abstol("setbadif/stats test 6");
-ok $x->badflag, 'badflag wrongly set on input after setbadif';
+ok !$x->badflag, 'badflag not set on input after setbadif';
 
 # how about setbadtoval
 empty()->setbadtoval(20); # shouldn't segfault

@@ -24,7 +24,7 @@ extern Core PDL; /* for PDL_TYPENAME */
       PDLDEBUG_f(printf("VTOD " #func " child=%p turning off datachanged, before=", child); pdl_dump_flags_fixspace(child->state, 0, PDL_FLAGS_PDL)); \
       if (is_fwd) child->state &= ~PDL_PARENTDATACHANGED; \
       if (child && (child->state & PDL_BADVAL)) \
-        pdl_propagate_badflag(child, !!(child->state & PDL_BADVAL)); \
+        pdl_propagate_badflag_dir(child, !!(child->state & PDL_BADVAL), is_fwd, 1); \
     } \
   } while (0)
 #define READDATA(trans) VTABLE_OR_DEFAULT(PDL_ACCUMERROR, trans, 1, readdata, readdata_affine)
@@ -1029,30 +1029,45 @@ pdl_error pdl_sever(pdl *src)
     return PDL_err;
 }
 
-#define PDL_MAYBE_PROPAGATE_BADFLAG(t, newval) \
-  for ( i = 0; i < (t)->vtable->npdls; i++ ) { \
-    pdl *tpdl = (t)->pdls[i]; \
-    /* make sure we propagate if changed */ \
-    if (!!newval != !!(tpdl->state & PDL_BADVAL)) \
-      pdl_propagate_badflag( tpdl, newval ); \
-  }
-
+#define PDL_MAYBE_PROPAGATE_BADFLAG(t, newval, is_fwd) do { \
+    pdl_transvtable *vtable = (t)->vtable; \
+    PDL_Indx i, istart = is_fwd ? vtable->nparents : 0, iend = is_fwd ? vtable->npdls : vtable->nparents; \
+    for (i = istart; i < iend; i++) { \
+      pdl *tpdl = (t)->pdls[i]; \
+      /* make sure we propagate if changed */ \
+      if (!!newval != !!(tpdl->state & PDL_BADVAL)) \
+        pdl_propagate_badflag_dir(tpdl, newval, is_fwd, recurse_count + 1); \
+    } \
+  } while (0)
 /* newval = 1 means set flag, 0 means clear it */
-void pdl_propagate_badflag( pdl *it, int newval ) {
-    PDLDEBUG_f(printf("pdl_propagate_badflag pdl=%p newval=%d\n", it, newval));
-    PDL_Indx i, j;
-    if (newval)
-	it->state |=  PDL_BADVAL;
-    else
-	it->state &= ~PDL_BADVAL;
+pdl_error pdl_propagate_badflag_dir(pdl *it, int newval, char is_fwd, int recurse_count) {
+  PDL_RECURSE_CHECK(recurse_count);
+  PDLDEBUG_f(printf("pdl_propagate_badflag_dir pdl=%p newval=%d is_fwd=%d\n", it, newval, (int)is_fwd));
+  pdl_error PDL_err = {0, NULL, 0};
+  if (newval)
+    it->state |=  PDL_BADVAL;
+  else
+    it->state &= ~PDL_BADVAL;
+  if (!is_fwd) {
     if (it->trans_parent)
-	PDL_MAYBE_PROPAGATE_BADFLAG(it->trans_parent, newval)
+      PDL_MAYBE_PROPAGATE_BADFLAG(it->trans_parent, newval, 0);
+  } else {
+    PDL_Indx j;
+    if (
+      (it->state & (PDL_OPT_VAFFTRANSOK|PDL_ALLOCATED)) == PDL_OPT_VAFFTRANSOK && /* pure vaff */
+      newval /* expansive - if slice gets badflag, whole does */
+    )
+      pdl_propagate_badflag_dir(it->vafftrans->from, newval, 1, recurse_count + 1);
     for (j = 0; j < it->ntrans_children_allocated; j++) {
       pdl_trans *trans = it->trans_children[j];
       if (!trans) continue;
-      trans->bvalflag = !!newval;
-      PDL_MAYBE_PROPAGATE_BADFLAG(trans, newval)
+      PDL_MAYBE_PROPAGATE_BADFLAG(trans, newval, 1);
     }
+  }
+  return PDL_err;
+}
+void pdl_propagate_badflag(pdl *it, int newval) { /* CORE21 get rid */
+  return; /* nerfed as replaced with directional version */
 }
 
 /*CORE21 use pdl_error, replace fprintf*/

@@ -1171,8 +1171,11 @@ badflag(x,newval=0)
     pdl *x
     int newval
   CODE:
-    if (items>1)
-	pdl_propagate_badflag( x, newval );
+    if (items>1) {
+      if (x->trans_parent)
+        pdl_propagate_badflag_dir(x, newval, 0, 1);
+      pdl_propagate_badflag_dir(x, newval, 1, 1);
+    }
     RETVAL = ((x->state & PDL_BADVAL) > 0);
   OUTPUT:
     RETVAL

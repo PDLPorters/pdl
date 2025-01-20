@@ -820,9 +820,7 @@ EOF
       $GENERIC(b) a_val = $a();
       $b() = PDL_IF_BAD($ISBADVAR(a_val,a) ? replace : ,) a_val;
     %}
-    char input_was_bad = !!$PDLSTATEISBAD(a);
-    PDL->propagate_badflag( $PDL(b), 0 ); /* always make sure the output is "good" */
-    if (input_was_bad && $PDL(a) != $PDL(b)) $PDLSTATESETBAD(a);
+    PDL->propagate_badflag_dir($PDL(b), 0, 1, 1); /* always make sure the output is "good" */
   },
   NewXSFindBadStatusNS => <<'EOF',
 PDL_RETERROR(PDL_err, PDL->trans_check_pdls(__privtrans));
