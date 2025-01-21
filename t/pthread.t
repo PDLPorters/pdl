@@ -3,10 +3,10 @@ use warnings;
 use Test::More;
 use PDL::LiteF;
 use Benchmark qw(timethese :hireswallclock);
+use Test::PDL -atol => 0.01; # set eps
 
 plan skip_all => 'No threads' if !PDL::Core::pthreads_enabled;
 
-approx( pdl(0), pdl(0), 0.01); # set eps
 set_autopthread_size(0);
 
 for (
@@ -64,7 +64,7 @@ for (@T) {
 
   $thr_check->();
 
-  ok all(approx $pa,$pb), "pa and pb match $label" or diag "diff at:", ($pa != $pb)->whichND."";
+  is_pdl $pa,$pb, "pa and pb match $label";
   }
 
   {
@@ -74,7 +74,7 @@ for (@T) {
   my $pc = inner $pa, $pb;
   $thr_off->($pa);
   my $cc = $pa->sumover;
-  ok all(approx($pc,$cc)), "inner $label" or diag "pc=$pc\ncc=$cc";
+  is_pdl $pc, $cc, "inner $label";
   }
 
   {
@@ -85,7 +85,7 @@ for (@T) {
   $pa+=1;
   $thr_off->($pb);
   $pb+=1;
-  ok all(approx $pa, $pb), "+= $label";
+  is_pdl $pa, $pb, "+= $label";
   }
 
   ### Multi-dimensional incrementing case ###
@@ -122,11 +122,11 @@ for (@T) {
 
   # Check for writeback to the parent PDL working (should have three ones in the array)
   my $lutExSum = $lutEx->sum;
-  ok all(approx($lutExSum, pdl(3))), "writeback $label";
+  is_pdl $lutExSum, pdl(3), "writeback $label";
 
   # Check for inplace assignment working. $in should be all ones
   my $inSum = $in->sum;
-  ok all(approx($inSum, pdl(2) )), "inplace $label";
+  is_pdl $inSum, pdl(2), "inplace $label";
   }
 
   {
@@ -158,11 +158,11 @@ for (@T) {
 
   # Check for writeback to the parent PDL working (should have three ones in the array)
   my $lutExSum = $lutEx->sum;
-  ok all(approx($lutExSum, pdl(5))), "writeback with different magic $label";
+  is_pdl $lutExSum, pdl(5), "writeback with different magic $label";
 
   # Check for inplace assignment working. $in should be all ones
   my $inSum = $in->sum;
-  ok all(approx($inSum, pdl(2))), "inplace with different magic $label";
+  is_pdl $inSum, pdl(2), "inplace with different magic $label";
   }
 }
 

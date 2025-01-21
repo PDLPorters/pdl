@@ -1,6 +1,7 @@
 use Test::More;
 use PDL::LiteF;
 use Test::Exception;
+use Test::PDL;
 
 use strict;
 use warnings;
@@ -34,11 +35,7 @@ broadcast_define 'tprint(a(n);b(n)), NOtherPars => 1', over {
 
 PDL::Core::set_debugging(1) if $debug;
 tline($pc,$pb);
-
-note $pa;
-note $pb;
-
-ok(all approx($pc,$pb));
+is_pdl $pc, $pb;
 
 $pc = ones(5); # produce an error
 throws_ok {
@@ -46,11 +43,8 @@ throws_ok {
 } qr/conflicting/;
 
 $pa = ones(2,3,4)*sequence(4)->slice('*,*,:');
-note $pa;
 tassgn($pa,($pb=null));
-note "$pb\n";
-$pb->dump;
-ok(all approx($pb,6*sequence(4)));
+is_pdl $pb, 6*sequence(4);
 
 # test if setting named dim with '=' raises error
 # correctly at runtime
