@@ -103,7 +103,7 @@ static inline pdl *PDL_XS_pdlinit(pTHX_ char *objname, HV *bless_stash, SV *to_p
     if (PDL_SV_IS_UNDEF(sv2)) { \
         if (!use_undefval) { \
             outany.type = forced_type >=0 ? forced_type : -1; \
-            outany.value.B = 0; \
+            outany.value.H = 0; \
             break; \
         } \
         sv2 = get_sv("PDL::undefval",1); \
@@ -111,7 +111,7 @@ static inline pdl *PDL_XS_pdlinit(pTHX_ char *objname, HV *bless_stash, SV *to_p
             fprintf(stderr,"Warning: SvPDLV converted undef to $PDL::undefval (%"NVgf").\n",SvNV(sv2)); \
         if (PDL_SV_IS_UNDEF(sv2)) { \
             outany.type = forced_type >=0 ? forced_type : PDL_B; \
-            outany.value.B = 0; \
+            outany.value.H = 0; \
             break; \
         } \
     } \

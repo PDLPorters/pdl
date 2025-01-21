@@ -194,7 +194,7 @@ extern PDL_Indx pdl_autopthread_dim;
   (outany).type = datatype; (outany).value.ppsym = (inval);
 #define ANYVAL_FROM_CTYPE(outany,avtype,inval) \
   PDL_GENERICSWITCH(PDL_TYPELIST_ALL, avtype, ANYVAL_FROM_CTYPE_X, \
-    outany.type = -1; outany.value.B = 0, \
+    outany.type = -1; outany.value.H = 0, \
     outany, inval, \
   )
 
@@ -227,7 +227,7 @@ extern PDL_Indx pdl_autopthread_dim;
   (outany).type = datatype; (outany).value.ppsym = ((ctype *)(indata))[ioff];
 #define ANYVAL_FROM_CTYPE_OFFSET(outany,avtype,indata,ioff) \
   PDL_GENERICSWITCH(PDL_TYPELIST_ALL, avtype, ANYVAL_FROM_CTYPE_OFFSET_X, \
-    (outany).type = -1; outany.value.B = 0;, \
+    (outany).type = -1; outany.value.H = 0;, \
     indata, ioff, outany,)
 
 #define ANYVAL_ISNAN(x) _anyval_isnan(x)
