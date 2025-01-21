@@ -1110,6 +1110,32 @@ CODE:
 OUTPUT:
   RETVAL
 
+# undocumented for present. returns PDL still needing dims and datatype
+SV *
+new_around_pointer(class, ptr, nbytes)
+  SV *class
+  IV ptr
+  IV nbytes
+CODE:
+  if (nbytes < 0)
+    pdl_pdl_barf("Tried to new_around_pointer with negative nbytes=%" IVdf, nbytes);
+  if (!ptr)
+    pdl_pdl_barf("Tried to new_around_pointer with NULL pointer");
+  HV *bless_stash = SvROK(class)
+    ? SvSTASH(SvRV(class)) /* a reference to a class */
+    : gv_stashsv(class, 0); /* a class name */
+  pdl *n = pdl_pdlnew();
+  if (!n) pdl_pdl_barf("Error making null pdl");
+  RETVAL = newSV(0);
+  pdl_SetSV_PDL(RETVAL,n);   /* set a null PDL to this SV * */
+  RETVAL = sv_bless(RETVAL, bless_stash); /* bless appropriately  */
+  /* set the datasv to what was supplied */
+  n->data = (void*)ptr;
+  n->nbytes = nbytes;
+  n->state |= PDL_DONTTOUCHDATA | PDL_ALLOCATED;
+OUTPUT:
+  RETVAL
+
 SV *
 get_dataref(self)
 	pdl *self

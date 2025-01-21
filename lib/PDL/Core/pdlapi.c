@@ -306,7 +306,7 @@ pdl_error pdl__free(pdl *it) {
 	    SvREFCNT_dec(it->datasv);
 	    it->data=0;
     } else if (it->data && it->data != &it->value) {
-	    pdl_pdl_warn("Warning: special data without datasv is not freed currently!!");
+	    /*pdl_pdl_warn("Warning: special data without datasv is not freed currently!!");*/
     }
     if (it->hdrsv) {
 	PDLDEBUG_f(printf("SvREFCNT_dec hdrsv=%p\n",it->hdrsv));

@@ -67,6 +67,17 @@ is $p3->datasv_refcount, $refcount - 1;
 }
 
 {
+eval {PDL->new_around_pointer(0, 10)};
+like $@, qr/NULL pointer/;
+my $p1 = sequence(5); # too big for value
+my $p2 = PDL->new_around_pointer($p1->address_data, $p1->nbytes);
+$p2->set_datatype($p1->type->enum);
+$p2->setdims([5]);
+is_pdl $p2, sequence(5), 'new_around_pointer worked';
+undef $p2; # make very sure this goes first
+}
+
+{
   my $pa = pdl 2,3,4;
   $pa->flowing;
   my $pb = $pa + $pa;
