@@ -73,88 +73,72 @@ byte->badvalue( byte->orig_badvalue );
 # check setbadat()
 $x = pdl(1,2,3,4,5);
 $x->setbadat(2);
-is( PDL::Core::string($x), "[1 2 BAD 4 5]", "setbadat worked" );
+is_pdl $x, pdl("[1 2 BAD 4 5]"), "setbadat worked";
 
 $y = $x->copy;
-is $y."", "[1 2 BAD 4 5]", "y correct bad before set_datatype";
+is_pdl $y, pdl("[1 2 BAD 4 5]"), "y correct bad before set_datatype";
 $y->set_datatype(ushort->enum);
-is $y."", "[1 2 BAD 4 5]", "y correct bad after set_datatype";
+is_pdl $y, ushort("[1 2 BAD 4 5]"), "y correct bad after set_datatype";
 
 $y = $x->copy;
 $y->badvalue('nan');
 $y->setbadat(2);
 is $y."", "[1 2 BAD 4 5]", "y correct bad before set_datatype with badval=nan";
 my $z = $y->convert(ushort);
-is( PDL::Core::string($z), "[1 2 BAD 4 5]", "non-inplace converting NaN-badvalued pdl preserves badvals" );
+is_pdl $z, ushort("[1 2 BAD 4 5]"), "non-inplace converting NaN-badvalued pdl preserves badvals";
 $y->set_datatype(ushort->enum);
-is $y."", "[1 2 BAD 4 5]", "y correct bad after set_datatype with badval=nan";
+is_pdl $y, ushort("[1 2 BAD 4 5]"), "y correct bad after set_datatype with badval=nan";
 
 # now check that badvalue() changes the ndarray
 # (only for integer types)
 $x = convert($x,ushort);
-is( PDL::Core::string($x), "[1 2 BAD 4 5]", "before change badvalue" );
+is_pdl $x, ushort("[1 2 BAD 4 5]"), "before change badvalue";
 my $badval = $x->badvalue;
 $x->badvalue(44);
-is( PDL::Core::string($x), "[1 2 BAD 4 5]", "changed badvalue" );
+is_pdl $x, ushort("[1 2 BAD 4 5]"), "changed badvalue";
 $x->badflag(0);
-is( PDL::Core::string($x), "[1 2 44 4 5]", "can remove the badflag setting" );
-# restore the bad value
+is_pdl $x, ushort("[1 2 44 4 5]"), "can remove the badflag setting";
+# restore the badflag
 $x->badflag(1);
-is( PDL::Core::string($x), "[1 2 BAD 4 5]", "still 'bad' w/changed badvalue" );
+is_pdl $x, ushort("[1 2 BAD 4 5]"), "still 'bad' w/changed badvalue";
 
 $x = byte(1,2,3);
-$y = byte(1,byte->badvalue,3);
 $x->badflag(1);
-$y->badflag(1);
-
-# does string work?
-# (this has implicitly been tested just above)
-#
+$y = byte('1 BAD 3');
 is( PDL::Core::string($y), "[1 BAD 3]", "can convert bad values to a string" );
 
 # does addition work
-$c = $x + $y;
-is( sum($c), 8, "addition propagates the bad value" );
+is_pdl $x + $y, byte('2 BAD 6'), "addition propagates the bad value";
 
 # does conversion of bad types work
 $c = float($y);
-ok( $c->badflag, "type conversion retains bad flag" );
-is( PDL::Core::string($c), "[1 BAD 3]", "  and the value" );
-is( sum($c), 4, "  and the sum" );
+is_pdl $c, float("[1 BAD 3]"), "type conversion retains bad flag and values";
+is_pdl sum($c), float(4), "  and the sum";
 
-$x = byte(1,2,byte->badvalue,byte->badvalue,5,6,byte->badvalue,8,9);
-$x->badflag(1);
+$x = byte('1 2 BAD BAD 5 6 BAD 8 9');
+is_pdl $x->isbad, long("0 0 1 1 0 0 1 0 0"), "isbad() works";
+is_pdl $x->isgood, long("1 1 0 0 1 1 0 1 1"), "isgood() works";
+is $x->nbad, 3, "nbad() works";
+is $x->ngood, 6, "ngood() works";
 
-is( PDL::Core::string($x->isbad),  "[0 0 1 1 0 0 1 0 0]", "isbad() works" );
-is( PDL::Core::string($x->isgood), "[1 1 0 0 1 1 0 1 1]", "isgood() works" );
-
-is( $x->nbad, 3, "nbad() works" );
-is( $x->ngood, 6, "ngood() works" );
-
-$x = byte( [255,255], [0,255], [0,0] );
-$x->badflag(1);
-
-is( PDL::Core::string($x->nbadover),  "[2 1 0]", "nbadover() works" );
-is( PDL::Core::string($x->ngoodover), "[0 1 2]", "ngoodover() works" );
+$x = byte('BAD BAD; BAD 0; 0 0');
+is_pdl $x->nbadover, indx("[2 1 0]"), "nbadover() works";
+is_pdl $x->ngoodover, indx("[0 1 2]"), "ngoodover() works";
 
 # check dataflow (or vaffine or whatever it's called)
-$x = byte( [1,2,byte->badvalue,4,5], [byte->badvalue,0,1,2,byte->badvalue] );
-$x->badflag(1);
+$x = byte('1 2 BAD 4 5; BAD 0 1 2 BAD');
 $y = $x->slice(',(1)');
 is( sum($y), 3, "sum of slice works" );
 $y++;
-is( PDL::Core::string($x),
-    "\n[\n [  1   2 BAD   4   5]\n [BAD   1   2   3 BAD]\n]\n",
-    "inplace addition of slice flows back to parent"
-  );
+is_pdl $x, byte("1 2 BAD 4 5; BAD 1 2 3 BAD"), "inplace addition of slice flows back to parent";
 
 $x = byte->badvalue * ones(byte,3,2);
-is( $x->get_datatype, byte->enum, "datatype remains a byte" );
+is $x->type, 'byte', "datatype remains a byte";
 $x->badflag(1);
-is( PDL::Core::string( PDL::zcover($x) ), "[BAD BAD]", "zcover() okay" );
+is_pdl PDL::zcover($x), long("[BAD BAD]"), "zcover() okay";
 $x->set(1,1,1);
 $x->set(2,1,1);
-is( PDL::Core::string( PDL::zcover($x) ), "[BAD 0]", "  and still okay" );
+is_pdl PDL::zcover($x), long("[BAD 0]"), "  and still okay";
 
 # 255 is the default bad value for a byte array
 #
@@ -165,13 +149,10 @@ is( $x->median, 3, "median() works on bad biddle" );
 
 # as random() creates numbers between 0 and 1 it won't
 # accidentally create a bad value by chance (the default
-# bad value for a double is either a very negative
-# number or NaN).
-#
+# bad value for a double is a very negative number).
 $x = random(20);
 $x->badflag(1);
-is( $x->check_badflag, 0, "check_badflag did not find a bad value" );
-
+is $x->check_badflag, 0, "check_badflag did not find a bad value";
 
 # check out stats, since it uses several routines
 # and setbadif
@@ -189,31 +170,27 @@ ok !$x->badflag, 'badflag not set on input after setbadif';
 # how about setbadtoval
 empty()->setbadtoval(20); # shouldn't segfault
 ok $y->badflag, 'badflag on';
-$x = $y->setbadtoval(20) - pdl(qw(42 47 98 20 22 96 74 41 79 76 96 20 32 76 25 59 20 96 32 20));
+is_pdl $y->setbadtoval(20), pdl(qw(42 47 98 20 22 96 74 41 79 76 96 20 32 76 25 59 20 96 32 20)), "setbadtoval() worked";
 ok $y->badflag, 'badflag still on';
-ok( all($x == 0), "setbadtoval() worked" );
 
 # and inplace?
 $x = pdl( qw(42 47 98 13 22 96 74 41 79 76 96 3 32 76 25 59 5 96 32 6) );
 $y = $x->setbadif( $x < 20 );
 $y->inplace->setbadtoval(20);
-$x = $y - pdl(qw(42 47 98 20 22 96 74 41 79 76 96 20 32 76 25 59 20 96 32 20));
-ok( all($x == 0), "   and inplace" );
+is_pdl $y, pdl(qw(42 47 98 20 22 96 74 41 79 76 96 20 32 76 25 59 20 96 32 20)), "   and inplace";
 
 # ditto for copybad
 $x = pdl( qw(42 47 98 13 22 96 74 41 79 76 96 3 32 76 25 59 5 96 32 6) );
 $y = $x->setbadif( $x < 20 );
 $c = copybad( $x, $y );
-is( PDL::Core::string( $c->isbad ),
-    "[0 0 0 1 0 0 0 0 0 0 0 1 0 0 0 0 1 0 0 1]",
-  "isbad() worked" );
+is_pdl $c->isbad, long("[0 0 0 1 0 0 0 0 0 0 0 1 0 0 0 0 1 0 0 1]"),
+  "isbad() worked";
 
 $x = pdl( qw(42 47 98 13 22 96 74 41 79 76 96 3 32 76 25 59 5 96 32 6) );
 $y = $x->setbadif( $x < 20 );
 $x->inplace->copybad( $y );
-is( PDL::Core::string( $x->isbad ),
-    "[0 0 0 1 0 0 0 0 0 0 0 1 0 0 0 0 1 0 0 1]",
-  "  and inplace" );
+is_pdl $x->isbad, long("[0 0 0 1 0 0 0 0 0 0 0 1 0 0 0 0 1 0 0 1]"),
+  "  and inplace";
 
 $x = zeroes(20,30);
 $y = $x->slice('0:10,0:10');
@@ -257,21 +234,17 @@ is( $y->badflag, 1, "badflag propagated using inplace copybad()" );
 $x = pdl( qw(42 47 98 13 22 96 74 41 79 76 96 3 32 76 25 59 5 96 32 6) );
 $y = $x->setbadif( $x < 20 );
 my $ix = qsorti( $y );
-is( PDL::Core::string( $y->index($ix) ),
-    "[22 25 32 32 41 42 47 59 74 76 76 79 96 96 96 98 BAD BAD BAD BAD]",
+is_pdl $y->index($ix),
+    pdl("[22 25 32 32 41 42 47 59 74 76 76 79 96 96 96 98 BAD BAD BAD BAD]"),
     "qsorti() okay"
-    );                                   #
+    ;
 
 # check comparison/bit operators in ops.pd
 
-$x = pdl( 2, 4, double->badvalue );
-$x->badflag(1);
-$y = abs( $x - pdl(2.001,3.9999,234e23) ) > 0.01;
-is( PDL::Core::string( $y ), "[0 0 BAD]", "abs() and >" );
+$x = pdl('2 4 BAD');
+is_pdl abs( $x - pdl(2.001,3.9999,234e23) ) > 0.01, pdl("[0 0 BAD]"), "abs() and >";
 
-$y = byte(1,2,byte->badvalue,4);
-$y->badflag(1);
-is( PDL::Core::string( $y << 2 ), "[4 8 BAD 16]", "<<" );
+is_pdl byte('1 2 BAD 4') << 2, byte("[4 8 BAD 16]"), "<<";
 
 $x = pdl([1,2,3]);
 $x->badflag(1);
@@ -291,31 +264,21 @@ $x->badvalue(4);
 is( $x->at, 'BAD', 'at() returns BAD for a bad value with non-default badvalue' );
 is( $x->sclr, 4, 'sclr() ignores bad value' );
 
-$x = pdl(0.5,double->badvalue,0);
-$x->badflag(1);
-$y = bessj0($x);
-is( PDL::Core::string( isbad($y) ), "[0 1 0]", "bessj0()" );
+is_pdl isbad(bessj0(pdl('0.5 BAD 0'))), long("[0 1 0]"), "bessj0()";
 
-$x = pdl(double->badvalue,0.8);
-$x->badflag(1);
-$y = bessjn($x,3);  # broadcast over n()
-is( PDL::Core::string( isbad($y) ), "[1 0]", "broadcast over bessjn()" );
-ok( abs($y->at(1)-0.010) < 0.001 );
+$y = bessjn(pdl('BAD 0.8'),3);  # broadcast over n()
+is_pdl $y, pdl('BAD 0.010246'), "broadcast over bessjn()";
 
 $x = pdl( 0.01, 0.0 );
 $x->badflag(1);
-ok( all( abs(erfi($x)-pdl(0.00886,0)) < 0.001 ), "erfi()" );
+is_pdl erfi($x), pdl(0.00886,0), {atol=>0.001, test_name=>"erfi()"};
 
 # I haven't changed rotate, but it should work anyway
-$x = byte( 0, 1, 2, 4, 5 );
-$x->setbadat(2);
-is( PDL::Core::string( $x->rotate(2) ), "[4 5 0 1 BAD]", "rotate()" );
+is_pdl byte('0 1 BAD 4 5')->rotate(2), byte("[4 5 0 1 BAD]"), "rotate()";
 
 # check norm
-$x = float( 2, 0, 2, 2 )->setvaltobad(0.0);
-$y = $x->norm;
-$c = $x/sqrt(sum($x*$x));
-is_pdl $y, $c, abstol("norm()");
+$x = float('2 BAD 2 2');
+is_pdl $x->norm, $x/sqrt(sum($x*$x)), abstol("norm()");
 
 # propagation of badflag using inplace ops (ops.pd)
 
@@ -324,84 +287,57 @@ $x = sequence(3,3);
 $c = $x->slice(',(1)');
 $y = $x->setbadif( $x % 2 );
 $x->inplace->plus($y,0);
-is( PDL::Core::string($c), "[BAD 8 BAD]", "inplace biop - plus()" );
+is_pdl $c, pdl("[BAD 8 BAD]"), "inplace biop - plus()";
 
 # test bifunc fns
 $x = sequence(3,3);
 $c = $x->slice(',(1)');
 $y = $x->setbadif( $x % 3 != 0 );
 $x->inplace->power($y,0);
-is( PDL::Core::string($c), "[27 BAD BAD]", "inplace bifunc - power()" );
+is_pdl $c, pdl("[27 BAD BAD]"), "inplace bifunc - power()";
 
 # test histogram (using hist)
-$x = pdl( qw/1 2 3 4 5 4 3 2 2 1/ );
-$x->setbadat(1);
-$y = hist $x, 0, 6, 1;
-is( PDL::Core::string($y), "[0 2 2 2 2 1]", "hist()" );
-
+$x = pdl('1 BAD 3 4 5 4 3 2 2 1');
+is_pdl scalar hist($x, 0, 6, 1), pdl("[0 2 2 2 2 1]"), "hist()";
 is_pdl $x->isfinite, long("[1 0 1 1 1 1 1 1 1 1]"), "isfinite()";
 
 # histogram2d
 $x = long(1,1,1,2,2);
-$y = long(2,1,1,1,1);
-$y->setbadat(0);
+$y = long('BAD 1 1 1 1');
 my @c = ( 1,0,3 );
-$c = histogram2d($x,$y,@c,@c);
-is( PDL::Core::string($c->clump(-1)),
-    "[0 0 0 0 2 2 0 0 0]",
-  "histogram2d()" );
-
-# weird propagation of bad values
-# - or is it?
-#
-#$x = sequence( byte, 2, 3 );
-#$x = $x->setbadif( $x == 3 );
-#$y = $x->slice("(1),:");
-#$x .= $x->setbadtoval(3);
-#ok( $x->badflag, 0 );                  # this fails
-#ok( $y->badflag, 0 );                  # as does this
+is_pdl scalar histogram2d($x,$y,@c,@c), long("[0 0 0;0 2 2;0 0 0]"), "histogram2d()";
 
 # badmask: inplace
-$x = sequence(5);
-$x->setbadat(2);
+$x = pdl("0 1 BAD 3 4");
 $x->inplace->badmask(0);
-is( PDL::Core::string($x), "[0 1 0 3 4]", "inplace badmask()" );
+is_pdl $x, pdl("[0 1 0 3 4]"), "inplace badmask()";
 
 # setvaltobad
 $x = sequence(10) % 4;
 $x->inplace->setvaltobad( 1 );
-like( PDL::Core::string( $x->clump(-1) ),
-    qr{^\[-?0 BAD 2 3 -?0 BAD 2 3 -?0 BAD]$}, "inplace setvaltobad()" );
+is_pdl $x, pdl('0 BAD 2 3 0 BAD 2 3 0 BAD'), "inplace setvaltobad()";
 
 $x->inplace->setbadtonan;
-like PDL::Core::string( $x->clump(-1) ),
-    qr/^\[-?0 \S*nan 2 3 -?0 \S*nan 2 3 -?0 \S*nan]$/i, "inplace setbadtonan()";
+is_pdl $x, pdl('0 nan 2 3 0 nan 2 3 0 nan'), "inplace setvaltonan()";
 
 # check setvaltobad for non-double ndarrays
-my $fa = pdl( float,  1..4) / 3;
-my $da = pdl( double, 1..4) / 3;
-ok( all($fa->setvaltobad(2/3)->isbad == $da->setvaltobad(2/3)->isbad), "setvaltobad for float ndarray");
+is_pdl float(1..4)->setvaltobad(2), float('1 BAD 3 4'), "setvaltobad for float ndarray";
+is_pdl double(1..4)->setvaltobad(2), double('1 BAD 3 4'), "setvaltobad for double ndarray";
 
-my $inf2b = sequence(3);
-$inf2b->set(1, 'Inf');
-$inf2b->set(2, 'NaN');
+my $inf2b = pdl('0 inf nan');
 $inf2b->inplace->setinftobad;
-like( PDL::Core::string( $inf2b->clump(-1) ),
-    qr{^\[-?0 BAD \S*nan]$}i, "inplace setinftobad()" );
+is_pdl $inf2b, pdl('0 BAD nan'), "inplace setinftobad()";
 
-my $x_copy = $x->copy;
-$x_copy->set(1, 'Inf');
+my $x_copy = pdl('0 inf 2 3 0 nan 2 3 0 nan');
 $x_copy->inplace->setnonfinitetobad;
-like( PDL::Core::string( $x_copy->clump(-1) ),
-    qr{^\[-?0 BAD 2 3 -?0 BAD 2 3 -?0 BAD]$}, "inplace setnonfinitetobad()" );
+is_pdl $x_copy, pdl('0 BAD 2 3 0 BAD 2 3 0 BAD'), "inplace setnonfinitetobad";
 
 # simple test for setnantobad
 # - could have a 1D FITS image containing
 #   NaN's and then a simple version of rfits
 #   (can't use rfits as does conversion!)
 $x->inplace->setnantobad;
-like( PDL::Core::string( $x->clump(-1) ),
-    qr{^\[-?0 BAD 2 3 -?0 BAD 2 3 -?0 BAD]$}, "inplace setnantobad()" );
+is_pdl $x, pdl('0 BAD 2 3 0 BAD 2 3 0 BAD'), "inplace setnantobad";
 
 # check that we can change the value used to represent
 # missing elements for floating points (earlier tests only did integer types)
@@ -479,91 +415,71 @@ TODO: {
 ## <http://sourceforge.net/p/pdl/bugs/390/>
 ## <https://github.com/PDLPorters/pdl/issues/124>
 subtest "Issue example code" => sub {
-	my $x = pdl(1, 2, 3, 0);
-	$x->badflag(1);
-	$x->badvalue(0);
-	# bad value for $x is now set to 0
-
-	is( "$x", "[1 2 3 BAD]", "PDL with bad-value stringifies correctly" );
-
-	my ($m, $s) = stats($x);
-
-	is( "$m", 2, "Mean of [1 2 3] is 2" );
-	is( "$s", 1, "And std. dev is 1" );
-
-	$s->badflag(1);
-	$s->badvalue(0);
-	my @warnings;
-	local $SIG{__WARN__} = sub { push @warnings, @_ };
-	is( "".($s >  0), "1", "is 1 >  0? -> true" );
-	is( "".($s <  0), "0", "is 1 <  0? -> false");
-	is( "".($s == 0), "0", "is 1 == 0? -> false");
-	ok scalar(@warnings), 'bad gave warnings';
+  my $x = pdl(1, 2, 3, 0);
+  $x->badflag(1);
+  $x->badvalue(0);
+  # bad value for $x is now set to 0
+  is_pdl $x, pdl("[1 2 3 BAD]"), "PDL with bad-value stringifies correctly";
+  my ($m, $s) = stats($x);
+  is_pdl $m, pdl(2), "Mean of [1 2 3] is 2";
+  is_pdl $s, pdl(1), "And std. dev is 1";
+  $s->badflag(1);
+  $s->badvalue(0);
+  my @warnings;
+  local $SIG{__WARN__} = sub { push @warnings, @_ };
+  is_pdl $s >  0, pdl(1), "is 1 >  0? -> true";
+  is_pdl $s <  0, pdl(0), "is 1 <  0? -> false";
+  is_pdl $s == 0, pdl(0), "is 1 == 0? -> false";
+  ok scalar(@warnings), 'bad gave warnings';
 };
 
 subtest "Badvalue set on 0-dim PDL + comparison operators" => sub {
-	my $val = 2;
-	my $badval_sclr = 5;
-	my $p_val = pdl($val);
+  my $val = 2;
+  my $badval_sclr = 5;
+  my $p_val = pdl($val);
 
-	# set the bad flag to 0
-	$p_val->badflag(1);
-	$p_val->badvalue($badval_sclr);
+  $p_val->badflag(1);
+  $p_val->badvalue($badval_sclr);
 
-	note "\$p_val = $p_val";
-	is( "$p_val", "$val", "Sanity test" );
+  is_pdl $p_val, pdl($val), "Sanity test";
 
-	my @values_to_compare = ( $badval_sclr, $badval_sclr + 1, $badval_sclr - 1  );
-	subtest "Comparing a 0-dim PDL w/ a scalar should be the same as comparing a scalar w/ a scalar" => sub {
-		for my $cmpval_sclr (@values_to_compare) {
-			subtest "Bad value for PDL $p_val is $badval_sclr and we are comparing with a scalar of value $cmpval_sclr" => sub {
-				is
-					"".($p_val <  $cmpval_sclr),
-					(0+(  $val <  $cmpval_sclr)),
-					     "$val <  $cmpval_sclr";
+  my @values_to_compare = ( $badval_sclr, $badval_sclr + 1, $badval_sclr - 1  );
+  subtest "Comparing a 0-dim PDL w/ a scalar should be the same as comparing a scalar w/ a scalar" => sub {
+    for my $cmpval_sclr (@values_to_compare) {
+      subtest "Bad value for PDL $p_val is $badval_sclr and we are comparing with a scalar of value $cmpval_sclr" => sub {
+        is_pdl $p_val <  $cmpval_sclr, pdl(0+($val < $cmpval_sclr)),
+          "$val < $cmpval_sclr";
+        is_pdl $p_val == $cmpval_sclr, pdl(0+($val == $cmpval_sclr)),
+          "$val == $cmpval_sclr";
+        is_pdl $p_val > $cmpval_sclr, pdl(0+($val > $cmpval_sclr)),
+          "$val > $cmpval_sclr";
+      };
+    }
+  };
 
-				is
-					"".($p_val == $cmpval_sclr),
-					(0+(  $val == $cmpval_sclr)),
-					     "$val == $cmpval_sclr";
+  subtest "Comparing a 0-dim PDL w/ bad value with a 0-dim PDL without bad value set should not set BAD" => sub {
+    for my $not_bad_sclr (@values_to_compare) {
+      subtest "Bad value for PDL $p_val is $badval_sclr and we are comparing with a PDL of value $not_bad_sclr, but with no badflag" => sub {
+        my $p_not_bad = pdl($not_bad_sclr);
+        $p_not_bad->badflag(0); # should not have bad flag
 
-				is
-					"".($p_val >  $cmpval_sclr),
-					(0+(  $val >  $cmpval_sclr)),
-					     "$val >  $cmpval_sclr";
-			};
-		}
-	};
+        my $lt_p = $p_val <  $p_not_bad;
+        is_pdl $lt_p, pdl(0+(   $val <  $not_bad_sclr)),
+          "$val <  $not_bad_sclr";
+        ok $lt_p->badflag, "cmp for < does set badflag";
 
-	subtest "Comparing a 0-dim PDL w/ bad value with a 0-dim PDL without bad value set should not set BAD" => sub {
-		for my $not_bad_sclr (@values_to_compare) {
-			subtest "Bad value for PDL $p_val is $badval_sclr and we are comparing with a PDL of value $not_bad_sclr, but with no badflag" => sub {
-				my $p_not_bad = pdl($not_bad_sclr);
-				$p_not_bad->badflag(0); # should not have bad flag
+        my $eq_p = $p_val ==  $p_not_bad;
+        is_pdl $eq_p, pdl(0+(  $val == $not_bad_sclr)),
+          "$val == $not_bad_sclr";
+        ok $eq_p->badflag, "cmp for == does set badflag";
 
-				my $lt_p = $p_val <  $p_not_bad;
-				is
-					"".       $lt_p,
-					0+(   $val <  $not_bad_sclr),
-					     "$val <  $not_bad_sclr";
-				ok $lt_p->badflag, "cmp for < does set badflag";
-
-				my $eq_p = $p_val ==  $p_not_bad;
-				is
-					"".      $eq_p,
-					0+(  $val == $not_bad_sclr),
-					    "$val == $not_bad_sclr";
-				ok $eq_p->badflag, "cmp for == does set badflag";
-
-				my $gt_p = $p_val >  $p_not_bad;
-				is
-					"".      $gt_p,
-					0+(  $val >  $not_bad_sclr),
-					    "$val >  $not_bad_sclr";
-				ok $gt_p->badflag, "cmp for > does set badflag";
-			};
-		}
-	};
+        my $gt_p = $p_val >  $p_not_bad;
+        is_pdl $gt_p, pdl(0+(  $val >  $not_bad_sclr)),
+          "$val >  $not_bad_sclr";
+        ok $gt_p->badflag, "cmp for > does set badflag";
+      };
+    }
+  };
 };
 
 
