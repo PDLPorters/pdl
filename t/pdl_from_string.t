@@ -11,11 +11,12 @@ use warnings;
 use Test::More;
 use Config;
 use PDL::LiteF;
+use Test::PDL;
 
-isa_ok( pdl("[1,2]"), "PDL", qq{pdl("[1,2]") returns an ndarray} );
+isa_ok pdl("[1,2]"), "PDL", qq{pdl("[1,2]") returns an ndarray};
 
 # Basic Tests #
-ok( all(pdl([1,2])==pdl("[1,2]")), qq{pdl(ARRAY REF) equals pdl("ARRAY REF")});
+is_pdl pdl([1,2]), pdl("[1,2]"), qq{pdl(ARRAY REF) equals pdl("ARRAY REF")};
 my $compare = pdl([
 	[1, 0, 8],
 	[6, 3, 5],
@@ -30,25 +31,15 @@ my $test_string = <<EOPDL;
      [2, 4, 2],
    ]
 EOPDL
-my $t1 = pdl $test_string;
-ok(all(approx($t1, $compare)), "properly interprets good PDL input string");
+is_pdl pdl($test_string), $compare, "properly interprets good PDL input string";
 # See what happens when we remove the end commas
 $test_string =~ s/\],/]/g;
-my $t2 = pdl $test_string;
-ok(all(approx($t2, $compare)), "properly interprets good PDL input string sans ending commas");
-my $t3 = pdl '[1, 0, 8; 6, 3, 5; 3, 0, 5; 2, 4, 2]';
-ok(all(approx($t3, $compare)), "properly handles semicolons");
-my $t4 = pdl "$compare";
-ok(all(approx($t4, $compare)), "properly interprets good PDL output string");
-my $expected = pdl(1.2e3);
-my $got = pdl q[1.2e3];
-is($got, $expected, "Correctly interprets [1.2e3]");
-$expected = pdl(1.2e3, 4, 5.6e-7);
-$got = pdl q[1.2e3 4 5.6e-7];
-ok(all($got == $expected), "Correctly interprets [1.2e3 4 5.6e-7]");
-$expected = pdl(1.2e3, 4, 5.e-7);
-$got = pdl q[1.2e3 4 5.e-7];
-ok(all($got == $expected), "Correctly interprets [1.2e3 4 5.e-7]");
+is_pdl pdl($test_string), $compare, "properly interprets good PDL input string sans ending commas";
+is_pdl pdl('[1, 0, 8; 6, 3, 5; 3, 0, 5; 2, 4, 2]'), $compare, "properly handles semicolons";
+is_pdl pdl("$compare"), $compare, "properly interprets good PDL output string";
+is_pdl pdl(q[1.2e3]), pdl(1.2e3), "Correctly interprets [1.2e3]";
+is_pdl pdl(q[1.2e3 4 5.6e-7]), pdl(1.2e3, 4, 5.6e-7), "Correctly interprets [1.2e3 4 5.6e-7]";
+is_pdl pdl(q[1.2e3 4 5.e-7]), pdl(1.2e3, 4, 5.e-7), "Correctly interprets [1.2e3 4 5.e-7]";
 
 for (
   '[i 1-i]',
@@ -73,15 +64,11 @@ for (
 
 # Signs and operators #
 # Now some more interesting tests
-my $t5 = pdl "[1 -4]";
-$compare = pdl [1, -4];
-ok(all(approx($t5, $compare)), "properly identifies negative numbers with white-space separation");
+is_pdl pdl("[1 -4]"), pdl([1, -4]), "properly identifies negative numbers with white-space separation";
 
-my $t6 = pdl "[1 - 4]";
-$compare = pdl [1,-4];
-ok(all(approx($t6, $compare)), "properly affixes negation operator to right operand");
+is_pdl pdl("[1 - 4]"), pdl([1,-4]), "properly affixes negation operator to right operand";
 
-ok(all(approx(pdl("[1 - .4]"), pdl([1,-0.4]))), "properly handles decimals");
+is_pdl pdl("[1 - .4]"), pdl([1,-0.4]), "properly handles decimals";
 
 my $t8 = pdl <<EOPDL;
 [
@@ -89,155 +76,68 @@ my $t8 = pdl <<EOPDL;
 	[7 +8, 8 + 9; 10, - .11, 12e3]
 ]
 EOPDL
-
 $compare = pdl([[[1,2,3], [4,-5,6]],[[7,8,8,9],[10,-.11,12e3]]]);
-ok(all(approx($t8, $compare)), "properly handles all sorts of stuff!");
+is_pdl $t8, $compare, "properly handles all sorts of stuff!";
 
-$compare = pdl [1,2,-5];
-my $t9 = pdl '[1  + 2 - 5]';
-ok(all(approx($t9, $compare)), "Another operator check for pdl_from_string");
+is_pdl pdl('[1  + 2 - 5]'), pdl([1,2,-5]), "Another operator check for pdl_from_string";
 
-$compare = pdl [1, 2, -5];
-my $t10 = pdl '[1  +2 -5]';
-ok(all(approx($t10, $compare)), "Yet another operator check for pdl_from_string");
+is_pdl pdl('[1  +2 -5]'), pdl([1, 2, -5]), "Yet another operator check for pdl_from_string";
 
 #######################################
-# Semicolons as column seperators - 2 #
+# Semicolons as row seperators - 2 #
 #######################################
-
-$compare = pdl [[1], [2], [3]];
-my $t11 = pdl '[1;2;3]';
-ok(all(approx($t11, $compare)), "column check");
-
-$compare = pdl([[1,2,3],[4,5,6]]);
-my $t12 = pdl q[1 2 3; 4 5 6];
-ok(all(approx($t12, $compare)), "implicit bracketing check");
+is_pdl pdl('[1;2;3]'), pdl([[1], [2], [3]]), "column check";
+is_pdl pdl('1 2 3;4 5 6'), pdl([[1,2,3],[4,5,6]]), "implicit bracketing check";
 
 ##################################
 # Implicit bracketing checks - 9 #
 ##################################
 
 $compare = pdl([1,2,3,4]);
-my $t13 = pdl q[1 2 3 4];
-my $t14 = pdl q[1,2,3,4];
-my $t15 = pdl '[1 2 3 4]';
-my $t16 = pdl '[1,2,3,4]';
+is_pdl pdl(q[1 2 3 4]), $compare, "Double-check implicit bracketing - no brackets";
+is_pdl pdl(q[1,2,3,4]), $compare, "Double-check implicit bracketing - no brackets and commas";
+is_pdl pdl('[1 2 3 4]'), $compare, "Double-check implicit bracketing - brackets";
+is_pdl pdl('[1,2,3,4]'), $compare, "Double-check implicit bracketing - brackets and commas";
 
-ok(all(approx($t13, $compare)), "Double-check implicit bracketing - no brackets");
-ok(all(approx($t14, $compare)), "Double-check implicit bracketing - no brackets and commas");
-ok(all(approx($t15, $compare)), "Double-check implicit bracketing - brackets");
-ok(all(approx($t16, $compare)), "Double-check implicit bracketing - brackets and commas");
-
-# check dimensions of tests
-ok($t13->ndims == 1, "Implicit bracketing gets proper number of dimensions - no brackets, no commas");
-ok($t14->ndims == 1, "Implicit bracketing gets proper number of dimensions - no brackets, commas");
-ok($t15->ndims == 1, "Implicit bracketing gets proper number of dimensions - brackets, no commas");
-ok($t16->ndims == 1, "Implicit bracketing gets proper number of dimensions - brackets and commas");
-
-$expected = pdl [];
-$got = pdl q[];
-ok(all($got == $expected), 'Blank strings are interpreted as empty arrays');
-# This generates an annoying warning, and the ndarray should be Empty anyway
-#$expected = pdl [];
-$got = pdl q[[]];
-ok(all($got == $expected), 'Empty bracket is correctly interpreted');
+is_pdl pdl(q[]), pdl([]), 'Blank strings are interpreted as empty arrays';
+is_pdl pdl(q[[]]), pdl([]), 'Empty bracket is correctly interpreted';
 
 # Bad, inf, nan checks #
-my $bad_values = pdl q[nan inf -inf bad];
-
-ok $bad_values->at(0) != $bad_values->at(0), 'properly handles nan'
-        or diag("Zeroeth bad value should be nan but it describes itself as "
-        . $bad_values->at(0));
-# inf test: inf == inf but inf * 0 != 0
-ok((	$bad_values->at(1) == $bad_values->at(1)
-		and $bad_values->at(1) * 0.0 != 0.0), 'properly handles inf')
-	or diag("First bad value should be inf but it describes itself as " . $bad_values->at(1));
-# inf test: -inf == -1 * inf
-ok((	$bad_values->at(2) == $bad_values->at(2)
-		and $bad_values->at(2) * 0.0 != 0.0), 'properly handles -inf')
-	or diag("Second bad value should be -inf but it describes itself as " . $bad_values->at(2));
-ok($bad_values->at(2) == -$bad_values->at(1), "negative inf is numerically equal to -inf");
-ok($bad_values->isbad->at(3), 'properly handles bad values')
-	or diag("Third bad value should be BAD but it describes itself as " . $bad_values->slice(3));
-
-my $infty = inf();
-my $min_inf = -inf();
-my $nan = nan();
-
-my $bad = pdl 'bad';
-
-ok $infty == $infty && $infty * 0.0 != 0.0, "pdl 'inf' works by itself"
-        or diag "pdl 'inf' gave me $infty";
-ok $min_inf == $min_inf && $min_inf * 0.0 != 0.0, "pdl '-inf' works by itself"
-        or diag "pdl '-inf' gave me $min_inf";
-ok($min_inf == -$infty, "pdl '-inf' == -pdl 'inf'");
-
-ok((   $nan != $nan), "pdl 'nan' works by itself")
-   or diag("pdl 'nan' gave me $nan");
-
+is_pdl pdl(q[nan inf -inf bad]), pdl(nan(), inf(), -inf(), pdl(0)->setbadif(1));
+my $infty = pdl('inf');
+my $min_inf = pdl('-inf');
+my $bad = pdl('bad');
+is_pdl $infty, inf(), "pdl 'inf' works by itself";
+is_pdl $min_inf, -inf(), "pdl '-inf' works by itself";
+is_pdl $min_inf, -$infty, "pdl '-inf' == -pdl 'inf'";
+is_pdl pdl('nan'), nan(), "pdl 'nan' works by itself";
 ok $bad->isbad, "pdl 'bad' works by itself"
 	or diag "pdl 'bad' gave me $bad";
 
 # Checks for windows strings:
-$infty = pdl q[1.#INF];
-$nan = pdl q[-1.#IND];
-
-ok $infty == $infty && $infty * 0 != 0, "pdl '1.#INF' works"
-        or diag "pdl '1.#INF' gave me $infty";
-ok $nan != $nan, "pdl '-1.#IND' works"
-        or diag "pdl '-1.#IND' gave me $nan";
+is_pdl pdl(q[1.#INF]), inf(), "pdl '1.#INF' works";
+is_pdl pdl(q[-1.#IND]), nan(), "pdl '-1.#IND' works";
 
 # Pi and e checks #
-$expected = pdl(1)->exp;
-# using approx() here since PDL only has support for double data
-# so there will be differences in the least significant places for
-# perls compiled with uselongdouble
-#
-$got = pdl q[e];
-ok(approx($got, $expected, 1e-12), 'q[e] returns exp(1)')
-	or diag("Got $got");
-# using approx() here since PDL only has support for double data
-# so there will be differences in the least significant places for
-# perls compiled with uselongdouble
-#
-$got = pdl q[E];
-ok(approx($got, $expected, 1e-12), 'q[E] returns exp(1)')
-	or diag("Got $got");
+my $expected = pdl(1)->exp;
+is_pdl pdl(q[e]), $expected, 'q[e] returns exp(1)';
+is_pdl pdl(q[E]), $expected, 'q[E] returns exp(1)';
 $expected = pdl(1, exp(1));
-$got = pdl q[1 e];
-ok(all($got == $expected), 'q[1 e] returns [1 exp(1)]')
-	or diag("Got $got");
-$got = pdl q[1 E];
-ok(all($got == $expected), 'q[1 E] returns [1 exp(1)]')
-	or diag("Got $got");
+is_pdl pdl(q[1 e]), $expected, 'q[1 e] returns [1 exp(1)]';
+is_pdl pdl(q[1 E]), $expected, 'q[1 E] returns [1 exp(1)]';
 $expected = pdl(exp(1), 1);
-$got = pdl q[e 1];
-ok(all($got == $expected), 'q[e 1] returns [exp(1) 1]')
-	or diag("Got $got");
-$got = pdl q[E 1];
-ok(all($got == $expected), 'q[E 1] returns [exp(1) 1]')
-	or diag("Got $got");
+is_pdl pdl(q[e 1]), $expected, 'q[e 1] returns [exp(1) 1]';
+is_pdl pdl(q[E 1]), $expected, 'q[E 1] returns [exp(1) 1]';
 $expected = pdl(1, exp(1), 2);
-$got = pdl q[1 e 2];
-ok(all($got == $expected), 'q[1 e 2] returns [1 exp(1) 2]')
-	or diag("Got $got");
-$got = pdl q[1 E 2];
-ok(all($got == $expected), 'q[1 E 2] returns [1 exp(1) 2]')
-	or diag("Got $got");
+is_pdl pdl(q[1 e 2]), $expected, 'q[1 e 2] returns [1 exp(1) 2]';
+is_pdl pdl(q[1 E 2]), $expected, 'q[1 E 2] returns [1 exp(1) 2]';
 
 # Already checked all the permutations of e, so just make sure that it
 # properly substitutes pi
 $expected = pdl(1, 4 * atan2(1,1));
-$got = pdl q[1 pi];
-ok(all($got == $expected), 'q[1 pi] returns [1 4*atan2(1,1)]')
-	or diag("Got $got");
-$got = pdl q[1 PI];
-ok(all($got == $expected), 'q[1 PI] returns [1 4*atan2(1,1)]')
-	or diag("Got $got");
-$expected = pdl(4 * atan2(1,1), 1);
-$got = pdl q[pi 1];
-ok(all($got == $expected), 'q[pi 1] returns [4*atan2(1,1) 1]')
-	or diag("Got $got");
+is_pdl pdl(q[1 pi]), $expected, 'q[1 pi] returns [1 4*atan2(1,1)]';
+is_pdl pdl(q[1 PI]), $expected, 'q[1 PI] returns [1 4*atan2(1,1)]';
+is_pdl pdl(q[pi 1]), pdl(4 * atan2(1,1), 1), 'q[pi 1] returns [4*atan2(1,1) 1]';
 
 # Security checks #
 # Check croaking on arbitrary bare-words:
@@ -248,41 +148,16 @@ isnt($@, '', 'croaks with non-interpolated strings');
 
 # Install a function that knows if it's been executed.
 {
-	my $e_was_run = 0;
-	sub PDL::Core::e { $e_was_run++ }
-	sub PDL::Core::e123 { $e_was_run++ }
-	my $to_check = q[1 e 2];
-	eval {pdl $to_check};
-	is($e_was_run, 0, "Does not execute local function e in [$to_check]");
-	$e_was_run = 0;
-	$to_check = q[1 +e 2];
-	eval {pdl $to_check};
-	is($e_was_run, 0, "Does not execute local function e in [$to_check]");
-	$e_was_run = 0;
-	$to_check = q[1 e+ 2];
-	eval {pdl $to_check};
-	is($e_was_run, 0, "Does not execute local function e in [$to_check]");
-	$e_was_run = 0;
-	$to_check = q[1e 2];
-	eval {pdl $to_check};
-	is($e_was_run, 0, "Does not execute local function e in [$to_check]");
-	$e_was_run = 0;
-	$to_check = q[1e+ 2];
-	eval {pdl $to_check};
-	is($e_was_run, 0, "Does not execute local function e in [$to_check]");
-	$e_was_run = 0;
-	$to_check = q[1+e 2];
-	eval {pdl $to_check};
-	is($e_was_run, 0, "Does not execute local function e in [$to_check]");
-	$e_was_run = 0;
-	$to_check = q[1+e+ 2];
-	eval {pdl $to_check};
-	is($e_was_run, 0, "Does not execute local function e in [$to_check]");
-	$e_was_run = 0;
-	$to_check = q[1 e123 2];
-	eval {pdl $to_check};
-	is($e_was_run, 0, "Does not execute local function e123 in [$to_check]");
-	$e_was_run = 0;
+  my $e_was_run = 0;
+  sub PDL::Core::e { $e_was_run++ }
+  sub PDL::Core::e123 { $e_was_run++ }
+  for my $to_check (q[1 e 2], q[1 +e 2], q[1 e+ 2], q[1e 2], q[1e+ 2],
+    q[1+e 2], q[1+e+ 2], q[1 e123 2]
+  ) {
+    $e_was_run = 0;
+    eval {pdl $to_check};
+    is($e_was_run, 0, "Does not execute local function e in [$to_check]");
+  }
 }
 
 ###############################
@@ -290,37 +165,26 @@ isnt($@, '', 'croaks with non-interpolated strings');
 ###############################
 
 eval{ pdl q[1 l 3] };
-isnt($@, '', 'Croaks when invalid character is specified');
-like($@, qr/found disallowed character\(s\) 'l'/, 'Gives meaningful explanation of problem');
+like($@, qr/found disallowed character\(s\) 'l'/, 'good error when invalid character is specified');
 eval{ pdl q[1 po 3] };
-isnt($@, '', 'Croaks when invalid characters are specified');
-like($@, qr/found disallowed character\(s\) 'po'/, 'Gives meaningful explanation of problem');
+like($@, qr/found disallowed character\(s\) 'po'/, 'good error when invalid characters are specified');
 
 # checks for croaking behavior for consecutive signs like +-2:
 eval{ pdl q[1 +-2 3] };
-like($@, qr/found a \w+ sign/, 'Good error when consecutive signs');
+like $@, qr/found a \w+ sign/, 'Good error when consecutive signs';
 eval{ pdl q[1 -+2 3] };
-like($@, qr/found a \w+ sign/, 'Good error when consecutive signs');
+like $@, qr/found a \w+ sign/, 'Good error when consecutive signs';
 
-# 'larger word' croak checks (36)
-foreach my $special (qw(bad inf pi)) {
-	foreach my $append (qw(2 e l)) {
-		eval "pdl q[1 $special$append 2]";
-		isnt($@, '', "Croaks when it finds $special$append");
-		like($@, qr/larger word/, 'Gives meaningful explanation of problem');
-		eval "pdl q[1 $append$special 2]";
-		isnt($@, '', "Croaks when it finds $append$special");
-		like($@, qr/larger word/, 'Gives meaningful explanation of problem');
-	}
-}
-
-# e croaks (6)
-my $special = 'e';
-foreach my $append (qw(2 e l)) {
-		eval "pdl q[1 $special$append 2]";
-		isnt($@, '', "Croaks when it finds $special$append");
-		eval "pdl q[1 $append$special 2]";
-		isnt($@, '', "Croaks when it finds $append$special");
+foreach my $special (qw(bad inf pi e)) {
+  foreach my $append (qw(2 e l)) {
+    for my $str ("$special$append", "$append$special") {
+      eval {pdl qq[1 $str 2]};
+      my $re = $str eq 'e2' ? qr/exponentiation/ :
+        $str eq '2e' ? qr/Incorrect/ :
+        qr/larger word/;
+      like $@, $re, "Good error for '$str'";
+    }
+  }
 }
 
 ## Issue information
@@ -343,15 +207,13 @@ my $cases = {
 	q|[BAD BAD]|   => q|[BAD BAD]|,
 	q|[ BAD BAD ]| => q|[BAD BAD]|,
 };
-
 while( my ($case_string, $expected_string) = each %$cases ) {
-	my $bad_pdl = pdl( $case_string );
-	subtest "Testing case: $case_string" => sub {
-		ok( $bad_pdl->badflag, 'has badflag enabled');
-		ok( $bad_pdl->isbad->all, 'all values in PDL are BAD');
-
-		is($bad_pdl->string, $expected_string, "PDL stringifies back to input string: @{[ $bad_pdl->string ]}");
-	};
+  my $bad_pdl = pdl( $case_string );
+  subtest "Testing case: $case_string" => sub {
+    ok $bad_pdl->badflag, 'has badflag enabled';
+    ok $bad_pdl->isbad->all, 'all values in PDL are BAD';
+    is $bad_pdl->string, $expected_string, "PDL stringifies ok";
+  };
 }
 
 is pdl(ushort, ['-5'])."", "[65531]", "ushort-typed ['-5'] converted right";
