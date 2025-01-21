@@ -465,7 +465,7 @@ raise ndarray C<\$a> to integer power C<\$b>
 Algorithm from L<Wikipedia|http://en.wikipedia.org/wiki/Exponentiation_by_squaring>
 },
    Pars => 'a(); longlong b(); [o] ans()',
-   GenericTypes => $A,
+   GenericTypes => [qw(P Q), @$AF],
    Code => pp_line_numbers(__LINE__-1, q{
 $GENERIC(b) n = $b();
 if (n == 0) {

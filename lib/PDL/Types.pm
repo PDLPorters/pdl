@@ -514,7 +514,7 @@ use Carp;
 sub new {
   my ($type,$val) = @_;
   return $val if "PDL::Type" eq ref $val;
-  if(ref $val and $val->isa('PDL')) {
+  if (ref $val and UNIVERSAL::isa($val, 'PDL')) {
     PDL::Core::barf("Can't make a type out of non-scalar ndarray $val!")
       if $val->getndims != 0;
     $val = $val->at;
