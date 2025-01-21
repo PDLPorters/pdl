@@ -257,7 +257,6 @@ pdl_error pdl__converttypei_new_recprotect(pdl *PARENT, pdl *CHILD, pdl_datatype
   trans->pdls[1] = CHILD;
   trans->__datatype = PARENT->datatype = force_intype;
   PDL_RETERROR(PDL_err, pdl__set_output_type_badvalue(trans, recurse_count + 1));
-  trans->pdls[2] = trans->pdls[1]; /* copy for make_trans_mutual */
   trans->pdls[1]->datatype = params->totype = totype;
   PDL_RETERROR(PDL_err, pdl_make_trans_mutual((pdl_trans *)trans));
   return PDL_err;

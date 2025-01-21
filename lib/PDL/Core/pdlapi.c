@@ -753,11 +753,6 @@ pdl_error pdl_make_trans_mutual(pdl_trans *trans)
   pdl_transvtable *vtable = trans->vtable;
   pdl **pdls = trans->pdls;
   PDL_Indx i, npdls=vtable->npdls, nparents=vtable->nparents;
-  PDL_Indx nchildren = npdls - nparents;
-  /* copy the converted outputs from the end-area to use as actual
-    outputs - cf type_coerce */
-  for (i=vtable->nparents; i<vtable->npdls; i++) pdls[i] = pdls[i+nchildren];
-  PDLDEBUG_f(printf("make_trans_mutual after copy converted ");pdl_dump_trans_fixspace(trans,0));
   PDL_TR_CHKMAGIC(trans);
   char disable_back = 0, inputs_bad = 0;
   for (i=0; i<npdls; i++) {
@@ -1137,9 +1132,7 @@ PDL_Anyval pdl_get_pdl_badvalue( pdl *it ) {
 }
 
 pdl_trans *pdl_create_trans(pdl_transvtable *vtable) {
-    size_t it_sz = sizeof(pdl_trans)+sizeof(pdl *)*(
-      vtable->npdls + (vtable->npdls - vtable->nparents) /* outputs twice */
-    );
+    size_t it_sz = sizeof(pdl_trans)+(sizeof(pdl *) * vtable->npdls);
     pdl_trans *it = malloc(it_sz);
     if (!it) return it;
     memset(it, 0, it_sz);
@@ -1310,8 +1303,7 @@ pdl_error pdl__type_convert(pdl_trans *trans, int recurse_count) {
       return pdl_make_error_simple(PDL_EFATAL, "type not expected value after get_convertedpdl\n");
     if (i == inplace_output_ind)
       pdls[inplace_input_ind] = pdl;
-    /* if type-convert output, put in end-area */
-    pdls[i + (i >= nparents ? nchildren : 0)] = pdl;
+    pdls[i] = pdl;
   }
   return PDL_err;
 }
@@ -1324,13 +1316,6 @@ pdl_error pdl__type_coerce_recprotect(pdl_trans *trans, int recurse_count) {
   pdl_datatypes trans_dtype;
   PDL_RETERROR(PDL_err, pdl__transtype_select(trans, &trans_dtype));
   trans->__datatype = trans_dtype;
-  pdl_transvtable *vtable = trans->vtable;
-  pdl **pdls = trans->pdls;
-  PDL_Indx i, nparents = vtable->nparents, nchildren = vtable->npdls - nparents;
-  /* copy the "real" (passed-in) outputs to the end-area to use as actual
-    outputs, possibly after being converted, leaving the passed-in ones
-    alone to be picked up for use in CopyBadStatusCode */
-  for (i=nparents; i<vtable->npdls; i++) pdls[i+nchildren] = pdls[i];
   PDL_RETERROR(PDL_err, pdl__set_output_type_badvalue(trans, recurse_count+1));
   PDL_RETERROR(PDL_err, pdl__type_convert(trans, recurse_count+1));
   return PDL_err;
