@@ -59,28 +59,28 @@ like $@, qr/only works/, 'polyroots(1,0) throws exception not segfault';
 my $coeffs = pdl(cdouble, 1,-55,1320,-18150,157773,-902055, 3416930,-8409500,12753576,-10628640,3628800);
 my $roots = 1+sequence(10);
 my $got;
-ok all(approx $got=qsort((polyroots $coeffs->re, $coeffs->im)[0]), $roots), 'polyroots' or diag $got;
+is_pdl qsort((polyroots $coeffs->re, $coeffs->im)[0]), $roots, 'polyroots';
 polyroots $coeffs->re, $coeffs->im, $got=null; $got->inplace->qsort;
-ok all(approx $got, $roots), 'polyroots with explicit output args' or diag $got;
-ok all(approx $got=qsort(polyroots($coeffs)->re), $roots), 'polyroots native complex no output args' or diag $got;
+is_pdl $got, $roots, 'polyroots with explicit output args';
+is_pdl qsort(polyroots($coeffs)->re), $roots, 'polyroots native complex no output args';
 polyroots $coeffs, $got=null; $got=$got->re->qsort;
-ok all(approx $got, $roots), 'polyroots native complex explicit output args' or diag $got;
+is_pdl $got, $roots, 'polyroots native complex explicit output args';
 eval {polyroots(pdl("[1 0 0 0 -1]"),zeroes(5))};
 is $@, '', 'polyroots no crash on 4 complex roots of 1';
-ok all(approx $got=(polyfromroots $roots, $roots->zeroes)[0], $coeffs->re), 'polyfromroots legacy no outargs' or diag $got;
+is_pdl +(polyfromroots $roots, $roots->zeroes)[0], $coeffs->re, 'polyfromroots legacy no outargs';
 polyfromroots $roots, $roots->zeroes, $got=null;
-ok all(approx $got, $coeffs->re), 'polyfromroots legacy with explicit output args' or diag $got;
-ok all(approx $got=polyfromroots(cdouble($roots)), $coeffs->re), 'polyfromroots natcom no outargs' or diag $got;
+is_pdl $got, $coeffs->re, 'polyfromroots legacy with explicit output args';
+is_pdl polyfromroots(cdouble($roots)), $coeffs, 'polyfromroots natcom no outargs';
 polyfromroots cdouble($roots), $got=null;
-ok all(approx $got, $coeffs), 'polyfromroots natcom explicit outargs' or diag $got;
+is_pdl $got, $coeffs, 'polyfromroots natcom explicit outargs';
 
 my ($coeffs2, $x, $exp_val) = (cdouble(3,2,1), cdouble(5,7,9), cdouble(86,162,262));
-ok all(approx $got=polyval($coeffs2, $x), $exp_val), 'polyval natcom no output' or diag $got;
+is_pdl polyval($coeffs2, $x), $exp_val, 'polyval natcom no output';
 polyval($coeffs2, $x, $got=null);
-ok all(approx $got, $exp_val), 'polyval natcom explicit output' or diag $got;
-ok all(approx $got=(polyval($coeffs2->re, zeroes(3), $x->re, zeroes(3)))[0], $exp_val->re), 'polyval legacy no output' or diag $got;
+is_pdl $got, $exp_val, 'polyval natcom explicit output';
+is_pdl +(polyval($coeffs2->re, zeroes(3), $x->re, zeroes(3)))[0], $exp_val->re, 'polyval legacy no output';
 polyval($coeffs2->re, zeroes(3), $x->re, zeroes(3), $got=null);
-ok all(approx $got, $exp_val->re), 'polyval legacy explicit output' or diag $got;
+is_pdl $got, $exp_val->re, 'polyval legacy explicit output';
 
 {
 my $pa = sequence(41) - 20;
@@ -88,7 +88,7 @@ $pa /= 4;
 #do test on quarter-integers, to make sure we're not crazy.
 my $ans_rint = pdl(-5,-5,-4,-4,-4,-4,-4,-3,-3,-3,-2,-2,-2,-2,-2,
 -1,-1,-1,0,0,0,0,0,1,1,1,2,2,2,2,2,3,3,3,4,4,4,4,4,5,5);
-ok(all(rint($pa)==$ans_rint),"rint");
+is_pdl rint($pa), $ans_rint, "rint";
 }
 
 is_pdl sinh(0.3), pdl(0.3045), "sinh";
@@ -108,11 +108,11 @@ is_pdl $pa, pdl(0.3045), "sinh inplace";
 if ($Config{cc} ne 'cl') {
   # lgamma not implemented for MS compilers
   my @x = lgamma(-0.1);
-  is(approx($x[0], 2.36896133272879), 1);
-  is($x[1], -1);
+  is_pdl $x[0], pdl(2.36896133272879);
+  is $x[1], -1;
   @x = lgamma(1.1);
-  is(approx($x[0], -0.0498724412598397), 1);
-  is($x[1], 1);
+  is_pdl $x[0], pdl(-0.0498724412598397);
+  is $x[1], 1;
   my $p = sequence (1);
   $p->badvalue (0);
   $p->badflag (1);
