@@ -3,6 +3,7 @@ use warnings;
 use PDL::LiteF;
 use PDL::IO::Pic;
 use Test::More;
+use Test::PDL;
 use File::Temp qw(tempdir);
 use File::Spec;
 
@@ -24,11 +25,7 @@ sub test_pdl {
   rim($out2, $file, {FORMAT => $fmt});
   my $out3 = PDL->rpic($file, {FORMAT => $fmt});
   if ($expect_reorder) { $_ = $_->mv(-1,0) for $out1, $out2 }
-  eval {ok all($out1 == $in), "\$out1 & \$in are the same $orig_info"};
-  is $@, '', $orig_info;
-  eval {ok all($out2 == $in), "\$out2 & \$in are the same $orig_info"};
-  is $@, '', $orig_info;
-  eval {ok all($out3 == $in), "\$out3 & \$in are the same $orig_info"}
-    or diag "in=$in\nout1=$out1";
-  is $@, '', $orig_info;
+  is_pdl $out1, $in, "\$out1 & \$in are the same $orig_info";
+  is_pdl $out2, $in, "\$out2 & \$in are the same $orig_info";
+  is_pdl $out3, $in, "\$out3 & \$in are the same $orig_info";
 }

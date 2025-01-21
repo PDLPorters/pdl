@@ -29,10 +29,10 @@ wfits($t, $file);
 $t2 = rfits $file;
 is_pdl $t2, $t, 'w/rfits round-trip';
 my $h = $t2->gethdr;
-ok( $$h{FOO} eq "foo" && $$h{BAR} == 42,
-    "header check on FOO/BAR" );
-ok( $$h{'NUM'}+1 == 124 && $$h{'NUMSTR'} eq '0123',
-    "header check on NUM/NUMSTR" );
+is $$h{FOO}, "foo", "header check on FOO";
+is $$h{BAR}, 42, "header check on BAR";
+is $$h{'NUM'}+1, 124, "header check on NUM";
+is $$h{'NUMSTR'}, '0123', "header check on NUMSTR";
 unlink $file;
 
 SKIP: {
@@ -227,7 +227,7 @@ SKIP:{
     unlink $file;
     wfits($ar,$file);
     my $y = rfits($file);
-    ok(all($ar==$y),"fftnd output (non-contiguous in memory) is written correctly");
+    is_pdl $ar, $y, "fftnd output (non-contiguous in memory) is written correctly";
     unlink $file;
 }
 
@@ -243,11 +243,8 @@ lives_ok { wfits([$x,$y],$file) } "wfits with multiple HDUs didn't fail";
 
 lives_ok { @aa = rfits($file) } "rfits in list context didn't fail";
 
-ok( $aa[0]->ndims == $x->ndims && all($aa[0]->shape == $x->shape), "first element has right shape");
-ok( all($aa[0] == $x), "first element reproduces written one");
-
-ok( $aa[1]->ndims == $y->ndims && all($aa[1]->shape == $y->shape), "second element has right shape");
-ok( all($aa[1] == $y), "Second element reproduces written one");
+is_pdl $aa[0], $x, "first element reproduces written one";
+is_pdl $aa[1], $y, "Second element reproduces written one";
 
 unlink $file;
 
@@ -263,9 +260,9 @@ SKIP:{
 	is $@, '', "writing a longlong image succeeded";
 	eval { $y = rfits($file); };
 	is $@, '', "Reading the longlong image succeeded";
-	ok(ref($y->hdr) eq "HASH", "Reading the longlong image produced a PDL with a hash header");
-	ok($y->hdr->{BITPIX} == 64, "BITPIX value was correct");
-	ok(all($y==$x),"The new image matches the old one (longlong)");
+	isa_ok $y->hdr, "HASH", "Reading the longlong image produced a PDL with a hash header";
+	is $y->hdr->{BITPIX}, 64, "BITPIX value was correct";
+	is_pdl $y, $x, "The new image matches the old one (longlong)";
 	unlink $file;
 }
 

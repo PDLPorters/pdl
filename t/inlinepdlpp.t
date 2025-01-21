@@ -1,6 +1,7 @@
 use strict;
 use warnings;
 use Test::More;
+use Test::PDL;
 
 BEGIN {
   my $inline_test_dir = './.inlinepdlpp';
@@ -33,7 +34,7 @@ is $@, '', 'bind no error';
 my $x = sequence(3,3);
 my $y = $x->testinc;
 is myshape($x), myshape($y), 'myshape eq';
-ok(all $y == $x+1, '==');
+is_pdl $y, $x+1;
 
 sub myshape { join ',', $_[0]->dims }
 

@@ -21,6 +21,7 @@ use File::Temp qw(tempdir);
 use File::Spec::Functions;
 
 use Test::More;
+use Test::PDL;
 
 my $tmpdir = tempdir( CLEANUP=>1 );
 my $name = catfile($tmpdir, "foo.dat");
@@ -44,6 +45,6 @@ for my $thr (threads->list) {
 
 my $expected = (sequence($N_threads) + 1)->sqrt;
 my $workspace = retrieve_pdls('workspace');
-ok(all($expected == $workspace), 'Sharing memory mapped ndarrays works');
+is_pdl $expected, $workspace, 'Sharing memory mapped ndarrays works';
 
 done_testing;

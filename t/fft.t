@@ -10,9 +10,9 @@ foreach my $type(double,float,cdouble,cfloat){
   my $pa = pdl($type,1,-1,1,-1);
   my $pb = zeroes($type,$pa->dims);
   fft($pa,$pb);
-  ok(all($pa==pdl($type,0,0,4,0)), "fft for type $type");
+  is_pdl $pa, pdl($type,0,0,4,0), "fft for type $type";
   ifft($pa,$pb);
-  ok(all($pa==pdl($type,1,-1,1,-1)), "ifft for type $type");
+  is_pdl $pa, pdl($type,1,-1,1,-1), "ifft for type $type";
 }
 
 my $pa = rfits("lib/PDL/Demos/m51.fits");

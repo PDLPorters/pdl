@@ -21,7 +21,7 @@ sub rpnm_unlink {
   close $fh;
   open $fh, '<', $file;
   my $pdl2 = rpnm($fh);
-  ok all($pdl == $pdl2), 'rpnm from fh same as from disk file';
+  is_pdl $pdl, $pdl2, 'rpnm from fh same as from disk file';
   unlink $file;
   return $pdl;
 }

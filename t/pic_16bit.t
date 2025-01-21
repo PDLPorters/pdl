@@ -1,6 +1,7 @@
 use strict;
 use warnings;
 use Test::More;
+use Test::PDL;
 use File::Temp qw(tempdir);
 use File::Spec;
 use PDL::LiteF;
@@ -20,8 +21,7 @@ sub roundtrip {
   $in->wpic($file);
   my $got = rpic($file, @extra);
   return is_deeply [$got->dims], [$in->dims] if $dimonly;
-  eval {ok all($in == $got), "$label image save+restore"};
-  is $@, '', "$label compare worked";
+  is_pdl $got, $in, {require_equal_types=>0, test_name=>"$label image save+restore"};
 }
 
 # test save/restore of 8-bit image

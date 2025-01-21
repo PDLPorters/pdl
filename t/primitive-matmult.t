@@ -18,7 +18,13 @@ sub IM {
     );
 }
 
-ok( ( IM() x IM() )->sum == 3429, "matrix multiplication" );
+is_pdl IM() x IM(), pdl('
+ [ 97 106  63  71  69]
+ [125 140  87 100  97]
+ [351 403 299 338 351]
+ [ 33  43  33  42  41]
+ [ 78 102 102 116 142]
+'), "matrix multiplication";
 
 subtest 'complex' => sub {
 

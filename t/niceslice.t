@@ -1,6 +1,7 @@
 use strict;
 use warnings;
 use Test::More;
+use Test::PDL;
 use PDL::LiteF;
 #BEGIN { $PDL::NiceSlice::debug = $PDL::NiceSlice::debug_filter = 1 }
 require PDL::NiceSlice;
@@ -42,31 +43,29 @@ $pb = translate_and_run '$pa->((5));';
 cmp_ok($pb->at, '==', 5);
 
 $pb = translate_and_run '$pa(($c(1)->at(0)));';
-is $pb->getndims, 0;
-ok(all $pb == 6);
+is_pdl $pb, pdl(6);
 
 # the latest versions should do the 'at' automatically
 $pb = translate_and_run '$pa(($c(1)));';
-is $pb->getndims, 0;
-ok(all $pb == 6);
+is_pdl $pb, pdl(6);
 
 $c = translate_and_run '$pa(:);';
-ok ($c->getdim(0) == 10 && all $c == $pa);
+is_pdl $c, $pa;
 
 $pb = translate_and_run '$pa($idx);';
-ok(all $pb == $idx);
+is_pdl $pb, $idx;
 
 # use 1-el ndarrays as indices
 my $cmp = pdl(2,4,6);
 $pb = translate_and_run '$pa($rg(0):$rg(1):$rg(2));';
-ok(all $pb == $cmp);
+is_pdl $pb, $cmp;
 
 # mix ranges and index ndarrays
 $pa = sequence 5,5;
 $idx = pdl 2,3,0;
 $cmp = $pa->slice('-1:0')->dice_axis(1,$idx);
 translate_and_run '$pb = $pa(-1:0,$idx);';
-ok(all $pb == $cmp);
+is_pdl $pb, $cmp;
 
 #
 # modifiers
@@ -74,12 +73,12 @@ ok(all $pb == $cmp);
 
 $pa = sequence 10;
 $pb = translate_and_run '$pa($pa<3;?)' ;
-ok(all $pb == pdl(0,1,2));
+is_pdl $pb, pdl(0,1,2);
 
 # flat modifier
 $pa = sequence 3,3;
 $pb = translate_and_run '$pa(0:-2;_);';
-ok(all $pb == sequence 8);
+is_pdl $pb, sequence 8;
 
 # where modifier cannot be mixed with other modifiers
 $pa = sequence 10;
@@ -89,28 +88,28 @@ $pb = translate_and_run '$pa($pa<3;?_)', qr/more than 1/;
 $pa = sequence 3,3;
 $pb = translate_and_run '$pa(0;-|)';
 eval {$pb++};
-ok($pb->dim(0) == 3 && all $pb == 3*sequence(3)+1) or diag $pb;
+is_pdl $pb, 3*sequence(3)+1;
 ok($pa->at(0,0) == 0) or diag $pa;
 
-# do we ignore whitspace correctly?
+# do we ignore whitespace correctly?
 $c = translate_and_run '$pa(0; - | )';
-ok (all $c == $pb-1);
+is_pdl $c, $pb-1;
 
 # empty modifier block
 $pa = sequence 10;
 $pb = translate_and_run '$pa(0;   )';
-ok ($pb == $pa->at(0));
+is $pb, $pa->at(0);
 
 # modifiers repeated
 $pb = translate_and_run '$pa(0;-||)', qr/twice or more/;
 
 $pa = sequence(3);
 translate_and_run 'my $x = 1 / 2; $pa = $pa((2)); $x =~ /\./;';
-is $pa.'', '2', '/ not treated as starting a regex';
+is_pdl $pa, pdl(2), '/ not treated as starting a regex';
 
 $pa = sequence(3);
 translate_and_run 'my $x = (0.5 + 0.5) / 2; $pa = $pa((2)); $x =~ /\./;';
-is $pa.'', '2', '/ not treated as starting a regex even after paren';
+is_pdl $pa, pdl(2), '/ not treated as starting a regex even after paren';
 
 # foreach/for blocking
 

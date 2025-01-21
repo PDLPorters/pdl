@@ -5,6 +5,7 @@ use PDL::Types ':All';
 use PDL::IO::FlexRaw;
 use File::Temp;
 use Test::More;
+use Test::PDL;
 
 our @types = grep $_ != indx(), types();
 
@@ -17,7 +18,7 @@ for my $type (@types) {
   writeflexhdr($data,$hdr);
   my $npdl = eval {readflex $data};
   is $pdl->type, $npdl->type;
-  ok all $pdl == $npdl;
+  is_pdl $pdl, $npdl;
 }
 
 unlink $data, "${data}.hdr";

@@ -64,10 +64,9 @@ subtest 'where' => sub {
         subtest 'lvalue' => sub {
 
             # Make sure whereND functions as an lvalue:
-            my $x = sequence( 4, 3 );
-            my $y = pdl( 0, 1, 1, 1 );
-            lives_ok { $x->whereND($y) *= -1 } 'lvalue multiply';
-            ok( all( $x->slice("1:-1") < 0 ),    'works' );
+            my $x = sequence( 2, 3 );
+            lives_ok { $x->whereND(pdl( 0, 1 )) *= -1 } 'lvalue multiply';
+            is_pdl $x, pdl('0 -1;2 -3;4 -5'), 'works';
         };
 
         subtest 'sf.net bug 3415115' => sub {
@@ -217,9 +216,7 @@ subtest 'uniqind' => sub {
 
     subtest 'SF bug 3076570' => sub {
         my $y = pdl( 1, 1, 1, 1, 1 )->uniqind;    # SF bug 3076570
-        ok( !$y->isempty );
-        ok all( $y == pdl( [0] ) ), 'uniqind';
-        is $y->ndims, 1, 'ndims';
+        is_pdl $y, indx( [0] ), 'uniqind';
     };
 
 };
