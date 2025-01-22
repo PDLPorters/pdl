@@ -130,14 +130,15 @@ subtest 'which' => sub {
       my $r = xvals( 10, 10 ) + 10 * yvals( 10, 10 );
       my $x = whichND( $r % 12 == 0 );
 
+      my $got;
       is_deeply(
-        $x->unpdl,
+        $got = $x->unpdl,
         [
           [ 0, 0 ], [ 2, 1 ], [ 4, 2 ], [ 6, 3 ],
           [ 8, 4 ], [ 0, 6 ], [ 2, 7 ], [ 4, 8 ],
           [ 6, 9 ]
         ]
-      );
+      ) or diag 'got: ', explain $got;
       is $x->type, 'indx', 'returns indx-type';
     };
 

@@ -3304,7 +3304,7 @@ will not give the answer you expect.
 
 *one2nd = \&PDL::one2nd;
 sub PDL::one2nd {
-  barf "Usage: one2nd \$array \$indices\n" if @_ != 2;
+  barf "Usage: one2nd \$array, \$indices\n" if @_ != 2;
   my ($x, $ind)=@_;
   my @dimension=$x->dims;
   $ind = indx($ind);
@@ -3789,6 +3789,21 @@ L<PDL::Slices/indexND> can be fed the coordinates to return the values.
 
 =cut
 
+sub _one2nd {
+  my ($mask, $ind) = @_;
+  my $ndims = my @mdims = $mask->dims;
+  # In the empty case, explicitly return the correct type of structured empty
+  return PDL->new_from_specification(indx, $ndims, 0) if !$ind->nelem;
+  my $mult = ones(indx, $ndims);
+  $mult->index($_+1) .= $mult->index($_) * $mdims[$_] for 0..$#mdims-1;
+  for my $i (0..$#mdims) {
+    my $s = $ind->index($i);
+    $s /= $mult->index($i);
+    $s %= $mdims[$i];
+  }
+  $ind;
+}
+
 *whichND = \&PDL::whichND;
 sub PDL::whichND {
   my $mask = PDL->topdl(shift);
@@ -3805,29 +3820,12 @@ sub PDL::whichND {
   }
 
   # Scalar context: generate an N-D index ndarray
-  return PDL->new_from_specification(indx,$mask->ndims,0) if !$mask->nelem;
-  return $mask ? pdl(indx,0) : PDL->new_from_specification(indx,0)
-    if !$mask->getndims;
+  my $ndims = $mask->getndims;
+  return PDL->new_from_specification(indx,$ndims,0) if !$mask->nelem;
+  return $mask ? pdl(indx,0) : PDL->new_from_specification(indx,0) if !$ndims;
 
-  my $ind = $mask->flat->which->dummy(0,$mask->getndims)->make_physical;
-  # In the empty case, explicitly return the correct type of structured empty
-  return PDL->new_from_specification(indx,$mask->ndims, 0) if !$ind->nelem;
-
-  my $mult = ones(indx, $mask->getndims);
-  my @mdims = $mask->dims;
-
-  for my $i (0..$#mdims-1) {
-   # use $tmp for 5.005_03 compatibility
-   (my $tmp = $mult->index($i+1)) .= $mult->index($i)*$mdims[$i];
-  }
-
-  for my $i (0..$#mdims) {
-   my($s) = $ind->index($i);
-   $s /= $mult->index($i);
-   $s %= $mdims[$i];
-  }
-
-  return $ind;
+  my $ind = $mask->flat->which->dummy(0,$ndims)->make_physical;
+  _one2nd($mask, $ind);
 }
 EOD
 
