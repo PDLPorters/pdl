@@ -308,6 +308,11 @@ eval {PDL->topdl({})};
 isnt $@, '', 'topdl({}) no segfault';
 }
 
+is_pdl pdl(1)->tocomplex, cdouble(1), 'tocomplex';
+is_pdl cdouble(1)->tocomplex, cdouble(1), 'tocomplex already complex';
+is_pdl float(1)->tocomplex, cfloat(1), 'tocomplex float';
+is_pdl cfloat(1)->tocomplex, cfloat(1), 'tocomplex float already complex';
+
 # stringification
 {
 my $x = pdl( -3..2 ) + 1e7;

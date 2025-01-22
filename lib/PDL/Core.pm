@@ -666,6 +666,23 @@ below for usage).
  $y = topdl $ndarray;       # fall through
  $x = topdl (1,2,3,4);      # Convert 1D array
 
+=head2 tocomplex
+
+=for ref
+
+Return a complex-typed ndarray, either as a no-op or a conversion.
+
+  $cplx = $pdl->tocomplex;
+
+Not exported. Added in 2.099.
+
+=cut
+
+sub PDL::tocomplex {
+  my $pdl = PDL->topdl(@_);
+  $pdl->type->real ? $pdl->r2C : $pdl;
+}
+
 =head2 set_datatype
 
 =for ref
