@@ -507,12 +507,13 @@ datasv_refcount(p)
 
 PDL_Indx
 nelem(x)
-	pdl *x
-	CODE:
-		PDLDEBUG_f(printf("Core::nelem calling ")); pdl_barf_if_error(pdl_make_physdims(x));
-		RETVAL = x->nvals;
-	OUTPUT:
-		RETVAL
+  pdl *x
+ CODE:
+  pdl_barf_if_error(pdl_make_physvaffine( x ));
+  PDLDEBUG_f(printf("Core::nelem calling ")); pdl_barf_if_error(pdl_make_physdims(x));
+  RETVAL = x->nvals;
+ OUTPUT:
+  RETVAL
 
 
 # Call my howbig function
@@ -1363,6 +1364,7 @@ SV *
 unpdl(x)
   pdl *x
 CODE:
+  pdl_barf_if_error(pdl_make_physvaffine( x ));
   RETVAL = pdl2avref(x, 0);
 OUTPUT:
   RETVAL
