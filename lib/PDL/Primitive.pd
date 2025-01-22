@@ -3823,9 +3823,7 @@ sub PDL::whichND {
   my $ndims = $mask->getndims;
   return PDL->new_from_specification(indx,$ndims,0) if !$mask->nelem;
   return $mask ? pdl(indx,0) : PDL->new_from_specification(indx,0) if !$ndims;
-
-  my $ind = $mask->flat->which->dummy(0,$ndims)->make_physical;
-  _one2nd($mask, $ind);
+  _one2nd($mask, $mask->flat->which->dummy(0,$ndims)->sever);
 }
 EOD
 
