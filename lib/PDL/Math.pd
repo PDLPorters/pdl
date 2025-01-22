@@ -38,6 +38,8 @@ my $F = [map $_->ppsym, grep $_->real && !$_->integer, types()];
 my $C = [ppdefs_complex()];
 my @Rtypes = grep $_->real, types();
 my @Ctypes = grep !$_->real, types();
+my $AF = [map $_->ppsym, grep !$_->integer, types];
+$AF = [(grep $_ ne 'D', @$AF), 'D']; # so defaults to D if non-float given
 
 pp_addpm({At=>'Top'},<<'EOD');
 use strict;
@@ -486,6 +488,39 @@ works with native-complex data.
  $y = polyval($coeffs, $x); # native complex
  ($yr, $yi) = polyval($cr, $ci, $xr, $xi);
 ',);
+
+pp_def('csqrt',
+    GenericTypes => $AF,
+    Pars => 'i(); complex [o] o()',
+    Doc => <<'EOF',
+Take the complex square root of a number choosing that with
+non-negative real part, i.e., a square root with a branch cut
+'infinitesimally' below the negative real axis, the standard choice.
+EOF
+    Code => q{
+        $TFDEGCH(PDL_CFloat,PDL_CDouble,PDL_CLDouble,PDL_CFloat,PDL_CDouble,PDL_CLDouble) tmp=$i();
+        tmp=csqrt(tmp);
+        $o() = tmp;
+    },
+);
+
+pp_def('csqrt_up',
+    GenericTypes => $AF,
+    Pars => 'i(); complex [o] o()',
+    Doc => <<'EOF',
+Take the complex square root of a number choosing that whose imaginary
+part is not negative, i.e., it is a square root with a branch cut
+'infinitesimally' below the positive real axis.
+EOF
+    Code => q{
+        $TFDEGCH(PDL_CFloat,PDL_CDouble,PDL_CLDouble,PDL_CFloat,PDL_CDouble,PDL_CLDouble) tmp=$i();
+        tmp=csqrt(tmp);
+        if(cimag(tmp)<0){
+             tmp = -tmp;
+        }
+        $o() = tmp;
+    },
+);
 
 pp_addpm({At=>'Bot'},<<'EOD');
 
