@@ -23,6 +23,12 @@ subtest 'where' => sub {
           'dataflow affected orig';
     };
 
+    subtest 'whereND_both' => sub {
+      my ( $t, $f ) = whereND_both(sequence(2,2,2), pdl(0,1));
+      is_pdl $t, pdl('[1;3] [5;7]'), 'nonzero vals';
+      is_pdl $f, pdl('[0;2] [4;6]'), 'zero vals';
+    };
+
     subtest 'whereND' => sub {
         is_deeply( [ zeroes( 2, 3, 1 )->whereND( pdl '0 0' )->dims ], [ 0, 3, 1 ] );
 

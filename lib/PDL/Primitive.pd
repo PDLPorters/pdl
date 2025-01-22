@@ -3644,7 +3644,7 @@ sub PDL::where_both {
 *where_both = \&PDL::where_both;
 EOD
 
-pp_add_exported("", 'whereND');
+pp_add_exported("", 'whereND whereND_both');
 pp_addpm(<<'EOD');
 =head2 whereND
 
@@ -3670,7 +3670,7 @@ to the original data PDLs, for the purpose of dataflow.
   $sdata = whereND $data, $mask
   ($s1, $s2, ..., $sn) = whereND $d1, $d2, ..., $dn, $mask
 
-  where
+where
 
     $data is M dimensional
     $mask is N < M dimensional
@@ -3727,6 +3727,35 @@ sub PDL::whereND :lvalue {
 }
 *whereND = \&PDL::whereND;
 
+=head2 whereND_both
+
+=for ref
+
+C<where_both> with support for ND masks and broadcasting
+
+This works like L</whichND_both>, but data-flowing slices
+rather than index-sets are returned.
+
+C<whereND_both> differs from C<where_both> in that the mask
+dimensionality is preserved which allows for
+proper broadcasting of the selection operation over
+higher dimensions.
+
+As with C<where_both> the output PDLs are still connected
+to the original data PDLs, for the purpose of dataflow.
+
+=for usage
+
+ ($match_vals, $non_match_vals) = whereND_both($pdl, $mask);
+
+=cut
+
+sub PDL::whereND_both :lvalue {
+  barf "Usage: whereND_both(\$pdl, \$mask)\n" if @_ != 2;
+  my ($arr, $mask) = @_;  # $mask has 0==false, 1==true
+  map $arr->indexND($_), PDL::whichND_both($mask);
+}
+*whereND_both = \&PDL::whereND_both;
 EOD
 
 pp_add_exported("", 'whichND whichND_both');
