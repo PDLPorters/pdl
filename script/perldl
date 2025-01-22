@@ -17,6 +17,7 @@ print "perlDL shell v$VERSION
 
 # Useful shell variables
 
+$PERLDL::DO_PRINT = 0; 		# Whether to print return value of expressions
 $PERLDL::ESCAPE = '#'; 		# Default shell escape
 $PERLDL::HISTFILESIZE = 500;    # Number of lines to keep in history
 $PERLDL::MULTI = 1;             # Enable multi-lines by default
@@ -365,6 +366,10 @@ sub x {
   print Data::Dumper::Dumper(@_);
 }
 
+sub do_print {
+  $PERLDL::DO_PRINT = $_[0];
+}
+
 sub page {
   $PERLDL::PAGE = (defined $_[0] ? $_[0] : 1);
 }
@@ -421,11 +426,12 @@ if ($PDL_OK) {
       eval << 'EOD'; # Fallback eval routine - proper one defined in PDL::Core
 
 sub eval_and_report {
-   my $__code = shift; # Can be code ref or string
-   my $__string;
-   $__string = (ref $__code eq "CODE") ? '&$__code()' : $__code;
-   eval $__string; # Use boring eval() which misses some errors
-   return $@;
+  my $__code = shift; # Can be code ref or string
+  my $__string;
+  $__string = (ref $__code eq "CODE") ? '&$__code()' : $__code;
+  my $retval = eval $__string; # Use boring eval() which misses some errors
+  print $retval if $PERLDL::DO_PRINT && !ref($__code) && $__code !~ /;\n?\z/;
+  $@;
 }
 EOD
 
@@ -442,8 +448,11 @@ if (-e 'local.perldlrc') {
 
 # Short hand for some stuff
 
-sub p { local $^W=0; print(@_); }  # suppress possible undefined var message 
-                                   # (dirty)
+sub p {
+  local $^W=0; # suppress possible undefined var message
+  print(@_);
+  ''; # in case do_print is on
+}
 
 use PDL::Demos;
 sub demo {
@@ -715,9 +724,13 @@ EOD
   %@ = (); # Workaround to prevent spurious loss of $@ in early (pre-5.14 anyway) versions of perl
 
   if( (!$@) and (ref $__coderef eq 'CODE')) { 
-      eval { my $sig_action = mksighandle(); &$__coderef(); die $@ if($@); };
+      eval {
+        my $sig_action = mksighandle();
+        my $retval = &$__coderef();
+        die $@ if $@;
+        print $retval if $PERLDL::DO_PRINT && !ref($__code) && $__code !~ /;\n?\z/;
+      };
   }
-
   if ($@) {
       my $mess = $@;
 
@@ -752,6 +765,11 @@ Use PDL interactively:
 
   pdl> with_time { print +($A->matmult($B))->info, "\n" } for 1..5;
   pdl> gv $A, 'output.png' # uses GraphViz2 to show connected transforms etc
+  pdl> 1+1 # no output
+  pdl> do_print 1 # or put this in your .perldlrc - as of 2.099
+  pdl> 1+1; # no output, like MATLAB
+  pdl> 1+1
+  2
 
 Run a script:
 

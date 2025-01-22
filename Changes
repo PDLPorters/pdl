@@ -26,6 +26,7 @@
 - remove CopyBadStatusCode key from PP (#517)
 - badflag now not propagated back to inputs if set on outputs (#517)
 - add new_around_pointer (#505) - thanks @chrisarg for idea
+- add do_print to perldl to match pdl2
 
 2.098 2025-01-03
 - fix Windows build problems
