@@ -3388,6 +3388,8 @@ C<$c_i>.
  [5 6 7 8 9]
  [0 1 2 3 4]
 
+See also L</whichND_both> for the n-dimensional version.
+
 =cut
 
 EOD
@@ -3727,7 +3729,7 @@ sub PDL::whereND :lvalue {
 
 EOD
 
-pp_add_exported("", 'whichND');
+pp_add_exported("", 'whichND whichND_both');
 pp_addpm(<<'EOD');
 =head2 whichND
 
@@ -3824,6 +3826,53 @@ sub PDL::whichND {
   return PDL->new_from_specification(indx,$ndims,0) if !$mask->nelem;
   return $mask ? pdl(indx,0) : PDL->new_from_specification(indx,0) if !$ndims;
   _one2nd($mask, $mask->flat->which->dummy(0,$ndims)->sever);
+}
+
+=head2 whichND_both
+
+=for ref
+
+Return the coordinates of non-zero values in a mask.
+
+=for usage
+
+Like L</which_both>, but returns the N-dimensional coordinates (like
+L</whichND>) of the nonzero, zero values in the mask PDL. The
+returned values arrive as an array-of-vectors suitable for use in
+L<indexND|PDL::Slices/indexND> or L<range|PDL::Slices/range>.
+Added in 2.099.
+
+ ($nonzero_coords, $zero_coords) = whichND_both($mask);
+
+SEE ALSO:
+
+L</which> finds coordinates of nonzero values in a 1-D mask.
+
+L</where> extracts values from a data PDL that are associated
+with nonzero values in a mask PDL.
+
+L<PDL::Slices/indexND> can be fed the coordinates to return the values.
+
+=for example
+
+ pdl> $s=sequence(10,10,3,4)
+ pdl> ($x, $y, $z, $w)=whichND($s == 203); p $x, $y, $z, $w
+ [3] [0] [2] [0]
+ pdl> print $s->at(list(cat($x,$y,$z,$w)))
+ 203
+
+=cut
+
+*whichND_both = \&PDL::whichND_both;
+sub PDL::whichND_both {
+  my $mask = PDL->topdl(shift);
+  return ((PDL->new_from_specification(indx,$mask->ndims,0))x2) if !$mask->nelem;
+  my $ndims = $mask->getndims;
+  if (!$ndims) {
+    my ($t, $f) = (pdl(indx,0), PDL->new_from_specification(indx,0));
+    return $mask ? ($t,$f) : ($f,$t);
+  }
+  map _one2nd($mask, $_->dummy(0,$ndims)->sever), $mask->flat->which_both;
 }
 EOD
 

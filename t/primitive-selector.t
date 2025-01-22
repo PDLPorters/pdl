@@ -106,6 +106,12 @@ subtest 'which' => sub {
     is_pdl $zero, pdl(indx, 3, 5), 'zero indices';
   };
 
+  subtest 'whichND_both' => sub {
+    my ( $nonzero, $zero ) = whichND_both(PDL::MatrixOps::identity(2));
+    is_pdl $nonzero, indx('0 0; 1 1'), 'nonzero indices';
+    is_pdl $zero, indx('1 0; 0 1'), 'zero indices';
+  };
+
   subtest 'whichover' => sub {
     my $a = pdl q[3 4 6 3 2 3 5 6 1 7];
     my $b = $a->uniq;
