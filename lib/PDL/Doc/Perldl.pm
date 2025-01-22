@@ -49,7 +49,6 @@ our @EXPORT = qw( apropos aproposover usage help sig badinfo whatis );
 use PDL::Doc;
 use Pod::Select;
 use Pod::PlainText;
-use Term::ReadKey; #for GetTerminalSize
 use Cwd; # to help Debian packaging
 
 $PDL::onlinedoc = PDL::Doc->new(FindStdFile());
@@ -73,8 +72,12 @@ sub FindStdFile {
 # to work (at least on my solaris and linux
 # machines)
 #
-sub screen_width() {
-    return ( ( GetTerminalSize(\*STDOUT) )[0] // 72);
+sub screen_width {
+  local $@;
+  eval {
+    require Term::ReadKey;
+    ( Term::ReadKey::GetTerminalSize(\*STDOUT) )[0];
+  } // 72;
 }
 
 sub printmatch {
