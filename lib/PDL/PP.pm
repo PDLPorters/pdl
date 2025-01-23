@@ -662,6 +662,7 @@ sub _pp_line_number_file {
 	confess "pp_line_numbers called with undef" if !defined $string;
 	# The line needs to be incremented by one for the bookkeeping to work
 	$line++;
+	$filename = 'lib/PDL/PP.pm' if $filename eq __FILE__;
 	$filename =~ s/\\/\\\\/g; # Escape backslashes
 	my @to_return = "\nPDL_LINENO_START $line \"$filename\"\n";
 	# Look for broadcastloops and loops and add # line directives
