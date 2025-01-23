@@ -1474,12 +1474,12 @@ EOF
 
    PDL::PP::Rule->new([qw(UsageDoc ParamDoc)],
      [qw(Name Doc? SignatureObj OtherParsDefaults? ArgOrder?
-       OverloadDocValues InplaceDocValues ParamDesc?
+       OverloadDocValues InplaceDocValues ParamDesc? Lvalue?
      )],
      'generate "usage" section of doc',
      sub {
        my ($name, $doc, $sig, $otherdefaults, $argorder,
-         $overloadvals, $inplacevals, $paramdesc,
+         $overloadvals, $inplacevals, $paramdesc, $lvalue,
        ) = @_;
        $otherdefaults ||= {};
        $paramdesc ||= {};
@@ -1538,6 +1538,15 @@ EOF
          ).";",
          [@{$_->[2]}]], grep @{$_->[0]}, @argsets;
        push @invocs, @$inplacevals;
+       if ($lvalue) {
+         my ($first_meth) = grep @{$_->[1]} == 1, @argsets;
+         push @invocs, [
+           "\$$first_meth->[0][0]->$name".(
+             @{$first_meth->[0]} <= 1 ? '' :
+             "(".join(", ", map "\$$_", @{$first_meth->[0]}[1..$#{$first_meth->[0]}]).")"
+           )." .= \$data;",
+           ['usable as lvalue']] if $first_meth;
+       }
        require List::Util;
        my $maxlen = List::Util::max(map length($_->[0]), @invocs);
        (join('', "\n=for usage\n\n",
