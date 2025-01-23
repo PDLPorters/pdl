@@ -54,6 +54,11 @@ is_pdl erfi(erf(0.5)), pdl(0.5), "erfi (both ways)";
   is_pdl pdl('-2i')->csqrt, pdl('1-i');
 }
 
+is_pdl cacosh(-1), pdl('3.141592i');
+is_pdl clog(-1), pdl('3.141592i');
+is_pdl cacos(-2), pdl('3.141592-1.316957i');
+is_pdl casin(-2), pdl('-1.570796+1.316957i');
+
 {   # csqrt_up
   my $pi=4*atan2(1,1);
   my $eiO = exp(i()*sequence(8)*$pi/4);

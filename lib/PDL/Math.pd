@@ -489,20 +489,25 @@ works with native-complex data.
  ($yr, $yi) = polyval($cr, $ci, $xr, $xi);
 ',);
 
-pp_def('csqrt',
-    GenericTypes => $AF,
-    Pars => 'i(); complex [o] o()',
-    Doc => <<'EOF',
-Take the complex square root of a number choosing that with
-non-negative real part, i.e., a square root with a branch cut
-'infinitesimally' below the negative real axis, the standard choice.
+sub cequiv {
+  my ($func, $ref) = @_;
+  pp_def("c$func",
+      GenericTypes => $AF,
+      Pars => 'i(); complex [o] o()',
+      Doc => <<EOF,
+=for ref\n
+Takes real or complex data, returns the complex C<$func>.\n
+Added in 2.099.
 EOF
-    Code => q{
-        $TFDEGCH(PDL_CFloat,PDL_CDouble,PDL_CLDouble,PDL_CFloat,PDL_CDouble,PDL_CLDouble) tmp=$i();
-        tmp=csqrt(tmp);
-        $o() = tmp;
-    },
-);
+      Code => pp_line_numbers(__LINE__, <<EOF),
+\$TFDEGCH(PDL_CFloat,PDL_CDouble,PDL_CLDouble,PDL_CFloat,PDL_CDouble,PDL_CLDouble) tmp = \$i();
+tmp = c$func(tmp);
+\$o() = tmp;
+EOF
+  );
+}
+
+cequiv($_) for qw(sqrt log acos asin acosh atanh);
 
 pp_def('csqrt_up',
     GenericTypes => $AF,
@@ -512,23 +517,16 @@ Take the complex square root of a number choosing that whose imaginary
 part is not negative, i.e., it is a square root with a branch cut
 'infinitesimally' below the positive real axis.
 EOF
-    Code => q{
-        $TFDEGCH(PDL_CFloat,PDL_CDouble,PDL_CLDouble,PDL_CFloat,PDL_CDouble,PDL_CLDouble) tmp=$i();
-        tmp=csqrt(tmp);
-        if(cimag(tmp)<0){
-             tmp = -tmp;
-        }
-        $o() = tmp;
-    },
+    Code => pp_line_numbers(__LINE__, <<'EOF'),
+        $TFDEGCH(PDL_CFloat,PDL_CDouble,PDL_CLDouble,PDL_CFloat,PDL_CDouble,PDL_CLDouble) tmp = $i();
+tmp = csqrt(tmp);
+if (cimag(tmp)<0)
+  tmp = -tmp;
+$o() = tmp;
+EOF
 );
 
 pp_addpm({At=>'Bot'},<<'EOD');
-
-=head1 BUGS
-
-Hasn't been tested on all platforms to ensure Cephes
-versions are picked up automatically and used correctly.
-
 =head1 AUTHOR
 
 Copyright (C) R.J.R. Williams 1997 (rjrw@ast.leeds.ac.uk), Karl Glazebrook

@@ -29,6 +29,7 @@
 - add do_print to perldl to match pdl2
 - add {which,where}ND_both - thanks @guillepo for inspiration
 - add Core::tocomplex (#527) - thanks @wlmb for suggestion
+- add Math::c{log,acos,asin,acosh,atanh} (#527) - thanks @wlmb for suggestion
 
 2.098 2025-01-03
 - fix Windows build problems
