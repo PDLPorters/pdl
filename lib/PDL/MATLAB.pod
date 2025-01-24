@@ -166,9 +166,10 @@ PDL Shell (perldl):
  12
  pdl>
 
-In L<pdl2|PDL::Perldl2> (a shell available on CPAN) there is the C<do_print> command that will toggle the "quiet"
-mode, which defaults to on. In "print" mode, expressions you enter on
-the command line will have their values printed.
+In L<perldl> there is the C<do_print> command that can turn on the "print"
+mode, which defaults to off. In "print" mode, expressions you enter on
+the command line will have their values printed. Just like MATLAB,
+if you end the command with C<;>, nothing will be printed.
 
 =back
 
