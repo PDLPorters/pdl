@@ -61,7 +61,7 @@ int n;
 double x;
 {
 double an, anm1, anm2, r;
-double y0(), y1(), log();
+double y0(double), y1(double), log(double);
 int k, sign;
 
 if( n < 0 )

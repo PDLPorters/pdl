@@ -1,3 +1,5 @@
+- fix Math function prototypes for GCC 15 (#528) - thanks @jplesnik for report
+
 2.099 2025-01-23
 - fix test that assumed acosh(0)->byte, i.e. nan()->byte, was always 0 (#514) - thanks @eserte for report
 - separate PDL::Type POD documentation
