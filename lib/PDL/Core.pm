@@ -733,7 +733,7 @@ NOTE: NOT a method! This is because get_datatype returns
  2
 
 
-=head2 get_dataref
+=head2 update_data_from
 
 =for ref
 
