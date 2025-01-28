@@ -81,7 +81,7 @@ Consider the following code:
 
 As of 2.090, C<$x> will I<not> have backward dataflow. This is because
 PDL turns that off, on detecting an input with forward-only dataflow. This
-means PDL will only created directed I<acyclic> graphs of dataflow.
+means PDL will only create directed I<acyclic> graphs of dataflow.
 It also means you can only modify the contents of C<$x> by modifying its
 "upstream" data sources.
 
@@ -274,11 +274,11 @@ In one-way flow context like the above, with:
 	pdl> $y = $x * 2;
 
 nothing will have been calculated at this point. Even the memory for
-the contents of $y has not been allocated. Only the command
+the contents of C<$y> has not been allocated. Only the command
 
 	pdl> print $y
 
-will actually cause $y to be calculated. This is important to bear
+will actually cause C<$y> to be calculated. This is important to bear
 in mind when doing performance measurements and benchmarks as well
 as when tracking errors.
 
@@ -329,9 +329,9 @@ are connectors between ndarrays (with C<*>):
          z*
 
 This is what PDL actually has in memory after the first three lines.
-When $x is changed, $w changes due to C<diagonal> being a two-way operation.
+When C<$x> is changed, C<$w> changes due to C<diagonal> being a two-way operation.
 
-If you want flow from $w, you opt in using C<< $w->flowing >> (as shown
+If you want flow from C<$w>, you opt in using C<< $w->flowing >> (as shown
 in this scenario). If you didn't, then don't enable it. If you have it
 but want to stop it, call C<< $ndarray->sever >>. That will destroy the
 ndarray's C<trans_parent> (here, a node marked with C<+>), and as you
