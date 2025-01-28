@@ -4,6 +4,8 @@ examples/Benchmark/Bench.pm
 examples/Benchmark/Bench.xs
 examples/Benchmark/Makefile.PL
 examples/Benchmark/README.md
+examples/Benchmark/tasks/matrix_multiplication.pl
+examples/Benchmark/tasks/README.md
 examples/Benchmark/time.pl
 examples/earth-interp.pl
 examples/earth.txt
