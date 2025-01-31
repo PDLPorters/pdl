@@ -13,6 +13,7 @@ is_pdl rvals(3,3,{centre=>[2,2]}), $x1->sqrt, "non-centered rvals";
 is_pdl rvals(3,3,{center=>[2,2]}), $x1->sqrt, "centre/center synonyms";
 is_pdl rvals(3,3,{ceNteR=>[2,2]}), $x1->sqrt, "ceNteR option capitalization";
 is_pdl rvals(3,3,{center=>[2,2],squared=>1}), $x1, "both center and squared options";
+is_pdl rvals(3,3,{center=>pdl(2,2)}), $x1->sqrt, "rvals with center as ndarray";
 
 is_pdl ndcoords(2,2), pdl('[0 0; 1 0] [0 1; 1 1]');
 is_pdl PDL::Basic::ndcoords(2,2), pdl('[0 0; 1 0] [0 1; 1 1]');
