@@ -37,12 +37,12 @@ our @EXPORT_OK = qw/ ndcoords rvals axisvals allaxisvals xvals yvals zvals sec i
 our %EXPORT_TAGS = (Func=>[@EXPORT_OK]);
 
 # Exportable functions
-*axisvals       = \&PDL::axisvals;		
-*allaxisvals       = \&PDL::allaxisvals;		
-*sec            = \&PDL::sec;		
-*ins            = \&PDL::ins;		
-*hist           = \&PDL::hist;		
-*whist           = \&PDL::whist;		
+*axisvals       = \&PDL::axisvals;
+*allaxisvals       = \&PDL::allaxisvals;
+*sec            = \&PDL::sec;
+*ins            = \&PDL::ins;
+*hist           = \&PDL::hist;
+*whist           = \&PDL::whist;
 *similar_assign = \&PDL::similar_assign;
 *transpose      = \&PDL::transpose;
 *xlinvals 	= \&PDL::xlinvals;
@@ -530,7 +530,7 @@ Fills an ndarray with radial distance values from some centre.
 
  Centre => [$x,$y,$z...] # Specify centre
  Center => [$x,$y.$z...] # synonym.
-
+ Center => $c            # as 1d array
  Squared => 1 # return distance squared (i.e., don't take the square root)
 
 =for example
@@ -551,6 +551,10 @@ size C<N> is given by C< int(N/2) > so that the midpoint always falls
 on an exact pixel point in the data.  For dimensions of even size,
 that means the midpoint is shifted by 1/2 pixel from the true center
 of that dimension.
+
+If C<Center> has less components than the number of dimensions of the
+array, its remaining components are computed as above. If it has more,
+a warning is issued.
 
 Also note that the calculation for C<rvals> for integer values
 does not promote the datatype so you will have wraparound when
@@ -588,9 +592,13 @@ sub PDL::rvals { # Return radial distance from given point and offset
 		       }, $opt ) : ();
     my $r = &PDL::Core::_construct;
     my @pos;
-    @pos = @{$opt{CENTRE}} if defined $opt{CENTRE};
+    if(defined $opt{CENTRE}){
+	my $pos = PDL->topdl($opt{CENTRE});
+	barf "Center should be a 1D vector" unless $pos->getndims==1;
+	barf "Center has more coordinates than dimensions of ndarray" if $pos->dim(0) > $r->getndims;
+	@pos = $pos->list;
+    }
     my $offset;
-
     $r .= 0.0;
     my $tmp = $r->copy;
     my $i;
