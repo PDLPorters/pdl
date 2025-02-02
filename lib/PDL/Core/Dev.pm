@@ -277,6 +277,7 @@ our %EXTRAS;
 sub pdlpp_eumm_update_deep {
   my ($eumm) = @_;
   my $pm = $eumm->{PM};
+  delete @$pm{grep /\Q$Config{obj_ext}\E$/, keys %$pm};
   my $macro = $eumm->{macro} ||= {};
   my $xsb = $eumm->{XSBUILD}{xs} ||= {};
   $eumm->{clean}{FILES} ||= '';
