@@ -182,12 +182,11 @@ with the C<help> function
 =cut
 
 sub aproposover {
-    die "Usage: aproposover \$funcname\n" unless $#_>-1;
+    die "Usage: aproposover \$funcname\n" if !@_;
     die "no online doc database" unless defined $PDL::onlinedoc;
     my $func = shift;
     $func =~ s:\/:\\\/:g;
     search_docs("m/$func/",['Name','Ref','Module'],1);
-
 }
 
 sub apropos  {
@@ -620,7 +619,7 @@ and the remaining commands listed, along with the names of their modules.
 =cut
 
 sub help {
-  if ($#_>-1) {
+  if (@_) {
       require PDL::Dbg;
       my $topic = shift;
       if (PDL::Core::blessed($topic) && $topic->can('px')) {
@@ -658,6 +657,7 @@ Quick start:
 
 EOH
   }
+  ''
 }
 
 =head2 badinfo
