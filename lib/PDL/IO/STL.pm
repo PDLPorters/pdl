@@ -175,7 +175,7 @@ sub _read_binary {
 
 =for ref
 
-Simple PDL FITS writer
+Simple PDL STL writer
 
 =for example
 
