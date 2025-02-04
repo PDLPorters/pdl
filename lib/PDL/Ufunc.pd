@@ -1045,7 +1045,7 @@ sub qsort_returnempty { 'if ($PDL(a)->nvals == 0) return PDL_err;' }
 pp_def('qsort',
     HandleBad => 1,
     Inplace => 1,
-    Pars => 'a(n); [o]b(n);',
+    Pars => '!complex a(n); !complex [o]b(n);',
     CHeader => 'PDL_TYPELIST_REAL(PDL_QSORT)',
     Code => PDL::PP::pp_line_numbers(__LINE__, '
 register PDL_Indx nn = PDL_IF_BAD(0,$SIZE(n));
@@ -1083,7 +1083,7 @@ Bad values are moved to the end of the array:
 
 pp_def('qsorti',
        HandleBad => 1,
-       Pars => 'a(n); indx [o]indx(n);',
+       Pars => '!complex a(n); indx [o]indx(n);',
        CHeader => $chdr_qsorti,
        Code => PDL::PP::pp_line_numbers(__LINE__, '
 register PDL_Indx nn = PDL_IF_BAD(0,$SIZE(n)-1), nb = $SIZE(n) - 1; (void)nb;
@@ -1120,7 +1120,7 @@ Quicksort a vector and return index of elements in ascending order.
 pp_def('qsortvec',
     HandleBad => 1,
     Inplace => 1,
-    Pars => 'a(n,m); [o]b(n,m);',
+    Pars => '!complex a(n,m); !complex [o]b(n,m);',
     CHeader => $chdr_qsortvec_def . $chdr_qsortvec,
     Code => '
 register PDL_Indx nn = PDL_IF_BAD(0,$SIZE(m)-1);
@@ -1195,7 +1195,7 @@ Vectors with bad components are moved to the end of the array:
 
 pp_def('qsortveci',
     HandleBad => 1,
-    Pars => 'a(n,m); indx [o]indx(m);',
+    Pars => '!complex a(n,m); indx [o]indx(m);',
     CHeader => $chdr_qsortvec_def . $chdr_qsortvec_ind,
     Code =>
 'register PDL_Indx nn = PDL_IF_BAD(0,$SIZE(m)-1);
