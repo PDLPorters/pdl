@@ -636,7 +636,11 @@ for my $op ( ['avg','average','average'],
 	     ['band','bandover','bitwise and'],
 	     ['or','orover','logical or'],
 	     ['bor','borover','bitwise or'],
+<<<<<<< HEAD
 	     ['xorall','orover','logical xor'],
+=======
+	     ['xorall','xorover','logical xor'],
+>>>>>>> 9d74b5b5 (add logical xor and tests)
 	     ['bxor','bxorover','bitwise xor'],
 	     ['min','minimum','minimum'],
 	     ['max','maximum','maximum'],
