@@ -148,10 +148,14 @@ EOF
     op => 'tmp &=  ($a() != 0);', leftzero => '!tmp' },
   orover => { def=>'char tmp', txt => 'logical or', alltypes => 1,
     op => 'tmp |= ($a() != 0);', leftzero => 'tmp' },
+  xorover => { def=>'char tmp', txt => 'logical xor', alltypes => 1,
+    op => 'tmp ^= ($a() != 0);', leftzero => 0 },
   bandover => { txt => 'bitwise and', init => '~0',
     op => 'tmp &= $a();', leftzero => '!tmp' },
   borover => { txt => 'bitwise or',
     op => 'tmp |= $a() ;', leftzero => '!~tmp' },
+  bxorover  => { txt => 'bitwise xor',
+    op => 'tmp ^= $a() ;', leftzero => 0 },
 );
 foreach my $func ( sort keys %over ) {
   my ($def,$txt,$init,$op,$leftzero) = @{$over{$func}}{qw(def txt init op leftzero)};
@@ -632,6 +636,8 @@ for my $op ( ['avg','average','average'],
 	     ['band','bandover','bitwise and'],
 	     ['or','orover','logical or'],
 	     ['bor','borover','bitwise or'],
+	     ['xorall','orover','logical xor'],
+	     ['bxor','bxorover','bitwise xor'],
 	     ['min','minimum','minimum'],
 	     ['max','maximum','maximum'],
 	     ['median', 'medover', 'median'],
