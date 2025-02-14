@@ -135,10 +135,10 @@ is_pdl $x, byte("1 2 BAD 4 5; BAD 1 2 3 BAD"), "inplace addition of slice flows 
 $x = byte->badvalue * ones(byte,3,2);
 is $x->type, 'byte', "datatype remains a byte";
 $x->badflag(1);
-is_pdl PDL::zcover($x), long("[BAD BAD]"), "zcover() okay";
+is_pdl PDL::zcover($x), byte("[BAD BAD]"), "zcover() okay";
 $x->set(1,1,1);
 $x->set(2,1,1);
-is_pdl PDL::zcover($x), long("[BAD 0]"), "  and still okay";
+is_pdl PDL::zcover($x), byte("[BAD 0]"), "  and still okay";
 
 # 255 is the default bad value for a byte array
 #

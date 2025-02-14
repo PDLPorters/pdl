@@ -140,32 +140,29 @@ EOF
 } # foreach: my $func
 
 %over = (
-     firstnonzeroover => { def=>'$GENERIC() tmp', txt => 'first non-zero value', init => '0', alltypes => 1,
-		   otype => '', op => 'tmp = $a();', leftzero => 'tmp' },
-     zcover   => { def=>'char tmp', txt => '== 0', init => 1, alltypes => 1,
-		   otype => 'int+', op => 'tmp &= ($a() == 0);', leftzero => '!tmp' },
-     andover  => { def=>'char tmp', txt => 'and', init => 1, alltypes => 1,
-		   otype => 'int+', op => 'tmp &=  ($a() != 0);', leftzero => '!tmp' },
-     bandover => { def=>'$GENERIC() tmp', txt => 'bitwise and', init => '~0',
-		   otype => '', op => 'tmp &= $a();', leftzero => '!tmp' },
-     orover   => { def=>'char tmp', txt => 'or', init => 0, alltypes => 1,
-		   otype => 'int+', op => 'tmp |= ($a() != 0);', leftzero => 'tmp' },
-     borover  => { def=>'$GENERIC() tmp', txt => 'bitwise or', init => 0,
-		   otype => '', op => 'tmp |= $a() ;', leftzero => '!~tmp' },
+  firstnonzeroover => { txt => 'first non-zero value', alltypes => 1,
+    op => 'tmp = $a();', leftzero => 'tmp' },
+  zcover => { def=>'char tmp', txt => '== 0', init => 1, alltypes => 1,
+    op => 'tmp &= ($a() == 0);', leftzero => '!tmp' },
+  andover => { def=>'char tmp', txt => 'logical and', init => 1, alltypes => 1,
+    op => 'tmp &=  ($a() != 0);', leftzero => '!tmp' },
+  orover => { def=>'char tmp', txt => 'logical or', alltypes => 1,
+    op => 'tmp |= ($a() != 0);', leftzero => 'tmp' },
+  bandover => { txt => 'bitwise and', init => '~0',
+    op => 'tmp &= $a();', leftzero => '!tmp' },
+  borover => { txt => 'bitwise or',
+    op => 'tmp |= $a() ;', leftzero => '!~tmp' },
 );
 foreach my $func ( sort keys %over ) {
-    my $def   = $over{$func}{def};
-    my $txt   = $over{$func}{txt};
-    my $init  = $over{$func}{init};
-    my $otype = $over{$func}{otype};
-    my $op    = $over{$func}{op};
-    my $leftzero = $over{$func}{leftzero};
-    pp_def(
-	   $func,
-	   HandleBad => 1,
-	   GenericTypes => $over{$func}{alltypes} ? [ppdefs_all] : $T,
-	   Pars => 'a(n); ' . $otype . ' [o]b();',
-           Code => pp_line_numbers(__LINE__, <<EOF),
+  my ($def,$txt,$init,$op,$leftzero) = @{$over{$func}}{qw(def txt init op leftzero)};
+  $def ||= '$GENERIC() tmp';
+  $init //= '0';
+  pp_def(
+    $func,
+    HandleBad => 1,
+    GenericTypes => $over{$func}{alltypes} ? [ppdefs_all] : $T,
+    Pars => 'a(n); [o] b()',
+    Code => pp_line_numbers(__LINE__, <<EOF),
 $def = $init;
 PDL_IF_BAD(int flag = 0;,)
 loop(n) %{
@@ -176,12 +173,12 @@ loop(n) %{
 PDL_IF_BAD(if (!flag) { \$SETBAD(b()); \$PDLSTATESETBAD(b); } else,)
 \$b() = tmp;
 EOF
-	   Doc => projectdocs( $txt, $func,''),
-       BadDoc =>
+    Doc => projectdocs( $txt, $func,''),
+    BadDoc =>
 'If C<a()> contains only bad data (and its bad flag is set),
 C<b()> is set bad. Otherwise C<b()> will have its bad flag cleared,
 as it will not contain any bad values.',
-	   );
+  );
 } # foreach: $func
 
 pp_def('numdiff',

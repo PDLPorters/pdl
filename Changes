@@ -1,6 +1,7 @@
 - fix Math function prototypes for GCC 15 (#528) - thanks @jplesnik for report
 - Basic::rvals to allow Centre as ndarray (#532) - thanks @wlmb
 - now an error to qsort{,vec} complex data
+- {and,or}over output type now same as input type (#533)
 
 2.099 2025-01-23
 - fix test that assumed acosh(0)->byte, i.e. nan()->byte, was always 0 (#514) - thanks @eserte for report
