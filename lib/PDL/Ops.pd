@@ -300,6 +300,11 @@ biop('and2','&',1,'bitwise I<and> of two ndarrays',GenericTypes => $T,
 biop('xor','^',1,'bitwise I<exclusive or> of two ndarrays',GenericTypes => $T,
       Bitwise => 1);
 
+pp_addpm(
+"=head2 xor2\n\n=for ref\n\nSynonym for L</xor>.\n\n=cut\n
+*PDL::xor2 = *xor2 = \\&PDL::xor;"
+    );
+
 ufunc('bitnot','~',1,'unary bitwise negation',GenericTypes => $T);
 
 # some standard binary functions

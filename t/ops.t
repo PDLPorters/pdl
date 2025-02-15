@@ -272,6 +272,8 @@ SKIP:
 
 is_pdl ~pdl(1,2,3), longlong('[-2 -3 -4]'), 'bitwise negation';
 is_pdl pdl(1,2,3) ^ pdl(4,5,6), longlong('[5 7 5]'), 'bitwise xor';
+is_pdl do {PDL::xor2(pdl(1,2,3), pdl(4,5,6), my $out = null, 0); $out},
+    longlong('[5 7 5]'), 'alias xor2';
 
 {
 my $startgood = sequence(10);

@@ -157,6 +157,18 @@ is( pdl([10,0,-4])->setvaltobad(0)->borover(), -2, "borover with BAD values");
 #AND: 1111 1000 = 248 if the accumulator in BadCode is an unsigned char
 is( pdl([-6,~0,-4])->setvaltobad(~0)->bandover(), -8, "bandover with BAD values");
 
+#     0000 0110
+#     1111 1110
+#XOR: 1111 1000 = -8
+is( longlong([6, 0, -2])->bxorover(), -8, "bxorover with no BAD values");
+
+is( longlong([6, 0, -2])->setvaltobad(0)->bxorover(), -8, "bxorover with BAD values");
+is( longlong([6, 0, -2])->bxor(), -8, "bxor");
+
+is( longlong([-1, 0, 2])->xorover(), 0, "xorover with no BAD values");
+is( longlong([-1, 0, 2])->setvaltobad(0)->xorover(), 0, "xorover with BAD values");
+is( longlong([-1, 0, 2])->xorall(), 0, "xorall");
+
 {
   # all calls to functions that handle finding minimum and maximum should return
   # the same values (i.e., BAD).  NOTE: The problem is that perl scalar values
