@@ -1872,6 +1872,22 @@ Implements overloading of Perl operators. Documented automatically.
 Added in PDL 2.099. Will overload in the current C<pp_bless> package,
 which defaults to C<PDL>.
 
+=head3 NoExport
+
+=over 4
+
+=item NoExport => 1
+
+=back
+
+A function that is defined by C<pp_def> will be automatically added
+to the module's export list.
+
+By specifying a C<true> value for C<NoExport> this behaviour can be
+suppressed.
+
+Added in PDL 2.xxx.
+
 =head3 ParamDesc
 
   # in Primitive.pd
