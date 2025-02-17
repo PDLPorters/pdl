@@ -31,7 +31,7 @@ jobs:
         shell: powershell
       - uses: actions/checkout@v4
       - name: Cache Cygwin
-        uses: actions/cache@v1
+        uses: actions/cache@v4
         with:
           path: |
             c:\tools\cygwin
@@ -53,7 +53,7 @@ jobs:
           gcc --version >> perlversion.txt
           ls perlversion.txt
       - name: Cache CPAN modules
-        uses: actions/cache@v1
+        uses: actions/cache@v4
         with:
           path: c:\cx
           key: ${{ runner.os }}-build-cygwin-${{ hashFiles('perlversion.txt') }}
