@@ -1507,7 +1507,7 @@ EOF
        } elsif ($argorder) {
          my @allouts = grep $any_out{$_} || $outca{$_}, @args;
          push @argsets, map [[ @inargs[0..$_] ], \@allouts, []],
-           ($#inargs-$noptional)..$#inargs;
+           ($#inargs-$noptional)..$#inargs-1;
          push @{$argsets[-1][2]}, 'all arguments given';
          unshift @{$argsets[0][2]}, "using default$plural$override" if $override;
        } else {
