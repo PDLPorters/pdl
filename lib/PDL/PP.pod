@@ -1867,8 +1867,12 @@ supplied. This can be overridden by supplying C<InplaceDoc>.
   Overload => '>',
   Overload => ['+', 1],    # mutator
   Overload => ['|', 1, 1], # bitwise
+  Overload => ['atan2', 0, 0, 1], # prefix
 
 Implements overloading of Perl operators. Documented automatically.
+A C<true> fourth element (added in PDL 2.xxx) affects the
+documentation only and signals a prefix operator on two operands.
+
 Added in PDL 2.099. Will overload in the current C<pp_bless> package,
 which defaults to C<PDL>.
 
