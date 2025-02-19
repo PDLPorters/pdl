@@ -1400,13 +1400,13 @@ $PDL::PP::deftbl =
        @args = grep !$inplace_involved{$_}, @args;
        my @vals = !$meth_call ? () : [
         "\$$in->inplace->$name".(
-           !@args ? '' : "(@{[join ',', map qq{\$$_}, @args]})"
+           !@args ? '' : "(@{[join ', ', map qq{\$$_}, @args]})"
          ).";", []
        ];
        my $op = defined($ovl) ? ref($ovl) ? $ovl->[0] : $ovl : '';
        my $prefix = $noexport && $op ne $name ? "$::PDLOBJ\::" : "";
        push @vals, [ "$prefix$name(\$$in->inplace".(
-           !@args ? '' : ",@{[join ',', map qq{\$$_}, @args]}"
+           !@args ? '' : ", @{[join ', ', map qq{\$$_}, @args]}"
          ).");", []];
        $vals[0][1] = ["can be used inplace"];
        \@vals;
