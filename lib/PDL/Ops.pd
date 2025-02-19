@@ -128,6 +128,7 @@ EOF
     }
 
     my $bitwise = delete $extra{Bitwise};
+	my $export = delete $extra{Export};
     pp_def($name,
 	   Pars => 'a(); b(); [o]c();',
 	   OtherPars => 'int $swap',
@@ -136,6 +137,7 @@ EOF
 	   NoBadifNaN => 1,
 	   Inplace => [ 'a' ],
 	   Overload => [$op, $mutator, $bitwise],
+	   NoExport => !$export,
 	   Code => pp_line_numbers(__LINE__, <<EOF),
 PDL_IF_BAD(char anybad = 0;,)
 broadcastloop %{
@@ -184,6 +186,8 @@ ENDCODE
       $codestr = '$c() = ($GENERIC(c))'.$func.'($a(),$b());';
     }
     delete $extra{unsigned}; #remove the key so it doesn't get added in pp_def.
+    my $export = delete $extra{Export};
+    my $noinfix = delete $extra{NoInfix};
 
     pp_def($name,
 	   HandleBad => 1,
@@ -192,7 +196,8 @@ ENDCODE
 	   OtherPars => 'int $swap',
 	   OtherParsDefaults => { swap => 0 },
 	   Inplace => [ 'a' ],
-	   Overload => [$funcov, $mutator],
+	   Overload => [$funcov, $mutator, undef, $noinfix],
+	   NoExport => !$export,
 	   Code => pp_line_numbers(__LINE__, <<EOF),
 PDL_IF_BAD(char anybad = 0;,)
 broadcastloop %{
@@ -232,6 +237,7 @@ sub ufunc {
             (map 'types('.$_->ppsym.') %{$b() = c'.$func.$_->floatsuffix.'($a());%}', @Ctypes),
             ;
     }
+	my $export = delete $extra{Export};
     # do not have to worry about propagation of the badflag when
     # inplace since only input ndarray is a, hence its badflag
     # won't change
@@ -242,6 +248,7 @@ sub ufunc {
 	   NoBadifNaN => 1,
 	   Inplace => 1,
 	   !$overload ? () : (Overload => $funcov),
+	   NoExport => !$export,
 	   Code => pp_line_numbers(__LINE__, <<EOF),
 PDL_IF_BAD(if ( \$ISBAD(a()) ) \$SETBAD(b()); else {,)
   $codestr
@@ -309,7 +316,7 @@ ufunc('bitnot','~',1,'unary bitwise negation',GenericTypes => $T);
 
 # some standard binary functions
 bifunc('power',['pow','op**'],1,'raise ndarray C<$a> to the power C<$b>',GenericTypes => [@$C, @$F]);
-bifunc('atan2','atan2',0,'elementwise C<atan2> of two ndarrays',GenericTypes => $F);
+bifunc('atan2','atan2',0,'elementwise C<atan2> of two ndarrays',GenericTypes => $F, NoInfix => 1);
 bifunc('modulo',['MOD','op%'],1,'elementwise C<modulo> operation',unsigned=>1);
 bifunc('spaceship',['SPACE','op<=>'],0,'elementwise "<=>" operation');
 
@@ -340,6 +347,7 @@ pp_def ( '_rabs',
 	HandleBad => 1,
 	NoBadifNaN => 1,
 	    Inplace => 1,
+	NoExport => 1,
 	Code => pp_line_numbers(__LINE__-1, qq{
 PDL_IF_BAD(if ( \$ISBAD(a()) ) \$SETBAD(b()); else,)
   $rabs_code
@@ -348,13 +356,14 @@ PDL_IF_BAD(if ( \$ISBAD(a()) ) \$SETBAD(b()); else,)
 	PMFunc=>'',
 );
 
-pp_export_nothing();
+# the following pp_def'ed functions will be exported
 
 # make log10() work on scalars (returning scalars)
 # as well as ndarrays
 ufunc('log10','log10',0,'the base 10 logarithm', GenericTypes => $A,
       Exception => '$a() <= 0',
       NoTgmath => 1, # glibc for at least GCC 8.3.0 won't tgmath log10 though 7.1.0 did
+      Export => 1,
       PMCode => <<'EOF',
 sub PDL::log10 {
     my ($x, $y) = @_;
@@ -390,12 +399,14 @@ PDL_IF_BAD(if (anybad) $PDLSTATESETBAD(b);,)
 sub cfunc {
     my ($name, $func, $make_real, $force_complex, $doc, $backcode, %extra) = @_;
     my $codestr = pp_line_numbers(__LINE__-1,"\$b() = $func(\$complexv());");
+    my $export = delete $extra{Export};
     pp_def($name,
 	   GenericTypes=>$C,
 	   Pars => ($force_complex ? '!real ' : '').'complexv(); '.($make_real ? 'real' : '').' [o]b()',
 	   HandleBad => 1,
 	   NoBadifNaN => 1,
 	   (($make_real || $force_complex) ? () : (Inplace => 1)),
+	   NoExport => !$export,
 	   Code => pp_line_numbers(__LINE__-1, qq{
 PDL_IF_BAD(if ( \$ISBAD(complexv()) ) \$SETBAD(b()); else,)
   $codestr
@@ -414,8 +425,8 @@ PDL_IF_BAD(if ( \$ISBAD(complexv()) ) \$SETBAD(b()); else,)
     );
 }
 
-cfunc('carg', 'carg', 1, 1, 'Returns the polar angle of a complex number.', undef);
-cfunc('conj', 'conj', 0, 0, 'complex conjugate.', undef);
+cfunc('carg', 'carg', 1, 1, 'Returns the polar angle of a complex number.', undef, Export => 1);
+cfunc('conj', 'conj', 0, 0, 'complex conjugate.', undef, Export => 1);
 
 pp_def('czip',
   Pars => '!complex r(); !complex i(); complex [o]c()',

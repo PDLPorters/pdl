@@ -864,7 +864,7 @@ sub pp_def {
 	}
 	PDL::PP->printxs($obj{NewXSCode});
 	pp_add_boot($obj{BootSetNewXS}) if $obj{BootSetNewXS};
-	PDL::PP->pp_add_exported($name);
+	PDL::PP->pp_add_exported($name) unless $obj{NoExport};
 	PDL::PP::_pp_addpm_nolineno("\n".$obj{PdlDoc}."\n") if $obj{PdlDoc};
 	PDL::PP::_pp_addpm_nolineno($obj{PMCode}) if defined $obj{PMCode};
 	PDL::PP::_pp_addpm_nolineno($obj{PMFunc}."\n") if defined $obj{PMFunc};
@@ -1390,21 +1390,23 @@ $PDL::PP::deftbl =
       }),
    PDL::PP::Rule::Returns::EmptyString->new("InplaceCode", []),
    PDL::PP::Rule->new("InplaceDocValues",
-     [qw(Name SignatureObj InplaceNormalised)],
+     [qw(Name SignatureObj InplaceNormalised Overload? NoExport?)],
      'doc describing usage inplace',
      sub {
-       my ($name, $sig, $inplace) = @_;
+       my ($name, $sig, $inplace, $ovl, $noexport) = @_;
        my @args = @{ $sig->args_callorder };
        my %inplace_involved = map +($_=>1), my ($in, $out) = @$inplace;
        my $meth_call = $args[0] eq $in;
        @args = grep !$inplace_involved{$_}, @args;
        my @vals = !$meth_call ? () : [
         "\$$in->inplace->$name".(
-           !@args ? '' : "(@{[join ',', map qq{\$$_}, @args]})"
+           !@args ? '' : "(@{[join ', ', map qq{\$$_}, @args]})"
          ).";", []
        ];
-       push @vals, [ "$name(\$$in->inplace".(
-           !@args ? '' : ",@{[join ',', map qq{\$$_}, @args]}"
+       my $op = defined($ovl) ? ref($ovl) ? $ovl->[0] : $ovl : '';
+       my $prefix = $noexport && $op ne $name ? "$::PDLOBJ\::" : "";
+       push @vals, [ "$prefix$name(\$$in->inplace".(
+           !@args ? '' : ", @{[join ', ', map qq{\$$_}, @args]}"
          ).");", []];
        $vals[0][1] = ["can be used inplace"];
        \@vals;
@@ -1418,7 +1420,7 @@ $PDL::PP::deftbl =
        my ($name, $sig, $ovl, $inplace) = @_;
        confess "$name Overload given false value" if !$ovl;
        $ovl = [$ovl] if !ref $ovl;
-       my ($op, $mutator, $bitwise) = @$ovl;
+       my ($op, $mutator, $bitwise, $noinfix) = @$ovl;
        confess "$name Overload trying to define mutator but no inplace"
          if $mutator && !$inplace;
        my $one_arg = $sig->names_in == 1;
@@ -1463,8 +1465,9 @@ EOF
        confess "$name error in Overload doc: !=1 output (@outs)" if @outs != 1;
        my @ins = $sig->names_in;
        my @vals = ["\$$outs[0] = ".(
-         !$one_arg ? "\$$ins[0] $op \$$ins[1]" :
-         $op.($op =~ /[^a-z]/ ? '' : ' ')."\$$ins[0]"
+         $one_arg ?  $op.($op =~ /[^a-z]/ ? '' : ' ')."\$$ins[0]" :
+         $noinfix ? "$op \$$ins[0], \$$ins[1]" :
+         "\$$ins[0] $op \$$ins[1]"
        ).";", 
        ["overloads the Perl '$op' operator"]
        ];
@@ -1475,12 +1478,12 @@ EOF
 
    PDL::PP::Rule->new([qw(UsageDoc ParamDoc)],
      [qw(Name Doc? SignatureObj OtherParsDefaults? ArgOrder?
-       OverloadDocValues InplaceDocValues ParamDesc? Lvalue?
+       OverloadDocValues InplaceDocValues ParamDesc? Lvalue? Overload? NoExport?
      )],
      'generate "usage" section of doc',
      sub {
        my ($name, $doc, $sig, $otherdefaults, $argorder,
-         $overloadvals, $inplacevals, $paramdesc, $lvalue,
+         $overloadvals, $inplacevals, $paramdesc, $lvalue, $ovl, $noexport,
        ) = @_;
        $otherdefaults ||= {};
        $paramdesc ||= {};
@@ -1504,7 +1507,7 @@ EOF
        } elsif ($argorder) {
          my @allouts = grep $any_out{$_} || $outca{$_}, @args;
          push @argsets, map [[ @inargs[0..$_] ], \@allouts, []],
-           ($#inargs-$noptional)..$#inargs;
+           ($#inargs-$noptional)..$#inargs-@allouts;
          push @{$argsets[-1][2]}, 'all arguments given';
          unshift @{$argsets[0][2]}, "using default$plural$override" if $override;
        } else {
@@ -1523,10 +1526,12 @@ EOF
          push @argsets, [\@args, [], ['all arguments given']];
        }
        my @invocs = @$overloadvals;
+       my $op = defined($ovl) ? ref($ovl) ? $ovl->[0] : $ovl : '';
+       my $prefix = $noexport && $op ne $name ? "$::PDLOBJ\::" : "";
        push @invocs, map [(!@{$_->[1]} ? '' :
            @{$_->[1]} == 1 ? "\$$_->[1][0] = " :
            "(".join(", ", map "\$$_", @{$_->[1]}).") = "
-         )."$name(".join(", ", map "\$$_", @{$_->[0]}).");",
+         )."$prefix$name(".join(", ", map "\$$_", @{$_->[0]}).");",
          [@{$_->[2]}]], @argsets;
        $argsets[0][2] = ['method call'];
        $argsets[$_][2] = [] for 1..$#argsets; # they get the idea
