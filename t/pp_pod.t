@@ -13,7 +13,9 @@ sub call_pp_def {
 # search and remove pattern in generated pod:
 sub find_usage {
     my ($obj, $str) = @_;
-    $obj->{UsageDoc} =~ s/^\s+\Q$str\E;.*?$//m;
+    my $res = $obj->{UsageDoc} =~ s/^\s+\Q$str\E;.*?(\n+|\z)//m;
+    diag "Not found '$str' in: ", $obj->{UsageDoc} if !$res;
+    $res;
 }
 
 # all checked?
@@ -106,6 +108,20 @@ subtest ab_c_oi => sub {
     ok find_usage($obj, '$a ?:= $b'), 'mutator';
     ok find_usage($obj, 'foo($a->inplace, $b)'), 'inplace function call';
     ok find_usage($obj, '$a->inplace->foo($b)'), 'inplace method call';
+    ok all_seen($obj, 'foo'), 'all seen';
+};
+
+subtest ab_c_o => sub {
+    my $obj = call_pp_def(foo =>
+        Pars => 'a(n); b(n); [o]c(n)',
+        Overload => ['rho'],
+    );
+
+    ok find_usage($obj, '$c = foo($a, $b)'), 'function';
+    ok find_usage($obj, 'foo($a, $b, $c)'), 'function, all args';
+    ok find_usage($obj, '$c = $a->foo($b)'), 'method';
+    ok find_usage($obj, '$a->foo($b, $c)'), 'method, all args';
+    ok find_usage($obj, '$c = rho $a, $b'), 'prefix biop';
     ok all_seen($obj, 'foo'), 'all seen';
 };
 

@@ -1463,9 +1463,11 @@ EOF
        my @outs = $sig->names_out;
        confess "$name error in Overload doc: !=1 output (@outs)" if @outs != 1;
        my @ins = $sig->names_in;
+       my $sp = $op !~ /^[a-z]/ ? '' : ' ';
        my @vals = ["\$$outs[0] = ".(
-         !$one_arg ? "\$$ins[0] $op \$$ins[1]" :
-         $op.($op =~ /[^a-z]/ ? '' : ' ')."\$$ins[0]"
+         $one_arg ? "$op$sp\$$ins[0]" :
+         $sp ? "$op \$$ins[0], \$$ins[1]" :
+         "\$$ins[0] $op \$$ins[1]"
        ).";", 
        ["overloads the Perl '$op' operator"]
        ];
