@@ -19,7 +19,9 @@ sub find_usage {
 # all checked?
 sub all_seen {
     my ($obj, $str) = @_;
-    $obj->{UsageDoc} !~ /^.*?\b$str\b.*?;.*$/m;
+    my $res = $obj->{UsageDoc} !~ /^.*?\b$str\b.*?;.*$/m;
+    diag "Still: ", $obj->{UsageDoc} if !$res;
+    $res;
 }
 
 pp_bless('Foo::Bar');
@@ -31,6 +33,22 @@ subtest a => sub {
 
     ok find_usage($obj, 'foo($a)'), 'function call';
     ok find_usage($obj, '$a->foo'), 'method call';
+    ok all_seen($obj, 'foo'), 'all seen';
+};
+
+subtest a_b_oi => sub {
+    my $obj = call_pp_def(foo =>
+        Pars => 'a(n); [o]b(n)',
+        Overload => ['foo', 1],
+        Inplace => ['a'],
+    );
+    ok find_usage($obj, '$b = foo $a'), 'operator';
+    ok find_usage($obj, '$b = foo($a)'), 'function call';
+    ok find_usage($obj, 'foo($a, $b)'), 'all args';
+    ok find_usage($obj, '$b = $a->foo'), 'method call';
+    ok find_usage($obj, '$a->foo($b)'), 'method, all args';
+    ok find_usage($obj, 'foo($a->inplace)'), 'function, inplace';
+    ok find_usage($obj, '$a->inplace->foo'), 'method, inplace';
     ok all_seen($obj, 'foo'), 'all seen';
 };
 

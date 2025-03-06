@@ -1469,7 +1469,7 @@ EOF
        ).";", 
        ["overloads the Perl '$op' operator"]
        ];
-       push @vals, ["\$$ins[0] $op= \$$ins[1];", []] if $mutator;
+       push @vals, ["\$$ins[0] $op= \$$ins[1];", []] if $mutator && !$one_arg;
        \@vals;
      }),
    PDL::PP::Rule::Returns->new("OverloadDocValues", []),
