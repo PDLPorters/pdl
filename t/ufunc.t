@@ -313,4 +313,14 @@ subtest firstnonzeroover => sub {
   is_pdl $a->firstnonzeroover, pdl(3, 5), "firstnonzeroover";
 };
 
+# Some (!) of these fail when exported:
+subtest core_functions => sub {
+  ok approx(sin(1), &CORE::sin(1)), 'sin 1';    # !
+  ok approx(cos(1), &CORE::cos(1)), 'cos 1';    # !
+  ok approx(sqrt(2), &CORE::sqrt(2)), 'sqrt 2'; # !
+  ok approx(exp(1), &CORE::exp(1)), 'exp 1';
+  ok approx(log(2), &CORE::log(2)), 'log 2';
+  ok approx(atan2(1, 1), &CORE::atan2(1, 1)), 'atan2 1, 1';
+};
+
 done_testing;
