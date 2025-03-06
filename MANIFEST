@@ -229,6 +229,7 @@ t/picnorgb.t
 t/picrgb.t
 t/pp_croaking.t
 t/pp_line_numbers.t
+t/pp_pod.t
 t/ppt-01_ref_counting.t
 t/ppt-02_non_threaded.t
 t/ppt-03_name_munging.t

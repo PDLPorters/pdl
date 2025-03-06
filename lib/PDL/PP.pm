@@ -870,6 +870,7 @@ sub pp_def {
 	PDL::PP::_pp_addpm_nolineno($obj{PMFunc}."\n") if defined $obj{PMFunc};
 
 	print "*** Leaving pp_def for $name\n" if $::PP_VERBOSE;
+    \%obj;
 }
 
 # marks this module as deprecated. This handles the user warnings, and adds a
