@@ -118,6 +118,8 @@ is_pdl $got, $coeffs->re, 'polyfromroots legacy with explicit output args';
 is_pdl polyfromroots(cdouble($roots)), $coeffs, 'polyfromroots natcom no outargs';
 polyfromroots cdouble($roots), $got=null;
 is_pdl $got, $coeffs, 'polyfromroots natcom explicit outargs';
+eval {pdl("[2 1 0 1]")->r2C->polyroots};
+is $@, '', 'polyroots no crash on [2 1 0 1]';
 
 my ($coeffs2, $x, $exp_val) = (cdouble(3,2,1), cdouble(5,7,9), cdouble(86,162,262));
 is_pdl polyval($coeffs2, $x), $exp_val, 'polyval natcom no output';

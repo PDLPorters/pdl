@@ -330,11 +330,11 @@ static complex double noshft(int l1, int nn, complex double tc, complex double h
 {
   /*  Computes the derivative polynomial as the initial h
       polynomial and computes l1 no-shift h polynomials. */
-  int i,jj,n = nn-1,nm1 = n-1,nm2=nm1-1;
+  int i,jj,n = nn-1,nm1 = n-1;
   for (i=0;i<n;i++)
     hc[i] = (n-i)*pc[i] / n;
   for (jj=0;jj<l1;jj++) {
-    if (cmod(hc[nm2]) > eta*10.0*cmod(pc[nm2])) {
+    if (cmod(hc[nm1]) > eta*10.0*cmod(pc[nm1])) {
       tc = cdivid(-pc[n], hc[nm1]);
       if (isnan(creal(tc)) || isnan(cimag(tc)))
         return tc; /* error, stop now */
