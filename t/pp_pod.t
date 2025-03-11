@@ -91,6 +91,24 @@ subtest ab_c_o => sub {
     ok all_seen($obj, 'foo'), 'all seen';
 };
 
+subtest ab_c_oi => sub {
+    my $obj = call_pp_def(foo =>
+        Pars => 'a(n); b(n); [o]c(n)',
+        Overload => ['?:', 1],
+        Inplace => ['a'],
+    );
+
+    ok find_usage($obj, '$c = $a ?: $b'), 'biop';
+    ok find_usage($obj, '$c = foo($a, $b)'), 'function';
+    ok find_usage($obj, 'foo($a, $b, $c)'), 'function, all args';
+    ok find_usage($obj, '$c = $a->foo($b)'), 'method';
+    ok find_usage($obj, '$a->foo($b, $c)'), 'method, all args';
+    ok find_usage($obj, '$a ?:= $b'), 'mutator';
+    ok find_usage($obj, 'foo($a->inplace, $b)'), 'inplace function call';
+    ok find_usage($obj, '$a->inplace->foo($b)'), 'inplace method call';
+    ok all_seen($obj, 'foo'), 'all seen';
+};
+
 subtest a_bc => sub {
     my $obj = call_pp_def(foo =>
         Pars => 'a(n); [o]b(n); [o]c(n)',

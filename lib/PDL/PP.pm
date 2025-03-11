@@ -1401,11 +1401,11 @@ $PDL::PP::deftbl =
        @args = grep !$inplace_involved{$_}, @args;
        my @vals = !$meth_call ? () : [
         "\$$in->inplace->$name".(
-           !@args ? '' : "(@{[join ',', map qq{\$$_}, @args]})"
+           !@args ? '' : "(@{[join ', ', map qq{\$$_}, @args]})"
          ).";", []
        ];
        push @vals, [ "$name(\$$in->inplace".(
-           !@args ? '' : ",@{[join ',', map qq{\$$_}, @args]}"
+           !@args ? '' : ", @{[join ', ', map qq{\$$_}, @args]}"
          ).");", []];
        $vals[0][1] = ["can be used inplace"];
        \@vals;
