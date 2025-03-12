@@ -121,4 +121,57 @@ subtest a_bc => sub {
     ok all_seen($obj, 'foo'), 'all seen';
 };
 
+subtest ab_k_c => sub {
+    my $obj = call_pp_def(foo =>
+        Pars => 'a(n); b(n); [o]c(n)',
+        OtherPars => 'int k',
+        ArgOrder => [qw(a b k c)],
+    );
+
+    ok find_usage($obj, 'foo($a, $b, $k, $c)'), 'OtherPars, ArgOrder, function call, all args';
+    ok find_usage($obj, '$c = $a->foo($b, $k)'), 'OtherPars, ArgOrder, method call';
+    ok find_usage($obj, '$a->foo($b, $k, $c)'), 'OtherPars, ArgOrder, method call, all args';
+    ok find_usage($obj, '$c = foo($a, $b, $k)'), 'OtherPars, ArgOrder, function call';
+    ok all_seen($obj, 'foo'), 'all seen';
+};
+
+subtest ab_c_k => sub {
+    my $obj = call_pp_def(foo =>
+        Pars => 'a(n); b(n); [o]c(n)',
+        OtherPars => 'int k',
+    );
+    ok find_usage($obj, 'foo($a, $b, $c, $k)'), 'OtherPars, function call, all args';
+    ok find_usage($obj, '$c = $a->foo($b, $k)'), 'OtherPars, method call';
+    ok find_usage($obj, '$a->foo($b, $c, $k)'), 'OtherPars, method call, all args';
+    ok find_usage($obj, '$c = foo($a, $b, $k)'), 'OtherPars, function call';
+    ok all_seen($obj, 'foo'), 'all seen';
+};
+
+subtest ab_k_cd => sub {
+    my $obj = call_pp_def(foo =>
+        Pars => 'a(n); b(n); [o]c(n); [o]d(n)',
+        OtherPars => 'int k',
+        ArgOrder => [qw(a b k c d)],
+    );
+
+    ok find_usage($obj, 'foo($a, $b, $k, $c, $d)'), 'Multi-out, OtherPars, ArgOrder, function call, all args';
+    ok find_usage($obj, '($c, $d) = $a->foo($b, $k)'), 'Multi-out, OtherPars, ArgOrder, method call';
+    ok find_usage($obj, '$a->foo($b, $k, $c, $d)'), 'Multi-out, OtherPars, ArgOrder, method call, all args';
+    ok find_usage($obj, '($c, $d) = foo($a, $b, $k)'), 'Multi-out, OtherPars, ArgOrder, function call';
+    ok all_seen($obj, 'foo'), 'all seen';
+};
+
+subtest ab_cd_k => sub {
+    my $obj = call_pp_def(foo =>
+        Pars => 'a(n); b(n); [o]c(n); [o]d(n)',
+        OtherPars => 'int k',
+    );
+
+    ok find_usage($obj, 'foo($a, $b, $c, $d, $k)'), 'Multi-out, OtherPars, function call, all args';
+    ok find_usage($obj, '($c, $d) = $a->foo($b, $k)'), 'Multi-out, OtherPars, method call';
+    ok find_usage($obj, '$a->foo($b, $c, $d, $k)'), 'Multi-out, OtherPars, method call, all args';
+    ok find_usage($obj, '($c, $d) = foo($a, $b, $k)'), 'Multi-out, OtherPars, function call';
+    ok all_seen($obj, 'foo'), 'all seen';
+};
+
 done_testing;
