@@ -283,4 +283,47 @@ is_pdl $startgood, pdl('0 1 2 BAD 4 5 6 7 8 9'), 'now badflag true';
 
 is_deeply [(zeroes(1,1,0) & zeroes(1,1,0))->dims], [1,1,0]; # used to segfault
 
+{
+no warnings 'once';
+is *::plus{CODE}, undef, 'plus not exported';
+is *::mult{CODE}, undef, 'mult not exported';
+is *::minus{CODE}, undef, 'minus not exported';
+is *::divide{CODE}, undef, 'divide not exported';
+is *::gt{CODE}, undef, 'gt not exported';
+is *::lt{CODE}, undef, 'lt not exported';
+is *::le{CODE}, undef, 'le not exported';
+is *::ge{CODE}, undef, 'ge not exported';
+is *::eq{CODE}, undef, 'eq not exported';
+is *::ne{CODE}, undef, 'ne not exported';
+is *::shiftleft{CODE}, undef, 'shiftleft not exported';
+is *::shiftright{CODE}, undef, 'shiftright not exported';
+is *::or2{CODE}, undef, 'or2 not exported';
+is *::and2{CODE}, undef, 'and2 not exported';
+is *::xor{CODE}, undef, 'xor not exported';
+is *::bitnot{CODE}, undef, 'bitnot not exported';
+is *::power{CODE}, undef, 'power not exported';
+is *::atan2{CODE}, undef, 'atan2 not exported';
+is *::modulo{CODE}, undef, 'modulo not exported';
+is *::spaceship{CODE}, undef, 'spaceship not exported';
+is *::sqrt{CODE}, undef, 'sqrt not exported';
+is *::sin{CODE}, undef, 'sin not exported';
+is *::cos{CODE}, undef, 'cos not exported';
+is *::not{CODE}, undef, 'not not exported';
+is *::exp{CODE}, undef, 'exp not exported';
+is *::log{CODE}, undef, 'log not exported';
+ok defined(*::log10{CODE}), 'log10 exported';
+is *::_rabs{CODE}, undef, '_rabs not exported';
+ok defined(*::assgn{CODE}), 'assgn exported';
+ok defined(*::carg{CODE}), 'carg exported';
+ok defined(*::conj{CODE}), 'conj exported';
+is *::re{CODE}, undef, 're not exported';
+is *::im{CODE}, undef, 'im not exported';
+is *::_cabs{CODE}, undef, '_cabs not exported';
+ok defined(*::czip{CODE}), 'czip exported';
+ok defined(*::ipow{CODE}), 'ipow exported';
+ok defined(*::abs2{CODE}), 'abs2 exported';
+ok defined(*::r2C{CODE}), 'r2C exported';
+ok defined(*::i2C{CODE}), 'i2C exported';
+}
+
 done_testing;
