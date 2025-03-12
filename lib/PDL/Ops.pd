@@ -136,6 +136,7 @@ EOF
 	   NoBadifNaN => 1,
 	   Inplace => [ 'a' ],
 	   Overload => [$op, $mutator, $bitwise],
+	   NoExport => 1,
 	   Code => pp_line_numbers(__LINE__, <<EOF),
 PDL_IF_BAD(char anybad = 0;,)
 broadcastloop %{
@@ -193,6 +194,7 @@ ENDCODE
 	   OtherParsDefaults => { swap => 0 },
 	   Inplace => [ 'a' ],
 	   Overload => [$funcov, $mutator],
+	   NoExport => 1,
 	   Code => pp_line_numbers(__LINE__, <<EOF),
 PDL_IF_BAD(char anybad = 0;,)
 broadcastloop %{
@@ -242,6 +244,7 @@ sub ufunc {
 	   NoBadifNaN => 1,
 	   Inplace => 1,
 	   !$overload ? () : (Overload => $funcov),
+	   NoExport => 1,
 	   Code => pp_line_numbers(__LINE__, <<EOF),
 PDL_IF_BAD(if ( \$ISBAD(a()) ) \$SETBAD(b()); else {,)
   $codestr
@@ -305,8 +308,6 @@ pp_addpm(
 *PDL::xor2 = *xor2 = \\&PDL::xor;"
     );
 
-ufunc('bitnot','~',1,'unary bitwise negation',GenericTypes => $T);
-
 # some standard binary functions
 bifunc('power',['pow','op**'],1,'raise ndarray C<$a> to the power C<$b>',GenericTypes => [@$C, @$F]);
 bifunc('atan2','atan2',0,'elementwise C<atan2> of two ndarrays',GenericTypes => $F);
@@ -314,6 +315,7 @@ bifunc('modulo',['MOD','op%'],1,'elementwise C<modulo> operation',unsigned=>1);
 bifunc('spaceship',['SPACE','op<=>'],0,'elementwise "<=>" operation');
 
 # some standard unary functions
+ufunc('bitnot','~',1,'unary bitwise negation',GenericTypes => $T);
 ufunc('sqrt','sqrt',1,'elementwise square root', GenericTypes => $A); # Exception => '$a() < 0');
 ufunc('sin','sin',1,'the sin function', GenericTypes => $A);
 ufunc('cos','cos',1,'the cos function', GenericTypes => $A);
@@ -340,6 +342,7 @@ pp_def ( '_rabs',
 	HandleBad => 1,
 	NoBadifNaN => 1,
 	    Inplace => 1,
+	NoExport => 1,
 	Code => pp_line_numbers(__LINE__-1, qq{
 PDL_IF_BAD(if ( \$ISBAD(a()) ) \$SETBAD(b()); else,)
   $rabs_code
@@ -348,13 +351,12 @@ PDL_IF_BAD(if ( \$ISBAD(a()) ) \$SETBAD(b()); else,)
 	PMFunc=>'',
 );
 
-pp_export_nothing();
-
 # make log10() work on scalars (returning scalars)
 # as well as ndarrays
 ufunc('log10','log10',0,'the base 10 logarithm', GenericTypes => $A,
       Exception => '$a() <= 0',
       NoTgmath => 1, # glibc for at least GCC 8.3.0 won't tgmath log10 though 7.1.0 did
+      NoExport => 0,
       PMCode => <<'EOF',
 sub PDL::log10 {
     my ($x, $y) = @_;
@@ -396,6 +398,7 @@ sub cfunc {
 	   HandleBad => 1,
 	   NoBadifNaN => 1,
 	   (($make_real || $force_complex) ? () : (Inplace => 1)),
+	   NoExport => 1,
 	   Code => pp_line_numbers(__LINE__-1, qq{
 PDL_IF_BAD(if ( \$ISBAD(complexv()) ) \$SETBAD(b()); else,)
   $codestr
@@ -414,8 +417,8 @@ PDL_IF_BAD(if ( \$ISBAD(complexv()) ) \$SETBAD(b()); else,)
     );
 }
 
-cfunc('carg', 'carg', 1, 1, 'Returns the polar angle of a complex number.', undef);
-cfunc('conj', 'conj', 0, 0, 'complex conjugate.', undef);
+cfunc('carg', 'carg', 1, 1, 'Returns the polar angle of a complex number.', undef, NoExport => 0);
+cfunc('conj', 'conj', 0, 0, 'complex conjugate.', undef, NoExport => 0);
 
 pp_def('czip',
   Pars => '!complex r(); !complex i(); complex [o]c()',
