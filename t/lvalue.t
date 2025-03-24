@@ -10,6 +10,7 @@ my @lv_subs = map [$_], qw(
   dice flat indexND indexNDb broadcast nslice_if_pdl px range reorder reshape
   sever slice indexNDb mslice
 );
+push @lv_subs, map [$_, zeroes(indx,2,0)], qw(indexND);
 push @lv_subs, map [$_, 1], qw(clump dummy index unbroadcast);
 push @lv_subs, map [$_, pdl 1], qw(where whereND);
 push @lv_subs, map [$_, 0, 1], qw(diagonal);

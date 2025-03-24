@@ -872,7 +872,7 @@ BOOT:
   /* modified from https://www.perlmonks.org/?node_id=849145 */
   char *package = "PDL";
   HV* stash = gv_stashpvn(package, strlen(package), TRUE);
-  char *meths[] = { "sever", NULL }, **methsptr = meths;
+  char *meths[] = { "sever", "new_from_specification", NULL }, **methsptr = meths;
   for (; *methsptr; methsptr++) {
     SV **meth = hv_fetch(stash, *methsptr, strlen(*methsptr), 0);
     if (!meth) croak("No found method '%s' in '%s'", *methsptr, package);

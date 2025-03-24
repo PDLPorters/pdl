@@ -4,6 +4,7 @@
 - {and,or}over output type now same as input type (#533)
 - add Ufunc::{b,}xorover (#533) - thanks @jo-37
 - fix Math::polyroots crashing on [2 1 0 1] (#536) - thanks @pipatron for report
+- fix Slices::indexND with an empty used as an lvalue (#535) - thanks @yelnats for report
 
 2.099 2025-01-23
 - fix test that assumed acosh(0)->byte, i.e. nan()->byte, was always 0 (#514) - thanks @eserte for report
