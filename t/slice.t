@@ -175,6 +175,8 @@ eval { $x = $source->indexND( $index ) };
 is $@, '';
 is_pdl $x, pdl([23,45],[67,89]);
 
+is_pdl $source->indexND(zeroes(indx,2,0)), zeroes(0), 'indexND with empty returns right shape';
+
 # Broadcast indexND operation
 $source = 100*xvals(10,10,2)+10*yvals(10,10,2)+zvals(10,10,2);
 $index  = pdl([[2,3],[4,5]],[[6,7],[8,9]]);
@@ -186,7 +188,7 @@ is_pdl $x, pdl([[230,450],[670,890]],[[231,451],[671,891]]);
 $source = 10*xvals(10,10) + yvals(10,10);
 my $source3 = 10*xvals(3,3) + yvals(3,3);
 $index = pdl([[2,3],[4,5]],[[6,7],[8,9]]);
-my $mt = which(pdl(0));
+my $mt = zeroes(indx,0);
 my $dex = pdl(5,4,3);
 for (
   [$source, [$index], [2,2], pdl([23,45],[67,89]), "simple"],

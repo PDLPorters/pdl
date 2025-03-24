@@ -284,25 +284,27 @@ sub PDL::range :lvalue {
   my $index = (ref $ind && UNIVERSAL::isa($ind,'PDL') && $ind->type eq 'indx') ? $ind : indx($ind);
   my $size = defined($sz) ? PDL->pdl($sz) : undef;
   # Handle empty PDL case: return a properly constructed Empty.
-  if($index->isempty) {
-      my @sdims= $source->dims;
-      splice(@sdims, 0, $index->dim(0) + ($index->dim(0)==0)); # added term is to treat Empty[0] like a single empty coordinate
-      unshift(@sdims, $size->list) if(defined($size));
-      return PDL->new_from_specification(0 x ($index->ndims-1), @sdims);
+  if ($index->isempty) {
+      my @sdims = $source->dims;
+      splice @sdims, 0, $index->dim(0) + ($index->dim(0)==0); # added term is to treat Empty[0] like a single empty coordinate
+      unshift @sdims, $size->list if defined $size;
+      my @index_dims = ((0) x ($index->ndims-1));
+      @index_dims = 0 if !@index_dims; # always at least one 0
+      return PDL->new_from_specification(@index_dims, @sdims);
   }
   $index = $index->dummy(0,1) unless $index->ndims;
   # Pack boundary string if necessary
-  if(defined $bound) {
-    if(ref $bound eq 'ARRAY') {
+  if (defined $bound) {
+    if (ref $bound eq 'ARRAY') {
       my ($s,$el);
-      foreach $el(@$bound) {
+      foreach $el (@$bound) {
         barf "Illegal boundary value '$el' in range"
-          unless( $el =~ m/^([0123fFtTeEpPmM])/ );
+          unless $el =~ m/^([0123fFtTeEpPmM])/;
         $s .= $1;
       }
       $bound = $s;
     }
-    elsif($bound !~ m/^[0123ftepx]+$/  && $bound =~ m/^([0123ftepx])/i ) {
+    elsif ($bound !~ m/^[0123ftepx]+$/  && $bound =~ m/^([0123ftepx])/i) {
       $bound = $1;
     }
   }
