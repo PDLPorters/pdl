@@ -338,7 +338,7 @@ This was mentioned earlier.  Before you begin reading about L<PDL::PP>
 (next), you should remind yourself about how to use this.
 L<Inline::Pdlpp> will help you experiment with L<PDL::PP> without having
 to go through the trouble of building a module and constructing
-makefiles (but see L<PDL::pptemplate> for help on that).
+makefiles (but see L<pptemplate> for help on that).
 
 =item * L<PDL::PP>
 
