@@ -42,9 +42,13 @@ but the modules using this method are very hard to make installable.
 
 =item Write a Makefile.PL to compile in advance
 
-The section L</"MAKEFILES FOR PP FILES"> gives an example how to add
-directives to your F<Makefile.PL> so that your C code will be compiled
-when you build your module.
+The script L<pptemplate> can create a directory structure for a module
+containing a .pd file, including a F<Makefile.PL>.  This is
+recommended for new PDL::PP modules.
+
+For more details about this method, the section L</"MAKEFILES FOR PP
+FILES"> gives an example how to add directives to your F<Makefile.PL>
+so that your C code will be compiled when you build your module.
 
 =back
 
