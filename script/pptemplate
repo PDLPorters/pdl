@@ -1,4 +1,4 @@
-#!/usr/bin/env perl
+#!perl
 
 use strict;
 use warnings;
@@ -131,16 +131,12 @@ END_OF_MANIFEST
 
 sub pdManifest_skip {
   my ($pdname,$dir) = @_;
-  my $pd_dir = dirname $pdname;
-  my $pm_name = $pdname =~ s/\.pd$/.pm/r;
+  my $pd_dir    = dirname $pdname;
+  my $bare_name = $pdname =~ s/\.pd$//r;
   return <<"SKIP_PROJECT" . <<'SKIP_GENERAL';
 # This project's temporary files
-$pm_name
-$pd_dir/.*-pp-.*
-$pd_dir/.*\\.bs\$
-$pd_dir/.*\\.c\$
-$pd_dir/.*\\.o\$
-$pd_dir/.*\\.xs\$
+^$bare_name(\\.(pm|xs|c)|-pp-)
+$pd_dir/.*\\.(bs|o)\$
 $dir-.*\\.tar\\.gz
 SKIP_PROJECT
 
