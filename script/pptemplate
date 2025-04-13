@@ -1,4 +1,4 @@
-#!perl -w
+#!perl
 
 use strict;
 use warnings;
@@ -90,13 +90,13 @@ WriteMakefile(
   MIN_PERL_VERSION => '5.016',
   LICENSE=> 'perl',
   PREREQ_PM => {
-    'PDL::Basic'  => '2.096', # deep mode
+    'PDL'  => '2.096', # deep mode
   },
   CONFIGURE_REQUIRES => {
-    'PDL::Basic'  => '2.096',
+    'PDL'  => '2.096',
   },
   BUILD_REQUIRES => {
-    'PDL::Basic'  => '2.096',
+    'PDL'  => '2.096',
   },
   TEST_REQUIRES => {
     'Test::More' => '0.88', # done_testing
@@ -117,6 +117,76 @@ sub postamble { ::pdlpp_postamble(\@pd_srcs) }
 EOM
 }
 
+sub pdManifest {
+  my ($pdname) = @_;
+  my $pd_dir = dirname $pdname;
+  return <<"END_OF_MANIFEST";
+$pdname
+Makefile.PL
+MANIFEST
+MANIFEST.SKIP
+t/basic.t
+END_OF_MANIFEST
+}
+
+sub pdManifest_skip {
+  my ($pdname,$dir) = @_;
+  my $pd_dir    = dirname $pdname;
+  my $bare_name = $pdname =~ s/\.pd$//r;
+  return <<"SKIP_PROJECT" . <<'SKIP_GENERAL';
+# This project's temporary files
+^$bare_name(\\.(pm|xs|c)|-pp-)
+$pd_dir/.*\\.(bs|o)\$
+$dir-.*\\.tar\\.gz
+SKIP_PROJECT
+
+# Version control
+^.git
+
+# Avoid Makemaker generated and utility files
+^Makefile$
+\bMANIFEST\.bak
+\bblib/
+\bMakeMaker-\d
+\bpm_to_blib\.ts$
+\bpm_to_blib$
+\bblibdirs\.ts$         # 6.18 through 6.25 generated this
+^MYMETA
+
+# Avoid temp and backup files.
+~$
+\.old$
+\#$
+\b\.#
+\.bak$
+\.swp$
+SKIP_GENERAL
+}
+
+sub pdGitignore {
+  my ($pdname,$dir) = @_;
+  my $base_name = $pdname =~ s/\.pd$//r;
+  return <<"GIT_PROJECT" . <<'GIT_GENERAL';
+# This project's temporary files
+$base_name.pm
+*-pp-*.c
+$base_name.bs
+$base_name.c
+$base_name.o
+$base_name.xs
+$dir-*.tar.gz
+GIT_PROJECT
+
+# ExtUtil::MakeMaker temporary files
+/blib
+/Makefile
+/MANIFEST.bak
+/Makefile.old
+/MYMETA.*
+/pm_to_blib
+GIT_GENERAL
+}
+
 sub usage {
   require File::Basename;
   die "usage: @{[File::Basename::basename $0]} modulename\n";
@@ -130,6 +200,7 @@ die "$dir already exists; move out of the way if you want to proceed"
 mkdir $dir or die "$dir: $!";
 chdir $dir or die "$dir: $!";
 
+print "Setting up a template for '$module' in '$dir'\n";
 my $pd_dir = dirname $pdname;
 make_path $pd_dir; die "$pd_dir not created" if !-d $pd_dir;
 open my $pdfl, ">", $pdname or die "$pdname: $!";
@@ -139,6 +210,18 @@ close $pdfl;
 open my $mkfl, ">", 'Makefile.PL' or die "Makefile.PL: $!";
 print $mkfl pdMakefile($module, $pdname);
 close $mkfl;
+
+open my $manifest, '>', 'MANIFEST'  or  die "MANIFEST: '$!'";
+print $manifest pdManifest($pdname);
+close $manifest;
+
+open my $manifest_skip, '>', 'MANIFEST.SKIP'  or  die "MANIFEST.SKIP: '$!'";
+print $manifest_skip pdManifest_skip($pdname,$dir);
+close $manifest_skip;
+
+open my $gitignore, '>', '.gitignore'  or  die ".gitignore: '$!'";
+print $gitignore pdGitignore($pdname,$dir);
+close $gitignore;
 
 mkdir 't' or die "t: $!";
 open my $tfl, '>', 't/basic.t' or die "t/basic.t: $!";
@@ -172,20 +255,39 @@ for PDL that contains PP code (see also L<PDL::PP>). The usage is simply
 
   pptemplate modulename;
 
-As a result pptemplate will generate a perl Makefile for the new
-module (F<Makefile.PL>) that contains the minimal structure to
-generate a module from PP code and also a skeleton file
-for your new module.
-
-The file will be called F<mymod.pd> if you called C<pptemplate> as
+As a result pptemplate will generate the usual directory structure you
+would expect for a CPAN module: if you called C<pptemplate> as
 
   pptemplate PDL::CleverAlgs::Mymod;
 
-I suppose you can work out the naming rule C<;)>. If not resort to
-experimentation or the source code.
+Then you get the following files and directories:
+
+  PDL-CleverAlgs-Mymod
+  |-- lib
+  |   |-- PDL
+  |       |-- CleverAlgs
+  |           |-- MyMod.pd
+  |-- t
+  |   |-- basic.t
+  |-- Makefile.PL
+  |   MANIFEST
+  |   MANIFEST.SKIP
+  |   .gitignore
+
+Adapt F<MyMod.pd> to your needs and then you can build and test the
+module as usual: From the directory F<PDL-CleverAlgs-Mymod>:
+
+   $ perl Makefile.pl   # To create a Makefile
+   $ make               # Build the module in blib
+   $ make test          # Run the tests
+   $ prove -vb          # ...or run the tests with prove
 
 C<pptemplate> will stop if the directory to be created already exists,
 to avoid accidents. Move it out of the way if you really want to scrap it.
+
+The files F<MANIFEST>, F<MANIFEST.SKIP> and F<.gitignore> are for
+bookkeeping: They avoid that temporary files created by building the
+module end up in a git repository or a CPAN distrubution.
 
 As of 2.096, the "internal mode" of this script has been removed,
 and it creates the files using the new "deep mode". This is because
