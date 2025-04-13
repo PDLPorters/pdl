@@ -188,17 +188,17 @@ unlink($file) or warn "Could not unlink $file: $!";
 ($fileh,$file) = tempfile( DIR => $tempd );
 eval { wcols $x, $y, $fileh };
 is $@, '', "wcols";
-unlink($file) or warn "Could not unlink $file: $!";
+close $fileh; unlink($file) or warn "Could not unlink $file: $!";
 
 ($fileh,$file) = tempfile( DIR => $tempd );
 eval { wcols $x, $y, $fileh, {FORMAT=>"%0.3d %0.3d"}};
 is $@, '', "wcols FORMAT option";
-unlink($file) or warn "Could not unlink $file: $!";
+close $fileh; unlink($file) or warn "Could not unlink $file: $!";
 
 ($fileh,$file) = tempfile( DIR => $tempd );
 eval { wcols "%d %d", $x, $y, $fileh;};
 is $@, '', "wcols format_string";
-unlink($file) or warn "Could not unlink $file: $!";
+close $fileh; unlink($file) or warn "Could not unlink $file: $!";
 
 ($fileh,$file) = tempfile( DIR => $tempd );
 eval { wcols "arg %d %d", $x, $y, $fileh, {FORMAT=>"option %d %d"};};
@@ -207,7 +207,7 @@ is $@, '', "wcols format_string override";
 open $fileh,"<",$file or warn "Can't open $file: $!";
 readline *$fileh; # dump first line
 like readline($fileh), qr/^arg/, "wcols format_string obeyed";
-unlink($file) or warn "Could not unlink $file: $!";
+close $fileh; unlink($file) or warn "Could not unlink $file: $!";
 
 done_testing;
 

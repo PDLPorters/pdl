@@ -15,7 +15,7 @@ BEGIN {
 
 use threads;
 use PDL::LiteF;
-use PDL::Parallel::threads qw(retrieve_pdls);
+use PDL::Parallel::threads qw(retrieve_pdls free_pdls);
 use PDL::IO::FastRaw;
 use File::Temp qw(tempdir);
 use File::Spec::Functions;
@@ -46,5 +46,7 @@ for my $thr (threads->list) {
 my $expected = (sequence($N_threads) + 1)->sqrt;
 my $workspace = retrieve_pdls('workspace');
 is_pdl $expected, $workspace, 'Sharing memory mapped ndarrays works';
+
+free_pdls 'workspace'; # so Windows can remove the file
 
 done_testing;
