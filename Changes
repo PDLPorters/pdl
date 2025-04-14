@@ -1,3 +1,5 @@
+- pptemplate improvements (#538 #539) - thanks @HaraldJoerg
+
 2.100 2025-03-27
 - fix Math function prototypes for GCC 15 (#528) - thanks @jplesnik for report
 - Basic::rvals to allow Centre as ndarray (#532) - thanks @wlmb
