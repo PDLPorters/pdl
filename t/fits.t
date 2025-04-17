@@ -418,4 +418,41 @@ subtest 'multi-line HISTORY' => sub {
 
 };
 
+###############################
+subtest 'write null hdu with and without Astro::FITS::Header' => sub {
+
+    subtest 'with' => sub {
+      SKIP: {
+            skip 'Astro::FITS::Header not available'
+              unless $PDL::Astro_FITS_Header;
+            my ( $fh, $file ) = tfile;
+            my $x = pdl(3);
+            lives_ok { wfits [pdl([3])], $file } 'create file';
+
+            my $contents = do {
+                local $/;
+                open my $fh, '<', $file
+                  or die("unable to open $file");
+                <$fh>;
+            };
+            unlike( $contents, qr/legacy code/, "didn't use legacy code" );
+        }
+    };
+
+    subtest 'without' => sub {
+        local $PDL::Astro_FITS_Header = 0;
+        my ( $fh, $file ) = tfile;
+        my $x = pdl(3);
+        lives_ok { wfits [pdl( [3] )], $file } 'create file';
+        my $contents = do {
+            local $/;
+            open my $fh, '<', $file
+              or die("unable to open $file");
+            <$fh>;
+        };
+        like( $contents, qr/legacy code/, "used legacy code" );
+    };
+
+};
+
 done_testing();
