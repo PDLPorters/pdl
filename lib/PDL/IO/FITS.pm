@@ -2480,7 +2480,8 @@ sub _wfits_table {
 
 sub _wfits_nullhdu {
   my $fh = shift;
-  if($Astro::FITS::Header) {
+
+  if($PDL::Astro_FITS_Header) {
     my $h = Astro::FITS::Header->new();
 
     reset_hdr_ctr();
