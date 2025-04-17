@@ -98,12 +98,10 @@ subtest 'Astro::FITS::Header' => sub {
                 rfits $file;
             };
 
-            ok(
-                defined $table2
-                  && ref($table2) eq "HASH"
-                  && $$table2{tbl} eq "binary",
-                "Read in binary table"
-            );
+            ok( defined $table2, "Read of table returned something" );
+            is( ref($table2),  "HASH",   "which is a hash reference" );
+            is( $$table2{tbl}, "binary", "and appears to be a binary TABLE" );
+
             is( $$table2{hdr}{TTYPE1}, "FOO", "column #1 is FOO" );
             is( $$table2{hdr}{TFORM1}, "1D",  "  stored as 1D" );
             is( $$table2{hdr}{TTYPE2}, "BAR", "column #2 is BAR" );
@@ -137,12 +135,10 @@ subtest 'Astro::FITS::Header' => sub {
                 rfits $file;
             };
 
-            ok(
-                defined $table2
-                  && ref($table2) eq "HASH"
-                  && $$table2{tbl} eq "binary",
-                "Read in the binary table"
-            );
+            ok( defined $table2, "Read of table returned something" );
+            is( ref($table2),  "HASH",   "which is a hash reference" );
+            is( $$table2{tbl}, "binary", "and appears to be a binary TABLE" );
+
             my @elem     = sort keys %$table2;
             my @expected = sort(qw( ACOL BCOL CCOL DCOL ECOL hdr tbl ));
             is_deeply \@elem, \@expected, "hash contains expected keys";
