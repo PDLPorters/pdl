@@ -455,4 +455,27 @@ subtest 'write null hdu with and without Astro::FITS::Header' => sub {
 
 };
 
+###############################
+subtest 'accept scalar (0D) ndarrays' => sub {
+
+    subtest 'bintable' => sub {
+        my ( $fh, $file ) = tfile;
+        lives_ok { wfits { x => pdl(3) }, $file } 'write column';
+        my $got = rfits($file);
+        is_pdl( $got->{X}, pdl( [3] ), "got data" );
+
+    };
+
+    subtest 'image' => sub {
+        my ( $fh, $file ) = tfile( UNLINK => 0 );
+        diag $file;
+        lives_ok { wfits pdl(3), $file } 'write image';
+        my $got;
+        lives_ok { $got = rfits($file) } 'read image';
+        is_pdl( $got, pdl( [3] ), "got data" );
+
+    };
+
+};
+
 done_testing();
