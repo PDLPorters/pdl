@@ -123,16 +123,15 @@ subtest 'Astro::FITS::Header' => sub {
             ##my $f = float(1,0,-1,2) + i * float( 0,1,2,-1 );
 
             my $table2 = do {
-                my $table = {
+                my ( $fh, $file ) = tfile;
+                wfits {
                     ACOL => $x,
                     BCOL => $y,
                     CCOL => $c,
                     DCOL => $d,
                     ECOL => $e,
-                    ##	  FCOL => $f,
-                };
-                my ( $fh, $file ) = tfile;
-                wfits $table, $file;
+                  },
+                  $file;
                 rfits $file;
             };
 
