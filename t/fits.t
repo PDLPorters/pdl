@@ -9,6 +9,7 @@ use Test::Exception;
 use PDL::IO::FITS;
 require File::Spec;
 require File::Temp;
+use List::Util;
 
 sub tfile {
     my $fh = File::Temp->new(@_);
@@ -406,39 +407,30 @@ subtest 'multi-line HISTORY' => sub {
 };
 
 ###############################
-subtest 'write null hdu with and without Astro::FITS::Header' => sub {
+subtest 'write null hdu with correct module' => sub {
 
-    subtest 'with' => sub {
-      SKIP: {
-            skip 'Astro::FITS::Header not available'
-              unless $PDL::Astro_FITS_Header;
-            my ( $fh, $file ) = tfile;
-            my $x = pdl(3);
-            lives_ok { wfits [pdl([3])], $file } 'create file';
+    my ( $fh, $file ) = tfile;
+    wfits [ pdl(3) ], $file;
 
-            my $contents = do {
-                local $/;
-                open my $fh, '<', $file
-                  or die("unable to open $file");
-                <$fh>;
-            };
-            unlike( $contents, qr/legacy code/, "didn't use legacy code" );
-        }
-    };
+    my ($hdr) = rfitshdr( $file . '[0]' );
 
-    subtest 'without' => sub {
-        local $PDL::Astro_FITS_Header = 0;
-        my ( $fh, $file ) = tfile;
-        my $x = pdl(3);
-        lives_ok { wfits [pdl( [3] )], $file } 'create file';
-        my $contents = do {
-            local $/;
-            open my $fh, '<', $file
-              or die("unable to open $file");
-            <$fh>;
-        };
-        like( $contents, qr/legacy code/, "used legacy code" );
-    };
+    my $found;
+    if ( my $comments = $hdr->{COMMENT} ) {
+        $comments = [ split( /\n/, $comments ) ]
+          if $PDL::Astro_FITS_Header;
+
+        $comments = [$comments]
+          unless ref($comments) eq 'ARRAY';
+
+        $found = !!List::Util::first { /legacy code/ } @{$comments};
+    }
+
+    if ($PDL::Astro_FITS_Header) {
+        ok( !$found, "used Astro::FITS::Header" );
+    }
+    else {
+        ok( $found, "used internal legacy code" );
+    }
 
 };
 
