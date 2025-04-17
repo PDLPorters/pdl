@@ -478,4 +478,47 @@ subtest 'accept scalar (0D) ndarrays' => sub {
 
 };
 
+###############################
+subtest 'handle multiple COMMENT and HISTORY cards' => sub {
+
+    my $cards = join q{}, map { sprintf( '%-80s', $_ ) }
+      q{SIMPLE  =                    T},
+      q{BITPIX  =                  -32},
+      q{NAXIS   =                    1},
+      q{NAXIS1  =                    0},
+      q{COMMENT comment1},
+      q{COMMENT comment2},
+      q{HISTORY history1},
+      q{HISTORY history2},
+      q{END};
+
+    my $fits = sprintf( '%-2880s', $cards );
+
+    my ( $fh, $file ) = tfile;
+    $fh->print($fits);
+    $fh->flush;
+
+    my $hdr = rfitshdr($file);
+
+    for my $keyword ( 'COMMENT', 'HISTORY' ) {
+        ok( defined $hdr->{$keyword}, "got $keyword 'card'" )
+          or next;
+
+        my $arr = $hdr->{$keyword};
+
+        if ($PDL::Astro_FITS_Header) {
+            $arr = [ split /\n/, $arr ];
+        }
+        else {
+            is( ref($arr), 'ARRAY', 'is array' )
+              or next;
+        }
+        s/\s+$// for @$arr;
+
+        is( $arr->[0], lc($keyword) . '1', 'first card' );
+        is( $arr->[1], lc($keyword) . '2', 'second card' );
+    }
+
+};
+
 done_testing();

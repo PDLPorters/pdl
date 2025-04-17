@@ -334,6 +334,7 @@ sub PDL::rfits {
    my $ext_type = 'IMAGE';     # Gets the type of XTENSION if one is detected.
    my $foo={};       # To go in pdl
    my @history=();
+   my @comment=();
    my @cards = ();
 
    $pdl = $class->new;
@@ -437,7 +438,11 @@ sub PDL::rfits {
 
           if ($name =~ m/^HISTORY/) {
 	         push @history, $rest;
-          } else {
+             }
+          elsif ($name =~ m/^COMMENT/) {
+	         push @comment, $rest;
+             }
+          else {
 	         $$foo{$name} = "";
 
 	         $$foo{$name}=$1 if $rest =~ m|^= +([^\/\' ][^\/ ]*) *( +/(.*))?$| ;
@@ -450,6 +455,7 @@ sub PDL::rfits {
 
      # Clean up HISTORY card
      $$foo{HISTORY} = \@history if $#history >= 0;
+     $$foo{COMMENT} = \@comment if $#comment >= 0;
 
      # Step to end of header block in file
      my $skip = 2879 - ($nbytes-1)%2880;
