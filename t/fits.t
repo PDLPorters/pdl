@@ -322,7 +322,7 @@ subtest 'tilde path expansion' => sub {
   SKIP: {
         my $tilde_dir = <~>;
 
-        skip '~ directory is not writeable'
+        skip '~ directory is not writeable', 4
           unless -w $tilde_dir;
 
         my ( $fh, $file ) = tfile( DIR => $tilde_dir, SUFFIX => '.fits' );
