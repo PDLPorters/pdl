@@ -196,8 +196,6 @@ subtest 'Astro::FITS::Header' => sub {
 
 subtest 'Internal FITS Header regression tests' => sub {
 
-    local $PDL::Astro_FITS_HEADER = 0;
-
     subtest 'r/wfits bug #1' => sub {
         local $| = 1;
         my $a1 = [ 1, 2 ];
