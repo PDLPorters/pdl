@@ -438,16 +438,18 @@ subtest 'write null hdu with correct module' => sub {
 subtest 'accept scalar (0D) ndarrays' => sub {
 
     subtest 'bintable' => sub {
-        my ( $fh, $file ) = tfile;
-        lives_ok { wfits { x => pdl(3) }, $file } 'write column';
-        my $got = rfits($file);
-        is_pdl( $got->{X}, pdl( [3] ), "got data" );
-
+      SKIP: {
+            skip 'require Astro::FITS::Header for bintables', 2
+              unless $PDL::Astro_FITS_Header;
+            my ( $fh, $file ) = tfile;
+            lives_ok { wfits { x => pdl(3) }, $file } 'write column';
+            my $got = rfits($file);
+            is_pdl( $got->{X}, pdl( [3] ), "got data" );
+        }
     };
 
     subtest 'image' => sub {
-        my ( $fh, $file ) = tfile( UNLINK => 0 );
-        diag $file;
+        my ( $fh, $file ) = tfile;
         lives_ok { wfits pdl(3), $file } 'write image';
         my $got;
         lives_ok { $got = rfits($file) } 'read image';
