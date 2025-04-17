@@ -77,8 +77,8 @@ subtest 'Astro::FITS::Header' => sub {
             is( $$table2{hdr}{TTYPE2}, "COLB", "column #2 is COLB" );
             is( $$table2{hdr}{TFORM2}, "1D",   "  stored as 1D" );
 
-            is_pdl $x, $$table2{COLA}, "COLA";
-            is_pdl $y, $$table2{COLB}, "COLB";
+            is_pdl $$table2{COLA}, $x, "COLA";
+            is_pdl $$table2{COLB}, $y, "COLB";
 
         };
 
@@ -109,8 +109,8 @@ subtest 'Astro::FITS::Header' => sub {
             is( $$table2{hdr}{TTYPE2}, "BAR", "column #2 is BAR" );
             is( $$table2{hdr}{TFORM2}, "1J",  "  stored as 1J" );
 
-            is_pdl $x, $$table2{BAR}, "BAR";
-            is_pdl $y, $$table2{FOO}, "FOO";
+            is_pdl $$table2{BAR}, $x, "BAR";
+            is_pdl $$table2{FOO}, $y, "FOO";
         };
 
         # try out more "exotic" data types
