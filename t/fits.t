@@ -207,21 +207,12 @@ subtest 'Internal FITS Header regression tests' => sub {
         my $bp_i          = 0;
         for my $cref ( \( &byte, &short, &long, &float, &double ) ) {
             for my $x ( $a1, $a2 ) {
-                $p = &$cref($x);
+                $p = $cref->($x);
                 my ( $fh, $file ) = tfile;
                 $p->wfits($file);
                 $q = PDL->rfits($file);
                 my $flag = 1;
-                if ( ${ $p->get_dataref } ne ${ $q->get_dataref } ) {
-                    $flag = 0;
-                    diag "\tnelem=", $p->nelem, "datatype=", $p->get_datatype;
-                    diag "\tp:",
-                      unpack( "c" x ( $p->nelem * howbig( $p->get_datatype ) ),
-                        ${ $p->get_dataref } );
-                    diag "\tq:",
-                      unpack( "c" x ( $q->nelem * howbig( $q->get_datatype ) ),
-                        ${ $q->get_dataref } );
-                }
+                is_pdl( $p, $q, 'round-trip data' );
                 is( $q->hdr->{BITPIX}, $target_bitpix[$bp_i],
                     "BITPIX implicitly set to " . $target_bitpix[$bp_i] );
                 ok( $flag, "hash reference - type check: " . &$cref );
