@@ -491,6 +491,7 @@ works with native-complex data.
 
 sub cequiv {
   my ($func, $ref) = @_;
+  return if !PDL::Core::Dev::got_complex_version($func, 1);
   pp_def("c$func",
       GenericTypes => $AF,
       Pars => 'i(); complex [o] o()',
