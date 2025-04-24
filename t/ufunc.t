@@ -146,7 +146,7 @@ is longlong([10,0,-4])->borover(), -2, "borover with no BAD values";
 #     .... 1111 1100
 #AND: .... 1111 1000 = -8
 
-is( longlong([-6,~0,-4])->bandover(), -8, "bandover with no BAD values");
+is_pdl longlong([-6,~0,-4])->bandover(), longlong(-8), "bandover with no BAD values";
 
 #   0000 1010
 #   1111 1100
