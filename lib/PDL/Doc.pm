@@ -495,15 +495,17 @@ sub savedb {
   my $hash = $this->ensuredb;
   open my $fh, '>', $this->{Outfile} or barf "can't write to symdb $this->{Outfile}: $!";
   binmode $fh;
-  while (my ($name,$mods_hash) = each %$hash) {
+  for my $name (sort keys %$hash) {
+    my $mods_hash = $hash->{$name};
     next if 0 == scalar(%$mods_hash);
-    while (my ($module,$val) = each %$mods_hash) {
+    for my $module (sort keys %$mods_hash) {
+      my $val = $mods_hash->{$module};
       my $fi = $val->{File};
       $val->{File} = abs2rel($fi, dirname($this->{Outfile}))
         #store paths to *.pm files relative to pdldoc.db
         if file_name_is_absolute($fi) && -f $fi;
       delete $val->{Dbfile}; # no need to store Dbfile
-      my $txt = join(chr(0),$name,$module,%$val);
+      my $txt = join(chr(0),$name,$module,map +($_=>$val->{$_}), sort keys %$val);
       print $fh pack("S",length($txt)).$txt;
     }
   }
@@ -679,7 +681,8 @@ sub scan {
   my $hash = $this->{SYMS} ||= {};
   my $n = 0;
   $_->{File} = $file2, $n++ for values %{ $parser->{SYMHASH} };
-  while (my ($key,$val) = each %{ $parser->{SYMHASH} }) {
+  for my $key (sort keys %{ $parser->{SYMHASH} }) {
+    my $val = $hash->{$key};
     #set up the 3-layer hash/database structure: $hash->{funcname}->{PDL::SomeModule} = $val
     if (defined($val->{Module})) {
 	$hash->{$key}{$val->{Module}} = $val;
@@ -741,7 +744,10 @@ sub scantree {
     $ntot += my $n = $this->scan($File::Find::name,$verbose);
     print "\t$n functions\n";
   };
-  File::Find::find($sub,$dir);
+  File::Find::find({
+    wanted => $sub,
+    preprocess => sub { sort @_ }
+  }, $dir);
   print "\nfound $ntot functions\n";
   $ntot;
 }
@@ -881,7 +887,7 @@ own code.
  print $pdldoc->gethash->{zeroes}->{PDL::Core}->{Ref};
 
  # Get info for all the functions whose examples use zeroes
- my @entries = $pdldoc->search('zeroes','Example',1);
+ my @entries = $pdldoc->search('zeroes','Example',1,1);
 
  # All the functions that use zeroes in their example:
  print "Functions that use 'zeroes' in their examples include:\n";
