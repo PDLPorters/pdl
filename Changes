@@ -1,4 +1,6 @@
 - pptemplate improvements (#538 #539) - thanks @HaraldJoerg
+- pdldoc database now reproducible (#542) - thanks @daym
+- can now do pdl(cplx(1,2)) (#543) - thanks @gladilin for report
 
 2.100 2025-03-27
 - fix Math function prototypes for GCC 15 (#528) - thanks @jplesnik for report

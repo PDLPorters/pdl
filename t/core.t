@@ -446,6 +446,8 @@ $y = pdl(5,$x);
 is_pdl $y, pdl([[[5,0]]],[[[0,0]]]), "concatenating an empty and a scalar on the left gives the right answer";
 }
 
+is_pdl pdl(Math::Complex->make(1,2)), pdl('1+2i'), 'pdl(Math::Complex obj)';
+
 # cat problems
 eval {cat(1, pdl(1,2,3), {}, 6)};
 isnt $@, '', 'cat barfs on non-ndarray arguments';

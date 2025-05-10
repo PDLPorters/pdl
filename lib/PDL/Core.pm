@@ -1232,7 +1232,7 @@ sub _establish_type {
 }
 
 sub PDL::new {
-   return $_[0]->copy if ref($_[0]);
+   return $_[0]->copy if ref($_[0]) and UNIVERSAL::isa($_[0], 'PDL');
    my $this = shift;
    my $type = ref($_[0]) eq 'PDL::Type' ? shift->enum : undef;
    my $value = (@_ > 1 ? [@_] : shift);
@@ -1283,13 +1283,17 @@ sub PDL::new {
          }
       }
    }
+   elsif (blessed($value) and UNIVERSAL::isa($value, 'Math::Complex')) {
+      $new->setdims([]);
+      set_c($new, [], $value);
+   }
    elsif (blessed($value)) { # Object
-       $new = $value->copy;
+      $new = $value->copy;
    }
    else {
-       barf("Can not interpret argument $value of type ".ref($value) );
+      barf("Can not interpret argument $value of type ".ref($value) );
    }
-   return $new;
+   $new;
 }
 
 
