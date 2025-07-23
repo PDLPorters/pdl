@@ -1,5 +1,6 @@
+# see https://cirrus-ci.org/guide/FreeBSD/ for versions
 freebsd_instance:
-  image_family: freebsd-14-2
+  image_family: freebsd-15-0-amd64-ufs
   cpu: 2
   memory: 2G
 
