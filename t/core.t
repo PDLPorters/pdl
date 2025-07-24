@@ -765,6 +765,17 @@ my $p = pdl(-3);
 $p->inplace->convert(ushort);
 is_pdl $p, ushort(-3), 'inplace convert negative to ushort right';
 ok $p, 'inplace convert negative to ushort non-zero';
+
+my $from = pdl(5);
+my $to = $from->convert_flowing(float);
+is $to->type, 'float';
+is_pdl $to, float(5);
+$to++;
+is_pdl $to, float(6);
+is_pdl $from, pdl(6);
+$from++;
+is_pdl $to, float(7);
+is_pdl $from, pdl(7);
 }
 
 for (['ones', 1], ['zeroes', 0], ['nan', '.*NaN'], ['inf', '.*Inf'], ['i', 'i', 'cdouble']) {

@@ -3117,6 +3117,9 @@ sub PDL::flat :lvalue { # fall through if < 2D
 
 Generic datatype conversion function
 
+Works on ndarrays and normal numbers. Returns input if already that
+type.
+
 =for usage
 
  $y = convert($x, $newtype);
@@ -3147,6 +3150,36 @@ sub PDL::convert {
   return $pdl->_convert_int($type)->sever if !$pdl->is_inplace;
   $pdl->set_datatype($type);
   $pdl;
+}
+=head2 convert_flowing
+
+=for ref
+
+Generic datatype data-flowing conversion function
+
+=for usage
+
+ $y = convert_flowing($x, $newtype);
+ $y = $x->convert_flowing($newtype);
+
+C<$newtype> is a type number or L<PDL::Type> object, for convenience they are
+returned by C<long()> etc when called without arguments.
+Only works on ndarrays, not normal numbers. Returns input if already that
+type. Establishes two-way dataflow between the two ndarrays.
+
+=cut
+
+my $CONVERT_FLOW_ERR = "Usage: \$y = convert_flowing(\$pdl, \$newtype)\n";
+sub PDL::convert_flowing {
+  barf $CONVERT_FLOW_ERR if @_ != 2;
+  my ($pdl,$type) = @_;
+  barf $CONVERT_FLOW_ERR if !UNIVERSAL::isa($pdl, 'PDL');
+  barf "Tried to convert_flowing(null)" if $pdl->isnull;
+  barf "Cannot convert_flowing inplace" if $pdl->is_inplace;
+  $type = $type->enum if ref($type) eq 'PDL::Type';
+  barf $CONVERT_FLOW_ERR unless Scalar::Util::looks_like_number($type);
+  return $pdl if $pdl->get_datatype == $type;
+  $pdl->_convert_int($type);
 }
 
 =head2 Datatype_conversions
