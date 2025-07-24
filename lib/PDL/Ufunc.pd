@@ -4,6 +4,7 @@ use PDL::Types qw(types ppdefs_complex ppdefs_all);
 
 my $T = [map $_->ppsym, grep $_->integer, types];
 my $A = [ppdefs_all];
+my $AF = [map $_->ppsym, grep !$_->integer, types];
 
 pp_addpm({At=>'Top'},<<'EOD');
 use strict;
@@ -1242,8 +1243,8 @@ for L</qsortvec>.
 
 pp_def('magnover',
   HandleBad => 1,
-  Pars => "a(n); float+ [o]b();",
-  GenericTypes => $A,
+  Pars => "a(n); real [o]b();",
+  GenericTypes => [(grep $_ ne 'F', @$AF), 'F'], # F last for back-compat
   Code => <<'EOF',
 long double sum=0;
 PDL_IF_BAD(int flag = 0;,)

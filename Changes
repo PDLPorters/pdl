@@ -3,6 +3,7 @@
 - can now do pdl(cplx(1,2)) (#543) - thanks @gladilin for report
 - add convert_flowing, dimincs methods
 - fixed $slice->inplace->*{lin,log}vals not updating $slice
+- magnover now always returns real (#546) - thanks @wlmb
 - fixes for rldseq, rldND, rldvec (#547 #548 #549 #550) - thanks @jo-37
 
 2.100 2025-03-27
