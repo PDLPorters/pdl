@@ -103,7 +103,7 @@ is_pdl $empty->magnover, float('BAD'), "bad flag gets set on empty magnover";
 
 is_pdl zeroes(4)->magnover, pdl(0), 'magnover correct for real zeroes';
 is_pdl sequence(4)->magnover, pdl(3.741657), 'magnover correct for real sequence';
-is_pdl +(sequence(4)+i())->magnover, cdouble(4.242640), 'magnover correct for complex';
+is_pdl +(sequence(4)+i())->magnover, double(4.242640), 'magnover correct for complex';
 
 #Test subroutines directly.
 
