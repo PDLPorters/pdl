@@ -41,6 +41,12 @@ my $byte_xvals = ones( byte, 300 )->xvals;
 is $byte_xvals->type, 'double', 'byte->xvals type double';
 is $byte_xvals->at(280), 280,'non-overflow xvals from byte ndarray';
 is xvals(short, 2)->type, 'short', 'xvals respects specified type';
+my ($base, $exp) = (zeroes(3,3), pdl('0;0.5;1'));
+is_pdl $base->slice('0')->inplace->ylinvals(0,1), $exp, 'inplace->linvals returns right';
+is_pdl $base->slice('0'), $exp, 'inplace->linvals updates input';
+($base, $exp) = (zeroes(3,3), pdl('1;3;9'));
+is_pdl $base->slice('0')->inplace->ylogvals(1,9), $exp, 'inplace->logvals returns right';
+is_pdl $base->slice('0'), $exp, 'inplace->logvals updates input';
 }
 
 {

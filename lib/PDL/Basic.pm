@@ -248,7 +248,9 @@ sub _dimcheck {
 }
 sub _linvals {
   my ($pdl, $v1, $v2, $dim, $method) = @_;
-  $pdl->$method * (($v2 - $v1) / ($dim > 1 ? ($dim-1) : 1)) + $v1;
+  $pdl = $pdl->$method;
+  $pdl *= (($v2 - $v1) / ($dim > 1 ? ($dim-1) : 1));
+  $pdl += $v1;
 }
 sub PDL::xlinvals {
   _linvals(@_[0..2], _dimcheck($_[0], 0, 'xlinvals'), 'xvals');
@@ -264,7 +266,8 @@ sub _logvals {
   my ($pdl, $min, $max, $dim, $method) = @_;
   barf "min and max must be positive" if $min <= 0 || $max <= 0;
   my ($lmin,$lmax) = map log($_), $min, $max;
-  exp($pdl->$method * (($lmax - $lmin) / ($dim > 1 ? ($dim-1) : 1)) + $lmin);
+  $pdl = $pdl->$method;
+  $pdl .= exp($pdl * (($lmax - $lmin) / ($dim > 1 ? ($dim-1) : 1)) + $lmin);
 }
 sub PDL::xlogvals {
   _logvals(@_[0..2], _dimcheck($_[0], 0, 'xlogvals'), 'xvals');
