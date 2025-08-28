@@ -418,6 +418,16 @@ is_pdl $pv, $pv_expect, "rleND():2d:elts";
 
 $pd = rldND($pf,$pv);
 is_pdl $pd, $p, "rldND():2d";
+my $pfnz = which $pf;
+my $pfr = $pf->dice($pfnz);
+my $pvr = $pv->dice('X', $pfnz);
+my $pdr = rldND($pfr, $pvr);
+is_pdl $pdr, $p, "rldND() nonzero freqs";
+rldND($pfr, $pvr, my $pdn_nd = PDL->null);
+is_pdl $pdn_nd, $p, "rldND() all args";
+my $pdpND = zeroes($p);
+rldND($pfr, $pvr, $pdpND);
+is_pdl $pdpND, $p, "rldND() pre-alloc";
 
 ## rleND, rldND: Nd
 my $pnd1 = (1  *(sequence(long, 2,3  )+1))->slice(",,*3");
@@ -437,6 +447,8 @@ is_pdl $pv_nd, $pv_expect_nd, "rleND():Nd:elts";
 ## 11..11: test rldND(): Nd
 my $pd_nd = rldND($pf_nd,$pv_nd);
 is_pdl $pd_nd, $p_nd, "rldND():Nd";
+rldND($pf_nd,$pv_nd,my $pd_nd_n = PDL->null);
+is_pdl $pd_nd_n, $p_nd, "rldND():Nd all args";
 
 ## 12..12: test enumvec(): nd
 my $v_nd = $p_nd->clump(2);
