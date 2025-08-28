@@ -1356,19 +1356,21 @@ sub rldND {
   my ($counts,$elts) = (shift,shift);
   my @vdimsN        = $elts->dims;
 
-  ##-- construct output pdl
-  my ($data);
-  if ($#_ >= 0) { $data = $_[0]; }
-  else {
-    my $size      = $counts->sumover->max; ##-- get maximum size for Nth-dimension for small encodings
-    my @countdims = $counts->dims;
-    shift(@countdims);
-    $data         = zeroes($elts->type, @vdimsN, @countdims);
-  }
+  ##-- allocate output pdl if none given
+  my $data = @_ ? $_[0] : PDL->null;
+  my $have_null = $data->isnull;
 
   ##-- guts: call rldvec()
-  rldvec($counts, $elts->clump($#vdimsN), $data->clump($#vdimsN));
+  rldvec($counts, $elts->clump($#vdimsN),
+    $have_null ? $data : $data->clump($#vdimsN));
 
+  ##-- reshape output according to $elts
+  if ($have_null) {
+    my @dims = $data->dims;
+    pop(@vdimsN);
+    splice(@dims, 0, 1, @vdimsN);
+    $data->reshape(@dims);
+  }
   return $data;
 }
 EOF
