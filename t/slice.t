@@ -404,6 +404,11 @@ is_pdl $pv, my $pv_expect = pdl([[1,2],[3,4],[5,6],[0,0],[0,0],[0,0]]), "rlevec(
 
 my $pd = rldvec($pf,$pv);
 is_pdl $pd, $p, "rldvec()";
+rldvec($pf,$pv,my $pdn = null);
+is_pdl $pdn, $p, "rldvec() all args";
+my $pdp = zeroes($p);
+rldvec($pf,$pv,$pdp);
+is_pdl $pdp, $p, "rldvec() pre-alloc";
 is_pdl enumvec($p), indx([0,1,2,0,1,0]), "enumvec()";
 is_pdl enumvecg($p), indx([0,0,0,1,1,2]), "enumvecg()";
 

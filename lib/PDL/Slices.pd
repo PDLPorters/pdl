@@ -1186,7 +1186,8 @@ pp_def('rldvec',
   PMCode =>pp_line_numbers(__LINE__, <<'EOC'),
 sub PDL::rldvec {
   my ($a,$b,$c) = @_;
-  ($c,my $sm) = defined($c) ? ($c,$c->dim(1)) : (PDL->null,$a->sumover->max->sclr);
+  $c = PDL->null unless defined $c;
+  my $sm = $c->isnull ? $a->sumover->max->sclr : $c->dim(1);
   PDL::_rldvec_int($a,$b,$c,$sm);
   return $c;
 }
@@ -1208,6 +1209,9 @@ Given a vector $a() of the number of occurrences of each row, and a set $b()
 of row-vectors each of length $M, run-length decode to $c().
 
 Can be used together with clump() to run-length decode "values" of arbitrary dimensions.
+
+Note: $sumover_max is used internally only. Any value provided will be
+ignored.
 
 See also: L</rld>.
 Contributed by Bryan Jurish E<lt>moocow@cpan.orgE<gt>.
