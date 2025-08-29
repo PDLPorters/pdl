@@ -470,6 +470,8 @@ my $seqs = zeroes(short, 0);
 $seqs  = $seqs->append(sequence(short,$_)) foreach ($lens->list);
 $seqs += $lens->rld($offs);
 is_pdl $lens->rldseq($offs), $seqs, "rldseq():data";
+$lens->rldseq($offs, my $seq_dec = null);
+is_pdl $seq_dec, $seqs, "rldseq():null";
 my ($len_got,$off_got) = $seqs->rleseq();
 is $off_got->type, $seqs->type, "rleseq():type";
 is_pdl $len_got->where($len_got), $lens->where($lens), "rleseq():lens";

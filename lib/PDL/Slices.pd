@@ -1261,7 +1261,8 @@ pp_def('rldseq',
   PMCode =>pp_line_numbers(__LINE__, <<'EOC'),
 sub PDL::rldseq {
   my ($a,$b,$c) = @_;
-  ($c,my $sm) = defined($c) ? ($c,$c->dim(1)) : (PDL->null,$a->sumover->max->sclr);
+  $c = PDL->null unless defined $c;
+  my $sm = $c->isnull ? $a->sumover->max->sclr : $c->dim(1);
   PDL::_rldseq_int($a,$b,$c,$sm);
   return $c;
 }
@@ -1286,6 +1287,9 @@ as for:
 
  $c = null;
  $c = $c->append($b($_)+sequence($a->type,$a($_))) foreach (0..($N-1));
+
+Note: $sumover_max is used internally only. Any value provided will be
+ignored.
 
 See also: L</rld>.
 Contributed by Bryan Jurish E<lt>moocow@cpan.orgE<gt>.
