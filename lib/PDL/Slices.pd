@@ -1186,7 +1186,8 @@ pp_def('rldvec',
   PMCode =>pp_line_numbers(__LINE__, <<'EOC'),
 sub PDL::rldvec {
   my ($a,$b,$c) = @_;
-  ($c,my $sm) = defined($c) ? ($c,$c->dim(1)) : (PDL->null,$a->sumover->max->sclr);
+  $c = PDL->null unless defined $c;
+  my $sm = $c->isnull ? $a->sumover->max->sclr : $c->dim(1);
   PDL::_rldvec_int($a,$b,$c,$sm);
   return $c;
 }
@@ -1208,6 +1209,9 @@ Given a vector $a() of the number of occurrences of each row, and a set $b()
 of row-vectors each of length $M, run-length decode to $c().
 
 Can be used together with clump() to run-length decode "values" of arbitrary dimensions.
+
+Note: $sumover_max is used internally only. Any value provided will be
+ignored.
 
 See also: L</rld>.
 Contributed by Bryan Jurish E<lt>moocow@cpan.orgE<gt>.
@@ -1257,7 +1261,8 @@ pp_def('rldseq',
   PMCode =>pp_line_numbers(__LINE__, <<'EOC'),
 sub PDL::rldseq {
   my ($a,$b,$c) = @_;
-  ($c,my $sm) = defined($c) ? ($c,$c->dim(1)) : (PDL->null,$a->sumover->max->sclr);
+  $c = PDL->null unless defined $c;
+  my $sm = $c->isnull ? $a->sumover->max->sclr : $c->dim(1);
   PDL::_rldseq_int($a,$b,$c,$sm);
   return $c;
 }
@@ -1282,6 +1287,9 @@ as for:
 
  $c = null;
  $c = $c->append($b($_)+sequence($a->type,$a($_))) foreach (0..($N-1));
+
+Note: $sumover_max is used internally only. Any value provided will be
+ignored.
 
 See also: L</rld>.
 Contributed by Bryan Jurish E<lt>moocow@cpan.orgE<gt>.
@@ -1352,19 +1360,21 @@ sub rldND {
   my ($counts,$elts) = (shift,shift);
   my @vdimsN        = $elts->dims;
 
-  ##-- construct output pdl
-  my ($data);
-  if ($#_ >= 0) { $data = $_[0]; }
-  else {
-    my $size      = $counts->sumover->max; ##-- get maximum size for Nth-dimension for small encodings
-    my @countdims = $counts->dims;
-    shift(@countdims);
-    $data         = zeroes($elts->type, @vdimsN, @countdims);
-  }
+  ##-- allocate output pdl if none given
+  my $data = @_ ? $_[0] : PDL->null;
+  my $have_null = $data->isnull;
 
   ##-- guts: call rldvec()
-  rldvec($counts, $elts->clump($#vdimsN), $data->clump($#vdimsN));
+  rldvec($counts, $elts->clump($#vdimsN),
+    $have_null ? $data : $data->clump($#vdimsN));
 
+  ##-- reshape output according to $elts
+  if ($have_null) {
+    my @dims = $data->dims;
+    pop(@vdimsN);
+    splice(@dims, 0, 1, @vdimsN);
+    $data->reshape(@dims);
+  }
   return $data;
 }
 EOF

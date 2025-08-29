@@ -404,6 +404,11 @@ is_pdl $pv, my $pv_expect = pdl([[1,2],[3,4],[5,6],[0,0],[0,0],[0,0]]), "rlevec(
 
 my $pd = rldvec($pf,$pv);
 is_pdl $pd, $p, "rldvec()";
+rldvec($pf,$pv,my $pdn = null);
+is_pdl $pdn, $p, "rldvec() all args";
+my $pdp = zeroes($p);
+rldvec($pf,$pv,$pdp);
+is_pdl $pdp, $p, "rldvec() pre-alloc";
 is_pdl enumvec($p), indx([0,1,2,0,1,0]), "enumvec()";
 is_pdl enumvecg($p), indx([0,0,0,1,1,2]), "enumvecg()";
 
@@ -413,6 +418,16 @@ is_pdl $pv, $pv_expect, "rleND():2d:elts";
 
 $pd = rldND($pf,$pv);
 is_pdl $pd, $p, "rldND():2d";
+my $pfnz = which $pf;
+my $pfr = $pf->dice($pfnz);
+my $pvr = $pv->dice('X', $pfnz);
+my $pdr = rldND($pfr, $pvr);
+is_pdl $pdr, $p, "rldND() nonzero freqs";
+rldND($pfr, $pvr, my $pdn_nd = PDL->null);
+is_pdl $pdn_nd, $p, "rldND() all args";
+my $pdpND = zeroes($p);
+rldND($pfr, $pvr, $pdpND);
+is_pdl $pdpND, $p, "rldND() pre-alloc";
 
 ## rleND, rldND: Nd
 my $pnd1 = (1  *(sequence(long, 2,3  )+1))->slice(",,*3");
@@ -432,6 +447,8 @@ is_pdl $pv_nd, $pv_expect_nd, "rleND():Nd:elts";
 ## 11..11: test rldND(): Nd
 my $pd_nd = rldND($pf_nd,$pv_nd);
 is_pdl $pd_nd, $p_nd, "rldND():Nd";
+rldND($pf_nd,$pv_nd,my $pd_nd_n = PDL->null);
+is_pdl $pd_nd_n, $p_nd, "rldND():Nd all args";
 
 ## 12..12: test enumvec(): nd
 my $v_nd = $p_nd->clump(2);
@@ -453,6 +470,8 @@ my $seqs = zeroes(short, 0);
 $seqs  = $seqs->append(sequence(short,$_)) foreach ($lens->list);
 $seqs += $lens->rld($offs);
 is_pdl $lens->rldseq($offs), $seqs, "rldseq():data";
+$lens->rldseq($offs, my $seq_dec = null);
+is_pdl $seq_dec, $seqs, "rldseq():null";
 my ($len_got,$off_got) = $seqs->rleseq();
 is $off_got->type, $seqs->type, "rleseq():type";
 is_pdl $len_got->where($len_got), $lens->where($lens), "rleseq():lens";
