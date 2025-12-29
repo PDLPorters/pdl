@@ -1799,12 +1799,14 @@ it is treated as a list of dimensions that should be clumped together
 into one. The resulting
 clumped dim is placed at the position of the lowest index in the list.
 This convention ensures that C<clump> does the expected thing in
-the usual cases. The following example demonstrates typical usage:
+the usual cases. The following examples demonstrate usage:
 
-  $x = sequence 2,3,3,3,5; # 5D ndarray
-  $c = $x->clump(1..3);    # clump all the dims 1 to 3 into one
-  print $c->info;          # resulting 3D ndarray has clumped dim at pos 1
-  PDL: Double D [2,27,5]
+  zeroes(2,3,5,7)->clump(-1)->info  # PDL: Double D [210]
+  zeroes(2,3,5,7)->clump(-2)->info  # PDL: Double D [30,7]
+  zeroes(2,3,5,7)->clump(2)->info   # PDL: Double D [6,5,7]
+  zeroes(2,3,5,7)->clump(3)->info   # PDL: Double D [30,7]
+  zeroes(2,3,5,7)->clump(1,2)->info # PDL: Double D [2,15,7]
+  zeroes(2,3,5,7)->clump(1,3)->info # PDL: Double D [2,21,5]
 
 Data flows back and forth as usual with slicing routines.
 
