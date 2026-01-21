@@ -1242,8 +1242,8 @@ for L</qsortvec>.
 
 pp_def('magnover',
   HandleBad => 1,
-  Pars => "a(n); float+ [o]b();",
-  GenericTypes => $A,
+  Pars => "a(n); real [o]b();",
+  GenericTypes => [qw(H C G E D F)],
   Code => <<'EOF',
 long double sum=0;
 PDL_IF_BAD(int flag = 0;,)
