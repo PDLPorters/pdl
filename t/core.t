@@ -190,8 +190,13 @@ isnt $@, '', 'scaling-down of output dim 1 throws error';
 {
 # test reshape with no args
 my $x = ones 3,1,4;
+ok eq_array( [ $x->dimincs ], [1,3,3] ), "dimincs";
+my $xslice = $x->slice('0:1');
+ok eq_array( [ $xslice->dimincs ], [1,3,3] ), "dimincs after slice"
+  or diag explain [ $xslice->dimincs ];
 my $y = $x->reshape;
 ok eq_array( [ $y->dims ], [3,4] ), "reshape()";
+ok eq_array( [ $y->dimincs ], [1,3] ), "dimincs after reshape";
 }
 
 {

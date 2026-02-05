@@ -561,6 +561,24 @@ Return ndarray dimensions as a perl list
 
 See also L</shape> which returns an ndarray instead.
 
+=head2 dimincs
+
+=for ref
+
+Return ndarray C<dimincs> as a perl list, reflecting any
+vaffine transformations of which this is a child.
+
+=for usage
+
+ @dimincs = $ndarray->dimincs
+
+=for example
+
+ pdl> p zeroes(10,3,22)->dimincs
+ 1 10 30
+ pdl> p zeroes(10,3,22)->t->dimincs
+ 10 1 30
+
 =head2 shape
 
 =for ref

@@ -1235,6 +1235,17 @@ dims(x)
 			mXPUSHu(x->ndims);
 		}
 
+# only returns list, not context-aware
+void
+dimincs(x)
+  pdl *x
+PREINIT:
+  PDL_Indx i;
+PPCODE:
+  pdl_barf_if_error(pdl_make_physvaffine(x));
+  EXTEND(SP, x->ndims);
+  for (i=0; i<x->ndims; i++) mPUSHi(PDL_REPRINC(x,i));
+
 PDL_Indx
 getdim(x,y)
 	pdl *x

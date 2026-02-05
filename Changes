@@ -1,7 +1,7 @@
 - pptemplate improvements (#538 #539) - thanks @HaraldJoerg
 - pdldoc database now reproducible (#542) - thanks @daym
 - can now do pdl(cplx(1,2)) (#543) - thanks @gladilin for report
-- add convert_flowing method
+- add convert_flowing, dimincs methods
 - fixed $slice->inplace->*{lin,log}vals not updating $slice
 
 2.100 2025-03-27
