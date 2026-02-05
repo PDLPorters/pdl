@@ -1491,7 +1491,7 @@ need to physicalise them (though there are exceptions).
 =for ref
 
 A more "careful" function than C<make_physical>. For ndarrays
-without a vaffine transformations as parent, it will just call
+without a vaffine transformation as parent, it will just call
 C<make_physical>. Otherwise, it will update the vaffine transformation
 bookkeeping.
 
