@@ -701,6 +701,17 @@ sub PDL::tocomplex {
   $pdl->type->real ? $pdl->r2C : $pdl;
 }
 
+=head2 setdims
+
+=for ref
+
+Sets the ndarray's dimension list. A very low-level routine which
+does not do any checks, so use with caution.
+
+=for usage
+
+ $ndarray->setdims(\@dimlist);
+
 =head2 set_datatype
 
 =for ref
@@ -749,7 +760,6 @@ NOTE: NOT a method! This is because get_datatype returns
 
  pdl> p howbig(ushort([1..10])->get_datatype)
  2
-
 
 =head2 update_data_from
 
