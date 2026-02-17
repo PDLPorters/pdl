@@ -24,38 +24,30 @@ my $name = catfile($tmpdir, "tmp0");
 
 # Set up the working filename and make sure we're working with a clean slate:
 
-# **TEST 2** save an ndarray to disk
 my $x = pdl [2,3],[4,5],[6,7];
-my $header = eval { writeflex($name, $x) };
+my $header = writeflex($name, $x);
 ok((-f $name), "writeflex should create a file");
 
 my $header_bis = [ { %{$header->[0]}, Dims => [2, undef] } ];
 eval { readflex($name, [@$header_bis, @$header_bis]) };
 like $@, qr/>1 header/, 'readflex only allows undef dim when only one hash';
-my $x_bis = readflex($name, $header_bis);
-is_pdl $x_bis, $x, "read back with undef highest dim correct";
+is_pdl readflex($name, $header_bis), $x, "read back with undef highest dim correct";
 
-# **TEST 3** save a header to disk
-eval { writeflexhdr($name, $header) };
+writeflexhdr($name, $header);
 ok(-f "$name.hdr", "writeflexhdr should create a header file");
 
-# **TEST 4** read it back, and make sure it gives the same ndarray
-my $y = eval { readflex($name) };
-is_pdl $x, $y, "A ndarray and its saved copy should be about equal";
+is_pdl readflex($name), $x, "A ndarray and its saved copy should be about equal";
 
-# **TEST 5** save two ndarrays to disk
 my ($c1, $c2) = ([0,0,0,0],[0,0,0,0]);
 my $c = pdl [$c1,$c2];
 my $d = pdl [1,1,1];
 my $cdname = $name . 'cd';
-$header = eval { writeflex($cdname, $c, $d) };
-ok((-f $cdname), "writeflex saves 2 pdls to a file");
-# **TEST 6** save a header to disk
-eval { writeflexhdr($cdname, $header) };
-ok(-f "$cdname.hdr", "writeflexhdr create a header file");
-# **TEST 7** read it back, and make sure it gives the same ndarray
+$header = writeflex($cdname, $c, $d);
+ok -f $cdname, "writeflex saves 2 pdls to a file";
+writeflexhdr($cdname, $header);
+ok -f "$cdname.hdr", "writeflexhdr create a header file";
 # This is sf.net bug #3375837 "_read_flexhdr state machine fails"
-my (@cd) = eval { no warnings; readflex($cdname) };
+my @cd = do { no warnings; readflex($cdname) };
 is 0+@cd, 2, 'sf.net bug 3375837';
 is_pdl $cd[0], $c, 'sf.net bug 3375837';
 is_pdl $cd[1], $d, 'sf.net bug 3375837';
@@ -65,14 +57,13 @@ unlink $cdname, $cdname . '.hdr';	# just to be absolutely sure
 {
 my $gname = $name.'g';
 local $PDL::IO::FlexRaw::writeflexhdr = 1;
-eval { writeflex($gname, $d, $c) }; # 2D last so can append
-my @dc = eval { readflex($gname) };
+writeflex($gname, $d, $c); # 2D last so can append
+my @dc = readflex($gname);
 is_pdl $dc[0], $d;
 is_pdl $dc[1], $c;
 my $e = pdl(2,2,2,2);
-eval { glueflex($gname, $e) };
-is $@, '', 'no error glueflex';
-@dc = eval { readflex($gname) };
+glueflex($gname, $e);
+@dc = readflex($gname);
 is_pdl $dc[0], $d;
 is_pdl $dc[1], pdl($c1,$c2,$e);
 }
@@ -88,18 +79,11 @@ SKIP: {
       }
    }
 
-   # **TEST 8** compare mapfraw ndarray with original ndarray	
    is_pdl $x, $c, "An ndarray and its mapflex representation should be about equal";
 
-   # **TEST 9** modifications should be saved when $c goes out of scope
-   # THIS TEST FAILS.
-   # This failure is recorded in sf.net bug 3031068.
-   # Presently, making $c go out of scope does not free the memory
-   # mapping associated with mapflex, so this modification is never
-   # saved to the file (or at least it's not saved immediately).
    $c += 1;
    undef $c;
-   $y = readflex($name);
+   my $y = readflex($name);
    is_pdl $x+1, $y, "Modifications to mapfraw should be saved to disk no later than when the ndarray ceases to exist";
 
    # We're starting a new test, so we'll remove the files we've created so far
@@ -108,7 +92,6 @@ SKIP: {
    undef $x;
    undef $y;
 
-   # **TEST 10** test creating a pdl via mapfraw
    # First create and modify the ndarray
    $header = [{NDims => 2, Dims => [3,2], Type => 'float'}];
    # Fix this specification.
@@ -123,19 +106,16 @@ SKIP: {
    undef $x;
    # Load it back up and see if the values are what we expect
    $y = readflex($name);
-   # **TEST 11**
    is_pdl $y, float([[0,1,2],[0.1,1.1,2.1]]),
       "mapfraw should be able to create new ndarrays";
 
    undef $x; undef $y; # cleanup
    # test for bug mentioned in https://perlmonks.org/?node_id=387256
    my $p1 = sequence(5);
-   my $header1 = eval { writeflex($cdname, $p1) };
-   is $@, '', 'no error';
+   my $header1 = writeflex($cdname, $p1);
    writeflexhdr($cdname, $header1);
    my $p2 = sequence(5) + 8;
-   my $header2 = eval { writeflex($name, $p2) };
-   is $@, '', 'no error';
+   my $header2 = writeflex($name, $p2);
    writeflexhdr($name, $header2);
    $p1 = mapflex($cdname);
    is $p1.'', '[0 1 2 3 4]', 'right value before second mapflex';
