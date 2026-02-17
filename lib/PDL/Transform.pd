@@ -648,7 +648,7 @@ static inline PDL_Double PDL_xform_aux ( pdl *map, PDL_Indx *coords, PDL_Double 
  #define HANNING_LOOKUP_SIZE 2500
  static PDL_Double hanning_lookup[HANNING_LOOKUP_SIZE + 2];
  static int needs_hanning_calc = 1;
- PDL_Double zeta;
+ PDL_Double zeta = 0;
  PDL_Double hanning_offset;
 
  #define GAUSSIAN_LOOKUP_SIZE 4000
