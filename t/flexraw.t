@@ -68,6 +68,16 @@ is_pdl $dc[0], $d;
 is_pdl $dc[1], pdl($c1,$c2,$e);
 }
 
+{
+my $cplx = pdl '1+2i 3+4i 5+6i';
+my $cname = catfile($tmpdir, "cplx");
+my $hdr = writeflex($cname, $cplx);
+is_deeply $hdr, [{ BadFlag => 0, BadValue => undef,
+  Dims => [ 3 ], NDims => 1, Type => 'cdouble'
+}], 'header correct';
+is_pdl readflex($cname, $hdr), $cplx, 'reads back right';
+}
+
 # some mapflex tests
 SKIP: {
 
@@ -79,7 +89,7 @@ SKIP: {
       }
    }
 
-   is_pdl $x, $c, "An ndarray and its mapflex representation should be about equal";
+   is_pdl $c, $x, "An ndarray and its mapflex representation should be about equal";
 
    $c += 1;
    undef $c;
