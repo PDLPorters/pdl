@@ -33,7 +33,7 @@ and being one compilation unit, it could not be parallelised.
 
 =head2 Multi-C files
 
-As of 2.058, a new "multi-C" mode was added. For all internal PDL
+As of 2.058, a new "multi-C" mode was added for all internal PDL
 modules, and external ones that opted in (by adding a 5th, true,
 element to the array-ref describing the package). This creates one
 C file per operation, so parallel building is possible. This makes
@@ -60,7 +60,7 @@ work) is only possible within each module.
 
 EUMM pure-Perl distributions in the modern era have
 a F<lib> directory, whose structure matches the hierarchy of modules.
-PDL now uses this in its C<Basic> subdirectory, so there is e.g.
+Until 2.096, PDL used this in its F<Basic> subdirectory, so there was e.g.
 F<lib/PDL/Core.pm> under that. As of EUMM 7.12 (shipped with Perl
 5.26), it's also possible
 to put C<.xs> files next to their respective C<.pm> files, by giving
