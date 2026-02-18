@@ -54,7 +54,8 @@ static inline pdl *PDL_XS_pdlinit(pTHX_ char *objname, HV *bless_stash, SV *to_p
       clause1; \
       XSRETURN(nreturn); \
     } else { \
-      XSRETURN(0); \
+      if (GIMME_V == G_SCALAR) XSRETURN_UNDEF; /* GH#551 */ \
+      else XSRETURN(0); \
     }
 
 #define PDL_IS_INPLACE(in) ((in)->state & PDL_INPLACE)
