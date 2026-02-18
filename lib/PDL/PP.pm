@@ -1728,7 +1728,7 @@ EOD
           unless $only_one || $argorder || ($nmaxonstack == keys(%valid_itemcounts) + $xs_arg_cnt);
         my $preamble = @preinit ? qq[\n PREINIT:@{[join "\n  ", "", @preinit]}\n INPUT:\n] : '';
         join '', qq[
-\nNO_OUTPUT pdl_error
+\nvoid
 pdl_run_$name(@{[join ', ', @xsargs]})$svdecls
 $preamble@{[join "\n  ", "", @inputdecls]}
  PPCODE:
@@ -1797,7 +1797,7 @@ EOF
         my @counts = map "PDL_Indx ${_}_count=0;", grep $optypes->{$_}->is_array, @{ $sig->othernames(1, 1) };
         my $longpars = join "\n", map "  $_", @counts, $sig->alldecls(1, 0, 1);
         return<<END;
-\nNO_OUTPUT pdl_error
+\nvoid
 $name($shortpars)
 $longpars
 END
@@ -1816,7 +1816,7 @@ END
         my ($func_name,$sig) = @_;
         my $shortpars = join ',', map $sig->other_is_output($_)?"&$_":$_, @{ $sig->allnames(0) };
         my $longpars = join ",", $sig->alldecls(0, 1);
-        (indent(2,"RETVAL = $func_name($shortpars);\nPDL->barf_if_error(RETVAL);\n"),
+        (indent(2,"PDL->barf_if_error($func_name($shortpars));\n"),
           "pdl_error $func_name($longpars)");
       }),
 
