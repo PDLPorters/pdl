@@ -382,8 +382,8 @@ maintenance of this documentation for such functions the 'Doc' field
 has been introduced into the definition of C<pp_def> (see again L<PDL::PP>)
 which will take care that name and signature of the so defined function
 are documented in this way (for examples of this usage see, for example,
-the PDL::Slices module, especially F<slices.pd> and the resulting
-F<Slices.pm>). Similarly, the 'BadDoc' field provides a means of
+L<PDL::Slices>.
+Similarly, the 'BadDoc' field provides a means of
 specifying information on how the routine handles the presence of
 bad values: this will be automatically created if
 C<BadDoc> is not supplied, or set to C<undef>.
@@ -530,17 +530,17 @@ The symhash is a multiply nested hash ref with the following structure:
                   Sig    => 'signature string',
                   Bad    => 'bad documentation string',
                   ...
-                  },
              },
+     },
      function_name => {
              module::name => {
                   Module => 'module::name',
                   Sig    => 'signature string',
                   Bad    => 'bad documentation string',
                   ...
-                  },
              },
- }
+     },
+ };
 
 The three-layer structure is designed to allow the symhash (and the
 underlying database) to handle functions that have the same name but
