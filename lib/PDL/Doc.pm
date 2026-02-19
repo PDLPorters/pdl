@@ -682,7 +682,7 @@ sub scan {
   my $n = 0;
   $_->{File} = $file2, $n++ for values %{ $parser->{SYMHASH} };
   for my $key (sort keys %{ $parser->{SYMHASH} }) {
-    my $val = $hash->{$key};
+    my $val = $parser->{SYMHASH}{$key};
     #set up the 3-layer hash/database structure: $hash->{funcname}->{PDL::SomeModule} = $val
     if (defined($val->{Module})) {
 	$hash->{$key}{$val->{Module}} = $val;
@@ -745,6 +745,7 @@ sub scantree {
     print "\t$n functions\n";
   };
   File::Find::find({
+    no_chdir => 1,
     wanted => $sub,
     preprocess => sub { sort @_ }
   }, $dir);
