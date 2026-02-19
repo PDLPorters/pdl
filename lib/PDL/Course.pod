@@ -78,7 +78,7 @@ or use this module.
 Defines a whole slew of useful built-in functions.  These
 are the sorts of things that beginners are likely to write to
 the list and say, "How do I do xxx?"  You would be well
-on your way to learning the ropes after you've gotten through
+on your way to learning the ropes after you've got through
 this document.
 
 =item * Selections from L<PDL::Core>

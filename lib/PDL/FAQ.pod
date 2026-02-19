@@ -633,7 +633,7 @@ check the archive of the C<pdl-devel> and C<pdl-general> mailing lists.
 See L<Question 3.2|"Q: 3.2 Are there other PDL information sources on the Internet?"> for details.
 
 
-=head2 Q: 4.11   I have gotten developer access to Git, how do I upload my changes?
+=head2 Q: 4.11   I have developer access to Git, how do I upload my changes?
 
 
 The first thing you should do is to read the Git documentation and

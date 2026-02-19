@@ -95,7 +95,7 @@ a script that converts all the data files to raw files:
 
 =head2 Example: readfraw
 
-Now that you've gotten your data into a raw file format, you can
+Now that you've got your data into a raw file format, you can
 start working on your analysis scripts.  If you scripts used C<rcols>
 in the past, the reading portion of the script should go much,
 much faster now:

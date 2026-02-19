@@ -544,7 +544,7 @@ sub _find_PDLs_inner {
 
       # In addition to straight PDLs,
       # this gets subclasses of PDL, but NOT magic-hash subclasses of
-      # PDL (because they'd be gotten by the previous clause).
+      # PDL (because they'd be got by the previous clause).
       # So if you subclass PDL but your actual data structure is still
       # just a straight PDL (and not a hash with PDL field), you end up here.
       #
@@ -559,7 +559,7 @@ sub _find_PDLs_inner {
       }
     }
     elsif(UNIVERSAL::isa($item,'SCALAR')) {
-      # This gets other kinds of refs -- PDLs have already been gotten.
+      # This gets other kinds of refs -- PDLs have already been got.
       # Naked PDLs are themselves SCALARs, so the SCALAR case has to come
       # last to let the PDL case run.
       my $res = _find_PDLs_inner( %args, items => [${$item}] );

@@ -914,7 +914,7 @@ own code.
 
 =head2 Finding Modules
 
-How can you tell if you've gotten a module for one of your entries?
+How can you tell if you've got a module for one of your entries?
 The Ref entry will begin with 'Module:' if it's a module. In code:
 
  # Prints:

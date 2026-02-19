@@ -978,7 +978,7 @@ more examples of usage.
 use Scalar::Util;       # for looks_like_number test
 use Carp 'carp';        # for carping (warnings in caller's context)
 
-# This is the code that handles string arguments. It has now gotten quite large,
+# This is the code that handles string arguments. It has now got quite large,
 # so here's the basic explanation. I want to allow expressions like 2, 1e3, +4,
 # bad, nan, inf, and more. Checking this can get tricky. This croaks when it
 # finds:

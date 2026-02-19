@@ -31,7 +31,7 @@ this document refers to in the PDL core sources and additionally
 struggle to understand L<PDL::PP>, you will be awarded the title
 "PDL Guru".
 
-B<Warning:> If it seems that this document has gotten out of date,
+B<Warning:> If it seems that this document has got out of date,
 please inform the PDL porters email list (pdl-devel@lists.sourceforge.net).
 This may well happen.
 
