@@ -191,6 +191,7 @@ t/core.t
 t/croak.t
 t/demos.t
 t/diskcache.t
+t/doc.t
 t/dumper.t
 t/fastraw.t
 t/fft.t

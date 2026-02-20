@@ -404,7 +404,7 @@ gives you the same answer as
 
   $x = pdl([[1,2,3],[2,undef,undef]]);
 
-If your PDL module has bad values compiled into it (see L<PDL::Bad>), 
+If your PDL module has bad values compiled into it (see L<PDL::Bad>),
 you can pass BAD values into the constructor within pre-existing PDLs.
 The BAD values are automatically kept BAD and propagated correctly.
 
@@ -1252,7 +1252,7 @@ sub _establish_type {
   return $PDL_CD if UNIVERSAL::isa($item, 'Math::Complex');
   return max($item->type->enum, $sofar) if UNIVERSAL::isa($item, 'PDL');
   return $PDL_D if ref($item) ne 'ARRAY';
-  #  only need to check first item for an array of complex vals 
+  #  only need to check first item for an array of complex vals
   return $MAX_TYPE if _establish_type($item->[0], $sofar) == $MAX_TYPE;
   #  only need to recurse for items that are refs
   #  as $sofar will be $PDL_D at a minimum
@@ -3054,7 +3054,7 @@ preserves dataflow:
   ]
  ]
 
-Important: ndarrays are changed inplace!  
+Important: ndarrays are changed inplace!
 
 Note: If C<$x> is connected to any other PDL (e.g. if it is a slice)
 then the connection is first severed.

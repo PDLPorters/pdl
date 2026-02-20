@@ -662,64 +662,20 @@ sub scan {
   barf "can't find file '$file'" unless -f $file;
   $file = Cwd::abs_path($file); # help Debian packaging
   $verbose = 0 unless defined $verbose;
-
-  open my $infile, '<', $file;
-  # XXXX convert to absolute path
-  # my $outfile = '/tmp/'.basename($file).'.pod';
-  open my $outfile, '>', \(my $outfile_text);
-
-  # Handle RPM etc. case where we are building away from the final
-  # location. Alright it's a hack - KGB
+  my $text = do { open my $infile, '<', $file or die "$file: $!"; local $/; <$infile> };
+  # Handle RPM etc. case where we are building away from the final location
   my $file2 = $file;
   $file2 =~ s/^$ENV{BUILDROOTPREFIX}// if $ENV{BUILDROOTPREFIX};
-
-  my $parser = PDL::PodParser->new;
-  $parser->{verbose} = $verbose;
-  eval { $parser->parse_from_filehandle($infile,$outfile) };
-  warn "cannot parse '$file' ($@)" if $@ and $@ ne "no function defined\n";
-
+  my $mod_hash = scantext($text, $file2, $verbose);
   my $hash = $this->{SYMS} ||= {};
-  my $n = 0;
-  $_->{File} = $file2, $n++ for values %{ $parser->{SYMHASH} };
-  for my $key (sort keys %{ $parser->{SYMHASH} }) {
-    my $val = $parser->{SYMHASH}{$key};
-    #set up the 3-layer hash/database structure: $hash->{funcname}->{PDL::SomeModule} = $val
-    if (defined($val->{Module})) {
-	$hash->{$key}{$val->{Module}} = $val;
-    } else {
-	warn "no Module for $key in $file2\n";
+  for my $func (keys %$mod_hash) {
+    my $val = $mod_hash->{$func};
+    # copy the 3-layer hash/database structure: $hash->{funcname}{PDL::SomeModule} = {Ref=>...}
+    for my $func_mod (keys %$val) {
+      $hash->{$func}{$func_mod} = $val->{$func_mod};
     }
   }
-
-  # KGB pass2 - scan for module name and function
-  # alright I admit this is kludgy but it works
-  # and one can now find modules with 'apropos'
-
-  open $infile, '<', $file;
-  $outfile_text = '';
-  $parser = PDL::PodParser->new;
-  $parser->select('NAME');
-  eval { $parser->parse_from_filehandle($infile,$outfile) };
-  warn "cannot parse '$file'" if $@;
-
-  my @namelines = split("\n",$outfile_text);
-  my ($name,$does);
-  for (@namelines) {
-     if (/^(PDL) (-) (.*)/ or  /^\s*(Inline::Pdlpp)\s*(-*)?\s*(.*)\s*$/ or /\s*(PDL::[\w:]*)\s*(-*)?\s*(.*)\s*$/) {
-	$name = $1; $does = $3;
-     }
-     if (/^\s*([a-z][a-z0-9]*) (-+) (.*)/) { # lowercase shell script name
-       $name = $1; $does = $3;
-       ($name,$does) = (undef,undef) unless $does =~ /shell|script/i;
-     }
-   }
-   $does = 'Hmmm ????' if $does and $does =~ /^\s*$/;
-   my $type = ($file =~ /\.pod$/ ?
-	       ($does =~ /shell|script/i && $name =~ /^[a-z][a-z0-9]*$/) ? 'Script:'
-	       : 'Manual:'
-	       : 'Module:');
-   $hash->{$name}{$name} = {Ref=>"$type $does",File=>$file2} if $name and $name !~ /^\s*$/;
-   return $n;
+  scalar values %$mod_hash; # how many functions found
 }
 
 =head2 scantree
@@ -777,7 +733,63 @@ sub funcdocs {
 
 =head1 FUNCTIONS
 
+=head2 scantext
+
+  $hash = scantext($module_text, $filename, $verbose);
+
+Scan a single string (intended to be the contents of a file),
+returning a hash of the functions found therein.
+
 =cut
+
+sub scantext {
+  my ($text, $filename, $verbose) = @_;
+  open my $infile, '<', \$text;
+  my $parser = PDL::PodParser->new;
+  $parser->{verbose} = $verbose;
+  open my $outfile, '>', \(my $outfile_text);
+  eval { $parser->parse_from_filehandle($infile,$outfile) };
+  warn "cannot parse: $@" if $@ and $@ ne "no function defined\n";
+  my %hash;
+  $_->{File} = $filename for values %{ $parser->{SYMHASH} };
+  for my $key (sort keys %{ $parser->{SYMHASH} }) {
+    my $val = $parser->{SYMHASH}{$key};
+    #set up the 3-layer hash/database structure: $hash{funcname}->{PDL::SomeModule} = $val
+    if (defined($val->{Module})) {
+      $hash{$key}{$val->{Module}} = $val;
+    } else {
+      warn "no Module for $key in $filename\n";
+    }
+  }
+  # KGB pass2 - scan for module name and function
+  # alright I admit this is kludgy but it works
+  # and one can now find modules with 'apropos'
+  open $infile, '<', \$text;
+  $outfile_text = '';
+  open $outfile, '>', \$outfile_text;
+  $parser = PDL::PodParser->new;
+  $parser->select('NAME');
+  eval { $parser->parse_from_filehandle($infile,$outfile) };
+  warn "cannot parse '$filename'" if $@;
+  my @namelines = split("\n",$outfile_text);
+  my ($name,$does);
+  for (@namelines) {
+    if (/^(PDL) (-) (.*)/ or  /^\s*(Inline::Pdlpp)\s*(-*)?\s*(.*)\s*$/ or /\s*(PDL::[\w:]*)\s*(-*)?\s*(.*)\s*$/) {
+       $name = $1; $does = $3;
+    }
+    if (/^\s*([a-z][a-z0-9]*) (-+) (.*)/) { # lowercase shell script name
+      $name = $1; $does = $3;
+      ($name,$does) = (undef,undef) unless $does =~ /shell|script/i;
+    }
+  }
+  $does = 'Hmmm ????' if $does and $does =~ /^\s*$/;
+  my $type = ($filename =~ /\.pod$/ ?
+              ($does =~ /shell|script/i && $name =~ /^[a-z][a-z0-9]*$/) ? 'Script:'
+              : 'Manual:'
+              : 'Module:');
+  $hash{$name}{$name} = {Ref=>"$type $does",File=>$filename} if $name and $name !~ /^\s*$/;
+  \%hash;
+}
 
 sub funcdocs_fromfile {
   my ($func,$file) = @_;
