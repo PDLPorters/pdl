@@ -41,4 +41,22 @@ is_deeply $got, {
   }
 } or diag explain $got;
 
+open my $fh, '>', \(my $encoded_text);
+PDL::Doc::encodedb($got, $fh, 'DIRNAME');
+my @splitup = split "\x00", $encoded_text;
+is_deeply \@splitup, [
+  'A',
+  'PDL::Example',
+    'PDL::Example',
+    File => 'Example.pod',
+    Ref => "Manual: does stuff\xC7",
+  'convert_flowing',
+    'PDL::Example',
+    File => 'Example.pod',
+    Module => 'PDL::Example',
+    Ref => 'Generic datatype data-flowing conversion function',
+    Usage => ' $y = convert_flowing($x, $newtype);
+ $y = $x->convert_flowing($newtype);'
+] or warn explain \@splitup;
+
 done_testing;

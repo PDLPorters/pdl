@@ -495,22 +495,8 @@ sub savedb {
   my $hash = $this->ensuredb;
   open my $fh, '>', $this->{Outfile} or barf "can't write to symdb $this->{Outfile}: $!";
   binmode $fh;
-  for my $name (sort keys %$hash) {
-    my $mods_hash = $hash->{$name};
-    next if 0 == scalar(%$mods_hash);
-    for my $module (sort keys %$mods_hash) {
-      my $val = $mods_hash->{$module};
-      my $fi = $val->{File};
-      $val->{File} = abs2rel($fi, dirname($this->{Outfile}))
-        #store paths to *.pm files relative to pdldoc.db
-        if file_name_is_absolute($fi) && -f $fi;
-      delete $val->{Dbfile}; # no need to store Dbfile
-      my $txt = join(chr(0),$name,$module,map +($_=>$val->{$_}), sort keys %$val);
-      print $fh pack("S",length($txt)).$txt;
-    }
-  }
+  encodedb($hash, $fh, dirname($this->{Outfile}));
 }
-
 
 =head2 gethash
 
@@ -732,6 +718,30 @@ sub funcdocs {
 }
 
 =head1 FUNCTIONS
+
+=head2 encodedb
+
+  encodedb($hash, $fh, $outdir);
+
+=cut
+
+sub encodedb {
+  my ($hash, $fh, $outdir) = @_;
+  for my $name (sort keys %$hash) {
+    my $mods_hash = $hash->{$name};
+    next if 0 == scalar(%$mods_hash);
+    for my $module (sort keys %$mods_hash) {
+      my $val = $mods_hash->{$module};
+      my $fi = $val->{File};
+      $val->{File} = abs2rel($fi, $outdir)
+        #store paths to *.pm files relative to pdldoc.db
+        if file_name_is_absolute($fi) && -f $fi;
+      delete $val->{Dbfile}; # no need to store Dbfile
+      my $txt = join(chr(0),$name,$module,map +($_=>$val->{$_}), sort keys %$val);
+      print $fh pack("S",length($txt)).$txt;
+    }
+  }
+}
 
 =head2 scantext
 
