@@ -419,7 +419,7 @@ use Config;
 
 our $pager = $ENV{PERLDOC_PAGER} // $ENV{PAGER} // $Config{pager};
 
-=head1 INSTANCE METHODS
+=head1 METHODS
 
 =head2 new
 
