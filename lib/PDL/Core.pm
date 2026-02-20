@@ -3179,6 +3179,7 @@ sub PDL::convert {
   $pdl->set_datatype($type);
   $pdl;
 }
+
 =head2 convert_flowing
 
 =for ref
