@@ -843,13 +843,6 @@ sub funcdocs_fromfile {
   print $out "Docs from $file\n\n";
 }
 
-sub extrdoc {
-  my ($func,$file) = @_;
-  open my $out, '>', \(my $out_text);
-  funcdocs_fromfile($func,$file,$out);
-  return $out_text;
-}
-
 sub getfuncdocs {
   my ($func,$in,$out) = @_;
   my $parser = Pod::Select->new;
