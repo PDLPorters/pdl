@@ -16,7 +16,7 @@ my $outindex  = shift @ARGV;
 
 unless (defined $dirarg) {
 	($dirarg = $INC{'PDL.pm'}) =~ s/[\/\\]*PDL\.pm$//i;
-	if ($dirarg =~ /^blib/) { $dirarg .= ",blib/script" }
+	if ($dirarg =~ /^blib/) { $dirarg .= ",blib/script,blib/lib/Inline" }
 	umask 0022;
 	print "DIR = $dirarg\n";
 }
@@ -31,7 +31,7 @@ my $onldc = PDL::Doc->new;
 $onldc->outfile($outdb);
 
 foreach my $dir (@dirs) {
-    $onldc->scantree($dir =~ /script$/ ? $dir : $dir."/PDL",$opt_v);
+    $onldc->scantree($dir =~ /script|Inline$/ ? $dir : $dir."/PDL",$opt_v);
     $onldc->scan($dir."/PDL.pm",$opt_v) if (-s $dir."/PDL.pm");
 }
 
@@ -99,7 +99,7 @@ print $podfh $pod;
 print $podfh "=over 4\n\n";
 for (@mods) {
   my $ref = $_->[2]->{Ref};
-  next unless $_->[0] =~ /^PDL/;
+  next unless $_->[0] =~ /^PDL|Inline::Pdlpp/;
   $ref =~ s/Module:/L<$_->[0]> -/;
   print $podfh "=item *\n\n$ref\n\n";
 }
