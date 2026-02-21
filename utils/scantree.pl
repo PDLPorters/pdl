@@ -15,7 +15,7 @@ my $outdb  = shift @ARGV;
 my $outindex  = shift @ARGV;
 
 unless (defined $dirarg) {
-	($dirarg = $INC{'PDL.pm'}) =~ s/PDL\.pm$//i;
+	($dirarg = $INC{'PDL.pm'}) =~ s/[\/\\]*PDL\.pm$//i;
 	umask 0022;
 	print "DIR = $dirarg\n";
 }
