@@ -100,11 +100,6 @@ print $podfh "=over 4\n\n";
 for (@mods) {
   my $ref = $_->[2]->{Ref};
   next unless $_->[0] =~ /^PDL/;
-  if( $_->[0] eq 'PDL'){ # special case needed to find the main PDL.pm file.
-	  $ref =~ s/Module:/L<PDL> -/;
-	  print $podfh "=item *\n\n$ref\n\n";
-	  next;
-  }
   $ref =~ s/Module:/L<$_->[0]> -/;
   print $podfh "=item *\n\n$ref\n\n";
 }
