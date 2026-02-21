@@ -72,7 +72,6 @@ for (@mans) {
 }
 
 $pod = <<'EOPOD';
-
   =back
 
   =head1 PDL scripts
@@ -89,7 +88,6 @@ for (@scripts) {
 }
 
 $pod = <<'EOPOD';
-
   =back
 
   =head1 PDL modules
@@ -112,7 +110,6 @@ for (@mods) {
 }
 
 $pod = <<'EOPOD';
-
   =back
 
   =head1 HISTORY
