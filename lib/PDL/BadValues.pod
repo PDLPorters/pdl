@@ -69,7 +69,7 @@ including complex.
  120
 
 C<demo bad>
-within L<perldl|PDL::perldl> gives a demonstration of some of the things
+within L<perldl> gives a demonstration of some of the things
 possible with bad values.  These are also available on PDL's web-site,
 at F<http://pdl.perl.org/demos/>.  See L<PDL::Bad> for useful routines for working
 with bad values and F<t/bad.t> to see them in action.

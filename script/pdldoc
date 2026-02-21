@@ -61,7 +61,7 @@ B<pdldoc> [B<-a>] [B<-b>] [B<-h>] [B<-s>] [B<-u>] <text>
 
 The aim of B<pdldoc> is to provide the same functionality
 as the C<apropos>, C<help>, C<sig>, C<badinfo>,
-and C<usage> commands available in the L<perldl|PDL::perldl> shell.
+and C<usage> commands available in the L<perldl> shell.
 It searches for L<PDL::AutoLoader> functions also.
 
 Think of it as the PDL equivalent of C<perldoc -f>.
