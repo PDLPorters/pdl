@@ -59,6 +59,28 @@ is_deeply \@splitup, [
  $y = $x->convert_flowing($newtype);'
 ] or warn explain \@splitup;
 
+open $fh, '<', \$encoded_text;
+my $decode_hash = PDL::Doc::decodedb($fh, 'FILENAME');
+is_deeply $decode_hash, {
+  'PDL::Example' => {
+    'PDL::Example' => {
+      'Dbfile' => 'FILENAME',
+      'File' => 'Example.pod',
+      'Ref' => 'Manual: does stuff'
+    }
+  },
+  'convert_flowing' => {
+    'PDL::Example' => {
+      'Dbfile' => 'FILENAME',
+      'File' => 'Example.pod',
+      'Module' => 'PDL::Example',
+      'Ref' => 'Generic datatype data-flowing conversion function',
+      'Usage' => ' $y = convert_flowing($x, $newtype);
+ $y = $x->convert_flowing($newtype);'
+    }
+  }
+} or diag explain $decode_hash;
+
 my %into = (
   f1 => { 'PDL::M1' => { Ref => 'a func' } },
 );

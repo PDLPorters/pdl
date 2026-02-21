@@ -469,15 +469,8 @@ sub ensuredb {
   my ($this) = @_;
   while (my $fi = pop @{$this->{File}}) {
     open my $fh, $fi or barf "can't open database $fi, scan docs first";
-    binmode $fh;
-    my ($plen,$txt);
-    while (read $fh, $plen,2) {
-      my ($len) = unpack "S", $plen;
-      read $fh, $txt, $len;
-      my ($sym, $module, @a) = split chr(0), $txt;
-      push @a, "" if @a % 2; # Add null string at end if necessary -- solves bug with missing REF section.
-      $this->{SYMS}{$sym}{$module} = { @a, Dbfile => $fi }; # keep the origin pdldoc.db path
-    }
+    my $got_hash = decodedb($fh, $fi);
+    merge_hash($this->{SYMS} ||= {}, $got_hash);
     push @{$this->{Scanned}}, $fi;
   }
   return $this->{SYMS};
@@ -713,6 +706,28 @@ sub funcdocs {
 }
 
 =head1 FUNCTIONS
+
+=head2 decodedb
+
+  $hash = decodedb($fh, $filename);
+
+Decode the 3-level hash out of a saved PDL::Doc database.
+
+=cut
+
+sub decodedb {
+  my ($fh, $filename) = @_;
+  binmode $fh;
+  my %hash;
+  while (read $fh, my $plen, 2) {
+    my ($len) = unpack "S", $plen;
+    read $fh, my($txt), $len;
+    my ($sym, $module, @a) = split chr(0), $txt;
+    push @a, "" if @a % 2; # Add null string at end if necessary -- solves bug with missing REF section.
+    $hash{$sym}{$module} = { @a, Dbfile => $filename }; # keep the origin pdldoc.db path
+  }
+  \%hash;
+}
 
 =head2 merge_hash
 
