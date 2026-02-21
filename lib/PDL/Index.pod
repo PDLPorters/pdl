@@ -96,7 +96,6 @@ L<PDL::Tips> - Small tidbits of useful arcana. Programming tidbits and such.
 
 L<PDL::Tutorials> - A guide to PDL's tutorial documentation.
 
-
 =back
 
 =head1 PDL scripts
@@ -109,8 +108,7 @@ L<perldl> - Simple shell for PDL
 
 =item *
 
-L<pptemplate|PDL::pptemplate> - script to generate Makefile.PL and PP file skeleton
-
+L<pptemplate> - script to generate Makefile.PL and PP file skeleton
 
 =back
 
@@ -309,7 +307,6 @@ L<PDL::Types> - define fundamental PDL Datatypes
 =item *
 
 L<PDL::Ufunc> - primitive ufunc operations for pdl
-
 
 =back
 

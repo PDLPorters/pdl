@@ -83,7 +83,7 @@ print $podfh $pod;
 print $podfh "=over 4\n\n";
 for (@scripts) {
   my $ref = $_->[2]->{Ref};
-  $ref =~ s/Script:/L<$_->[0]|PDL::$_->[0]> -/;
+  $ref =~ s/Script:/L<$_->[0]> -/;
   print $podfh "=item *\n\n$ref\n\n";
 }
 
