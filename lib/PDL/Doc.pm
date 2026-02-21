@@ -671,7 +671,10 @@ sub scantree {
   print "Scanning $dir ... \n\n";
   my $ntot = 0;
   my $sub = sub {
-    return if $File::Find::name !~ /\.(?:pm|pod)$/;
+    return if -d $File::Find::name;
+    return if
+      $File::Find::dir !~ /script$/ and
+      $File::Find::name !~ /\.(?:pm|pod)$/;
     return if $File::Find::name =~ /(?:Index\.pod|PP\.pm)$/ or
       $File::Find::dir =~ m#/PP#;
     printf "%-20s", $_.'...';
@@ -805,10 +808,10 @@ sub scantext {
     }
   }
   $does = 'Hmmm ????' if $does and $does =~ /^\s*$/;
-  my $type = ($filename =~ /\.pod$/ ?
-              ($does =~ /shell|script/i && $name =~ /^[a-z][a-z0-9]*$/) ? 'Script:'
-              : 'Manual:'
-              : 'Module:');
+  my $type =
+    $filename =~ /script/ ? 'Script:' :
+    $filename =~ /\.pod$/ ? 'Manual:' :
+      'Module:';
   $hash{$name}{$name} = {Ref=>"$type $does",File=>$filename} if $name and $name !~ /^\s*$/;
   \%hash;
 }
