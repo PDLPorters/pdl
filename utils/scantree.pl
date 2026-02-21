@@ -104,7 +104,7 @@ for (@mods) {
   print $podfh "=item *\n\n$ref\n\n";
 }
 
-$pod = <<'EOPOD';
+$pod = <<EOPOD;
   =back
 
   =head1 HISTORY
