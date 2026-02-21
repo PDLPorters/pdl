@@ -103,12 +103,7 @@ __END__
 
 =head1 NAME
 
-PDL::Parallel::threads::SIMD - launch and synchronize
-Single-Instruction-Multiple-Dataset code
-
-=head1 VERSION
-
-This documentation describes version 0.02 of PDL::Parallel::threads::SIMD.
+PDL::Parallel::threads::SIMD - launch and synchronize Single-Instruction-Multiple-Dataset code
 
 =head1 SYNOPSIS
 
