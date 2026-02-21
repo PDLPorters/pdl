@@ -494,7 +494,6 @@ sub savedb {
   my ($this) = @_;
   my $hash = $this->ensuredb;
   open my $fh, '>', $this->{Outfile} or barf "can't write to symdb $this->{Outfile}: $!";
-  binmode $fh;
   encodedb($hash, $fh, dirname($this->{Outfile}));
 }
 
@@ -727,6 +726,7 @@ sub funcdocs {
 
 sub encodedb {
   my ($hash, $fh, $outdir) = @_;
+  binmode $fh;
   for my $name (sort keys %$hash) {
     my $mods_hash = $hash->{$name};
     next if 0 == scalar(%$mods_hash);
