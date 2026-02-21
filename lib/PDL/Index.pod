@@ -14,10 +14,6 @@ the PDL manual documents
 
 =item *
 
-L<Inline::Pdlpp> - Write PDL Subroutines inline with PDL::PP
-
-=item *
-
 L<PDL::API> - making ndarrays from Perl and C/XS code
 
 =item *
@@ -121,6 +117,10 @@ L<pptemplate|PDL::pptemplate> - script to generate Makefile.PL and PP file skele
 =head1 PDL modules
 
 =over 4
+
+=item *
+
+L<Inline::Pdlpp> - Write PDL Subroutines inline with PDL::PP
 
 =item *
 
