@@ -16,6 +16,7 @@ my $outindex  = shift @ARGV;
 
 unless (defined $dirarg) {
 	($dirarg = $INC{'PDL.pm'}) =~ s/[\/\\]*PDL\.pm$//i;
+	if ($dirarg =~ /^blib/) { $dirarg .= ",blib/script" }
 	umask 0022;
 	print "DIR = $dirarg\n";
 }
@@ -30,7 +31,7 @@ my $onldc = PDL::Doc->new;
 $onldc->outfile($outdb);
 
 foreach my $dir (@dirs) {
-    $onldc->scantree($dir."/PDL",$opt_v);
+    $onldc->scantree($dir =~ /script$/ ? $dir : $dir."/PDL",$opt_v);
     $onldc->scan($dir."/PDL.pm",$opt_v) if (-s $dir."/PDL.pm");
 }
 
