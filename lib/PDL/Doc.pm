@@ -652,14 +652,7 @@ sub scan {
   my $file2 = $file;
   $file2 =~ s/^$ENV{BUILDROOTPREFIX}// if $ENV{BUILDROOTPREFIX};
   my $mod_hash = scantext($text, $file2, $verbose);
-  my $hash = $this->{SYMS} ||= {};
-  for my $func (keys %$mod_hash) {
-    my $val = $mod_hash->{$func};
-    # copy the 3-layer hash/database structure: $hash->{funcname}{PDL::SomeModule} = {Ref=>...}
-    for my $func_mod (keys %$val) {
-      $hash->{$func}{$func_mod} = $val->{$func_mod};
-    }
-  }
+  merge_hash($this->{SYMS} ||= {}, $mod_hash);
   scalar values %$mod_hash; # how many functions found
 }
 
@@ -717,6 +710,25 @@ sub funcdocs {
 }
 
 =head1 FUNCTIONS
+
+=head2 merge_hash
+
+  merge_hash(\%pdldoc_into, \%pdldoc_from); # for 3-level hash only
+
+Merge a 3-level PDL::Doc hash into another one.
+
+=cut
+
+sub merge_hash {
+  my ($into, $from) = @_;
+  for my $func (keys %$from) {
+    my $val = $from->{$func};
+    # copy the 3-layer hash/database structure: $into->{funcname}{PDL::SomeModule} = {Ref=>...}
+    for my $func_mod (keys %$val) {
+      $into->{$func}{$func_mod} = $val->{$func_mod};
+    }
+  }
+}
 
 =head2 encodedb
 

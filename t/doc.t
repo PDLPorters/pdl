@@ -59,4 +59,15 @@ is_deeply \@splitup, [
  $y = $x->convert_flowing($newtype);'
 ] or warn explain \@splitup;
 
+my %into = (
+  f1 => { 'PDL::M1' => { Ref => 'a func' } },
+);
+PDL::Doc::merge_hash(\%into, { f1 => { 'PDL::M2' => { Ref => 'another' } } });
+is_deeply \%into, {
+  f1 => {
+    'PDL::M1' => { Ref => 'a func' },
+    'PDL::M2' => { Ref => 'another' },
+  },
+};
+
 done_testing;
