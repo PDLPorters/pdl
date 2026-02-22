@@ -41,6 +41,19 @@ is_deeply $got, {
   }
 } or diag explain $got;
 
+my $onldc = PDL::Doc->new_from_hash($got);
+my @searched = $onldc->search('manual:',['Ref'],1);
+is_deeply \@searched, [
+  [
+    'PDL::Example',
+    'PDL::Example',
+    {
+      'File' => 'Example.pod',
+      'Ref' => 'Manual: does stuff'
+    }
+  ]
+] or diag explain \@searched;
+
 open my $fh, '>', \(my $encoded_text);
 PDL::Doc::encodedb($got, $fh, 'DIRNAME');
 my @splitup = split "\x00", $encoded_text;
@@ -57,7 +70,7 @@ is_deeply \@splitup, [
     Ref => 'Generic datatype data-flowing conversion function',
     Usage => ' $y = convert_flowing($x, $newtype);
  $y = $x->convert_flowing($newtype);'
-] or warn explain \@splitup;
+] or diag explain \@splitup;
 
 open $fh, '<', \$encoded_text;
 my $decode_hash = PDL::Doc::decodedb($fh, 'FILENAME');

@@ -433,7 +433,24 @@ sub new {
   $this->{File} = [@files];
   $this->{Scanned} = [];
   $this->{Outfile} = $files[0];
-  return $this;
+  $this;
+}
+
+=head2 new_from_hash
+
+  $onlinedc = PDL::Doc->new_from_hash(\%hash);
+
+The hash must conform to the 3-level hash format.
+
+=cut
+
+sub new_from_hash {
+  my ($type, $hash) = @_;
+  my $this = bless {},$type;
+  $this->{File} = [];
+  $this->{Scanned} = [];
+  $this->{SYMS} = $hash;
+  $this;
 }
 
 =head2 addfiles
