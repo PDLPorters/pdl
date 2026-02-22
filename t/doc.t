@@ -9,6 +9,14 @@ my $mod_text = <<'EOF';
 
 PDL::Example - does stuff
 
+=head1 FALSE POSITIVES
+
+=head2 not_function
+
+=for ref
+
+Not a doctor.
+
 =head1 FUNCTIONS
 
 EOF
