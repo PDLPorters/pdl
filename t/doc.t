@@ -38,10 +38,15 @@ C<$newtype> is a type number.
 =for sig
 
  Signature: (a(n), [o]b(), [t]tmp(n))
+
+=for bad
+
+Handles bad data.
 EOF
 my $pod_text = $mod_text . $cvf_text;
 my $got = PDL::Doc::scantext($pod_text, 'Example.pod');
 my %cvf_hash = (
+  'Bad' => 'Handles bad data.',
   'Example' => ' $y = convert_flowing($x, $newtype);',
   'File' => 'Example.pod',
   'Module' => 'PDL::Example',
@@ -96,7 +101,7 @@ is_deeply \@splitup, [
     'PDL::Example',
     File => 'Example.pod',
     Ref => "Manual: does stuff".
-   "\x98\x01convert_flowing",
+   "\xAE\x01convert_flowing",
     'PDL::Example',
     (map +($_=>$cvf_hash{$_}), sort keys %cvf_hash),
 ] or diag explain \@splitup;
