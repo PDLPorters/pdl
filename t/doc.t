@@ -2,6 +2,7 @@ use strict;
 use warnings;
 use Test::More;
 use PDL::Doc;
+use PDL::Doc::Perldl;
 
 my $pod_text = <<'EOF';
 =head1 NAME
@@ -54,6 +55,11 @@ is_deeply \@searched, [
     }
   ]
 ] or diag explain \@searched;
+
+undef &PDL::Doc::Perldl::screen_width;
+*PDL::Doc::Perldl::screen_width = sub { 72 };
+my $formatted = PDL::Doc::Perldl::format_ref(@searched);
+is $formatted, "PDL::Example    P::Example  Manual: does stuff\n";
 
 open my $pod_fh, '<', \$pod_text;
 open my $func_fh, '>', \(my $func_text);
