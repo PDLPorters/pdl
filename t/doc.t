@@ -25,13 +25,30 @@ Generic datatype data-flowing conversion function
  $y = $x->convert_flowing($newtype);
 
 C<$newtype> is a type number.
+
+=for example
+
+ $y = convert_flowing($x, $newtype);
+
+=for options
+
+ CONVERTER  => 'ppmtogif',   # explicitly specify pbm converter
+ FLAGS      => '-interlaced -transparent 0',  # flags for converter
+
+=for sig
+
+ Signature: (a(n), [o]b(), [t]tmp(n))
 EOF
 my $pod_text = $mod_text . $cvf_text;
 my $got = PDL::Doc::scantext($pod_text, 'Example.pod');
 my %cvf_hash = (
+  'Example' => ' $y = convert_flowing($x, $newtype);',
   'File' => 'Example.pod',
   'Module' => 'PDL::Example',
   'Ref' => 'Generic datatype data-flowing conversion function',
+  'Opt' => ' CONVERTER  => \'ppmtogif\',   # explicitly specify pbm converter
+ FLAGS      => \'-interlaced -transparent 0\',  # flags for converter',
+  'Sig' => 'a(n), [o]b(), [t]tmp(n)',
   'Usage' => ' $y = convert_flowing($x, $newtype);
  $y = $x->convert_flowing($newtype);'
 );
@@ -78,8 +95,8 @@ is_deeply \@splitup, [
   'PDL::Example',
     'PDL::Example',
     File => 'Example.pod',
-    Ref => "Manual: does stuff\xC7",
-  'convert_flowing',
+    Ref => "Manual: does stuff".
+   "\x98\x01convert_flowing",
     'PDL::Example',
     (map +($_=>$cvf_hash{$_}), sort keys %cvf_hash),
 ] or diag explain \@splitup;
