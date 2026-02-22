@@ -4,13 +4,15 @@ use Test::More;
 use PDL::Doc;
 use PDL::Doc::Perldl;
 
-my $pod_text = <<'EOF';
+my $mod_text = <<'EOF';
 =head1 NAME
 
 PDL::Example - does stuff
 
 =head1 FUNCTIONS
 
+EOF
+my $cvf_text = <<'EOF';
 =head2 convert_flowing
 
 =for ref
@@ -24,7 +26,15 @@ Generic datatype data-flowing conversion function
 
 C<$newtype> is a type number.
 EOF
+my $pod_text = $mod_text . $cvf_text;
 my $got = PDL::Doc::scantext($pod_text, 'Example.pod');
+my %cvf_hash = (
+  'File' => 'Example.pod',
+  'Module' => 'PDL::Example',
+  'Ref' => 'Generic datatype data-flowing conversion function',
+  'Usage' => ' $y = convert_flowing($x, $newtype);
+ $y = $x->convert_flowing($newtype);'
+);
 is_deeply $got, {
   'PDL::Example' => {
     'PDL::Example' => {
@@ -33,13 +43,7 @@ is_deeply $got, {
     }
   },
   'convert_flowing' => {
-    'PDL::Example' => {
-      'File' => 'Example.pod',
-      'Module' => 'PDL::Example',
-      'Ref' => 'Generic datatype data-flowing conversion function',
-      'Usage' => ' $y = convert_flowing($x, $newtype);
- $y = $x->convert_flowing($newtype);'
-    }
+    'PDL::Example' => \%cvf_hash,
   }
 } or diag explain $got;
 
@@ -64,20 +68,7 @@ is $formatted, "PDL::Example    P::Example  Manual: does stuff\n";
 open my $pod_fh, '<', \$pod_text;
 open my $func_fh, '>', \(my $func_text);
 PDL::Doc::getfuncdocs('convert_flowing', $pod_fh, $func_fh);
-is $func_text, <<'EOF';
-=head2 convert_flowing
-
-=for ref
-
-Generic datatype data-flowing conversion function
-
-=for usage
-
- $y = convert_flowing($x, $newtype);
- $y = $x->convert_flowing($newtype);
-
-C<$newtype> is a type number.
-EOF
+is $func_text, $cvf_text;
 
 open my $fh, '>', \(my $encoded_text);
 PDL::Doc::encodedb($got, $fh, 'DIRNAME');
@@ -90,11 +81,7 @@ is_deeply \@splitup, [
     Ref => "Manual: does stuff\xC7",
   'convert_flowing',
     'PDL::Example',
-    File => 'Example.pod',
-    Module => 'PDL::Example',
-    Ref => 'Generic datatype data-flowing conversion function',
-    Usage => ' $y = convert_flowing($x, $newtype);
- $y = $x->convert_flowing($newtype);'
+    (map +($_=>$cvf_hash{$_}), sort keys %cvf_hash),
 ] or diag explain \@splitup;
 
 open $fh, '<', \$encoded_text;
@@ -110,11 +97,7 @@ is_deeply $decode_hash, {
   'convert_flowing' => {
     'PDL::Example' => {
       'Dbfile' => 'FILENAME',
-      'File' => 'Example.pod',
-      'Module' => 'PDL::Example',
-      'Ref' => 'Generic datatype data-flowing conversion function',
-      'Usage' => ' $y = convert_flowing($x, $newtype);
- $y = $x->convert_flowing($newtype);'
+      %cvf_hash,
     }
   }
 } or diag explain $decode_hash;
