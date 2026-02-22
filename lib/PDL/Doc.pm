@@ -738,7 +738,7 @@ sub decodedb {
   binmode $fh;
   my %hash;
   while (read $fh, my $plen, 2) {
-    my ($len) = unpack "S", $plen;
+    my ($len) = unpack "v", $plen;
     read $fh, my($txt), $len;
     my ($sym, $module, @a) = split chr(0), $txt;
     push @a, "" if @a % 2; # Add null string at end if necessary -- solves bug with missing REF section.
@@ -785,7 +785,7 @@ sub encodedb {
         if file_name_is_absolute($fi) && -f $fi;
       delete $val->{Dbfile}; # no need to store Dbfile
       my $txt = join(chr(0),$name,$module,map +($_=>$val->{$_}), sort keys %$val);
-      print $fh pack("S",length($txt)).$txt;
+      print $fh pack("v",length($txt)).$txt;
     }
   }
 }
