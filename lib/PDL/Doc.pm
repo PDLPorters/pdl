@@ -7,6 +7,7 @@ use strict;
 use warnings;
 use PDL::Core '';
 use Pod::Select;
+use Pod::Simple::PullParser;
 
 our @ISA = qw(Pod::Select);
 
@@ -817,27 +818,12 @@ sub scantext {
       warn "no Module for $key in $filename\n";
     }
   }
-  # KGB pass2 - scan for module name and function
-  # alright I admit this is kludgy but it works
-  # and one can now find modules with 'apropos'
-  open $infile, '<', \$text;
-  $outfile_text = '';
-  open $outfile, '>', \$outfile_text;
-  $parser = PDL::PodParser->new;
-  $parser->select('NAME');
-  eval { $parser->parse_from_filehandle($infile,$outfile) };
-  warn "cannot parse '$filename'" if $@;
-  my @namelines = split("\n",$outfile_text);
-  my ($name,$does);
-  for (@namelines) {
-    if (/^(PDL) (-) (.*)/ or  /^\s*(Inline::Pdlpp)\s*(-*)?\s*(.*)\s*$/ or /\s*(PDL::[\w:]*)\s*(-*)?\s*(.*)\s*$/) {
-       $name = $1; $does = $3;
-    }
-    if (/^\s*([a-z][a-z0-9]*) (-+) (.*)/) { # lowercase shell script name
-      $name = $1; $does = $3;
-      ($name,$does) = (undef,undef) unless $does =~ /shell|script/i;
-    }
-  }
+  # pass2 - scan for module name and function
+  $parser = Pod::Simple::PullParser->new;
+  $parser->set_source(\$text);
+  my $title = eval { $parser->get_title };
+  warn("cannot parse '$filename'"), return \%hash if $@;
+  my ($name,$does) = split /\s*-+\s*/, $title, 2;
   $does = 'Hmmm ????' if $does and $does =~ /^\s*$/;
   my $type =
     $filename =~ /script/ ? 'Script:' :
