@@ -3,7 +3,7 @@ use warnings;
 use Test::More;
 use PDL::Doc;
 
-my $got = PDL::Doc::scantext(<<'EOF', 'Example.pod');
+my $pod_text = <<'EOF';
 =head1 NAME
 
 PDL::Example - does stuff
@@ -23,6 +23,7 @@ Generic datatype data-flowing conversion function
 
 C<$newtype> is a type number.
 EOF
+my $got = PDL::Doc::scantext($pod_text, 'Example.pod');
 is_deeply $got, {
   'PDL::Example' => {
     'PDL::Example' => {
@@ -53,6 +54,24 @@ is_deeply \@searched, [
     }
   ]
 ] or diag explain \@searched;
+
+open my $pod_fh, '<', \$pod_text;
+open my $func_fh, '>', \(my $func_text);
+PDL::Doc::getfuncdocs('convert_flowing', $pod_fh, $func_fh);
+is $func_text, <<'EOF';
+=head2 convert_flowing
+
+=for ref
+
+Generic datatype data-flowing conversion function
+
+=for usage
+
+ $y = convert_flowing($x, $newtype);
+ $y = $x->convert_flowing($newtype);
+
+C<$newtype> is a type number.
+EOF
 
 open my $fh, '>', \(my $encoded_text);
 PDL::Doc::encodedb($got, $fh, 'DIRNAME');
@@ -104,5 +123,63 @@ is_deeply \%into, {
     'PDL::M2' => { Ref => 'another' },
   },
 };
+
+my $mzeroes_text = <<'EOF';
+=head1 NAME
+
+PDL::Matrix -- a convenience matrix class for column-major access
+
+=head1 FUNCTIONS
+
+=head2 mzeroes, mones, msequence
+
+=for ref
+
+constructs a PDL::Matrix object similar to the ndarray constructors
+zeroes, ones, sequence.
+EOF
+my $mzeroes_got = PDL::Doc::scantext($mzeroes_text, 'Matrix.pm');
+is_deeply $mzeroes_got, {
+  'PDL::Matrix' => {
+    'PDL::Matrix' => {
+      'File' => 'Matrix.pm',
+      'Ref' => 'Module: a convenience matrix class for column-major access'
+    }
+  },
+  'mones' => {
+    'PDL::Matrix' => {
+      'Crossref' => 'mzeroes',
+      'File' => 'Matrix.pm',
+      'Module' => 'PDL::Matrix'
+    }
+  },
+  'msequence' => {
+    'PDL::Matrix' => {
+      'Crossref' => 'mzeroes',
+      'File' => 'Matrix.pm',
+      'Module' => 'PDL::Matrix'
+    }
+  },
+  'mzeroes' => {
+    'PDL::Matrix' => {
+      'File' => 'Matrix.pm',
+      'Module' => 'PDL::Matrix',
+      'Names' => 'mzeroes,mones,msequence',
+      'Ref' => 'constructs a PDL::Matrix object similar to the ndarray constructors
+zeroes, ones, sequence.'
+    }
+  }
+} or diag explain $mzeroes_got;
+open $pod_fh, '<', \$mzeroes_text;
+open $func_fh, '>', \$func_text;
+PDL::Doc::getfuncdocs('msequence', $pod_fh, $func_fh);
+is $func_text, <<'EOF';
+=head2 mzeroes, mones, msequence
+
+=for ref
+
+constructs a PDL::Matrix object similar to the ndarray constructors
+zeroes, ones, sequence.
+EOF
 
 done_testing;

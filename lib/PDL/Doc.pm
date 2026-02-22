@@ -863,7 +863,6 @@ sub funcdocs_fromfile {
 sub getfuncdocs {
   my ($func,$in,$out) = @_;
   my $parser = Pod::Select->new;
-#  $parser->select("\\(METHODS\\|OPERATORS\\|CONSTRUCTORS\\|FUNCTIONS\\|METHODS\\)/$func(\\(.*\\)*\\s*");
   foreach my $foo(qw/FUNCTIONS OPERATORS CONSTRUCTORS METHODS/) {
       seek $in,0,0;
       $parser->select("$foo/(.*,\\s+)*$func(\\(.*\\))*(\\s*|,\\s+.*)");
