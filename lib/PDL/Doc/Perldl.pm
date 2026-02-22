@@ -47,7 +47,6 @@ our @ISA = qw(Exporter);
 our @EXPORT = qw( apropos aproposover usage help sig badinfo whatis );
 
 use PDL::Doc;
-use Pod::Select;
 use Pod::Text;
 use Cwd; # to help Debian packaging
 
@@ -304,7 +303,8 @@ sub finddoc  {
        } else {
           if(defined $m->[2]{CustomFile}) {
 
-             my $parser= Pod::Select->new;
+             require Pod::Text;
+             my $parser = Pod::Text->new;
              print $out "=head1 Autoload file \"".$m->[2]{CustomFile}."\"\n\n";
              $parser->parse_from_file($m->[2]{CustomFile},$out);
              print $out "\n\n=head2 Docs from\n\n".$m->[2]{CustomFile}."\n\n";

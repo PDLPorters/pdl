@@ -861,14 +861,10 @@ sub funcdocs_fromfile {
 
 sub getfuncdocs {
   my ($func,$in,$out) = @_;
-  my $parser = Pod::Select->new;
-  foreach my $foo(qw/FUNCTIONS OPERATORS CONSTRUCTORS METHODS/) {
-      seek $in,0,0;
-      $parser->select("$foo/(.*,\\s+)*$func(\\(.*\\))*(\\s*|,\\s+.*)");
-      $parser->parse_from_filehandle($in,$out);
-  }
+  my $parser = PDL::PodParser->new;
+  $parser->select("OPERATORS|FUNCTIONS|CONSTRUCTORS|METHODS/(.*,\\s+)*$func(\\(.*\\))*(\\s*|,\\s+.*)");
+  $parser->parse_from_filehandle($in,$out);
 }
-
 
 =head2 add_module
 
