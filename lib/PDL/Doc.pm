@@ -776,7 +776,6 @@ sub encodedb {
   binmode $fh;
   for my $name (sort keys %$hash) {
     my $mods_hash = $hash->{$name};
-    next if 0 == scalar(%$mods_hash);
     for my $module (sort keys %$mods_hash) {
       my $val = $mods_hash->{$module};
       my $fi = $val->{File};
