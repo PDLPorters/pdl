@@ -58,10 +58,8 @@ package # hide from PAUSE/MetaCPAN
 use strict;
 use warnings;
 use PDL::Core '';
-use Pod::Select;
 use Pod::Simple::PullParser;
-
-our @ISA = qw(Pod::Select);
+use parent qw(Pod::Select);
 
 our %Title = ('Example' => 'Example',
 	  'Ref'     => 'Reference',
@@ -93,7 +91,7 @@ sub command {
     return if $txt =~ /^The\s/; # heuristic to deal with GSL::CDF descriptive =head2
     # A function can have multiple names (ex: zeros and zeroes),
     # so split at the commas
-    my @funcs = split(',',$txt);
+    my @funcs = split ',', $txt;
     # Remove parentheses (so myfunc and myfunc() both work)
     my @names = map {$1 if m/\s*([^\s\(]+)\s*/} @funcs;
     barf "error parsing function list '$txt'"
@@ -101,15 +99,15 @@ sub command {
     # check for signatures
     my $sym = $this->{SYMHASH};
     for (@funcs) {
-      $sym->{$1}->{Module} = $this->{NAME} if m/\s*([^\s(]+)\s*/;
-      $sym->{$1}->{Sig} = $2  if m/\s*([^\s(]+)\s*\(\s*(.+)\s*\)\s*$/;
+      $sym->{$1}{Module} = $this->{NAME} if m/\s*([^\s(]+)\s*/;
+      $sym->{$1}{Sig} = $2               if m/\s*([^\s(]+)\s*\(\s*(.+)\s*\)\s*$/;
     }
     # make the first one the current function
-    $sym->{$names[0]}->{Names} = join(',',@names) if $#names > 0;
+    $sym->{$names[0]}{Names} = join(',',@names) if $#names > 0;
     my $name = shift @names;
     # Make the other names cross-reference the first name
-    $sym->{$_}->{Crossref} = $name for (@names);
-    my $sig = $sym->{$name}->{Sig};
+    $sym->{$_}{Crossref} = $name for @names;
+    my $sig = $sym->{$name}{Sig};
     # diagnostic output
     print "\nFunction '".join(',',($name,@names))."'\n" if $this->{verbose};
     print "\n\tSignature: $sig\n" if defined $sig && $this->{verbose};
@@ -123,7 +121,7 @@ sub check_for_mode {
   my ($this,$txt,$pod_para) = @_;
   if ($txt =~ /^(sig|example|ref|opt|usage|bad|body)/i) {
     $this->{Parmode} = ucfirst lc $1;
-    print "switched now to '$1' mode\n" if $this->{VERBOSE};
+    print "switched now to '$1' mode\n" if $this->{verbose};
     print "\n\t$Title{$this->{Parmode}}\n"
       unless $this->{Parmode} =~ /Body/ || !$this->{verbose};
   }
@@ -150,7 +148,7 @@ sub checkmode {
     die "no function defined\n" unless defined $func;
     local $this->{INBLOCK} = 1; # can interpolate call textblock?
     my $itxt = $verbatim ? $txt : $this->interpolate($txt);
-    $this->{SYMHASH}->{$func}->{$this->{Parmode}} .=
+    $this->{SYMHASH}{$func}{$this->{Parmode}} .=
       $this->trim($itxt,$verbatim);
     my $cr = ($verbatim && $this->{Parmode} ne 'Sig') ? "\n" : "";
     my $out = "\n\t\t$cr".$this->trim($itxt,$verbatim);
@@ -174,11 +172,9 @@ sub trim {
   $txt =~ s/(signature|usage):\s*//i if $this->{Parmode} eq 'Sig' ||
 			   $this->{Parmode} eq 'Usage';
   if ($this->{Parmode} eq 'Sig') {
-
     $txt =~ s/^\s*//;
     $txt =~ s/\s*$//;
     while( $txt =~ s/^\((.*)\)$/$1/ ) {}; # Strip BALANCED brackets
-
   }
   for (split "\n", $txt) {
     s/^\s*(.*)\s*$/$1/ unless $verbatim;
@@ -188,7 +184,6 @@ sub trim {
   chomp $ntxt;
   return $ntxt;
 }
-
 
 =head1 NAME
 
@@ -654,17 +649,18 @@ sub search {
   $pattern = $this->checkregex($pattern);
 
   while (my ($name,$mods_hash) = each %$hash) {
-      while (my ($module,$val) = each %$mods_hash) {
-	FIELD: for (@$fields) {
-	    if ($_ eq 'Name' and $name =~ /$pattern/i
-		or defined $val->{$_} and $val->{$_} =~ /$pattern/i) {
-		$val = $hash->{$val->{Crossref}}->{$module} #we're going to assume that any Crossref'd documentation is also in this module
-		if defined $val->{Crossref} && defined $hash->{$val->{Crossref}}->{$module};
-		push @match, [$name,$module,$val];
-		last FIELD;
-	    }
-	}
+    while (my ($module,$val) = each %$mods_hash) {
+      FIELD: for (@$fields) {
+        if ($_ eq 'Name' and $name =~ /$pattern/i
+            or defined $val->{$_} and $val->{$_} =~ /$pattern/i
+        ) {
+          $val = $hash->{$val->{Crossref}}{$module} #we're going to assume that any Crossref'd documentation is also in this module
+            if defined $val->{Crossref} && defined $hash->{$val->{Crossref}}{$module};
+          push @match, [$name,$module,$val];
+          last FIELD;
+        }
       }
+    }
   }
   @match = sort {$a->[0] cmp $b->[0]} @match if (@match && $sort);
   return @match;
@@ -803,7 +799,7 @@ sub merge_hash {
   my ($into, $from) = @_;
   for my $func (keys %$from) {
     my $val = $from->{$func};
-    # copy the 3-layer hash/database structure: $into->{funcname}{PDL::SomeModule} = {Ref=>...}
+    # copy the 3-layer hash/database structure: $into->{funcname}{'PDL::SomeModule'} = {Ref=>...}
     for my $func_mod (keys %$val) {
       $into->{$func}{$func_mod} = $val->{$func_mod};
     }
@@ -855,7 +851,7 @@ sub scantext {
   $_->{File} = $filename for values %{ $parser->{SYMHASH} };
   for my $key (sort keys %{ $parser->{SYMHASH} }) {
     my $val = $parser->{SYMHASH}{$key};
-    #set up the 3-layer hash/database structure: $hash{funcname}->{PDL::SomeModule} = $val
+    #set up the 3-layer hash/database structure: $hash{funcname}{'PDL::SomeModule'} = $val
     if (defined($val->{Module})) {
       $hash{$key}{$val->{Module}} = $val;
     } else {
@@ -972,7 +968,7 @@ own code.
  # Print the reference line for zeroes:
  print map{$_->{Ref}} values %{$pdldoc->gethash->{zeroes}};
  # Or, if you remember that zeroes is in PDL::Core:
- print $pdldoc->gethash->{zeroes}->{PDL::Core}->{Ref};
+ print $pdldoc->gethash->{zeroes}{'PDL::Core'}{Ref};
 
  # Get info for all the functions whose examples use zeroes
  my @entries = $pdldoc->search('zeroes','Example',1,1);
@@ -1007,7 +1003,7 @@ The Ref entry will begin with 'Module:' if it's a module. In code:
 
  # Prints:
  #  Module: fundamental PDL functionality and vectorization/broadcasting
- print $pdldoc->gethash->{'PDL::Core'}->{'PDL::Core'}->{Ref}, "\n"
+ print $pdldoc->gethash->{'PDL::Core'}{'PDL::Core'}{Ref}, "\n"
 
 =head1 BUGS
 
