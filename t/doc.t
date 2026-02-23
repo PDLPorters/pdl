@@ -158,14 +158,29 @@ my $mz_text = <<'EOF';
 
 constructs a PDL::Matrix object similar to the ndarray constructors
 zeroes, ones, sequence.
+
 EOF
-my $mzeroes_text = $m_mod_text . $mz_text;
+my $m_also_text = <<'EOF';
+=head2 funcparen()
+
+=for ref
+
+Has parens in title.
+EOF
+my $mzeroes_text = $m_mod_text . $mz_text . $m_also_text;
 my $mzeroes_got = PDL::Doc::scantext($mzeroes_text, 'Matrix.pm');
 is_deeply $mzeroes_got, {
   'PDL::Matrix' => {
     'PDL::Matrix' => {
       'File' => 'Matrix.pm',
       'Ref' => 'Module: a convenience matrix class for column-major access'
+    }
+  },
+  'funcparen' => {
+    'PDL::Matrix' => {
+      'File' => 'Matrix.pm',
+      'Module' => 'PDL::Matrix',
+      'Ref' => 'Has parens in title.'
     }
   },
   'mones' => {
@@ -196,5 +211,9 @@ open $pod_fh, '<', \$mzeroes_text;
 open $func_fh, '>', \$func_text;
 PDL::Doc::getfuncdocs('msequence', $pod_fh, $func_fh);
 is $func_text, $mz_text;
+open $pod_fh, '<', \$mzeroes_text;
+open $func_fh, '>', \$func_text;
+PDL::Doc::getfuncdocs('funcparen', $pod_fh, $func_fh);
+is $func_text, $m_also_text;
 
 done_testing;
