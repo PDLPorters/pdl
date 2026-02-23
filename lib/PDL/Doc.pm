@@ -59,7 +59,7 @@ use strict;
 use warnings;
 use PDL::Core '';
 use Pod::Simple::PullParser;
-use parent qw(Pod::Select);
+use parent qw(Pod::Text);
 
 our %Title = ('Example' => 'Example',
 	  'Ref'     => 'Reference',
@@ -69,69 +69,72 @@ our %Title = ('Example' => 'Example',
           'Bad'     => 'Bad value support',
 	 );
 
+my @h1s = qw(OPERATORS FUNCTIONS CONSTRUCTORS METHODS);
 sub new {
   my $class = shift;
   my $parser = $class->SUPER::new(@_);
-  $parser->select("METHODS|OPERATORS|CONSTRUCTORS|FUNCTIONS|NAME");
+  $parser->accept_targets(qw(bad example ref options sig usage));
+  @{ $parser->{interested_head1s} }{@h1s} = (1) x @h1s;
   $parser->{CURFUNC} = undef;
   $parser->{SYMHASH} = {};
-  $parser->{INBLOCK} = 0;
   $parser->{Mode} = "";
   $parser->{verbose} = 0;
   $parser->{NAME} = 'UNKNOWN';
   $parser;
 }
 
-sub command {
-  my ($this,$cmd,$txt,$line_num,$pod_para) = @_;
-  if ($cmd eq 'head1') {
-    $this->{Mode} = $txt;
-    $this->{Parmode} = $txt =~ /NAME/ ? 'NAME' : 'Body';
-  } elsif ($cmd eq 'head2') {
-    return if $txt =~ /^The\s/; # heuristic to deal with GSL::CDF descriptive =head2
-    # A function can have multiple names (ex: zeros and zeroes),
-    # so split at the commas
-    my @funcs = split ',', $txt;
-    # Remove parentheses (so myfunc and myfunc() both work)
-    my @names = map {$1 if m/\s*([^\s\(]+)\s*/} @funcs;
-    barf "error parsing function list '$txt'"
-      unless $#funcs == $#names;
-    # check for signatures
-    my $sym = $this->{SYMHASH};
-    for (@funcs) {
-      $sym->{$1}{Module} = $this->{NAME} if m/\s*([^\s(]+)\s*/;
-      $sym->{$1}{Sig} = $2               if m/\s*([^\s(]+)\s*\(\s*(.+)\s*\)\s*$/;
-    }
-    # make the first one the current function
-    $sym->{$names[0]}{Names} = join(',',@names) if $#names > 0;
-    my $name = shift @names;
-    # Make the other names cross-reference the first name
-    $sym->{$_}{Crossref} = $name for @names;
-    my $sig = $sym->{$name}{Sig};
-    # diagnostic output
-    print "\nFunction '".join(',',($name,@names))."'\n" if $this->{verbose};
-    print "\n\tSignature: $sig\n" if defined $sig && $this->{verbose};
-    $this->{CURFUNC} = $name;
-  } elsif ($cmd eq 'for') {
-    $this->check_for_mode($txt,$pod_para) if $cmd eq 'for';
-  }
+sub cmd_head1 {
+  my ($this, $attrs, $text) = @_;
+  $this->{Mode} = $text;
+  $this->{Parmode} = $text =~ /NAME/ ? 'NAME' : 'Body';
+  '';
 }
 
-sub check_for_mode {
-  my ($this,$txt,$pod_para) = @_;
-  if ($txt =~ /^(sig|example|ref|opt|usage|bad|body)/i) {
-    $this->{Parmode} = ucfirst lc $1;
-    print "switched now to '$1' mode\n" if $this->{verbose};
-    print "\n\t$Title{$this->{Parmode}}\n"
-      unless $this->{Parmode} =~ /Body/ || !$this->{verbose};
+sub cmd_head2 {
+  my ($this, $attrs, $text) = @_;
+  return if $text =~ /^The\s/; # heuristic to deal with GSL::CDF descriptive =head2
+  return if !$this->{interested_head1s}{$this->{Mode} // ''};
+  # A function can have multiple names (ex: zeros and zeroes),
+  # so split at the commas
+  my @funcs = split ',', $text;
+  # Remove parentheses (so myfunc and myfunc() both work)
+  my @names = map {$1 if m/\s*([^\s\(]+)\s*/} @funcs;
+  barf "error parsing function list '$text'"
+    unless @funcs == @names;
+  # check for signatures
+  my $sym = $this->{SYMHASH};
+  for (@funcs) {
+    $sym->{$1}{Module} = $this->{NAME} if m/\s*([^\s(]+)\s*/;
+    $sym->{$1}{Sig} = $2               if m/\s*([^\s(]+)\s*\(\s*(.+)\s*\)\s*$/;
   }
+  # make the first one the current function
+  $sym->{$names[0]}{Names} = join(',',@names) if $#names > 0;
+  my $name = shift @names;
+  # Make the other names cross-reference the first name
+  $sym->{$_}{Crossref} = $name for @names;
+  my $sig = $sym->{$name}{Sig};
+  # diagnostic output
+  print "\nFunction '".join(',',($name,@names))."'\n" if $this->{verbose};
+  print "\n\tSignature: $sig\n" if defined $sig && $this->{verbose};
+  $this->{CURFUNC} = $name;
 }
 
-sub textblock {
-  my $this = shift;
-  my $txt = shift;
-  $this->checkmode($txt);
-  local $this->{INBLOCK} = 1;
+sub cmd_for {
+  my ($this, $attrs, $text) = @_;
+  return if !$this->{interested_head1s}{$this->{Mode} // ''};
+  my $tgt = $attrs->{target};
+  $tgt = 'opt' if $tgt eq 'options';
+  $this->{Parmode} = ucfirst lc $tgt;
+  print "switched now to '$tgt' mode\n" if $this->{verbose};
+  print "\n\t$Title{$this->{Parmode}}\n"
+    if $this->{Parmode} !~ /Body/ && $this->{verbose};
+  '';
+}
+
+sub cmd_para {
+  my ($this, $attrs, $text) = @_;
+  return if $this->{Mode} ne 'NAME' and !$this->{interested_head1s}{$this->{Mode} // ''};
+  $this->checkmode($text);
   $this->{Parmode} = 'Body'; # and reset parmode
 }
 
@@ -143,24 +146,22 @@ sub checkmode {
     $this->{Parmode} = 'Body';
     return;
   }
-  unless ($this->{Parmode} =~ /Body/ || $this->{INBLOCK}) {
+  unless ($this->{Parmode} =~ /Body/) {
     my $func = $this->{CURFUNC};
     die "no function defined\n" unless defined $func;
-    local $this->{INBLOCK} = 1; # can interpolate call textblock?
-    my $itxt = $verbatim ? $txt : $this->interpolate($txt);
     $this->{SYMHASH}{$func}{$this->{Parmode}} .=
-      $this->trim($itxt,$verbatim);
+      $this->trim($txt,$verbatim);
     my $cr = ($verbatim && $this->{Parmode} ne 'Sig') ? "\n" : "";
-    my $out = "\n\t\t$cr".$this->trim($itxt,$verbatim);
+    my $out = "\n\t\t$cr".$this->trim($txt,$verbatim);
     print "$out\n$cr" if $this->{verbose};
   }
   $this->{Parmode} = 'Body';
 }
 
-sub verbatim {
-  my $this = shift;
-  my $txt = shift;
-  $this->checkmode($txt,1);
+sub cmd_verbatim {
+  my ($this, $attrs, $text) = @_;
+  return if !$this->{interested_head1s}{$this->{Mode} // ''};
+  $this->checkmode($text,1);
 }
 
 # this needs improvement
