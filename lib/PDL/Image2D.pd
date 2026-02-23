@@ -815,7 +815,7 @@ where the second parameter specifies the connectivity (4 or 8) of the labeling.
       PDL_Long neighbour[4];
       PDL_Long nfound;
       PDL_Long pass,count,next,this;
-      PDL_Long *equiv;
+      PDL_Long *equiv = NULL;
       PDL_Long i1,j1,i2;
 
       if ($COMP(con)!=4 && $COMP(con)!=8)
