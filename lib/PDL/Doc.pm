@@ -36,8 +36,6 @@ sub new {
 
 sub command {
   my ($this,$cmd,$txt,$line_num,$pod_para) = @_;
-  $this->{Parmode} = 'Body';
-
   if ($cmd eq 'head1') {
     $this->{Mode} = $txt;
     $this->{Parmode} = 'Body';
