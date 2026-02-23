@@ -50,8 +50,6 @@ use PDL::Doc;
 use Pod::Text;
 use Cwd; # to help Debian packaging
 
-$PDL::onlinedoc = PDL::Doc->new(FindStdFile());
-
 # Find std file
 
 sub FindStdFile {
@@ -183,7 +181,6 @@ with the C<help> function
 
 sub aproposover {
     die "Usage: aproposover \$funcname\n" if !@_;
-    die "no online doc database" unless defined $PDL::onlinedoc;
     my $func = shift;
     $func =~ s:\/:\\\/:g;
     search_docs("m/$func/",['Name','Ref','Module'],1);
@@ -191,7 +188,6 @@ sub aproposover {
 
 sub apropos  {
     die "Usage: apropos \$funcname\n" unless $#_>-1;
-    die "no online doc database" unless defined $PDL::onlinedoc;
     my $func = shift;
     printmatch aproposover $func;
 }
@@ -208,6 +204,7 @@ sub search_docs {
     my ($func,$types,$sortflag,$exact) = @_;
     my @match;
 
+    $PDL::onlinedoc //= PDL::Doc->new(FindStdFile());
     @match = $PDL::onlinedoc->search($func,$types,$sortflag);
     push(@match,find_autodoc( $func, $exact ) );
 
@@ -228,7 +225,6 @@ sub finddoc  {
     local $SIG{PIPE}= sub {}; # Prevent crashing if user exits the pager
 
     die 'Usage: doc $topic' unless $#_>-1;
-    die "no online doc database" unless defined $PDL::onlinedoc;
     my $topic = shift;
 
     # See if it matches a PDL function name
@@ -410,7 +406,6 @@ Prints usage information for a PDL function
 
 sub usage {
     die 'Usage: usage $funcname' unless $#_>-1;
-    die "no online doc database" unless defined $PDL::onlinedoc;
     print usage_string(@_);
 }
 sub usage_string{
@@ -462,7 +457,6 @@ doesn't break -- it causes broadcasting.  See L<PDL::PP> and L<PDL::Broadcasting
 
 sub sig {
 	die "Usage: sig \$funcname\n" unless $#_>-1;
-	die "no online doc database" unless defined $PDL::onlinedoc;
 	my $func = shift;
 	my @match = search_docs("m/^(PDL::)?$func\$|\:\:$func\$/",['Name']);
 	my $count = @match;
@@ -689,8 +683,6 @@ And has a horrible name.
 sub badinfo {
     my $func = shift;
     die "Usage: badinfo \$funcname\n" unless defined $func;
-
-    die "no online doc database" unless defined $PDL::onlinedoc;
 
     local $SIG{PIPE}= sub {}; # Prevent crashing if user exits the pager
 
