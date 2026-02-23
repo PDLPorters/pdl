@@ -38,8 +38,7 @@ sub command {
   my ($this,$cmd,$txt,$line_num,$pod_para) = @_;
   if ($cmd eq 'head1') {
     $this->{Mode} = $txt;
-    $this->{Parmode} = 'Body';
-    $this->{Parmode} = 'NAME' if $txt =~ /NAME/;
+    $this->{Parmode} = $txt =~ /NAME/ ? 'NAME' : 'Body';
   } elsif ($cmd eq 'head2') {
     return $this->SUPER::command($cmd,$txt,$line_num,$pod_para) if $txt =~ /^The\s/; # heuristic to deal with GSL::CDF descriptive =head2
     # A function can have multiple names (ex: zeros and zeroes),
