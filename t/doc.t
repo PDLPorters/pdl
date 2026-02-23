@@ -98,6 +98,7 @@ is $formatted, "PDL::Example    P::Example  Manual: does stuff\n";
 open my $pod_fh, '<', \$pod_text;
 open my $func_fh, '>', \(my $func_text);
 PDL::Doc::getfuncdocs('convert_flowing', $pod_fh, $func_fh);
+$func_text =~ s#\n+\z#\n#;
 is $func_text, $cvf_text;
 
 open my $fh, '>', \(my $encoded_text);
@@ -214,6 +215,7 @@ is $func_text, $mz_text;
 open $pod_fh, '<', \$mzeroes_text;
 open $func_fh, '>', \$func_text;
 PDL::Doc::getfuncdocs('funcparen', $pod_fh, $func_fh);
+$func_text =~ s#\n+\z#\n#;
 is $func_text, $m_also_text;
 
 done_testing;

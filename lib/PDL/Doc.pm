@@ -2,6 +2,58 @@
 # pod format but with special interpretation of some =for directives)
 
 package # hide from PAUSE/MetaCPAN
+  PDL::Doc::SelectJustPod;
+use strict;
+use warnings;
+use parent qw(Pod::Simple::JustPod);
+
+sub select_head1s {
+  my ($self, @titles) = @_;
+  $self->{interested_head1s}{$_} = 1 for @titles;
+  $self;
+}
+
+sub select_head2 {
+  my ($self, $name) = @_;
+  $self->{interested_head2} = $name;
+  $self;
+}
+
+sub end_head1 {
+  my $self = shift;
+  my ($text) = $self->{buffer} =~ /=head1 +(.*)\z/;
+  $self->{current_head1} = $text;
+  delete $self->{current_head2};
+  $self->SUPER::end_head1(@_);
+}
+
+sub end_head2 {
+  my $self = shift;
+  my ($text) = $self->{buffer} =~ /=head2 +(.*)\z/;
+  $self->{current_head2} = $text;
+  $self->SUPER::end_head2(@_);
+}
+
+sub start_for {
+  my $self = shift;
+  my ($attrs) = @_;
+  $self->{buffer} .= "@$attrs{qw(~really target)}\n\n";
+}
+
+sub emit {
+  my ($self) = @_;
+  return $self->SUPER::emit
+    if $self->{interested_head1s}{$self->{current_head1} // ''}
+    and ($self->{current_head2}//'') =~ /\b\Q$self->{interested_head2}\E\b/;
+  $self->{buffer} = "";
+}
+
+sub end_Document { # only override is not adding "=cut"
+  my $self = shift;
+  $self->emit;        # Make sure buffer gets flushed
+}
+
+package # hide from PAUSE/MetaCPAN
   PDL::PodParser;
 use strict;
 use warnings;
@@ -22,8 +74,6 @@ our %Title = ('Example' => 'Example',
 sub new {
   my $class = shift;
   my $parser = $class->SUPER::new(@_);
-  bless $parser,$class; # just in case
-
   $parser->select("METHODS|OPERATORS|CONSTRUCTORS|FUNCTIONS|NAME");
   $parser->{CURFUNC} = undef;
   $parser->{SYMHASH} = {};
@@ -31,7 +81,7 @@ sub new {
   $parser->{Mode} = "";
   $parser->{verbose} = 0;
   $parser->{NAME} = 'UNKNOWN';
-  return $parser;
+  $parser;
 }
 
 sub command {
@@ -40,7 +90,7 @@ sub command {
     $this->{Mode} = $txt;
     $this->{Parmode} = $txt =~ /NAME/ ? 'NAME' : 'Body';
   } elsif ($cmd eq 'head2') {
-    return $this->SUPER::command($cmd,$txt,$line_num,$pod_para) if $txt =~ /^The\s/; # heuristic to deal with GSL::CDF descriptive =head2
+    return if $txt =~ /^The\s/; # heuristic to deal with GSL::CDF descriptive =head2
     # A function can have multiple names (ex: zeros and zeroes),
     # so split at the commas
     my @funcs = split(',',$txt);
@@ -67,8 +117,6 @@ sub command {
   } elsif ($cmd eq 'for') {
     $this->check_for_mode($txt,$pod_para) if $cmd eq 'for';
   }
-  local $this->{Parmode} = 'Body';
-  $this->SUPER::command($cmd,$txt,$line_num,$pod_para);
 }
 
 sub check_for_mode {
@@ -86,7 +134,6 @@ sub textblock {
   my $txt = shift;
   $this->checkmode($txt);
   local $this->{INBLOCK} = 1;
-  $this->SUPER::textblock($txt,@_);
   $this->{Parmode} = 'Body'; # and reset parmode
 }
 
@@ -116,7 +163,6 @@ sub verbatim {
   my $this = shift;
   my $txt = shift;
   $this->checkmode($txt,1);
-  $this->SUPER::verbatim($txt,@_);
 }
 
 # this needs improvement
@@ -845,9 +891,10 @@ sub funcdocs_fromfile {
 
 sub getfuncdocs {
   my ($func,$in,$out) = @_;
-  my $parser = PDL::PodParser->new;
-  $parser->select("OPERATORS|FUNCTIONS|CONSTRUCTORS|METHODS/(.*,\\s+)*$func(\\(.*\\))*(\\s*|,\\s+.*)");
-  $parser->parse_from_filehandle($in,$out);
+  my $parser = PDL::Doc::SelectJustPod->new;
+  $parser->select_head1s(qw(OPERATORS FUNCTIONS CONSTRUCTORS METHODS));
+  $parser->select_head2($func);
+  $parser->parse_from_file($in,$out);
 }
 
 =head2 add_module
