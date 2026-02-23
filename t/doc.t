@@ -143,13 +143,15 @@ is_deeply \%into, {
   },
 };
 
-my $mzeroes_text = <<'EOF';
+my $m_mod_text = <<'EOF';
 =head1 NAME
 
 PDL::Matrix -- a convenience matrix class for column-major access
 
 =head1 FUNCTIONS
 
+EOF
+my $mz_text = <<'EOF';
 =head2 mzeroes, mones, msequence
 
 =for ref
@@ -157,6 +159,7 @@ PDL::Matrix -- a convenience matrix class for column-major access
 constructs a PDL::Matrix object similar to the ndarray constructors
 zeroes, ones, sequence.
 EOF
+my $mzeroes_text = $m_mod_text . $mz_text;
 my $mzeroes_got = PDL::Doc::scantext($mzeroes_text, 'Matrix.pm');
 is_deeply $mzeroes_got, {
   'PDL::Matrix' => {
@@ -192,13 +195,6 @@ zeroes, ones, sequence.'
 open $pod_fh, '<', \$mzeroes_text;
 open $func_fh, '>', \$func_text;
 PDL::Doc::getfuncdocs('msequence', $pod_fh, $func_fh);
-is $func_text, <<'EOF';
-=head2 mzeroes, mones, msequence
-
-=for ref
-
-constructs a PDL::Matrix object similar to the ndarray constructors
-zeroes, ones, sequence.
-EOF
+is $func_text, $mz_text;
 
 done_testing;
