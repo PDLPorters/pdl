@@ -311,8 +311,8 @@ pdl_error pdl__free(pdl *it) {
 	SvREFCNT_dec(it->hdrsv);
 	it->hdrsv = 0;
     }
-    free(it);
     PDLDEBUG_f(printf("pdl__free end %p\n",it));
+    free(it);
     return PDL_err;
 }
 

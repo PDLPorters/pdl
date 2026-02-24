@@ -166,12 +166,6 @@ PDL_LIST_FLAGS_PARAMS(X)
 #undef X
     NULL
   };
-  int typeval[] = {
-#define X(sym, ...) sym,
-PDL_TYPELIST_ALL(X)
-#undef X
-    -1
-  };
   char *typechar[] = {
 #define X(sym, ...) #sym,
 PDL_TYPELIST_ALL(X)
@@ -218,7 +212,7 @@ PDL_TYPELIST_ALL(X)
 }
 
 void pdl_dump_broadcast(pdl_broadcast *broadcast) {
-  int i, j, found=0, sz=0, nspac=4;
+  int i, found=0, sz=0, nspac=4;
   SET_SPACE(spaces, nspac);
   int flagval[] = {
 #define X(f) f,
