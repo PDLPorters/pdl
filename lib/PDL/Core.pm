@@ -2904,6 +2904,8 @@ for details on using ndarrays in the dimensions list.
 =cut
 
 sub _construct {
+    barf "No args given" if !@_;
+    unshift @_, 'PDL' if !UNIVERSAL::can($_[0], 'new_from_specification');
     @_>1 ? $_[0]->new_from_specification(@_[1..$#_]) : $_[0]->new_or_inplace;
 }
 sub ones { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? PDL::ones($_[0]) : PDL->ones(@_) }
