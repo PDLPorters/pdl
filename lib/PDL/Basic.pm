@@ -242,6 +242,7 @@ sub PDL::zvals {
 
 sub _dimcheck {
   my ($pdl, $whichdim, $name) = @_;
+  barf "Given non-PDL '$pdl'" if !UNIVERSAL::isa($pdl, 'PDL');
   my $dim = $pdl->getdim($whichdim);
   barf "Must have at least one element in dimension for $name" if $dim < 1;
   $dim;
