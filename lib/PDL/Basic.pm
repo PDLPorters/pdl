@@ -248,19 +248,25 @@ sub _dimcheck {
   $dimlength;
 }
 sub _linvals {
-  my ($pdl, $v1, $v2, $dimlength, $method) = @_;
-  $pdl = $pdl->$method;
+  my ($whichdim, $name) = splice @_, 0, 2;
+  my $type_given = grep +(ref($_[$_])||'') eq 'PDL::Type', 0..1;
+  my ($v1, $v2) = splice @_, 1, 2;
+  my $pdl = axisvals2(&PDL::Core::_construct,$whichdim,$type_given);
+  my $dimlength = _dimcheck($pdl, $whichdim, $name);
   $pdl *= (($v2 - $v1) / ($dimlength > 1 ? ($dimlength-1) : 1));
   $pdl += $v1;
 }
 sub PDL::xlinvals {
-  _linvals(@_[0..2], _dimcheck($_[0], 0, 'xlinvals'), 'xvals');
+  unshift @_, 0, 'xlinvals';
+  goto &_linvals;
 }
 sub PDL::ylinvals {
-  _linvals(@_[0..2], _dimcheck($_[0], 1, 'ylinvals'), 'yvals');
+  unshift @_, 1, 'ylinvals';
+  goto &_linvals;
 }
 sub PDL::zlinvals {
-  _linvals(@_[0..2], _dimcheck($_[0], 2, 'zlinvals'), 'zvals');
+  unshift @_, 2, 'zlinvals';
+  goto &_linvals;
 }
 
 sub _logvals {
