@@ -243,14 +243,14 @@ sub PDL::zvals {
 sub _dimcheck {
   my ($pdl, $whichdim, $name) = @_;
   barf "Given non-PDL '$pdl'" if !UNIVERSAL::isa($pdl, 'PDL');
-  my $dim = $pdl->getdim($whichdim);
-  barf "Must have at least one element in dimension for $name" if $dim < 1;
-  $dim;
+  my $dimlength = $pdl->getdim($whichdim);
+  barf "Must have at least one element in dimension for $name" if $dimlength < 1;
+  $dimlength;
 }
 sub _linvals {
-  my ($pdl, $v1, $v2, $dim, $method) = @_;
+  my ($pdl, $v1, $v2, $dimlength, $method) = @_;
   $pdl = $pdl->$method;
-  $pdl *= (($v2 - $v1) / ($dim > 1 ? ($dim-1) : 1));
+  $pdl *= (($v2 - $v1) / ($dimlength > 1 ? ($dimlength-1) : 1));
   $pdl += $v1;
 }
 sub PDL::xlinvals {
@@ -264,11 +264,11 @@ sub PDL::zlinvals {
 }
 
 sub _logvals {
-  my ($pdl, $min, $max, $dim, $method) = @_;
+  my ($pdl, $min, $max, $dimlength, $method) = @_;
   barf "min and max must be positive" if $min <= 0 || $max <= 0;
   my ($lmin,$lmax) = map log($_), $min, $max;
   $pdl = $pdl->$method;
-  $pdl .= exp($pdl * (($lmax - $lmin) / ($dim > 1 ? ($dim-1) : 1)) + $lmin);
+  $pdl .= exp($pdl * (($lmax - $lmin) / ($dimlength > 1 ? ($dimlength-1) : 1)) + $lmin);
 }
 sub PDL::xlogvals {
   _logvals(@_[0..2], _dimcheck($_[0], 0, 'xlogvals'), 'xvals');
