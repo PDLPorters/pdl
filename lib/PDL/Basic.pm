@@ -32,8 +32,9 @@ use PDL::Options;
 
 our @ISA=qw/PDL::Exporter/;
 our @EXPORT_OK = qw/ ndcoords rvals axisvals allaxisvals xvals yvals zvals sec ins hist whist
-	similar_assign transpose sequence xlinvals ylinvals
-	zlinvals axislinvals/;
+  similar_assign transpose sequence xlinvals ylinvals zlinvals
+  xlogvals ylogvals zlogvals
+/;
 our %EXPORT_TAGS = (Func=>[@EXPORT_OK]);
 
 # Exportable functions
@@ -48,6 +49,9 @@ our %EXPORT_TAGS = (Func=>[@EXPORT_OK]);
 *xlinvals 	= \&PDL::xlinvals;
 *ylinvals 	= \&PDL::ylinvals;
 *zlinvals 	= \&PDL::zlinvals;
+*xlogvals 	= \&PDL::xlogvals;
+*ylogvals 	= \&PDL::ylogvals;
+*zlogvals 	= \&PDL::zlogvals;
 
 =head2 xvals
 
