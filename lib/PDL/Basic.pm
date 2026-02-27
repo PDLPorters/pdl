@@ -270,20 +270,26 @@ sub PDL::zlinvals {
 }
 
 sub _logvals {
-  my ($pdl, $min, $max, $dimlength, $method) = @_;
+  my ($whichdim, $name) = splice @_, 0, 2;
+  my $type_given = grep +(ref($_[$_])||'') eq 'PDL::Type', 0..1;
+  my ($min, $max) = splice @_, 1, 2;
   barf "min and max must be positive" if $min <= 0 || $max <= 0;
   my ($lmin,$lmax) = map log($_), $min, $max;
-  $pdl = $pdl->$method;
+  my $pdl = axisvals2(&PDL::Core::_construct,$whichdim,$type_given);
+  my $dimlength = _dimcheck($pdl, $whichdim, $name);
   $pdl .= exp($pdl * (($lmax - $lmin) / ($dimlength > 1 ? ($dimlength-1) : 1)) + $lmin);
 }
 sub PDL::xlogvals {
-  _logvals(@_[0..2], _dimcheck($_[0], 0, 'xlogvals'), 'xvals');
+  unshift @_, 0, 'xlogvals';
+  goto &_logvals;
 }
 sub PDL::ylogvals {
-  _logvals(@_[0..2], _dimcheck($_[0], 1, 'ylogvals'), 'yvals');
+  unshift @_, 1, 'ylogvals';
+  goto &_logvals;
 }
 sub PDL::zlogvals {
-  _logvals(@_[0..2], _dimcheck($_[0], 2, 'zlogvals'), 'zvals');
+  unshift @_, 2, 'zlogvals';
+  goto &_logvals;
 }
 
 =head2 allaxisvals
