@@ -49,6 +49,15 @@ is_pdl $base->slice('0')->inplace->ylogvals(1,9), $exp, 'inplace->logvals return
 is_pdl $base->slice('0'), $exp, 'inplace->logvals updates input';
 }
 
+{ # (x|y|z)(lin|log)vals taking size parameters
+is_pdl xlinvals(1,1.5,3), pdl(1,1.25,1.5);
+is_pdl xlinvals(float,1,1.5,3), float(1,1.25,1.5);
+is_pdl pdl(3)->xlinvals(float,1,1.5,3), float(1,1.25,1.5);
+is_pdl xlogvals(1,9,3), pdl(1,3,9);
+is_pdl xlogvals(float,1,9,3), float(1,3,9);
+is_pdl pdl(3)->xlogvals(float,1,9,3), float(1,3,9);
+}
+
 {
 my $x = zeroes(11,6,8);
 my $xl = $x->xlogvals(1e2,1e12);

@@ -164,13 +164,18 @@ Works with dim-length of one as of 2.093, giving the starting point.
  $w = zeroes(100,100);
  $x = $w->xlinvals(0.5,1.5);
  $y = $w->ylinvals(-2,-1);
- # calculate Z for X between 0.5 and 1.5 and
- # Y between -2 and -1.
- $z = f($x,$y);
+ $z = f($x,$y); # calculate Z for X from 0.5 to 1.5, Y from -2 to -1
+ # alternatively (new in PDL 2.101):
+ $x = xlinvals(0.5,1.5,100);
+ $y = xlinvals(-2,-1,100); # x = along 0-th dim
+ $z = f(meshgrid($x,$y));  # should go faster as meshgrid makes better locality
+ $pdl = xlinvals(float,0.5,1.5,100); # can specify type
 
 C<xlinvals>, C<ylinvals> and C<zlinvals> return an ndarray with the same shape
-as their first argument and linearly scaled values between the two other
+as their first argument if an ndarray, and linearly scaled values between the two other
 arguments along the given axis.
+As of 2.101, instead of giving an ndarray you can give an optional
+type at the start, and dimensions after the two mandatory arguments.
 
 =head2 ylinvals
 
@@ -200,13 +205,18 @@ Works with dim-length of one as of 2.093, giving the starting point.
  $w = zeroes(100,100);
  $x = $w->xlogvals(1e-6,1e-3);
  $y = $w->ylinvals(1e-4,1e3);
- # calculate Z for X between 1e-6 and 1e-3 and
- # Y between 1e-4 and 1e3.
- $z = f($x,$y);
+ $z = f($x,$y); # calculate Z for X from 1e-6 to 1e-3, Y from 1e-4 to 1e3
+ # alternatively (new in PDL 2.101):
+ $x = xlogvals(1e-6,1e-3,100);
+ $y = xlogvals(1e-4,1e3,100); # x = along 0-th dim
+ $z = f(meshgrid($x,$y));  # should go faster as meshgrid makes better locality
+ $pdl = xlogvals(float,1e-6,1e-3,100); # can specify type
 
 C<xlogvals>, C<ylogvals> and C<zlogvals> return an ndarray with the same shape
 as their first argument and logarithmically scaled values between the two other
 arguments along the given axis.
+As of 2.101, instead of giving an ndarray you can give an optional
+type at the start, and dimensions after the two mandatory arguments.
 
 =head2 ylogvals
 
@@ -254,7 +264,8 @@ sub _dimcheck {
 sub _linvals {
   my ($whichdim, $name) = splice @_, 0, 2;
   my $type_given = grep +(ref($_[$_])||'') eq 'PDL::Type', 0..1;
-  my ($v1, $v2) = splice @_, 1, 2;
+  my ($first_non_ref) = grep !ref $_[$_], 0..$#_;
+  my ($v1, $v2) = splice @_, $first_non_ref, 2;
   my $pdl = axisvals2(&PDL::Core::_construct,$whichdim,$type_given);
   my $dimlength = _dimcheck($pdl, $whichdim, $name);
   $pdl *= (($v2 - $v1) / ($dimlength > 1 ? ($dimlength-1) : 1));
@@ -276,7 +287,8 @@ sub PDL::zlinvals {
 sub _logvals {
   my ($whichdim, $name) = splice @_, 0, 2;
   my $type_given = grep +(ref($_[$_])||'') eq 'PDL::Type', 0..1;
-  my ($min, $max) = splice @_, 1, 2;
+  my ($first_non_ref) = grep !ref $_[$_], 0..$#_;
+  my ($min, $max) = splice @_, $first_non_ref, 2;
   barf "min and max must be positive" if $min <= 0 || $max <= 0;
   my ($lmin,$lmax) = map log($_), $min, $max;
   my $pdl = axisvals2(&PDL::Core::_construct,$whichdim,$type_given);
