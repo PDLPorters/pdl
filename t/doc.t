@@ -218,4 +218,42 @@ PDL::Doc::getfuncdocs('funcparen', $pod_fh, $func_fh);
 $func_text =~ s#\n+\z#\n#;
 is $func_text, $m_also_text;
 
+my $canary_text = <<EOF;
+=encoding utf8
+
+=head1 NAME
+
+PDL::Trans - Trans stuff
+
+=head1 FUNCTIONS
+
+=head2 ctrsqrt
+
+=for ref
+
+Uses a recurrence of Bj\x{f6}rck and Hammarling.
+EOF
+my $canary_got = PDL::Doc::scantext(Encode::encode('UTF-8', $canary_text), 'Trans.pm');
+is_deeply $canary_got, {
+  'PDL::Trans' => {
+    'PDL::Trans' => {
+      'File' => 'Trans.pm',
+      'Ref' => 'Module: Trans stuff'
+    }
+  },
+  'ctrsqrt' => {
+    'PDL::Trans' => {
+      'File' => 'Trans.pm',
+      'Module' => 'PDL::Trans',
+      'Ref' => "Uses a recurrence of Bj\x{f6}rck and Hammarling.",
+    }
+  }
+} or diag explain $canary_got;
+open $fh, '>', \$encoded_text;
+PDL::Doc::encodedb($canary_got, $fh, 'DIRNAME');
+open $fh, '<', \$encoded_text;
+$decode_hash = PDL::Doc::decodedb($fh, 'FILENAME');
+for my $val (values %$decode_hash) { delete $_->{Dbfile} for values %$val }
+is_deeply $decode_hash, $canary_got or diag explain $decode_hash;
+
 done_testing;

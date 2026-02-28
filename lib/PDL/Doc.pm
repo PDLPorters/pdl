@@ -457,6 +457,7 @@ use File::Basename;
 use File::Spec::Functions qw(file_name_is_absolute abs2rel rel2abs catdir catfile);
 use Cwd (); # to help Debian packaging
 use Config;
+use Encode;
 
 our $pager = $ENV{PERLDOC_PAGER} // $ENV{PAGER} // $Config{pager};
 
@@ -781,6 +782,7 @@ sub decodedb {
   while (read $fh, my $plen, 2) {
     my ($len) = unpack "v", $plen;
     read $fh, my($txt), $len;
+    $txt = Encode::decode('UTF-8', $txt);
     my ($sym, $module, @a) = split chr(0), $txt;
     push @a, "" if @a % 2; # Add null string at end if necessary -- solves bug with missing REF section.
     $hash{$sym}{$module} = { @a, Dbfile => $filename }; # keep the origin pdldoc.db path
@@ -825,7 +827,7 @@ sub encodedb {
         #store paths to *.pm files relative to pdldoc.db
         if file_name_is_absolute($fi) && -f $fi;
       delete $val->{Dbfile}; # no need to store Dbfile
-      my $txt = join(chr(0),$name,$module,map +($_=>$val->{$_}), sort keys %$val);
+      my $txt = Encode::encode('UTF-8', join chr(0),$name,$module,map +($_=>$val->{$_}), sort keys %$val);
       print $fh pack("v",length($txt)).$txt;
     }
   }

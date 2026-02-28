@@ -245,8 +245,8 @@ sub finddoc  {
     }
 
     # print out the matches
-
     open my $out, "| pod2text | $PDL::Doc::pager";
+    binmode $out, ':encoding(UTF-8)';
     
     if($subfield) {
       if($subfield <= @match) {
