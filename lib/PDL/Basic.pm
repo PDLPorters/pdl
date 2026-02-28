@@ -685,16 +685,25 @@ sub axisvals2 {
   PDL::Primitive::axisvalues($bar->inplace);
   $dummy;
 }
+
+=head2 sec
+
+=for ref
+
+Take a subsection of an ndarray with given coordinates.
+
+=for usage
+
+  $new  = sec($input,  $x1, $x2, $y1, $y2, $z1, $z2, ... ) # Take subsection
+
+=cut
+
 sub PDL::sec {
-	my($this,@coords) = @_;
-	my $i; my @maps;
-	while($#coords > -1) {
-		$i = int(shift @coords) ;
-		push @maps, "$i:".int(shift @coords);
-	}
-	my $tmp = PDL->null;
-	$tmp .= $this->slice(join ',',@maps);
-	return $tmp;
+  my ($this,@coords) = @_;
+  @coords = map int, @coords;
+  my @maps;
+  push @maps, shift(@coords).":".shift(@coords) while @coords;
+  $this->slice(join ',',@maps)->sever;
 }
 
 =head2 ins
@@ -710,7 +719,7 @@ Insert one ndarray into another at given coordinates.
 =cut
 
 sub PDL::ins {
-  my($this,$what,@coords) = @_;
+  my ($this,$what,@coords) = @_;
   my $w = PDL->topdl($what);
   $this = $this->new_or_inplace;
   my @thisdims = $this->dims;
@@ -726,8 +735,8 @@ sub PDL::ins {
 }
 
 sub PDL::similar_assign {
-  my($from,$to) = @_;
-  if((my $fd = join ',',@{$from->dims}) ne (my $td = join ',',@{$to->dims})) {
+  my ($from,$to) = @_;
+  if ((my $fd = join ',',@{$from->dims}) ne (my $td = join ',',@{$to->dims})) {
     barf "Similar_assign: dimensions [$fd] and [$td] do not match!\n";
   }
   $to .= $from;
