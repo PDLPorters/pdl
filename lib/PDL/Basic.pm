@@ -31,17 +31,17 @@ use PDL::Exporter;
 use PDL::Options;
 
 our @ISA=qw/PDL::Exporter/;
-my @to_import = qw(
+our @EXPORT_OK = qw(
   sec ins hist whist similar_assign transpose
-  axisvals allaxisvals ndcoords
+  axisvals allaxisvals ndcoords sequence rvals
+  xvals yvals zvals
   xlinvals ylinvals zlinvals
   xlogvals ylogvals zlogvals
 );
-our @EXPORT_OK = (@to_import, qw(rvals xvals yvals zvals sequence));
 our %EXPORT_TAGS = (Func=>[@EXPORT_OK]);
 
 # Exportable functions
-for (@to_import) {
+for (@EXPORT_OK) {
   no strict 'refs';
   *$_ = \&{ $PDL::{$_} };
 }
@@ -233,9 +233,6 @@ See L</xlogvals> for more information.
 
 # Conveniently named interfaces to axisvals()
 
-sub xvals { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? $_[0]->xvals : PDL->xvals(@_) }
-sub yvals { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? $_[0]->yvals : PDL->yvals(@_) }
-sub zvals { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? $_[0]->zvals : PDL->zvals(@_) }
 sub PDL::xvals {
     my $type_given = grep +(ref($_[$_])||'') eq 'PDL::Type', 0..1;
     axisvals2(&PDL::Core::_construct,0,$type_given);
@@ -531,7 +528,6 @@ etc. see L<zeroes|PDL::Core/zeroes>.
 
 =cut
 
-sub sequence { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? $_[0]->sequence : PDL->sequence(@_) }
 sub PDL::sequence {
     my $type_given = grep +(ref($_[$_])||'') eq 'PDL::Type', 0..1;
     $type_given ||= ref($_[0]) && UNIVERSAL::isa($_[0], 'PDL'); # instance method
@@ -609,7 +605,6 @@ well-known norms.
 
 =cut
 
-sub rvals { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? $_[0]->rvals(@_[1..$#_]) : PDL->rvals(@_) }
 sub PDL::rvals { # Return radial distance from given point and offset
     my $opt = pop @_ if ref($_[$#_]) eq "HASH";
     my %opt = defined $opt ?
