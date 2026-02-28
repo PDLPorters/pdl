@@ -58,6 +58,9 @@ is_pdl xlogvals(float,1,9,3), float(1,3,9);
 is_pdl pdl(3)->xlogvals(float,1,9,3), float(1,3,9);
 }
 
+is_pdl ins(xvals(3,3), yvals(2,2), 1, 1), pdl('0 1 2; 0 0 0; 0 1 1');
+is_pdl ins(xvals(4,4), yvals(2,2), 1, 1), pdl('0 1 2 3; 0 0 0 3; 0 1 1 3; 0 1 2 3');
+
 {
 my $x = zeroes(11,6,8);
 my $xl = $x->xlogvals(1e2,1e12);

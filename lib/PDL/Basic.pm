@@ -697,23 +697,32 @@ sub PDL::sec {
 	return $tmp;
 }
 
+=head2 ins
+
+=for ref
+
+Insert one ndarray into another at given coordinates.
+
+=for usage
+
+  $newimage = ins($bigimage,$smallimage,$x,$y,$z...) # Insert at x,y,z
+
+=cut
+
 sub PDL::ins {
-	my($this,$what,@coords) = @_;
-	my $w = PDL::Core::alltopdl($PDL::name,$what);
-	my $tmp;
-	if($this->is_inplace) {
-	  $this->set_inplace(0);
-	} else {
-	  $this = $this->copy;
-	}
-	($tmp = $this->slice(
-	   (join ',',map {int($coords[$_]).":".
-	   	((int($coords[$_])+$w->getdim($_)-1)<$this->getdim($_) ?
-	   	(int($coords[$_])+$w->getdim($_)-1):$this->getdim($_))
-	   	}
-	   	0..$#coords)))
-		.= $w;
-	return $this;
+  my($this,$what,@coords) = @_;
+  my $w = PDL->topdl($what);
+  $this = $this->new_or_inplace;
+  my @thisdims = $this->dims;
+  my @wdims_m1 = map $_-1, $w->dims;
+  @coords = map int, @coords;
+  $this->slice(
+     join ',',map $coords[$_].":".
+          (($coords[$_]+$wdims_m1[$_])<$thisdims[$_] ?
+           ($coords[$_]+$wdims_m1[$_]):$thisdims[$_]),
+          0..$#coords)
+          .= $w;
+  $this;
 }
 
 sub PDL::similar_assign {
