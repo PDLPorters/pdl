@@ -38,7 +38,7 @@ is_pdl $lin1, pdl([5]), 'length-one *linvals gives starting point';
 eval { zeroes(0)->xlinvals(5,10) };
 like $@, qr/at least/, 'cannot have length-zero dim *linvals';
 my $byte_xvals = ones( byte, 300 )->xvals;
-is $byte_xvals->type, 'double', 'byte->xvals type double';
+is $byte_xvals->type, 'float', 'byte->xvals type float';
 is $byte_xvals->at(280), 280,'non-overflow xvals from byte ndarray';
 is xvals(short, 2)->type, 'short', 'xvals respects specified type';
 my ($base, $exp) = (zeroes(3,3), pdl('0;0.5;1'));

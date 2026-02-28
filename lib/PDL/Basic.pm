@@ -57,8 +57,10 @@ CAVEAT:
 
 If you use the single argument ndarray form (top row
 in the usage table) the output will have the same type as the input,
-except that as of 2.064, the returned ndarray will default to at least type
-C<double>. As of 2.085, this will respect a given type as in the second
+except that between 2.064 and 2.100, the returned ndarray will
+default to at least type C<double>; as of 2.101 this upgrade is
+relaxed to C<float>.
+As of 2.085, this will respect a given type as in the second
 or third form below.
 
 =for usage
@@ -675,17 +677,13 @@ sub PDL::axisvals {
 
 # We need this version for xvals etc to work in place
 sub axisvals2 {
-	my($dummy,$nth,$keep_type) = @_;
-	$dummy = PDL::Core::double($dummy)
-	  if !$keep_type && $dummy->get_datatype < PDL::Core::double()->enum;
-	if($dummy->getndims() <= $nth) {
-		# This is 'kind of' consistency...
-		$dummy .= 0;
-		return $dummy;
-	}
-	my $bar = 0==$nth ? $dummy : $dummy->xchg(0,$nth);
-	PDL::Primitive::axisvalues($bar->inplace);
-	return $dummy;
+  my($dummy,$nth,$keep_type) = @_;
+  $dummy = PDL::Core::float($dummy)
+    if !$keep_type && $dummy->get_datatype < PDL::Core::float()->enum;
+  return $dummy .= 0 if $dummy->getndims <= $nth; # 'kind of' consistency
+  my $bar = 0==$nth ? $dummy : $dummy->xchg(0,$nth);
+  PDL::Primitive::axisvalues($bar->inplace);
+  $dummy;
 }
 sub PDL::sec {
 	my($this,@coords) = @_;
