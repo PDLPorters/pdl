@@ -842,11 +842,11 @@ returning a hash of the functions found therein.
 
 sub scantext {
   my ($text, $filename, $verbose) = @_;
-  open my $infile, '<', \$text;
   my $parser = PDL::PodParser->new;
   $parser->{verbose} = $verbose;
   open my $outfile, '>', \(my $outfile_text);
-  eval { $parser->parse_from_filehandle($infile,$outfile) };
+  $parser->output_fh($outfile);
+  eval { $parser->parse_string_document($text) };
   warn "cannot parse: $@" if $@ and $@ ne "no function defined\n";
   my %hash;
   $_->{File} = $filename for values %{ $parser->{SYMHASH} };
