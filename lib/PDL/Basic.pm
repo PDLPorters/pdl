@@ -31,27 +31,20 @@ use PDL::Exporter;
 use PDL::Options;
 
 our @ISA=qw/PDL::Exporter/;
-our @EXPORT_OK = qw/ ndcoords rvals axisvals allaxisvals xvals yvals zvals sec ins hist whist
-  similar_assign transpose sequence xlinvals ylinvals zlinvals
+my @to_import = qw(
+  sec ins hist whist similar_assign transpose
+  axisvals allaxisvals ndcoords
+  xlinvals ylinvals zlinvals
   xlogvals ylogvals zlogvals
-/;
+);
+our @EXPORT_OK = (@to_import, qw(rvals xvals yvals zvals sequence));
 our %EXPORT_TAGS = (Func=>[@EXPORT_OK]);
 
 # Exportable functions
-*axisvals       = \&PDL::axisvals;
-*allaxisvals       = \&PDL::allaxisvals;
-*sec            = \&PDL::sec;
-*ins            = \&PDL::ins;
-*hist           = \&PDL::hist;
-*whist           = \&PDL::whist;
-*similar_assign = \&PDL::similar_assign;
-*transpose      = \&PDL::transpose;
-*xlinvals 	= \&PDL::xlinvals;
-*ylinvals 	= \&PDL::ylinvals;
-*zlinvals 	= \&PDL::zlinvals;
-*xlogvals 	= \&PDL::xlogvals;
-*ylogvals 	= \&PDL::ylogvals;
-*zlogvals 	= \&PDL::zlogvals;
+for (@to_import) {
+  no strict 'refs';
+  *$_ = \&{ $PDL::{$_} };
+}
 
 =head2 xvals
 
@@ -395,7 +388,7 @@ sub PDL::ndcoords {
   }
   $out;
 }
-*ndcoords = *allaxisvals = *PDL::allaxisvals = \&PDL::ndcoords;
+*PDL::allaxisvals = \&PDL::ndcoords;
 
 =head2 hist
 
