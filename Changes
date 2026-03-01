@@ -10,7 +10,7 @@
 - {x,y,z}logvals now exported
 - axisvals and {x,y,z}{lin,log}vals can now take ndarray-spec like zeroes
 - *vals relax from conditionally forcing to double, to forcing to float
-- add axis{lin,log}vals
+- add axis{lin,log}vals, allaxis{lin,log}vals
 
 2.100 2025-03-27
 - fix Math function prototypes for GCC 15 (#528) - thanks @jplesnik for report

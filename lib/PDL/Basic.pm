@@ -35,8 +35,8 @@ our @EXPORT_OK = qw(
   sec ins hist whist similar_assign transpose
   allaxisvals ndcoords sequence rvals
   axisvals xvals yvals zvals
-  axislinvals xlinvals ylinvals zlinvals
-  axislogvals xlogvals ylogvals zlogvals
+  allaxislinvals axislinvals xlinvals ylinvals zlinvals
+  allaxislogvals axislogvals xlogvals ylogvals zlogvals
 );
 our %EXPORT_TAGS = (Func=>[@EXPORT_OK]);
 
@@ -230,24 +230,28 @@ sub PDL::xlogvals { unshift @_, 'xlogvals', 0; goto &_logvals; }
 sub PDL::ylogvals { unshift @_, 'ylogvals', 1; goto &_logvals; }
 sub PDL::zlogvals { unshift @_, 'zlogvals', 2; goto &_logvals; }
 
-=head2 ndcoords, allaxisvals
+=head2 ndcoords, allaxisvals, allaxislinvals, allaxislogvals
 
 =for ref
 
 Enumerate pixel coordinates for an N-D ndarray
 
-Returns an enumerated list of coordinates suitable for use in
+C<ndcoords> and C<allaxisvals> return an enumerated list of coordinates
+suitable for use in
 L<indexND|PDL::Slices/indexND>, L<range|PDL::Slices/range>, or
 L<interpND|PDL::Primitive/interpND>: you feed
 in a dimension list and get out an ndarray whose 0th dimension runs over
 dimension index and whose 1st through Nth dimensions are the
 dimensions given in the input.  If you feed in an ndarray instead of a
-perl list, then the dimension list is used, as in L</xvals> etc.
+perl list, then its dimension list is used, as in L</xvals> etc.
 
 Unlike L</xvals> etc., if you supply an ndarray input, you get
 out an ndarray of the default ndarray type: double.   This causes less
 surprises than the previous default of keeping the data type of
 the input ndarray since that rarely made sense in most usages.
+
+C<allaxislinvals> and C<allaxislogvals> enumerate a list of linear-
+or logarithm-spaced values respectively, like their non-C<all> counterparts.
 
 =for usage
 
@@ -257,6 +261,12 @@ the input ndarray since that rarely made sense in most usages.
   $indices = allaxisvals($pdl);
   $indices = allaxisvals(@dimlist);
   $indices = allaxisvals($type,@dimlist);
+  $linvals = allaxislinvals($pdl);
+  $linvals = allaxislinvals(@dimlist);
+  $linvals = allaxislinvals($type,@dimlist);
+  $logvals = allaxislogvals($pdl);
+  $logvals = allaxislogvals(@dimlist);
+  $logvals = allaxislogvals($type,@dimlist);
 
 =for example
 
@@ -285,14 +295,33 @@ the input ndarray since that rarely made sense in most usages.
 
 =cut
 
-sub PDL::ndcoords {
+sub _allvals_construct {
   my $type = ref $_[0] eq 'PDL::Type' ? shift : undef;
   my @dims = ref($_[0]) ? shift->dims : @_;
-  my $out = PDL->zeroes(defined($type) ? $type : (), scalar(@dims), @dims);
-  axisvals2($out->slice("($_)"), $_, 1) for 0..$#dims;
+  PDL->zeroes(defined($type) ? $type : (), scalar(@dims), @dims);
+}
+sub PDL::ndcoords {
+  my $out = &_allvals_construct;
+  axisvals2($out->slice("($_)"), $_, 1) for 0..$out->ndims-2;
   $out;
 }
 *PDL::allaxisvals = \&PDL::ndcoords;
+sub _nonref_vals2 {
+  my ($first_non_ref) = grep !ref $_[$_], 0..$#_;
+  splice @_, $first_non_ref, 2;
+}
+sub PDL::allaxislinvals {
+  my ($v1, $v2) = &_nonref_vals2;
+  my $out = &_allvals_construct;
+  $out->slice("($_)")->inplace->axislinvals($_,$v1,$v2) for 0..$out->ndims-2;
+  $out;
+}
+sub PDL::allaxislogvals {
+  my ($v1, $v2) = &_nonref_vals2;
+  my $out = &_allvals_construct;
+  $out->slice("($_)")->inplace->axislogvals($_,$v1,$v2) for 0..$out->ndims-2;
+  $out;
+}
 
 =head2 hist, whist
 
