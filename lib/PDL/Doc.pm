@@ -42,8 +42,9 @@ sub start_for {
 
 sub emit {
   my ($self) = @_;
-  return $self->SUPER::emit
-    if $self->{interested_head1s}{$self->{current_head1} // ''}
+  print { $self->{output_fh} } $self->{buffer}, "\n\n" # superclass adds "" at start which inserts a space
+    if $self->{buffer} ne ''
+    and $self->{interested_head1s}{$self->{current_head1} // ''}
     and ($self->{current_head2}//'') =~ /\b\Q$self->{interested_head2}\E\b/;
   $self->{buffer} = "";
 }

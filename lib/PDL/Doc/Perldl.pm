@@ -10,7 +10,7 @@ from the I<perldl> shell as well as the
 I<pdldoc> command-line program.
 
 Autoload files are also matched, via a search of the PDLLIB autoloader
-tree.  That behavior can be switched off with the variable 
+tree.  That behavior can be switched off with the variable
 C<$PERLDL::STRICT_DOCS> (true: don't search autoload tree; false: search
 the autoload tree.)
 
@@ -61,7 +61,7 @@ sub FindStdFile {
 }
 
 # used to find out how wide the screen should be
-# for printmatch() - really should check for a 
+# for printmatch() - really should check for a
 # sensible lower limit (for printmatch >~ 40
 # would be my guess)
 #
@@ -215,13 +215,13 @@ sub search_docs {
 
 =head2 PDL::Doc::Perldl::finddoc
 
-=for ref 
+=for ref
 
 Internal interface to the PDL documentation searcher
 
 =cut
 
-sub finddoc  {
+sub finddoc {
     local $SIG{PIPE}= sub {}; # Prevent crashing if user exits the pager
 
     die 'Usage: doc $topic' unless $#_>-1;
@@ -237,17 +237,15 @@ sub finddoc  {
     my @match = search_docs("m/^(PDL::)?".$t2."\$/",['Name'],0) ; #matches: ^PDL::topic$ or ^topic$
 
     unless(@match) {
-      
       print "No PDL docs for '$topic'. Using 'whatis'. (Try 'apropos $topic'?)\n\n";
       whatis($topic);
       return;
-
     }
 
     # print out the matches
     open my $out, "| pod2text | $PDL::Doc::pager";
     binmode $out, ':encoding(UTF-8)';
-    
+
     if($subfield) {
       if($subfield <= @match) {
 	@match = ($match[$subfield-1]);
@@ -257,7 +255,7 @@ sub finddoc  {
 	$subfield = undef;
       }
     }
-    
+
     my $num_pdl_pod_matches = scalar @match;
     my $pdl_pod_matchnum = 0;
 
@@ -307,15 +305,14 @@ sub finddoc  {
 
           } else {
 
-             print $out "=head1 Module ",$m->[2]{Module}, "\n\n";
-#	     print STDERR "calling funcdocs(" . $m->[0] . ", " . $m->[1] . ")\n";
-             $PDL::onlinedoc->funcdocs($m->[0],$m->[1],$out);
+             print $out "=encoding utf8\n\n=head1 Module ",$m->[2]{Module}, "\n\n";
+             $PDL::onlinedoc->funcdocs(@$m[0,1],$out);
 
           }
 
        }
     }
-  }
+}
 
 
 =head2 find_autodoc
@@ -337,7 +334,7 @@ sub find_autodoc {
     my $topic = shift;
     my $exact = shift;
     my $matcher;
-    # Fix up regexps and exact matches for the special case of 
+    # Fix up regexps and exact matches for the special case of
     # searching the autoload dirs...
     if($exact) {
 	$topic =~ s/\(\)$//;  # "func()" -> "func"
@@ -358,7 +355,7 @@ sub find_autodoc {
     return unless(@main::PDLLIB);
     @main::PDLLIB_EXPANDED = PDL::AutoLoader::expand_path(@main::PDLLIB)
 	unless(@main::PDLLIB_EXPANDED);
-    
+
     for my $dir(@main::PDLLIB_EXPANDED) {
 	if($exact) {
 	    my $file = $dir . "/" . "$topic";
@@ -520,7 +517,7 @@ sub whatis_r {
   my $prefix = shift;
   my $indent = shift;
   my $x = shift;
-  
+
   unless(defined $x) {
     print $prefix,"<undef>\n";
     return;
@@ -542,19 +539,19 @@ sub whatis_r {
       my $pre = sprintf("%s  %2d: "," "x$indent,$el);
       whatis_r($pre,$indent + $PDL::Doc::Perldl::array_indent, $x->[$el]);
       last if($el == $PDL::Doc::Perldl::max_arraylen);
-    } 
+    }
     printf "%s   ... \n"," " x $indent
       if($#$x > $PDL::Doc::Perldl::max_arraylen);
 
     return;
   }
-      
+
   if(ref $x eq 'HASH') {
     print "${prefix}Hash (".scalar(keys %$x)." elements)\n";
     my $key;
     for $key(sort keys %$x) {
       my $pre = " " x $indent .
-	        " $key: " . 
+	        " $key: " .
 		(" "x($PDL::Doc::Perldl::max_keylen - length($key))) ;
 
       whatis_r($pre,$indent + $PDL::Doc::Perldl::hash_indent, $x->{$key});
@@ -577,7 +574,7 @@ sub whatis_r {
     local $PDL::debug = 1;
 
     $y = ( (UNIVERSAL::isa($x,'PDL') && $x->nelem < 5 && $x->ndims < 2)
-	   ? 
+	   ?
 	   ": $x" :
 	   ": *****"
 	   );
@@ -637,7 +634,7 @@ The following commands support online help in the perldl shell:
  help vars      -- print information about all current ndarrays
 
  whatis <expr>  -- Describe the type and structure of an expression or ndarray.
- apropos 'word' -- search for keywords/function names 
+ apropos 'word' -- search for keywords/function names
  usage          -- print usage information for a given PDL function
  sig            -- print signature of PDL function
  badinfo        -- information on the support for bad values
