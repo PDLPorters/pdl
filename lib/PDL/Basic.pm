@@ -147,12 +147,11 @@ etc. see L<zeroes|PDL::Core/zeroes>.
   ]
  ]
 
-=head2 xlinvals
+=head2 xlinvals, ylinvals, zlinvals
 
 =for ref
 
-X axis values between endpoints (see L</xvals>).
-Works with dim-length of one as of 2.093, giving the starting point.
+Axis values linearly spaced between endpoints (see L</xvals>).
 
 =for usage
 
@@ -169,37 +168,21 @@ Works with dim-length of one as of 2.093, giving the starting point.
 C<xlinvals>, C<ylinvals> and C<zlinvals> return an ndarray with the same shape
 as their first argument if an ndarray, and linearly scaled values between the two other
 arguments along the given axis.
+Works with dim-length of one as of 2.093, giving the starting point.
 As of 2.101, instead of giving an ndarray you can give an optional
 type at the start, and dimensions after the two mandatory arguments.
 
-=head2 ylinvals
+=head2 xlogvals, ylogvals, zlogvals
 
 =for ref
 
-Y axis values between endpoints (see L</yvals>).
-
-See L</xlinvals> for more information.
-
-=head2 zlinvals
-
-=for ref
-
-Z axis values between endpoints (see L</zvals>).
-
-See L</xlinvals> for more information.
-
-=head2 xlogvals
-
-=for ref
-
-X axis values logarithmically spaced between endpoints (see L</xvals>).
-Works with dim-length of one as of 2.093, giving the starting point.
+Axis values logarithmically spaced between endpoints (see L</xvals>).
 
 =for usage
 
  $w = zeroes(100,100);
  $x = $w->xlogvals(1e-6,1e-3);
- $y = $w->ylinvals(1e-4,1e3);
+ $y = $w->ylogvals(1e-4,1e3);
  $z = f($x,$y); # calculate Z for X from 1e-6 to 1e-3, Y from 1e-4 to 1e3
  # alternatively (new in PDL 2.101):
  $x = xlogvals(1e-6,1e-3,100);
@@ -210,24 +193,9 @@ Works with dim-length of one as of 2.093, giving the starting point.
 C<xlogvals>, C<ylogvals> and C<zlogvals> return an ndarray with the same shape
 as their first argument and logarithmically scaled values between the two other
 arguments along the given axis.
+Works with dim-length of one as of 2.093, giving the starting point.
 As of 2.101, instead of giving an ndarray you can give an optional
 type at the start, and dimensions after the two mandatory arguments.
-
-=head2 ylogvals
-
-=for ref
-
-Y axis values logarithmically spaced between endpoints (see L</yvals>).
-
-See L</xlogvals> for more information.
-
-=head2 zlogvals
-
-=for ref
-
-Z axis values logarithmically spaced between endpoints (see L</zvals>).
-
-See L</xlogvals> for more information.
 
 =cut
 
