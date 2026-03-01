@@ -232,19 +232,9 @@ See L</xlogvals> for more information.
 =cut
 
 # Conveniently named interfaces to axisvals()
-
-sub PDL::xvals {
-    my $type_given = grep +(ref($_[$_])||'') eq 'PDL::Type', 0..1;
-    axisvals2(&PDL::Core::_construct,0,$type_given);
-}
-sub PDL::yvals {
-    my $type_given = grep +(ref($_[$_])||'') eq 'PDL::Type', 0..1;
-    axisvals2(&PDL::Core::_construct,1,$type_given);
-}
-sub PDL::zvals {
-    my $type_given = grep +(ref($_[$_])||'') eq 'PDL::Type', 0..1;
-    axisvals2(&PDL::Core::_construct,2,$type_given);
-}
+sub PDL::xvals { unshift @_, 0; goto &axisvals; }
+sub PDL::yvals { unshift @_, 1; goto &axisvals; }
+sub PDL::zvals { unshift @_, 2; goto &axisvals; }
 
 sub _dimcheck {
   my ($pdl, $whichdim, $name) = @_;
