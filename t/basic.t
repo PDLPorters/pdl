@@ -60,6 +60,10 @@ is_pdl pdl(3)->axislinvals(0,float,1,1.5,3), float(1,1.25,1.5);
 is_pdl xlogvals(1,9,3), pdl(1,3,9);
 is_pdl xlogvals(float,1,9,3), float(1,3,9);
 is_pdl pdl(3)->xlogvals(float,1,9,3), float(1,3,9);
+is_pdl axislogvals(0,1,9,3), pdl(1,3,9);
+is_pdl axislogvals(float,0,1,9,3), float(1,3,9);
+is_pdl pdl(3)->axislogvals(float,0,1,9,3), float(1,3,9);
+is_pdl pdl(3)->axislogvals(0,float,1,9,3), float(1,3,9);
 }
 
 is_pdl ins(xvals(3,3), yvals(2,2), 1, 1), pdl('0 1 2; 0 0 0; 0 1 1');

@@ -36,7 +36,7 @@ our @EXPORT_OK = qw(
   allaxisvals ndcoords sequence rvals
   axisvals xvals yvals zvals
   axislinvals xlinvals ylinvals zlinvals
-  xlogvals ylogvals zlogvals
+  axislogvals xlogvals ylogvals zlogvals
 );
 our %EXPORT_TAGS = (Func=>[@EXPORT_OK]);
 
@@ -182,7 +182,7 @@ sub PDL::xlinvals { unshift @_, 'xlinvals', 0; goto &_linvals; }
 sub PDL::ylinvals { unshift @_, 'ylinvals', 1; goto &_linvals; }
 sub PDL::zlinvals { unshift @_, 'zlinvals', 2; goto &_linvals; }
 
-=head2 xlogvals, ylogvals, zlogvals
+=head2 axislogvals, xlogvals, ylogvals, zlogvals
 
 =for ref
 
@@ -199,6 +199,10 @@ Axis values logarithmically spaced between endpoints (see L</xvals>).
  $y = xlogvals(1e-4,1e3,100); # x = along 0-th dim
  $z = f(meshgrid($x,$y));  # should go faster as meshgrid makes better locality
  $pdl = xlogvals(float,1e-6,1e-3,100); # can specify type
+ $x = $w->axislogvals(0,0.5,1.5);           # same as xlogvals
+ $x = axislogvals(0,0.5,1.5,100,100);       # same as xlogvals
+ $x = axislogvals(float,0,0.5,1.5,100,100); # same as xlogvals
+ $x = axislogvals(0,float,0.5,1.5,100,100); # same as xlogvals
 
 C<xlogvals>, C<ylogvals> and C<zlogvals> return an ndarray with the same shape
 as their first argument and logarithmically scaled values between the two other
@@ -211,8 +215,9 @@ type at the start, and dimensions after the two mandatory arguments.
 
 sub _logvals {
   my ($name) = splice @_, 0, 1;
-  my ($whichdim) = @_;
-  my ($first_non_ref) = grep !ref $_[$_], 1..$#_;
+  my ($first_non_ref) = grep !ref $_[$_], 0..$#_;
+  my $whichdim = $_[$first_non_ref];
+  (undef, $first_non_ref) = grep !ref $_[$_], 0..$#_;
   my ($min, $max) = splice @_, $first_non_ref, 2;
   barf "min and max must be positive" if $min <= 0 || $max <= 0;
   my ($lmin,$lmax) = map log($_), $min, $max;
@@ -220,18 +225,10 @@ sub _logvals {
   my $dimlength = _dimcheck($pdl, $whichdim, $name);
   $pdl .= exp($pdl * (($lmax - $lmin) / ($dimlength > 1 ? ($dimlength-1) : 1)) + $lmin);
 }
-sub PDL::xlogvals {
-  unshift @_, 'xlogvals', 0;
-  goto &_logvals;
-}
-sub PDL::ylogvals {
-  unshift @_, 'ylogvals', 1;
-  goto &_logvals;
-}
-sub PDL::zlogvals {
-  unshift @_, 'zlogvals', 2;
-  goto &_logvals;
-}
+sub PDL::axislogvals { unshift @_, 'axislogvals'; goto &_logvals; }
+sub PDL::xlogvals { unshift @_, 'xlogvals', 0; goto &_logvals; }
+sub PDL::ylogvals { unshift @_, 'ylogvals', 1; goto &_logvals; }
+sub PDL::zlogvals { unshift @_, 'zlogvals', 2; goto &_logvals; }
 
 =head2 ndcoords, allaxisvals
 
