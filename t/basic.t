@@ -114,6 +114,14 @@ is_pdl xvals(3,2), pdl '0 1 2; 0 1 2';
 is_pdl xvals(float,3,2), float '0 1 2; 0 1 2';
 is_pdl axisvals(zeroes(3,2), 0), pdl '0 1 2; 0 1 2';
 is_pdl axisvals(zeroes(3,2), 1), pdl '0 0 0; 1 1 1';
+is_pdl axisvals(zeroes(3,2), 2), pdl '0 0 0; 0 0 0';
+{
+my $z = zeroes(3,2);
+is_pdl $z->axisvals(1), pdl('0 0 0; 1 1 1'), 'returns with non-inplace';
+is_pdl $z, pdl('0 0 0; 0 0 0'), 'non-inplace not mutated';
+is_pdl $z->inplace->axisvals(1), pdl('0 0 0; 1 1 1'), 'returns with inplace';
+is_pdl $z, pdl('0 0 0; 1 1 1'), 'inplace mutated';
+}
 is_pdl pdl(indx, [9,8,7])->sequence, pdl(indx,0..2), "sequence as instance-method should preserve type, dims, right values";
 
 done_testing;

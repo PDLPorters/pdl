@@ -658,16 +658,11 @@ not available here, for obvious reasons.
 =cut
 
 sub PDL::axisvals {
-	my($this,$nth) = @_;
-	my $dummy = $this->new_or_inplace;
-	if($dummy->getndims() <= $nth) {
-		# This is 'kind of' consistency...
-		$dummy .= 0;
-		return $dummy;
-	}
-	my $bar = 0==$nth ? $dummy : $dummy->xchg(0,$nth);
-	PDL::Primitive::axisvalues($bar->inplace);
-	return $dummy;
+  my($this,$nth) = @_;
+  my $dummy = $this->new_or_inplace;
+  return $dummy .= 0 if $dummy->getndims <= $nth; # 'kind of' consistency
+  (0==$nth ? $dummy : $dummy->xchg(0,$nth))->inplace->axisvalues;
+  $dummy;
 }
 
 # We need this version for xvals etc to work in place
