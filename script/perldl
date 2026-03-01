@@ -410,6 +410,7 @@ if ($PDL_OK) {
    require PDL if not defined $PDL::VERSION;
    print "Type 'demo' for online demos\n";
    print "Loaded PDL v$PDL::VERSION (supports bad values)\n";
+   print "Type 'help' for online help\n" if $PDL::verbose;
 }else{
    warn "WARNING: Error loading PDL: '$@' - trying blib. \n";
    eval "use blib";

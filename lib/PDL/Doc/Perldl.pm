@@ -56,7 +56,6 @@ sub FindStdFile {
   my ($f) = PDL::Doc::_find_inc([qw(PDL pdldoc.db)], 0);
   warn("Unable to find PDL/pdldoc.db in ".join(":",@INC)."\n"), return if !defined $f;
   print "Found docs database $f\n" if $PDL::verbose;
-  print "Type 'help' for online help\n" if $PDL::verbose;
   return $f;
 }
 
