@@ -125,7 +125,7 @@ sub format_ref {
     my $module = shortmod($m->[1]);
 
     $parser->output_string(\my $out_text);
-    $parser->parse_string_document("=head1 $ref");
+    $parser->parse_string_document("=encoding utf8\n\n=head1 $ref");
     $ref = $out_text;
 
     # remove last new lines (so substitution doesn't append spaces at end of text)
