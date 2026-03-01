@@ -33,9 +33,9 @@ use PDL::Options;
 our @ISA=qw/PDL::Exporter/;
 our @EXPORT_OK = qw(
   sec ins hist whist similar_assign transpose
-  axisvals allaxisvals ndcoords sequence rvals
-  xvals yvals zvals
-  xlinvals ylinvals zlinvals
+  allaxisvals ndcoords sequence rvals
+  axisvals xvals yvals zvals
+  axislinvals xlinvals ylinvals zlinvals
   xlogvals ylogvals zlogvals
 );
 our %EXPORT_TAGS = (Func=>[@EXPORT_OK]);
@@ -128,7 +128,7 @@ sub PDL::xvals { unshift @_, 0; goto &axisvals; }
 sub PDL::yvals { unshift @_, 1; goto &axisvals; }
 sub PDL::zvals { unshift @_, 2; goto &axisvals; }
 
-=head2 xlinvals, ylinvals, zlinvals
+=head2 axislinvals, xlinvals, ylinvals, zlinvals
 
 =for ref
 
@@ -144,7 +144,11 @@ Axis values linearly spaced between endpoints (see L</xvals>).
  $x = xlinvals(0.5,1.5,100);
  $y = xlinvals(-2,-1,100); # x = along 0-th dim
  $z = f(meshgrid($x,$y));  # should go faster as meshgrid makes better locality
- $pdl = xlinvals(float,0.5,1.5,100); # can specify type
+ $pdl = xlinvals(float,0.5,1.5,100);        # can specify type
+ $x = $w->axislinvals(0,0.5,1.5);           # same as xlinvals
+ $x = axislinvals(0,0.5,1.5,100,100);       # same as xlinvals
+ $x = axislinvals(float,0,0.5,1.5,100,100); # same as xlinvals
+ $x = axislinvals(0,float,0.5,1.5,100,100); # same as xlinvals
 
 C<xlinvals>, C<ylinvals> and C<zlinvals> return an ndarray with the same shape
 as their first argument if an ndarray, and linearly scaled values between the two other
@@ -164,26 +168,19 @@ sub _dimcheck {
 }
 sub _linvals {
   my ($name) = splice @_, 0, 1;
-  my ($whichdim) = @_;
-  my ($first_non_ref) = grep !ref $_[$_], 1..$#_;
+  my ($first_non_ref) = grep !ref $_[$_], 0..$#_;
+  my $whichdim = $_[$first_non_ref];
+  (undef, $first_non_ref) = grep !ref $_[$_], 0..$#_;
   my ($v1, $v2) = splice @_, $first_non_ref, 2;
   my $pdl = &axisvals;
   my $dimlength = _dimcheck($pdl, $whichdim, $name);
   $pdl *= (($v2 - $v1) / ($dimlength > 1 ? ($dimlength-1) : 1));
   $pdl += $v1;
 }
-sub PDL::xlinvals {
-  unshift @_, 'xlinvals', 0;
-  goto &_linvals;
-}
-sub PDL::ylinvals {
-  unshift @_, 'ylinvals', 1;
-  goto &_linvals;
-}
-sub PDL::zlinvals {
-  unshift @_, 'zlinvals', 2;
-  goto &_linvals;
-}
+sub PDL::axislinvals { unshift @_, 'axislinvals'; goto &_linvals; }
+sub PDL::xlinvals { unshift @_, 'xlinvals', 0; goto &_linvals; }
+sub PDL::ylinvals { unshift @_, 'ylinvals', 1; goto &_linvals; }
+sub PDL::zlinvals { unshift @_, 'zlinvals', 2; goto &_linvals; }
 
 =head2 xlogvals, ylogvals, zlogvals
 
