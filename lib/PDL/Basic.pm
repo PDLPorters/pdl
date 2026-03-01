@@ -119,8 +119,7 @@ sub axisvals2 {
   $dummy = PDL::Core::float($dummy)
     if !$keep_type && $dummy->get_datatype < PDL::Core::float()->enum;
   return $dummy .= 0 if $dummy->getndims <= $nth; # 'kind of' consistency
-  my $bar = 0==$nth ? $dummy : $dummy->xchg(0,$nth);
-  PDL::Primitive::axisvalues($bar->inplace);
+  (0==$nth ? $dummy : $dummy->xchg(0,$nth))->inplace->axisvalues;
   $dummy;
 }
 
@@ -154,6 +153,38 @@ Works with dim-length of one as of 2.093, giving the starting point.
 As of 2.101, instead of giving an ndarray you can give an optional
 type at the start, and dimensions after the two mandatory arguments.
 
+=cut
+
+sub _dimcheck {
+  my ($pdl, $whichdim, $name) = @_;
+  barf "Given non-PDL '$pdl'" if !UNIVERSAL::isa($pdl, 'PDL');
+  my $dimlength = $pdl->getdim($whichdim);
+  barf "Must have at least one element in dimension for $name" if $dimlength < 1;
+  $dimlength;
+}
+sub _linvals {
+  my ($name) = splice @_, 0, 1;
+  my ($whichdim) = @_;
+  my ($first_non_ref) = grep !ref $_[$_], 1..$#_;
+  my ($v1, $v2) = splice @_, $first_non_ref, 2;
+  my $pdl = &axisvals;
+  my $dimlength = _dimcheck($pdl, $whichdim, $name);
+  $pdl *= (($v2 - $v1) / ($dimlength > 1 ? ($dimlength-1) : 1));
+  $pdl += $v1;
+}
+sub PDL::xlinvals {
+  unshift @_, 'xlinvals', 0;
+  goto &_linvals;
+}
+sub PDL::ylinvals {
+  unshift @_, 'ylinvals', 1;
+  goto &_linvals;
+}
+sub PDL::zlinvals {
+  unshift @_, 'zlinvals', 2;
+  goto &_linvals;
+}
+
 =head2 xlogvals, ylogvals, zlogvals
 
 =for ref
@@ -181,57 +212,27 @@ type at the start, and dimensions after the two mandatory arguments.
 
 =cut
 
-sub _dimcheck {
-  my ($pdl, $whichdim, $name) = @_;
-  barf "Given non-PDL '$pdl'" if !UNIVERSAL::isa($pdl, 'PDL');
-  my $dimlength = $pdl->getdim($whichdim);
-  barf "Must have at least one element in dimension for $name" if $dimlength < 1;
-  $dimlength;
-}
-sub _linvals {
-  my ($whichdim, $name) = splice @_, 0, 2;
-  my $type_given = grep +(ref($_[$_])||'') eq 'PDL::Type', 0..1;
-  my ($first_non_ref) = grep !ref $_[$_], 0..$#_;
-  my ($v1, $v2) = splice @_, $first_non_ref, 2;
-  my $pdl = axisvals2(&PDL::Core::_construct,$whichdim,$type_given);
-  my $dimlength = _dimcheck($pdl, $whichdim, $name);
-  $pdl *= (($v2 - $v1) / ($dimlength > 1 ? ($dimlength-1) : 1));
-  $pdl += $v1;
-}
-sub PDL::xlinvals {
-  unshift @_, 0, 'xlinvals';
-  goto &_linvals;
-}
-sub PDL::ylinvals {
-  unshift @_, 1, 'ylinvals';
-  goto &_linvals;
-}
-sub PDL::zlinvals {
-  unshift @_, 2, 'zlinvals';
-  goto &_linvals;
-}
-
 sub _logvals {
-  my ($whichdim, $name) = splice @_, 0, 2;
-  my $type_given = grep +(ref($_[$_])||'') eq 'PDL::Type', 0..1;
-  my ($first_non_ref) = grep !ref $_[$_], 0..$#_;
+  my ($name) = splice @_, 0, 1;
+  my ($whichdim) = @_;
+  my ($first_non_ref) = grep !ref $_[$_], 1..$#_;
   my ($min, $max) = splice @_, $first_non_ref, 2;
   barf "min and max must be positive" if $min <= 0 || $max <= 0;
   my ($lmin,$lmax) = map log($_), $min, $max;
-  my $pdl = axisvals2(&PDL::Core::_construct,$whichdim,$type_given);
+  my $pdl = &axisvals;
   my $dimlength = _dimcheck($pdl, $whichdim, $name);
   $pdl .= exp($pdl * (($lmax - $lmin) / ($dimlength > 1 ? ($dimlength-1) : 1)) + $lmin);
 }
 sub PDL::xlogvals {
-  unshift @_, 0, 'xlogvals';
+  unshift @_, 'xlogvals', 0;
   goto &_logvals;
 }
 sub PDL::ylogvals {
-  unshift @_, 1, 'ylogvals';
+  unshift @_, 'ylogvals', 1;
   goto &_logvals;
 }
 sub PDL::zlogvals {
-  unshift @_, 2, 'zlogvals';
+  unshift @_, 'zlogvals', 2;
   goto &_logvals;
 }
 
@@ -496,32 +497,32 @@ well-known norms.
 =cut
 
 sub PDL::rvals { # Return radial distance from given point and offset
-    my $opt = pop @_ if ref($_[$#_]) eq "HASH";
-    my %opt = defined $opt ?
-               iparse( {
-			CENTRE  => undef, # needed, otherwise centre/center handling painful
-			Squared => 0,
-		       }, $opt ) : ();
-    my $r = &PDL::Core::_construct;
-    my @pos;
-    if(defined $opt{CENTRE}){
-	my $pos = PDL->topdl($opt{CENTRE});
-	barf "Center should be a 1D vector" unless $pos->getndims==1;
-	barf "Center has more coordinates than dimensions of ndarray" if $pos->dim(0) > $r->getndims;
-	@pos = $pos->list;
-    }
-    my $offset;
-    $r .= 0.0;
-    my $tmp = $r->copy;
-    my $i;
-    for ($i=0; $i<$r->getndims; $i++) {
-         $offset = (defined $pos[$i] ? $pos[$i] : int($r->getdim($i)/2));
-	 # Note careful coding for speed and min memory footprint
-	 PDL::Primitive::axisvalues((0==$i?$tmp:$tmp->xchg(0,$i))->inplace);
-	 $tmp -= $offset; $tmp *= $tmp;
-         $r += $tmp;
-    }
-    return $opt{Squared} ? $r : $r->inplace->sqrt;
+  my $opt = ref($_[-1]) eq "HASH" ? pop @_ : undef;
+  my %opt = defined $opt ?
+    iparse( {
+      CENTRE  => undef, # needed, otherwise centre/center handling painful
+      Squared => 0,
+    }, $opt ) : ();
+  my $r = &PDL::Core::_construct;
+  my @pos;
+  if (defined $opt{CENTRE}) {
+    my $pos = PDL->topdl($opt{CENTRE});
+    barf "Center should be a 1D vector" unless $pos->getndims==1;
+    barf "Center has more coordinates than dimensions of ndarray" if $pos->dim(0) > $r->getndims;
+    @pos = $pos->list;
+  }
+  my $offset;
+  $r .= 0.0;
+  my $tmp = $r->copy;
+  my $i;
+  for ($i=0; $i<$r->getndims; $i++) {
+    $offset = $pos[$i] // int($r->getdim($i)/2);
+    # Note careful coding for speed and min memory footprint
+    axisvals2($tmp, $i, 1);
+    $tmp -= $offset; $tmp *= $tmp;
+    $r += $tmp;
+  }
+  return $opt{Squared} ? $r : $r->inplace->sqrt;
 }
 
 =head2 sec
