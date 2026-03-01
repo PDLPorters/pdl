@@ -109,6 +109,11 @@ is_pdl $h, pdl(qw{ 0 0 0 0 0 0 0.21012603 -1.4716175 0.14107419 -2.2025149
 }
 
 is_pdl xvals(zeroes 3,2), pdl '0 1 2; 0 1 2';
+is_pdl xvals(zeroes float, 3,2), float '0 1 2; 0 1 2';
+is_pdl xvals(3,2), pdl '0 1 2; 0 1 2';
+is_pdl xvals(float,3,2), float '0 1 2; 0 1 2';
+is_pdl axisvals(zeroes(3,2), 0), pdl '0 1 2; 0 1 2';
+is_pdl axisvals(zeroes(3,2), 1), pdl '0 0 0; 1 1 1';
 is_pdl pdl(indx, [9,8,7])->sequence, pdl(indx,0..2), "sequence as instance-method should preserve type, dims, right values";
 
 done_testing;
