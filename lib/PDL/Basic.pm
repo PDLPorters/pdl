@@ -46,16 +46,15 @@ for (@EXPORT_OK) {
   *$_ = \&{ $PDL::{$_} };
 }
 
-=head2 xvals
+=head2 axisvals, xvals, yvals, zvals
 
 =for ref
 
-Fills an ndarray with X index values.  Uses similar specifications to
-L</zeroes> and L</new_from_specification>.
+Fills an ndarray with index values on X, Y, Z, or Nth dimension
 
-CAVEAT:
-
-If you use the single argument ndarray form (top row
+Uses similar specifications to L<zeroes|PDL::Core/zeroes> and
+L<new_from_specification|PDL::Core/new_from_specification>.
+B<CAVEAT>: If you use the single argument ndarray form (top row
 in the usage table) the output will have the same type as the input,
 except that between 2.064 and 2.100, the returned ndarray will
 default to at least type C<double>; as of 2.101 this upgrade is
@@ -65,87 +64,70 @@ or third form below.
 
 =for usage
 
- $x = xvals($somearray); # at least type double
+ $x = xvals($somearray); # at least type float
  $x = xvals([OPTIONAL TYPE],$nx,$ny,$nz...);
  $x = xvals([OPTIONAL TYPE], $somarray->dims);
+ $y = yvals($somearray); yvals(inplace($somearray));
+ $y = yvals([OPTIONAL TYPE],$nx,$ny,$nz...);
+ $z = zvals($somearray); zvals(inplace($somearray));
+ $z = zvals([OPTIONAL TYPE],$nx,$ny,$nz...);
+ $axisv = axisvals ($ndarray, $nth);
+ $axisv = $ndarray->axisvals($nth);
+ $axisv = axisvals ([type,] $nth, $dim0, $dim1, ...); # new in PDL 2.101
+ $axisv = axisvals ($nth, [type,] $dim0, $dim1, ...); # new in PDL 2.101
 
-etc. see L<zeroes|PDL::Core/zeroes>.
-
-=for example
-
-  pdl> print xvals zeroes(5,10)
-  [
-   [0 1 2 3 4]
-   [0 1 2 3 4]
-   [0 1 2 3 4]
-   [0 1 2 3 4]
-   [0 1 2 3 4]
-   [0 1 2 3 4]
-   [0 1 2 3 4]
-   [0 1 2 3 4]
-   [0 1 2 3 4]
-   [0 1 2 3 4]
-  ]
-
-=head2 yvals
-
-=for ref
-
-Fills an ndarray with Y index values.  See the CAVEAT for L</xvals>.
-
-=for usage
-
- $x = yvals($somearray); yvals(inplace($somearray));
- $x = yvals([OPTIONAL TYPE],$nx,$ny,$nz...);
-
-etc. see L<zeroes|PDL::Core/zeroes>.
+See also L</allaxisvals>, which generates all axis values
+simultaneously in a form useful for L</range>, L</interpND>,
+L</indexND>, etc.
 
 =for example
 
- pdl> print yvals zeroes(5,10)
- [
-  [0 0 0 0 0]
-  [1 1 1 1 1]
-  [2 2 2 2 2]
-  [3 3 3 3 3]
-  [4 4 4 4 4]
-  [5 5 5 5 5]
-  [6 6 6 6 6]
-  [7 7 7 7 7]
-  [8 8 8 8 8]
-  [9 9 9 9 9]
- ]
-
-=head2 zvals
-
-=for ref
-
-Fills an ndarray with Z index values.  See the CAVEAT for L</xvals>.
-
-=for usage
-
- $x = zvals($somearray); zvals(inplace($somearray));
- $x = zvals([OPTIONAL TYPE],$nx,$ny,$nz...);
-
-etc. see L<zeroes|PDL::Core/zeroes>.
-
-=for example
-
- pdl> print zvals zeroes(3,4,2)
- [
+  pdl> print xvals zeroes(5,2)
   [
-   [0 0 0]
-   [0 0 0]
-   [0 0 0]
-   [0 0 0]
+   [0 1 2 3 4]
+   [0 1 2 3 4]
   ]
+  pdl> print yvals zeroes(5,2)
   [
-   [1 1 1]
-   [1 1 1]
-   [1 1 1]
-   [1 1 1]
+   [0 0 0 0 0]
+   [1 1 1 1 1]
   ]
- ]
+  pdl> print zvals zeroes(3,2,2)
+  [
+   [
+    [0 0 0]
+    [0 0 0]
+   ]
+   [
+    [1 1 1]
+    [1 1 1]
+   ]
+  ]
+
+=cut
+
+sub PDL::axisvals {
+  my $type_given = grep +(ref($_[$_])||'') eq 'PDL::Type', 0..2;
+  my ($first_non_ref) = grep !ref $_[$_], 0..$#_;
+  my ($nth) = splice @_, $first_non_ref, 1;
+  axisvals2(&PDL::Core::_construct,$nth,$type_given);
+}
+
+# We need this version for xvals etc to work in place
+sub axisvals2 {
+  my($dummy,$nth,$keep_type) = @_;
+  $dummy = PDL::Core::float($dummy)
+    if !$keep_type && $dummy->get_datatype < PDL::Core::float()->enum;
+  return $dummy .= 0 if $dummy->getndims <= $nth; # 'kind of' consistency
+  my $bar = 0==$nth ? $dummy : $dummy->xchg(0,$nth);
+  PDL::Primitive::axisvalues($bar->inplace);
+  $dummy;
+}
+
+# Conveniently named interfaces to axisvals()
+sub PDL::xvals { unshift @_, 0; goto &axisvals; }
+sub PDL::yvals { unshift @_, 1; goto &axisvals; }
+sub PDL::zvals { unshift @_, 2; goto &axisvals; }
 
 =head2 xlinvals, ylinvals, zlinvals
 
@@ -198,11 +180,6 @@ As of 2.101, instead of giving an ndarray you can give an optional
 type at the start, and dimensions after the two mandatory arguments.
 
 =cut
-
-# Conveniently named interfaces to axisvals()
-sub PDL::xvals { unshift @_, 0; goto &axisvals; }
-sub PDL::yvals { unshift @_, 1; goto &axisvals; }
-sub PDL::zvals { unshift @_, 2; goto &axisvals; }
 
 sub _dimcheck {
   my ($pdl, $whichdim, $name) = @_;
@@ -590,50 +567,6 @@ sub PDL::rvals { # Return radial distance from given point and offset
          $r += $tmp;
     }
     return $opt{Squared} ? $r : $r->inplace->sqrt;
-}
-
-=head2 axisvals
-
-=for ref
-
-Fills an ndarray with index values on Nth dimension
-
-=for usage
-
- $z = axisvals ($ndarray, $nth);
- $z = $ndarray->axisvals($nth);
- $z = axisvals ([type,] $nth, $dim0, $dim1, ...); # new in PDL 2.101
- $z = axisvals ($nth, [type,] $dim0, $dim1, ...); # new in PDL 2.101
-
-This is the routine, for which L</xvals>, L</yvals> etc
-are mere shorthands. C<axisvals> can be used to fill along any dimension,
-using a parameter.
-
-See also L</allaxisvals>, which generates all axis values
-simultaneously in a form useful for L</range>, L</interpND>,
-L</indexND>, etc.
-
-The 'from specification' style (see L<zeroes|PDL::Core/zeroes>) is
-available as of 2.101.
-
-=cut
-
-sub PDL::axisvals {
-  my $type_given = grep +(ref($_[$_])||'') eq 'PDL::Type', 0..2;
-  my ($first_non_ref) = grep !ref $_[$_], 0..$#_;
-  my ($nth) = splice @_, $first_non_ref, 1;
-  axisvals2(&PDL::Core::_construct,$nth,$type_given);
-}
-
-# We need this version for xvals etc to work in place
-sub axisvals2 {
-  my($dummy,$nth,$keep_type) = @_;
-  $dummy = PDL::Core::float($dummy)
-    if !$keep_type && $dummy->get_datatype < PDL::Core::float()->enum;
-  return $dummy .= 0 if $dummy->getndims <= $nth; # 'kind of' consistency
-  my $bar = 0==$nth ? $dummy : $dummy->xchg(0,$nth);
-  PDL::Primitive::axisvalues($bar->inplace);
-  $dummy;
 }
 
 =head2 sec
