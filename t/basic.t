@@ -115,6 +115,15 @@ is_pdl xvals(float,3,2), float '0 1 2; 0 1 2';
 is_pdl axisvals(zeroes(3,2), 0), pdl '0 1 2; 0 1 2';
 is_pdl axisvals(zeroes(3,2), 1), pdl '0 0 0; 1 1 1';
 is_pdl axisvals(zeroes(3,2), 2), pdl '0 0 0; 0 0 0';
+is_pdl axisvals(0,3,2), pdl('0 1 2; 0 1 2');
+is_pdl axisvals(1,3,2), pdl('0 0 0; 1 1 1');
+is_pdl axisvals(2,3,2), pdl('0 0 0; 0 0 0');
+is_pdl axisvals(float,0,3,2), float('0 1 2; 0 1 2');
+is_pdl axisvals(float,1,3,2), float('0 0 0; 1 1 1');
+is_pdl axisvals(float,2,3,2), float('0 0 0; 0 0 0');
+is_pdl axisvals(0,float,3,2), float('0 1 2; 0 1 2');
+is_pdl axisvals(1,float,3,2), float('0 0 0; 1 1 1');
+is_pdl axisvals(2,float,3,2), float('0 0 0; 0 0 0');
 {
 my $z = zeroes(3,2);
 is_pdl $z->axisvals(1), pdl('0 0 0; 1 1 1'), 'returns with non-inplace';

@@ -8,7 +8,7 @@
 - work around Perl 5.42 bug (#551) - thanks @andk for report
 - PDL::Doc database now encodes data-length in forced little-endian ordering, not machine, since tests rely on fixed order (#545)
 - {x,y,z}logvals now exported
-- {x,y,z}{lin,log}vals can now take ndarray-spec like zeroes
+- axisvals and {x,y,z}{lin,log}vals can now take ndarray-spec like zeroes
 - *vals relax from conditionally forcing to double, to forcing to float
 
 2.100 2025-03-27

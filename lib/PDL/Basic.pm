@@ -643,6 +643,9 @@ Fills an ndarray with index values on Nth dimension
 =for usage
 
  $z = axisvals ($ndarray, $nth);
+ $z = $ndarray->axisvals($nth);
+ $z = axisvals ([type,] $nth, $dim0, $dim1, ...); # new in PDL 2.101
+ $z = axisvals ($nth, [type,] $dim0, $dim1, ...); # new in PDL 2.101
 
 This is the routine, for which L</xvals>, L</yvals> etc
 are mere shorthands. C<axisvals> can be used to fill along any dimension,
@@ -652,17 +655,16 @@ See also L</allaxisvals>, which generates all axis values
 simultaneously in a form useful for L</range>, L</interpND>,
 L</indexND>, etc.
 
-Note the 'from specification' style (see L<zeroes|PDL::Core/zeroes>) is
-not available here, for obvious reasons.
+The 'from specification' style (see L<zeroes|PDL::Core/zeroes>) is
+available as of 2.101.
 
 =cut
 
 sub PDL::axisvals {
-  my($this,$nth) = @_;
-  my $dummy = $this->new_or_inplace;
-  return $dummy .= 0 if $dummy->getndims <= $nth; # 'kind of' consistency
-  (0==$nth ? $dummy : $dummy->xchg(0,$nth))->inplace->axisvalues;
-  $dummy;
+  my $type_given = grep +(ref($_[$_])||'') eq 'PDL::Type', 0..2;
+  my ($first_non_ref) = grep !ref $_[$_], 0..$#_;
+  my ($nth) = splice @_, $first_non_ref, 1;
+  axisvals2(&PDL::Core::_construct,$nth,$type_given);
 }
 
 # We need this version for xvals etc to work in place
