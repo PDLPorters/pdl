@@ -309,29 +309,32 @@ sub PDL::ndcoords {
 }
 *PDL::allaxisvals = \&PDL::ndcoords;
 
-=head2 hist
+=head2 hist, whist
 
 =for ref
 
-Create histogram of an ndarray
+Create histogram, or weighted histogram, of an ndarray
 
 =for usage
 
  $hist = hist($data);
  ($xvals,$hist) = hist($data);
-
-or
-
+ # or:
  $hist = hist($data,$min,$max,$step);
  ($xvals,$hist) = hist($data,[$min,$max,$step]);
+ # weighted:
+ $whist = whist($data, $wt, [$min,$max,$step]);
+ ($xvals,$whist) = whist($data, $wt, [$min,$max,$step]);
 
-If C<hist> is run in list context, C<$xvals> gives the
-computed bin centres as double values.
+If requested, C<$xvals> gives the computed bin centres
+as type double values.  C<$data> and C<$wt> should have
+the same dimensionality and extents.
 
-A nice idiom (with
-L<PDL::Graphics::Simple>) is
+A nice idiom (with L<PDL::Graphics::Simple>) is
 
- bins hist($data), {yrange=>[0,$data->dim(0)]};  # Plot histogram
+ bins hist($data), {yrange=>[0,$data->dim(0)]};        # Plot histogram
+ bin whist $data, $wt;                                 # weighted histogram
+ bins whist($data, $wt), {yrange=>[0,$data->dim(0)]};  # weighted histogram
 
 =for example
 
@@ -340,87 +343,54 @@ L<PDL::Graphics::Simple>) is
  pdl> $h = hist $y,0,20,1; # hist with step 1, min 0 and 20 bins
  pdl> p $h
  [0 0 0 0 0 0 2 3 1 3 5 4 4 4 0 0 0 0 0 0]
-
-=cut
-
-sub PDL::hist {
-    my $usage = "\n" . '  Usage:          $hist  = hist($data)' . "\n" .
-                       '                  $hist  = hist($data,$min,$max,$step)' . "\n" .
-                       '          ($xvals,$hist) = hist($data)' . "\n" .
-                       '          ($xvals,$hist) = hist($data,$min,$max,$step)' . "\n" ;
-    barf($usage) if $#_<0;
-    my($pdl,$min,$max,$step)=@_;
-    ($step, $min, my $bins, my $xvals) =
-        _hist_bin_calc($pdl, $min, $max, $step, wantarray());
-    PDL::Primitive::histogram($pdl->flat,(my $hist = null),
-			      $step,$min,$bins);
-    return wantarray() ? ($xvals,$hist) : $hist;
-}
-
-=head2 whist
-
-=for ref
-
-Create a weighted histogram of an ndarray
-
-=for usage
-
- $hist = whist($data, $wt, [$min,$max,$step]);
- ($xvals,$hist) = whist($data, $wt, [$min,$max,$step]);
-
-If requested, C<$xvals> gives the computed bin centres
-as type double values.  C<$data> and C<$wt> should have
-the same dimensionality and extents.
-
-A nice idiom (with
-L<PDL::Graphics::Simple>) is
-
- bin whist $data, $wt;  # Plot histogram
- bins whist($data, $wt), {yrange=>[0,$data->dim(0)]};  # Plot histogram
-
-=for example
-
- pdl> p $y
- [13 10 13 10 9 13 9 12 11 10 10 13 7 6 8 10 11 7 12 9 11 11 12 6 12 7]
+ # or, weighted:
  pdl> $wt = grandom($y->nelem)
  pdl> $h = whist $y, $wt, 0, 20, 1 # hist with step 1, min 0 and 20 bins
  pdl> p $h
  [0 0 0 0 0 0 -0.49552342  1.7987439 0.39450696  4.0073722 -2.6255299 -2.5084501  2.6458365  4.1671676 0 0 0 0 0 0]
 
-
 =cut
+
+sub PDL::hist {
+    barf(<<'EOF') if !@_;
+  Usage:          $hist  = hist($data)
+                  $hist  = hist($data,$min,$max,$step)
+          ($xvals,$hist) = hist($data)
+          ($xvals,$hist) = hist($data,$min,$max,$step)
+EOF
+    my ($pdl,$min,$max,$step) = @_;
+    ($step, $min, my $bins, my $xvals) =
+        _hist_bin_calc($pdl, $min, $max, $step, wantarray);
+    my $hist = PDL::Primitive::histogram($pdl->flat, $step,$min,$bins);
+    wantarray ? ($xvals,$hist) : $hist;
+}
 
 sub PDL::whist {
     barf('Usage: ([$xvals],$hist) = whist($data,$wt,[$min,$max,$step])')
             if @_ < 2;
-    my($pdl,$wt,$min,$max,$step)=@_;
+    my ($pdl,$wt,$min,$max,$step) = @_;
     ($step, $min, my $bins, my $xvals) =
-        _hist_bin_calc($pdl, $min, $max, $step, wantarray());
-
-    PDL::Primitive::whistogram($pdl->flat,$wt->flat,
-			       (my $hist = null), $step, $min, $bins);
-    return wantarray() ? ($xvals,$hist) : $hist;
+        _hist_bin_calc($pdl, $min, $max, $step, wantarray);
+    my $hist = PDL::Primitive::whistogram($pdl->flat,$wt->flat, $step, $min, $bins);
+    wantarray ? ($xvals,$hist) : $hist;
 }
 
 sub _hist_bin_calc {
-    my($pdl,$min,$max,$step,$wantarray)=@_;
-    $min = $pdl->min() unless defined $min;
-    $max = $pdl->max() unless defined $max;
+    my ($pdl,$min,$max,$step,$wantarray) = @_;
     my $nelem = $pdl->nelem;
     barf "empty ndarray, no values to work with" if $nelem == 0;
-
-    $step = ($max-$min)/(($nelem>10_000) ? 100 : sqrt($nelem)) unless defined $step;
+    $min //= $pdl->min;
+    $max //= $pdl->max;
+    $step //= ($max-$min)/(($nelem>10_000) ? 100 : sqrt($nelem));
     barf "step is zero (or all data equal to one value)" if $step == 0;
-
     my $bins = int(($max-$min)/$step+0.5);
     print "hist with step $step, min $min and $bins bins\n"
 	if $PDL::debug;
+    return ( $step, $min, $bins ) if !$wantarray;
     # Need to use double for $xvals here
-    my $xvals = $min + $step/2 + sequence(PDL::Core::double,$bins)*$step if $wantarray;
-
-    return ( $step, $min, $bins, $xvals );
+    my $xvals = $min + $step/2 + sequence(PDL::Core::double,$bins)*$step;
+    ( $step, $min, $bins, $xvals );
 }
-
 
 =head2 sequence
 
