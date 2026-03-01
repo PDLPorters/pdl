@@ -235,31 +235,15 @@ sub PDL::zlogvals {
   goto &_logvals;
 }
 
-=head2 allaxisvals
-
-=for ref
-
-Synonym for L</ndcoords> - enumerates all coordinates in a
-PDL or dim list, adding an extra dim on the front to accommodate
-the vector coordinate index (the form expected by L</indexND>,
-L</range>, and L</interpND>).  See L</ndcoords> for more detail.
-
-=for usage
-
-  $indices = allaxisvals($pdl);
-  $indices = allaxisvals(@dimlist);
-  $indices = allaxisvals($type,@dimlist);
-
-=cut
-
-=head2 ndcoords
+=head2 ndcoords, allaxisvals
 
 =for ref
 
 Enumerate pixel coordinates for an N-D ndarray
 
 Returns an enumerated list of coordinates suitable for use in
-L<indexND|PDL::Slices/indexND> or L<range|PDL::Slices/range>: you feed
+L<indexND|PDL::Slices/indexND>, L<range|PDL::Slices/range>, or
+L<interpND|PDL::Primitive/interpND>: you feed
 in a dimension list and get out an ndarray whose 0th dimension runs over
 dimension index and whose 1st through Nth dimensions are the
 dimensions given in the input.  If you feed in an ndarray instead of a
@@ -275,11 +259,13 @@ the input ndarray since that rarely made sense in most usages.
   $indices = ndcoords($pdl);
   $indices = ndcoords(@dimlist);
   $indices = ndcoords($type,@dimlist);
+  $indices = allaxisvals($pdl);
+  $indices = allaxisvals(@dimlist);
+  $indices = allaxisvals($type,@dimlist);
 
 =for example
 
   pdl> print ndcoords(2,3)
-
   [
    [
     [0 0]
@@ -294,7 +280,6 @@ the input ndarray since that rarely made sense in most usages.
     [1 2]
    ]
   ]
-
   pdl> $w = zeroes(byte,2,3);        # $w is a 2x3 byte ndarray
   pdl> $y = ndcoords($w);            # $y inherits $w's type
   pdl> $c = ndcoords(long,$w->dims); # $c is a long ndarray, same dims as $y
