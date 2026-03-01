@@ -292,20 +292,10 @@ the input ndarray since that rarely made sense in most usages.
 =cut
 
 sub PDL::ndcoords {
-  my $type;
-  if(ref $_[0] eq 'PDL::Type') {
-    $type = shift;
-  }
-  my @dims = (ref $_[0]) ? (shift)->dims : @_;
-  my @d = @dims;
-  unshift(@d,scalar(@dims));
-  unshift(@d,$type) if defined($type);
-  my $out = PDL->zeroes(@d);
-  for my $d (0..$#dims) {
-    my $w = $out->index($d);
-    $w = $w->mv($d,0) if $d != 0;
-    $w .= xvals($w->type, $w->dims);
-  }
+  my $type = ref $_[0] eq 'PDL::Type' ? shift : undef;
+  my @dims = ref($_[0]) ? shift->dims : @_;
+  my $out = PDL->zeroes(defined($type) ? $type : (), scalar(@dims), @dims);
+  axisvals2($out->slice("($_)"), $_, 1) for 0..$#dims;
   $out;
 }
 *PDL::allaxisvals = \&PDL::ndcoords;
