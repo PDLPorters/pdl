@@ -287,7 +287,7 @@ to avoid accidents. Move it out of the way if you really want to scrap it.
 
 The files F<MANIFEST>, F<MANIFEST.SKIP> and F<.gitignore> are for
 bookkeeping: They avoid that temporary files created by building the
-module end up in a git repository or a CPAN distrubution.
+module end up in a git repository or a CPAN distribution.
 
 As of 2.096, the "internal mode" of this script has been removed,
 and it creates the files using the new "deep mode". This is because
