@@ -365,7 +365,7 @@ sub find_autodoc {
 }
 
 
-=head2 usage
+=head2 usage, badinfo
 
 =for ref
 
@@ -373,17 +373,25 @@ Prints usage information for a PDL function
 
 =for usage
 
- Usage: usage 'func'
+ Usage: usage func
 
 =for example
 
-   pdl> usage 'inner'
-
-   inner           P::Primitive  Inner product over one dimension
-
-   Signature: inner(a(n); b(n); [o]c())
-
-
+  pdl> usage inner
+  inner           P::Primitive  Inner product over one dimension
+    Signature:
+      (a(n); b(n); [o]c())
+       Types: (sbyte byte short ushort long ulong indx ulonglong longlong
+         float double ldouble cfloat cdouble cldouble)
+    Usage:
+      $c = inner($a, $b);
+      inner($a, $b, $c);  # all arguments given
+      $c = $a->inner($b); # method call
+      $a->inner($b, $c);
+    Bad value support:
+      If "a() * b()" contains only bad data,
+      c() is set bad. Otherwise c() will have its bad flag cleared,
+      as it will not contain any bad values.
 
 =cut
 
@@ -392,6 +400,7 @@ sub usage {
   print usage_string(@_);
   ''
 }
+*badinfo = \&usage;
 sub usage_string {
   my $func = shift;
   my $str = "";
@@ -405,7 +414,8 @@ sub usage_string {
     my ($name,$module,$hash) = @$m;
     die "No usage info found for $func\n" if !grep defined, @$hash{qw(Example Sig Usage)};
     for (grep $hash->{$_->[0]},
-      ['Sig','Signature'],['Usage','Usage'],['Opt','Options'],['Example','Example']
+      ['Sig','Signature'],['Usage','Usage'],['Opt','Options'],
+      ['Example','Example'],['Bad','Bad value support'],
     ) {
         $str .= "  $_->[1]:\n".allindent($hash->{$_->[0]},4)."\n";
     }
@@ -619,8 +629,8 @@ The following commands support online help in the perldl shell:
  whatis <expr>  -- Describe the type and structure of an expression or ndarray.
  apropos 'word' -- search for keywords/function names
  usage          -- print usage information for a given PDL function
+                   including support for bad values
  sig            -- print signature of PDL function
- badinfo        -- information on the support for bad values
 
  ('?' is an alias for 'help';  '??' is an alias for 'apropos'.)
 
@@ -634,62 +644,5 @@ EOH
   }
   ''
 }
-
-=head2 badinfo
-
-=for ref
-
-provides information on the bad-value support of a function
-
-And has a horrible name.
-
-=for usage
-
- badinfo 'func'
-
-=for example
-
-  pdl> badinfo 'inner'
-  Bad value support for inner (in module PDL::Primitive)
-      If "a() * b()" contains only bad data, "c()" is set bad. Otherwise "c()"
-      will have its bad flag cleared, as it will not contain any bad values.
-
-
-=cut
-
-# need to get this to format the output - want a format_bad()
-# subroutine that's like - but much simpler than - format_ref()
-#
-sub badinfo {
-    my $func = shift;
-    die "Usage: badinfo \$funcname\n" unless defined $func;
-
-    local $SIG{PIPE}= sub {}; # Prevent crashing if user exits the pager
-
-    my @match = search_docs("m/^(PDL::)?$func\$|\:\:$func\$/",['Name']);
-    my $count = @match;
-    if ( $count ) {
-	my ($pagerstr, $noinfostr) = ('', '');
-	foreach my $m(@match) {
-	    my ($name,$module,$hash) = @{$m};
-	    my $info = $hash->{Bad};
-	    if ( defined $info ) {
-		$name=~s/^(.*)\:\:(\w*)$/$2/;
-
-		$pagerstr .= "=head1 Bad value support for $name (in module $module)\n\n$info\n";
-	    } else {
-		$noinfostr .= "\n  No information on bad-value support found for $func (in module $module)\n";
-	    }
-	}
-	if ($pagerstr){
-	    open my $out, "| pod2text | $PDL::Doc::pager";
-	    print $out $pagerstr, $noinfostr;
-	} else {
-	    print $noinfostr;
-	}
-    } else {
-	print "\n  no match\n";
-    }
-} # sub: badinfo()
 
 1; # OK
