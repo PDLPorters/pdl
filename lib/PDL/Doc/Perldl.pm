@@ -60,14 +60,7 @@ sub FindStdFile {
 }
 
 # used to find out how wide the screen should be
-# for format_ref - really should check for a
-# sensible lower limit (for format_ref >~ 40
-# would be my guess)
-#
-# taken from Pod::Text (v1.0203), then hacked to get it
-# to work (at least on my solaris and linux
-# machines)
-#
+# for format_ref - really should check for a sensible lower limit
 sub screen_width {
   local $@;
   eval {
@@ -107,22 +100,27 @@ sub format_ref {
   map {$max_mod_length = length if (length>$max_mod_length) } @module_shorthands;
   my $width = screen_width()-17-1-$max_mod_length;
   my @parser_args = (width => $width, indent => 0, sentence => 0);
+  my %seen;
   for my $m (@match) {
-    my $ref = $m->[2]{Ref} ||
-      ( (defined $m->[2]{CustomFile})
-        ? "[No ref avail. for `".$m->[2]{CustomFile}."']"
-        : "[No reference available]"
-     );
     my $name = $m->[0];
     my $module = shortmod($m->[1]);
-    my $parser = Pod::Text->new(@parser_args);
-    $parser->output_string(\my $out_text);
-    $parser->parse_string_document("=encoding utf8\n\n$ref");
-    $ref = $out_text;
-    # remove last new lines (so substitution doesn't append spaces at end of text)
-    $ref =~ s/\n*$//;
-    $ref =~ s/\n/"\n                ".' 'x($max_mod_length+2)/eg;
-    $ref =~ s/^\s*//;
+    my $ref = $m->[2]{Ref};
+    if (!$ref) {
+      $ref = defined $m->[2]{CustomFile}
+        ? "[No ref avail. for `".$m->[2]{CustomFile}."']"
+        : "[No reference available]";
+    } elsif ($seen{$ref}) {
+      $ref = "[As $seen{$ref}]";
+    } else {
+      $seen{$ref} = $name;
+      my $parser = Pod::Text->new(@parser_args);
+      $parser->output_string(\my $out_text);
+      $parser->parse_string_document("=encoding utf8\n\n$ref");
+      $ref = $out_text;
+      $ref =~ s/\n*$//; # remove last newlines so no append spaces at end
+      $ref =~ s/\n/"\n".' 'x($max_mod_length+18)/eg;
+      $ref =~ s/^\s*//;
+    }
     push @text, sprintf length($name) > 15 ? $LONG_FMT : $NORMAL_FMT, $name, $max_mod_length, $module, $ref;
   }
   wantarray ? @text : $text[0];

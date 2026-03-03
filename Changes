@@ -1,4 +1,4 @@
-- perldl merge badinfo into usage
+- perldl merge badinfo into usage, tidy up apropos and usage outputs
 
 2.101 2026-03-02
 - pptemplate improvements (#538 #539) - thanks @HaraldJoerg
