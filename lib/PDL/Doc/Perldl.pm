@@ -96,47 +96,36 @@ sub shortmod {
 
 # return a string containing a formated version of the Ref string
 # for the given matches
-#
+my $LONG_FMT = "%s ...\n " . ' 'x15 . "%-*s  %s\n";
+my $NORMAL_FMT = "%-15s %-*s  %s\n";
 sub format_ref {
   my @match = @_;
   my @text = ();
-
   #finding the max width before doing the printing means looping through @match an extra time; so be it.
   my @module_shorthands = map { shortmod($_->[1]) } @match;
   my $max_mod_length = -1;
   map {$max_mod_length = length if (length>$max_mod_length) } @module_shorthands;
-
-
   my $width = screen_width()-17-1-$max_mod_length;
   my $parser = Pod::Text->new( width => $width, indent => 0, sentence => 0 );
-
   for my $m (@match) {
     my $ref = $m->[2]{Ref} ||
       ( (defined $m->[2]{CustomFile})
         ? "[No ref avail. for `".$m->[2]{CustomFile}."']"
         : "[No reference available]"
      );
-
     my $name = $m->[0];
     my $module = shortmod($m->[1]);
-
     $parser->output_string(\my $out_text);
-    $parser->parse_string_document("=encoding utf8\n\n=head1 $ref");
+    $parser->parse_string_document("=encoding utf8\n\n$ref");
     $ref = $out_text;
-
     # remove last new lines (so substitution doesn't append spaces at end of text)
     $ref =~ s/\n*$//;
     $ref =~ s/\n/"\n                ".' 'x($max_mod_length+2)/eg;
     $ref =~ s/^\s*//;
-    if ( length($name) > 15 ) {
-      push @text, sprintf "%s ...\n " . ' 'x15 . "%-*s  %s\n", $name, $max_mod_length, $module, $ref;
-    } else {
-      push @text, sprintf "%-15s %-*s  %s\n", $name, $max_mod_length, $module, $ref;
-    }
+    push @text, sprintf length($name) > 15 ? $LONG_FMT : $NORMAL_FMT, $name, $max_mod_length, $module, $ref;
   }
-  return wantarray ? @text : $text[0];
-
-} # sub: format_ref()
+  wantarray ? @text : $text[0];
+}
 
 =head2 apropos
 
