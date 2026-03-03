@@ -60,8 +60,8 @@ sub FindStdFile {
 }
 
 # used to find out how wide the screen should be
-# for printmatch() - really should check for a
-# sensible lower limit (for printmatch >~ 40
+# for format_ref - really should check for a
+# sensible lower limit (for format_ref >~ 40
 # would be my guess)
 #
 # taken from Pod::Text (v1.0203), then hacked to get it
@@ -77,13 +77,9 @@ sub screen_width {
 }
 
 sub printmatch {
-    my @match = @_;
-    if (@match) {
-	foreach my $t ( format_ref( @_ ) ) { print $t; }
-    } else {
-	print "no match\n\n";
-    }
-} # sub: print_match()
+  return print "no match\n" if !@_;
+  print for format_ref(@_);
+}
 
 # given a long module name, return the (perhaps shortened) module name.
 
@@ -189,6 +185,7 @@ sub apropos  {
     die "Usage: apropos \$funcname\n" unless $#_>-1;
     my $func = shift;
     printmatch aproposover $func;
+    '';
 }
 
 =head2 PDL::Doc::Perldl::search_docs
