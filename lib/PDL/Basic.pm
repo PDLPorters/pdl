@@ -166,12 +166,15 @@ sub _dimcheck {
   barf "Must have at least one element in dimension for $name" if $dimlength < 1;
   $dimlength;
 }
+sub _extract_endpoints {
+  (undef, my $first_non_ref) = grep !ref $_[$_], 0..$#_;
+  splice @_, $first_non_ref, 2;
+}
 sub _linvals {
   my ($name) = splice @_, 0, 1;
   my ($first_non_ref) = grep !ref $_[$_], 0..$#_;
   my $whichdim = $_[$first_non_ref];
-  (undef, $first_non_ref) = grep !ref $_[$_], 0..$#_;
-  my ($v1, $v2) = splice @_, $first_non_ref, 2;
+  my ($v1, $v2) = &_extract_endpoints;
   my $pdl = &axisvals;
   my $dimlength = _dimcheck($pdl, $whichdim, $name);
   $pdl *= (($v2 - $v1) / ($dimlength > 1 ? ($dimlength-1) : 1));
@@ -217,8 +220,7 @@ sub _logvals {
   my ($name) = splice @_, 0, 1;
   my ($first_non_ref) = grep !ref $_[$_], 0..$#_;
   my $whichdim = $_[$first_non_ref];
-  (undef, $first_non_ref) = grep !ref $_[$_], 0..$#_;
-  my ($min, $max) = splice @_, $first_non_ref, 2;
+  my ($min, $max) = &_extract_endpoints;
   barf "min and max must be positive" if $min <= 0 || $max <= 0;
   my ($lmin,$lmax) = map log($_), $min, $max;
   my $pdl = &axisvals;
@@ -320,13 +322,17 @@ sub _nonref_vals2 {
   splice @_, $first_non_ref, 2;
 }
 sub PDL::allaxislinvals {
-  my ($v1, $v2) = &_nonref_vals2;
+  unshift @_, 1; # dummy for _extract_endpoints "whichdim"
+  my ($v1, $v2) = &_extract_endpoints;
+  shift @_; # drop dummy
   my $out = &_allvals_construct;
   $out->slice("($_)")->inplace->axislinvals($_,$v1,$v2) for 0..$out->ndims-2;
   $out;
 }
 sub PDL::allaxislogvals {
-  my ($v1, $v2) = &_nonref_vals2;
+  unshift @_, 1; # dummy for _extract_endpoints "whichdim"
+  my ($v1, $v2) = &_extract_endpoints;
+  shift @_; # drop dummy
   my $out = &_allvals_construct;
   $out->slice("($_)")->inplace->axislogvals($_,$v1,$v2) for 0..$out->ndims-2;
   $out;
