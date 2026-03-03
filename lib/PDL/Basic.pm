@@ -258,6 +258,7 @@ or logarithm-spaced values respectively, like their non-C<all> counterparts.
   $indices = ndcoords($pdl);                   # double
   $indices = ndcoords(@dimlist);               # double
   $indices = ndcoords($type,$pdl);             # $type
+  $indices = $pdl->ndcoords($type);            # $type
   $indices = ndcoords($type,@dimlist);         # $type
   $indices = allaxisvals($pdl);
   $indices = allaxisvals(@dimlist);
@@ -301,7 +302,10 @@ or logarithm-spaced values respectively, like their non-C<all> counterparts.
 =cut
 
 sub _allvals_construct {
-  my $type = ref $_[0] eq 'PDL::Type' ? shift : undef;
+  my $type;
+  if (my ($type_ind) = grep ref $_[$_] eq 'PDL::Type', 0..$#_) {
+    $type = splice @_, $type_ind, 1;
+  }
   my @dims = ref($_[0]) ? shift->dims : @_;
   PDL->zeroes(defined($type) ? $type : (), scalar(@dims), @dims);
 }

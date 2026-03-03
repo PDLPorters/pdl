@@ -76,6 +76,7 @@ is_pdl zeroes(3,3)->allaxislinvals(1,1.5), my $exp = pdl('
 ');
 is_pdl allaxislinvals(1,1.5,3,3), $exp;
 is_pdl zeroes(float,3,3)->allaxislinvals(1,1.5), $exp;
+is_pdl zeroes(float,3,3)->allaxislinvals(float,1,1.5), $exp->float;
 is_pdl allaxislinvals(float,zeroes(float,3,3),1,1.5), $exp->float;
 is_pdl allaxislinvals(float,1,1.5,3,3), $exp->float;
 is_pdl zeroes(3,3)->allaxislogvals(1,9), $exp = pdl('
