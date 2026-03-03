@@ -106,7 +106,7 @@ sub format_ref {
   my $max_mod_length = -1;
   map {$max_mod_length = length if (length>$max_mod_length) } @module_shorthands;
   my $width = screen_width()-17-1-$max_mod_length;
-  my $parser = Pod::Text->new( width => $width, indent => 0, sentence => 0 );
+  my @parser_args = (width => $width, indent => 0, sentence => 0);
   for my $m (@match) {
     my $ref = $m->[2]{Ref} ||
       ( (defined $m->[2]{CustomFile})
@@ -115,6 +115,7 @@ sub format_ref {
      );
     my $name = $m->[0];
     my $module = shortmod($m->[1]);
+    my $parser = Pod::Text->new(@parser_args);
     $parser->output_string(\my $out_text);
     $parser->parse_string_document("=encoding utf8\n\n$ref");
     $ref = $out_text;
