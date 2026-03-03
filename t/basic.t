@@ -69,13 +69,27 @@ is_pdl pdl(3)->axislogvals(0,float,1,9,3), float(1,3,9);
 is_pdl ins(xvals(3,3), yvals(2,2), 1, 1), pdl('0 1 2; 0 0 0; 0 1 1');
 is_pdl ins(xvals(4,4), yvals(2,2), 1, 1), pdl('0 1 2 3; 0 0 0 3; 0 1 1 3; 0 1 2 3');
 is_pdl sec(xvals(4,4), 1,2, 1,2), pdl('1 2; 1 2');
+
+{
+is_pdl zeroes(float,2,5)->ylinvals(
+  pdl('-0.05 -0.046047701'), pdl('1.05 1.049781')
+), my $axis_exp = float('
+  -0.05 -0.046047701;
+  0.225 0.22790948;
+  0.5   0.50186666;
+  0.775 0.77582383;
+  1.05  1.049781
+');
+is_pdl ylinvals(float,pdl('-0.05 -0.046047701'), pdl('1.05 1.049781'),2,5), $axis_exp;
 is_pdl zeroes(3,3)->allaxislinvals(1,1.5), my $exp = pdl('
   [1 1;    1.25 1;    1.5 1]
   [1 1.25; 1.25 1.25; 1.5 1.25]
   [1 1.5;  1.25 1.5;  1.5 1.5]
 ');
 is_pdl allaxislinvals(1,1.5,3,3), $exp;
+is_pdl allaxislinvals(double,pdl(1),pdl(1.5),3,3), $exp;
 is_pdl zeroes(float,3,3)->allaxislinvals(1,1.5), $exp;
+is_pdl zeroes(float,3,3)->allaxislinvals(pdl(1),pdl(1.5)), $exp;
 is_pdl zeroes(float,3,3)->allaxislinvals(float,1,1.5), $exp->float;
 is_pdl allaxislinvals(float,zeroes(float,3,3),1,1.5), $exp->float;
 is_pdl allaxislinvals(float,1,1.5,3,3), $exp->float;
@@ -86,6 +100,7 @@ is_pdl zeroes(3,3)->allaxislogvals(1,9), $exp = pdl('
 ');
 is_pdl allaxislogvals(1,9,3,3), $exp;
 is_pdl allaxislogvals(float,1,9,3,3), $exp->float;
+}
 
 {
 my $x = zeroes(11,6,8);

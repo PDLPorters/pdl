@@ -137,11 +137,11 @@ Axis values linearly spaced between endpoints (see L</xvals>).
 =for usage
 
  $w = zeroes(100,100);
- $x = $w->xlinvals(0.5,1.5);
+ $x = $w->xlinvals(0.5,1.5);  # can give ndarrays as start and endpoints
  $y = $w->ylinvals(-2,-1);
  $z = f($x,$y); # calculate Z for X from 0.5 to 1.5, Y from -2 to -1
  # alternatively (new in PDL 2.101):
- $x = xlinvals(0.5,1.5,100);
+ $x = xlinvals(0.5,1.5,100);  # can give ndarrays as start and endpoints
  $y = xlinvals(-2,-1,100); # x = along 0-th dim
  $z = f(meshgrid($x,$y));  # should go faster as meshgrid makes better locality
  $pdl = xlinvals(float,0.5,1.5,100);        # can specify type
@@ -167,8 +167,17 @@ sub _dimcheck {
   $dimlength;
 }
 sub _extract_endpoints {
-  (undef, my $first_non_ref) = grep !ref $_[$_], 0..$#_;
-  splice @_, $first_non_ref, 2;
+  my ($v1, $v2);
+  my @pdl_inds = grep UNIVERSAL::isa($_[$_], 'PDL'), 2..$#_; # not the invocant
+  if (@pdl_inds < 2) {
+    my @nonref_inds = grep !ref $_[$_], 0..$#_;
+    $v2 = splice @_, $nonref_inds[2], 1;
+    $v1 = splice @_, $nonref_inds[1], 1;
+  } else {
+    $v2 = splice @_, $pdl_inds[1], 1;
+    $v1 = splice @_, $pdl_inds[0], 1;
+  }
+  ($v1, $v2);
 }
 sub _linvals {
   my ($name) = splice @_, 0, 1;
@@ -266,10 +275,10 @@ or logarithm-spaced values respectively, like their non-C<all> counterparts.
   $indices = allaxisvals(@dimlist);
   $indices = allaxisvals($type,$pdl);
   $indices = allaxisvals($type,@dimlist);
-  $linvals = allaxislinvals($pdl,$start,$end);
-  $linvals = allaxislinvals($type,$pdl,$start,$end);
-  $linvals = allaxislinvals($start,$end,@dimlist);
-  $linvals = allaxislinvals($type,$start,$end,@dimlist);
+  $linvals = allaxislinvals($pdl,$start,$end); # start and end can be ndarrays
+  $linvals = allaxislinvals($type,$pdl,$start,$end);     # also here
+  $linvals = allaxislinvals($type,$start,$end,@dimlist); # also here
+  $linvals = allaxislinvals($start,$end,@dimlist);       # not here
   $linvals = allaxislogvals($pdl,$start,$end);
   $linvals = allaxislogvals($type,$pdl,$start,$end);
   $linvals = allaxislogvals($start,$end,@dimlist);
