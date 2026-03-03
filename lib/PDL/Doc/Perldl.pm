@@ -388,33 +388,30 @@ Prints usage information for a PDL function
 =cut
 
 sub usage {
-    die 'Usage: usage $funcname' unless $#_>-1;
-    print usage_string(@_);
+  die 'Usage: usage $funcname' unless $#_>-1;
+  print usage_string(@_);
+  ''
 }
-sub usage_string{
-    my $func = shift;
-    my $str = "";
+sub usage_string {
+  my $func = shift;
+  my $str = "";
+  return "no match\n" unless
     my @match = search_docs("m/^(PDL::)?$func\$|\:\:$func\$/",['Name']);
-    my $count = @match;
-    unless ($count) { $str = "\n  no match\n" }
-    else {
-	#this sorts by namespace depth by counting colons in the name.
-	#PDL::Ufunc::max comes before PDL::GSL::RNG::max, for example.
-	foreach my $m(sort { scalar(()=$a->[1]=~/\:/g) <=> scalar(()=$b->[1]=~/\:/g) } @match){
-	    $str .= "\n" . format_ref( $m );
-	    my ($name,$module,$hash) = @{$m};
-	    #$str .= sprintf ( (' 'x16)."(Module %s)\n\n", $hash->{Module} );
-	    $str.="\n";
-	    die "No usage info found for $func\n" if (!defined $hash->{Example} && !defined $hash->{Sig} &&
-						      !defined $hash->{Usage});
-	    $str .= "  Signature: $name($hash->{Sig})\n\n" if defined $hash->{Sig};
-	    for (['Usage','Usage'],['Opt','Options'],['Example','Example']) {
-		$str .= "  $_->[1]:\n".&allindent($hash->{$_->[0]},10)."\n" if defined $hash->{$_->[0]};
-	    }
-	    $str .= '='x20 unless 1==$count--;
-	}
+  my $count = @match;
+  #this sorts by namespace depth by counting colons in the name.
+  #PDL::Ufunc::max comes before PDL::GSL::RNG::max, for example.
+  foreach my $m (sort { scalar(()=$a->[1]=~/\:/g) <=> scalar(()=$b->[1]=~/\:/g) } @match) {
+    $str .= "\n" . format_ref( $m );
+    my ($name,$module,$hash) = @$m;
+    die "No usage info found for $func\n" if !grep defined, @$hash{qw(Example Sig Usage)};
+    for (grep $hash->{$_->[0]},
+      ['Sig','Signature'],['Usage','Usage'],['Opt','Options'],['Example','Example']
+    ) {
+        $str .= "  $_->[1]:\n".allindent($hash->{$_->[0]},4)."\n";
     }
-    return $str;
+    $str .= '='x20 unless 1==$count--;
+  }
+  $str;
 }
 
 =head2 sig
@@ -454,17 +451,17 @@ sub sig {
 }
 
 sub allindent {
-	my ($txt,$n) = @_;
-	my ($ntxt,$tspc) = ($txt,' 'x8);
-	$ntxt =~ s/^\s*$//mg;
-	$ntxt =~ s/\t/$tspc/g;
-	my $minspc = length $txt;
-	for (split '\n', $txt) { if (/^(\s*)/)
-          { $minspc = length $1 if length $1 < $minspc } }
-	$n -= $minspc;
-	$tspc = ' 'x abs($n);
-	$ntxt =~ s/^/$tspc/mg if $n > 0;
-	return $ntxt;
+  my ($txt,$n) = @_;
+  my ($ntxt,$tspc) = ($txt,' 'x8);
+  $ntxt =~ s/^\s*$//mg;
+  $ntxt =~ s/\t/$tspc/g;
+  my $minspc = length $txt;
+  for (split '\n', $txt) { if (/^(\s*)/)
+    { $minspc = length $1 if length $1 < $minspc } }
+  $n -= $minspc;
+  $tspc = ' 'x abs($n);
+  $ntxt =~ s/^/$tspc/mg if $n > 0;
+  $ntxt;
 }
 
 
@@ -661,7 +658,7 @@ And has a horrible name.
 =cut
 
 # need to get this to format the output - want a format_bad()
-# subroutine that's like - but much simpler - than format_ref()
+# subroutine that's like - but much simpler than - format_ref()
 #
 sub badinfo {
     my $func = shift;
