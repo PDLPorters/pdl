@@ -1,3 +1,4 @@
+2.103 2026-03-03
 - fix regression in *linvals so takes ndarrays as start and end again
 
 2.102 2026-03-03
