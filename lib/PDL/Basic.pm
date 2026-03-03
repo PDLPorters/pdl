@@ -255,18 +255,22 @@ or logarithm-spaced values respectively, like their non-C<all> counterparts.
 
 =for usage
 
-  $indices = ndcoords($pdl);
-  $indices = ndcoords(@dimlist);
-  $indices = ndcoords($type,@dimlist);
+  $indices = ndcoords($pdl);                   # double
+  $indices = ndcoords(@dimlist);               # double
+  $indices = ndcoords($type,$pdl);             # $type
+  $indices = ndcoords($type,@dimlist);         # $type
   $indices = allaxisvals($pdl);
   $indices = allaxisvals(@dimlist);
+  $indices = allaxisvals($type,$pdl);
   $indices = allaxisvals($type,@dimlist);
-  $linvals = allaxislinvals($pdl);
-  $linvals = allaxislinvals(@dimlist);
-  $linvals = allaxislinvals($type,@dimlist);
-  $logvals = allaxislogvals($pdl);
-  $logvals = allaxislogvals(@dimlist);
-  $logvals = allaxislogvals($type,@dimlist);
+  $linvals = allaxislinvals($pdl,$start,$end);
+  $linvals = allaxislinvals($type,$pdl,$start,$end);
+  $linvals = allaxislinvals($start,$end,@dimlist);
+  $linvals = allaxislinvals($type,$start,$end,@dimlist);
+  $linvals = allaxislogvals($pdl,$start,$end);
+  $linvals = allaxislogvals($type,$pdl,$start,$end);
+  $linvals = allaxislogvals($start,$end,@dimlist);
+  $linvals = allaxislogvals($type,$start,$end,@dimlist);
 
 =for example
 
@@ -286,12 +290,13 @@ or logarithm-spaced values respectively, like their non-C<all> counterparts.
    ]
   ]
   pdl> $w = zeroes(byte,2,3);        # $w is a 2x3 byte ndarray
-  pdl> $y = ndcoords($w);            # $y inherits $w's type
+  pdl> $y = ndcoords($w);            # $y is double to avoid problems
   pdl> $c = ndcoords(long,$w->dims); # $c is a long ndarray, same dims as $y
+  pdl> $d = ndcoords(long,$w);       # $d overrides the default double
   pdl> help $y;
-  This variable is   Byte D [2,2,3]              P            0.01Kb
+  This variable is Double D [2,2,3]        P            0.09KB
   pdl> help $c;
-  This variable is   Long D [2,2,3]              P            0.05Kb
+  This variable is   Long D [2,2,3]        P            0.05KB
 
 =cut
 
