@@ -3,6 +3,7 @@ use warnings;
 use PDL::LiteF;
 use PDL::Transform;
 use PDL::Transform::Cartography; # raster2fits helps limit mem consumption
+use PDL::Constants qw(PI);
 use Test::More;
 use Test::PDL;
 use Test::Exception;
@@ -31,6 +32,16 @@ EOF
   my $t5 = t_linear(scale=>[0.5], idim=>2, odim=>2, iunit=>[('radii')x2], ounit=>[('half-radii')x2]) x $t4;
   is_deeply $t5->{iunit}, [('metres')x2], 'compose right iunit';
   is_deeply $t5->{ounit}, [('half-radii')x2], 'compose right ounit';
+}
+
+{
+my $lonlatrad = allaxislinvals(double, pdl(-PI,-PI/2), pdl(PI,PI/2), 3,3)->append(1);
+is_pdl t_spherical()->inverse()->apply($lonlatrad), my $exp = pdl('
+  [0 0 -1; 0 0 -1; 0 0 -1]
+  [-1 0 0; 1 0 0; -1 0 0]
+  [0 0 1; 0 0 1; 0 0 1]
+');
+is_pdl t_spherical()->apply($exp)->sin, $lonlatrad->sin; # sin as -PI equiv to 0, PI
 }
 
 {
