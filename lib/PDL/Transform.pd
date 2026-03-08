@@ -1,3 +1,6 @@
+use PDL::Types qw(ppdefs_all);
+my $ALL = [ppdefs_all()];
+
 pp_addhdr("#include <sys/time.h>\n") unless $^O =~ /MSWin32/i;
 pp_addpm({At=>'Top'},<<'+======EOD======');
 
@@ -3785,81 +3788,70 @@ comes online (a la Math::Units) any angular unit should be OK.
 =cut
 
 sub t_spherical {
-    my($class) = 'PDL::Transform';
-    my($o) = $_[0];
-    if(ref $o ne 'HASH') {
-        $o = { @_ } ;
-    }
-
-    my($me) = $class->new;
-
-    $me->{idim}=3;
-    $me->{odim}=3;
-
-    $me->{params}->{origin} = _opt($o,['o','origin','Origin']);
-    $me->{params}->{origin} //= PDL->zeroes(3);
-    $me->{params}->{origin} = PDL->pdl($me->{params}->{origin});
-
-    $me->{params}->{deg} = _opt($o,['d','degrees','Degrees']);
-
-    my $unit = _opt($o,['u','unit','Unit']);
-    $me->{params}{angunit} = ($unit && $unit =~ m/^d/i) ?
-        $PDL::Transform::DEG2RAD : undef;
-
-    $me->{name} = "spherical";
-
-    $me->{func} = sub {
-        my($data,$o) = @_;
-        my($d) = $data->copy - $o->{origin};
-
-        my($d0,$d1,$d2) = ($d->slice("(0)"),$d->slice("(1)"),$d->slice("(2)"));
-        my($out) =   ($d->is_inplace) ? $data : $data->copy;
-
-        $out->slice("(0)") .= PDL::atan2($d1, $d0);
-        $out->slice("(2)") .= PDL::sqrt($d0*$d0 + $d1*$d1 + $d2*$d2);
-        $out->slice("(1)") .= PDL::asin($d2 / $out->slice("(2)"));
-
-        $out->slice("0:1") /= $o->{angunit}
-          if(defined $o->{angunit});
-
-        $out;
-      };
-
-    $me->{inv} = sub {
-        my($d,$o) = @_;
-
-        my($theta,$phi,$r,$out) =
-    ( ($d->is_inplace) ?
-              ($d->slice("(0)")->copy, $d->slice("(1)")->copy, $d->slice("(2)")->copy, $d) :
-              ($d->slice("(0)"),       $d->slice("(1)"),       $d->slice("(2)"),       $d->copy)
-              );
-
-
-        my($x,$y,$z) =
-            ($out->slice("(0)"),$out->slice("(1)"),$out->slice("(2)"));
-
-        my($ph,$th);
-        if(defined $o->{angunit}){
-          $ph = $o->{angunit} * $phi;
-          $th = $o->{angunit} * $theta;
-        } else {
-          $ph = $phi;
-          $th = $theta;
-        }
-
-        $z .= $r * sin($ph);
-        $x .= $r * cos($ph);
-        $y .= $x * sin($th);
-        $x *= cos($th);
-        $out += $o->{origin};
-
-        $out;
-      };
-
-    $me;
+  my($class) = 'PDL::Transform';
+  my($o) = $_[0];
+  if(ref $o ne 'HASH') {
+      $o = { @_ } ;
   }
 
+  my($me) = $class->new;
+
+  $me->{idim}=3;
+  $me->{odim}=3;
+
+  $me->{params}->{origin} = _opt($o,['o','origin','Origin']);
+  $me->{params}->{origin} //= PDL->zeroes(3);
+  $me->{params}->{origin} = PDL->pdl($me->{params}->{origin});
+
+  $me->{params}->{deg} = _opt($o,['d','degrees','Degrees']);
+
+  my $unit = _opt($o,['u','unit','Unit']);
+  $me->{params}{angunit} = ($unit && $unit =~ m/^d/i) ?
+      $PDL::Transform::DEG2RAD : undef;
+
+  $me->{name} = "spherical";
+
+  $me->{func} = sub {
+      my ($data,$o) = @_;
+      my $d = $data->copy - $o->{origin};
+      my ($d0,$d1,$d2) = ($d->slice("(0)"),$d->slice("(1)"),$d->slice("(2)"));
+      my $out =   ($d->is_inplace) ? $data : $data->copy;
+      $out->slice("(0)") .= PDL::atan2($d1, $d0);
+      $out->slice("(2)") .= PDL::sqrt($d0*$d0 + $d1*$d1 + $d2*$d2);
+      $out->slice("(1)") .= PDL::asin($d2 / $out->slice("(2)"));
+      $out->slice("0:1") /= $o->{angunit}
+        if defined $o->{angunit};
+      $out;
+    };
+
+  $me->{inv} = sub {
+    my ($d,$o) = @_;
+    PDL::t_spherical_inv($d, $o->{origin}, $o->{angunit} // 1);
+  };
+
+  $me;
+}
 +======EOD_t_spherical======
+pp_def('t_spherical_inv',
+  Pars => 'in(tri=3); origin(tri); [o] out(tri)',
+  OtherPars => 'PDL_Anyval angunit',
+  OtherParsDefaults => {angunit=>'(PDL_Anyval){ PDL_CLD, 1 }'},
+  Inplace => [qw(in out)],
+  GenericTypes => $ALL,
+  Code => <<'EOF',
+PDL_CLDouble angunit;
+ANYVAL_TO_CTYPE(angunit, PDL_CLDouble, $COMP(angunit));
+broadcastloop %{
+PDL_CLDouble theta = angunit * $in(tri=>0), phi = angunit * $in(tri=>1), r = $in(tri=>2);
+$out(tri=>2) = r * sin(phi);
+PDL_CLDouble x = $out(tri=>0) = r * cos(phi);
+$out(tri=>1) = x * sin(theta);
+$out(tri=>0) *= cos(theta);
+loop(tri) %{ $out() += $origin(); %}
+%}
+EOF
+  Doc => undef,
+);
 
 pp_add_exported('t_projective');
 pp_addpm(<<'+======EOD_t_projective======');
