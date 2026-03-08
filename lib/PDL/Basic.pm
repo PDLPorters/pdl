@@ -176,6 +176,11 @@ sub _extract_endpoints {
   } else {
     $v2 = splice @_, $pdl_inds[1], 1;
     $v1 = splice @_, $pdl_inds[0], 1;
+    PDL::barf "an endpoint has >1 dim: (@{[$v1->dims]}), (@{[$v2->dims]})"
+      if grep $_->ndims > 1, $v1, $v2;
+    PDL::barf "endpoints have different dims: (@{[$v1->dims]}), (@{[$v2->dims]})"
+      if $v1->ndims != $v2->ndims or
+      ($v1->ndims and $v1->dim(0) != $v2->dim(0));
   }
   ($v1, $v2);
 }
@@ -263,6 +268,8 @@ the input ndarray since that rarely made sense in most usages.
 
 C<allaxislinvals> and C<allaxislogvals> enumerate a list of linear-
 or logarithm-spaced values respectively, like their non-C<all> counterparts.
+The start- and endpoints can be 1-dimensional ndarrays, with one
+value each per desired dimension.
 
 =for usage
 
@@ -332,21 +339,32 @@ sub _nonref_vals2 {
   my ($first_non_ref) = grep !ref $_[$_], 0..$#_;
   splice @_, $first_non_ref, 2;
 }
-sub PDL::allaxislinvals {
+sub _allaxis_endpointvals {
+  my $method = shift;
   unshift @_, 1; # dummy for _extract_endpoints "whichdim"
   my ($v1, $v2) = &_extract_endpoints;
   shift @_; # drop dummy
   my $out = &_allvals_construct;
-  $out->slice("($_)")->inplace->axislinvals($_,$v1,$v2) for 0..$out->ndims-2;
+  my ($ndims_needed, $need_slice) = $out->dim(0);
+  if (UNIVERSAL::isa($v1, 'PDL') and $v1->ndims) {
+    PDL::barf "endpoints have dim other than $ndims_needed: (@{[$v1->dims]}), (@{[$v2->dims]})"
+      if grep $_->dim(0) != $ndims_needed, $v1, $v2;
+    $need_slice = 1;
+  }
+  if ($need_slice) {
+    $out->slice("($_)")->inplace->$method($_,$v1->slice("($_)"),$v2->slice("($_)")) for 0..$ndims_needed-1;
+  } else {
+    $out->slice("($_)")->inplace->$method($_,$v1,$v2) for 0..$ndims_needed-1;
+  }
   $out;
 }
+sub PDL::allaxislinvals {
+  unshift @_, 'axislinvals';
+  goto &_allaxis_endpointvals;
+}
 sub PDL::allaxislogvals {
-  unshift @_, 1; # dummy for _extract_endpoints "whichdim"
-  my ($v1, $v2) = &_extract_endpoints;
-  shift @_; # drop dummy
-  my $out = &_allvals_construct;
-  $out->slice("($_)")->inplace->axislogvals($_,$v1,$v2) for 0..$out->ndims-2;
-  $out;
+  unshift @_, 'axislogvals';
+  goto &_allaxis_endpointvals;
 }
 
 =head2 hist, whist
