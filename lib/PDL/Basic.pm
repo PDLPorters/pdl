@@ -317,6 +317,8 @@ sub _allvals_construct {
   if (my ($type_ind) = grep ref $_[$_] eq 'PDL::Type', 0..$#_) {
     $type = splice @_, $type_ind, 1;
   }
+  PDL::barf "allaxis*vals passed reference that is not ndarray"
+    if ref($_[0]) and !UNIVERSAL::can($_[0], 'dims');
   my @dims = ref($_[0]) ? shift->dims : @_;
   PDL->zeroes(defined($type) ? $type : (), scalar(@dims), @dims);
 }
