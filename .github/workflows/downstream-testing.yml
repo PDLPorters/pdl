@@ -24,6 +24,11 @@ jobs:
         with:
           name: pdl-latest-image
           path: pdl-latest.tar
+      - name: Cache ~/perl5
+        uses: actions/cache@v4
+        with:
+          key: ${{ runner.os }}-downstream-locallib
+          path: ~/perl5
       - uses: perl-actions/install-with-cpanm@v1
       - id: set-matrix
         run: |
@@ -47,6 +52,11 @@ jobs:
           repository: PDLPorters/devops
           ref: master
           path: .github/devops
+      - name: Cache ~/perl5
+        uses: actions/cache@v4
+        with:
+          key: ${{ runner.os }}-downstream-locallib
+          path: ~/perl5
       - uses: perl-actions/install-with-cpanm@v1
       - run: |
           (cpanm --local-lib=~/perl5 local::lib || ( cat ~/.cpanm/build.log && false )) && eval $(perl -I ~/perl5/lib/perl5/ -Mlocal::lib)
