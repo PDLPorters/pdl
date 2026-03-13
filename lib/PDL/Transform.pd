@@ -3835,7 +3835,7 @@ sub t_spherical {
 pp_def('t_spherical_inv',
   Pars => 'in(tri=3); origin(tri); [o] out(tri)',
   OtherPars => 'PDL_Anyval angunit',
-  OtherParsDefaults => {angunit=>'(PDL_Anyval){ PDL_CLD, 1 }'},
+  OtherParsDefaults => {angunit=>'(PDL_Anyval){ PDL_CLD, {.H=1} }'},
   Inplace => [qw(in out)],
   GenericTypes => $ALL,
   Code => <<'EOF',
