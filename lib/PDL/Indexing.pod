@@ -24,6 +24,34 @@ In the sections that follow many "methods" are called out -- these are Perl oper
 that apply to ndarrays.  From the L<perldl> shell, you
 can find out more about each method by typing "?" followed by the method name.
 
+=head2 Memory layout and indexing order
+
+PDL follows a C-like memory layout; the fastest-moving index is
+generally thought of as a column-index into a row. This is due to
+PDL's roots in image-processing; when a 2D ndarray is printed out,
+the 0-th dim is printed as rows:
+
+  # perldl with "do_print" set to true
+  pdl> sequence(3,2)
+  [
+   [0 1 2]
+   [3 4 5]
+  ]
+  # in memory, the values are: 0 1 2 3 4 5
+  pdl> sequence(3,2)->at(0,1)
+  3
+
+This uses "column-major" indexing, though the layout is "row-major".
+This is different from the mathematical convention for matrices,
+where C<0,1> would be (row,column), and give a value of "1". That
+also ignores the zero-based indexing in C-like languages, versus
+the 1-based indexing in Fortran and maths.
+
+For interoperability between PDL and Fortran (and also OpenGL), an
+ndarray would need to be transposed with the C<transpose> operation.
+Alternatively, functions in either of those often have a "transpose"
+flag for smooth interoperation.
+
 =head2 Dimension lists
 
 A ndarray (PDL variable), in general, is an N-dimensional array where N can be
