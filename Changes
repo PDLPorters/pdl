@@ -1,5 +1,6 @@
 - allaxis*vals can now take 1-D ndarrays as start and endpoints
 - PP operation for inverse Transform::t_spherical
+- add PDL::Guide::NumPy doc (#361)
 
 2.103 2026-03-03
 - fix regression in *linvals so takes ndarrays as start and end again

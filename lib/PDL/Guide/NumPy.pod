@@ -1,0 +1,176 @@
+=head1 NAME
+
+PDL::Guide::NumPy - A Rosetta Stone for the NumPy professional
+
+=head1 DESCRIPTION
+
+If you know NumPy, you already know 90% of PDL. Both systems provide
+N-dimensional arrays (ndarrays), broadcasting, and vectorised C-speed
+operations.
+
+PDL's primary advantages are its B<integrated multi-threading>,
+B<memory efficiency>, and B<native C-interop>.
+
+=head2 Terminology Mapping
+
+=over 15
+
+=item B<ndarray>
+
+The core data object. Known as B<ndarray> in NumPy and PDL.
+
+=item B<Broadcasting>
+
+The process of applying an operation to sub-sections of data. Same
+in PDL as in NumPy.
+
+=item B<Dimension 0>
+
+The first (leftmost) index. In PDL, this is the "fastest" dimension
+in memory (contiguous).
+
+=item B<Virtual ndarray>
+
+A slice or transformation that shares memory with its parent. Known
+as a B<View> in NumPy.
+
+=item B<Physicalise>
+
+Forcing a virtual ndarray to become a contiguous, independent block
+of memory. Similar to NumPy's B<copy()> or B<ascontiguousarray()>.
+In PDL, changes to the "parent" ndarray get transmitted to the
+"child", and vice-versa, even if the child is physicalised.
+This can be prevented by C<sever>ing the child.
+
+=back
+
+=head2 The "Mental Model" Shift
+
+=over 4
+
+=item B<1. Dimension Order and Layout>
+
+PDL follows a C-like memory layout where the B<0-th> (first) dimension is
+the "fastest" in memory.
+
+  # NumPy: a(rows, cols) -> cols are contiguous
+  # PDL:   $a(cols, rows) -> cols are contiguous
+
+Both systems store rows contiguously in memory, but they label the
+indices differently. In PDL, the first index is the B<column>.
+
+=item B<2. Automatic Threading>
+
+PDL automatically distributes operations across CPU cores via POSIX
+threads. You don't need to manage pools or use C<multiprocessing> for
+standard numerical tasks.
+
+=back
+
+=head2 Slicing and Dicing
+
+NumPy users rely heavily on C<a[start:stop:step]> notation. PDL provides
+two ways to achieve this: the core B<slice> method and the B<PDL::NiceSlice>
+source filter. Note that PDL uses B<inclusive> ranges.
+
+=head3 1. Core Syntax (The slice method)
+
+The C<slice> method is always available and does not require a filter.
+
+  # NumPy: a[0:5] (0,1,2,3,4)      # PDL: $a->slice("0:4")
+                                          $sub = $a->slice("0:4");
+
+  # Reverse a dimension
+  # NumPy: a[::-1]                 # PDL: $a->slice("-1:0")
+                                          $rev = $a->slice("-1:0");
+
+=head3 2. Modern Syntax (PDL::NiceSlice)
+
+For a NumPy-like experience, B<PDL::NiceSlice> allows you to use
+variables directly in parentheses.
+
+  use PDL::NiceSlice;
+
+  # NumPy                          # PDL
+  subset = a[0:5, :]               $subset = $a(0:4, :);
+  rev = a[::-1, ::2]               $rev = $a(-1:0, 0:-1:2);
+
+=head2 Syntax Rosetta Stone
+
+=head3 Creation and Inspection
+
+  # NumPy                          # PDL
+  a = np.array([1,2,3])            $a = pdl(1,2,3);
+  b = np.arange(10)                $b = sequence(10);
+  c = np.zeros((3,3))              $c = zeros(3,3);
+  print(a.shape)                   print $a->dims;
+  print(a.dtype)                   print $a->type;
+
+=head3 Operations
+
+  # NumPy                          # PDL
+  res = a + b                      $res = $a + $b;
+  res = np.dot(a, b)               $res = $a x $b;
+  res = a.sum(axis=0)              $res = $a->sumover;
+
+=head2 In-place Operations (Memory Efficiency)
+
+In NumPy, you prevent memory allocation by passing an C<out=>
+argument. PDL uses an B<inplace> flag, which tells the next method
+in the chain to modify the ndarray rather than creating a new one.
+
+  # NumPy                          # PDL
+  np.sqrt(a, out=a)                $a->inplace->sqrt;
+  a += 5                           $a += 5; (auto-inplace)
+
+This is particularly powerful for large datasets where you want to
+chain operations without doubling your RAM usage.
+
+=head2 Computed Assignment (Copying into Slices)
+
+In NumPy, you assign values to a slice using the standard C<=>
+operator. In PDL, the B<.=> (data assignment) operator is used
+to copy values into the memory pointed to by a slice.
+
+  # NumPy                          # PDL
+  a[0:5, 0:5] = 10                 $a(0:4, 0:4) .= 10;
+
+  # Copying one ndarray into a slice
+  # NumPy: a[0:5] = b              # PDL: $a(0:4) .= $b
+  $a(0:4) .= $b;
+
+=head3 Why not use "="?
+
+In PDL, B<=> is a reference assignment. Writing C<$a(0:4) = $b>
+does nothing to C<$a>. Using B<.=> ensures the data reaches the
+intended physical destination.
+
+=head2 Note on "Physical" vs "Virtual" ndarrays
+
+NumPy's B<views> are similar to PDL's B<virtual ndarrays>. When you
+slice an ndarray in PDL, it doesn't copy the data; it creates a
+"window" into the original.
+
+If you modify a slice B<inplace>, the original ndarray changes too:
+
+  $a = zeros(10, 10);
+  $slice = $a(0:4, 0:4);
+  $slice->inplace->inplace_set(5); # Original $a now has a 5x5 block of 5s
+
+=head2 Broadcasters
+
+In NumPy, you "broadcast" a smaller array over a larger one. In PDL,
+you can also do this.
+
+  $a = sequence(10, 10);
+  $b = pdl(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+
+  # Adds $b to every row of $a
+  $c = $a + $b;
+
+=head1 SEE ALSO
+
+L<PDL::Indexing>, L<PDL::NiceSlice>, L<PDL::Course>, L<PDL::ParallelCPU>
+
+And a translation of the PDL API into NumPy:
+L<https://github.com/dkogan/numpysane/#whats-wrong-with-existing-numpy-functions>

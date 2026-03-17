@@ -70,6 +70,7 @@ lib/PDL/FFT/fftn.c
 lib/PDL/FFT/fftn.h
 lib/PDL/Func.pm
 lib/PDL/Graphics.pod
+lib/PDL/Guide/NumPy.pod
 lib/PDL/Image2D.pd
 lib/PDL/Image2D/misc.c
 lib/PDL/Image2D/resample.c
