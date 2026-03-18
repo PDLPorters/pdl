@@ -153,9 +153,9 @@ slice an ndarray in PDL, it doesn't copy the data; it creates a
 
 If you modify a slice B<inplace>, the original ndarray changes too:
 
-  $a = zeros(10, 10);
+  $a = zeroes(10, 10);
   $slice = $a(0:4, 0:4);
-  $slice->inplace->inplace_set(5); # Original $a now has a 5x5 block of 5s
+  $slice .= 5; # Original $a now has a 5x5 block of 5s
 
 =head2 Broadcasters
 
