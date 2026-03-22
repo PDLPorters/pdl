@@ -34,7 +34,45 @@ subtest a => sub {
     );
     ok find_usage($obj, 'foo($a)'), 'function call';
     ok find_usage($obj, '$a->foo'), 'method call';
+    like $obj->{PdlDoc}, qr/^=for sig\n\n Signature: \(a\(n\)\)/m, 'generated signature';
+    like $obj->{PdlDoc}, qr/Broadcasts over its inputs/, 'broadcast doc none';
+    like $obj->{PdlDoc}, qr/will set the bad-value flag of all output ndarrays if the flag is set for any/, 'badflag doc default';
     ok all_seen($obj, 'foo'), 'all seen';
+};
+
+subtest a_hb => sub {
+    my $obj = call_pp_def(foo =>
+        Pars => 'a(n)',
+        HandleBad => 1,
+    );
+    like $obj->{PdlDoc}, qr/will set the bad-value flag of all output ndarrays if the flag is set for any/, 'badflag doc 1';
+    like $obj->{PdlDoc}, qr/processes bad values/, 'process bad doc 1';
+};
+
+subtest a_nhb => sub {
+    my $obj = call_pp_def(foo =>
+        Pars => 'a(n)',
+        HandleBad => 0,
+    );
+    like $obj->{PdlDoc}, qr/will set the bad-value flag of all output ndarrays if the flag is set for any/, 'badflag doc 0';
+    like $obj->{PdlDoc}, qr/ignores the bad-value flag/, 'ignore bad doc 0';
+};
+
+subtest a_nbr => sub {
+    my $obj = call_pp_def(foo =>
+        Pars => 'a(n)',
+        HaveBroadcasting => 0,
+    );
+    like $obj->{PdlDoc}, qr/Does not broadcast/, 'broadcast doc 0';
+    unlike $obj->{PdlDoc}, qr/Can't use POSIX threads/, 'pthread doc';
+};
+
+subtest a_np => sub {
+    my $obj = call_pp_def(foo =>
+        Pars => 'a(n)',
+        NoPthread => 1,
+    );
+    like $obj->{PdlDoc}, qr/Can't use POSIX threads/, 'pthread doc';
 };
 
 subtest a_n => sub {
