@@ -91,7 +91,6 @@ lives_ok {
 }
 
 {
-	use PDL::IO::FITS;
 	my $m51 = raster2fits(sequence(long, 10, 10), @PDL::Transform::Cartography::PLATE_CARREE);
 	is_pdl $m51->map(t_identity,{method=>'s'}), $m51; #SHOULD be a no-op
 	is_pdl my $m51map = $m51->map(t_identity, $m51->hdr,{method=>'s'}), $m51, 'map works with FITS hashref';
