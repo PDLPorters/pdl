@@ -69,12 +69,12 @@ is_pdl t_spherical()->apply($exp)->sin, $lonlatrad->sin; # sin as -PI equiv to 0
 # diab jerius' t_scale crash
 # (this is due to a problem with inplace flag handling in PDL <= 2.6; transform works around it)
 lives_ok {
-	my $pa = pdl(49,49);
-	my $t = t_linear({scale=>pdl([1,3]), offset=>pdl([12,8])});
-	my $pb = pdl( double, 2.2, 9.3);
-	$pa->inplace->apply($t);
-	my $q = 0;
-	$pa += $q;
+  my $pa = pdl(49,49);
+  my $t = t_linear({scale=>pdl([1,3]), offset=>pdl([12,8])});
+  is_pdl $pa->apply($t), my $exp = pdl(61, 171);
+  is_pdl $pa, pdl(49,49);
+  $pa->inplace->apply($t);
+  is_pdl $pa, $exp;
 };
 
 ##############################
