@@ -1027,7 +1027,7 @@ Solve A x = B for matrix A, by back substitution into A's LU decomposition.
   @broadcast = PDL::Core::dims_filled(\@A_dims, \@B_dims);
   # simq modifies A, so need 1 copy per broadcast else non-first run has wrong A
   ($x) = simq($A->dupN(1,1,map +($A_dims[$_]//1)==1?$broadcast[$_]:1, 0..$#broadcast)->copy, $B->transpose, 0);
-  $x = $x->inplace->transpose;
+  $x = $x->transpose;
 
   # or with PDL::LinearAlgebra wrappers of LAPACK
   $x = msolve($A, $B);
@@ -1036,7 +1036,7 @@ Solve A x = B for matrix A, by back substitution into A's LU decomposition.
   use PDL::LinearAlgebra::Real;
   getrf($lu=$A->copy, $ipiv=null, $info=null);
   getrs($lu, 1, $x=$B->transpose->copy, $ipiv, $info=null); # again, need transpose
-  $x=$x->inplace->transpose;
+  $x=$x->transpose;
 
   # or with GSL
   use PDL::GSL::LINALG;
@@ -1044,7 +1044,7 @@ Solve A x = B for matrix A, by back substitution into A's LU decomposition.
   # $B and $x, first dim is because GSL treats as vector, higher dims broadcast
   # so we transpose in and back out
   LU_solve($lu, $p, $B->transpose, my $x=null);
-  $x=$x->inplace->transpose;
+  $x=$x->transpose;
 
   # proof of the pudding is in the eating:
   print $A x $x;
@@ -1225,7 +1225,7 @@ B<NB does not broadcast well>.
   @broadcast = PDL::Core::dims_filled(\@A_dims, \@B_dims);
   # simq modifies A, so need 1 copy per broadcast else non-first run has wrong A
   ($x) = simq($A->dupN(1,1,map +($A_dims[$_]//1)==1?$broadcast[$_]:1, 0..$#broadcast)->copy, $B->transpose, 0);
-  $x = $x->inplace->transpose;
+  $x = $x->transpose;
 
 C<$a> is an C<n x n> matrix (i.e., a vector of length C<n*n>), stored row-wise:
 that is, C<a(i,j) = a[ij]>, where C<ij = i*n + j>.
