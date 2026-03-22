@@ -2567,7 +2567,7 @@ pixel units).
 =item post, postoffset, shift, Shift
 
 The vector to be added to the data after it gets multiplied by the matrix
-(equivalent of CRPIX-1 in FITS, if youre converting from scientific to pixel
+(equivalent of CRPIX-1 in FITS, if you're converting from scientific to pixel
 units).
 
 =item d, dim, dims, Dims
