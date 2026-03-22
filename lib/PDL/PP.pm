@@ -1210,6 +1210,8 @@ $PDL::PP::deftbl =
    PDL::PP::Rule->new("HaveBroadcasting","HaveThreading", sub {@_}), # compat
    PDL::PP::Rule::Croak->new([qw(P2Child GenericTypes)],
        'Cannot have both P2Child and GenericTypes defined'),
+   PDL::PP::Rule::Croak->new([qw(P2Child Inplace)],
+       'Cannot have both P2Child and Inplace defined'),
    PDL::PP::Rule->new([qw(Pars HaveBroadcasting GenericTypes DefaultFlow AllFuncHeader RedoDimsFuncHeader)],
 		      ["P2Child","Name","StructName"],
       sub {
