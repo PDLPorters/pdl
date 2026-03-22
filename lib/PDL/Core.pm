@@ -1346,7 +1346,11 @@ sub PDL::copy {
     barf("Argument is an ".ref($value)." not an object") unless blessed($value);
     return $value->nullcreate if $value->isnull;
     # broadcastI(-1,[]) is just an identity vafftrans with broadcastid copying ;)
-    $value->broadcastI(-1,[])->sever;
+    my $is_inplace = $value->is_inplace;
+    $value->set_inplace(0) if $is_inplace;
+    my $ret = $value->broadcastI(-1,[])->sever;
+    $value->set_inplace(1) if $is_inplace;
+    $ret;
 }
 
 =head2 hdr_copy
