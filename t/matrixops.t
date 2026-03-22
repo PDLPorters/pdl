@@ -13,9 +13,9 @@ sub check_inplace {
   for my $inplace (0, 1) {
     my $in_copy = $in->copy;
     my $got;
-    $inplace
-      ? lives_ok { $cb->($in_copy->inplace); $got = $in_copy->copy } "$label inplace=$inplace runs"
-      : lives_ok { $got = $cb->($in_copy) } "$label inplace=$inplace runs";
+    lives_ok { if ($inplace) {$cb->($in_copy->inplace); $got = $in_copy->copy}
+      else { $got = $cb->($in_copy) }
+    } $label = "$label inplace=$inplace runs";
     is_pdl $got, $expected, "$label inplace=$inplace";
   }
 }
