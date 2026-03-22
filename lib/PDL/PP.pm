@@ -1589,18 +1589,26 @@ EOF
         # reference card information as well
         $doc = "=for ref\n\n".$doc if $doc !~ /\n/;
         $::DOCUMENTED++;
-        # Strip leading whitespace and trailing semicolons and whitespace
-        $pars =~ s/^\s*(.+[^;])[;\s]*$/$1/;
-        $otherpars =~ s/^\s*(.+[^;])[;\s]*$/$1/ if $otherpars;
-        my $sig = "$pars".( $otherpars ? "; $otherpars" : "");
-        my @typenames = map PDL::Type->new($_)->ioname, @$gentypes;
-        my @typesigparts = '';
-        while (@typenames) {
-          push @typesigparts, '' if length $typesigparts[-1] > 50;
-          $typesigparts[-1] .= ($typesigparts[-1]&&' ') . shift @typenames;
-        }
-        my $typesig = join "\n   ", @typesigparts;
         $doc =~ s/\n(=cut\s*\n)+(\s*\n)*$/\n/m; # Strip extra =cut's
+        my $sigdoc = '';
+        if ($doc !~ /^=for\s+sig\b/m) {
+          # Strip leading whitespace and trailing semicolons and whitespace
+          $pars =~ s/^\s*(.+[^;])[;\s]*$/$1/;
+          $otherpars =~ s/^\s*(.+[^;])[;\s]*$/$1/ if $otherpars;
+          my @typesigparts = '';
+          my @typenames = map PDL::Type->new($_)->ioname, @$gentypes;
+          while (@typenames) {
+            push @typesigparts, '' if length $typesigparts[-1] > 50;
+            $typesigparts[-1] .= ($typesigparts[-1]&&' ') . shift @typenames;
+          }
+          my $typesig = join "\n   ", @typesigparts;
+          $sigdoc = <<"EOD" ;
+XXX=for sig
+
+ Signature: ($pars@{[$otherpars ? "; $otherpars" : ""]})
+ Types: ($typesig)
+EOD
+        }
         if ( defined $baddoc ) {
                 # Strip leading newlines and any =cut markings
             $baddoc =~ s/\n(=cut\s*\n)+(\s*\n)*$/\n/m;
@@ -1617,11 +1625,7 @@ EOF
 
 XXX=head2 $name
 
-XXX=for sig
-
- Signature: ($sig)
- Types: ($typesig)
-$usagedoc
+$sigdoc$usagedoc
 $doc
 
 =pod

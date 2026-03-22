@@ -75,6 +75,19 @@ subtest a_np => sub {
     like $obj->{PdlDoc}, qr/Can't use POSIX threads/, 'pthread doc';
 };
 
+subtest a_sig => sub {
+  my $obj = call_pp_def(foo =>
+    Pars => 'a(n); b()',
+    Doc => <<'EOF',
+=for sig
+
+ Signature: (a(n))
+EOF
+  );
+  like $obj->{PdlDoc}, qr/^=for sig\n\n Signature: \(a\(n\)\)/m, 'given signature';
+  unlike $obj->{PdlDoc}, qr/^=for sig\n\n Signature: \(a\(n\); b\(\)\)/m, 'generated signature overridden';
+};
+
 subtest a_n => sub {
     my $obj = call_pp_def(foo =>
         Pars => 'a(n)',
