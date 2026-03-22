@@ -3392,14 +3392,6 @@ unchanged.  (default=1)
 
 The relative strength of the pincushion. (default = 0.1)
 
-=item honest (default=0)
-
-Sets whether this is a true quadratic coordinate transform.  The more
-common form is pincushion or cylindrical distortion, which switches
-branches of the square root at the origin (for symmetric expansion).
-Setting honest to a non-false value forces true quadratic behavior,
-which is not mirror-symmetric about the origin.
-
 =item d, dim, dims, Dims
 
 The number of dimensions to quadratically scale (default is the
@@ -3660,14 +3652,6 @@ unchanged.  (default=1)
 =item s,str,strength,Strength
 
 The relative strength of the pincushion. (default = 0.1)
-
-=item honest (default=0)
-
-Sets whether this is a true quadratic coordinate transform.  The more
-common form is pincushion or cylindrical distortion, which switches
-branches of the square root at the origin (for symmetric expansion).
-Setting honest to a non-false value forces true quadratic behavior,
-which is not mirror-symmetric about the origin.
 
 =item d, dim, dims, Dims
 
