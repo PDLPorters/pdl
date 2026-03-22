@@ -215,7 +215,7 @@ sub new {
 sub apply {
     my ($self, $pars) = @_;
     $self->report("Applying: $self\n");
-    croak($self->{doc}) if $self->should_apply($pars);
+    croak("$pars->{Name}: $self->{doc}") if $self->should_apply($pars);
 }
 
 package # hide from PAUSE/MetaCPAN
