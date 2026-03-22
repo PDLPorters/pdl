@@ -251,6 +251,8 @@ sub inv {
   my $x = shift;
   my $opt = shift;
   $opt = {} unless defined($opt);
+  my $is_inplace = $x->is_inplace;
+  $x->set_inplace(0);
 
   barf "inverse needs a square PDL as a matrix\n"
     unless(UNIVERSAL::isa($x,'PDL') &&
@@ -280,10 +282,7 @@ sub inv {
   }
 
   my $out = lu_backsub($lu,$perm,$par,identity($x))->transpose->sever;
-
-  return $out
-    unless($x->is_inplace);
-
+  return $out if !$is_inplace;
   $x .= $out;
   $x;
 }
