@@ -323,7 +323,12 @@ sub eq_pdl {
   return wantarray ? (1, '', undef) : 1
     if $got->isempty and $expected->isempty;
   # both are now non-empty
+  my $got_is_inplace = $got->is_inplace;
+  my $exp_is_inplace = $expected->is_inplace;
+  $_->set_inplace(0) for $got, $expected;
   my $res = PDL::Primitive::approx_artol( $got, $expected, @$opt{qw(atol rtol)} );
+  $got->set_inplace(1) if $got_is_inplace;
+  $expected->set_inplace(1) if $exp_is_inplace;
   return wantarray ? (1, '', undef) : 1 if $res->all;
   my $exp_nelem = $expected->nelem;
   my $reason = ($exp_nelem-$res->sum)."/$exp_nelem values do not match";
