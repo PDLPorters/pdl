@@ -14,13 +14,15 @@ subtest hist => sub {
 subtest norm => sub {
   my $x = pdl('[[i 2+3i] [4+5i 6+7i]]');
   is_pdl $x->norm,
-    pdl(
+    my $exp = pdl(
       [
           [ 0.267261 * i,            0.534522 + 0.801783 * i ],
           [ 0.356348 + 0.445435 * i, 0.534522 + 0.623609 * i ],
       ]
     ),
     'native complex norm works';
+  $x->inplace->norm;
+  is_pdl $x, $exp, 'norm works inplace';
 };
 
 subtest glue => sub {

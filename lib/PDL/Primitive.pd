@@ -414,6 +414,7 @@ EOD
 
 pp_def('norm',
        HandleBad => 1,
+       Inplace => 1,
        Pars => 'vec(n); [o] norm(n)',
        GenericTypes => [ppdefs_all],
        Doc => 'Normalises a vector to unit Euclidean length
