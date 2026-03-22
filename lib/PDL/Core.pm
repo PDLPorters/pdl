@@ -3178,6 +3178,7 @@ sub PDL::convert {
   barf $CONVERT_ERR unless Scalar::Util::looks_like_number($type);
   return $pdl if $pdl->get_datatype == $type;
   return $pdl->_convert_int($type)->sever if !$pdl->is_inplace;
+  $pdl->set_inplace(0);
   $pdl->set_datatype($type);
   $pdl;
 }
