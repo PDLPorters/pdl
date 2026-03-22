@@ -124,7 +124,7 @@ is_pdl $got, $bb->transpose, "A x actually == B";
 my $A = identity(4) + ones(4, 4); $A->slice('2,0') .= 0;
 my $B = sequence(1, 4);
 my ($x) = simq($A->copy, $B->transpose, 0);
-$x = $x->inplace->transpose;
+$x = $x->transpose;
 is_pdl $A x $x, $B, 'simq right result';
 }
 
