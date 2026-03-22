@@ -1391,6 +1391,13 @@ $PDL::PP::deftbl =
         my ($in, $out) = @$arg;
         "  PDL_XS_INPLACE($in, $out)\n";
       }),
+   PDL::PP::Rule->new(["InplaceCode"], [qw(Name SignatureObj)],
+      'catch inplace flag on non-implementing ops',
+      sub {
+        my ($name, $sig) = @_;
+        join '', map qq{  if (PDL_IS_INPLACE($_)) PDL->pdl_barf("$name: $_->inplace but not supported");\n},
+          $sig->names_in;
+      }),
    PDL::PP::Rule::Returns::EmptyString->new("InplaceCode", []),
    PDL::PP::Rule->new("InplaceDocValues",
      [qw(Name SignatureObj InplaceNormalised NoExport?)],

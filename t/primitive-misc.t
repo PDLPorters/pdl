@@ -11,6 +11,13 @@ subtest hist => sub {
   is_pdl scalar $y->hist(0, 1, 0.1), pdl("3 5 1 2 1 2 2 1 0 4"), 'hist works';
 };
 
+subtest crossp => sub {
+  my ($p1, $p2) = map pdl($_), [1..3],[4..6];
+  is_pdl crossp($p1,$p2), longlong(-3,6,-3), {require_equal_types=>0};
+  eval { crossp($p1->inplace,$p2) };
+  isnt $@, '', 'crossp inplace throws error';
+};
+
 subtest norm => sub {
   my $x = pdl('[[i 2+3i] [4+5i 6+7i]]');
   is_pdl $x->norm,
