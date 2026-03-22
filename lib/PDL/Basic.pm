@@ -667,6 +667,7 @@ transpose rows and columns.
 
 sub PDL::transpose {
   my ($this) = @_;
+  barf "\$pdl->inplace->transpose is meaningless" if $this->is_inplace;
   my $ndims = $this->dims;
   $ndims > 1 ? $this->xchg(0,1) :
   $ndims > 0 ? $this->dummy(0) :

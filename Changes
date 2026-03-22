@@ -2,6 +2,7 @@
 - PP operation for inverse Transform::t_spherical
 - add PDL::Guide::NumPy doc (#361)
 - norm works inplace
+- $pdl->inplace->transpose now throws error
 
 2.103 2026-03-03
 - fix regression in *linvals so takes ndarrays as start and end again
