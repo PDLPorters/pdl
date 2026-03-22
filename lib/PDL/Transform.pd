@@ -1204,35 +1204,9 @@ static inline PDL_Double PDL_xform_aux ( pdl *map, PDL_Indx *coords, PDL_Double 
 +==EOD_map_c_code==
 
         Doc=><<'+==EOD_map_doc==',
+=for sig
 
-=head2 match
-
-=for usage
-
-  $y = $x->match($c);                  # Match $c's header and size
-  $y = $x->match([100,200]);           # Rescale to 100x200 pixels
-  $y = $x->match([100,200],{rect=>1}); # Rescale and remove rotation/skew.
-
-=for ref
-
-Resample a scientific image to the same coordinate system as another.
-
-The example above is syntactic sugar for
-
- $y = $x->map(t_identity, $c, ...);
-
-it resamples the input PDL with the identity transformation in
-scientific coordinates, and matches the pixel coordinate system to
-$c's FITS header.
-
-There is one difference between match and map: match makes the
-C<rectify> option to C<map> default to 0, not 1.  This only affects
-matching where autoscaling is required (i.e. the array ref example
-above).  By default, that example simply scales $x to the new size and
-maintains any rotation or skew in its scientific-to-pixel coordinate
-transform.
-
-=head2 map
+  Signature: (data(); PDL::Transform t)
 
 =for usage
 
@@ -1532,6 +1506,33 @@ array are propagated to the output array.  The 'g' and 'h' methods will
 do some smoothing over bad values:  if more than 1/3 of the weighted
 input-array footprint of a given output pixel is bad, then the output
 pixel gets marked bad.
+
+=head2 match
+
+=for usage
+
+  $y = $x->match($c);                  # Match $c's header and size
+  $y = $x->match([100,200]);           # Rescale to 100x200 pixels
+  $y = $x->match([100,200],{rect=>1}); # Rescale and remove rotation/skew.
+
+=for ref
+
+Resample a scientific image to the same coordinate system as another.
+
+The example above is syntactic sugar for
+
+ $y = $x->map(t_identity, $c, ...);
+
+it resamples the input PDL with the identity transformation in
+scientific coordinates, and matches the pixel coordinate system to
+$c's FITS header.
+
+There is one difference between match and map: match makes the
+C<rectify> option to C<map> default to 0, not 1.  This only affects
+matching where autoscaling is required (i.e. the array ref example
+above).  By default, that example simply scales $x to the new size and
+maintains any rotation or skew in its scientific-to-pixel coordinate
+transform.
 
 =cut
 
