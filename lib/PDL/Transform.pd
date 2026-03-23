@@ -2757,7 +2757,7 @@ sub new {
     barf("Linear transform: transform is @{[$d+1]}-D; data is ".$in->dim(0))
         if $in->dim(0) <= $d;
     my $x = $in->slice("0:$d")->copy + $opt->{pre};
-    my $out = $in->is_inplace ? $in : $in->copy;
+    my $out = $in->new_or_inplace;
     $out->slice("0:$d") .= $x x $opt->{matrix} + $opt->{post};
     return $out;
   };
@@ -2768,7 +2768,7 @@ sub new {
     barf("Linear transform: transform is @{[$d+1]}-D; data is ".$in->dim(0))
         if $in->dim(0) <= $d;
     my $x = $in->slice("0:$d")->copy - $opt->{post};
-    my $out = $in->is_inplace ? $in : $in->copy;
+    my $out = $in->new_or_inplace;
     $out->slice("0:$d") .= $x x $opt->{inverse} - $opt->{pre};
     $out;
   } : undef;
