@@ -1438,17 +1438,18 @@ $PDL::PP::deftbl =
        my $fullname = $::PDLOBJ."::$name";
        if ($one_arg) {
          $ret .= pp_line_numbers(__LINE__, <<EOF);
-use overload '$op' => sub {
+sub overload_$name {
   Carp::confess("$fullname: overloaded '$op' given undef")
     if grep !defined, \$_[0];
   $fullname(\$_[0]);
-};
+}
+use overload '$op' => \\&overload_$name;
 EOF
        } else {
          $ret .= pp_line_numbers(__LINE__, <<EOF);
 {
   my (\$foo, \$overload_sub);
-  use overload '$op' => \$overload_sub = sub {
+  sub overload_$name {
     Carp::confess("$fullname: overloaded '$op' given undef")
       if grep !defined, \@_[0,1];
     return $fullname($bitwise_passon) unless ref \$_[1]
@@ -1456,7 +1457,8 @@ EOF
             && defined(\$foo = overload::Method(\$_[1], '$op'))
             && \$foo != \$overload_sub; # recursion guard
     goto &\$foo;
-  };
+  }
+  use overload '$op' => \$overload_sub = \\&overload_$name;
 }
 EOF
        }
