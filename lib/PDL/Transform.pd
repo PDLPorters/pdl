@@ -3598,8 +3598,8 @@ sub t_cubic {
 +======EOD_t_cubic=======
 
 
-pp_add_exported('t_quadratic');
-pp_addpm(<<'======EOD_t_quadratic======');
+pp_add_exported('t_quartic');
+pp_addpm(<<'======EOD_t_quartic======');
 
 =head2 t_quartic
 
@@ -3630,10 +3630,10 @@ where <strength> is a scaling coefficient and <L_0> is a fundamental
 length scale.   Negative values of <strength> result in a pincushion
 contraction.
 
-Note that, because quadratic scaling does not have a strict inverse for
+Note that, because quartic scaling does not have a strict inverse for
 coordinate systems that cross the origin, we cheat slightly and use
-$x * abs($x)  rather than $x**2.  This does the Right thing for pincushion
-and barrel distortion, but means that t_quadratic does not behave exactly
+$x**3 * abs($x)  rather than $x**4.  This does the Right thing for pincushion
+and barrel distortion, but means that t_quartic does not behave exactly
 like t_cubic with a null cubic strength coefficient.
 
 OPTIONS
@@ -3681,7 +3681,7 @@ sub t_quartic {
         my($data,$o) = @_;
         my($dd) = $data->copy - $o->{origin};
         my($d) =  (defined $o->{dim}) ? $dd->slice("0:".($o->{dim}-1)) : $dd;
-        $d += $o->{str} * ($d * abs($d)) / $o->{l0};
+        $d += $o->{str} * ($d**3 * abs($d)) / $o->{l0};
         $d /= (abs($o->{str}) + 1);
         $d += $o->{origin};
         if($data->is_inplace) {
@@ -3711,7 +3711,7 @@ sub t_quartic {
     $me;
 }
 
-======EOD_t_quadratic======
+======EOD_t_quartic======
 
 pp_add_exported('t_spherical');
 pp_addpm(<<'+======EOD_t_spherical======');

@@ -4,6 +4,7 @@
 - norm works inplace
 - $pdl->inplace->transpose now throws error
 - now throws exception if non-Inplace operation receives input with inplace set
+- t_quartic now exported
 
 2.103 2026-03-03
 - fix regression in *linvals so takes ndarrays as start and end again
