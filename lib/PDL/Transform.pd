@@ -3494,7 +3494,6 @@ The origin of the pincushion. (default is the, er, origin).
 The fundamental scale of the transformation -- the radius that remains
 unchanged.  (default=1)
 
-
 =item d, dim, dims, Dims
 
 The number of dimensions to treat (default is the
@@ -3578,8 +3577,8 @@ sub t_cubic {
 
         $d .= (-1 / (3 * $A)) *
             (
-              + &{$o->{cuberoot}}( 0.5 * ( $alpha + $inner_root ) )
-              + &{$o->{cuberoot}}( 0.5 * ( $alpha - $inner_root ) )
+              + $o->{cuberoot}->( 0.5 * ( $alpha + $inner_root ) )
+              + $o->{cuberoot}->( 0.5 * ( $alpha - $inner_root ) )
             );
 
         $d += $me->{params}{origin};
@@ -3624,7 +3623,7 @@ the expansion is isotropic.
 
 The formula for the expansion is:
 
-    f(a) = ( <a> + <strength> * a^2/<L_0> ) / (abs(<strength>) + 1)
+    f(a) = ( <a> + <strength> * a^4/<L_0>^3 ) / (abs(<strength>) + 1)
 
 where <strength> is a scaling coefficient and <L_0> is a fundamental
 length scale.   Negative values of <strength> result in a pincushion
@@ -3681,7 +3680,7 @@ sub t_quartic {
         my($data,$o) = @_;
         my($dd) = $data->copy - $o->{origin};
         my($d) =  (defined $o->{dim}) ? $dd->slice("0:".($o->{dim}-1)) : $dd;
-        $d += $o->{str} * ($d**3 * abs($d)) / $o->{l0};
+        $d += $o->{str} * ($d**3 * abs($d)) / ($o->{l0} ** 3);
         $d /= (abs($o->{str}) + 1);
         $d += $o->{origin};
         if($data->is_inplace) {

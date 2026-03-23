@@ -20,8 +20,18 @@ use Test::Exception;
 
   my $t2 = t_linear(scale=>[2,3]);
   is_deeply [@$t2{qw(idim odim)}],[2,2], "t_linear can make a 2-d transform";
-  is_pdl $pa->apply($t2), pdl( [2, 6], [6, 12] ), "2-d apply treats the higher dim";
+  is_pdl $pa->apply($t2), my $exp = pdl( [2, 6], [6, 12] ), "2-d apply treats the higher dim";
+  is_pdl $pa->apply(t_scale([2,3])), $exp, "t_scale works";
   is_pdl pdl(2,3)->invert($t2), pdl(1,1), "invert works";
+  is_pdl pdl(2,3)->apply(t_inverse($t2)), pdl(1,1), "t_inverse works";
+  my $t_off = t_offset([6,7]);
+  is_pdl pdl(2,3)->apply($t_off), pdl(8,10), "t_offset works";
+  is_pdl pdl(2,3)->apply(t_wrap($t_off, $t2)), pdl(5,16/3), "t_wrap works";
+  is_pdl pdl(-2,3)->apply(t_quadratic(s=>1)), pdl(-3,6), "t_quadratic works";
+  is_pdl pdl(-3,6)->invert(t_quadratic(s=>1)), pdl(-2,3), "t_quadratic inv";
+  is_pdl pdl(-2,3)->apply(t_cubic(s=>1)), pdl(-5,15), "t_cubic works";
+  is_pdl pdl(-5,15)->invert(t_cubic(s=>1)), pdl(-2,3), "t_cubic inv";
+  is_pdl pdl(-2,3)->apply(t_quartic(s=>1)), pdl(-9,42), "t_quartic works";
 
   my $t3 = t_rot([45,45,45]);
   is_pdl PDL::MatrixOps::identity(3)->apply($t3), pdl(<<'EOF'), 't_rot works';
