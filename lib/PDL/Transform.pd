@@ -3661,6 +3661,17 @@ dimensionality of your input vectors)
 
 =cut
 
+# like sub _solve_depressed_cubic but for multi real solutions, returns 1
+# uses https://en.wikipedia.org/wiki/Casus_irreducibilis#Trigonometric_solution_in_terms_of_real_quantities
+sub _solve_depressed_cubic_multi {
+  require PDL::Math;
+  my ($p, $q) = @_;
+  barf "inverse t_quartic: \$p must be negative" if $p->ge(0)->any;
+  my $acos = PDL::Math::acos(3*$q/(2*$p) * sqrt(-3/$p));
+  my $cos = cos($acos/3);
+  2 * sqrt(-$p/3) * $cos;
+}
+
 sub t_quartic {
     my($class) = 'PDL::Transform';
     my($o) = $_[0];
@@ -3697,8 +3708,33 @@ sub t_quartic {
         my($s) = $opt->{str};
         my($l) = $opt->{l0};
 
-        $d .= ((-1 + sqrt(1 + 4 * $s/$l * abs($d-$o) * (1+abs($s))))
-            / 2 / $s * $l) * (1 - 2*($d < $o));
+        # Formula (ignoring the sign-preserve, since the xform
+        # always moves away from origin):
+        # sdiv = (abs(s) + 1)
+        # b = ( <a> + <strength> * a^4/<L_0>^3 ) / (abs(<strength>) + 1)
+        #   = (a + s*a^4/L^3) / sdiv
+        # b * sdiv = a + s*a^4/L^3
+        # a + s*a^4/L^3 - b * sdiv = 0
+        # a^4*s/L^3 + a - b * sdiv = 0 # ordered by degree
+        # A = s/L^3
+        # B = 1
+        # C = -b * sdiv
+
+        my $sign = (1 - 2*($d < $o));
+        my ($A, $B, $C) = ($s/($l ** 3), 1, -abs($d-$o) * (1+abs($s)));
+
+        # Roots are (https://math.stackexchange.com/questions/3658305/is-there-formula-that-solves-quartic-equation-ax4bxc-0):
+        # x = s +- sqrt(-B/4As - s^2)
+        #  where s^2 = S satisfies cubic equation:
+        # S^3 - S*C/4A - (B/8A)^2 = 0
+
+        my $p = -$C / (4*$A);
+        my $q = -($B/(8*$A)) ** 2;
+        my $S = _solve_depressed_cubic(1, $p, $q);
+        my $sqrt_S = sqrt($S);
+        my $x = -$sqrt_S + sqrt($B / (4*$A*$sqrt_S) - $S);
+
+        $d .= $x * $sign;
         $d += $o;
         if($data->is_inplace) {
             $data .= $dd;

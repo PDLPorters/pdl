@@ -32,6 +32,7 @@ use Test::Exception;
   is_pdl pdl(-2,3)->apply(t_cubic(s=>1)), pdl(-5,15), "t_cubic works";
   is_pdl pdl(-5,15)->invert(t_cubic(s=>1)), pdl(-2,3), "t_cubic inv";
   is_pdl pdl(-2,3)->apply(t_quartic(s=>1)), pdl(-9,42), "t_quartic works";
+  is_pdl pdl(-9,42)->invert(t_quartic(s=>1)), pdl(-2,3), "t_quartic inv";
 
   my $t3 = t_rot([45,45,45]);
   is_pdl PDL::MatrixOps::identity(3)->apply($t3), pdl(<<'EOF'), 't_rot works';
