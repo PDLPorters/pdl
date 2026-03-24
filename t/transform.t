@@ -34,6 +34,12 @@ use Test::Exception;
   is_pdl pdl(-2,3)->apply(t_quartic(s=>1)), pdl(-9,42), "t_quartic works";
   is_pdl pdl(-9,42)->invert(t_quartic(s=>1)), pdl(-2,3), "t_quartic inv";
 
+  # y gets log scale, from example
+  my $lookup = 4 * xvals(5,5)->cat(10**(yvals(5,5)/(100/4)) * 4/10**2.55);
+  my $t_l = t_lookup($lookup,{scale=>1/4.0});
+  is_pdl pdl(3,10)->apply($t_l), pdl(3,0.056830), "t_lookup works";
+  is_pdl pdl(3,0.056830)->invert($t_l), pdl(3,10), {test_name=>"t_lookup inv",rtol=>1e-2};
+
   my $t3 = t_rot([45,45,45]);
   is_pdl PDL::MatrixOps::identity(3)->apply($t3), pdl(<<'EOF'), 't_rot works';
 0.5 -0.14644661 0.85355339; 0.5 0.85355339 -0.14644661; -0.70710678 0.5 0.5

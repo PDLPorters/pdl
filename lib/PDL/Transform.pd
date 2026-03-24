@@ -2245,7 +2245,7 @@ You specify an N+1-D PDL that is interpreted as an N-D lookup table of
 column vectors (vector index comes last).  The last dimension has
 order equal to the output dimensionality of the transform.
 
-For added flexibility in data space, You can specify pre-lookup linear
+For added flexibility in data space, you can specify pre-lookup linear
 scaling and offset of the data.  Of course you can specify the
 interpolation method to be used.  The linear scaling stuff is a little
 primitive; if you want more, try composing the linear transform with
@@ -2306,17 +2306,16 @@ Interpolation method to be fed to L<interpND|PDL::Primitive/interpND>
 
 =back
 
-EXAMPLE
+=head3 EXAMPLE
 
-To scale logarithmically the Y axis of m51, try:
+=for example
 
+  # To scale logarithmically the Y axis of m51, try:
   $x = float rfits('m51.fits');
   $lookup = xvals(128,128) -> cat( 10**(yvals(128,128)/50) * 256/10**2.55 );
   $t = t_lookup($lookup);
   $y = $t->map($x);
-
-To do the same thing but with a smaller lookup table, try:
-
+  # To do the same thing but with a smaller lookup table, try:
   $lookup = 16 * xvals(17,17)->cat(10**(yvals(17,17)/(100/16)) * 16/10**2.55);
   $t = t_lookup($lookup,{scale=>1/16.0});
   $y = $t->map($x);
@@ -2325,7 +2324,7 @@ To do the same thing but with a smaller lookup table, try:
 it is a 17x17 -- so linear interpolation works right to the edge of the original
 domain.)
 
-NOTES
+=head3 NOTES
 
 Inverses are "only weakly supported" -- the best way to do it might be by
 judicious use of map() on the forward transformation.
@@ -2884,7 +2883,7 @@ pp_addpm(<<'+======EOD_t_rot======');
 Convenience interface to L</t_linear>.
 
 t_rot produces a rotation transform in 2-D (scalar), 3-D (3-vector), or
-N-D (matrix).  It acts exactly the same as C<t_linear(rot=>shift)>.
+N-D (matrix).  It acts exactly the same as C<< t_linear(rot=>shift) >>.
 
 =cut
 
