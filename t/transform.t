@@ -33,6 +33,8 @@ use Test::Exception;
   is_pdl pdl(-5,15)->invert(t_cubic(s=>1)), pdl(-2,3), "t_cubic inv";
   is_pdl pdl(-2,3)->apply(t_quartic(s=>1)), pdl(-9,42), "t_quartic works";
   is_pdl pdl(-9,42)->invert(t_quartic(s=>1)), pdl(-2,3), "t_quartic inv";
+  is_pdl pdl(-3,4)->apply(t_radial()), pdl(4.068887,5), "t_radial works";
+  is_pdl pdl(4.068887,5)->invert(t_radial()), pdl(-3,4), {test_name=>"t_radial inv",rtol=>1e-5};
 
   # y gets log scale, from example
   my $lookup = 4 * xvals(5,5)->cat(10**(yvals(5,5)/(100/4)) * 4/10**2.55);
