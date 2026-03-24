@@ -3608,7 +3608,7 @@ pp_addpm(<<'======EOD_t_quartic======');
 
 =for ref
 
-Quartic scaling -- cylindrical pincushion (n-d; with inverse)
+Quartic scaling -- quartic pincushion (n-d; with inverse)
 
 Quartic scaling is a generalization of t_quadratic to a quartic
 expansion.  Only even powers of the input coordinates are retained,
@@ -3632,8 +3632,7 @@ contraction.
 Note that, because quartic scaling does not have a strict inverse for
 coordinate systems that cross the origin, we cheat slightly and use
 $x**3 * abs($x)  rather than $x**4.  This does the Right thing for pincushion
-and barrel distortion, but means that t_quartic does not behave exactly
-like t_cubic with a null cubic strength coefficient.
+and barrel distortion.
 
 OPTIONS
 
