@@ -40,6 +40,10 @@ use Test::Exception;
   is_pdl pdl(3,10)->apply($t_l), pdl(3,0.056830), "t_lookup works";
   is_pdl pdl(3,0.056830)->invert($t_l), pdl(3,10), {test_name=>"t_lookup inv",rtol=>1e-2};
 
+  my $t_c = t_code(sub { $_[0]+3 }, sub { $_[0]-3 });
+  is_pdl pdl(3,10)->apply($t_c), pdl(6,13), "t_code works";
+  is_pdl pdl(6,13)->invert($t_c), pdl(3,10), "t_code inv";
+
   my $t3 = t_rot([45,45,45]);
   is_pdl PDL::MatrixOps::identity(3)->apply($t3), pdl(<<'EOF'), 't_rot works';
 0.5 -0.14644661 0.85355339; 0.5 0.85355339 -0.14644661; -0.70710678 0.5 0.5
