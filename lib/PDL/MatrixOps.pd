@@ -249,16 +249,17 @@ whether or not the matrix is singular.
 *PDL::inv = \&inv;
 sub inv {
   my $x = shift;
+
+  barf "inverse needs a square PDL as a matrix\n"
+    unless UNIVERSAL::isa($x,'PDL') &&
+	   $x->ndims >= 2 &&
+	   $x->dim(0) == $x->dim(1)
+	   ;
+
   my $opt = shift;
   $opt = {} unless defined($opt);
   my $is_inplace = $x->is_inplace;
   $x->set_inplace(0);
-
-  barf "inverse needs a square PDL as a matrix\n"
-    unless(UNIVERSAL::isa($x,'PDL') &&
-	   $x->dims >= 2 &&
-	   $x->dim(0) == $x->dim(1)
-	   );
 
   my ($lu,$perm,$par);
   if(exists($opt->{lu}) &&
