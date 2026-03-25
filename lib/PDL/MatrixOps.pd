@@ -1225,14 +1225,14 @@ B<NB does not broadcast well>.
   splice @A_dims, 0, 2; splice @B_dims, 0, 1;
   @broadcast = PDL::Core::dims_filled(\@A_dims, \@B_dims);
   # simq modifies A, so need 1 copy per broadcast else non-first run has wrong A
-  ($x) = simq($A->dupN(1,1,map +($A_dims[$_]//1)==1?$broadcast[$_]:1, 0..$#broadcast)->copy, $B->transpose, 0);
+  ($x) = simq($newA = $A->dupN(1,1,map +($A_dims[$_]//1)==1?$broadcast[$_]:1, 0..$#broadcast)->copy, $B->transpose, 0);
+  # $newA now contains modified $A for uses in further calls with flag=-1
   $x = $x->transpose;
 
 C<$a> is an C<n x n> matrix (i.e., a vector of length C<n*n>), stored row-wise:
 that is, C<a(i,j) = a[ij]>, where C<ij = i*n + j>.
 
-While this is the transpose of the normal column-wise storage, this
-corresponds to normal PDL usage.  The contents of matrix a may be
+This corresponds to normal PDL usage.  The contents of matrix a may be
 altered (but may be required for subsequent calls with flag = -1).
 
 C<$y>, C<$x>, C<$ips> are vectors of length C<n>.
