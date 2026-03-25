@@ -36,6 +36,11 @@ use Test::Exception;
   is_pdl pdl(-3,4)->apply(t_radial()), pdl(4.068887,5), "t_radial works";
   is_pdl pdl(4.068887,5)->invert(t_radial()), pdl(-3,4), {test_name=>"t_radial inv",rtol=>1e-5};
 
+  my $t_points = pdl('[0 0; 1 0] [1 0; 2 1] [0 1; -1 3] [1 1; 0 4]'); # xy,io,npoints
+  my $t_proj = t_projective(p=>$t_points);
+  is_pdl +(my $p_in = pdl('0.5 0; 1 0.5; 0.5 1; 0 0.5'))->apply($t_proj), my $p_out = pdl('1.5 0.5; 1 2.5; -0.5 3.5; 0 1.5'), 't_projective works';
+  is_pdl $p_out->invert($t_proj), $p_in, 't_projective works';
+
   # y gets log scale, from example
   my $lookup = 4 * xvals(5,5)->cat(10**(yvals(5,5)/(100/4)) * 4/10**2.55);
   my $t_l = t_lookup($lookup,{scale=>1/4.0});
