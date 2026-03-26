@@ -3937,73 +3937,45 @@ This is similar to the behavior of fitwarp2d with a quadratic polynomial.
 =cut
 
 sub t_projective {
-  my($class) = 'PDL::Transform';
-  my($o) = $_[0];
-  if(ref $o ne 'HASH') {
-    $o = { @_ };
-  }
+  my $class = 'PDL::Transform';
+  my $o = ref $_[0] eq 'HASH' ? $_[0] : { @_ };
 
-  my($me) = $class->new;
-
+  my $me = $class->new;
   $me->{name} = "projective";
 
   ### Set options...
-
-
-  $me->{params}->{idim} = $me->{idim} = _opt($o,['d','dim','Dim']);
+  $me->{params}{idim} = $me->{idim} = _opt($o,['d','dim','Dim']);
 
   my $matrix;
   if(defined ($matrix=_opt($o,['m','matrix','Matrix']))) {
-    $matrix = pdl($matrix);
+    $matrix = PDL->topdl($matrix);
     die "t_projective: needs a square matrix"
       if($matrix->dims != 2 || $matrix->dim(0) != $matrix->dim(1));
 
-    $me->{params}->{idim} = $matrix->dim(0)-1
-      unless(defined($me->{params}->{idim}));
-
-    $me->{idim} = $me->{params}->{idim};
+    $me->{idim} = $me->{params}{idim} //= $matrix->dim(0)-1;
 
     die "t_projective: matrix not compatible with given dimension (should be N+1xN+1)\n"
-      unless($me->{params}->{idim}==$matrix->dim(0)-1);
-
-    my $inv = $matrix->inv;
-    print STDERR "t_projective: warning - received non-invertible matrix\n"
-      unless(all($inv*0 == 0));
-
-    $me->{params}->{matrix} = $matrix;
-    $me->{params}->{matinv} = $inv;
-
+      unless $me->{params}{idim} == $matrix->dim(0)-1;
   } elsif(defined (my $p=pdl(_opt($o,['p','point','points','Point','Points'])))) {
-    die "t_projective: points array should be 2(x,y) x 2(in,out) x 4(point)\n\t(only 2-D points spec is available just now, sorry)\n"
-      unless($p->dims==3 && all(pdl($p->dims)==pdl(2,2,4)));
-
+    my $d0 = $p->dim(0);
+    die "t_projective: points must be ncoord x 2(in,out) x 2^ncoord(point)"
+      unless $p->dims==3 && all($p->shape == pdl($d0,2,2**$d0));
     # Solve the system of N equations to find the projective transform
-    my ($p0,$p1,$p2,$p3) = ( $p->slice(":,(0),(0)"), $p->slice(":,(0),(1)"), $p->slice(":,(0),(2)"), $p->slice(":,(0),(3)") );
-    my ($P0,$P1,$P2,$P3) = ( $p->slice(":,(1),(0)"), $p->slice(":,(1),(1)"), $p->slice(":,(1),(2)"), $p->slice(":,(1),(3)") );
-#print "declaring PDL...\n"    ;
-    my $M = pdl( [ [$p0->at(0), $p0->at(1), 1,        0,        0, 0,  -$P0->at(0)*$p0->at(0), -$P0->at(0)*$p0->at(1)],
-                   [       0,        0, 0, $p0->at(0), $p0->at(1), 1,  -$P0->at(1)*$p0->at(0), -$P0->at(1)*$p0->at(1)],
-                   [$p1->at(0), $p1->at(1), 1,        0,        0, 0,  -$P1->at(0)*$p1->at(0), -$P1->at(0)*$p1->at(1)],
-                   [       0,        0, 0, $p1->at(0), $p1->at(1), 1,  -$P1->at(1)*$p1->at(0), -$P1->at(1)*$p1->at(1)],
-                   [$p2->at(0), $p2->at(1), 1,        0,        0, 0,  -$P2->at(0)*$p2->at(0), -$P2->at(0)*$p2->at(1)],
-                   [       0,        0, 0, $p2->at(0), $p2->at(1), 1,  -$P2->at(1)*$p2->at(0), -$P2->at(1)*$p2->at(1)],
-                   [$p3->at(0), $p3->at(1), 1,        0,        0, 0,  -$P3->at(0)*$p3->at(0), -$P3->at(0)*$p3->at(1)],
-                   [       0,        0, 0, $p3->at(0), $p3->at(1), 1,  -$P3->at(1)*$p3->at(0), -$P3->at(1)*$p3->at(1)]
-                   ] );
-#print "ok.  Finding inverse...\n";
-    my $h = ($M->inv x $p->slice(":,(1),:")->flat->slice("*1"))->slice("(0)");
-#    print "ok\n";
-    my $matrix = ones(3,3);
-    $matrix->flat->slice("0:7") .= $h;
-    $me->{params}->{matrix} = $matrix;
-
-    $me->{params}->{matinv} = $matrix->inv;
+    my $p_appended = $p->slice(":,(0)")->append([1, (0) x ($d0+1)]);
+    my $M = $p_appended->append(
+      $p_appended->dice_axis(0, [$d0+1..($d0*2+1), 0..$d0])
+    )->splitdim(0,($d0+1)*2)->clump(1,2);
+    $M = $M->append(-outer($p->mv(1,-1)->dog)->clump(1,2));
+    $matrix = ones(($d0+1) x 2);
+    $matrix->flat->slice("0:".($matrix->nelem-2)) .=
+      ($M->inv x $p->slice(":,(1),:")->flat->t)->t;
+  } else {
+    die "t_projective: must supply either 'p' or 'm' option";
   }
+  $me->{params}{matrix} = $matrix;
+  $me->{params}{matinv} = $matrix->inv;
 
-  $me->{params}->{idim} = 2 unless defined $me->{params}->{idim};
-  $me->{params}->{odim} = $me->{params}->{idim};
-  $me->{idim} = $me->{params}->{idim};
-  $me->{odim} = $me->{params}->{odim};
+  $me->{idim} = $me->{odim} = $me->{params}{odim} = $me->{params}{idim} //= 2;
 
   $me->{func} = sub {
     my($data,$o) = @_;
