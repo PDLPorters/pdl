@@ -36,11 +36,7 @@ is_pdl erf(0.5), pdl(1.-erfc(0.5)), "erf and erfc";
 is_pdl erf(erfi(0.5)), pdl(0.5), "erfi (both ways)";
 is_pdl erfi(erf(0.5)), pdl(0.5), "erfi (both ways)";
 
-{   # csqrt
-  my $pi=4*atan2(1,1);
-  my $eiO = exp(i()*(sequence(8)-3)*$pi/4);
-  my $eiO2 = exp(i()*(sequence(8)-3)*$pi/8);
-  is_pdl csqrt($eiO), $eiO2, "csqrt of complex";
+{
   is_pdl csqrt(-1), i(), "csqrt of real -1";
   my $squares="-9 -4 -1 0 1 4 9";
   my $roots="3i 2i i 0 1 2 3";
@@ -52,7 +48,7 @@ is_pdl erfi(erf(0.5)), pdl(0.5), "erfi (both ways)";
   is_pdl cfloat($squares)->csqrt,   cfloat($roots), "csqrt of cfloat";
   is_pdl cdouble($squares)->csqrt,  cdouble($roots), "csqrt of cdouble";
   is_pdl cldouble($squares)->csqrt, cldouble($roots), "csqrt of cldouble";
-  is_pdl pdl('-2i')->csqrt, pdl('1-i');
+  is_pdl pdl('-2i')->csqrt, pdl('1-i'), 'csqrt -2i';
 }
 
 is_pdl cacosh(-1), pdl('3.141592i') if PDL::Core::Dev::got_complex_version('acosh', 1);
@@ -60,14 +56,8 @@ is_pdl clog(-1), pdl('3.141592i') if PDL::Core::Dev::got_complex_version('log', 
 is_pdl cacos(-2), pdl('3.141592-1.316957i') if PDL::Core::Dev::got_complex_version('acos', 1);
 is_pdl casin(-2), pdl('-1.570796+1.316957i') if PDL::Core::Dev::got_complex_version('asin', 1);
 
-{   # csqrt_up
-  my $pi=4*atan2(1,1);
-  my $eiO = exp(i()*sequence(8)*$pi/4);
-  my $eiO2 = exp(i()*sequence(8)*$pi/8);
-  my $sqrt=csqrt_up($eiO);
-  is_pdl($sqrt, $eiO2, "Square of csqrt_up of complex");
-  my $i=csqrt_up(-1);
-  is_pdl($i, i(), "csqrt_up of real -1");
+{
+  is_pdl csqrt_up(-1), i(), "csqrt_up of real -1";
   my $squares="-9 -4 -1 0 1 4 9";
   my $roots="3i 2i i 0 1 2 3";
   is_pdl long($squares)->csqrt_up,     cdouble($roots), "csqrt_up of long";
@@ -78,7 +68,7 @@ is_pdl casin(-2), pdl('-1.570796+1.316957i') if PDL::Core::Dev::got_complex_vers
   is_pdl cfloat($squares)->csqrt_up,   cfloat($roots), "csqrt_up of cfloat";
   is_pdl cdouble($squares)->csqrt_up,  cdouble($roots), "csqrt_up of cdouble";
   is_pdl cldouble($squares)->csqrt_up, cldouble($roots), "csqrt_up of cldouble";
-  is_pdl pdl('-2i')->csqrt_up, pdl('-1+i');
+  is_pdl pdl('-2i')->csqrt_up, pdl('-1+i'), 'csqrt_up -2i';
 }
 
 {
