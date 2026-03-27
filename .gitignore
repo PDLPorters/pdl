@@ -21,15 +21,10 @@ debian/
 
 # Junk
 
-*.dif
-*.diff
 *.gz
 *.old
 *.ori
-*.orig
-*.rej
 *.tmp
-*.patch
 tmp*
 tmp_*
 
