@@ -6,12 +6,11 @@ use Config;
 kill 'INT',$$ if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 use Test::Exception;
 use Test::PDL;
-require PDL::Core::Dev;
 
 kill 'INT',$$ if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 
-my $can_complex_power = PDL::Core::Dev::got_complex_version('pow', 2)
-  && PDL::Core::Dev::got_complex_version('exp', 1);
+my $can_complex_power = $PDL::Ops::got_complex{pow}
+  && $PDL::Ops::got_complex{exp};
 
 {
 my ($pa, $pb, $pc) = (xvals(3,5), yvals(3,5));

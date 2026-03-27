@@ -40,6 +40,7 @@ my @Rtypes = grep $_->real, types();
 my @Ctypes = grep !$_->real, types();
 my $AF = [map $_->ppsym, grep !$_->integer, types];
 $AF = [(grep $_ ne 'D', @$AF), 'D']; # so defaults to D if non-float given
+my %got_complex;
 
 pp_addpm({At=>'Top'},<<'EOD');
 use strict;
@@ -200,7 +201,7 @@ EOF
 }
 
 foreach my $func (@ufuncs1) {
-    my $got_complex = PDL::Core::Dev::got_complex_version($func, 1);
+    my $got_complex = $got_complex{$func} = PDL::Core::Dev::got_complex_version($func, 1);
     pp_def($func,
 	   HandleBad => 1,
 	   NoBadifNaN => 1,
@@ -224,7 +225,7 @@ foreach my $func (@ufuncs1g) {
 }
 
 foreach my $func (@bifuncs1) {
-    my $got_complex = PDL::Core::Dev::got_complex_version($func, 2);
+    my $got_complex = $got_complex{$func} = PDL::Core::Dev::got_complex_version($func, 2);
     pp_def($func,
 	   HandleBad => 1,
 	   NoBadifNaN => 1,
@@ -491,7 +492,7 @@ works with native-complex data.
 
 sub cequiv {
   my ($func, $ref) = @_;
-  return if !PDL::Core::Dev::got_complex_version($func, 1);
+  return if !($got_complex{$func} = PDL::Core::Dev::got_complex_version($func, 1));
   pp_def("c$func",
       GenericTypes => $AF,
       Pars => 'i(); complex [o] o()',
@@ -543,4 +544,10 @@ the PDL copyright notice should be included in the file.
 =cut
 
 EOD
+
+my $gc_text = "our %got_complex = (\n";
+$gc_text .= "  $_ => $got_complex{$_},\n" for sort keys %got_complex;
+$gc_text .= ");\n";
+pp_addpm({At=>'Bot'}, $gc_text);
+
 pp_done();

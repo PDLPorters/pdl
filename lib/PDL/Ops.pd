@@ -16,6 +16,7 @@ my %is_real; @is_real{ppdefs()} = ();
 my @Rtypes = grep $_->real, types();
 my @Ctypes = grep !$_->real, types();
 my @Ftypes = grep !$_->integer, types();
+my %got_complex;
 
 pp_addpm({At=>'Top'},<<'EOD');
 
@@ -158,7 +159,7 @@ sub bifunc {
     my $isop = $funcov =~ s/^op//;
     my $funcovp = protect_chars $funcov;
     $func = $func->[0] if ref $func eq 'ARRAY';
-    my $got_complex = PDL::Core::Dev::got_complex_version($func, 2);
+    my $got_complex = $got_complex{$func} = PDL::Core::Dev::got_complex_version($func, 2);
     $extra{GenericTypes} = [ grep exists $is_real{$_}, @{$extra{GenericTypes}} ]
 	if !$got_complex and $extra{GenericTypes};
     $extra{HdrCode} .= << 'EOH';
@@ -215,7 +216,7 @@ sub ufunc {
     my $funcov = ref $func eq 'ARRAY' ? $func->[1] : $func;
     my $funcovp = protect_chars $funcov;
     $func = $func->[0] if ref $func eq 'ARRAY';
-    my $got_complex = PDL::Core::Dev::got_complex_version($func, 1);
+    my $got_complex = $got_complex{$func} = PDL::Core::Dev::got_complex_version($func, 1);
     $extra{GenericTypes} = [ grep exists $is_real{$_}, @{$extra{GenericTypes}} ]
 	if !$got_complex and $extra{GenericTypes};
 
@@ -551,5 +552,10 @@ sub warn_non_numeric_op_wrapper {
     ;
 }
 EOF
+
+my $gc_text = "our %got_complex = (\n";
+$gc_text .= "  $_ => $got_complex{$_},\n" for sort grep /[a-z]/, keys %got_complex;
+$gc_text .= ");\n";
+pp_addpm({At=>'Bot'}, $gc_text);
 
 pp_done();
