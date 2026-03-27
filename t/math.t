@@ -53,8 +53,10 @@ is_pdl erfi(erf(0.5)), pdl(0.5), "erfi (both ways)";
 
 is_pdl cacosh(-1), pdl('3.141592i') if PDL::Core::Dev::got_complex_version('acosh', 1);
 is_pdl clog(-1), pdl('3.141592i') if PDL::Core::Dev::got_complex_version('log', 1);
-is_pdl cacos(-2), pdl('3.141592-1.316957i') if PDL::Core::Dev::got_complex_version('acos', 1);
-is_pdl casin(-2), pdl('-1.570796+1.316957i') if PDL::Core::Dev::got_complex_version('asin', 1);
+if ($^O ne 'dragonfly') { # gives cacos(-2)=0, casin(-2)=PI/2
+  is_pdl cacos(-2), pdl('3.141592-1.316957i') if PDL::Core::Dev::got_complex_version('acos', 1);
+  is_pdl casin(-2), pdl('-1.570796+1.316957i') if PDL::Core::Dev::got_complex_version('asin', 1);
+}
 
 {
   is_pdl csqrt_up(-1), i(), "csqrt_up of real -1";
