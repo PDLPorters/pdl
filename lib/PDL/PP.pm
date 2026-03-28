@@ -1461,11 +1461,12 @@ EOF
        }
        $ret .= pp_line_numbers(__LINE__, <<EOF) if $mutator;
 # in1, in2, out, swap if true
-use overload '$op=' => sub {
+sub overload_${name}_mutate {
   Carp::confess("$fullname: overloaded '$op=' given undef")
     if grep !defined, \@_[0,1];
   $fullname(\$_[0]->inplace, \$_[1]); \$_[0]
-};
+}
+use overload '$op=' => \\&overload_${name}_mutate;
 EOF
        $::PDLOVERLOAD .= "$ret}\n";
        my @args = @{ $sig->args_callorder };

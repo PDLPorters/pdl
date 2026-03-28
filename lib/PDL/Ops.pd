@@ -544,16 +544,28 @@ sub warn_non_numeric_op_wrapper {
 
 { package # hide from MetaCPAN
     PDL;
+sub overload_dotequals {
+  my @args = !$_[2] ? @_[1,0] : @_[0,1];
+  PDL::Ops::assgn(@args);
+  return $args[1];
+}
+sub overload_abs { PDL::abs($_[0]) }
+sub overload_plusplus {
+  $_[0] += ($PDL::Core::pdl_ones[$_[0]->get_datatype]
+    //barf "Couldn't find 'one' for type ", $_[0]->get_datatype
+  )
+}
+sub overload_minusminus {
+  $_[0] -= ($PDL::Core::pdl_ones[$_[0]->get_datatype]
+    //barf "Couldn't find 'one' for type ", $_[0]->get_datatype
+  )
+}
   use overload
     "eq"    => PDL::Ops::warn_non_numeric_op_wrapper(\&PDL::eq, 'eq'),
-    ".="    => sub {
-      my @args = !$_[2] ? @_[1,0] : @_[0,1];
-      PDL::Ops::assgn(@args);
-      return $args[1];
-    },
-    'abs' => sub { PDL::abs($_[0]) },
-    '++' => sub { $_[0] += ($PDL::Core::pdl_ones[$_[0]->get_datatype]//barf "Couldn't find 'one' for type ", $_[0]->get_datatype) },
-    '--' => sub { $_[0] -= ($PDL::Core::pdl_ones[$_[0]->get_datatype]//barf "Couldn't find 'one' for type ", $_[0]->get_datatype) },
+    ".="    => \&overload_dotequals,
+    'abs' => \&overload_abs,
+    '++' => \&overload_plusplus,
+    '--' => \&overload_minusminus,
     ;
 }
 EOF
