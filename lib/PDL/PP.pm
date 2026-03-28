@@ -1240,10 +1240,6 @@ $PDL::PP::deftbl =
    PDL::PP::Rule::Returns->new("Priv", "AffinePriv", 'PDL_Indx incs[$PDL(CHILD)->ndims];PDL_Indx offs; '),
    PDL::PP::Rule::Returns->new("IsAffineFlag", "AffinePriv", "PDL_ITRANS_ISAFFINE"),
    PDL::PP::Rule::Returns::Zero->new("IsAffineFlag"),
-   PDL::PP::Rule::Returns->new("TwoWayFlag", "TwoWay", "PDL_ITRANS_TWOWAY"),
-   PDL::PP::Rule::Returns::Zero->new("TwoWayFlag"),
-   PDL::PP::Rule::Returns->new("DefaultFlowFlag", "DefaultFlow", "PDL_ITRANS_DO_DATAFLOW_ANY"),
-   PDL::PP::Rule::Returns::Zero->new("DefaultFlowFlag"),
 
    PDL::PP::Rule->new("RedoDims", [qw(EquivPDimExpr EquivDimCheck?)],
       sub {
@@ -1488,6 +1484,10 @@ EOF
      }),
    PDL::PP::Rule::Returns->new("OverloadDocValues", []),
 
+   PDL::PP::Rule::Returns->new("TwoWayFlag", "TwoWay", "PDL_ITRANS_TWOWAY"),
+   PDL::PP::Rule::Returns::Zero->new("TwoWayFlag"),
+   PDL::PP::Rule::Returns->new("DefaultFlowFlag", "DefaultFlow", "PDL_ITRANS_DO_DATAFLOW_ANY"),
+   PDL::PP::Rule::Returns::Zero->new("DefaultFlowFlag"),
    PDL::PP::Rule::Returns::One->new('Lvalue', 'TwoWay', 'TwoWay => Lvalue'),
    PDL::PP::Rule->new([qw(UsageDoc ParamDoc)],
      [qw(Name Doc? SignatureObj OtherParsDefaults? ArgOrder?
