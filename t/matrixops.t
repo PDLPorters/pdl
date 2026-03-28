@@ -301,8 +301,8 @@ is_pdl $u x stretcher($s) x $v->transpose, $this_svd_in, "svd 3x2";
 {
 #2x3
 my $this_svd_in = $svd_in->slice("0:2","0:1");
-my ($u,$s,$v) = svd($this_svd_in->transpose);
-is_pdl $v x stretcher($s) x $u->transpose, $this_svd_in, "svd 2x3";
+my ($u,$s,$v) = svd($this_svd_in);
+is_pdl $u x stretcher($s) x $v->transpose, $this_svd_in, "svd 2x3";
 }
 }
 
