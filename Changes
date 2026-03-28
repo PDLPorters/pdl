@@ -13,6 +13,7 @@
 - now an error to specify DefaultFlow if no BackCode or AffinePriv
 - combcoords now does two-way flow
 - tricpy now can do strict upper/lower triangle
+- add MatrixOps::tritosym from PDL::LinearAlgebra with fixed Hermitian mode
 
 2.103 2026-03-03
 - fix regression in *linvals so takes ndarrays as start and end again

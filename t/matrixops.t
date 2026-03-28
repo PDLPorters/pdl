@@ -365,4 +365,14 @@ is_pdl $A->tricpy(-1), $strict_up, 'strict upper triangle';
 is_pdl $A->tricpy(2), $strict_lo, 'strict lower triangle';
 }
 
+{
+is_pdl +(my $m = sequence(3,3))->tritosym, my $exp = pdl('0 1 2; 1 4 5; 2 5 8'), 'tritosym';
+$m->inplace->tritosym; is_pdl $m, $exp, 'tritosym inplace';
+is_pdl +($m = sequence(3,3))->tritosym(1), $exp = pdl('0 3 6; 3 4 7; 6 7 8'), 'tritosym lower';
+$m->inplace->tritosym(1); is_pdl $m, $exp, 'tritosym lower inplace';
+is_pdl +($m = sequence(4,4)+i)->tritosym(1,1), $exp = pdl('0 4-i 8-i 12-i; 4+i 5 9-i 13-i; 8+i 9+i 10 14-i; 12+i 13+i 14+i 15'), 'tritosym lower hermitian';
+$m->inplace->tritosym(1,1); is_pdl $m, $exp, 'tritosym lower hermitian inplace';
+is_pdl $m, $m->t->conj, 'hermitian is actually hermitian';
+}
+
 done_testing;

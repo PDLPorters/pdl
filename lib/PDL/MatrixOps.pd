@@ -1281,6 +1281,8 @@ pp_def("tritosquare",
 
 Convert a triangular vector to lower-triangular square matrix storage.
 Does not touch upper half of output.
+
+See also L</tritosym>, L</tricpy>.
 ',
 );
 
@@ -1316,8 +1318,42 @@ C<uplo> meanings to copy: -1 strict upper triangular, 0 = upper, 1
 lower, 2 strict lower. The "strict" modes are as of 2.104.
 
 Originally by Grégory Vanuxem.
+See also L</tritosym>, L</tritosquare>.
 EOT
 );
+
+pp_add_exported('','tritosym');
+pp_addpm(<<'EOF');
+=head2 tritosym
+
+=for ref
+
+Returns symmetric or Hermitian matrix from lower or upper triangular matrix.
+Supports inplace and broadcasting.
+
+=for usage
+
+ PDL = tritosym(PDL, SCALAR(uplo), SCALAR(conj))
+ uplo : UPPER = 0 | LOWER = 1, default = 0
+ conj : Hermitian = 1 | Symmetric = 0, default = 0;
+
+Originally by Grégory Vanuxem. Added to PDL in 2.104.
+See also L</tricpy>, L</tritosquare>.
+
+=cut
+
+*tritosym = \&PDL::tritosym;
+sub PDL::tritosym {
+  my @dims = $_[0]->dims;
+  barf "Require square array but got (@dims)" unless @dims >= 2 && $dims[0] == $dims[1];
+  my ($m, $upper, $conj) = @_;
+  $conj = 0 if $m->type->real;
+  my $b = $m->new_or_inplace;
+  ($conj ? $m->conj : $m)->tricpy($upper ? 2 : -1, $b->t); # strict
+  $b->diagonal(0,1)->im .= 0 if $conj;
+  $b;
+}
+EOF
 
 pp_def('mstack',
   Pars => 'x(n,m);y(n,p);[o]out(n,q=CALC($SIZE(m)+$SIZE(p)));',
