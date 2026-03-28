@@ -1295,7 +1295,7 @@ pp_def('tricpy',
   Code => <<'EOF',
 switch ($COMP(uplo)) {
   case -1: /* strict upper */
-    broadcastloop %{ loop(n,m=n) %{ if (n != m) $C() = $A(); %} %}
+    broadcastloop %{ loop(n,m=n+1) %{ $C() = $A(); %} %}
     break;
   case 0: /* upper */
     broadcastloop %{ loop(n,m=n) %{ $C() = $A(); %} %}
@@ -1304,7 +1304,7 @@ switch ($COMP(uplo)) {
     broadcastloop %{ loop(n,m=:n+1) %{ $C() = $A(); %} %}
     break;
   case 2: /* strict lower */
-    broadcastloop %{ loop(n,m=:n+1) %{ if (n != m) $C() = $A(); %} %}
+    broadcastloop %{ loop(n,m=:n) %{ $C() = $A(); %} %}
     break;
   default: $CROAK(" invalid value for uplo '%d', must be -1..2", $COMP(uplo));
 }
@@ -1371,7 +1371,6 @@ loop (q=$SIZE(m),n) %{ $y(p=>q-$SIZE(m)) = $out(); %}
 
 Combine two 2D ndarrays into a single ndarray, along the second
 ("vertical") dim.
-This routine does backward and forward dataflow automatically.
 
 Originally by Grégory Vanuxem.
 EOT
@@ -1392,7 +1391,6 @@ loop (q=$SIZE(n))  %{ $y(p=>q-$SIZE(n)) = $out(); %}
 =for ref
 
 Combine two ndarrays into a single ndarray along the 0-th ("horizontal") dim.
-This routine does backward and forward dataflow automatically.
 
 Originally by Grégory Vanuxem.
 EOT
