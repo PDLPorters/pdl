@@ -274,45 +274,35 @@ my $svd_in = pdl([3,1,2,-1],[-1,3,0,2],[-2,3,0,0],[1,3,-1,2]);
 #2x2;
 my $this_svd_in = $svd_in->slice("0:1","0:1");
 my ($u,$s,$v) = svd($this_svd_in);
-my $ess = zeroes($this_svd_in->dim(0),$this_svd_in->dim(0));
-$ess->diagonal(0,1).=$s;
-is_pdl $this_svd_in, ($u x $ess x $v->transpose), "svd 2x2";
+is_pdl $this_svd_in, ($u x stretcher($s) x $v->transpose), "svd 2x2";
 }
 
 {
 #3x3;
 my $this_svd_in = $svd_in->slice("0:2","0:2");
 my ($u,$s,$v) = svd($this_svd_in);
-my $ess = zeroes($this_svd_in->dim(0),$this_svd_in->dim(0));
-$ess->diagonal(0,1).=$s;
-is_pdl $this_svd_in, $u x $ess x $v->transpose, "svd 3x3";
+is_pdl $this_svd_in, $u x stretcher($s) x $v->transpose, "svd 3x3";
 }
 
 {
 #4x4;
 my $this_svd_in = $svd_in;
 my ($u,$s,$v) = svd($this_svd_in);
-my $ess =zeroes($this_svd_in->dim(0),$this_svd_in->dim(0));
-$ess->diagonal(0,1).=$s;
-is_pdl $this_svd_in,($u x $ess x $v->transpose),"svd 4x4";
+is_pdl $this_svd_in,($u x stretcher($s) x $v->transpose),"svd 4x4";
 }
 
 {
 #3x2
 my $this_svd_in = $svd_in->slice("0:1","0:2");
 my ($u,$s,$v) = svd($this_svd_in);
-my $ess = zeroes($this_svd_in->dim(0),$this_svd_in->dim(0));
-$ess->slice("$_","$_").=$s->slice("$_") foreach (0,1); #generic diagonal
-is_pdl $this_svd_in, $u x $ess x $v->transpose, "svd 3x2";
+is_pdl $this_svd_in, $u x stretcher($s) x $v->transpose, "svd 3x2";
 }
 
 {
 #2x3
 my $this_svd_in = $svd_in->slice("0:2","0:1");
 my ($u,$s,$v) = svd($this_svd_in->transpose);
-my $ess = zeroes($this_svd_in->dim(1),$this_svd_in->dim(1));
-$ess->slice("$_","$_").=$s->slice("$_") foreach (0..$this_svd_in->dim(1)-1); #generic diagonal
-is_pdl $this_svd_in, $v x $ess x $u->transpose, "svd 2x3";
+is_pdl $this_svd_in, $v x stretcher($s) x $u->transpose, "svd 2x3";
 }
 
 }
