@@ -1195,41 +1195,7 @@ ndarray, you can use the PDL STATE macros.
 
 =head2 Bad-value examples
 
-Using these macros, the above code could be specified as:
-
- Code => '$c() = $a() + $b();',
- BadCode => '
-    if ( $ISBAD(a()) || $ISBAD(b()) ) {
-       $SETBAD(c());
-    } else {
-       $c() = $a() + $b();
-    }',
-
-Since this is Perl, TMTOWTDI, so you could also write:
-
- BadCode => '
-    if ( $ISGOOD(a()) && $ISGOOD(b()) ) {
-       $c() = $a() + $b();
-    } else {
-       $SETBAD(c());
-    }',
-
-You can reduce code repetition using the C C<PDL_BAD_CODE> macro,
-supplying only the C<Code> section:
-
- Code => '
-    #ifdef PDL_BAD_CODE
-    if ( $ISGOOD(a()) && $ISGOOD(b()) ) {
-    #endif PDL_BAD_CODE
-       $c() = $a() + $b();
-    #ifdef PDL_BAD_CODE
-    } else {
-       $SETBAD(c());
-    }
-    #endif PDL_BAD_CODE
- ',
-
-As of 2.073, you can also use C<PDL_IF_BAD(iftrue,iffalse)>:
+As of 2.073, you are recommended to use C<PDL_IF_BAD(iftrue,iffalse)>:
 
  Code => '
     PDL_IF_BAD(if ( $ISGOOD(a()) && $ISGOOD(b()) ) {,)
@@ -2646,7 +2612,8 @@ As of 2.104, implies C<TwoWay> and C<DefaultFlow>.
 
 =head3 BadBackCode
 
-Same but taking account of bad values.
+Same but taking account of bad values. It is now recommended you
+use C<BackCode> with the C<PDL_IF_BAD> macro.
 
 =head3 EquivCPOffsCode
 
