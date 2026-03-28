@@ -1060,7 +1060,7 @@ $PDL::PP::deftbl =
    PDL::PP::Rule->new(
       [qw(RedoDims EquivCPOffsCode HandleBad P2Child)],
       ["Identity"],
-      "something to do with dataflow between CHILD & PARENT, I think.",
+      "sets up identity PARENT->CHILD transform with dataflow",
       sub {
         (PDL::PP::pp_line_numbers(__LINE__-1, '
           int i;
