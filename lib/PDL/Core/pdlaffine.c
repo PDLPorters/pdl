@@ -16,7 +16,6 @@ pdl_error pdl_writebackdata_affine(pdl_trans *trans) {
 /* generated from:
 pp_def( 'affine',
         P2Child => 1,
-        TwoWay => 1,
         AffinePriv => 1,
         GlobalNew => 'affine_new',
         OtherPars => 'PDL_Indx offset; PDL_Indx dims[]; PDL_Indx incs[]',

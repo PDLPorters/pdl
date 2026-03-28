@@ -1484,6 +1484,7 @@ EOF
      }),
    PDL::PP::Rule::Returns->new("OverloadDocValues", []),
 
+   PDL::PP::Rule::Returns::One->new('TwoWay', 'AffinePriv', 'AffinePriv => TwoWay'),
    PDL::PP::Rule::Returns->new("TwoWayFlag", "TwoWay", "PDL_ITRANS_TWOWAY"),
    PDL::PP::Rule::Returns::Zero->new("TwoWayFlag"),
    PDL::PP::Rule::Returns->new("DefaultFlowFlag", "DefaultFlow", "PDL_ITRANS_DO_DATAFLOW_ANY"),

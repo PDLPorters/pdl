@@ -1708,7 +1708,6 @@ C<EquivPDimExpr> and maybe a C<EquivDimCheck>:
   pp_def(
     'xchg',
     OtherPars => 'PDL_Indx n1; PDL_Indx n2;',
-    TwoWay => 1,
     P2Child => 1,
     AffinePriv => 1,
     EquivDimCheck => '
@@ -2589,6 +2588,7 @@ transformation back to the parent when C<BackCode> is supplied.
 
 Flag to indicate this is an affine transformation whose C<Priv> (contents
 of the C<pdl_trans>) contains data that will need allocating and freeing.
+As of 2.104, implies C<TwoWay>.
 
 =head3 GlobalNew
 
@@ -2628,6 +2628,7 @@ first argument's C<copy> method will be used.
 If true, sets in the C<pdl_transvtable> (see L<PDL::Internals>) the
 C<iflags> such as to inform the trans's error checks connected to dataflow.
 As of 2.104, also automatically sets C<Lvalue>.
+As of 2.104, implied by C<AffinePriv>.
 
 =head3 Identity
 
