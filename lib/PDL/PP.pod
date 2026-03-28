@@ -2611,6 +2611,7 @@ If I<set>, sets in the C<pdl_transvtable> (see L<PDL::Internals>) the
 C<iflags> such that the trans will start with dataflow both forwards
 and backwards. Note that setting this to any value (including 0) will
 trigger the behaviour.
+As of 2.104, implied by C<BackCode> (including from C<EquivCPOffsCode>).
 
 =head3 HaveBroadcasting
 
@@ -2629,7 +2630,8 @@ first argument's C<copy> method will be used.
 If true, sets in the C<pdl_transvtable> (see L<PDL::Internals>) the
 C<iflags> such as to inform the trans's error checks connected to dataflow.
 As of 2.104, also automatically sets C<Lvalue>.
-As of 2.104, implied by C<AffinePriv>.
+As of 2.104, implied by C<AffinePriv> and C<BackCode> (including
+from C<EquivCPOffsCode>).
 
 =head3 Identity
 
@@ -2640,6 +2642,7 @@ C<TwoWay> such that the function is a dataflowing identity transformation.
 
 For dataflowing functions, this value (which gets parsed) overrides the
 operation of that from children ndarrays to parents.
+As of 2.104, implies C<TwoWay> and C<DefaultFlow>.
 
 =head3 BadBackCode
 

@@ -1058,7 +1058,7 @@ my $pars_re = $PDL::PP::PdlParObj::pars_re;
 $PDL::PP::deftbl =
   [
    PDL::PP::Rule->new(
-      [qw(RedoDims EquivCPOffsCode HandleBad P2Child TwoWay)],
+      [qw(RedoDims EquivCPOffsCode HandleBad P2Child)],
       ["Identity"],
       "something to do with dataflow between CHILD & PARENT, I think.",
       sub {
@@ -1077,7 +1077,7 @@ $PDL::PP::deftbl =
              for(i=0; i<$PDL(CHILD)->nvals; i++)  {
                 $EQUIVCPOFFS(i,i);
              }'),
-        1, 1, 1);
+        1, 1);
       }),
 
    # used as a flag for many of the routines
@@ -1485,6 +1485,8 @@ EOF
      }),
    PDL::PP::Rule::Returns->new("OverloadDocValues", []),
 
+   PDL::PP::Rule::Returns::One->new('TwoWay', 'BackCode', 'BackCode => TwoWay'),
+   PDL::PP::Rule::Returns::One->new('DefaultFlow', 'BackCode', 'BackCode => DefaultFlow'),
    PDL::PP::Rule::Returns::One->new('TwoWay', 'AffinePriv', 'AffinePriv => TwoWay'),
    PDL::PP::Rule::Returns->new("TwoWayFlag", "TwoWay", "PDL_ITRANS_TWOWAY"),
    PDL::PP::Rule::Returns::Zero->new("TwoWayFlag"),

@@ -149,8 +149,6 @@ my $index_init =
 pp_def('index',
        GenericTypes => [ppdefs_all],
        HandleBad => 1,
-       DefaultFlow => 1,
-       TwoWay => 1,
        Pars => 'a(n); indx ind(); [oca] c();',
        Code =>
        $index_init . ' $c() = $a(n => this_ind);',
@@ -164,8 +162,6 @@ pp_def('index',
 pp_def('index1d',
        GenericTypes => [ppdefs_all],
        HandleBad => 1,
-       DefaultFlow => 1,
-       TwoWay => 1,
        Pars => 'a(n); indx ind(m); [oca] c(m);',
        Code => pp_line_numbers(__LINE__, <<'EOF'),
          loop(m) %{
@@ -212,8 +208,6 @@ EOF
 pp_def('index2d',
        GenericTypes => [ppdefs_all],
        HandleBad => 1,
-       DefaultFlow => 1,
-       TwoWay => 1,
        Pars => 'a(na,nb); indx inda(); indx indb(); [oca] c();',
        Code =>
        $index2d_init . pp_line_numbers(__LINE__-1, ' $c() = $a(na => this_ind_a, nb => this_ind_b);'),
@@ -578,7 +572,6 @@ parameters.  C<rangeb> is marginally faster as it makes a direct PP call,
 avoiding the perl argument-parsing step.
 EOD
         HandleBad => 1,
-        TwoWay => 1,
         P2Child => 1,
 
 # rdim: dimensionality of each range (0 dim of index PDL)
@@ -1405,7 +1398,6 @@ EOF
                         $EQUIVCPOFFS(i,i);
                 }
 EOF
-        TwoWay => 1,
         Doc => 'internal',
 );
 
@@ -1816,8 +1808,6 @@ pp_def('rotate',
         GenericTypes => [ppdefs_all],
         Doc => 'Shift vector elements along with wrap.',
         Pars=>'x(n); indx shift(); [oca]y(n)',
-        DefaultFlow => 1,
-        TwoWay => 1,
         RedoDimsCode=>'if ($SIZE(n) == 0) $CROAK("can not shift zero size ndarray");',
         Code=>$rotate_code.'
             $y(n=>j++) = $x();

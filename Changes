@@ -9,6 +9,7 @@
 - MatrixOps::svd now handles transpose transparently
 - all ops with two-way dataflow now work as lvalues
 - AffinePriv now implies TwoWay and P2Child
+- BackCode (including from EquivCPOffsCode) now implies TwoWay and DefaultFlow
 
 2.103 2026-03-03
 - fix regression in *linvals so takes ndarrays as start and end again

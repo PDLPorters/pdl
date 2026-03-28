@@ -1308,8 +1308,6 @@ EOT
 );
 
 pp_def('mstack',
-  DefaultFlow => 1,
-  TwoWay => 1,
   Pars => 'x(n,m);y(n,p);[o]out(n,q=CALC($SIZE(m)+$SIZE(p)));',
   GenericTypes => [ppdefs_all()],
   Code => '
@@ -1332,8 +1330,6 @@ EOT
 );
 
 pp_def('augment',
-  DefaultFlow => 1,
-  TwoWay => 1,
   Pars => 'x(n); y(p);[o]out(q=CALC($SIZE(n)+$SIZE(p)))',
   GenericTypes => [ppdefs_all()],
   Code => '
