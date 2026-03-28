@@ -152,6 +152,13 @@ EOF
     );
 }
 
+sub g_c {
+  my ($func, $arg) = @_;
+  $got_complex{$func} = PDL::Core::Dev::got_complex_version($func, $arg);
+  print "got_complex_version($func, $arg): $got_complex{$func}\n";
+  $got_complex{$func};
+}
+
 #simple binary functions
 sub bifunc {
     my ($name,$func,$mutator,$doc,%extra) = @_;
@@ -159,7 +166,7 @@ sub bifunc {
     my $isop = $funcov =~ s/^op//;
     my $funcovp = protect_chars $funcov;
     $func = $func->[0] if ref $func eq 'ARRAY';
-    my $got_complex = $got_complex{$func} = PDL::Core::Dev::got_complex_version($func, 2);
+    my $got_complex = g_c($func, 2);
     $extra{GenericTypes} = [ grep exists $is_real{$_}, @{$extra{GenericTypes}} ]
 	if !$got_complex and $extra{GenericTypes};
     $extra{HdrCode} .= << 'EOH';
@@ -216,7 +223,7 @@ sub ufunc {
     my $funcov = ref $func eq 'ARRAY' ? $func->[1] : $func;
     my $funcovp = protect_chars $funcov;
     $func = $func->[0] if ref $func eq 'ARRAY';
-    my $got_complex = $got_complex{$func} = PDL::Core::Dev::got_complex_version($func, 1);
+    my $got_complex = g_c($func, 1);
     $extra{GenericTypes} = [ grep exists $is_real{$_}, @{$extra{GenericTypes}} ]
 	if !$got_complex and $extra{GenericTypes};
 

@@ -200,8 +200,15 @@ PDL_IF_BAD(if ( \$ISBAD($x()) || \$ISBAD($y()) ) { \$SETBAD($c()); } else,)
 EOF
 }
 
+sub g_c {
+  my ($func, $arg) = @_;
+  $got_complex{$func} = PDL::Core::Dev::got_complex_version($func, $arg);
+  print "got_complex_version($func, $arg): $got_complex{$func}\n";
+  $got_complex{$func};
+}
+
 foreach my $func (@ufuncs1) {
-    my $got_complex = $got_complex{$func} = PDL::Core::Dev::got_complex_version($func, 1);
+    my $got_complex = g_c($func, 1);
     pp_def($func,
 	   HandleBad => 1,
 	   NoBadifNaN => 1,
@@ -225,7 +232,7 @@ foreach my $func (@ufuncs1g) {
 }
 
 foreach my $func (@bifuncs1) {
-    my $got_complex = $got_complex{$func} = PDL::Core::Dev::got_complex_version($func, 2);
+    my $got_complex = g_c($func, 2);
     pp_def($func,
 	   HandleBad => 1,
 	   NoBadifNaN => 1,
@@ -492,7 +499,7 @@ works with native-complex data.
 
 sub cequiv {
   my ($func, $ref) = @_;
-  return if !($got_complex{$func} = PDL::Core::Dev::got_complex_version($func, 1));
+  return if !g_c($func, 1);
   pp_def("c$func",
       GenericTypes => $AF,
       Pars => 'i(); complex [o] o()',
