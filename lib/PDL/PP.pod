@@ -2627,6 +2627,7 @@ first argument's C<copy> method will be used.
 
 If true, sets in the C<pdl_transvtable> (see L<PDL::Internals>) the
 C<iflags> such as to inform the trans's error checks connected to dataflow.
+As of 2.104, also automatically sets C<Lvalue>.
 
 =head3 Identity
 
@@ -2665,6 +2666,7 @@ Example:
 
 If present, make the operation's XS function be C<lvalue>, like
 L<PDL::Slices/xchg>. Added in 2.096.
+As of 2.104, automatically set if C<TwoWay>.
 
 =head1 Appendix B: PP macros and functions
 

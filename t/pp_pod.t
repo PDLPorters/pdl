@@ -155,6 +155,19 @@ subtest a_bl => sub {
     ok all_seen($obj, 'foo'), 'all seen';
 };
 
+subtest a_bt => sub {
+    my $obj = call_pp_def(foo =>
+      Pars => 'a(n); [o]b(n)',
+      TwoWay => 1,
+    );
+    ok find_usage($obj, '$b = foo($a)'), 'function call w/ arg';
+    ok find_usage($obj, 'foo($a, $b)'), 'all arguments given';
+    ok find_usage($obj, '$b = $a->foo'), 'method call';
+    ok find_usage($obj, '$a->foo($b)'), 'method call, arg';
+    ok find_usage($obj, '$a->foo .= $data'), 'method call, twoway as lvalue';
+    ok all_seen($obj, 'foo'), 'all seen';
+};
+
 subtest a_b_k => sub {
     my $obj = call_pp_def(foo =>
         Pars => 'a(n); [o]b(n)',

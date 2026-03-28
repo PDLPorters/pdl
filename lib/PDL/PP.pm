@@ -1488,6 +1488,7 @@ EOF
      }),
    PDL::PP::Rule::Returns->new("OverloadDocValues", []),
 
+   PDL::PP::Rule::Returns::One->new('Lvalue', 'TwoWay', 'TwoWay => Lvalue'),
    PDL::PP::Rule->new([qw(UsageDoc ParamDoc)],
      [qw(Name Doc? SignatureObj OtherParsDefaults? ArgOrder?
        OverloadDocValues InplaceDocValues ParamDesc? Lvalue? NoExport?
@@ -2013,11 +2014,11 @@ EOF
       sub {make_xs_code('','',@_)}),
 
    PDL::PP::Rule->new("VTableDef",
-      ["VTableName","ParamStructType","RedoDimsFuncName","ReadDataFuncName",
-       "WriteBackDataFuncName","FreeFuncName",
-       "SignatureObj","HaveBroadcasting","NoPthread","Name",
-       "GenericTypes","IsAffineFlag","TwoWayFlag","DefaultFlowFlag",
-       "BadFlag"],
+      [qw(VTableName ParamStructType
+       RedoDimsFuncName ReadDataFuncName WriteBackDataFuncName FreeFuncName
+       SignatureObj HaveBroadcasting NoPthread Name
+       GenericTypes IsAffineFlag TwoWayFlag DefaultFlowFlag
+       BadFlag)],
       sub {
         my($vname,$ptype,$rdname,$rfname,$wfname,$ffname,
            $sig,$havebroadcasting, $noPthreadFlag, $name, $gentypes,
