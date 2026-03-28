@@ -1290,18 +1290,30 @@ pp_def('tricpy',
   OtherParsDefaults => {uplo => 0},
   ArgOrder => [qw(A uplo C)],
   GenericTypes => [ppdefs_all()],
-  Code => '
-if ($COMP(uplo)) { /* lower */
-  broadcastloop %{ loop(n,m=:n+1) %{ $C() = $A(); %} %}
-} else {
-  broadcastloop %{ loop(n,m=n) %{ $C() = $A(); %} %}
+  Code => <<'EOF',
+switch ($COMP(uplo)) {
+  case -1: /* strict upper */
+    broadcastloop %{ loop(n,m=n) %{ if (n != m) $C() = $A(); %} %}
+    break;
+  case 0: /* upper */
+    broadcastloop %{ loop(n,m=n) %{ $C() = $A(); %} %}
+    break;
+  case 1: /* lower */
+    broadcastloop %{ loop(n,m=:n+1) %{ $C() = $A(); %} %}
+    break;
+  case 2: /* strict lower */
+    broadcastloop %{ loop(n,m=:n+1) %{ if (n != m) $C() = $A(); %} %}
+    break;
+  default: $CROAK(" invalid value for uplo '%d', must be -1..2", $COMP(uplo));
 }
-',
+EOF
   Doc => <<'EOT',
 =for ref
 
-Copy triangular part to another matrix. If uplo == 0 copy upper triangular
-part.
+Copy triangular part to another matrix.
+
+C<uplo> meanings to copy: -1 strict upper triangular, 0 = upper, 1
+lower, 2 strict lower. The "strict" modes are as of 2.104.
 
 Originally by Grégory Vanuxem.
 EOT

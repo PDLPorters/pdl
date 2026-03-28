@@ -345,13 +345,13 @@ is $y.'', "
 my $A = pdl '[1 2 3; 4 5 6; 7 8 9]';
 my $up = pdl '[1 2 3; 0 5 6; 0 0 9]';
 my $lo = pdl '[1 0 0; 4 5 0; 7 8 9]';
-is_pdl $A->tricpy(0), $up, 'upper triangle #1';
+is_pdl $A->tricpy(0), $up, 'upper triangle';
 tricpy($A, 0, my $got = null);
-is_pdl $got, $up, 'upper triangle #2';
-is_pdl $A->tricpy, $up, 'upper triangle #3';
-is_pdl $A->tricpy(1), $lo, 'lower triangle #1';
+is_pdl $got, $up, 'upper triangle';
+is_pdl $A->tricpy, $up, 'upper triangle';
+is_pdl $A->tricpy(1), $lo, 'lower triangle';
 tricpy($A, 1, $got = null);
-is_pdl $got, $lo, 'lower triangle #2';
+is_pdl $got, $lo, 'lower triangle';
 is_pdl $A->mstack($up), pdl('[1 2 3; 4 5 6; 7 8 9; 1 2 3; 0 5 6; 0 0 9]');
 is_pdl sequence(2,3)->augment(sequence(3,3)+10), pdl('[0 1 10 11 12; 2 3 13 14 15; 4 5 16 17 18]');
 my $B = pdl('[i 2+4i 3+5i; 0 3i 7+9i]');
@@ -359,6 +359,10 @@ is_pdl $B->t, pdl('[i 0; 2+4i 3i; 3+5i 7+9i]');
 is_pdl $B->t(1), pdl('[-i 0; 2-4i -3i; 3-5i 7-9i]');
 is_pdl sequence(3)->t, pdl('[0; 1; 2]');
 is_pdl pdl(3)->t->shape, indx([1,1]);
+my $strict_up = pdl '[0 2 3; 0 0 6; 0 0 0]';
+my $strict_lo = pdl '[0 0 0; 4 0 0; 7 8 0]';
+is_pdl $A->tricpy(-1), $strict_up, 'strict upper triangle';
+is_pdl $A->tricpy(2), $strict_lo, 'strict lower triangle';
 }
 
 done_testing;
