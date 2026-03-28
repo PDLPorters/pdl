@@ -168,6 +168,16 @@ subtest a_bt => sub {
     ok all_seen($obj, 'foo'), 'all seen';
 };
 
+subtest a_bi => sub {
+    my $obj = call_pp_def(foo =>
+      Identity => 1,
+    );
+    ok find_usage($obj, '$CHILD = foo($PARENT)'), 'function call w/ arg';
+    ok find_usage($obj, '$CHILD = $PARENT->foo'), 'method call';
+    ok find_usage($obj, '$PARENT->foo .= $data'), 'method call, identity as lvalue';
+    ok all_seen($obj, 'foo'), 'all seen';
+};
+
 subtest a_b_k => sub {
     my $obj = call_pp_def(foo =>
         Pars => 'a(n); [o]b(n)',
