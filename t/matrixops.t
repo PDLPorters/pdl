@@ -274,37 +274,36 @@ my $svd_in = pdl([3,1,2,-1],[-1,3,0,2],[-2,3,0,0],[1,3,-1,2]);
 #2x2;
 my $this_svd_in = $svd_in->slice("0:1","0:1");
 my ($u,$s,$v) = svd($this_svd_in);
-is_pdl $this_svd_in, ($u x stretcher($s) x $v->transpose), "svd 2x2";
+is_pdl $u x stretcher($s) x $v->transpose, $this_svd_in, "svd 2x2";
 }
 
 {
 #3x3;
 my $this_svd_in = $svd_in->slice("0:2","0:2");
 my ($u,$s,$v) = svd($this_svd_in);
-is_pdl $this_svd_in, $u x stretcher($s) x $v->transpose, "svd 3x3";
+is_pdl $u x stretcher($s) x $v->transpose, $this_svd_in, "svd 3x3";
 }
 
 {
 #4x4;
 my $this_svd_in = $svd_in;
 my ($u,$s,$v) = svd($this_svd_in);
-is_pdl $this_svd_in,($u x stretcher($s) x $v->transpose),"svd 4x4";
+is_pdl $u x stretcher($s) x $v->transpose, $this_svd_in, "svd 4x4";
 }
 
 {
 #3x2
 my $this_svd_in = $svd_in->slice("0:1","0:2");
 my ($u,$s,$v) = svd($this_svd_in);
-is_pdl $this_svd_in, $u x stretcher($s) x $v->transpose, "svd 3x2";
+is_pdl $u x stretcher($s) x $v->transpose, $this_svd_in, "svd 3x2";
 }
 
 {
 #2x3
 my $this_svd_in = $svd_in->slice("0:2","0:1");
 my ($u,$s,$v) = svd($this_svd_in->transpose);
-is_pdl $this_svd_in, $v x stretcher($s) x $u->transpose, "svd 2x3";
+is_pdl $v x stretcher($s) x $u->transpose, $this_svd_in, "svd 2x3";
 }
-
 }
 
 {
