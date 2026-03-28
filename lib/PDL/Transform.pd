@@ -3885,12 +3885,13 @@ Projective transformation
 
 Projective transforms are simple quadratic, quasi-linear
 transformations.  They are the simplest transformation that
-can continuously warp an image plane so that four arbitrarily chosen
-points exactly map to four other arbitrarily chosen points.  They
+can continuously warp an image plane so that C<ncoords + 2> arbitrarily chosen
+points exactly map to the same number of other arbitrarily chosen points.  They
 have the property that straight lines remain straight after transformation.
 
 You can specify your projective transformation directly in homogeneous
-coordinates, or (in 2 dimensions only) as a set of four unique points that
+coordinates, or (in 2 dimensions only) as a set
+of C<ncoords + 2> unique points that
 are mapped one to the other by the transformation.
 
 Projective transforms are quasi-linear because they are most easily
@@ -3920,10 +3921,12 @@ be N+1 x N+1, for an N-dimensional transformation.
 
 =item p, point, points, Points
 
-If specified, this is the set of four points that should be mapped one to the other.
-The homogeneous-coordinate matrix is calculated from them.  You should feed in a
-2x2x4 PDL, where the 0 dimension runs over coordinate, the 1 dimension runs between input
-and output, and the 2 dimension runs over point.  For example, specifying
+If specified, this is the set of C<ncoords + 2> points that should
+be mapped one to the other.
+The homogeneous-coordinate matrix is calculated from them. You should feed in a
+C<ncoord x 2 x ncoord+2> PDL, where the 0 dimension runs over
+coordinate, the 1 dimension runs between input
+and output, and the 2 dimension runs over points. For example, specifying
 
   p=> pdl([ [[0,1],[0,1]], [[5,9],[5,8]], [[9,4],[9,3]], [[0,0],[0,0]] ])
 
@@ -3958,8 +3961,8 @@ sub t_projective {
       unless $me->{params}{idim} == $matrix->dim(0)-1;
   } elsif(defined (my $p=pdl(_opt($o,['p','point','points','Point','Points'])))) {
     my $d0 = $p->dim(0);
-    die "t_projective: points must be ncoord x 2(in,out) x 2^ncoord(point)"
-      unless $p->dims==3 && all($p->shape == pdl($d0,2,2**$d0));
+    die "t_projective: points must be ncoord x 2(in,out) x ncoord+2(point)"
+      unless $p->dims==3 && all($p->shape == pdl($d0,2,$d0+2));
     # Solve the system of N equations to find the projective transform
     my $p_appended = $p->slice(":,(0)")->append([1, (0) x ($d0+1)]);
     my $M = $p_appended->append(
