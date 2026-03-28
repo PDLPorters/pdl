@@ -6,8 +6,7 @@
 
 extern Core PDL; /* for PDL_TYPENAME */
 
-/* CORE21 incorporate error in here if no vtable function */
-#define VTABLE_OR_DEFAULT(errcall, trans, is_fwd, func, default_func) \
+#define VTABLE_OR_DEFAULT(errcall, trans, is_fwd, func) \
   do { \
     pdl_transvtable *vtable = (trans)->vtable; \
     PDLDEBUG_f(printf("VTOD call " #func "(trans=%p/%s)\n", trans, vtable->name)); \
@@ -24,8 +23,8 @@ extern Core PDL; /* for PDL_TYPENAME */
         PDL_BITFIELD_SET(had_badflag, i-istart); \
     PDLDEBUG_f(printf("had_badflag bitfield: 0b"); for (i = iend-istart; i >= 0; i--) { printf("%d", PDL_BITFIELD_ISSET(had_badflag, i)); } printf("\n");); \
     errcall(PDL_err, (vtable->func \
-      ? vtable->func \
-      : pdl_ ## default_func)(trans)); \
+      ? vtable->func(trans) \
+      : pdl_make_error(PDL_EUSERERROR, "%s: " #func " called with no vtable entry", vtable->name))); \
     for (i = istart; i < iend; i++) { \
       pdl *child = (trans)->pdls[i]; \
       PDLDEBUG_f(printf("VTOD " #func " child=%p turning off datachanged, before=", child); pdl_dump_flags_fixspace(child->state, 0, PDL_FLAGS_PDL)); \
@@ -36,8 +35,8 @@ extern Core PDL; /* for PDL_TYPENAME */
         pdl_propagate_badflag_dir(child, !!(child->state & PDL_BADVAL), is_fwd, 1); \
     } \
   } while (0)
-#define READDATA(trans) VTABLE_OR_DEFAULT(PDL_ACCUMERROR, trans, 1, readdata, readdata_affine)
-#define WRITEDATA(trans) VTABLE_OR_DEFAULT(PDL_ACCUMERROR, trans, 0, writebackdata, writebackdata_affine)
+#define READDATA(trans) VTABLE_OR_DEFAULT(PDL_ACCUMERROR, trans, 1, readdata)
+#define WRITEDATA(trans) VTABLE_OR_DEFAULT(PDL_ACCUMERROR, trans, 0, writebackdata)
 
 #define REDODIMS(errcall, trans) do { \
     pdl_transvtable *vtable = (trans)->vtable; \

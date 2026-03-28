@@ -7,10 +7,10 @@
 
 /* delete these in CORE21 */
 pdl_error pdl_readdata_affine(pdl_trans *trans) {
-  return (pdl_error){PDL_EUSERERROR, "readdata called with no vtable entry", 0};
+  return pdl_make_error(PDL_EUSERERROR, "%s: readdata called with no vtable entry", trans->vtable->name);
 }
 pdl_error pdl_writebackdata_affine(pdl_trans *trans) {
-  return (pdl_error){PDL_EUSERERROR, "writebackdata called with no vtable entry", 0};
+  return pdl_make_error(PDL_EUSERERROR, "%s: writebackdata called with no vtable entry", trans->vtable->name);
 }
 
 /* generated from:
