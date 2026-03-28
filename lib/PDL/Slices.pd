@@ -1411,7 +1411,6 @@ EOF
 
 pp_def('xchg',
         OtherPars => 'PDL_Indx n1; PDL_Indx n2;',
-        P2Child => 1,
         AffinePriv => 1,
         EquivDimCheck =>pp_line_numbers(__LINE__, <<'EOF'),
           if ($COMP(n1) <0)
@@ -1574,7 +1573,6 @@ EOD
 
 pp_def('mv',
         OtherPars => 'PDL_Indx n1; PDL_Indx n2;',
-        P2Child => 1,
         AffinePriv => 1,
         CHeader => <<'EOF',
 #define EQUIVDIM(dima,dimb,cdim,inc) \
@@ -1715,7 +1713,6 @@ negative and will then be counted from the last dim backwards
 in the usual way (-1 = last dim).
 =cut
 EOD
-        P2Child => 1,
         AffinePriv => 1,
         OtherPars => join('', map "PDL_Indx $_;", qw(nthdim step nlags)),
         RedoDims => pp_line_numbers(__LINE__, <<'EOF'),
@@ -1772,7 +1769,6 @@ the expression
 is always true (C<m> has to be less than 3).
 =cut
 EOD
-        P2Child => 1,
         OtherPars => join('', map "PDL_Indx $_;", qw(nthdim nsp)),
         AffinePriv => 1,
         RedoDims => pp_line_numbers(__LINE__, <<'EOF'),
@@ -1845,7 +1841,6 @@ Put some dimensions to a broadcastid.
 
  $y = $x->broadcastI(0,1,5); # broadcast over dims 1,5 in id 1
 EOD
-        P2Child => 1,
         AffinePriv => 1,
         OtherPars => "PDL_Indx id; PDL_Indx whichdims[]",
         Comp => 'PDL_Indx nrealwhichdims',
@@ -1924,7 +1919,6 @@ All broadcasted dimensions are made real again.
 See [TBD Doc] for details and examples.
 =cut
 EOD
-        P2Child => 1,
         AffinePriv => 1,
         OtherPars => 'PDL_Indx atind;',
         RedoDims => pp_line_numbers(__LINE__, <<'EOF'),
@@ -2304,7 +2298,6 @@ sub PDL::slice :lvalue {
     $o;
 }
 EOD-slice
-        P2Child => 1,
         OtherPars => 'pdl_slice_args *arglist;',
 #
 # Comp stash definitions:
@@ -2428,7 +2421,6 @@ EOF
 );
 
 pp_def('diagonal',
-        P2Child => 1,
         AffinePriv => 1,
         OtherPars => 'PDL_Indx whichdims[]',
         MakeComp => pp_line_numbers(__LINE__-1, '

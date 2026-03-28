@@ -2588,7 +2588,7 @@ transformation back to the parent when C<BackCode> is supplied.
 
 Flag to indicate this is an affine transformation whose C<Priv> (contents
 of the C<pdl_trans>) contains data that will need allocating and freeing.
-As of 2.104, implies C<TwoWay>.
+As of 2.104, implies C<TwoWay> and C<P2Child>.
 
 =head3 GlobalNew
 
@@ -2603,6 +2603,7 @@ Forces C<Pars> to be C<PARENT> and C<CHILD>, the function's
 C<GenericTypes> to be all of them, no C<HaveBroadcasting> or C<CallCopy>,
 and turns on C<DefaultFlow> (so do not supply any of those args).
 Intended for affine transformations with dataflow.
+As of 2.104, implied by C<AffinePriv>.
 
 =head3 DefaultFlow
 

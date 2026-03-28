@@ -1212,8 +1212,9 @@ $PDL::PP::deftbl =
        'Cannot have both P2Child and GenericTypes defined'),
    PDL::PP::Rule::Croak->new([qw(P2Child Inplace)],
        'Cannot have both P2Child and Inplace defined'),
+   PDL::PP::Rule::Returns::One->new('P2Child', 'AffinePriv', 'AffinePriv => P2Child'),
    PDL::PP::Rule->new([qw(Pars HaveBroadcasting GenericTypes DefaultFlow AllFuncHeader RedoDimsFuncHeader)],
-		      ["P2Child","Name","StructName"],
+		      [qw(P2Child Name StructName)],
       sub {
         my (undef,$name,$sname) = @_;
         ("PARENT(); [oca]CHILD();",0,[PDL::Types::ppdefs_all()],1,
