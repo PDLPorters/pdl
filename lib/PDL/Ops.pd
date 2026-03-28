@@ -154,6 +154,7 @@ EOF
 
 sub g_c {
   my ($func, $arg) = @_;
+  return 0 if $func !~ /[a-z]/;
   $got_complex{$func} = PDL::Core::Dev::got_complex_version($func, $arg);
   print "got_complex_version($func, $arg): $got_complex{$func}\n";
   $got_complex{$func};
