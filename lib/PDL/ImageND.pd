@@ -1182,22 +1182,26 @@ EOPM
 pp_add_exported('','path_segs');
 
 pp_def('combcoords',
-	GenericTypes => ['F','D'],
-	DefaultFlow => 1,
-	Pars => 'x(); y(); z();
-		float [o]coords(tri=3);',
-	Code => '
-		$coords(tri => 0) = $x();
-		$coords(tri => 1) = $y();
-		$coords(tri => 2) = $z();
-	',
-	Doc => <<EOT
+  GenericTypes => ['F','D'],
+  Pars => 'x(); y(); z();
+    float [o]coords(tri=3);',
+  Code => '
+    $coords(tri => 0) = $x();
+    $coords(tri => 1) = $y();
+    $coords(tri => 2) = $z();
+  ',
+  BackCode => '
+    $x() = $coords(tri=>0);
+    $y() = $coords(tri=>1);
+    $z() = $coords(tri=>2);
+  ',
+  Doc => <<'EOT',
 =for ref
 
 Combine three coordinates into a single ndarray.
 
-Combine x, y and z to a single ndarray the first dimension
-of which is 3. This routine does dataflow automatically.
+Combine x, y and z into a single ndarray the first dimension
+of which is 3.
 EOT
 );
 

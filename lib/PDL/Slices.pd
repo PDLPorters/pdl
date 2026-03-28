@@ -1434,9 +1434,6 @@ creates C<$y> to be like C<$x> except that the dimensions 2 and 3
 are exchanged with each other i.e.
 
  $y->at(5,3,2,8) == $x->at(5,3,8,2)
-
-=cut
-
 EOD
 );
 

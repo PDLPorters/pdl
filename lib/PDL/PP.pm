@@ -1224,8 +1224,7 @@ $PDL::PP::deftbl =
       }),
 
 # Question: where is ppdefs defined?
-# Answer: Core/Types.pm
-#
+# Answer: lib/PDL/Types.pm
    PDL::PP::Rule->new("GenericTypes", [],
        'Sets GenericTypes flag to all real types known to PDL::Types',
        sub {[PDL::Types::ppdefs()]}),
@@ -1487,6 +1486,14 @@ EOF
    PDL::PP::Rule::Returns->new("OverloadDocValues", []),
 
    PDL::PP::Rule::Returns::One->new('TwoWay', 'BackCode', 'BackCode => TwoWay'),
+   PDL::PP::Rule::->new([], [qw(DefaultFlow Name BackCode? AffinePriv?)],
+     'DefaultFlow needs BackCode or AffinePriv',
+     sub {
+       my (undef, $name, $bc, $aff) = @_;
+       confess "pp_def($name): DefaultFlow but no BackCode or AffinePriv" if !$bc and !$aff;
+       ();
+     },
+   ),
    PDL::PP::Rule::Returns::One->new('DefaultFlow', 'BackCode', 'BackCode => DefaultFlow'),
    PDL::PP::Rule::Returns::One->new('TwoWay', 'AffinePriv', 'AffinePriv => TwoWay'),
    PDL::PP::Rule::Returns->new("TwoWayFlag", "TwoWay", "PDL_ITRANS_TWOWAY"),
