@@ -20,6 +20,8 @@ is_pdl $x->im, $ref->slice("(1),:"), 'value from i - ndarray';
 ok !$x->type->real, 'complex type not real';
 ok double->real, 'real type is real';
 ok !$x->sumover->type->real, 'sumover type=complex';
+$x->im++;
+is_pdl $x->im, $ref->slice("(1),:") + 1, 'im worked as lvalue';
 
 for (qw(conj re im)) {
   eval {double(5)->$_};
