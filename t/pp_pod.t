@@ -4,12 +4,6 @@ use warnings;
 use Test::More;
 use PDL::PP qw(Foo::Bar Foo::Bar foobar);
 
-# call pp_def and report args
-sub call_pp_def {
-    my $obj = pp_def(@_);
-    $obj;
-}
-
 # search and remove pattern in generated pod:
 sub find_usage {
     my ($obj, $str) = @_;
@@ -29,7 +23,7 @@ sub all_seen {
 pp_bless('Foo::Bar');
 
 subtest a => sub {
-    my $obj = call_pp_def(foo =>
+    my $obj = pp_def(foo =>
         Pars => 'a(n)',
     );
     ok find_usage($obj, 'foo($a)'), 'function call';
@@ -41,7 +35,7 @@ subtest a => sub {
 };
 
 subtest a_hb => sub {
-    my $obj = call_pp_def(foo =>
+    my $obj = pp_def(foo =>
         Pars => 'a(n)',
         HandleBad => 1,
     );
@@ -50,7 +44,7 @@ subtest a_hb => sub {
 };
 
 subtest a_nhb => sub {
-    my $obj = call_pp_def(foo =>
+    my $obj = pp_def(foo =>
         Pars => 'a(n)',
         HandleBad => 0,
     );
@@ -59,7 +53,7 @@ subtest a_nhb => sub {
 };
 
 subtest a_nbr => sub {
-    my $obj = call_pp_def(foo =>
+    my $obj = pp_def(foo =>
         Pars => 'a(n)',
         HaveBroadcasting => 0,
     );
@@ -68,7 +62,7 @@ subtest a_nbr => sub {
 };
 
 subtest a_np => sub {
-    my $obj = call_pp_def(foo =>
+    my $obj = pp_def(foo =>
         Pars => 'a(n)',
         NoPthread => 1,
     );
@@ -76,7 +70,7 @@ subtest a_np => sub {
 };
 
 subtest a_sig => sub {
-  my $obj = call_pp_def(foo =>
+  my $obj = pp_def(foo =>
     Pars => 'a(n); b()',
     Doc => <<'EOF',
 =for sig
@@ -89,7 +83,7 @@ EOF
 };
 
 subtest a_n => sub {
-    my $obj = call_pp_def(foo =>
+    my $obj = pp_def(foo =>
         Pars => 'a(n)',
         NoExport => 1,
     );
@@ -99,7 +93,7 @@ subtest a_n => sub {
 };
 
 subtest a_b_noi => sub {
-    my $obj = call_pp_def(foo =>
+    my $obj = pp_def(foo =>
         Pars => 'a(n); [o]b(n)',
         NoExport => 1,
         Overload => ['foo', 1],
@@ -116,7 +110,7 @@ subtest a_b_noi => sub {
 };
 
 subtest a_b_oi => sub {
-    my $obj = call_pp_def(foo =>
+    my $obj = pp_def(foo =>
         Pars => 'a(n); [o]b(n)',
         Overload => ['foo', 1],
         Inplace => ['a'],
@@ -132,7 +126,7 @@ subtest a_b_oi => sub {
 };
 
 subtest a_b => sub {
-    my $obj = call_pp_def(foo =>
+    my $obj = pp_def(foo =>
       Pars => 'a(n); [o]b(n)',
     );
     ok find_usage($obj, '$b = foo($a)'), 'function call w/ arg';
@@ -143,7 +137,7 @@ subtest a_b => sub {
 };
 
 subtest a_bl => sub {
-    my $obj = call_pp_def(foo =>
+    my $obj = pp_def(foo =>
       Pars => 'a(n); [o]b(n)',
       Lvalue => 1,
     );
@@ -156,7 +150,7 @@ subtest a_bl => sub {
 };
 
 subtest a_bt => sub {
-    my $obj = call_pp_def(foo =>
+    my $obj = pp_def(foo =>
       Pars => 'a(n); [o]b(n)',
       TwoWay => 1,
     );
@@ -169,7 +163,7 @@ subtest a_bt => sub {
 };
 
 subtest a_bi => sub {
-    my $obj = call_pp_def(foo =>
+    my $obj = pp_def(foo =>
       Identity => 1,
     );
     ok find_usage($obj, '$CHILD = foo($PARENT)'), 'function call w/ arg';
@@ -179,7 +173,7 @@ subtest a_bi => sub {
 };
 
 subtest a_b_k => sub {
-    my $obj = call_pp_def(foo =>
+    my $obj = pp_def(foo =>
         Pars => 'a(n); [o]b(n)',
         OtherPars => 'int k',
     );
@@ -191,7 +185,7 @@ subtest a_b_k => sub {
 };
 
 subtest ab_c_o => sub {
-    my $obj = call_pp_def(foo =>
+    my $obj = pp_def(foo =>
         Pars => 'a(n); b(n); [o]c(n)',
         Overload => '?:',
     );
@@ -204,7 +198,7 @@ subtest ab_c_o => sub {
 };
 
 subtest ab_c_oi => sub {
-    my $obj = call_pp_def(foo =>
+    my $obj = pp_def(foo =>
         Pars => 'a(n); b(n); [o]c(n)',
         Overload => ['?:', 1],
         Inplace => ['a'],
@@ -221,7 +215,7 @@ subtest ab_c_oi => sub {
 };
 
 subtest ab_c_ni => sub {
-    my $obj = call_pp_def(foo =>
+    my $obj = pp_def(foo =>
         Pars => 'a(n); b(n); [o]c(n)',
         Inplace => ['a'],
         NoExport => 1,
@@ -236,7 +230,7 @@ subtest ab_c_ni => sub {
 };
 
 subtest ab_c_o => sub {
-    my $obj = call_pp_def(foo =>
+    my $obj = pp_def(foo =>
         Pars => 'a(n); b(n); [o]c(n)',
         Overload => ['rho'],
     );
@@ -249,7 +243,7 @@ subtest ab_c_o => sub {
 };
 
 subtest ab_c_no => sub {
-    my $obj = call_pp_def(foo =>
+    my $obj = pp_def(foo =>
         Pars => 'a(n); b(n); [o]c(n)',
         Overload => ['rho', 0, 0, 1],
         NoExport => 1,
@@ -264,7 +258,7 @@ subtest ab_c_no => sub {
 
 
 subtest a_bc => sub {
-    my $obj = call_pp_def(foo =>
+    my $obj = pp_def(foo =>
         Pars => 'a(n); [o]b(n); [o]c(n)',
     );
     ok find_usage($obj, 'foo($a, $b, $c)'), 'multi output function call, all args';
@@ -275,7 +269,7 @@ subtest a_bc => sub {
 };
 
 subtest ab_k_c => sub {
-    my $obj = call_pp_def(foo =>
+    my $obj = pp_def(foo =>
         Pars => 'a(n); b(n); [o]c(n)',
         OtherPars => 'int k',
         ArgOrder => [qw(a b k c)],
@@ -288,7 +282,7 @@ subtest ab_k_c => sub {
 };
 
 subtest ab_c_k => sub {
-    my $obj = call_pp_def(foo =>
+    my $obj = pp_def(foo =>
         Pars => 'a(n); b(n); [o]c(n)',
         OtherPars => 'int k',
     );
@@ -300,7 +294,7 @@ subtest ab_c_k => sub {
 };
 
 subtest ab_k_cd => sub {
-    my $obj = call_pp_def(foo =>
+    my $obj = pp_def(foo =>
         Pars => 'a(n); b(n); [o]c(n); [o]d(n)',
         OtherPars => 'int k',
         ArgOrder => [qw(a b k c d)],
@@ -313,7 +307,7 @@ subtest ab_k_cd => sub {
 };
 
 subtest ab_cd_k => sub {
-    my $obj = call_pp_def(foo =>
+    my $obj = pp_def(foo =>
         Pars => 'a(n); b(n); [o]c(n); [o]d(n)',
         OtherPars => 'int k',
     );
