@@ -152,6 +152,8 @@ subtest a_bl => sub {
 subtest a_bt => sub {
     my $obj = pp_def(foo =>
       Pars => 'a(n); [o]b(n)',
+      DefaultFlow => 1,
+      BackCode => 'invert',
       TwoWay => 1,
     );
     ok find_usage($obj, '$b = foo($a)'), 'function call w/ arg';
@@ -159,7 +161,17 @@ subtest a_bt => sub {
     ok find_usage($obj, '$b = $a->foo'), 'method call';
     ok find_usage($obj, '$a->foo($b)'), 'method call, arg';
     ok find_usage($obj, '$a->foo .= $data'), 'method call, twoway as lvalue';
+    like $obj->{PdlDoc}, qr/data-flow back and forth by default/, "two-way flow in doc";
     ok all_seen($obj, 'foo'), 'all seen';
+};
+
+subtest a_btno2 => sub {
+    my $obj = pp_def(foo =>
+      Pars => 'a(n); [o]b(n)',
+      DefaultFlow => 1,
+      BackCode => 'invert',
+    );
+    like $obj->{PdlDoc}, qr/data-flow back and forth by default/, "two-way flow in doc";
 };
 
 subtest a_bi => sub {
