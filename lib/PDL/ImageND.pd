@@ -1190,11 +1190,7 @@ pp_def('combcoords',
     $coords(tri => 1) = $y();
     $coords(tri => 2) = $z();
   ',
-  BackCode => '
-    $x() = $coords(tri=>0);
-    $y() = $coords(tri=>1);
-    $z() = $coords(tri=>2);
-  ',
+  DefaultFlow => 1,
   Doc => <<'EOT',
 =for ref
 

@@ -9,7 +9,6 @@
 - MatrixOps::svd now handles transpose transparently
 - AffinePriv now implies P2Child and Lvalue
 - BackCode (including from EquivCPOffsCode) now implies DefaultFlow and Lvalue
-- now an error to specify DefaultFlow if no BackCode or AffinePriv
 - combcoords now does two-way flow
 - tricpy now can do strict upper/lower triangle
 - add MatrixOps::tritosym from PDL::LinearAlgebra with fixed Hermitian mode

@@ -168,9 +168,8 @@ subtest a_btno2 => sub {
     my $obj = pp_def(foo =>
       Pars => 'a(n); [o]b(n)',
       DefaultFlow => 1,
-      BackCode => 'invert',
     );
-    like $obj->{PdlDoc}, qr/data-flow back and forth by default/, "two-way flow in doc";
+    like $obj->{PdlDoc}, qr/data-flow by default/, "one-way flow in doc";
 };
 
 subtest a_bi => sub {

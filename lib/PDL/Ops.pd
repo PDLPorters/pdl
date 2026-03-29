@@ -553,12 +553,12 @@ sub overload_dotequals {
 sub overload_abs { PDL::abs($_[0]) }
 sub overload_plusplus {
   $_[0] += ($PDL::Core::pdl_ones[$_[0]->get_datatype]
-    //barf "Couldn't find 'one' for type ", $_[0]->get_datatype
+    // barf "Couldn't find 'one' for type ", $_[0]->get_datatype
   )
 }
 sub overload_minusminus {
   $_[0] -= ($PDL::Core::pdl_ones[$_[0]->get_datatype]
-    //barf "Couldn't find 'one' for type ", $_[0]->get_datatype
+    // barf "Couldn't find 'one' for type ", $_[0]->get_datatype
   )
 }
   use overload

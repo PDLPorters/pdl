@@ -2574,9 +2574,9 @@ As of 2.104, implied by C<AffinePriv>.
 =head3 DefaultFlow
 
 If I<set>, sets in the C<pdl_transvtable> (see L<PDL::Internals>) the
-C<iflags> such that the trans will start with dataflow both forwards
-and backwards. Note that setting this to any value (including 0) will
-trigger the behaviour.
+C<iflags> such that the trans will start with forward dataflow,
+and backwards if C<BackCode> or C<AffinePriv>. Note that setting
+this to any value (including 0) will trigger the behaviour.
 As of 2.104, implied by C<BackCode> (including from C<EquivCPOffsCode>).
 
 =head3 HaveBroadcasting
@@ -2630,7 +2630,8 @@ Example:
 
 If present, make the operation's XS function be C<lvalue>, like
 L<PDL::Slices/xchg>. Added in 2.096.
-As of 2.104, automatically set if C<BackCode> or C<AffinePriv>.
+As of 2.104, automatically set if there is backwards dataflow, see
+L</DefaultFlow>.
 
 =head1 Appendix B: PP macros and functions
 

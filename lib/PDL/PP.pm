@@ -1485,22 +1485,20 @@ EOF
      }),
    PDL::PP::Rule::Returns->new("OverloadDocValues", []),
 
-   PDL::PP::Rule::->new([], [qw(DefaultFlow Name BackCode? AffinePriv?)],
-     'DefaultFlow needs BackCode or AffinePriv',
+   PDL::PP::Rule->new("DefaultFlowFlag", [qw(DefaultFlow? BackCode? AffinePriv?)],
+     'Set starting dataflow forward if DefaultFlow, back if (BackCode | AffinePriv)',
      sub {
-       my (undef, $name, $bc, $aff) = @_;
-       confess "pp_def($name): DefaultFlow but no BackCode or AffinePriv" if !$bc and !$aff;
-       ();
+       my ($df, $bc, $aff) = @_;
+       $bc || $aff ? "PDL_ITRANS_DO_DATAFLOW_ANY" :
+         $df ? "PDL_ITRANS_DO_DATAFLOW_F" :
+         0;
      },
    ),
-   PDL::PP::Rule::Returns::One->new('DefaultFlow', 'BackCode', 'BackCode => DefaultFlow'),
-   PDL::PP::Rule::Returns->new("DefaultFlowFlag", "DefaultFlow", "PDL_ITRANS_DO_DATAFLOW_ANY"),
-   PDL::PP::Rule::Returns::Zero->new("DefaultFlowFlag"),
-   PDL::PP::Rule->new('Lvalue', [qw(BackCode? AffinePriv?)],
-     'Lvalue <= (BackCode | AffinePriv)',
+   PDL::PP::Rule->new('Lvalue', "DefaultFlowFlag",
+     'Lvalue <= DefaultFlowFlag value',
      sub {
-       my ($bc, $aff) = @_;
-       $bc || $aff;
+       my ($flowflag) = @_;
+       $flowflag =~ /ANY/ ? 1 : 0;
      },
    ),
    PDL::PP::Rule->new([qw(UsageDoc ParamDoc)],
@@ -1642,7 +1640,7 @@ EOD
         my @misc = $havebroadcasting ? "Broadcasts over its inputs.\n" : "Does not broadcast.\n";
         push @misc, "Can't use POSIX threads.\n" if $noPthreadFlag;
         push @misc, "Makes L<virtual affine|PDL::Indexing> ndarrays.\n" if $affflag;
-        push @misc, "Creates data-flow".(!$flowflag ? "" : " back and forth").
+        push @misc, "Creates data-flow".($flowflag !~ /ANY/ ? "" : " back and forth").
           " by default.\n" if $flowflag;
         my $miscdocs = join '', grep $_, $paramdoc, @misc, $baddoc;
         my $baddoc_function_pod = <<"EOD" ;
