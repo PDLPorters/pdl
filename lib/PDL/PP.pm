@@ -1500,10 +1500,16 @@ EOF
    PDL::PP::Rule::Returns::Zero->new("TwoWayFlag"),
    PDL::PP::Rule::Returns->new("DefaultFlowFlag", "DefaultFlow", "PDL_ITRANS_DO_DATAFLOW_ANY"),
    PDL::PP::Rule::Returns::Zero->new("DefaultFlowFlag"),
-   PDL::PP::Rule::Returns::One->new('Lvalue', 'TwoWay', 'TwoWay => Lvalue'),
+   PDL::PP::Rule->new('Lvalue', [qw(BackCode? AffinePriv?)],
+     'Lvalue <= (BackCode | AffinePriv)',
+     sub {
+       my ($bc, $aff) = @_;
+       $bc || $aff;
+     },
+   ),
    PDL::PP::Rule->new([qw(UsageDoc ParamDoc)],
      [qw(Name Doc? SignatureObj OtherParsDefaults? ArgOrder?
-       OverloadDocValues InplaceDocValues ParamDesc? Lvalue? NoExport?
+       OverloadDocValues InplaceDocValues ParamDesc? Lvalue NoExport?
      )],
      'generate "usage" section of doc',
      sub {
@@ -2095,8 +2101,8 @@ EOF
    PDL::PP::Rule->new([], [qw(Lvalue Name)],
      'If Lvalue key, make the XS routine be lvalue with CvLVALUE_on',
      sub {
-       my (undef, $name) = @_;
-       push @::PDL_LVALUE_SUBS, $name;
+       my ($lvalue, $name) = @_;
+       push @::PDL_LVALUE_SUBS, $name if $lvalue;
        ();
      }
    ),
