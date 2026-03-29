@@ -1485,7 +1485,6 @@ EOF
      }),
    PDL::PP::Rule::Returns->new("OverloadDocValues", []),
 
-   PDL::PP::Rule::Returns::One->new('TwoWay', 'BackCode', 'BackCode => TwoWay'),
    PDL::PP::Rule::->new([], [qw(DefaultFlow Name BackCode? AffinePriv?)],
      'DefaultFlow needs BackCode or AffinePriv',
      sub {
@@ -1495,9 +1494,6 @@ EOF
      },
    ),
    PDL::PP::Rule::Returns::One->new('DefaultFlow', 'BackCode', 'BackCode => DefaultFlow'),
-   PDL::PP::Rule::Returns::One->new('TwoWay', 'AffinePriv', 'AffinePriv => TwoWay'),
-   PDL::PP::Rule::Returns->new("TwoWayFlag", "TwoWay", "PDL_ITRANS_TWOWAY"),
-   PDL::PP::Rule::Returns::Zero->new("TwoWayFlag"),
    PDL::PP::Rule::Returns->new("DefaultFlowFlag", "DefaultFlow", "PDL_ITRANS_DO_DATAFLOW_ANY"),
    PDL::PP::Rule::Returns::Zero->new("DefaultFlowFlag"),
    PDL::PP::Rule->new('Lvalue', [qw(BackCode? AffinePriv?)],
@@ -1605,13 +1601,11 @@ EOF
    PDL::PP::Rule::Returns::Zero->new("NoPthread"), # assume we can pthread, unless indicated otherwise
    PDL::PP::Rule->new("PdlDoc", [qw(
       Name Pars OtherPars GenericTypes Doc UsageDoc BadDoc?
-      HaveBroadcasting NoPthread IsAffineFlag TwoWayFlag DefaultFlowFlag
-      ParamDoc
+      HaveBroadcasting NoPthread IsAffineFlag DefaultFlowFlag ParamDoc
       )],
       sub {
         my ($name,$pars,$otherpars,$gentypes,$doc,$usagedoc,$baddoc,
-          $havebroadcasting, $noPthreadFlag, $affflag, $revflag, $flowflag,
-          $paramdoc,
+          $havebroadcasting, $noPthreadFlag, $affflag, $flowflag, $paramdoc,
         ) = @_;
         return '' if !defined $doc # Allow explicit non-doc using Doc=>undef
             or $doc =~ /^\s*internal\s*$/i;
@@ -1648,7 +1642,7 @@ EOD
         my @misc = $havebroadcasting ? "Broadcasts over its inputs.\n" : "Does not broadcast.\n";
         push @misc, "Can't use POSIX threads.\n" if $noPthreadFlag;
         push @misc, "Makes L<virtual affine|PDL::Indexing> ndarrays.\n" if $affflag;
-        push @misc, "Creates data-flow".(!$revflag ? "" : " back and forth").
+        push @misc, "Creates data-flow".(!$flowflag ? "" : " back and forth").
           " by default.\n" if $flowflag;
         my $miscdocs = join '', grep $_, $paramdoc, @misc, $baddoc;
         my $baddoc_function_pod = <<"EOD" ;
@@ -2035,12 +2029,12 @@ EOF
       [qw(VTableName ParamStructType
        RedoDimsFuncName ReadDataFuncName WriteBackDataFuncName FreeFuncName
        SignatureObj HaveBroadcasting NoPthread Name
-       GenericTypes IsAffineFlag TwoWayFlag DefaultFlowFlag
+       GenericTypes IsAffineFlag DefaultFlowFlag
        BadFlag)],
       sub {
         my($vname,$ptype,$rdname,$rfname,$wfname,$ffname,
            $sig,$havebroadcasting, $noPthreadFlag, $name, $gentypes,
-           $affflag, $revflag, $flowflag, $badflag) = @_;
+           $affflag, $flowflag, $badflag) = @_;
         my ($pnames, $pobjs) = ($sig->names_sorted, $sig->objs);
         my $nparents = 0 + grep !$pobjs->{$_}->{FlagW}, @$pnames;
         my $npdls = scalar @$pnames;
@@ -2051,7 +2045,7 @@ EOF
         push @op_flags, 'PDL_TRANS_NO_PARALLEL' if $noPthreadFlag;
         push @op_flags, 'PDL_TRANS_OUTPUT_OTHERPAR' if $sig->other_any_out;
         my $op_flags = join('|', @op_flags) || '0';
-        my $iflags = join('|', grep $_, $affflag, $revflag, $flowflag) || '0';
+        my $iflags = join('|', grep $_, $affflag, $flowflag) || '0';
         my $gentypes_txt = join(", ", (map PDL::Type->new($_)->sym, @$gentypes), '-1');
         my @realdims = map 0+@{$_->{IndObjs}}, @$pobjs{@$pnames};
         my $realdims = join(", ", @realdims) || '0';

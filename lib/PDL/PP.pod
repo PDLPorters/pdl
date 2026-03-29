@@ -2554,7 +2554,7 @@ transformation back to the parent when C<BackCode> is supplied.
 
 Flag to indicate this is an affine transformation whose C<Priv> (contents
 of the C<pdl_trans>) contains data that will need allocating and freeing.
-As of 2.104, implies C<TwoWay> and C<P2Child>.
+As of 2.104, implies C<P2Child> and C<Lvalue>.
 
 =head3 GlobalNew
 
@@ -2591,24 +2591,16 @@ will be used (or on a subclass). If this is true (which is the default
 for simple functions i.e. 2-arg with 0-dim signatures), instead the
 first argument's C<copy> method will be used.
 
-=head3 TwoWay
-
-If true, sets in the C<pdl_transvtable> (see L<PDL::Internals>) the
-C<iflags> such as to inform the trans's error checks connected to dataflow.
-As of 2.104, also automatically sets C<Lvalue>.
-As of 2.104, implied by C<AffinePriv> and C<BackCode> (including
-from C<EquivCPOffsCode>).
-
 =head3 Identity
 
 If true, sets C<RedoDims> C<EquivCPOffsCode> C<HandleBad> C<P2Child>
-C<TwoWay> such that the function is a dataflowing identity transformation.
+such that the function is a dataflowing identity transformation.
 
 =head3 BackCode
 
 For dataflowing functions, this value (which gets parsed) overrides the
 operation of that from children ndarrays to parents.
-As of 2.104, implies C<TwoWay> and C<DefaultFlow>.
+As of 2.104, implies C<DefaultFlow> and C<Lvalue>.
 
 =head3 BadBackCode
 
@@ -2638,7 +2630,7 @@ Example:
 
 If present, make the operation's XS function be C<lvalue>, like
 L<PDL::Slices/xchg>. Added in 2.096.
-As of 2.104, automatically set if C<TwoWay>.
+As of 2.104, automatically set if C<BackCode> or C<AffinePriv>.
 
 =head1 Appendix B: PP macros and functions
 

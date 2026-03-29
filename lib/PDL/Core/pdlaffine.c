@@ -99,7 +99,7 @@ static PDL_Indx pdl_affine_vtable_realdims_starts[] = { 0, 0 };
 static PDL_Indx pdl_affine_vtable_realdims_ind_ids[] = { 0 };
 static char *pdl_affine_vtable_indnames[] = { "" };
 pdl_transvtable pdl_affine_vtable = {
-  0, PDL_ITRANS_ISAFFINE|PDL_ITRANS_TWOWAY|PDL_ITRANS_DO_DATAFLOW_ANY, pdl_affine_vtable_gentypes, 1, 2, pdl_affine_vtable_flags /*CORE21*/,
+  0, PDL_ITRANS_ISAFFINE|PDL_ITRANS_DO_DATAFLOW_ANY, pdl_affine_vtable_gentypes, 1, 2, pdl_affine_vtable_flags /*CORE21*/,
   pdl_affine_vtable_realdims, pdl_affine_vtable_parnames,
   pdl_affine_vtable_parflags, pdl_affine_vtable_partypes,
   pdl_affine_vtable_realdims_starts, pdl_affine_vtable_realdims_ind_ids, 0,

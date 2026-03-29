@@ -237,7 +237,7 @@ static PDL_Indx pdl_converttypei_vtable_realdims_starts[] = { 0, 0 };
 static PDL_Indx pdl_converttypei_vtable_realdims_ind_ids[] = { 0 };
 static char *pdl_converttypei_vtable_indnames[] = { "" };
 pdl_transvtable pdl_converttypei_vtable = {
-  PDL_TRANS_BADPROCESS, PDL_ITRANS_TWOWAY|PDL_ITRANS_DO_DATAFLOW_ANY, pdl_converttypei_vtable_gentypes, 1, 2, pdl_converttypei_vtable_flags /*CORE21*/,
+  PDL_TRANS_BADPROCESS, PDL_ITRANS_DO_DATAFLOW_ANY, pdl_converttypei_vtable_gentypes, 1, 2, pdl_converttypei_vtable_flags /*CORE21*/,
   pdl_converttypei_vtable_realdims, pdl_converttypei_vtable_parnames,
   pdl_converttypei_vtable_parflags, pdl_converttypei_vtable_partypes,
   pdl_converttypei_vtable_realdims_starts, pdl_converttypei_vtable_realdims_ind_ids, 0,

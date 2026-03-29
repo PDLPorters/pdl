@@ -444,11 +444,7 @@ typedef struct pdl_transvtable {
 
 /* Trans flags */
 
-        /* Reversible transform -- flag indicates data can flow both ways.  */
-        /* This is critical in routines that both input from and output to  */
-        /* a non-single-valued pdl: updating must occur.  (Note that the    */
-        /* transform is not necessarily mathematically reversible)          */
-#define  PDL_ITRANS_TWOWAY            (1 << 0)
+#define  PDL_ITRANS_TWOWAY            (1 << 0) /* CORE21 unused */
 #define  PDL_ITRANS_DO_DATAFLOW_F     (1 << 1)
 #define  PDL_ITRANS_DO_DATAFLOW_B     (1 << 2)
 #define  PDL_ITRANS_DO_DATAFLOW_ANY   (PDL_ITRANS_DO_DATAFLOW_F|PDL_ITRANS_DO_DATAFLOW_B)

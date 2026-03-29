@@ -154,7 +154,6 @@ subtest a_bt => sub {
       Pars => 'a(n); [o]b(n)',
       DefaultFlow => 1,
       BackCode => 'invert',
-      TwoWay => 1,
     );
     ok find_usage($obj, '$b = foo($a)'), 'function call w/ arg';
     ok find_usage($obj, 'foo($a, $b)'), 'all arguments given';
