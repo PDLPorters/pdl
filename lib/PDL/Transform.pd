@@ -3939,6 +3939,17 @@ This is similar to the behavior of fitwarp2d with a quadratic polynomial.
 
 =cut
 
+# Construct the system of N equations to find the projective transform
+sub _construct_DLT {
+  my ($p) = @_;
+  my $d0 = $p->dim(0);
+  my $p_appended = $p->slice(":,(0)")->append([1, (0) x ($d0+1)]);
+  my $M = $p_appended->append(
+    $p_appended->dice_axis(0, [$d0+1..($d0*2+1), 0..$d0])
+  )->splitdim(0,($d0+1)*2)->clump(1,2);
+  $M->append(-outer($p->mv(1,-1)->dog)->clump(1,2));
+}
+
 sub t_projective {
   my $class = 'PDL::Transform';
   my $o = ref $_[0] eq 'HASH' ? $_[0] : { @_ };
@@ -3963,14 +3974,10 @@ sub t_projective {
     my $d0 = $p->dim(0);
     die "t_projective: points must be ncoord x 2(in,out) x ncoord+2(point)"
       unless $p->dims==3 && all($p->shape == pdl($d0,2,$d0+2));
-    # Solve the system of N equations to find the projective transform
-    my $p_appended = $p->slice(":,(0)")->append([1, (0) x ($d0+1)]);
-    my $M = $p_appended->append(
-      $p_appended->dice_axis(0, [$d0+1..($d0*2+1), 0..$d0])
-    )->splitdim(0,($d0+1)*2)->clump(1,2);
-    $M = $M->append(-outer($p->mv(1,-1)->dog)->clump(1,2));
+    my $M = _construct_DLT($p);
     $matrix = ones(($d0+1) x 2);
-    $matrix->flat->slice("0:".($matrix->nelem-2)) .=
+    # Solve the system
+    $matrix->flat->slice("0:-2") .=
       ($M->inv x $p->slice(":,(1),:")->flat->t)->t;
   } else {
     die "t_projective: must supply either 'p' or 'm' option";
