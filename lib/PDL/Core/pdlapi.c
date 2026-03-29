@@ -748,6 +748,11 @@ pdl_error pdl_make_trans_mutual(pdl_trans *trans)
   pdl_error PDL_err = {0, NULL, 0};
   PDLDEBUG_f(printf("make_trans_mutual ");pdl_dump_trans_fixspace(trans,0));
   pdl_transvtable *vtable = trans->vtable;
+  if (((vtable->iflags & PDL_ITRANS_DO_DATAFLOW_B|PDL_ITRANS_ISAFFINE)
+    == PDL_ITRANS_DO_DATAFLOW_B) &&
+    !vtable->writebackdata
+  )
+    return pdl_make_error(PDL_EUSERERROR, "%s: backward dataflow flag but not affine or given writebackdata", vtable->name);
   pdl **pdls = trans->pdls;
   PDL_Indx i, npdls=vtable->npdls, nparents=vtable->nparents;
   PDL_TR_CHKMAGIC(trans);
