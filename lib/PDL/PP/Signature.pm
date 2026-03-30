@@ -97,6 +97,7 @@ sub _otherPars_nft {
 	    $type = PDL::PP::CType->new($_);
 	}
 	my $name = $type->protoname;
+        confess "pp_def($opname): '$name' given in both Pars and OtherPars" if $sig->{Objects}{$name};
 	croak "pp_def($opname): Invalid OtherPars name: $name"
 	  if $PDL::PP::PdlParObj::INVALID_PAR{$name};
 	push @names,$name;
