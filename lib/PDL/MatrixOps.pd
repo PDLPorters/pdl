@@ -159,6 +159,36 @@ sub identity {
 }
 EOD
 
+pp_add_exported('','gurney');
+pp_addpm(<<'EOD');
+
+=head2 gurney
+
+=for ref
+
+Turns a vector into non-square matrix. Takes two dims, one must
+match vector dim 0.
+
+=for example
+
+  pdl> gurney(pdl(1,2), 2, 3)->info
+  PDL: Double D [2,3]
+
+=cut
+
+*gurney = \&PDL::gurney;
+sub PDL::gurney {
+  my ($diag, $d0, $d1) = @_;
+  Carp::confess "gurney: given undef \$d0 or \$d1" if grep !defined $d0, $d1;
+  my $diag_len = $diag->dim(0);
+  Carp::confess "diagonal length $diag_len does not match either given dim $d0 or $d1" if !grep $diag_len == $_, $d0, $d1;
+  my $diff = abs($d0 - $d1);
+  my $mat = stretcher($diag);
+  $mat = $mat->glue($d0 < $d1 ? 1 : 0, zeroes($diag->type, $diff)) if $diff;
+  $mat;
+}
+EOD
+
 ######################################################################
 pp_add_exported('','stretcher');
 pp_addpm(<<'EOD');

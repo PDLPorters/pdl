@@ -174,6 +174,9 @@ is_pdl stretcher(pdl('2 3;3 4')), pdl('[2 0;0 3][3 0;0 4]'), "stretcher 2x2x2";
 is_pdl stretcher(ldouble('0.14142135623731 0.14142135623731')), ldouble('0.14142135623731 0;0 0.14142135623731'), "stretcher ldouble 2x2";
 }
 
+is_pdl gurney(pdl(1,2), 2, 3), pdl('1 0; 0 2; 0 0'), 'gurney works tall';
+is_pdl gurney(pdl(1,2), 3, 2), pdl('1 0 0; 0 2 0'), 'gurney works wide';
+
 {
 ### Check eigens with symmetric
 my $pa = pdl([3,4],[4,-3]);
