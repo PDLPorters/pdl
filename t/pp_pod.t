@@ -106,6 +106,7 @@ subtest a_b_noi => sub {
     ok find_usage($obj, '$b = Foo::Bar::foo($a)'), 'function call';
     ok find_usage($obj, 'Foo::Bar::foo($a, $b)'), 'all args';
     ok find_usage($obj, 'Foo::Bar::foo($a->inplace)'), 'function, inplace';
+    like $obj->{PdlDoc}, qr/Can operate inplace/, "inplace words in doc";
     ok all_seen($obj, 'foo'), 'all seen';
 };
 

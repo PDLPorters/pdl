@@ -14,6 +14,7 @@
 - add MatrixOps::tritosym from PDL::LinearAlgebra with fixed Hermitian mode
 - now-unused (and always redundant) TwoWay PP key removed
 - add MatrixOps::gurney
+- automatically-generated docs now record inplace input/output
 
 2.103 2026-03-03
 - fix regression in *linvals so takes ndarrays as start and end again

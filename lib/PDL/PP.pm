@@ -1599,10 +1599,12 @@ EOF
    PDL::PP::Rule->new("PdlDoc", [qw(
       Name Pars OtherPars GenericTypes Doc UsageDoc BadDoc?
       HaveBroadcasting NoPthread IsAffineFlag DefaultFlowFlag ParamDoc
+      InplaceNormalised?
       )],
       sub {
         my ($name,$pars,$otherpars,$gentypes,$doc,$usagedoc,$baddoc,
           $havebroadcasting, $noPthreadFlag, $affflag, $flowflag, $paramdoc,
+          $inplace,
         ) = @_;
         return '' if !defined $doc # Allow explicit non-doc using Doc=>undef
             or $doc =~ /^\s*internal\s*$/i;
@@ -1637,6 +1639,7 @@ EOD
             $baddoc = "\n=for bad\n\n$baddoc";
         }
         my @misc = $havebroadcasting ? "Broadcasts over its inputs.\n" : "Does not broadcast.\n";
+        unshift @misc, "Can operate inplace with C<$inplace->[0]> as output C<$inplace->[1]>.\n" if $inplace;
         push @misc, "Can't use POSIX threads.\n" if $noPthreadFlag;
         push @misc, "Makes L<virtual affine|PDL::Indexing> ndarrays.\n" if $affflag;
         push @misc, "Creates data-flow".($flowflag !~ /ANY/ ? "" : " back and forth").
