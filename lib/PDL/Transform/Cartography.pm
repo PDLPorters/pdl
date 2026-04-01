@@ -652,7 +652,7 @@ sub clean_lines {
     if @_ == 1 and $_[0]->dim(0) != 3;
   my ($l, $p) = @_ == 1
     ? ($_[0]->slice("0:1"), $_[0]->is_inplace ? $_[0]->slice("(2)") : $_[0]->slice("(2)")->sever)
-    : ($_[0], $_[1]->is_inplace ? $_[1] : $_[1]->copy);
+    : ($_[0], $_[1]->new_or_inplace);
   my $break_mask = !isfinite($p); # break on NaN/Inf/BAD
   $break_mask |= !isfinite($l)->orover; # break on either coord NaN/Inf/BAD
   if ($th < 1) {
@@ -1199,7 +1199,7 @@ sub t_carree {
 
     $me->{func} = sub {
 	my($d,$o) = @_;
-	my($out) = $d->is_inplace ? $d : $d->copy;
+	my($out) = $d->new_or_inplace;
 	$out->slice("0:1") *= $o->{conv};
 	$out->slice("0") *= $p->{stretch};
 	$out;
@@ -1207,7 +1207,7 @@ sub t_carree {
     
     $me->{inv} = sub {
 	my($d,$o)= @_;
-	my($out) = $d->is_inplace ? $d : $d->copy;
+	my($out) = $d->new_or_inplace;
 	$out->slice("0:1") /= $o->{conv};
 	$out->slice("0") /= $p->{stretch};
 	$out;
@@ -1302,7 +1302,7 @@ sub t_mercator {
     $me->{func} = sub {
 	my($d,$o) = @_;
 
-	my($out) = $d->is_inplace ? $d : $d->copy;
+	my($out) = $d->new_or_inplace;
 
 	$out->slice("0:1") *= $o->{conv};
 
@@ -1318,7 +1318,7 @@ sub t_mercator {
 
     $me->{inv} = sub {
 	my($d,$o) = @_;
-	my($out) = $d->is_inplace? $d : $d->copy;
+	my($out) = $d->new_or_inplace;
 
 	$out->slice("0:1") *= $o->{oconv} if defined($o->{oconv});
 	$out->slice("0:1") /= $o->{stretch};
@@ -1507,7 +1507,7 @@ sub t_sin_lat {
 
     $me->{func} = sub {
 	my($d,$o) = @_;
-	my($out) = $d->is_inplace ? $d : $d->copy;
+	my($out) = $d->new_or_inplace;
 
 	$out->slice("0:1") *= $me->{params}->{conv};
 	$out->slice("(1)") .= sin($out->slice("(1)")) / $o->{stretch};
@@ -1517,7 +1517,7 @@ sub t_sin_lat {
 
     $me->{inv} = sub {
 	my($d,$o) = @_;
-	my($out) = $d->is_inplace ? $d : $d->copy;
+	my($out) = $d->new_or_inplace;
 	$out->slice("(1)") .= asin($out->slice("(1)") * $o->{stretch});
 	$out->slice("(0)") /= $o->{stretch};
 	$out->slice("0:1") /= $me->{params}->{conv};
@@ -1561,7 +1561,7 @@ sub t_sinusoidal {
   
   $me->{func} = sub {
     my($d,$o) = @_;
-    my($out) = $d->is_inplace ? $d : $d->copy;
+    my($out) = $d->new_or_inplace;
     $out->slice("0:1") *= $o->{conv};
 
     $out->slice("(0)") *= cos($out->slice("(1)"));
@@ -1570,7 +1570,7 @@ sub t_sinusoidal {
 
   $me->{inv} = sub {
     my($d,$o) = @_;
-    my($out) = $d->is_inplace ? $d : $d->copy;
+    my($out) = $d->new_or_inplace;
     my($x) = $out->slice("(0)");
     my($y) = $out->slice("(1)");
     
@@ -1690,7 +1690,7 @@ sub t_conic {
 
     $me->{func} = sub {
 	my($d,$o) = @_;
-	my($out) = $d->is_inplace ? $d : $d->copy;
+	my($out) = $d->new_or_inplace;
 
 	my($rho) = $o->{G} - $d->slice("(1)") * $o->{conv};
 	my($theta) = $o->{n} * $d->slice("(0)") * $o->{conv};
@@ -1703,7 +1703,7 @@ sub t_conic {
 
     $me->{inv} = sub {
 	my($d,$o) = @_;
-	my($out) = $d->is_inplace ? $d : $d->copy;
+	my($out) = $d->new_or_inplace;
 
 	my($x) = $d->slice("(0)");
 	my($y) = $o->{G} - $d->slice("(1)");
@@ -1806,7 +1806,7 @@ sub t_albers  {
 
     $me->{func} = sub {
 	my($d,$o) = @_;
-	my($out) = $d->is_inplace ? $d : $d->copy;
+	my($out) = $d->new_or_inplace;
 
 	my($rho) = sqrt( $o->{C} - 2 * $o->{n} * sin($d->slice("(1)") * $o->{conv}) ) / $o->{n};
 	my($theta) = $o->{n} * $d->slice("(0)") * $o->{conv};
@@ -1819,7 +1819,7 @@ sub t_albers  {
     $me->{inv} = sub {
 	my($d,$o) = @_;
 
-	my($out) = $d->is_inplace ? $d : $d->copy;
+	my($out) = $d->new_or_inplace;
 
 	my($x) = $d->slice("(0)");
 	my($y) = $o->{rho0} - $d->slice("(1)");
@@ -1933,7 +1933,7 @@ sub t_lambert {
 
     $me->{func} = sub {
 	my($d,$o) = @_;
-	my($out) = $d->is_inplace ? $d : $d->copy;
+	my($out) = $d->new_or_inplace;
 
 	my($cl) = ( ($o->{c}->[0] == $o->{c}->[1]) ? 
 		    $d->slice("(1)")*$o->{conv} :
@@ -1950,7 +1950,7 @@ sub t_lambert {
 
     $me->{inv} = sub {
 	my($d,$o) = @_;
-	my($out) = $d->is_inplace ? $d : $d->copy;
+	my($out) = $d->new_or_inplace;
 	
 	my($x) = $d->slice("(0)");
 	my($y) = $o->{rho0} - $d->slice("(1)");
@@ -2020,7 +2020,7 @@ sub t_stereographic {
 
     $me->{func} = sub {
 	my($d,$o) = @_;
-	my($out) = $d->is_inplace ? $d : $d->copy;
+	my($out) = $d->new_or_inplace;
 
 	my($th,$ph) = ($out->slice("(0)") * $o->{conv},
 		       $out->slice("(1)") * $o->{conv});
@@ -2038,7 +2038,7 @@ sub t_stereographic {
 
     $me->{inv} = sub {
 	my($d,$o) = @_;
-	my($out) = $d->is_inplace ? $d : $d->copy;
+	my($out) = $d->new_or_inplace;
 	
 	my($x) = $d->slice("(0)");
 	my($y) = $d->slice("(1)");
@@ -2105,7 +2105,7 @@ sub t_gnomonic {
 
     $me->{func} = sub {
 	my($d,$o) = @_;
-	my($out) = $d->is_inplace ? $d : $d->copy;
+	my($out) = $d->new_or_inplace;
 
 	my($th,$ph) = ($out->slice("(0)") * $o->{conv},
 		       $out->slice("(1)") * $o->{conv});
@@ -2129,7 +2129,7 @@ sub t_gnomonic {
 
     $me->{inv} = sub {
 	my($d,$o) = @_;
-	my($out) = $d->is_inplace ? $d : $d->copy;
+	my($out) = $d->new_or_inplace;
 
 	my($x) = $d->slice("(0)");
 	my($y) = $d->slice("(1)");
@@ -2205,7 +2205,7 @@ sub t_az_eqd {
 
   $me->{func} = sub {
     my($d,$o) = @_;
-    my($out) = $d->is_inplace ? $d : $d->copy;
+    my($out) = $d->new_or_inplace;
     
     my($ph) = $d->slice("(1)") * $o->{conv};
     my($th) = $d->slice("(0)") * $o->{conv};
@@ -2231,7 +2231,7 @@ sub t_az_eqd {
 
   $me->{inv} = sub {
     my($d,$o) = @_;
-    my($out) = $d->is_inplace ? $d : $d->copy;
+    my($out) = $d->new_or_inplace;
     my($x) = $d->slice("(0)");
     my($y) = $d->slice("(1)");
 
@@ -2293,7 +2293,7 @@ sub t_az_eqa {
 
   $me->{func} = sub {
     my($d,$o) = @_;
-    my($out) = $d->is_inplace ? $d : $d->copy;
+    my($out) = $d->new_or_inplace;
     
     my($ph) = $d->slice("(1)") * $o->{conv};
     my($th) = $d->slice("(0)") * $o->{conv};
@@ -2317,7 +2317,7 @@ sub t_az_eqa {
 
   $me->{inv} = sub {
     my($d,$o) = @_;
-    my($out) = $d->is_inplace ? $d : $d->copy;
+    my($out) = $d->new_or_inplace;
 
     my($x,$y) = ($d->slice("(0)"),$d->slice("(1)"));
     my($ph,$th) = ($out->slice("(0)"),$out->slice("(1)"));
@@ -2377,7 +2377,7 @@ sub t_hammer {
 
   $me->{func} = sub {
     my($d,$o) = @_;
-    my($out) = $d->is_inplace ? $d : $d->copy;
+    my($out) = $d->new_or_inplace;
     $out->slice("0:1") *= $o->{conv};
     my($th) = $out->slice("(0)");
     my($ph) = $out->slice("(1)");
@@ -2390,7 +2390,7 @@ sub t_hammer {
 
   $me->{inv} = sub {
     my($d,$o) = @_;
-    my($out) = $d->is_inplace ? $d : $d->copy;
+    my($out) = $d->new_or_inplace;
     my($x) = $out->slice("(0)");
     my($y) = $out->slice("(1)");
 
@@ -2525,7 +2525,7 @@ sub t_vertical {
 
     $me->{func} = sub {
 	my($d,$o) = @_;
-	my($out) = $d->is_inplace ? $d : $d->copy;
+	my($out) = $d->new_or_inplace;
 	my($th) = $d->slice("(0)")*$o->{conv};
 	my($ph) = $d->slice("(1)")*$o->{conv};
 
@@ -2573,7 +2573,7 @@ sub t_vertical {
 
     $me->{inv} = sub {
 	my($d,$o) = @_;
-	my($out) = $d->is_inplace ? $d : $d->copy;
+	my($out) = $d->new_or_inplace;
 
 	# Reverse the hemisphere if the mask is set to 'far'
 	my($P) = ($o->{m} == 2) ? -$o->{r0} : $o->{r0};
@@ -2886,7 +2886,7 @@ sub t_perspective {
     $me->{func} = sub {
       my($d,$o) = @_;
 
-      my($out) = $d->is_inplace ? $d : $d->copy;
+      my($out) = $d->new_or_inplace;
       $out->slice("0:1") *= $o->{conv};
 
       # If we're outside the sphere, do hemisphere filtering
@@ -2965,7 +2965,7 @@ sub t_perspective {
     $me->{inv} = sub {
 	my($d,$o) = @_;
 
-	my($out) = $d->is_inplace ? $d : $d->copy;
+	my($out) = $d->new_or_inplace;
 	$out->slice("0:1") *= $o->{tconv};
 
 	my $oyz = $out->slice("0:1") ;
