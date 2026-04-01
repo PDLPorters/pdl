@@ -110,10 +110,9 @@ void SVD(double *W, double *Z, int nRow, int nCol)
   /* Set V matrix to the unit matrix of order nCol.
      V is stored in elements nCol*nRow to nCol*(nRow+nCol)-1 of array W. */
   double *V = W + nCol*nRow;
-  for (i=0; i<nCol; i++) {
+  for (i=0; i<nCol; i++)
     for (j=0; j<nCol; j++)
       V[ nCol*i + j ] = i == j ? 1.0 : 0.0;
-  }
   RotCount = EstColRank*(EstColRank-1)/2;
 
   /*until convergence is achieved or too many sweeps are carried out*/

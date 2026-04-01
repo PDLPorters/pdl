@@ -686,9 +686,11 @@ Singular value decomposition of a matrix.
 
 Given an m x n matrix C<$a> that has m rows and n columns,
 C<svd> computes matrices C<$u> and C<$v>, and a vector of the singular
-values C<$s>. As of 2.104, C<svd> computes
-the SVD of C<$a>, such that C<$u> is m
+values C<$s>.
+C<svd> computes the "thin" (or "economy") SVD of C<$a>, such that C<$u> is m
 x min(m,n), C<$v> is min(m,n) x n, and there are min(m,n) singular values.
+As of 2.104, you do not need to transpose this yourself to ensure
+the input is "tall" (or square).
 The original matrix can be reconstructed as follows:
 
     ($u,$s,$v) = svd($x);
