@@ -522,9 +522,15 @@ makes it slightly easier to access individual eigenvectors, since the
 0th dim of the output PDL runs across the eigenvectors and the 1st dim
 runs across their components.
 
-    ($ev,$e) = eigens_sym $x;  # Make eigenvector matrix
-    $vector = $ev->slice($n);       # Select nth eigenvector as a column-vector
-    $vector = $ev->slice("($n)");     # Select nth eigenvector as a row-vector
+=for example
+
+  ($ev,$e) = eigens_sym $x;  # Make eigenvector matrix
+  $vector = $ev->slice($n);       # Select nth eigenvector as a column-vector
+  $vector = $ev->slice("($n)");     # Select nth eigenvector as a row-vector
+  # or to sort in descending order:
+  $indices = qsorti($ev)->slice("-1:0");
+  $sorted_ev = $ev->slice($indices);    # sort values
+  $sorted_e = $e->slice(':', $indices); # sort eigenvectors
 
 As of 2.096, the eigenvalues are returned in ascending order.
 
@@ -612,9 +618,15 @@ the 0 dimension).  That makes it slightly easier to access individual
 eigenvectors, since the 0th dim of the output PDL runs across the
 eigenvectors and the 1st dim runs across their components.
 
-	($ev,$e) = eigens $x;  # Make eigenvector matrix
-	$vector = $ev->slice($n);   # Select nth eigenvector as a column-vector
-	$vector = $ev->slice("($n)"); # Select nth eigenvector as a row-vector
+=for example
+
+  ($ev,$e) = eigens $x;  # Make eigenvector matrix
+  $vector = $ev->slice($n);   # Select nth eigenvector as a column-vector
+  $vector = $ev->slice("($n)"); # Select nth eigenvector as a row-vector
+  # or to sort in descending order:
+  $indices = qsorti($ev)->slice("-1:0");
+  $sorted_ev = $ev->slice($indices);    # sort values
+  $sorted_e = $e->slice(':', $indices); # sort eigenvectors
 
 To compare with L<PDL::LinearAlgebra>:
 
