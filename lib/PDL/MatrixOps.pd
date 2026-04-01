@@ -656,9 +656,9 @@ pp_def(
        "svd",
        HandleBad => 0,
        Pars => 'a(n,m); [o]u(minmn=CALC(PDLMIN($SIZE(m),$SIZE(n))),m); [o]s(minmn); [o]v(minmn,n);
-         [t]w(wsize=CALC($SIZE(n) * ($SIZE(m) + $SIZE(n))));',
+         [t]w(wsize=CALC($SIZE(n) * ($SIZE(m) + (($SIZE(m) < $SIZE(n)) ? 0 : $SIZE(n)))));',
        GenericTypes => ['D'],
-       CHeader => 'void SVD( double *W, double *Z, int nRow, int nCol );',
+       CHeader => 'void SVD( double *W, double *V, double *Z, int nRow, int nCol );',
        Code => <<'EOF',
 char is_transpose = $SIZE(m) < $SIZE(n);
 broadcastloop %{
@@ -667,12 +667,14 @@ broadcastloop %{
     loop (n,m) %{ *t++ = $a(); %}
   else
     loop (m,n) %{ *t++ = $a(); %}
-  SVD($P(w), $P(s), PDLMAX($SIZE(n),$SIZE(m)), PDLMIN($SIZE(m),$SIZE(n)));
+  SVD($P(w),
+    is_transpose ? $P(u) : $P(w) + $SIZE(n)*$SIZE(m),
+    $P(s), PDLMAX($SIZE(n),$SIZE(m)), PDLMIN($SIZE(m),$SIZE(n)));
   loop (minmn) %{ $s() = sqrt($s()); %}
   t = $P(w);
   if (is_transpose) {
     loop (n,minmn) %{ $v() = *t++; %}
-    loop (minmn,m) %{ $u() = *t++/$s(); %}
+    loop (minmn,m) %{ $u() /= $s(); %}
   } else {
     loop (m,minmn) %{ $u() = *t++/$s(); %}
     loop (n,minmn) %{ $v() = *t++; %}

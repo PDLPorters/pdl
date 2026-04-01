@@ -50,9 +50,9 @@ Bryant
 /*
    Form a singular value decomposition of matrix A which is stored in
    the first nRow*nCol elements of working array W. Upon return, the
-   first nRow*nCol elements of W will become the product U x S of a
+   nRow*nCol elements of W will become the product U x S of a
    thin svd, where S is the diagonal (rectangular) matrix of singular
-   values. The last nCol*nCol elements of W will be the square matrix
+   values. The passed-in V will be the transposed square matrix
    V of a thin svd. On return, Z will contain the squares of the
    singular values.
 
@@ -100,7 +100,7 @@ int main()
 }
 #endif
 
-void SVD(double *W, double *Z, int nRow, int nCol)
+void SVD(double *W, double *V, double *Z, int nRow, int nCol)
 {
   int i, j, k, EstColRank, RotCount, SweepCount, slimit;
   double eps, e2, tol, vt, p, x0, y0, q, r, c0, s0;
@@ -115,7 +115,6 @@ void SVD(double *W, double *Z, int nRow, int nCol)
   EstColRank = nCol; /* current estimate of rank */
   /* Set V matrix to the unit matrix of order nCol.
      V is stored in elements nCol*nRow to nCol*(nRow+nCol)-1 of array W. */
-  double *V = W + nCol*nRow;
   for (i=0; i<nCol; i++)
     for (j=0; j<nCol; j++)
       V[ nCol*i + j ] = i == j ? 1.0 : 0.0;
@@ -131,7 +130,6 @@ void SVD(double *W, double *Z, int nRow, int nCol)
         /*
           Some helpful definitions from Nash's book (pg 34) to
           understand this p, q, & r rotation business:
-
           p = x"y; (" means transpose)
           q = x"x - y"y;
           v = sqrt(4*p^2+q^2);
