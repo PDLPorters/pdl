@@ -64,11 +64,13 @@ Bryant
 
 #include <math.h>
 #define TOLERANCE 1.0e-22
-#define SVD_ROTATE(M, colind, colind2, rowind, ncols, nrows, cos0, sin0) \
- for (rowind=0; rowind<nrows; rowind++) { \
-   double d1 = M[ncols*rowind+colind], d2 = M[ncols*rowind+colind2]; \
-   M[ncols*rowind+colind]  = d1*cos0+d2*sin0; \
-   M[ncols*rowind+colind2] = -d1*sin0+d2*cos0; \
+#define SVD_ROTATE_COL(M, colind, colind2, rowind, ncols, nrows, cos0, sin0) \
+ for (rowind=0; rowind<nrows; rowind++) \
+   SVD_ROTATE_VALS(M[ncols*rowind+colind], M[ncols*rowind+colind2], cos0, sin0)
+#define SVD_ROTATE_VALS(colval1, colval2, cos0, sin0) \
+ { \
+   double d1 = colval1, d2 = colval2; \
+   colval1 = d1*cos0 + d2*sin0; colval2 = -d1*sin0 + d2*cos0; \
  }
 
 #ifdef MAIN
@@ -173,8 +175,8 @@ void SVD(double *W, double *V, double *Z, int nRow, int nCol)
                should be positive even without the fabs. abs
                isn't in Nash's book. c0 and s0 are cos(phi) and sin(phi) as above for q>=0*/
             c0 = sqrt(fabs(.5*(1+r/vt))); s0 = p/(vt*c0);
-            SVD_ROTATE(W, j, k, i, nCol, nRow, c0, s0)
-            SVD_ROTATE(V, j, k, i, nCol, nCol, c0, s0)
+            SVD_ROTATE_COL(W, j, k, i, nCol, nRow, c0, s0)
+            SVD_ROTATE_COL(V, j, k, i, nCol, nCol, c0, s0)
           }
         } else {
         /* columns out of order -- must rotate */
@@ -190,8 +192,8 @@ void SVD(double *W, double *V, double *Z, int nRow, int nCol)
              already */
           if (p<0) s0 = -s0; /*s0 and c0 are sin(phi) and cos(phi) as above for q<0 */
           c0 = p/(vt*s0);
-          SVD_ROTATE(W, j, k, i, nCol, nRow, c0, s0)
-          SVD_ROTATE(V, j, k, i, nCol, nCol, c0, s0)
+          SVD_ROTATE_COL(W, j, k, i, nCol, nRow, c0, s0)
+          SVD_ROTATE_COL(V, j, k, i, nCol, nCol, c0, s0)
         }
         /* Both angle calculations have been set up so that
            large numbers do not occur in intermediate
