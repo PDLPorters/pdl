@@ -152,7 +152,7 @@ EOF
     );
 }
 
-sub g_c {
+sub g_c2 { # 2 so no warnings on redefine when run Makefile.PL, cf ::Math
   my ($func, $arg) = @_;
   return 0 if $func !~ /[a-z]/;
   $got_complex{$func} = PDL::Core::Dev::got_complex_version($func, $arg);
@@ -167,7 +167,7 @@ sub bifunc {
     my $isop = $funcov =~ s/^op//;
     my $funcovp = protect_chars $funcov;
     $func = $func->[0] if ref $func eq 'ARRAY';
-    my $got_complex = g_c($func, 2);
+    my $got_complex = g_c2($func, 2);
     $extra{GenericTypes} = [ grep exists $is_real{$_}, @{$extra{GenericTypes}} ]
 	if !$got_complex and $extra{GenericTypes};
     $extra{HdrCode} .= << 'EOH';
@@ -224,7 +224,7 @@ sub ufunc {
     my $funcov = ref $func eq 'ARRAY' ? $func->[1] : $func;
     my $funcovp = protect_chars $funcov;
     $func = $func->[0] if ref $func eq 'ARRAY';
-    my $got_complex = g_c($func, 1);
+    my $got_complex = g_c2($func, 1);
     $extra{GenericTypes} = [ grep exists $is_real{$_}, @{$extra{GenericTypes}} ]
 	if !$got_complex and $extra{GenericTypes};
 
