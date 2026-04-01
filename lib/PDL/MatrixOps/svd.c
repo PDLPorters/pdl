@@ -74,18 +74,14 @@ int main()
   int i,j,n,m;
   double w[NC*(NR+NC)], z[NC*NC];
   void SVD(double *W, double *Z, int nRow, int nCol);
-
   for (i=0;i<NC*(NR+NC);i++) {
     w[i] = 0.;
   }
-
   for (i=0;i<NC*NC;i++) {
     z[i] = 0.;
   }
   w[0] = 1; w[1] = 3; w[NC] = -4; w[NC+1] = 3;
-
   SVD(w, z, NR, NC);
-
   printf("W:\n");
   for (i=0;i<NC*(NR+NC);i++) {
     printf("%d %g\n",i,w[i]);
@@ -113,11 +109,10 @@ void SVD(double *W, double *Z, int nRow, int nCol)
   EstColRank = nCol; /* current estimate of rank */
   /* Set V matrix to the unit matrix of order nCol.
      V is stored in elements nCol*nRow to nCol*(nRow+nCol)-1 of array W. */
+  double *V = W + nCol*nRow;
   for (i=0; i<nCol; i++) {
-    for (j=0; j<nCol; j++) {
-      W[nCol*(nRow+i)+j] = 0.0;
-    }
-    W[nCol*(nRow+i)+i] = 1.0;  /* rjrw 7/7/99: moved this line out of j loop */
+    for (j=0; j<nCol; j++)
+      V[ nCol*i + j ] = i == j ? 1.0 : 0.0;
   }
   RotCount = EstColRank*(EstColRank-1)/2;
 

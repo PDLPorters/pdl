@@ -64,7 +64,7 @@ element, you use the indices in the reverse order that you would in a
 math textbook.  If you prefer your matrices indexed in (row, column)
 order, you can try using the L<PDL::Matrix> object, which
 includes an implicit exchange of the first two dimensions but should
-be compatible with most of these matrix operations.  TIMTOWDTI.)
+be compatible with most of these matrix operations.  TIMTOWDTI.
 
 Matrices, row vectors, and column vectors can be multiplied with the 'x'
 operator (which is, of course, broadcastable):
