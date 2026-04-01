@@ -64,6 +64,12 @@ Bryant
 
 #include <math.h>
 #define TOLERANCE 1.0e-22
+#define SVD_ROTATE(M, colind, colind2, rowind, ncols, nrows, cos0, sin0) \
+ for (rowind=0; rowind<nrows; rowind++) { \
+   double d1 = M[ncols*rowind+colind], d2 = M[ncols*rowind+colind2]; \
+   M[ncols*rowind+colind]  = d1*cos0+d2*sin0; \
+   M[ncols*rowind+colind2] = -d1*sin0+d2*cos0; \
+ }
 
 #ifdef MAIN
 #include <stdio.h>
@@ -97,7 +103,7 @@ int main()
 void SVD(double *W, double *Z, int nRow, int nCol)
 {
   int i, j, k, EstColRank, RotCount, SweepCount, slimit;
-  double eps, e2, tol, vt, p, x0, y0, q, r, c0, s0, d1, d2;
+  double eps, e2, tol, vt, p, x0, y0, q, r, c0, s0;
   eps = TOLERANCE;
   /*set a limit on the number of sweeps allowed. A suggested limit is slimit=max([nCol/4],6).*/
   slimit = nCol/4;
@@ -169,11 +175,8 @@ void SVD(double *W, double *Z, int nRow, int nCol)
                should be positive even without the fabs. abs
                isn't in Nash's book. c0 and s0 are cos(phi) and sin(phi) as above for q>=0*/
             c0 = sqrt(fabs(.5*(1+r/vt))); s0 = p/(vt*c0);
-            /* this little for loop (and the one below) is just rotation, inlined here for efficiency */
-            for (i=0; i<nRow+nCol; i++) {
-              d1 = W[nCol*i+j]; d2 = W[nCol*i+k];
-              W[nCol*i+j] = d1*c0+d2*s0; W[nCol*i+k] = -d1*s0+d2*c0;
-            }
+            SVD_ROTATE(W, j, k, i, nCol, nRow, c0, s0)
+            SVD_ROTATE(V, j, k, i, nCol, nCol, c0, s0)
           }
         } else {
         /* columns out of order -- must rotate */
@@ -189,10 +192,8 @@ void SVD(double *W, double *Z, int nRow, int nCol)
              already */
           if (p<0) s0 = -s0; /*s0 and c0 are sin(phi) and cos(phi) as above for q<0 */
           c0 = p/(vt*s0);
-          for (i=0; i<nRow+nCol; i++) { /* rotation again */
-            d1 = W[nCol*i+j]; d2 = W[nCol*i+k];
-            W[nCol*i+j] = d1*c0+d2*s0; W[nCol*i+k] = -d1*s0+d2*c0;
-          }
+          SVD_ROTATE(W, j, k, i, nCol, nRow, c0, s0)
+          SVD_ROTATE(V, j, k, i, nCol, nCol, c0, s0)
         }
         /* Both angle calculations have been set up so that
            large numbers do not occur in intermediate
