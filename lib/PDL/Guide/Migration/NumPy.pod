@@ -1,6 +1,6 @@
 =head1 NAME
 
-PDL::Guide::NumPy - A Rosetta Stone for the NumPy professional
+PDL::Guide::Migration::NumPy - A Rosetta Stone for the NumPy professional
 
 =head1 DESCRIPTION
 

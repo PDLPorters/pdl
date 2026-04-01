@@ -1,29 +1,25 @@
 =head1 NAME
 
-PDL::MATLAB - A guide for MATLAB users.
+PDL::Guide::Migration::Scilab - A guide for Scilab users.
 
 =head1 INTRODUCTION
 
-If you are a MATLAB user, this page is for you. It explains the key
-differences between MATLAB and PDL to help you get going as quickly
+If you are a Scilab user, this page is for you. It explains the key
+differences between Scilab and PDL to help you get going as quickly
 as possible.
 
 B<This document is not a tutorial>. For that, go to L<PDL::QuickStart|
 PDL::QuickStart>. This document B<complements> the Quick Start guide, as
-it highlights the key differences between MATLAB and PDL.
+it highlights the key differences between Scilab and PDL.
 
 =head1 Perl
 
-The key differences between MATLAB and PDL are broadcasting, and B<Perl>.
-
-Broadcasting means you can get a reference to just a part of your data,
-and operate on it in a way that makes sense for your application. Those
-operations will be reflected in the original data.
+The key difference between Scilab and PDL is B<Perl>.
 
 Perl is a general purpose programming language with thousands of modules
 freely available on the web. PDL is an extension of Perl. This gives PDL
 programs access to more features than most numerical tools can dream of.
-At the same time, most syntax differences between MATLAB and PDL are a
+At the same time, most syntax differences between Scilab and PDL are a
 result of its Perl foundation.
 
 B<You do not have to learn much Perl to be effective with PDL>. But
@@ -36,7 +32,7 @@ has a vast array of modules. Run C<perldoc cpan> for more information.
 
 =head1 TERMINOLOGY: NDARRAY
 
-MATLAB typically refers to vectors, matrices, and arrays. Perl already
+Scilab typically refers to vectors, matrices, and arrays. Perl already
 has arrays, and the terms "vector" and "matrix" typically refer to one-
 and two-dimensional collections of data. Having no good term to describe
 their object, PDL developers coined the term "I<ndarray>" to give a name to
@@ -50,15 +46,14 @@ For more information, see "B<ndarrays vs Perl Arrays>" later in this document.
 
 =head1 COMMAND WINDOW AND IDE
 
-Unlike MATLAB, PDL does not come with a dedicated IDE. It does however
-come with an interactive shell and you can use a Perl IDE to develop
-PDL programs.
+PDL does not come with a dedicated IDE. It does however come with an
+interactive shell and you can use a Perl IDE to develop PDL programs.
 
 =head2 PDL interactive shell
 
 To start the interactive shell, open a terminal and run C<perldl>.
-As in MATLAB, the interactive shell is the best way to learn the
-language. To exit the shell, type C<exit>, just like MATLAB.
+As in Scilab, the interactive shell is the best way to learn the
+language. To exit the shell, type C<exit>, just like Scilab.
 
 =head2 Writing PDL programs
 
@@ -72,11 +67,10 @@ PDL program:
 
   use PDL;             # Import main PDL module.
   use PDL::NiceSlice;  # Import additional PDL module.
-  use PDL::AutoLoader; # Import additional PDL module.
-
+  
   $y = pdl [2,3,4];              # Statements end in semicolon.
-  $A = pdl [ [1,2,3],[4,5,6] ];  # 2-dimensional matrix.
-
+  $A = pdl [ [1,2,3],[4,5,6] ];  # 2-dimensional ndarray.
+  
   print $A x $y->transpose;
 
 Save this file as C<myprogram.pl> and run it with:
@@ -85,53 +79,54 @@ Save this file as C<myprogram.pl> and run it with:
 
 =head2 New: Flexible syntax
 
-In current versions of PDL (version 2.4.7 or later) there is
-a flexible matrix syntax that can look extremely similar to MATLAB:
+In very recent versions of PDL (version 2.4.7 or later) there is
+a flexible matrix syntax that can look extremely similar to Scilab:
 
-1) Use spaces to separate elements:
+1) Use a ';' to delimit rows:
+
+  $y = pdl q[ 2,3,4 ];
+  $A = pdl q[ 1,2,3 ; 4,5,6 ];
+
+2) Use spaces to separate elements:
 
   $y = pdl q[ 2 3 4 ];
+  $A = pdl q[ 1 2 3 ; 4 5 6 ];
 
-2) Use a ';' to delimit rows:
-
-  $A = pdl q[ 1,2,3 ; 4,5,6 ];
 
 Basically, as long as you put a C<q> in front of the opening bracket,
 PDL should "do what you mean". So you can write in a syntax that is
 more comfortable for you.
 
-=head1 MODULES FOR MATLAB USERS
 
-There are two modules that MATLAB users will want to use:
+=head1 A MODULE FOR SCILAB USERS
+
+Here is a module that Scilab users will want to use:
 
 =over 5
 
 =item L<PDL::NiceSlice>
 
 Gives PDL a syntax for slices (sub-matrices) that is shorter and
-more familiar to MATLAB users.
+more familiar to Scilab users.
 
-  % MATLAB
+  // Scilab
   b(1:5)            -->  Selects the first 5 elements from b.
-
+  
   # PDL without NiceSlice
   $y->slice("0:4")  -->  Selects the first 5 elements from $y.
-
+  
   # PDL with NiceSlice
   $y(0:4)           -->  Selects the first 5 elements from $y.
 
-=item L<PDL::AutoLoader>
-
-Provides a MATLAB-style autoloader for PDL. If an unknown function
-C<foo()> is called, PDL looks for a file called C<foo.pdl>. If it
-finds one, it reads it.
-
 =back
+
+
 
 =head1 BASIC FEATURES
 
-This section explains how PDL's syntax differs from MATLAB. Most
-MATLAB users will want to start here.
+This section explains how PDL's syntax differs from Scilab. Most
+Scilab users will want to start here.
+
 
 =head2 General "gotchas"
 
@@ -139,39 +134,33 @@ MATLAB users will want to start here.
 
 =item Indices
 
-In PDL, indices start at '0' (like C and Java), not 1 (like MATLAB or FORTRAN).
+In PDL, indices start at '0' (like C and Java), not 1 (like Scilab).
 For example, if C<$y> is an array with 5 elements, the elements would be
-numbered from 0 to 4. This is different, but less difficult as soon as
-you need to do calculations based on offsets.
+numbered from 0 to 4.
 
 =item Displaying an object
 
-MATLAB normally displays object contents automatically unless you
-end with a C<;>. In the PDL shells you need to
-display objects explicitly with the C<print> command or the shortcut C<p>:
+Scilab normally displays object contents automatically. In PDL you display
+objects explicitly with the C<print> command or the shortcut C<p>:
 
-MATLAB:
+Scilab:
 
- >> a = 12
- a =  12
- >> b = 23;       % Suppress output.
- >>
+ --> a = 12
+ a =  12.
+ --> b = 23;       // Suppress output.
+ --> 
 
-PDL Shell (perldl):
+PerlDL:
 
  pdl> $x = 12    # No output.
  pdl> print $x   # Print object.
  12
  pdl> p $x       # "p" is a shorthand for "print" in the shell.
  12
- pdl>
-
-In L<perldl> there is the C<do_print> command that can turn on the "print"
-mode, which defaults to off. In "print" mode, expressions you enter on
-the command line will have their values printed. Just like MATLAB,
-if you end the command with C<;>, nothing will be printed.
 
 =back
+
+
 
 =head2 Creating ndarrays
 
@@ -181,26 +170,26 @@ if you end the command with C<;>, nothing will be printed.
 
 Variables always start with the '$' sign.
 
- MATLAB:    value  = 42
+ Scilab:    value  = 42
  PerlDL:    $value = 42
 
 =item Basic syntax
 
 Use the "pdl" constructor to create a new I<ndarray>.
 
- MATLAB:    v  = [1,2,3,4]
+ Scilab:    v  = [1,2,3,4]
  PerlDL:    $v = pdl [1,2,3,4]
 
- MATLAB:    A  =      [ 1,2,3  ;  3,4,5 ]
+ Scilab:    A  =      [ 1,2,3  ;  3,4,5 ]
  PerlDL:    $A = pdl [ [1,2,3] , [3,4,5] ]
 
 =item Simple matrices
 
-                      MATLAB       PDL
+                      Scilab       PDL
                       ------       ------
-  Matrix of ones      ones(5)      ones 5,5
-  Matrix of zeros     zeros(5)     zeros 5,5
-  Random matrix       rand(5)      random 5,5
+  Matrix of ones      ones(5,5)    ones 5,5
+  Matrix of zeros     zeros(5,5)   zeros 5,5
+  Random matrix       rand(5,5)    random 5,5
   Linear vector       1:5          sequence 5
 
 Notice that in PDL the parenthesis in a function call are often optional.
@@ -225,22 +214,20 @@ Both are valid statements:
   ]
 
 Rather than trying to memorize Perl's order of precedence, it is best
-to use parentheses to make your code unambiguous. Remember you may need
-to come back to your code, and parentheses make your own (as well as
-others') comprehension easier.
+to use parentheses to make your code unambiguous.
 
 =item Linearly spaced sequences
 
-  MATLAB:   >> linspace(2,10,5)
-            ans = 2 4 6 8 10
-
+  Scilab:   --> linspace(2,10,5)
+            ans = 2.  4.  6.  8.  10.
+  
   PerlDL:   pdl> p zeroes(5)->xlinvals(2,10)
             [2 4 6 8 10]
 
 B<Explanation>: Start with a 1-dimensional ndarray of 5 elements and give
 it equally spaced values from 2 to 10.
 
-MATLAB has a single function call for this. On the other hand, PDL's
+Scilab has a single function call for this. On the other hand, PDL's
 method is more flexible:
 
   pdl> p zeros(5,5)->xlinvals(2,10)
@@ -281,47 +268,46 @@ method is more flexible:
 =item Slicing and indices
 
 Extracting a subset from a collection of data is known as I<slicing>.
-PDL and MATLAB have a similar syntax for slicing, but there are two
-important differences:
+The PDL shell and Scilab have a similar syntax for slicing, but there
+are two important differences:
 
-1) PDL indices start at 0, as in C and Java. MATLAB starts indices at 1.
+1) PDL indices start at 0, as in C and Java. Scilab starts indices at 1.
 
-2) In MATLAB you think "rows and columns". In PDL, think "x and y".
+2) In Scilab you think "rows and columns". In PDL, think "x and y".
 
-  MATLAB                         PerlDL
+  Scilab                         PerlDL
   ------                         ------
-  >> A                           pdl> p $A
+  --> A                           pdl> p $A
   A =                            [
-       1   2   3                  [1 2 3]
-       4   5   6                  [4 5 6]
-       7   8   9                  [7 8 9]
+       1.  2.  3.                 [1 2 3]
+       4.  5.  6.                 [4 5 6]
+       7.  8.  9.                 [7 8 9]
                                  ]
   -------------------------------------------------------
   (row = 2, col = 1)             (x = 0, y = 1)
-  >> A(2,1)                      pdl> p $A(0,1)
+  --> A(2,1)                      pdl> p $A(0,1)
   ans =                          [
-         4                        [4]
+         4.                       [4]
                                  ]
   -------------------------------------------------------
   (row = 2 to 3, col = 1 to 2)   (x = 0 to 1, y = 1 to 2)
-  >> A(2:3,1:2)                  pdl> p $A(0:1,1:2)
+  --> A(2:3,1:2)                  pdl> p $A(0:1,1:2)
   ans =                          [
-         4   5                    [4 5]
-         7   8                    [7 8]
+         4.  5.                   [4 5]
+         7.  8.                   [7 8]
                                  ]
 
 =over 5
 
 =item B<Warning>
 
-When you write a stand-alone PDL program, if you want the "nice slice" syntax, you have
+When you write a stand-alone PDL program you have
 to include the L<PDL::NiceSlice> module. See the
-previous section "B<MODULES FOR MATLAB USERS>" for more information.
+previous section "B<MODULES FOR SCILAB USERS>" for more information.
 
   use PDL;             # Import main PDL module.
   use PDL::NiceSlice;  # Nice syntax for slicing.
-  use PDL::AutoLoader; # MATLAB-like autoloader.
-
+  
   $A = random 4,4;
   print $A(0,1);
 
@@ -329,23 +315,25 @@ previous section "B<MODULES FOR MATLAB USERS>" for more information.
 
 =back
 
+
+
 =head2 Matrix Operations
 
 =over 10
 
 =item Matrix multiplication
 
- MATLAB:    A * B
+ Scilab:    A * B
  PerlDL:    $A x $B
 
 =item Element-wise multiplication
 
- MATLAB:    A .* B
+ Scilab:    A .* B
  PerlDL:    $A * $B
 
 =item Transpose
 
- MATLAB:    A'
+ Scilab:    A'
  PerlDL:    $A->transpose
 
 =back
@@ -354,32 +342,32 @@ previous section "B<MODULES FOR MATLAB USERS>" for more information.
 =head2 Functions that aggregate data
 
 Some functions (like C<sum>, C<max> and C<min>) aggregate data
-for an N-dimensional data set. This is a place where MATLAB and
-PDL take a different approach:
+for an N-dimensional data set. Scilab and PDL both give you the
+option to apply these functions to the entire data set or to
+just one dimension.
+
 
 =over 10
 
-=item In MATLAB, these functions all work along one dimension.
+=item Scilab
 
-  >> A = [ 1,5,4  ;  4,2,1 ]
-  A = 1  5  4
-      4  2  1
-  >> max(A)
-  ans = 4  5  4
-  >> max(A')
-  ans = 5  4
+In Scilab, these functions work along the entire data set by default,
+and an optional parameter "r" or "c" makes them act over rows or columns.
 
-If you want the maximum for the entire data set, you can use the special
-C<A(:)> notation which basically turns the entire data set into a single
-1-dimensional vector.
+  --> A = [ 1,5,4  ;  4,2,1 ]
+  A = 1.  5.  4.
+      4.  2.  1.
+  --> max(A)
+  ans = 5
+  --> max(A, "r")
+  ans = 4.    5.    4.
+  --> max(A, "c")
+  ans = 5.
+        4.
 
-  >> max(A(:))
-  ans =  5
-  >> A = ones(2,2,2,2)
-  >> max(A(:))
-  ans = 1
+=item PDL
 
-=item PDL offers two functions for each feature.
+PDL offers two functions for each feature.
 
   sum   vs   sumover
   avg   vs   average
@@ -400,66 +388,48 @@ works over the entire ndarray.
   [4 5 4]
   pdl> p $A->max
   5
-  pdl> p ones(2,2,2)->max
-  1
-  pdl> p ones(2,2,2,2)->max
-  1
 
 =back
 
-=over 5
-
-=item B<Note>
-
-Notice that PDL aggregates horizontally while MATLAB aggregates
-vertically. In other words:
-
-  MATLAB              PerlDL
-  max(A)       ==     $A->transpose->maximum
-  max(A')      ==     $A->maximum
-
-B<TIP>: In MATLAB you think "rows and columns". In PDL, think "x and y".
-
-=back
 
 =head2 Higher dimensional data sets
 
-A related issue is how MATLAB and PDL understand data sets of higher
-dimension. MATLAB was designed for 1D vectors and 2D matrices. Higher
-dimensional objects ("N-D arrays") were added on top. In contrast, PDL
-was designed for N-dimensional ndarrays from the start. This leads to
-a few surprises in MATLAB that don't occur in PDL:
+A related issue is how Scilab and PDL understand data sets of higher
+dimension. Scilab was designed for 1D vectors and 2D matrices with
+higher dimensional objects added on top. In contrast, PDL was designed
+for N-dimensional ndarrays from the start. This leads to a few surprises
+in Scilab that don't occur in PDL:
 
 =over 5
 
-=item MATLAB sees a vector as a 2D matrix.
+=item Scilab sees a vector as a 2D matrix.
 
-  MATLAB                       PerlDL
+  Scilab                       PerlDL
   ------                       ------
-  >> vector = [1,2,3,4];       pdl> $vector = pdl [1,2,3,4]
-  >> size(vector)              pdl> p $vector->dims
+  --> vector = [1,2,3,4];       pdl> $vector = pdl [1,2,3,4]
+  --> size(vector)              pdl> p $vector->dims
   ans = 1 4                    4
 
-MATLAB sees C<[1,2,3,4]> as a 2D matrix (1x4 matrix). PDL sees it
+Scilab sees C<[1,2,3,4]> as a 2D matrix (1x4 matrix). PDL sees it
 as a 1D vector: A single dimension of size 4.
 
-=item But MATLAB ignores the last dimension of a 4x1x1 matrix.
+=item But Scilab ignores the last dimension of a 4x1x1 matrix.
 
-  MATLAB                       PerlDL
+  Scilab                       PerlDL
   ------                       ------
-  >> A = ones(4,1,1);          pdl> $A = ones 4,1,1
-  >> size(A)                   pdl> p $A->dims
+  --> A = ones(4,1,1);          pdl> $A = ones 4,1,1
+  --> size(A)                   pdl> p $A->dims
   ans = 4 1                    4 1 1
 
-=item And MATLAB treats a 4x1x1 matrix differently from a 1x1x4 matrix.
+=item And Scilab treats a 4x1x1 matrix differently from a 1x1x4 matrix.
 
-  MATLAB                       PerlDL
+  Scilab                       PerlDL
   ------                       ------
-  >> A = ones(1,1,4);          pdl> $A = ones 1,1,4
-  >> size(A)                   pdl> p $A->dims
+  --> A = ones(1,1,4);          pdl> $A = ones 1,1,4
+  --> size(A)                   pdl> p $A->dims
   ans = 1 1 4                  1 1 4
 
-=item MATLAB has no direct syntax for N-D arrays.
+=item Scilab has no direct syntax for N-D arrays.
 
   pdl> $A = pdl [ [[1,2,3],[4,5,6]], [[2,3,4],[5,6,7]] ]
   pdl> p $A->dims
@@ -467,30 +437,36 @@ as a 1D vector: A single dimension of size 4.
 
 =item Feature support.
 
-In MATLAB, several features such as sparse matrix support are not
-available for N-D arrays. In PDL, just about any feature supported by
-1D and 2D ndarrays, is equally supported by N-dimensional ndarrays.
-There is usually no distinction.
+In Scilab, several features are not available for N-D arrays. In PDL,
+just about any feature supported by 1D and 2D ndarrays, is equally
+supported by N-dimensional ndarrays. There is usually no distinction:
+
+  Scilab                       PerlDL
+  ------                       ------
+  --> A = ones(3,3,3);         pdl> $A = ones(3,3,3);
+  --> A'                       pdl> transpose $A
+      => ERROR                         => OK
 
 =back
+
 
 =head2 Loop Structures
 
 Perl has many loop structures, but we will only show the one that
-is most familiar to MATLAB users:
+is most familiar to Scilab users:
 
-  MATLAB              PerlDL
+  Scilab              PerlDL
   ------              ------
   for i = 1:10        for $i (1..10) {
       disp(i)             print $i
-  endfor              }
+  end                 }
 
 =over 5
 
 =item B<Note>
 
 Never use for-loops for numerical work. Perl's for-loops are faster
-than MATLAB's, but they both pale against a "vectorized" operation.
+than Scilab's, but they both pale against a "vectorized" operation.
 PDL has many tools that facilitate writing vectorized programs.
 These are beyond the scope of this guide. To learn more, see:
 L<PDL::Indexing>, L<PDL::Broadcasting>,
@@ -501,6 +477,7 @@ C<1..10> is a Perl array. Perl arrays are designed for flexibility, not
 speed. Use I<ndarrays> instead. To learn more, see the next section.
 
 =back
+
 
 =head2 ndarrays vs Perl Arrays
 
@@ -517,23 +494,24 @@ B<Data structures> below), B<but they are not designed for numerical work>.
 For that, use I<ndarrays>:
 
   $pdl = pdl [ 1, 2, 3, 4 ];
-  $pdl = sequence 10_000_000;
+  $pdl = sequence 10_000_000; 
   $pdl = ones 600, 600;
 
 For example:
-
+ 
   $points =  pdl  1..10_000_000    # 4.7 seconds
   $points = sequence 10_000_000    # milliseconds
 
 B<TIP>: You can use underscores in numbers (C<10_000_000> reads better
 than C<10000000>).
 
+
 =head2 Conditionals
 
 Perl has many conditionals, but we will only show the one that is
-most familiar to MATLAB users:
+most familiar to Scilab users:
 
-  MATLAB                          PerlDL
+  Scilab                          PerlDL
   ------                          ------
   if value > MAX                  if ($value > $MAX) {
       disp("Too large")               print "Too large\n";
@@ -549,13 +527,14 @@ most familiar to MATLAB users:
 
 Here is a "gotcha":
 
-  MATLAB:  elseif
+  Scilab:  elseif
   PerlDL:  elsif
 
 If your conditional gives a syntax error, check that you wrote
 your C<elsif>'s correctly.
 
 =back
+
 
 =head2 TIMTOWDI (There Is More Than One Way To Do It)
 
@@ -582,7 +561,7 @@ while-loops and if-statements:
   while ( ! finished() ) {
       keep_working();
   }
-
+  
   if ( ! wife_angry() ) {
       kiss_wife();
   }
@@ -592,7 +571,7 @@ But it also offers the alternative B<until> and B<unless> statements:
   until ( finished() ) {
       keep_working();
   }
-
+  
   unless ( wife_angry() ) {
       kiss_wife();
   }
@@ -600,18 +579,20 @@ But it also offers the alternative B<until> and B<unless> statements:
 And Perl allows you to write loops and conditionals in "postfix" form:
 
   keep_working() until finished();
-
+  
   kiss_wife() unless wife_angry();
+
 
 In this way, Perl often allows you to write more natural, easy to
 understand code than is possible in more restrictive programming
 languages.
 
+
 =head2 Functions
 
-PDL's syntax for declaring functions differs significantly from MATLAB's.
+PDL's syntax for declaring functions differs significantly from Scilab's.
 
-  MATLAB                          PerlDL
+  Scilab                          PerlDL
   ------                          ------
   function retval = foo(x,y)      sub foo {
       retval = x.**2 + x.*y           my ($x, $y) = @_;
@@ -623,9 +604,7 @@ a function declaration in PDL:
 
 1) "B<sub>" stands for "subroutine".
 
-2) "B<my>" declares variables to be local to the function. This helps
-you not accidentally use undeclared variables, which is enforced if you
-C<use strict>. See L<strict> for more.
+2) "B<my>" declares variables to be local to the function.
 
 3) "B<@_>" is a special Perl array that holds all the function parameters.
 This might seem like a strange way to do functions, but it allows you
@@ -641,9 +620,6 @@ together:
       return $total;
   }
 
-In more recent versions of Perl, you can C<use signatures> for a different
-syntax for declaring function parameters. See L<signatures> for more.
-
 4) You can assign values to several variables at once using the syntax:
 
   ($x, $y, $z) = (1, 2, 3);
@@ -652,57 +628,37 @@ So, in the previous examples:
 
   # This declares two local variables and initializes them to 0.
   my ($i, $total) = (0, 0);
-
+  
   # This takes the first two elements of @_ and puts them in $x and $y.
   my ($x, $y) = @_;
 
 5) The "B<return>" statement gives the return value of the function, if any.
 
+
 =head1 ADDITIONAL FEATURES
-
-=head2 ASCII File IO
-
-To read data files containing whitespace separated columns of
-numbers (as would be read using the MATLAB I<load> command)
-one uses the PDL I<rcols> in L<PDL::IO::Misc>.  For a general
-review of the IO functionality available in PDL, see the
-documentation for L<PDL::IO>, e.g., C<help PDL::IO> in the I<perldl>
-shell or C< pdldoc PDL::IO > from the shell command line.
 
 =head2 Data structures
 
-To create complex data structures, MATLAB uses "I<cell arrays>" and
-"I<structure arrays>". Perl's arrays and hashes offer similar functionality
-but are more powerful and flexible. This section is only a quick overview
-of what Perl has to offer. To learn more about this, please go to
+To create complex data structures, Scilab uses "I<lists>" and "I<structs>".
+Perl's arrays and hashes offer similar functionality. This section is only a
+quick overview of what Perl has to offer. To learn more about this, please go to
 L<http://perldoc.perl.org/perldata.html> or run the command C<perldoc perldata>.
 
 =over 5
 
 =item Arrays
 
-Perl arrays are similar to MATLAB's cell arrays, but more flexible. For
-example, in MATLAB, a cell array is still fundamentally a matrix. It is
-made of rows, and rows must have the same length.
+Perl arrays are similar to Scilab's lists. They are both a sequential data
+structure that can contain any data type.
 
-  MATLAB
+  Scilab
   ------
-  array = {1, 12, 'hello'; rand(3, 2), ones(3), 'junk'}
-  => OK
-  array = {1, 12, 'hello'; rand(3, 2), ones(3) }
-  => ERROR
-
-A Perl array is a general purpose, sequential data structure. It can contain
-any data type.
-
+  list( 1, 12, "hello", zeros(3,3) , list( 1, 2) );
+  
   PerlDL
   ------
-  @array = ( [1, 12, 'hello'] , [ random(3,2), ones(3,3), 'junk' ] )
-  => OK
-  @array = ( [1, 12, 'hello'] , [ random(3,2), ones(3,3) ] )
-  => OK
-  @array = ( 5 , {'name' => 'Mike'} , [1, 12, 'hello'] )
-  => OK
+  @array = ( 1, 12, "hello" , zeros(3,3), [ 1, 2 ] )
+
 
 Notice that Perl array's start with the "@" prefix instead of the "$" used by
 ndarrays.
@@ -712,14 +668,14 @@ or run the command C<perldoc perldata>.>
 
 =item Hashes
 
-Perl hashes are similar to MATLAB's structure arrays:
+Perl hashes are similar to Scilab's structure arrays:
 
-  MATLAB
+  Scilab
   ------
-  >> drink = struct('type', 'coke', 'size', 'large', 'myarray', {1,2,3})
-  >> drink.type = 'sprite'
-  >> drink.price = 12          % Add new field to structure array.
-
+  --> drink = struct('type', 'coke', 'size', 'large', 'myarray', ones(3,3,3))
+  --> drink.type = 'sprite'
+  --> drink.price = 12          // Add new field to structure array.
+  
   PerlDL
   ------
   pdl> %drink = ( type => 'coke' , size => 'large', myndarray => ones(3,3,3) )
@@ -734,6 +690,8 @@ or run the command C<perldoc perldata>.>
 
 =back
 
+
+
 =head2 Performance
 
 PDL has powerful performance features, some of which are not normally
@@ -747,7 +705,7 @@ you through these features:
 B<Level>: Beginner
 
 This beginner tutorial covers the standard "vectorization" feature that
-you already know from MATLAB. Use this page to learn how to avoid for-loops
+you already know from Scilab. Use this page to learn how to avoid for-loops
 to make your program more efficient.
 
 =item L<PDL::Broadcasting>
@@ -756,7 +714,7 @@ B<Level>: Intermediate
 
 PDL's "vectorization" feature goes beyond what most numerical software
 can do. In this tutorial you'll learn how to "broadcast" over higher dimensions,
-allowing you to vectorize your program further than is possible in MATLAB.
+allowing you to vectorize your program further than is possible in Scilab.
 
 =item Benchmarks
 
@@ -780,9 +738,11 @@ the full complexity of the C language.
 
 =back
 
+
+
 =head2 Plotting
 
-PDL has full-featured plotting abilities. Unlike MATLAB, PDL relies more on
+PDL has full-featured plotting abilities. Unlike Scilab, PDL relies more on
 third-party libraries (pgplot and PLplot) for its 2D plotting features.
 Its 3D plotting and graphics uses OpenGL for performance and portability.
 PDL has three main plotting modules:
@@ -793,17 +753,19 @@ PDL has three main plotting modules:
 
 B<Best for>: Plotting 2D functions and data sets.
 
-Provides a uniform interface to PGPLOT, PLplot, Gnuplot, and Prima.
+Provides a simple library for line graphics
+and image display, giving a uniform plotting interface to PGPLOT, PLplot,
+Gnuplot, and Prima.
 
-=item L<PDL::Graphics::Gnuplot>
+=item L<PDL::Graphics::PLplot>
 
 B<Best for>: Plotting 2D functions as well as 2D and 3D data sets.
 
-This is an interface to Gnuplot,
-a modern, open source program for making scientific plots.
-It supports plots of both 2D and 3D data sets. It is
-supported for Unix/Linux/MacOS/Win32 platforms, with an active
-developers community.
+This is an interface to the PLplot plotting library. PLplot
+is a modern, open source library for making scientific plots.
+It supports plots of both 2D and 3D data sets. PLplot is best
+supported for unix/linux/macosx platforms. It has an active
+developers community and support for win32 platforms is improving.
 
 =item L<PDL::Graphics::TriD>
 
@@ -815,6 +777,7 @@ to manipulate the resulting 3D objects with the mouse in real
 time.
 
 =back
+
 
 =head2 Writing GUIs
 
@@ -828,166 +791,19 @@ wxWidgets is designed to make your application look and feel like
 a native application in every platform. For example, the Perl
 IDE B<Padre> is written with wxPerl.
 
-=head2 Simulink
+=head2 Xcos / Scicos
 
-Simulink is a graphical dynamical system modeler and simulator. It
-can be purchased separately as an add-on to MATLAB.
-PDL and Perl do not have a direct equivalent to MATLAB's Simulink.
-If this feature is important to you, then take a look at B<Scilab>:
+Xcos (formerly Scicos) is a graphical dynamical system modeler and
+simulator. It is part of the standard Scilab distribution. PDL and
+Perl do not have a direct equivalent to Scilab's Xcos. If this
+feature is important to you, you should probably keep a copy of
+Scilab around for that.
 
-L<http://www.scilab.org>
-
-Scilab is another numerical analysis software. Like PDL, it is free
-and open source. It doesn't have PDL's unique features, but it is
-very similar to MATLAB. Scilab comes with B<Xcos> (previously Scicos),
-a graphical system modeler and simulator similar to Simulink.
-
-=head1 COMPARISON: REPEATED COPY OF MATRIX
-
-In MATLAB, the C<repmat> function works like so:
-
-  > A = reshape(0:5, 3, 2)' # similar to PDL::sequence(3, 2)
-  ans =
-     0   1   2
-     3   4   5
-  > repmat(A, 2, 3) # double rows, triple columns
-  ans =
-     0   1   2   0   1   2   0   1   2
-     3   4   5   3   4   5   3   4   5
-     0   1   2   0   1   2   0   1   2
-     3   4   5   3   4   5   3   4   5
-
-This works (at least in Octave) at least up to 3 dimensions.
-
-The PDL analog:
-
-  sub repmat {
-    my $f=shift;
-    my @n=@_; #number of repetitions along dimension
-    my $sl = join ',', map ":,*$_", @n; # insert right-size dummy after each real
-    my $r = $f->slice($sl); #result
-    $r = $r->clump($_, $_+1) for 0..$#n;
-    $r;
-  }
-  > p $x = sequence(3,2)
-  [
-   [0 1 2]
-   [3 4 5]
-  ]
-  > p repmat($x, 3, 2) # triple columns, double rows
-  [
-   [0 1 2 0 1 2 0 1 2]
-   [3 4 5 3 4 5 3 4 5]
-   [0 1 2 0 1 2 0 1 2]
-   [3 4 5 3 4 5 3 4 5]
-  ]
-
-=head1 COMPARISON: FLOYD-WARSHALL ALGORITHM
-
-In L<graph theory|https://en.wikipedia.org/wiki/Graph_theory>, an
-apparently-simple but difficult problem is the "shortest path" problem,
-of finding the shortest path between any two nodes. A famous solution
-to this, albeit expensive (it is C<O(V^3)> where C<V> is the number of
-vertices) is the Floyd-Warshall algorithm, which iterates through all
-the possible paths.
-
-Both the MATLAB solution and the PDL solution use vectorisation, so
-hopefully this is a useful comparison. The MATLAB version started with
-the code in
-L<code by Giorgos Dim|https://uk.mathworks.com/matlabcentral/fileexchange/67503-floyd-warshall-vectorized>,
-but modified as that code produces an incorrect path matrix.
-
-Sample data (reflected on both the Wikipedia page, and the Rosetta Code
-website) for the weighted-edges matrix is, in PDL format:
-
-  my $we = pdl q[
-   [Inf Inf  -2 Inf]
-   [  4 Inf   3 Inf]
-   [Inf Inf Inf   2]
-   [Inf  -1 Inf Inf]
-  ];
-
-and in MATLAB format:
-
-  A = [0 Inf -2 Inf; 4 0 3 Inf; Inf Inf 0 2; Inf -1 Inf 0]
-
-=head2 PDL version
-
-To solve for only distances without capturing the shortest actual paths:
-
-  $we .= $we->hclip($we->mslice('X', $_) + $we->mslice($_, 'X'))
-    for 0..($we->dim(0)-1);
-
-This loops over each possible intermediate point (C<k> in the
-other literature), setting it to C<$_> (a Perl idiom). It uses
-L<PDL::Primitive/hclip> for vectorised calculation of the distance
-between the intermediate point's predecessors and successors. Those are
-the two components of the addition expression, using "slices" alluded
-to above. The C<.=> is the PDL syntax for updating an ndarray.
-
-To capture the shortest-path "next vertex" matrix as well:
-
-  use PDL::Lite;
-  my $d = $we->copy->inplace;
-  $d->diagonal(0, 1) .= 0;
-  my $suc = $we->copy->inplace;
-  my $adjacent_coords = PDL::whichND($we->isfinite);
-  $suc->indexND($adjacent_coords) .= $adjacent_coords->slice(0)->flat;
-  $suc->diagonal(0, 1) .= PDL::Basic::sequence($d->dim(0));
-  for (my $k = $d->dim(0)-1; $k >= 0; $k--) {
-    my $d_copy = $d->copy;
-    $d .= $d->hclip($d->mslice('X', $k) + $d->mslice($k, 'X'));
-    my $coords = PDL::whichND($d < $d_copy);
-    my $from_coords = $coords->copy->inplace;
-    $from_coords->slice(0) .= $k;
-    $suc->indexND($coords) .= $suc->indexND($from_coords);
-  }
-
-The C<diagonal> and C<slice> expressions show how to update data via a
-query syntax.
-
-=head2 MATLAB version
-
-Path-lengths only:
-
-  function D = FloydWarshall(D)
-    for k = 1:length(D)
-      D = min(D,D(:,k) + D(k,:));
-    end
-  end
-
-The path vertices-capturing as well:
-
-  function [D,P] = FloydWarshall(D)
-    P = D;
-    n = length(D);
-    coords = find(isfinite(P));
-    P(coords) = floor((coords-1) / n)+1; % the col in 1-based
-    for v = 1:n; P(v, v) = v; end
-    for k = 1:n
-      prevD = D;
-      D = min(D,D(:,k) + D(k,:));
-      coords = find(D<prevD);
-      from_coords = n * (k-1) + mod(coords-1, n) + 1; % change col to k in 1-based
-      P(coords) = P(from_coords);
-    end
-  end
-
-By comparison, the lack of "broadcasting" means that to update the diagonal
-requires a for-loop, which in the sphere of vectorised calculations is
-a bad thing. The calculations of coordinates are complicated by the
-1-based counting.
 
 =head1 COPYRIGHT
 
 Copyright 2010 Daniel Carrera (dcarrera@gmail.com). You can distribute and/or
 modify this document under the same terms as the current Perl license.
 
-See: L<http://dev.perl.org/licenses/>
+See: http://dev.perl.org/licenses/
 
-=head1 ACKNOWLEDGEMENTS
-
-I'd like to thank David Mertens, Chris Marshall and Sigrid Carrera for
-their immense help reviewing earlier drafts of this guide. Without their
-hours of work, this document would not be remotely as useful to MATLAB
-users as it is today.

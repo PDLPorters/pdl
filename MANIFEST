@@ -70,7 +70,9 @@ lib/PDL/FFT/fftn.c
 lib/PDL/FFT/fftn.h
 lib/PDL/Func.pm
 lib/PDL/Graphics.pod
-lib/PDL/Guide/NumPy.pod
+lib/PDL/Guide/Migration/MATLAB.pod
+lib/PDL/Guide/Migration/NumPy.pod
+lib/PDL/Guide/Migration/Scilab.pod
 lib/PDL/Image2D.pd
 lib/PDL/Image2D/misc.c
 lib/PDL/Image2D/resample.c
@@ -115,7 +117,6 @@ lib/PDL/Math/NOTES
 lib/PDL/Math/polevl.c
 lib/PDL/Math/protos.h
 lib/PDL/Math/yn.c
-lib/PDL/MATLAB.pod
 lib/PDL/Matrix.pm
 lib/PDL/MatrixOps.pd
 lib/PDL/MatrixOps/eigen.c
@@ -152,7 +153,6 @@ lib/PDL/Primitive-xoshiro256plus.c
 lib/PDL/Primitive.pd
 lib/PDL/QuickStart.pod
 lib/PDL/Reduce.pm
-lib/PDL/Scilab.pod
 lib/PDL/Slices.pd
 lib/PDL/Tips.pod
 lib/PDL/Transform.pd

@@ -9,12 +9,17 @@ of numerical analysis software.
 
 =over 5
 
-=item L<PDL::MATLAB>
+=item L<PDL::Guide::Migration::NumPy>
+
+Migration guide for NumPy users. This page explains the key differences
+between NumPy and PDL from the point of view of a NumPy user.
+
+=item L<PDL::Guide::Migration::MATLAB>
 
 Migration guide for MATLAB users. This page explains the key differences
 between MATLAB and PDL from the point of view of a MATLAB user.
 
-=item L<PDL::Scilab>
+=item L<PDL::Guide::Migration::Scilab>
 
 Migration guide for Scilab users. This page explains the key differences
 between Scilab and PDL from the point of view of a Scilab user.
@@ -127,5 +132,3 @@ and/or modify this document under the same terms as the current Perl
 license.
 
 See: http://dev.perl.org/licenses/
-
-
