@@ -49,7 +49,7 @@ Bryant
 
 /*
   Form a singular value decomposition of matrix A.
-  The SVD is thin.
+  The SVD is thin. To get a full SVD, zero-pad A on right so nCol == nRow
   Input:
     A is stored in the nRow*nCol elements of U
   Upon return:
@@ -58,7 +58,7 @@ Bryant
     array V will become the square (nCol*nCol) matrix V of the svd.
     On return, Z will contain the nCol squares of the singular values.
 
-  The input matrix A must have nRows >= nCol. If it does
+  The input matrix A must have nRow >= nCol. If it does
   not, one should input the transpose of A, A", to find the the svd
   of A, since A = U x S x V" and A" = V x S x U". (The " means transpose.)
 */
