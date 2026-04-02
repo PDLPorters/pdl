@@ -658,7 +658,7 @@ pp_def(
        Pars => 'a(n,m); [o]u(minmn=CALC(PDLMIN($SIZE(m),$SIZE(n))),m); [o]s(minmn); [o]v(minmn,n);
          [t]w(wsize=CALC(($SIZE(m) >= $SIZE(n)) ? 0 : $SIZE(n) * $SIZE(m)));',
        GenericTypes => ['D'],
-       CHeader => 'void SVD( double *W, double *V, double *Z, int nRow, int nCol );',
+       CHeader => 'void SVD( double *U, double *V, double *Z, int nRow, int nCol );',
        Code => <<'EOF',
 char is_transpose = $SIZE(m) < $SIZE(n);
 broadcastloop %{

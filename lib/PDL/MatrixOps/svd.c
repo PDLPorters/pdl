@@ -49,8 +49,8 @@ Bryant
 
 /*
    Form a singular value decomposition of matrix A which is stored in
-   the nRow*nCol elements of working array W. Upon return, the
-   nRow*nCol elements of W will become the product U x S of a
+   the nRow*nCol elements of working array U. Upon return, the
+   nRow*nCol elements of U will become the product U x S of a
    thin svd, where S is the diagonal vector of singular
    values. The passed-in V will become the square matrix
    V of a thin svd. On return, Z will contain the squares of the
@@ -73,7 +73,7 @@ Bryant
    colval1 = d1*cos0 + d2*sin0; colval2 = -d1*sin0 + d2*cos0; \
  }
 
-void SVD(double *W, double *V, double *Z, int nRow, int nCol)
+void SVD(double *U, double *V, double *Z, int nRow, int nCol)
 {
   int i, j, k, EstColRank, RotCount, SweepCount, slimit;
   double eps, e2, tol, vt, p, x0, y0, q, r, c0, s0;
@@ -86,8 +86,7 @@ void SVD(double *W, double *V, double *Z, int nRow, int nCol)
   e2 = 10.0*nRow*eps*eps;
   tol = eps*.1; /*set convergence tolerances */
   EstColRank = nCol; /* current estimate of rank */
-  /* Set V matrix to the unit matrix of order nCol.
-     V is stored in elements nCol*nRow to nCol*(nRow+nCol)-1 of array W. */
+  /* Set V matrix to the unit matrix of order nCol. */
   for (i=0; i<nCol; i++)
     for (j=0; j<nCol; j++)
       V[ nCol*i + j ] = i == j ? 1.0 : 0.0;
@@ -118,7 +117,7 @@ void SVD(double *W, double *V, double *Z, int nRow, int nCol)
           the matrix approaches orthogonality.
         */
         for (i=0; i<nRow; i++) {
-          x0 = W[nCol*i+j]; y0 = W[nCol*i+k];
+          x0 = U[nCol*i+j]; y0 = U[nCol*i+k];
           p += x0*y0; q += x0*x0; r += y0*y0;
         }
         Z[j] = q; Z[k] = r;
@@ -145,7 +144,7 @@ void SVD(double *W, double *V, double *Z, int nRow, int nCol)
                should be positive even without the fabs. abs
                isn't in Nash's book. c0 and s0 are cos(phi) and sin(phi) as above for q>=0*/
             c0 = sqrt(fabs(.5*(1+r/vt))); s0 = p/(vt*c0);
-            SVD_ROTATE_COL(W, j, k, i, nCol, nRow, c0, s0)
+            SVD_ROTATE_COL(U, j, k, i, nCol, nRow, c0, s0)
             SVD_ROTATE_COL(V, j, k, i, nCol, nCol, c0, s0)
           }
         } else {
@@ -162,7 +161,7 @@ void SVD(double *W, double *V, double *Z, int nRow, int nCol)
              already */
           if (p<0) s0 = -s0; /*s0 and c0 are sin(phi) and cos(phi) as above for q<0 */
           c0 = p/(vt*s0);
-          SVD_ROTATE_COL(W, j, k, i, nCol, nRow, c0, s0)
+          SVD_ROTATE_COL(U, j, k, i, nCol, nRow, c0, s0)
           SVD_ROTATE_COL(V, j, k, i, nCol, nCol, c0, s0)
         }
         /* Both angle calculations have been set up so that
