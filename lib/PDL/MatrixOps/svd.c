@@ -28,38 +28,39 @@ I'm using it in.
 Bryant
 */
 
-/* This SVD routine is based on pgs 30-48 of "Compact Numerical Methods
-   for Computers" by J.C. Nash (1990), used to compute the pseudoinverse.
-   Modifications include:
-        Translation from Pascal to ANSI C.
-        Array indexing from 0 rather than 1.
-        Float replaced by double everywhere.
-        Support for the Matrix structure.
-        I changed the array indexing so that the matricies (float [][])
-           could be replaced be a single list (double *) for more
-           efficient communication with Mathematica.
+/*This SVD routine is based on pgs 30-48 of "Compact Numerical Methods
+  for Computers" by J.C. Nash (1990), used to compute the pseudoinverse.
+  Modifications include:
+       Translation from Pascal to ANSI C.
+       Array indexing from 0 rather than 1.
+       Float replaced by double everywhere.
+       Support for the Matrix structure.
+       I changed the array indexing so that the matricies (float [][])
+          could be replaced be a single list (double *) for more
+          efficient communication with Mathematica.
 */
 
 /* rjrw 7/7/99: changed z back to a vector, moved one line... */
 
 /*
-   Derek A. Lamb 2016: added comments to aid understanding, since
-   Nash's book will only get more difficult to find in the future.
+  Derek A. Lamb 2016: added comments to aid understanding, since
+  Nash's book will only get more difficult to find in the future.
 */
 
 /*
-   Form a singular value decomposition of matrix A which is stored in
-   the nRow*nCol elements of working array U. Upon return, the
-   nRow*nCol elements of U will become the product U x S of a
-   thin svd, where S is the diagonal vector of singular
-   values. The passed-in V will become the square matrix
-   V of a thin svd. On return, Z will contain the squares of the
-   singular values.
+  Form a singular value decomposition of matrix A.
+  The SVD is thin.
+  Input:
+    A is stored in the nRow*nCol elements of U
+  Upon return:
+    array U will become the product U x S of an svd, where S is the
+      diagonal matrix of nCol singular values.
+    array V will become the square (nCol*nCol) matrix V of the svd.
+    On return, Z will contain the nCol squares of the singular values.
 
-   The input matrix A is assumed to have nRows >= nCol. If it does
-   not, one should input the transpose of A, A", to find the the svd
-   of A, since A = U x S x V" and A" = V x S x U". (The " means
-   transpose.)
+  The input matrix A must have nRows >= nCol. If it does
+  not, one should input the transpose of A, A", to find the the svd
+  of A, since A = U x S x V" and A" = V x S x U". (The " means transpose.)
 */
 
 #include <math.h>
