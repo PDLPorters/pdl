@@ -662,12 +662,12 @@ pp_def(
        Code => <<'EOF',
 char is_transpose = $SIZE(m) < $SIZE(n);
 broadcastloop %{
-  double *t = $P(w);
+  double *t = is_transpose ? $P(w) : $P(u);
   if (is_transpose)
     loop (n,m) %{ *t++ = $a(); %}
   else
     loop (m,n) %{ *t++ = $a(); %}
-  SVD($P(w),
+  SVD(is_transpose ? $P(w) : $P(u),
     is_transpose ? $P(u) : $P(w) + $SIZE(n)*$SIZE(m),
     $P(s), PDLMAX($SIZE(n),$SIZE(m)), PDLMIN($SIZE(m),$SIZE(n)));
   loop (minmn) %{ $s() = sqrt($s()); %}
@@ -676,7 +676,8 @@ broadcastloop %{
     loop (n,minmn) %{ $v() = *t++; %}
     loop (minmn,m) %{ $u() /= $s(); %}
   } else {
-    loop (m,minmn) %{ $u() = *t++/$s(); %}
+    loop (m,minmn) %{ $u() /= $s(); %}
+    t += $SIZE(m) * $SIZE(n);
     loop (n,minmn) %{ $v() = *t++; %}
   }
 %}
