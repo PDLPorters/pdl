@@ -52,7 +52,7 @@ Bryant
    the first nRow*nCol elements of working array W. Upon return, the
    nRow*nCol elements of W will become the product U x S of a
    thin svd, where S is the diagonal (rectangular) matrix of singular
-   values. The passed-in V will be the transposed square matrix
+   values. The passed-in V will be the square matrix
    V of a thin svd. On return, Z will contain the squares of the
    singular values.
 
