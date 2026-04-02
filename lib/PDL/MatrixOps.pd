@@ -665,9 +665,9 @@ pp_def("svd",
 char is_transpose = $SIZE(m) < $SIZE(n);
 broadcastloop %{
   if (is_transpose)
-    loop (n,m) %{ $w(wn=>n) = $a(); %}
+    loop (wn,m) %{ $w() = $a(n=>wn); %}
   else
-    loop (m,n) %{ $u(minmn=>n) = $a(); %}
+    loop (m,minmn) %{ $u() = $a(n=>minmn); %}
   SVD(!is_transpose ? $P(u) : $P(w),
       !is_transpose ? $P(v) : $P(u),
       $P(s), PDLMAX($SIZE(n),$SIZE(m)), PDLMIN($SIZE(m),$SIZE(n)));
