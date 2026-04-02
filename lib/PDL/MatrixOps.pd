@@ -658,14 +658,14 @@ pp_def("svd",
     [o]u(nUCol=CALC(PDLMIN($SIZE(m),$SIZE(n))),m);
     [o]s(nUCol);
     [o]v(nUCol,n);
-    [t]w(m,wrows=CALC(($SIZE(m) >= $SIZE(n)) ? 0 : $SIZE(n)));',
+    [t]w(wcols=CALC(($SIZE(m) >= $SIZE(n)) ? 0 : $SIZE(m)),n);',
   GenericTypes => ['D'],
   CHeader => 'void SVD(double *U, double *V, double *Z, int nRow, int nCol);',
   Code => <<'EOF',
 char is_transpose = $SIZE(m) < $SIZE(n);
 broadcastloop %{
   if (is_transpose)
-    loop (wrows,m) %{ $w() = $a(n=>wrows); %}
+    loop (n,wcols) %{ $w() = $a(m=>wcols); %}
   else
     loop (m,nUCol) %{ $u() = $a(n=>nUCol); %}
   SVD(!is_transpose ? $P(u) : $P(w),
@@ -673,7 +673,7 @@ broadcastloop %{
       $P(s), PDLMAX($SIZE(n),$SIZE(m)), $SIZE(nUCol));
   loop (nUCol) %{ $s() = sqrt($s()); %}
   if (is_transpose)
-    loop (n,nUCol) %{ $v() = $w(m=>nUCol,wrows=>n); %}
+    loop (n,nUCol) %{ $v() = $w(wcols=>nUCol); %}
   loop (m,nUCol) %{ $u() /= $s(); %}
 %}
 EOF
