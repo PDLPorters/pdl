@@ -655,26 +655,26 @@ EOF
 pp_def("svd",
   HandleBad => 0,
   Pars => 'a(n,m);
-    [o]u(minmn=CALC(PDLMIN($SIZE(m),$SIZE(n))),m);
-    [o]s(minmn);
-    [o]v(minmn,n);
-    [t]w(m,wn=CALC(($SIZE(m) >= $SIZE(n)) ? 0 : $SIZE(n)));',
+    [o]u(nUCol=CALC(PDLMIN($SIZE(m),$SIZE(n))),m);
+    [o]s(nUCol);
+    [o]v(nUCol,n);
+    [t]w(m,wrows=CALC(($SIZE(m) >= $SIZE(n)) ? 0 : $SIZE(n)));',
   GenericTypes => ['D'],
   CHeader => 'void SVD(double *U, double *V, double *Z, int nRow, int nCol);',
   Code => <<'EOF',
 char is_transpose = $SIZE(m) < $SIZE(n);
 broadcastloop %{
   if (is_transpose)
-    loop (wn,m) %{ $w() = $a(n=>wn); %}
+    loop (wrows,m) %{ $w() = $a(n=>wrows); %}
   else
-    loop (m,minmn) %{ $u() = $a(n=>minmn); %}
+    loop (m,nUCol) %{ $u() = $a(n=>nUCol); %}
   SVD(!is_transpose ? $P(u) : $P(w),
       !is_transpose ? $P(v) : $P(u),
-      $P(s), PDLMAX($SIZE(n),$SIZE(m)), PDLMIN($SIZE(m),$SIZE(n)));
-  loop (minmn) %{ $s() = sqrt($s()); %}
+      $P(s), PDLMAX($SIZE(n),$SIZE(m)), $SIZE(nUCol));
+  loop (nUCol) %{ $s() = sqrt($s()); %}
   if (is_transpose)
-    loop (n,minmn) %{ $v() = $w(m=>minmn,wn=>n); %}
-  loop (m,minmn) %{ $u() /= $s(); %}
+    loop (n,nUCol) %{ $v() = $w(m=>nUCol,wrows=>n); %}
+  loop (m,nUCol) %{ $u() /= $s(); %}
 %}
 EOF
   Doc => <<'EOF',
