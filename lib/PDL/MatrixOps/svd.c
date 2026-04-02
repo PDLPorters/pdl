@@ -49,10 +49,10 @@ Bryant
 
 /*
    Form a singular value decomposition of matrix A which is stored in
-   the first nRow*nCol elements of working array W. Upon return, the
+   the nRow*nCol elements of working array W. Upon return, the
    nRow*nCol elements of W will become the product U x S of a
-   thin svd, where S is the diagonal (rectangular) matrix of singular
-   values. The passed-in V will be the square matrix
+   thin svd, where S is the diagonal vector of singular
+   values. The passed-in V will become the square matrix
    V of a thin svd. On return, Z will contain the squares of the
    singular values.
 
@@ -73,35 +73,6 @@ Bryant
    colval1 = d1*cos0 + d2*sin0; colval2 = -d1*sin0 + d2*cos0; \
  }
 
-#ifdef MAIN
-#include <stdio.h>
-#define NC 2
-#define NR 2
-int main()
-{
-  int i,j,n,m;
-  double w[NC*(NR+NC)], z[NC*NC];
-  void SVD(double *W, double *Z, int nRow, int nCol);
-  for (i=0;i<NC*(NR+NC);i++) {
-    w[i] = 0.;
-  }
-  for (i=0;i<NC*NC;i++) {
-    z[i] = 0.;
-  }
-  w[0] = 1; w[1] = 3; w[NC] = -4; w[NC+1] = 3;
-  SVD(w, z, NR, NC);
-  printf("W:\n");
-  for (i=0;i<NC*(NR+NC);i++) {
-    printf("%d %g\n",i,w[i]);
-  }
-  printf("\nZ:\n");
-  for (i=0;i<NC*NC;i++) {
-    printf("%d %g\n",i,z[i]);
-  }
-  return 0;
-}
-#endif
-
 void SVD(double *W, double *V, double *Z, int nRow, int nCol)
 {
   int i, j, k, EstColRank, RotCount, SweepCount, slimit;
@@ -121,7 +92,6 @@ void SVD(double *W, double *V, double *Z, int nRow, int nCol)
     for (j=0; j<nCol; j++)
       V[ nCol*i + j ] = i == j ? 1.0 : 0.0;
   RotCount = EstColRank*(EstColRank-1)/2;
-
   /*until convergence is achieved or too many sweeps are carried out*/
   while (RotCount != 0 && SweepCount <= slimit) {
     RotCount = EstColRank*(EstColRank-1)/2; /* rotation counter */
@@ -209,3 +179,41 @@ void SVD(double *W, double *V, double *Z, int nRow, int nCol)
     fprintf(stderr, "Sweeps = %d\n", SweepCount);
 #endif
 }
+
+/* build this with `cc -DMAIN lib/PDL/MatrixOps/svd.c` */
+#ifdef MAIN
+#include <stdio.h>
+#define NC 2
+#define NR 2
+#define NC2 2
+#define NR2 3
+#define PRINTMAT(M, colind, rowind, ncols, nrows) \
+  printf(#M ":\n"); \
+  for (rowind=0;rowind<nrows;rowind++) { \
+    for (colind=0;colind<ncols;colind++) \
+      printf("%4.2g ",M[rowind*ncols + colind]); \
+    printf("\n"); \
+  }
+#define PRINTVEC(V, colind, ncols) \
+  printf(#V " vector:\n"); \
+  for (colind=0;colind<ncols;colind++) \
+    printf("%4.2g ",V[colind]); \
+  printf("\n");
+int main()
+{
+  int i,j;
+  double u[NC*NR] = { 1, 3, -4, 3 }, v[NC*NC], z[NC];
+  double u2[NC2*NR2] = { 3, 1, -1, 3, -2, 3 }, v2[NC2*NC2], z2[NC2];
+  printf("BEFORE "); PRINTMAT(u, j, i, NC, NR)
+  SVD(u, v, z, NR, NC);
+  PRINTMAT(u, j, i, NC, NR)
+  PRINTMAT(v, j, i, NC, NC)
+  PRINTVEC(z, j, NC)
+  printf("BEFORE "); PRINTMAT(u2, j, i, NC2, NR2)
+  SVD(u2, v2, z2, NR2, NC2);
+  PRINTMAT(u2, j, i, NC2, NR2)
+  PRINTMAT(v2, j, i, NC2, NC2)
+  PRINTVEC(z2, j, NC2)
+  return 0;
+}
+#endif
