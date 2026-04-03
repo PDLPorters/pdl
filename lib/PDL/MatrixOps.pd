@@ -186,8 +186,9 @@ sub PDL::gurney {
   Carp::confess "diagonal length $diag_len does not match either given dim $d0 or $d1" if !grep $diag_len == $_, $d0, $d1;
   my $diff = abs($d0 - $d1);
   my $mat = stretcher($diag);
-  $mat = $mat->glue($d0 < $d1 ? 1 : 0, zeroes($diag->type, $diff)) if $diff;
-  $mat;
+  return $mat if !$diff;
+  return $mat->append(zeroes($diag->type, $diff)) if $d0 > $d1;
+  $mat->t->append(zeroes($diag->type, $diff))->t;
 }
 EOD
 

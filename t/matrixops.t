@@ -176,6 +176,8 @@ is_pdl stretcher(ldouble('0.14142135623731 0.14142135623731')), ldouble('0.14142
 
 is_pdl gurney(pdl(1,2), 2, 3), pdl('1 0; 0 2; 0 0'), 'gurney works tall';
 is_pdl gurney(pdl(1,2), 3, 2), pdl('1 0 0; 0 2 0'), 'gurney works wide';
+is_pdl gurney(pdl(1,2,3), 3, 5), pdl('1 0 0; 0 2 0; 0 0 3; 0 0 0; 0 0 0'), 'gurney works big tall';
+is_pdl gurney(pdl(1,2,3), 5, 3), pdl('1 0 0 0 0; 0 2 0 0 0; 0 0 3 0 0'), 'gurney works big wide';
 
 {
 ### Check eigens with symmetric

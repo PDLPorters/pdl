@@ -1470,39 +1470,33 @@ have the same sized dimensions.
 
 =cut
 
-sub PDL::glue{
-    my($x) = shift;
-    my($dim) = shift;
-
-    ($dim, $x) = ($x, $dim) if defined $x && !ref $x;
-    confess 'dimension must be Perl scalar' if ref $dim;
-
-    if(!defined $x || $x->nelem==0) {
-	return $x unless(@_);
-	return shift() if(@_<=1);
-	$x=shift;
-	return PDL::glue($x,$dim,@_);
+sub PDL::glue {
+  my ($x, $dim) = splice @_, 0, 2;
+  ($dim, $x) = ($x, $dim) if defined $x && !ref $x;
+  confess 'dimension must be Perl scalar' if ref $dim;
+  if (!defined $x || $x->nelem==0) {
+    return $x unless @_;
+    return shift if @_<=1;
+    $x = shift;
+    return PDL::glue($x,$dim,@_);
+  }
+  if ($dim - $x->dim(0) > 100) {
+    warn "warning: PDL::glue allocating >100 dimensions!\n";
+  }
+  while ($dim >= $x->ndims) {
+    $x = $x->dummy(-1,1);
+  }
+  $x = $x->xchg(0,$dim) if 0 != $dim;
+  while (@_) {
+    my $y = shift;
+    next unless defined $y && $y->nelem;
+    while ($dim >= $y->ndims) {
+      $y = $y->dummy(-1,1);
     }
-
-    if($dim - $x->dim(0) > 100) {
-	print STDERR "warning:: PDL::glue allocating >100 dimensions!\n";
-    }
-    while($dim >= $x->ndims) {
-	$x = $x->dummy(-1,1);
-    }
-    $x = $x->xchg(0,$dim) if 0 != $dim;
-
-    while(scalar(@_)){
-	my $y = shift;
-	next unless(defined $y && $y->nelem);
-
-	while($dim >= $y->ndims) {
-		$y = $y->dummy(-1,1);
-        }
-	$y = $y->xchg(0,$dim) if 0 != $dim;
-	$x = $x->append($y);
-    }
-    0 == $dim ? $x : $x->xchg(0,$dim);
+    $y = $y->xchg(0,$dim) if 0 != $dim;
+    $x = $x->append($y);
+  }
+  0 == $dim ? $x : $x->xchg(0,$dim);
 }
 
 EOD
@@ -3121,7 +3115,7 @@ sub PDL::interpND {
   my $options = shift;
 
   barf 'Usage: interpND($source,$index[,{%options}])'
-    if(defined $options   and    ref $options ne 'HASH');
+    if defined $options   and    ref $options ne 'HASH';
 
   my $opt = defined $options ? $options : {};
 
