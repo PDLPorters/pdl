@@ -171,7 +171,7 @@ void SVD(double *U, double *V, double *Z, int nRow, int nCol)
            quantities x2,y2 cannot be negative.*/
       } /* loop on k */
     } /* loop on j */
-    while (EstColRank>=3 && Z[(EstColRank-1)]<=Z[0]*tol+tol*tol)
+    while (EstColRank>=3 && Z[EstColRank-1]<=Z[0]*tol+tol*tol)
       EstColRank--;
   }
 #if DEBUG
