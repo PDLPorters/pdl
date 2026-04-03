@@ -169,10 +169,12 @@ pp_addpm(<<'EOD');
 Turns a vector into non-square matrix. Takes two dims, one must
 match vector dim 0.
 
+This is useful for dealing with a full SVD:
+
 =for example
 
-  pdl> gurney(pdl(1,2), 2, 3)->info
-  PDL: Double D [2,3]
+  ($u,$s,$v) = svd($in, 1);
+  $reconstructed = $u x gurney($s, $in->dims) x $v->t; # same as $in
 
 =cut
 
