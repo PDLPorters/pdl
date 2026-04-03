@@ -680,7 +680,7 @@ broadcastloop %{
   if (is_transpose) {
     loop (n,nVCol) %{ $v() = $wtransposed(wcols=>nVCol); %}
   }
-  loop (m,nUCol) %{ $u() /= $s(nSV=>nUCol); %}
+  loop (m,nUCol) %{ if ($u()) $u() /= $s(nSV=>nUCol); %}
 %}
 EOF
   Doc => <<'EOF',
