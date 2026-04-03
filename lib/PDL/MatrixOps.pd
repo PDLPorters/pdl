@@ -660,23 +660,25 @@ pp_def("svd",
     [o]u(nUCol=CALC(PDLMIN($SIZE(m),$SIZE(n))),m);
     [o]s(nSV=CALC(PDLMIN($SIZE(m),$SIZE(n))));
     [o]v(nVCol=CALC(PDLMIN($SIZE(m),$SIZE(n))),n);
-    [t]w(wcols=CALC(($SIZE(m) >= $SIZE(n)) ? 0 : $SIZE(m)),n);',
+    [t]wtransposed(wcols=CALC(($SIZE(m) >= $SIZE(n)) ? 0 : $SIZE(m)),n);',
   GenericTypes => ['D'],
   CHeader => 'void SVD(double *U, double *V, double *Z, int nRow, int nCol);',
   Code => <<'EOF',
 char is_transpose = $SIZE(m) < $SIZE(n);
 broadcastloop %{
   if (is_transpose)
-    loop (n,wcols) %{ $w() = $a(m=>wcols); %}
+    loop (n,wcols) %{ $wtransposed() = $a(m=>wcols); %}
   else
     loop (m,nUCol) %{ $u() = $a(n=>nUCol); %}
-  SVD(!is_transpose ? $P(u) : $P(w),
+  SVD(!is_transpose ? $P(u) : $P(wtransposed),
       !is_transpose ? $P(v) : $P(u),
       $P(s), PDLMAX($SIZE(n),$SIZE(m)),
-      !is_transpose ? $SIZE(nUCol) : $SIZE(nVCol));
+      !is_transpose ? $SIZE(nUCol) : $SIZE(nVCol)
+  );
   loop (nSV) %{ $s() = sqrt($s()); %}
-  if (is_transpose)
-    loop (n,nVCol) %{ $v() = $w(wcols=>nVCol); %}
+  if (is_transpose) {
+    loop (n,nVCol) %{ $v() = $wtransposed(wcols=>nVCol); %}
+  }
   loop (m,nUCol) %{ $u() /= $s(nSV=>nUCol); %}
 %}
 EOF
