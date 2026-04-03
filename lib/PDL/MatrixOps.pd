@@ -672,7 +672,8 @@ broadcastloop %{
     loop (m,nUCol) %{ $u() = $a(n=>nUCol); %}
   SVD(!is_transpose ? $P(u) : $P(w),
       !is_transpose ? $P(v) : $P(u),
-      $P(s), PDLMAX($SIZE(n),$SIZE(m)), $SIZE(nUCol));
+      $P(s), PDLMAX($SIZE(n),$SIZE(m)),
+      !is_transpose ? $SIZE(nUCol) : $SIZE(nVCol));
   loop (nSV) %{ $s() = sqrt($s()); %}
   if (is_transpose)
     loop (n,nVCol) %{ $v() = $w(wcols=>nVCol); %}
