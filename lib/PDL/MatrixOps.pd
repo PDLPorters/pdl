@@ -659,7 +659,7 @@ pp_def("svd",
   Pars => 'a(n,m);
     [o]u(nUCol=CALC(PDLMIN($SIZE(m),$SIZE(n))),m);
     [o]s(nSV=CALC(PDLMIN($SIZE(m),$SIZE(n))));
-    [o]v(nUCol,n);
+    [o]v(nVCol=CALC(PDLMIN($SIZE(m),$SIZE(n))),n);
     [t]w(wcols=CALC(($SIZE(m) >= $SIZE(n)) ? 0 : $SIZE(m)),n);',
   GenericTypes => ['D'],
   CHeader => 'void SVD(double *U, double *V, double *Z, int nRow, int nCol);',
@@ -675,7 +675,7 @@ broadcastloop %{
       $P(s), PDLMAX($SIZE(n),$SIZE(m)), $SIZE(nUCol));
   loop (nSV) %{ $s() = sqrt($s()); %}
   if (is_transpose)
-    loop (n,nUCol) %{ $v() = $w(wcols=>nUCol); %}
+    loop (n,nVCol) %{ $v() = $w(wcols=>nVCol); %}
   loop (m,nUCol) %{ $u() /= $s(nSV=>nUCol); %}
 %}
 EOF
