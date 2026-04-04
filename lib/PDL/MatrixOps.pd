@@ -662,8 +662,18 @@ pp_def("svd",
     [o]s(nSV=CALC(PDLMIN($SIZE(m),$SIZE(n))));
     [o]v(nVCol=CALC($COMP(full) ? $SIZE(n) : PDLMIN($SIZE(m),$SIZE(n))),n);
     [t]sbig(nSVbig=CALC($COMP(full) ? PDLMAX($SIZE(m),$SIZE(n)) : 0));
-    [t]vbig(vbigcols=CALC($COMP(full) ? PDLMAX($SIZE(n),$SIZE(m)) : 0),vbigrows=CALC(PDLMAX($SIZE(n),$SIZE(m))));
-    [t]w(wcols=CALC(($COMP(full) && $SIZE(m) >= $SIZE(n)) ? $SIZE(m) : ($SIZE(m) >= $SIZE(n)) ? 0 : $COMP(full) ? $SIZE(n) : $SIZE(m)),wrows=CALC(($COMP(full) && $SIZE(m) >= $SIZE(n)) ? $SIZE(m) : $SIZE(n)));',
+    [t]vbig(vbigcols=CALC(
+        $COMP(full) ? PDLMAX($SIZE(n),$SIZE(m)) : 0
+      ),vbigrows=CALC(
+        PDLMAX($SIZE(n),$SIZE(m))
+      ));
+    [t]w(wcols=CALC(
+        $COMP(full) ? PDLMAX($SIZE(m),$SIZE(n)) :
+        $SIZE(m) >= $SIZE(n) ? 0 :
+        $SIZE(m)
+      ),wrows=CALC(
+        ($COMP(full) && $SIZE(m) >= $SIZE(n)) ? $SIZE(m) : $SIZE(n)
+      ));',
   OtherPars => 'int full',
   OtherParsDefaults => { full => 0 },
   GenericTypes => ['D'],
