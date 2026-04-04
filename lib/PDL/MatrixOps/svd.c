@@ -73,6 +73,22 @@ Bryant
    double d1 = colval1, d2 = colval2; \
    colval1 = d1*cos0 + d2*sin0; colval2 = -d1*sin0 + d2*cos0; \
  }
+#define PRINTMAT(M, colind, rowind, ncols, nrows) \
+  printf(#M ":\n"); \
+  for (rowind=0;rowind<nrows;rowind++) { \
+    for (colind=0;colind<ncols;colind++) \
+      printf("%4.2g ",M[rowind*ncols + colind]); \
+    printf("\n"); \
+  }
+#define PRINTVEC(V, colind, ncols) \
+  printf(#V " vector:\n"); \
+  for (colind=0;colind<ncols;colind++) \
+    printf("%4.2g ",V[colind]); \
+  printf("\n");
+
+#if DEBUG
+#include <stdio.h>
+#endif
 
 void SVD(double *U, double *V, double *Z, int nRow, int nCol)
 {
@@ -91,6 +107,10 @@ void SVD(double *U, double *V, double *Z, int nRow, int nCol)
   for (i=0; i<nCol; i++)
     for (j=0; j<nCol; j++)
       V[ nCol*i + j ] = i == j ? 1.0 : 0.0;
+#if DEBUG
+  printf("BEFORE "); PRINTMAT(U, j, i, nCol, nRow)
+  printf("BEFORE "); PRINTMAT(V, j, i, nCol, nCol)
+#endif
   RotCount = EstColRank*(EstColRank-1)/2;
   /*until convergence is achieved or too many sweeps are carried out*/
   while (RotCount != 0 && SweepCount <= slimit) {
@@ -177,6 +197,9 @@ void SVD(double *U, double *V, double *Z, int nRow, int nCol)
 #if DEBUG
   if (SweepCount > slimit)
     fprintf(stderr, "Sweeps = %d\n", SweepCount);
+  printf("AFTER "); PRINTMAT(U, j, i, nCol, nRow)
+  printf("AFTER "); PRINTMAT(V, j, i, nCol, nCol)
+  PRINTVEC(Z, j, nCol)
 #endif
 }
 
@@ -187,18 +210,6 @@ void SVD(double *U, double *V, double *Z, int nRow, int nCol)
 #define NR 2
 #define NC2 2
 #define NR2 3
-#define PRINTMAT(M, colind, rowind, ncols, nrows) \
-  printf(#M ":\n"); \
-  for (rowind=0;rowind<nrows;rowind++) { \
-    for (colind=0;colind<ncols;colind++) \
-      printf("%4.2g ",M[rowind*ncols + colind]); \
-    printf("\n"); \
-  }
-#define PRINTVEC(V, colind, ncols) \
-  printf(#V " vector:\n"); \
-  for (colind=0;colind<ncols;colind++) \
-    printf("%4.2g ",V[colind]); \
-  printf("\n");
 int main()
 {
   int i,j;
