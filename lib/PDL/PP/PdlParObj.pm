@@ -19,7 +19,7 @@ our $pars_re = qr/^
 	(\w+)			# $4: The name
 	\((.*)\)		# $5: The indices
 	\s*\Z			# that's all
-/x;
+/xs;
 my %flag2info = (
   io => [[qw(FlagW)]],
   o => [[qw(FlagOut FlagCreat FlagW)]],
