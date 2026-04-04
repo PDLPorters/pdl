@@ -700,16 +700,15 @@ broadcastloop %{
   if ($COMP(full)) {
     loop (nSV) %{ $s() = $sbig(nSVbig=>nSV); %}
     if (is_transpose) {
-      loop (m,nUCol) %{ $u() = $w(wcols=>nUCol,wrows=>m); if ($u() && $s(nSV=>nUCol)) $u() /= $s(nSV=>nUCol); %}
+      loop (m,nUCol) %{ $u() = $w(wcols=>nUCol,wrows=>m); %}
       loop (n,nVCol) %{ $v() = $vbig(vbigcols=>nVCol,vbigrows=>n); %}
     } else {
       loop (m,nUCol) %{ $u() = $vbig(vbigcols=>nUCol,vbigrows=>m); %}
-      loop (n,nVCol) %{ $v() = $w(wcols=>nVCol,wrows=>n); if ($v() && $s(nSV=>nVCol)) $v() /= $s(nSV=>nVCol); %}
+      loop (n,nVCol) %{ $v() = $w(wcols=>nVCol,wrows=>n); %}
     }
   } else {
     if (is_transpose)
       loop (n,nVCol) %{ $v() = $w(wcols=>nVCol,wrows=>n); %}
-    loop (m,nUCol) %{ if ($u()) $u() /= $s(nSV=>nUCol); %}
   }
 %}
 EOF

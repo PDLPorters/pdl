@@ -56,10 +56,9 @@ Bryant
   Input:
     A is stored in the nRow*nCol elements of U
   Upon return:
-    array U will become the product U x S of an svd, where S is the
-      diagonal matrix of nCol singular values.
+    array U will become the U of an svd.
     array V will become the square (nCol*nCol) matrix V of the svd.
-    On return, S will contain the nCol singular values.
+    S will contain the nCol singular values.
 
   The input matrix A must have nRow >= nCol. If it does
   not, one should input the transpose of A, A", to find the the svd
@@ -199,6 +198,10 @@ void SVD(double *U, double *V, double *S, int nRow, int nCol)
   }
   for (j = 0; j < nCol; j++)
     S[j] = sqrt(S[j]);
+  for (i=0; i < nRow; i++)
+    for (j=0; j < nCol; j++)
+      if (U[ nCol*i + j ])
+        U[ nCol*i + j ] /= S[j];
 #if DEBUG
   if (SweepCount > slimit)
     fprintf(stderr, "Sweeps = %d\n", SweepCount);
