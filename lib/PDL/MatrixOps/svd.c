@@ -59,7 +59,7 @@ Bryant
     array U will become the product U x S of an svd, where S is the
       diagonal matrix of nCol singular values.
     array V will become the square (nCol*nCol) matrix V of the svd.
-    On return, Z will contain the nCol squares of the singular values.
+    On return, S will contain the nCol singular values.
 
   The input matrix A must have nRow >= nCol. If it does
   not, one should input the transpose of A, A", to find the the svd
@@ -93,7 +93,7 @@ Bryant
 #include <stdio.h>
 #endif
 
-void SVD(double *U, double *V, double *Z, int nRow, int nCol)
+void SVD(double *U, double *V, double *S, int nRow, int nCol)
 {
   int i, j, k, EstColRank, RotCount, SweepCount, slimit;
   double eps, e2, tol, vt, p, x0, y0, q, r, c0, s0;
@@ -144,11 +144,11 @@ void SVD(double *U, double *V, double *Z, int nRow, int nCol)
           x0 = U[nCol*i+j]; y0 = U[nCol*i+k];
           p += x0*y0; q += x0*x0; r += y0*y0;
         }
-        Z[j] = q; Z[k] = r;
+        S[j] = q; S[k] = r;
         /* Convergence test: will rotation exchange order of columns?*/
         if (q >= r) { /* check if columns are ordered */
           /* columns are ordered, so try convergence test */
-          if (q<=e2*Z[0] || fabs(p)<=tol*q) {
+          if (q<=e2*S[0] || fabs(p)<=tol*q) {
             /* There is no more work on this particular pair of
                columns in the current sweep. The first condition
                checks for very small column norms in BOTH
@@ -194,15 +194,17 @@ void SVD(double *U, double *V, double *Z, int nRow, int nCol)
            quantities x2,y2 cannot be negative.*/
       } /* loop on k */
     } /* loop on j */
-    while (EstColRank>=3 && Z[EstColRank-1]<=Z[0]*tol+tol*tol)
+    while (EstColRank>=3 && S[EstColRank-1]<=S[0]*tol+tol*tol)
       EstColRank--;
   }
+  for (j = 0; j < nCol; j++)
+    S[j] = sqrt(S[j]);
 #if DEBUG
   if (SweepCount > slimit)
     fprintf(stderr, "Sweeps = %d\n", SweepCount);
   printf("AFTER "); PRINTMAT(U, j, i, nCol, nRow)
   printf("AFTER "); PRINTMAT(V, j, i, nCol, nCol)
-  PRINTVEC(Z, j, nCol)
+  PRINTVEC(S, j, nCol)
 #endif
 }
 
