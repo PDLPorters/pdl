@@ -49,7 +49,10 @@ Bryant
 
 /*
   Form a singular value decomposition of matrix A.
-  The SVD is thin. To get a full SVD, zero-pad A on right so nCol == nRow
+  The SVD is thin. To get a full SVD, zero-pad A on the bottom,
+  transposing if is tall, so nCol == nRow. If zero-pad on right per
+  some literature, the column rotation doesn't happen since it
+  thinks it's already finished.
   Input:
     A is stored in the nRow*nCol elements of U
   Upon return:
