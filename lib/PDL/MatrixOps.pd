@@ -666,16 +666,18 @@ pp_def("svd",
   CHeader => 'void SVD(double *U, double *V, double *Z, int nRow, int nCol);',
   Code => <<'EOF',
 char is_transpose = $SIZE(m) < $SIZE(n);
+$GENERIC() *u_ptr = NULL, *v_ptr = NULL, *sv_ptr = NULL;
+int in_rows = PDLMAX($SIZE(n),$SIZE(m)),
+  in_cols = !is_transpose ? $SIZE(nUCol) : $SIZE(nVCol);
 broadcastloop %{
+  sv_ptr = $P(s);
+  u_ptr = !is_transpose ? $P(u) : $P(wtransposed);
+  v_ptr = !is_transpose ? $P(v) : $P(u);
   if (is_transpose)
     loop (n,wcols) %{ $wtransposed() = $a(m=>wcols); %}
   else
     loop (m,nUCol) %{ $u() = $a(n=>nUCol); %}
-  SVD(!is_transpose ? $P(u) : $P(wtransposed),
-      !is_transpose ? $P(v) : $P(u),
-      $P(s), PDLMAX($SIZE(n),$SIZE(m)),
-      !is_transpose ? $SIZE(nUCol) : $SIZE(nVCol)
-  );
+  SVD(u_ptr, v_ptr, sv_ptr, in_rows, in_cols);
   loop (nSV) %{ $s() = sqrt($s()); %}
   if (is_transpose) {
     loop (n,nVCol) %{ $v() = $wtransposed(wcols=>nVCol); %}
