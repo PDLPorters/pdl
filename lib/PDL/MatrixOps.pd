@@ -658,33 +658,60 @@ EOF
 pp_def("svd",
   HandleBad => 0,
   Pars => 'a(n,m);
-    [o]u(nUCol=CALC(PDLMIN($SIZE(m),$SIZE(n))),m);
+    [o]u(nUCol=CALC($COMP(full) ? $SIZE(m) : PDLMIN($SIZE(m),$SIZE(n))),m);
     [o]s(nSV=CALC(PDLMIN($SIZE(m),$SIZE(n))));
-    [o]v(nVCol=CALC(PDLMIN($SIZE(m),$SIZE(n))),n);
-    [t]w(wcols=CALC(($SIZE(m) >= $SIZE(n)) ? 0 : $SIZE(m)),wrows=CALC($SIZE(n)));',
+    [o]v(nVCol=CALC($COMP(full) ? $SIZE(n) : PDLMIN($SIZE(m),$SIZE(n))),n);
+    [t]sbig(nSVbig=CALC($COMP(full) ? PDLMAX($SIZE(m),$SIZE(n)) : 0));
+    [t]vbig(vbigcols=CALC($COMP(full) ? PDLMAX($SIZE(n),$SIZE(m)) : 0),vbigrows=CALC(PDLMAX($SIZE(n),$SIZE(m))));
+    [t]w(wcols=CALC(($COMP(full) && $SIZE(m) >= $SIZE(n)) ? $SIZE(m) : ($SIZE(m) >= $SIZE(n)) ? 0 : $COMP(full) ? $SIZE(n) : $SIZE(m)),wrows=CALC(($COMP(full) && $SIZE(m) >= $SIZE(n)) ? $SIZE(m) : $SIZE(n)));',
+  OtherPars => 'int full',
+  OtherParsDefaults => { full => 0 },
   GenericTypes => ['D'],
   CHeader => 'void SVD(double *U, double *V, double *Z, int nRow, int nCol);',
   Code => <<'EOF',
 char is_transpose = $SIZE(m) < $SIZE(n);
 $GENERIC() *u_ptr = NULL, *v_ptr = NULL, *sv_ptr = NULL;
 int in_rows = PDLMAX($SIZE(n),$SIZE(m)),
-  in_cols = !is_transpose ? $SIZE(nUCol) : $SIZE(nVCol);
+  in_cols = $COMP(full) ? PDLMAX($SIZE(n),$SIZE(m)) :
+    !is_transpose ? $SIZE(nUCol) : $SIZE(nVCol);
 broadcastloop %{
-  sv_ptr = $P(s);
-  if (is_transpose) {
+  if ($COMP(full)) {
+    sv_ptr = $P(sbig);
     u_ptr = $P(w);
-    v_ptr = $P(u);
-    loop (wrows,wcols) %{ $w() = $a(m=>wcols,n=>wrows); %}
+    v_ptr = $P(vbig);
+    if (is_transpose) {
+      loop (wrows,wcols) %{ $w() = wrows < $SIZE(m) ? $a(n=>wcols,m=>wrows) : 0; %}
+    } else {
+      loop (wrows,wcols) %{ $w() = wrows < $SIZE(n) ? $a(n=>wrows,m=>wcols) : 0; %}
+    }
   } else {
-    u_ptr = $P(u);
-    v_ptr = $P(v);
-    loop (m,nUCol) %{ $u() = $a(n=>nUCol); %}
+    sv_ptr = $P(s);
+    if (is_transpose) {
+      u_ptr = $P(w);
+      v_ptr = $P(u);
+      loop (wrows,wcols) %{ $w() = $a(m=>wcols,n=>wrows); %}
+    } else {
+      u_ptr = $P(u);
+      v_ptr = $P(v);
+      loop (m,nUCol) %{ $u() = $a(n=>nUCol); %}
+    }
   }
   SVD(u_ptr, v_ptr, sv_ptr, in_rows, in_cols);
-  loop (nSV) %{ $s() = sqrt($s()); %}
-  if (is_transpose)
-    loop (n,nVCol) %{ $v() = $w(wcols=>nVCol,wrows=>n); %}
-  loop (m,nUCol) %{ if ($u()) $u() /= $s(nSV=>nUCol); %}
+  if ($COMP(full)) {
+    loop (nSV) %{ $s() = sqrt($sbig(nSVbig=>nSV)); %}
+    if (is_transpose) {
+      loop (m,nUCol) %{ $u() = $w(wcols=>nUCol,wrows=>m); if ($u() && $s(nSV=>nUCol)) $u() /= $s(nSV=>nUCol); %}
+      loop (n,nVCol) %{ $v() = $vbig(vbigcols=>nVCol,vbigrows=>n); %}
+    } else {
+      loop (m,nUCol) %{ $u() = $vbig(vbigcols=>nUCol,vbigrows=>m); %}
+      loop (n,nVCol) %{ $v() = $w(wcols=>nVCol,wrows=>n); if ($v() && $s(nSV=>nVCol)) $v() /= $s(nSV=>nVCol); %}
+    }
+  } else {
+    loop (nSV) %{ $s() = sqrt($s()); %}
+    if (is_transpose)
+      loop (n,nVCol) %{ $v() = $w(wcols=>nVCol,wrows=>n); %}
+    loop (m,nUCol) %{ if ($u()) $u() /= $s(nSV=>nUCol); %}
+  }
 %}
 EOF
   Doc => <<'EOF',
@@ -704,10 +731,22 @@ The original matrix can be reconstructed as follows:
     ($u,$s,$v) = svd($x);
     $x_copy = $u x stretcher($s) x $v->transpose;
 
+Also as of 2.104, you can now request the full SVD by passing
+a true value as the C<$full> parameter. In that case, C<$u> will
+be m x m, and C<$v> will be n x n. To reconstruct the original
+input, use:
+
+  ($u,$s,$v) = svd($in, 1);
+  $in_copy = $u x gurney($s, $in->dims) x $v->t; # same as $in
+
 If m==n, C<$u> and C<$v> can be thought of as rotation matrices that
 convert from the original matrix's singular coordinates to final
 coordinates, and from original coordinates to singular coordinates,
 respectively, and C<stretcher($s)> is a diagonal scaling matrix.
+
+This uses J.C. Nash's implementation of a one-sided Jacobi rotation.
+Use LAPACK (i.e. L<PDL::LinearAlgebra>) for better performance if
+you need it.
 
 EXAMPLE
 

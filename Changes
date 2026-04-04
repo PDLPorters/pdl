@@ -15,6 +15,7 @@
 - now-unused (and always redundant) TwoWay PP key removed
 - add MatrixOps::gurney
 - automatically-generated docs now record inplace input/output
+- MatrixOps::svd can now do full SVD on request
 
 2.103 2026-03-03
 - fix regression in *linvals so takes ndarrays as start and end again

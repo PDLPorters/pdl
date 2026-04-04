@@ -313,6 +313,27 @@ my ($u,$s,$v) = svd($this_svd_in);
 is_pdl $u x stretcher($s) x $v->transpose, $this_svd_in, "svd 2x3"
   or diag "Got from SVD:\nu=${u}s=$s\nv=$v";
 }
+
+{
+# 5x3
+my $in = pdl '1 2 3 4 21; 5 6 7 8 22; 9 10 11 12 20';
+my ($u,$s,$v) = svd($in->t, 1);
+is_pdl $u x gurney($s, $in->t->dims) x $v->t, $in->t, "svd full tall"
+  or diag 'got:', $u, $s, $v;
+is_pdl $u->t x $u, identity(5), 'tall U is orthonormal' or diag "u=$u";
+is_pdl $v x $v->t, identity(3), 'tall Vt is orthonormal' or diag "v=$v";
+my $u_null = $u->slice("-1");
+is_pdl $in x $u_null, zeroes(1,3), 'tall correct left null-space';
+
+# 3x5
+($u,$s,$v) = svd($in, 1);
+is_pdl $u x gurney($s, $in->dims) x $v->t, $in, "svd full wide"
+  or diag 'got:', $u, $s, $v;
+is_pdl $u->t x $u, identity(3), 'wide U is orthonormal' or diag "u=$u";
+is_pdl $v x $v->t, identity(5), 'wide Vt is orthonormal' or diag "v=$v";
+my $v_null = $v->slice("-1");
+is_pdl $in x $v_null, zeroes(1,3), 'wide correct right null-space';
+}
 }
 
 {
