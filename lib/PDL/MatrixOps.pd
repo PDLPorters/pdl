@@ -669,24 +669,23 @@ pp_def("svd",
   GenericTypes => ['D'],
   CHeader => 'void SVD(double *U, double *V, double *S, int nRow, int nCol);',
   Code => <<'EOF',
-char is_transpose = $SIZE(m) < $SIZE(n);
+char is_wide = $SIZE(m) < $SIZE(n);
 $GENERIC() *u_ptr = NULL, *v_ptr = NULL, *sv_ptr = NULL;
 int in_rows = PDLMAX($SIZE(n),$SIZE(m)),
-  in_cols = $COMP(full) ? PDLMAX($SIZE(n),$SIZE(m)) :
-    !is_transpose ? $SIZE(nUCol) : $SIZE(nVCol);
+  in_cols = $COMP(full) ? PDLMAX($SIZE(n),$SIZE(m)) : PDLMIN($SIZE(n),$SIZE(m));
 broadcastloop %{
   if ($COMP(full)) {
     sv_ptr = $P(sbig);
     u_ptr = $P(w);
     v_ptr = $P(vbig);
-    if (is_transpose) {
+    if (is_wide) {
       loop (wrows,wcols) %{ $w() = wrows < $SIZE(m) ? $a(n=>wcols,m=>wrows) : 0; %}
     } else {
       loop (wrows,wcols) %{ $w() = wrows < $SIZE(n) ? $a(n=>wrows,m=>wcols) : 0; %}
     }
   } else {
     sv_ptr = $P(s);
-    if (is_transpose) {
+    if (is_wide) {
       u_ptr = $P(w);
       v_ptr = $P(u);
       loop (wrows,wcols) %{ $w() = $a(m=>wcols,n=>wrows); %}
@@ -699,7 +698,7 @@ broadcastloop %{
   SVD(u_ptr, v_ptr, sv_ptr, in_rows, in_cols);
   if ($COMP(full)) {
     loop (nSV) %{ $s() = $sbig(nSVbig=>nSV); %}
-    if (is_transpose) {
+    if (is_wide) {
       loop (m,nUCol) %{ $u() = $w(wcols=>nUCol,wrows=>m); %}
       loop (n,nVCol) %{ $v() = $vbig(vbigcols=>nVCol,vbigrows=>n); %}
     } else {
@@ -707,7 +706,7 @@ broadcastloop %{
       loop (n,nVCol) %{ $v() = $w(wcols=>nVCol,wrows=>n); %}
     }
   } else {
-    if (is_transpose)
+    if (is_wide)
       loop (n,nVCol) %{ $v() = $w(wcols=>nVCol,wrows=>n); %}
   }
 %}
@@ -778,9 +777,7 @@ LU decompose a matrix, with row permutation
 =for usage
 
   ($lu, $perm, $parity) = lu_decomp($x);
-
   $lu = lu_decomp($x, $perm, $par);  # $perm and $par are outputs!
-
   lu_decomp($x->inplace,$perm,$par); # Everything in place.
 
 =for description
