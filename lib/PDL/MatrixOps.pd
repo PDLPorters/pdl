@@ -661,7 +661,7 @@ pp_def("svd",
     [o]u(nUCol=CALC(PDLMIN($SIZE(m),$SIZE(n))),m);
     [o]s(nSV=CALC(PDLMIN($SIZE(m),$SIZE(n))));
     [o]v(nVCol=CALC(PDLMIN($SIZE(m),$SIZE(n))),n);
-    [t]wtransposed(wcols=CALC(($SIZE(m) >= $SIZE(n)) ? 0 : $SIZE(m)),n);',
+    [t]w(wcols=CALC(($SIZE(m) >= $SIZE(n)) ? 0 : $SIZE(m)),wrows=CALC($SIZE(n)));',
   GenericTypes => ['D'],
   CHeader => 'void SVD(double *U, double *V, double *Z, int nRow, int nCol);',
   Code => <<'EOF',
@@ -672,18 +672,18 @@ int in_rows = PDLMAX($SIZE(n),$SIZE(m)),
 broadcastloop %{
   sv_ptr = $P(s);
   if (is_transpose) {
-    u_ptr = $P(wtransposed);
+    u_ptr = $P(w);
     v_ptr = $P(u);
-    loop (n,wcols) %{ $wtransposed() = wcols < $SIZE(m) ? $a(m=>wcols) : 0; %}
+    loop (wrows,wcols) %{ $w() = $a(m=>wcols,n=>wrows); %}
   } else {
     u_ptr = $P(u);
     v_ptr = $P(v);
-    loop (m,nUCol) %{ $u() = nUCol < $SIZE(n) ? $a(n=>nUCol) : 0; %}
+    loop (m,nUCol) %{ $u() = $a(n=>nUCol); %}
   }
   SVD(u_ptr, v_ptr, sv_ptr, in_rows, in_cols);
   loop (nSV) %{ $s() = sqrt($s()); %}
   if (is_transpose)
-    loop (n,nVCol) %{ $v() = $wtransposed(wcols=>nVCol); %}
+    loop (n,nVCol) %{ $v() = $w(wcols=>nVCol,wrows=>n); %}
   loop (m,nUCol) %{ if ($u()) $u() /= $s(nSV=>nUCol); %}
 %}
 EOF
