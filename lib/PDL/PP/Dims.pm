@@ -11,8 +11,9 @@ sub new {
 }
 
 sub get_indobj_make {
-  my ($this,$expr,$calc) = @_;
-  my ($name, $val) = $expr =~ /^([a-zA-Z0-9]+)(?:=([0-9]+))?$/ or confess "Invalid index expr '$expr'\n";
+  my ($this,$expr,$calc,$orig_inds,$par_name) = @_;
+  my ($name, $val) = $expr =~ /^([a-zA-Z0-9]+)(?:=([0-9]+))?$/
+    or confess "Invalid index expr in Par '$par_name' '$expr' while parsing '$orig_inds'\n";
   confess "Error: both simple value '$val' and CALC '$calc'"
     if $calc && defined $val;
   $val //= $calc;

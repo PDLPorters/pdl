@@ -67,6 +67,7 @@ sub new {
   $string =~ $pars_re or croak "pp_def($opname): Invalid pdl def $string (regex $pars_re)\n";
   my $this = bless {Number => "PDL_UNDEF_NUMBER", OpName=>$opname},$type;
   my($opt1,$opt_plus,$sqbr_opt,$name,$inds) = map $_ // '', $1,$2,$3,$4,$5;
+  $this->{OrigInds} = $inds;
   print "PDL: '$opt1$opt_plus', '$sqbr_opt', '$name', '$inds'\n"
     if $::PP_VERBOSE;
   croak "pp_def($opname): Invalid Pars name: $name" if $INVALID_PAR{$name};
@@ -98,11 +99,11 @@ sub cflags {
 sub name {$_[0]{Name}}
 
 sub add_inds {
-	my($this,$dimsobj) = @_;
-	$this->{IndObjs} = [my @objs = map $dimsobj->get_indobj_make($_, $this->{Ind2Calc}{$_}), @{$this->{RawInds}}];
-	my %indcount;
-	$this->{IndCounts} = [ map 0+($indcount{$_->name}++), @objs ];
-	$this->{IndTotCounts} = [ map $indcount{$_->name}, @objs ];
+  my($this,$dimsobj) = @_;
+  $this->{IndObjs} = [my @objs = map $dimsobj->get_indobj_make($_, $this->{Ind2Calc}{$_}, $this->{OrigInds}, $this->{Name}), @{$this->{RawInds}}];
+  my %indcount;
+  $this->{IndCounts} = [ map 0+($indcount{$_->name}++), @objs ];
+  $this->{IndTotCounts} = [ map $indcount{$_->name}, @objs ];
 }
 
 
