@@ -3966,7 +3966,7 @@ sub t_projective {
     die "t_projective: needs a square matrix"
       if($matrix->dims != 2 || $matrix->dim(0) != $matrix->dim(1));
 
-    $me->{idim} = $me->{params}{idim} //= $matrix->dim(0)-1;
+    $me->{params}{idim} //= $matrix->dim(0)-1;
 
     die "t_projective: matrix not compatible with given dimension (should be N+1xN+1)\n"
       unless $me->{params}{idim} == $matrix->dim(0)-1;
@@ -3982,25 +3982,20 @@ sub t_projective {
   } else {
     die "t_projective: must supply either 'p' or 'm' option";
   }
-  $me->{params}{matrix} = $matrix;
-  $me->{params}{matinv} = $matrix->inv;
+  @{$me->{params}}{qw(matrix matinv)} = ($matrix, $matrix->inv);
 
   $me->{idim} = $me->{odim} = $me->{params}{odim} = $me->{params}{idim} //= 2;
 
   $me->{func} = sub {
-    my($data,$o) = @_;
-    my($id) = $data->dim(0);
-    my($d) = $data->glue(0,ones($data->slice("0")));
-    my($out) = ($o->{matrix} x $d->slice("*1"))->slice("(0)");
-    return ($out->slice("0:".($id-1))/$out->slice("$id"));
+    my ($data,$o) = @_;
+    my $out = $data->append(1) x $o->{matrix}->t;
+    $out->slice("0:-2")/$out->slice("-1");
   };
 
   $me->{inv} = sub {
-    my($data,$o) = @_;
-    my($id) = $data->dim(0);
-    my($d) = $data->glue(0,ones($data->slice("0")));
-    my($out) = ($o->{matinv} x $d->slice("*1"))->slice("(0)");
-    return ($out->slice("0:".($id-1))/$out->slice("$id"));
+    my ($data,$o) = @_;
+    my $out = $data->append(1) x $o->{matinv}->t;
+    $out->slice("0:-2")/$out->slice("-1");
   };
 
   $me;
