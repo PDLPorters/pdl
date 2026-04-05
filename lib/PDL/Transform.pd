@@ -3973,6 +3973,14 @@ sub construct_DLT {
   $M->append(-outer($pts_src, $pts_dst)->clump(1,2));
 }
 
+sub solve_DLT {
+  my ($A, $ndim, $mdim, $pts_dst) = @_;
+  my $matrix = ones($ndim, $mdim);
+  $matrix->flat->slice("0:-2") .=
+    ($A->inv x $pts_dst->flat->t)->t;
+  $matrix;
+}
+
 sub t_projective {
   my $class = 'PDL::Transform';
   my $o = ref $_[0] eq 'HASH' ? $_[0] : { @_ };
@@ -4003,10 +4011,8 @@ sub t_projective {
       if grep !defined, $pts_src, $pts_dst;
     my $d0 = $pts_src->dim(0);
     my $M = construct_DLT($pts_src, $pts_dst);
-    $matrix = ones(($d0+1) x 2);
     # Solve the system
-    $matrix->flat->slice("0:-2") .=
-      ($M->inv x $pts_dst->flat->t)->t;
+    $matrix = solve_DLT($M, ($d0+1) x 2, $pts_dst);
   }
   $me->{params}{matrix} = $matrix;
   $me->{params}{matinv} = $matrix->inv if $matrix->dim(0) == $matrix->dim(1);
