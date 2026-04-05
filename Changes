@@ -17,6 +17,7 @@
 - automatically-generated docs now record inplace input/output
 - MatrixOps::svd can now do full SVD on request
 - Pars can now have \n in definition
+- perldl no longer has Perl-only fallback mode
 
 2.103 2026-03-03
 - fix regression in *linvals so takes ndarrays as start and end again

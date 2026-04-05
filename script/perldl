@@ -404,40 +404,11 @@ my $startup_file = -e "$HOME/.perldlrc" ? "$HOME/.perldlrc" : startup_def();
 
 print "Reading $startup_file...\n";
 
-eval 'require "'.$startup_file.'"';
-my $PDL_OK = ($@ eq "");
-if ($PDL_OK) {
-   require PDL if not defined $PDL::VERSION;
-   print "Type 'demo' for online demos\n";
-   print "Loaded PDL v$PDL::VERSION (supports bad values)\n";
-   print "Type 'help' for online help\n" if $PDL::verbose;
-}else{
-   warn "WARNING: Error loading PDL: '$@' - trying blib. \n";
-   eval "use blib";
-   delete $INC{$startup_file};  # so require will try again!
-   eval 'require "'.$startup_file.'"';
-   $PDL_OK = ($@ eq "");
-   if ($PDL_OK) {
-      require PDL if not defined $PDL::VERSION;
-      print "Loaded PDL v$PDL::VERSION\n";
-   }else{
-      warn "WARNING: PDL startup not found only plain perl available\n";
-      $PERLDL::PROMPT = 'perl> ';  # so there is visual indication of no PDL
-
-      eval << 'EOD'; # Fallback eval routine - proper one defined in PDL::Core
-
-sub eval_and_report {
-  my $__code = shift; # Can be code ref or string
-  my $__string;
-  $__string = (ref $__code eq "CODE") ? '&$__code()' : $__code;
-  my $retval = eval $__string; # Use boring eval() which misses some errors
-  print $retval if $PERLDL::DO_PRINT && !ref($__code) && $__code !~ /;\n?\z/;
-  $@;
-}
-EOD
-
-   }
-}
+require $startup_file;
+require PDL if not defined $PDL::VERSION;
+print "Type 'demo' for online demos\n";
+print "Loaded PDL v$PDL::VERSION (supports bad values)\n";
+print "Type 'help' for online help\n" if $PDL::verbose;
 
 print "\nNote: AutoLoader not enabled ('use PDL::AutoLoader' recommended)\n\n"
   unless defined($PDL::AutoLoader::Rescan);
