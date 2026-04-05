@@ -3918,19 +3918,41 @@ OPTIONS:
 If specified, this is the homogeneous-coordinate matrix to use.  It must
 be N+1 x N+1, for an N-dimensional transformation.
 
-=item p, point, points, Points
+=item src, from, I<and> dst, to
 
-If specified, this is the set of C<ncoords + 2> points that should
-be mapped one to the other.
-The homogeneous-coordinate matrix is calculated from them. You should feed in a
+If specified, this is the sets of points that should be mapped one
+to the other. Both C<src> and C<dst> must have the same number of
+points (C<N>).
+That number must be, where C<m,n> are the number of destination, source
+dimensions: C<((m+1)*(n+1)-1)/n>.
+The ndarrays are dimensioned C<(coords,N)>.
+The homogeneous-coordinate matrix is calculated from them.
+You should feed in a
 C<ncoord x 2 x ncoord+2> PDL, where the 0 dimension runs over
 coordinate, the 1 dimension runs between input
 and output, and the 2 dimension runs over points. For example, specifying
 
-  p=> pdl([ [[0,1],[0,1]], [[5,9],[5,8]], [[9,4],[9,3]], [[0,0],[0,0]] ])
+  src => pdl([ [0,0], [0,1], [5,9], [9,4] ])
+  dst => pdl([ [0,0], [0,1], [5,8], [9,3] ])
 
-maps the origin and the point (0,1) to themselves, the point (5,9) to (5,8), and
-the point (9,4) to (9,3).
+maps the origin and the point (0,1) to themselves, the point (5,9)
+to (5,8), and the point (9,4) to (9,3).
+
+=item p, point, points, Points
+
+You are encouraged to use the more general C<src,dst> options given above.
+
+If specified, this is the set of C<ncoords + 2> points that should
+be mapped one to the other.
+You should feed in a
+C<2 x 2 x 4> PDL, where the 0 dimension runs over
+coordinate, the 1 dimension runs between input
+and output, and the 2 dimension runs over points. For example, specifying
+
+  p => pdl([ [[0,0],[0,0]], [[0,1],[0,1]], [[5,9],[5,8]], [[9,4],[9,3]] ])
+
+maps the origin and the point (0,1) to themselves, the point (5,9)
+to (5,8), and the point (9,4) to (9,3).
 
 This is similar to the behavior of fitwarp2d with a quadratic polynomial.
 
@@ -3971,17 +3993,24 @@ sub t_projective {
 
     die "t_projective: matrix not compatible with given dimension (should be N+1xN+1)\n"
       unless $me->{params}{idim} == $matrix->dim(0)-1;
-  } elsif (defined (my $p=pdl(_opt($o,['p','point','points','Point','Points'])))) {
-    my $d0 = $p->dim(0);
-    die "t_projective: points must be ncoord x 2(in,out) x ncoord+2(point)"
-      unless $p->dims==3 && all($p->shape == pdl($d0,2,$d0+2));
-    my $M = construct_DLT($p->mv(1,-1)->dog);
+  } else {
+    my ($p, $pts_src, $pts_dst) = _opt($o,['p','point','points','Point','Points']);
+    if (defined $p) {
+      $p = PDL->topdl($p);
+      die "t_projective: points must be ncoord x 2(in,out) x ncoord+2(point)"
+        unless $p->dims==3 && all($p->shape == pdl(2,2,4));
+      ($pts_src, $pts_dst) = $p->mv(1,-1)->dog;
+    } else {
+      ($pts_src, $pts_dst) = map _opt($o,$_), ['src','from'], ['dst','to'];
+    }
+    die "t_projective: must supply either 'p', 'm', or 'src' and 'dst' options"
+      if grep !defined, $pts_src, $pts_dst;
+    my $d0 = $pts_src->dim(0);
+    my $M = construct_DLT($pts_src, $pts_dst);
     $matrix = ones(($d0+1) x 2);
     # Solve the system
     $matrix->flat->slice("0:-2") .=
-      ($M->inv x $p->slice(":,(1),:")->flat->t)->t;
-  } else {
-    die "t_projective: must supply either 'p' or 'm' option";
+      ($M->inv x $pts_dst->flat->t)->t;
   }
   @{$me->{params}}{qw(matrix matinv)} = ($matrix, $matrix->inv);
 
