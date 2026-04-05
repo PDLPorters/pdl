@@ -677,44 +677,29 @@ sub eval_and_report {
 
   $@ = ""; # clear $@ since we might not execute the eval below
 
-
   ## Compile the code ref to execute.  The code gets put inside {} braces
   ## so that there is a trivial loop (the simple block) for 'last' and 'next'
   ## to escape from.  (Otherwise perl 5.6.1 and 5.8 do a little fandango
   ## on stack if you type "last" at the shell).  --CED 18-Mar-2003
-
-  my $__coderef = (ref $__code eq "CODE") ? $__code : eval << "EOD"
-							    
-							    sub {
-							      {
-								$__code;
-							      }
-							    }
-EOD
-;
+  my $__coderef = ref $__code eq "CODE" ? $__code : eval "sub {{ $__code }}";
 
   %@ = (); # Workaround to prevent spurious loss of $@ in early (pre-5.14 anyway) versions of perl
 
-  if( (!$@) and (ref $__coderef eq 'CODE')) { 
-      eval {
-        my $sig_action = mksighandle();
-        my $retval = &$__coderef();
-        die $@ if $@;
-        print $retval if $PERLDL::DO_PRINT && !ref($__code) && $__code !~ /;\n?\z/;
-      };
+  if (!$@ and ref $__coderef eq 'CODE') {
+    eval {
+      my $sig_action = mksighandle();
+      my @retval = &$__coderef();
+      die $@ if $@;
+      print @retval if $PERLDL::DO_PRINT && !ref($__code) && $__code !~ /;\n?\z/;
+    };
   }
-  if ($@) {
-      my $mess = $@;
-
-      # Remove surplus parts
-
-      $mess =~ s/^\s*\(in cleanup\)\s+//;   # 'cleanup ...' from Usage:...
-      $mess =~ s/\n\s*\(in cleanup\).*$//;  # 'cleanup...'s at end
-      $mess =~ s/\s+at \(eval \d+\) line \d+\.?$//; # at eval ?? line ??.
-
-      return $mess;  # Report error
-  }
-  return "";
+  return "" if !$@;
+  my $mess = $@;
+  # Remove surplus parts
+  $mess =~ s/^\s*\(in cleanup\)\s+//;   # 'cleanup ...' from Usage:...
+  $mess =~ s/\n\s*\(in cleanup\).*$//;  # 'cleanup...'s at end
+  $mess =~ s/\s+at \(eval \d+\) line \d+\.?$//; # at eval ?? line ??.
+  $mess;  # Report error
 }
 
 
