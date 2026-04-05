@@ -3986,11 +3986,7 @@ sub t_projective {
   my $matrix;
   if (defined ($matrix=_opt($o,['m','matrix','Matrix']))) {
     $matrix = PDL->topdl($matrix);
-    die "t_projective: needs a square matrix"
-      if ($matrix->dims != 2 || $matrix->dim(0) != $matrix->dim(1));
-
     $me->{params}{idim} //= $matrix->dim(0)-1;
-
     die "t_projective: matrix not compatible with given dimension (should be N+1xN+1)\n"
       unless $me->{params}{idim} == $matrix->dim(0)-1;
   } else {
@@ -4012,7 +4008,8 @@ sub t_projective {
     $matrix->flat->slice("0:-2") .=
       ($M->inv x $pts_dst->flat->t)->t;
   }
-  @{$me->{params}}{qw(matrix matinv)} = ($matrix, $matrix->inv);
+  $me->{params}{matrix} = $matrix;
+  $me->{params}{matinv} = $matrix->inv if $matrix->dim(0) == $matrix->dim(1);
 
   $me->{idim} = $me->{odim} = $me->{params}{odim} = $me->{params}{idim} //= 2;
 
@@ -4024,6 +4021,8 @@ sub t_projective {
 
   $me->{inv} = sub {
     my ($data,$o) = @_;
+    die "t_projective: uninvertible projection due to dimension change"
+      if !defined $o->{matinv};
     my $out = $data->append(1) x $o->{matinv}->t;
     $out->slice("0:-2")/$out->slice("-1");
   };

@@ -45,6 +45,10 @@ use Test::Exception;
     src=>$t_points->slice(",(0)"), dst=>$t_points->slice(",(1)"),
   );
   is_pdl $t_proj->{params}{matrix}, $exp_proj;
+  $t_proj = t_projective(
+    m => pdl('-500 0 500 0; 0 500 500 0; 0 0 1 0'),
+  );
+  is_pdl $t_proj->apply(my $in32 = pdl('0 -1 -1; 4 2 -10')), my $out32 = pdl('500 1000; 700 400'), 'project 3->2 with matrix';
 
   # y gets log scale, from example
   my $lookup = 4 * xvals(5,5)->cat(10**(yvals(5,5)/(100/4)) * 4/10**2.55);
