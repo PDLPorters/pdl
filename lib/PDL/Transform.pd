@@ -3940,14 +3940,16 @@ This is similar to the behavior of fitwarp2d with a quadratic polynomial.
 =cut
 
 # Construct the system of N equations to find the projective transform
-sub _construct_DLT {
-  my ($p) = @_;
-  my $d0 = $p->dim(0);
-  my $p_appended = $p->slice(":,(0)")->append([1, (0) x ($d0+1)]);
+sub construct_DLT {
+  my ($pts_src, $pts_dst) = @_;
+  die "t_projective: must supply same number of src and dst points\n"
+    unless $pts_src->dim(1) == $pts_dst->dim(1);
+  my $d0 = $pts_src->dim(0);
+  my $p_appended = $pts_src->append([1, (0) x ($d0+1)]);
   my $M = $p_appended->append(
     $p_appended->dice_axis(0, [$d0+1..($d0*2+1), 0..$d0])
   )->splitdim(0,($d0+1)*2)->clump(1,2);
-  $M->append(-outer($p->mv(1,-1)->dog)->clump(1,2));
+  $M->append(-outer($pts_src, $pts_dst)->clump(1,2));
 }
 
 sub t_projective {
@@ -3974,7 +3976,7 @@ sub t_projective {
     my $d0 = $p->dim(0);
     die "t_projective: points must be ncoord x 2(in,out) x ncoord+2(point)"
       unless $p->dims==3 && all($p->shape == pdl($d0,2,$d0+2));
-    my $M = _construct_DLT($p);
+    my $M = construct_DLT($p->mv(1,-1)->dog);
     $matrix = ones(($d0+1) x 2);
     # Solve the system
     $matrix->flat->slice("0:-2") .=
