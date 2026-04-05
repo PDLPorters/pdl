@@ -3832,6 +3832,7 @@ sub str_list {
         # Stick with default
         $findmax = 0;
       }
+      $len = max map $badflag && $_ eq "BAD" ? 3 : length(sprintf $format,$_), @$x; # we overrode, recalc
     } else {
       # Default ok
       $findmax = 0;
