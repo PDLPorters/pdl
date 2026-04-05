@@ -370,6 +370,7 @@ sub element_stringify_max_width {
 }
 for (1.23456789, 1.2345678901, 1.23456789012) {
   my $ndim = length( pdl([ $_ ])->string ) - 2;
+  local $PDL::doubleformat = "%".length().".8g";
   is element_stringify_max_width(pdl([ $_ ])), $ndim, "length right for [$_]";
   is element_stringify_max_width(pdl([[ $_ ]])), $ndim, "length right for [[$_]]";
 }
