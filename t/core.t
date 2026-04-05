@@ -222,9 +222,9 @@ is_pdl $d->reshape(1)->reshape(-1)->shape, empty(indx), "reshape(-1) on 1-dim, 1
 # reshape test related to bug SF#398 "$pdl->hdr items are lost after $pdl->reshape"
 my $c = ones(25);
 $c->hdr->{demo} = "yes";
-is($c->hdr->{demo}, "yes", "hdr before reshape");
+is $c->hdr->{demo}, "yes", "hdr before reshape";
 $c->reshape(5,5);
-is($c->hdr->{demo}, "yes", "hdr after reshape");
+is $c->hdr->{demo}, "yes", "hdr after reshape";
 }
 
 eval {zeroes(0,-2)};
@@ -437,7 +437,7 @@ is_pdl pdl([1], pdl[2,3,4], pdl[5]), pdl([[[1,0,0],[0,0,0]],[[2,3,4],[5,0,0]]]),
 {
 # empty pdl cases
 my $x = eval {zeroes(2,0,1);};
-is($@, '', "zeroes accepts empty PDL specification");
+is $@, '', "zeroes accepts empty PDL specification";
 
 my $y = pdl($x,sequence(2,0,1));
 is_pdl $y->shape, indx(2,0,1,2), "concatenating two empties gives an empty";
@@ -490,7 +490,7 @@ my $fl=sequence(float,5)+float(0.2); # 0.2 is an NV so now a double
 my $by=sequence(byte,5)+253;
 my @list = ($lo,$so,$fl,$by);
 my $c2 = cat(@list);
-is($c2->type,'float','concatenating different datatypes returns the highest type');
+is $c2->type,'float','concatenating different datatypes returns the highest type';
 is_pdl $_, shift @list, {require_equal_types=>0, test_name=>"cat/dog symmetry for values"} for $c2->dog;
 my ($dogcopy) = $c2->dog({Break=>1});
 $dogcopy++;
@@ -560,10 +560,10 @@ $mt_info =~m/\[([\d,]+)\]/;
 my $mt_info_dims = pdl("$1");
 ok(any($mt_info_dims==0), "empty ndarray's info contains a 0 dimension");
 {
-    is($PDL::infoformat, "%C: %T %D", "check default info format");
+    is $PDL::infoformat, "%C: %T %D", "check default info format";
     local $PDL::infoformat = "default info format for %C";
-    is(pdl(2, 3)->info, "default info format for PDL",
-        "use default info format");
+    is pdl(2, 3)->info, "default info format for PDL",
+        "use default info format";
 }
 ok($null->isnull, "a null ndarray is null");
 ok($null->isempty, "a null ndarray is empty") or diag $null->info;
@@ -576,7 +576,7 @@ like $@, qr/null/, 'null->long gives right error';
 {
 my $x = short(3,4,5,6);
 eval { $x->reshape(2,2);};
-is($@, '', "reshape succeeded in the normal case");
+is $@, '', "reshape succeeded in the normal case";
 is_pdl $x, short([[3,4],[5,6]]), "reshape moved the elements to the right place";
 my $y = $x->slice(":,:");
 eval { $y->reshape(4); };
@@ -584,12 +584,14 @@ unlike $@, qr/Can't/, "reshape doesn't fail on a PDL with a parent";
 my $nzai = zeroes(indx,6)->slice('');
 eval {$nzai = $nzai->reshape(30)};
 is $@, '', 'no reshape error';
+eval {$nzai = $nzai->reshape(5,pdl(6))}; # from PDL::LinearAlgebra
+is $@, '', 'no reshape error with ndarray arg';
 }
 
 {
 my $pb = sequence(2,3);
-is(($pb->dims)[0], 2);
-is(($pb->dims)[1], 3);
+is +($pb->dims)[0], 2;
+is +($pb->dims)[1], 3;
 note $pb;
 is $pb->at(1,1), 3;
 is $pb->at(1,2), 5;
@@ -659,14 +661,14 @@ SKIP: {
   ];
   is_deeply(longlong($input)->unpdl, $input, 'back convert of 64bit integers');
   my $small_pdl = longlong([ -9000000000000000001, 9000000000000000001 ]);
-  is($small_pdl->at(0), -9000000000000000001, 'at/1');
-  is(PDL::Core::at_c($small_pdl, [1]),  9000000000000000001, 'at_c back-compat');
-  is(PDL::Core::at_bad_c($small_pdl, [1]),  9000000000000000001, 'at_bad_c/1');
+  is $small_pdl->at(0), -9000000000000000001, 'at/1';
+  is PDL::Core::at_c($small_pdl, [1]),  9000000000000000001, 'at_c back-compat';
+  is PDL::Core::at_bad_c($small_pdl, [1]),  9000000000000000001, 'at_bad_c/1';
   $small_pdl->set(0, -8888888888888888888);
   PDL::Core::set_c($small_pdl, [1], 8888888888888888888);
-  is($small_pdl->at(0), -8888888888888888888, 'at/2');
-  is(PDL::Core::at_bad_c($small_pdl, [1]),  8888888888888888888, 'at_bad_c/2');
-  is_deeply($small_pdl->unpdl, [ -8888888888888888888, 8888888888888888888 ], 'unpdl/small_pdl');
+  is $small_pdl->at(0), -8888888888888888888, 'at/2';
+  is PDL::Core::at_bad_c($small_pdl, [1]),  8888888888888888888, 'at_bad_c/2';
+  is_deeply $small_pdl->unpdl, [ -8888888888888888888, 8888888888888888888 ], 'unpdl/small_pdl';
 }
 
 {
@@ -718,30 +720,30 @@ hdr_test($pa->slice('3'), undef);
 my $pa = pdl 42.4;
 note "A is $pa";
 
-is($pa->get_datatype,$PDL_D, "A is double");
+is $pa->get_datatype,$PDL_D, "A is double";
 
 my $pb = byte $pa;
 note "B (byte $pa) is $pb";
 
-is($pb->get_datatype,$PDL_B, "B is byte");
-is($pb->at(),42, 'byte value is 42');
+is $pb->get_datatype,$PDL_B, "B is byte";
+is $pb->at(),42, 'byte value is 42';
 
 my $pc = $pb * 3;
-is($pc->get_datatype, $PDL_B, "C also byte");
+is $pc->get_datatype, $PDL_B, "C also byte";
 note "C ($pb * 3) is $pc";
 
 my $pd = $pb * 600.0;
-is($pd->get_datatype, $PDL_D, "pdl-ed NV is double, D promoted to double");
+is $pd->get_datatype, $PDL_D, "pdl-ed NV is double, D promoted to double";
 note "D ($pb * 600) is $pd";
 
 my $pi = 4*atan2(1,1);
 
 my $pe = $pb * $pi;
-is($pe->get_datatype, $PDL_D, "E promoted to double (needed to represent result)");
+is $pe->get_datatype, $PDL_D, "E promoted to double (needed to represent result)";
 note "E ($pb * PI) is $pe";
 
 my $pf = $pb * "-2.2";
-is($pf->get_datatype, $PDL_D, "F check string handling");
+is $pf->get_datatype, $PDL_D, "F check string handling";
 note "F ($pb * string(-2.2)) is $pf";
 }
 
@@ -756,7 +758,7 @@ for my $type (
 ) {
   is $type->{typefunc}()->howbig, $type->{size}, 'howbig method works';
   my $pdl = $type->{typefunc}(42); # build a PDL with datatype $type->{type}
-  is( PDL::Core::howbig( $pdl->get_datatype ), $type->{size} );
+  is PDL::Core::howbig( $pdl->get_datatype ), $type->{size};
   is $pdl->type, $type->{typefunc}->().'', 'pdl has right type';
   is_pdl $pdl->convert(longlong), longlong(42), 'converted to longlong same value';
   $pdl->inplace->convert(longlong);

@@ -3088,6 +3088,8 @@ sub PDL::reshape :lvalue {
     }
     $pdl->sever;
     my $nelem = $pdl->nelem;
+    barf "reshape: given non-scalar PDL as arg index $_"
+      for grep UNIVERSAL::isa($_[$_], 'PDL') && $_[$_]->nelem != 1, 1..$#_;
     my @dims = grep defined, @_[1..$#_];
     for my $dim(@dims) { barf "reshape: invalid dim size '$dim'" if $dim < 0 }
     @dims = grep($_ != 1, $pdl->dims) if @dims == 0; # get rid of dims of size 1
