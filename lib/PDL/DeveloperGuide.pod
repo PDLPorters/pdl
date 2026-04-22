@@ -89,7 +89,7 @@ true value.
 =head2 Generating a Stack Trace
 
 To generate a stack-trace to help us debug a problem, please first of
-all do C<make realclean>, ensure you have the latest released PDL.
+all do C<make realclean> and ensure you have the latest released PDL.
 Then, if it is still happening, please follow this process:
 
 =over

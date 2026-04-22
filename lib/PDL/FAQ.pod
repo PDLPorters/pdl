@@ -38,7 +38,7 @@ this document but currently aren't.
 
 Similarly, if you think parts of this document are
 unclear, please tell the FAQ maintainer about it. Where
-a specific answer is taken in full from someones posting
+a specific answer is taken in full from someone's posting
 the authorship should be indicated, let the FAQ maintainer
 know if it isn't. For more general information explicit
 acknowledgment is not made in the text, but rather there
@@ -57,7 +57,7 @@ lists.
 =head1 GENERAL QUESTIONS
 
 
-=head2 Q: 2.1    What is PDL ?  
+=head2 Q: 2.1    What is PDL?
 
 
 PDL stands for 
@@ -82,7 +82,7 @@ of those existing packages.
 
 
 
-=head2 Q: 2.2    Who supports PDL? Who develops it?  
+=head2 Q: 2.2    Who supports PDL? Who develops it?
 
 
 PDL is supported by its users. General informal support for PDL
@@ -97,7 +97,7 @@ coordinate their activities through the PDL development mailing list
 to join in the ongoing efforts to improve PDL please join this list.
 
 
-=head2 Q: 2.3    Why yet another Data Language ?  
+=head2 Q: 2.3    Why yet another Data Language?
 
 
 There are actually several reasons and everyone should decide for
@@ -203,7 +203,7 @@ on such architectures to exploit these features.
 =back
 
 
-=head2 Q: 2.4    What is PDL good for ?  
+=head2 Q: 2.4    What is PDL good for?
 
 
 Just in case you do not yet know what the main features of PDL are and
@@ -223,7 +223,7 @@ Through the powerful pre-processor it is also easy to interface Perl
 to your favorite C routines, more of that further below.
 
 
-=head2 Q: 2.5    What is the connection between PDL and Perl ?  
+=head2 Q: 2.5    What is the connection between PDL and Perl?
 
 
 PDL is a Perl5 extension package. As such it needs an existing Perl5
@@ -233,12 +233,12 @@ are (syntactically) just Perl scripts that happen to use some of the
 functionality implemented by the package "PDL".
 
 
-=head2 Q: 2.6    What do I need to run PDL on my machine ?  
+=head2 Q: 2.6    What do I need to run PDL on my machine?
 
 
 Since PDL is just a Perl5 package you need first of
 all an installation of Perl5 on your machine. As of this
-writing PDL requires version 5.10.x of perl, or higher.  More
+writing PDL requires version 5.16.x of perl, or higher.  More
 information on where and how to get a Perl installation
 can be found at the Perl home page L<http://www.perl.org>
 and at many CPAN sites (if you do not know what I<CPAN>
@@ -256,7 +256,7 @@ pdl-general@lists.sourceforge.net . We will do our best to
 assist you in porting PDL to a new system.
 
 
-=head2 Q: 2.7    Where do I get it?  
+=head2 Q: 2.7    Where do I get it?
 
 
 PDL is available as source distribution in the 
@@ -297,7 +297,7 @@ Use the command C<perldoc PDL> to start learning about PDL.
 
 The easiest way by far, however, to get familiar with PDL is to use
 the PDL on-line help facility from within the PDL
-shell, C<perldl>  Just type C<perldl> at your system prompt. Once you are inside the
+shell, C<perldl>.  Just type C<perldl> at your system prompt. Once you are inside the
 C<perldl> shell type C<help> .  Using the C<help> and C<apropos> commands
 inside the shell you should be able to find the way round the
 documentation.
@@ -322,7 +322,7 @@ reproduced in braces ( <... ...> ) ):
     [22.6 79.8 137 194.2]
 
 For further sources of information that are accessible through the
-Internet see next question.
+Internet, see the next question.
 
 
 =head2 Q: 3.2    Are there other PDL information sources on the Internet?  
@@ -394,7 +394,7 @@ and pdl-devel was called 'pdl-porters'.
   |--------------------------------------------------------------------|
 
 
-=head2 Q: 3.3    What is the current version of PDL ?  
+=head2 Q: 3.3    What is the current version of PDL?
 
 
 As of this writing (FAQ version 1.008 of 21 May 2017) the latest stable version
@@ -755,14 +755,14 @@ shell if you are new to PDL.
 
 
 
-=head2 Q: 6.3    I want to access the third element of a pdl but $x[2] doesn't work ?!  
+=head2 Q: 6.3    I want to access the third element of a pdl but $x[2] doesn't work?!
 
 
 See answer to the next question why the normal Perl array syntax doesn't
 work for ndarrays.
 
 
-=head2 Q: 6.4    The docs say ndarrays are some kind of array. But why doesn't the Perl array syntax work with ndarrays then ?  
+=head2 Q: 6.4    The docs say ndarrays are some kind of array. But why doesn't the Perl array syntax work with ndarrays then?
 
 
 OK, you are right in a way. The docs say that ndarrays can be
@@ -789,10 +789,10 @@ C<slice> function and friends (see L<PDL::Slices> and
 L<PDL::Indexing> and especially L<PDL::NiceSlice> ).
 
 Finally, to confuse you completely, you can have Perl arrays
-of ndarrays, e.g. C<$spec[3]> can refer to a pdl representing ,e.g,
+of ndarrays, e.g. C<$spec[3]> can refer to a pdl representing, e.g.
 a spectrum, where C<$spec[3]> is the fourth element of the Perl
 list (or array ;) C<@spec> .  This may be confusing but is 
-very useful !
+very useful!
 
 
 =head2 Q: 6.5    How do I concatenate ndarrays?  
@@ -834,13 +834,13 @@ As of PDL 2.099, all functions' inplace capability are automatically
 inserted in their documentation.
 
 
-=head2 Q: 6.7    What is this strange usage of the string concatenation operator  C<.=>  in PDL scripts?  
+=head2 Q: 6.7    What is this strange usage of the string concatenation operator  C<.=> in PDL scripts?
 
 
 See next question on assignment in PDL.
 
 
-=head2 Q: 6.8    Why are there two different kinds of assignment in PDL ?  
+=head2 Q: 6.8    Why are there two different kinds of assignment in PDL?
 
 
 This is caused by the fact that currently the assignment
@@ -899,7 +899,7 @@ has two very useful functions:
 C<any> and C<all> . Use these to test if any or
 all elements in an ndarray fulfills some criterion:
 
-    pdl> $x=pdl ( 1, -2, 3);
+    pdl> $x = pdl(1, -2, 3);
     pdl> print '$x has at least one element < 0' if (any $x < 0);
     $x has at least one element < 0
     
@@ -931,7 +931,7 @@ which works correctly.
 
 
 
-=head2 Q: 6.12   What is a null pdl ?  
+=head2 Q: 6.12   What is a null pdl?
 
 
 =for comment Is Q: 6.12 up-to-date with null and empty pdls?
@@ -960,7 +960,7 @@ conventions, the I<signature> and
 I<broadcasting> (see also below).
 
 
-=head2 Q: 6.13   What is the signature of a PDL function ?  
+=head2 Q: 6.13   What is the signature of a PDL function?
 
 
 The I<signature> of a function is an important concept in PDL.
@@ -1013,7 +1013,7 @@ For another example check the script
 F<t/subclass.t> in the PDL distribution.
 
 
-=head2 Q: 6.15   What on earth is this dataflow stuff ?  
+=head2 Q: 6.15   What on earth is this dataflow stuff?
 
 
 Dataflow is an experimental project that you don't need to concern
@@ -1041,7 +1041,7 @@ For further details check L<PDL::PP> and the
 section below on L<Extensions of PDL|"EXTENSIONS OF PDL">.
 
 
-=head2 Q: 6.17   What happens when I have several references to the same PDL object in different variables (cloning, etc?) ?  
+=head2 Q: 6.17   What happens when I have several references to the same PDL object in different variables (cloning, etc)?
 
 
 ndarrays behave like Perl references in many respects. So when you say
@@ -1092,7 +1092,7 @@ inplace, assuming your routine can work inplace):
 
 
 
-=head2 Q: 6.18   What I/O formats are supported by PDL ?  
+=head2 Q: 6.18   What I/O formats are supported by PDL?
 
 
 The current versions of PDL already support quite a number of different
@@ -1111,7 +1111,7 @@ L<FastRaw|PDL::IO::FastRaw> module
 =item *
 
 The L<FlexRaw|PDL::IO::FlexRaw> module implements generic methods for
-the input and output of `raw' data arrays.  In particular, it is
+the input and output of 'raw' data arrays.  In particular, it is
 designed to read output from FORTRAN 77 UNFORMATTED files and the
 low-level C C<write> function, even if the files are compressed or gzipped.
 
@@ -1244,7 +1244,7 @@ The two functions you need to learn (at least first) are
 C<pp_def> which defines the calling interface to the function, 
 specifying input and output parameters, and contains the code 
 that links to the external library. The other command is 
-C<pp_end> which finishes the PP definitions.  For details see
+C<pp_done> which finishes the PP definitions.  For details see
 the L<PDL::PP> man-page, but we also have a worked 
 example here. 
 
@@ -1288,19 +1288,18 @@ C<eight.pd> .
       int i;
       double sum, x;
     
-      sum = 0.0; x=0.0;
+      sum = 0.0; x = 0.0;
       for (i=1; i<=n; i++) {
-       x++; 
-       sum += x/((4.0*x*x-1.0)*(4.0*x*x-1.0));
+        x++; 
+        sum += x/((4.0*x*x-1.0)*(4.0*x*x-1.0));
       }
-     return 1.0/sum; 
-    
+      return 1.0/sum;
     }  
     '); 
     
     pp_def (
             'eight',
-         Pars => 'int a(); double [o]b();',
+            Pars => 'int a(); double [o]b();',
             Code => '$b()=eight_sum($a());'
            );
     
@@ -1408,11 +1407,11 @@ source of information for writing PDL::PP extensions, but it
 is very useful to look for files in the distribution of PDL as
 many of the core functions are written in PDL::PP. Look for
 files that end in C<.pd> which is the generally accepted 
-suffix for PDL::PP files. But we also have a simple example here.
+suffix for PDL::PP files.
 
 The following example will show you how to write a simple
 function that automatically allows broadcasting. To make this
-concise the example is of an almost trivial function, but
+concise, the example is of an almost trivial function, but
 the intention is to show the basics of writing a PDL::PP
 interface. 
 
@@ -1438,7 +1437,7 @@ C<quickstats.pd> )
                      $avg() = tmp/$SIZE(n);
                   $max() = curmax;
                   $min() = curmin;
-                    '
+                 '
          );
     
     pp_done();
