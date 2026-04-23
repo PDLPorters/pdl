@@ -66,8 +66,8 @@ For this reason, L<PDL::Graphics::Prima>'s API is more complex than
 L<PDL::Graphics::Gnuplot>'s. It is advised to start with
 L<PDL::Graphics::Prima::Simple>, which focuses on the plotting
 functions and does not mess with Widgets. A tutorial is available
-L<here|https://metacpan.org/release/CHM/PDL-2.006/view/Demos/Prima.pm>,
-as well as a L<video tutorial|http://www.youtube.com/watch?v=WILd2XTz3F4>.
+L<here|https://metacpan.org/pod/PDL::Demos::Prima>,
+as well as a L<video tutorial|https://www.youtube.com/watch?v=WILd2XTz3F4>.
 
 =head3 L<PDL::Graphics::TriD>
 
