@@ -46,13 +46,16 @@ code below demonstrates how to do it:
 
    # check if this an ndarray
    die "not an ndarray" unless UNIVERSAL::isa($pdl, 'PDL');
+
    # is it a scalar ref or a hash ref?
    if (UNIVERSAL::isa($pdl, "HASH")) {
-     die "not a valid PDL" unless exists $pdl->{PDL} &&
-	UNIVERSAL::isa($pdl->{PDL},'PDL');
+     die "not a valid PDL"
+         unless exists $pdl->{PDL}
+         && UNIVERSAL::isa($pdl->{PDL},'PDL');
      print "This is a hash reference,",
-	" the PDL field contains the scalar ref\n";
-   } else {
+         " the PDL field contains the scalar ref\n";
+   }
+   else {
      print "This is a scalar ref that points to address $$pdl in memory\n";
    }
 
@@ -170,7 +173,7 @@ These arrays are intimately related: C<dims> gives the sizes of the dimensions
 and C<dimincs> is always calculated by the code
 
 	PDL_Indx inc = 1;
-        for(i=0; i<it->ndims; i++) {
+    for(i=0; i<it->ndims; i++) {
 		it->dimincs[i] = inc; inc *= it->dims[i];
 	}
 
@@ -391,19 +394,19 @@ Access to I<parents> is similar, with the C<for> loop replaced by:
 	     i < trans->vtable->nparents;
 	     i++ ) {
            /* do stuff with parent #i: trans->pdls[i] */
-        }
+    }
 
 =head2 What's in a transformation (C<pdl_trans>)
 
 All transformations are implemented as structures
 
   struct pdl_trans {
-	int magicno; /* to detect memory overwrites */
-	short flags; /* state of the trans */
-	pdl_transvtable *vtable;   /* the all important vtable */
-	int __datatype; /* the type of the transformation */
-	void *params; /* Opaque pointer to "compiled representation" of transformation */
-	pdl *pdls[]; /* The pdls involved in the transformation */
+    int magicno; /* to detect memory overwrites */
+    short flags; /* state of the trans */
+    pdl_transvtable *vtable;   /* the all important vtable */
+    int __datatype; /* the type of the transformation */
+    void *params; /* Opaque pointer to "compiled representation" of transformation */
+    pdl *pdls[]; /* The pdls involved in the transformation */
   };
 
 The C<params> member is an opaque pointer, typically to a C struct that
@@ -440,16 +443,16 @@ The vtable structure in turn looks something like (slightly
 simplified from F<pdl.h> for clarity)
 
   typedef struct pdl_transvtable {
-	int flags;
-	int nparents;   /* number of parent pdls (input) */
-	int npdls;      /* number of child pdls (output) */
-	char *per_pdl_flags;  /* optimization flags */
-	pdl_error (*redodims)(pdl_trans *tr);  /* figure out dims of children */
-	pdl_error (*readdata)(pdl_trans *tr);  /* flow parents to children  */
-	pdl_error (*writebackdata)(pdl_trans *tr); /* flow backwards */
-	pdl_error (*freetrans)(pdl_trans *tr, char);
-  	int structsize;
-	char *name; /* the function's name */
+    int flags;
+    int nparents;   /* number of parent pdls (input) */
+    int npdls;      /* number of child pdls (output) */
+    char *per_pdl_flags;  /* optimization flags */
+    pdl_error (*redodims)(pdl_trans *tr);  /* figure out dims of children */
+    pdl_error (*readdata)(pdl_trans *tr);  /* flow parents to children  */
+    pdl_error (*writebackdata)(pdl_trans *tr); /* flow backwards */
+    pdl_error (*freetrans)(pdl_trans *tr, char);
+    int structsize;
+    char *name; /* the function's name */
   } pdl_transvtable;
 
 The transformation and vtable code is hardly ever written by

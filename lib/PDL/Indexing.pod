@@ -20,7 +20,7 @@ operations.
 The values of an ndarray are stored compactly as typed values in a single block of memory,
 not (as in a normal Perl list-of-lists) as individual Perl scalars.
 
-In the sections that follow many "methods" are called out -- these are Perl operators
+In the sections that follow, many "methods" are called out -- these are Perl operators
 that apply to ndarrays.  From the L<perldl> shell, you
 can find out more about each method by typing "?" followed by the method name.
 
@@ -173,18 +173,18 @@ that the parent's data (or a portion of it) changes when manipulated
 through this "pointer". We will further illustrate the pointer/dataflow
 analogies in the context of some of the examples later on.
 
-There are two different implementations of this ``smart pointer''
+There are two different implementations of this "smart pointer"
 relationship: the first one, which is a little slower but works
 for any transformation is simply to do the transformation forwards
 and backwards as necessary. The other is to consider the child ndarray
-a ``virtual'' ndarray, which only stores a pointer to the parent
+a "virtual" ndarray, which only stores a pointer to the parent
 and access information so that routines which use the child ndarray
 actually directly access the data in the parent.
 If the virtual ndarray is given to a routine which cannot use it,
 PDL transparently physicalizes the virtual ndarray before letting
 the routine use it.
 
-Currently (still true as of 2.086) all transformations which are ``affine'',
+Currently (still true as of 2.086) all transformations which are "affine",
 i.e. the indices of the data item in the parent ndarray are determined
 by a linear transformation (+ constant) from the indices of the
 child ndarray result in virtual affine, or "vaffine" ndarrays. All other indexing
@@ -242,7 +242,7 @@ of an interlaced image due to some peculiar behaviour of our frame
 grabber). As another frequent application of slices we might want to
 create an ndarray that represents a rectangular region of the image with
 top and bottom reversed. All these effects (and many more) can be
-easily achieved with the powerful slice function:
+easily achieved with the powerful C<slice> function:
 
  pdl> $line = $im->slice(':,(2)')
  pdl> $even = $im->slice(':,1:-1:2')
@@ -299,11 +299,11 @@ previously said, they can be thought of to work similar to a
 C-pointer. But in contrast to a C-pointer they carry a lot more
 information. Firstly, they specify the structure of the data they
 represent (the dimensionality of the new ndarray) and secondly, specify
-how to create this structure from its parents data (the way this works
+how to create this structure from its parent's data (the way this works
 is buried in the internals of PDL and not important for you to know
 anyway (unless you want to hack the core in the future or would like
-to become a PDL guru in general (for a definition of this strange
-creature see L<PDL::Internals>)).
+to become a PDL guru in general - for a definition of this strange
+creature see L<PDL::Internals>).
 
 The previous examples have demonstrated typical usage of the slice
 function. Since the slicing functionality is so important here is an
@@ -436,14 +436,14 @@ also be used as lvalues in assignments (as the use of C<++> in some of
 the examples above has already demonstrated). For explicit assignments
 to the data represented by a virtual ndarray you have to use the
 overloaded C<.=> operator (which in this context we call I<propagated
-assignment>). Why can't you use the normal assignment operator C<=>?
+assignment>). Why can't you use the normal assignment operator C<=> ?
 
 Well, you definitely still can use the '=' operator but it wouldn't do
 what you want. In recent Perls, the '=' operator can be
 overloaded in the same way as other assignment operators, but for
 back-compatibility reasons PDL uses '=' for a reference copy, so
 the variable representing the virtual ndarray (a reference to a
-blessed thingy) would after the assignment just contain the reference
+blessed thingy) would, after the assignment, just contain the reference
 to another blessed thingy which would behave to future assignments as
 a "physical" copy of the original rvalue.
 
@@ -580,7 +580,7 @@ photos to color ones in the way you'd like. :(
 
 Note that the memory usage of ndarrays with dummy dimensions
 is especially sensitive to the internal representation. If the ndarray
-can be represented as a virtual affine (``vaffine'') ndarray,
+can be represented as a virtual affine ("vaffine") ndarray,
 only the control structures are stored. But if C<$y> in
 
  $x = zeroes(10000);
@@ -764,22 +764,22 @@ components with the 3-vector containing the color
 components. Traditionally, we might have written a function like the
 following to process the whole image:
 
- my @dims=$im->dims;
+ my @dims = $im->dims;
  # here normally check that first dim has correct size (3), etc
- $grey=zeroes(@dims[1,2]);   # make the ndarray for the resulting grey image
+ $grey = zeroes(@dims[1,2]); # make the ndarray for the resulting grey image
  $w = pdl [77,150,29] / 256; # the vector of weights
- for ($j=0;$j<dims[2];$j++) {
-    for ($i=0;$i<dims[1];$i++) {
+ for ($j=0; $j<dims[2]; $j++) {
+    for ($i=0; $i<dims[1]; $i++) {
         # compute the pixel value
         $tmp = inner($w,$im->slice(':,(i),(j)'));
-	set($grey,$i,$j,$tmp); # and set it in the grey-scale image
+        set($grey,$i,$j,$tmp); # and set it in the grey-scale image
     }
  }
 
 Now we write the same using broadcasting (noting that C<inner> is a broadcasting
 aware function defined in the L<PDL::Primitive> package)
 
- $grey = inner($im,pdl([77,150,29]/256));
+ $grey = inner($im, pdl([77,150,29]/256));
 
 We have ended up with a one-liner that automatically
 creates the ndarray C<$grey> with the right number and size of dimensions and
@@ -788,7 +788,7 @@ in the internals of PDL).
 Well, we
 still owe you an explanation how this 'magic' is achieved.
 
-=head2 How does the example work ?
+=head2 How does the example work?
 
 The first thing to note is that every function that is broadcasting aware
 (these are without exception functions compiled from concise
@@ -1015,7 +1015,7 @@ ndarray into sumover which in this case is formed by clumping the first
 two dimensions of the "parent ndarray" into one. From the point of view of
 the parent ndarray the sum is now computed over the first two dimensions,
 just as we wanted, though sumover has just done the job as specified
-by its signature. Got it ?
+by its signature. Got it?
 
 Another little finesse of writing the code like that: we intentionally
 used C<< sumover($pdl->clump(2)) >> instead of C<sum($pdl)> so that we can
@@ -1074,6 +1074,8 @@ assignments
  pdl> $im2 .= 5         # set every element of $im2 to 5
 
 By now you probably see how it works and what it does, don't you?
+
+=for comment TODO: wants a description for either the next example or the previous
 
 To finish the examples in this paragraph here is a function to create
 an RGB image from what is called a palette image. The palette image
@@ -1142,7 +1144,7 @@ applied to another specified set of dimensions you use
 the dimension manipulating commands to create a (or several)
 I<virtual> ndarray(s) so that from the point of view of the I<parent>
 ndarray(s) you get what you want (always having the signature of the
-function in question and R1-R5 in mind!). Easy, isn't it ?
+function in question and R1-R5 in mind!). Easy, isn't it?
 
 See L<PDL::Slices/dice>, and L<PDL::Slices/dice_axis> for more
 indexed lookups, and L<PDL::Slices/indexND>, L<PDL::Slices/whereND>,
@@ -1218,6 +1220,8 @@ L<broadcast|PDL::Core/PDL::broadcast>
 and L<unbroadcast|PDL::Slices/unbroadcast>.
 We start with an example that illustrates typical
 usage of the former:
+
+=for comment TODO: elaborate on why it's the worst or remove the comment
 
  [ # ** this is the worst possible example to start with ]
  #  but can be used to show that $mat += $line is different from
@@ -1356,10 +1360,10 @@ with sizes C<(3,11)> (by B2); 2 implicit loop dimensions (by B1a from C<$b>
 and C<$d>) of size C<(10,12)> (by B2) and the elements of are computed from
 the input ndarrays in a way that can be expressed in pdl pseudo-code as
 
- for (l=0;l<12;l++)
-  for (k=0;k<10;k++)
-   for (j=0;j<11;j++)         effect of treating it as dummy dim (index j)
-    for (i=0;i<3;i++)                         |
+ for (l=0; l<12; l++)
+  for (k=0; k<10; k++)
+   for (j=0; j<11; j++)         effect of treating it as dummy dim (index j)
+    for (i=0; i<3; i++)                       |
        d(i,j,:,k,l) = func(a(:,i,:,j),b(i,:,k,0,l),c(k))
 
 Ugh, this example was really not easy in terms of bookkeeping. It
@@ -1367,6 +1371,8 @@ serves mostly as an example how to figure out what's going on when you
 encounter a complicated looking expression. But now it is really time
 to show that broadcasting is useful by giving some more of our so called
 "practical" examples.
+
+=for comment TODO: additional explanations
 
 [ The following examples will need some additional explanations in the
 future. For the moment please try to live with the comments in the
@@ -1398,7 +1404,7 @@ Example 2:
  # outer product by broadcasted multiplication
  # stress that we need to do it with explicit call to my_biop1
  # when using explicit broadcasting
- $res=zeroes($x->dim(0),$y->dim(0));
+ $res = zeroes($x->dim(0), $y->dim(0));
  my_biop1($x->broadcast(0,-1),$y->broadcast(-1,0),$res->(0,1),"*");
  # similar thing by implicit broadcasting with auto-created ndarray
  $res = $x->dummy(1) * $y->dummy(0);
@@ -1419,7 +1425,7 @@ Example 4:
  # calculate a couple of bounding boxes
  # $bb will hold BB as [xmin,xmax],[ymin,ymax],[zmin,zmax]
  # we use again broadcast and unbroadcast to shuffle dimensions around
- pdl> $bb = zeroes(double, 2,3 );
+ pdl> $bb = zeroes(double, 2, 3);
  pdl> minimum($vertices->broadcast(0)->clump->unbroadcast(1), $bb->slice('(0),:'));
  pdl> maximum($vertices->broadcast(0)->clump->unbroadcast(1), $bb->slice('(1),:'));
 
@@ -1448,11 +1454,13 @@ this is probably not the best way of putting the case since you already
 know: the two flavours do mix. So, it's more about how to get the best
 of both worlds and, anyway, in the best of Perl traditions: TIMTOWTDI !
 
+=for comment TODO: fill in content
+
 [ Sorry, this still has to be filled in in a later release; either
 refer to above examples or choose some new ones ]
 
 Finally, this may be a good place to justify all the technical detail
-we have been going on about for a couple of pages: why broadcasting ?
+we have been going on about for a couple of pages: why broadcasting?
 
 Well, code that uses broadcasting should be (considerably) faster than
 code that uses explicit for-loops (or similar Perl constructs) to achieve
@@ -1465,7 +1473,7 @@ can I<greatly> reduce the syntactical complexity of PDL code (but keep
 the admonition for documentation in mind). Once you
 are comfortable with the I<broadcasting> way of thinking (and coding) it
 shouldn't be too difficult to understand code that somebody else
-has written than (provided they gave
+has written (provided they gave
 you an idea what expected input dimensions are, etc.). As a general tip to
 increase the performance of your code: if you have to introduce a loop
 into your code try to reformulate the problem so that you can use
@@ -1477,7 +1485,7 @@ think that these are rare cases ;).
 
 =head2 An easy way to define functions that are aware of indexing and broadcasting (and the universe and everything)
 
-PDL:PP is part of the PDL distribution. It is used to generate
+PDL::PP is part of the PDL distribution. It is used to generate
 functions that are aware of indexing and broadcasting rules from very
 concise descriptions. It can be useful for you if you want to write
 your own functions or if you want to interface functions from an
@@ -1496,19 +1504,19 @@ the basic ones defined in C<primitive.pd>
 
  # functions in primitive.pd
  #
- sumover	((n),[o]())
- prodover	((n),[o]())
- axisvalues     ([o](n))				inplace
- inner		((n),(n),[o]())
- outer		((n),(m),[o](n,m))
- innerwt	((n),(n),(n),[o]())
+ sumover    ((n),[o]())
+ prodover   ((n),[o]())
+ axisvalues     ([o](n))                inplace
+ inner      ((n),(n),[o]())
+ outer      ((n),(m),[o](n,m))
+ innerwt    ((n),(n),(n),[o]())
  inner2         ((m),(m,n),(n),[o]())
- inner2t	((j,n),(n,m),(m,k),[o]())
- index		(1D,0D,[o])
- minimum	(1D,[o])
- maximum	(1D,[o])
- wstat		((n),(n),(),[o],())
- assgn		((),())
+ inner2t    ((j,n),(n,m),(m,k),[o]())
+ index      (1D,0D,[o])
+ minimum    (1D,[o])
+ maximum    (1D,[o])
+ wstat      ((n),(n),(),[o],())
+ assgn      ((),())
 
  # basic operations
  binary operations ((),(),[o]())

@@ -70,7 +70,7 @@ Since cygwin looks like a Unix, [almost] all of the standard
 perl functionality works and PDL can build pretty much as it
 does on other unix systems.
 
-See L</Windows>for instructions on building a
+See L</Windows> for instructions on building a
 native Windows PDL.
 
 It is recommended that you
@@ -160,7 +160,8 @@ Run this as C<perl filename.pl chunksize_in_MB [seconds_delay]>:
   my $MB;
   my @data;
   my $chunk = (scalar @ARGV) ? $ARGV[0] : 1;
-  for ( $MB=0; $MB<5000; $MB+=$chunk) {
+
+  for ($MB = 0; $MB < 5000; $MB += $chunk) {
      print "Allocating: total data -> ${MB}MB..";
      push @data, zeros($chunk,125,1000);
      print ".. done\n";

@@ -57,7 +57,7 @@ CPAN module).  There is L<PDL::IO::IDL>.
 L<PDL::IO::FITS> is
 something of a general data format, since ndarray data can be stored to a
 FITS file without loss.  PDL::IO::FlexRaw and PDL::IO::FastRaw read and
-write data identical C's low-level C<write> function and PDL::IO::FlexRaw
+write data identical to C's low-level C<write> function and PDL::IO::FlexRaw
 can work with FORTRAN 77 UNFORMATTED files.  FlexRaw and Storable provide
 general data storage capabilities.  Finally, PDL can read Grib (weather-data)
 files using the CPAN module PDL::IO::Grib.
@@ -218,7 +218,8 @@ L<PDL::IO::Misc documentation|PDL::IO::Misc> for more details.
 
 =head2 PDL::IO::NDF
 
-Starlink developed a file format for N-Dimensional data Files,
+The L<Starlink Project|https://starlink.eao.hawaii.edu/starlink/> for
+UK astronomy developed a file format for N-Dimensional data Files,
 which it cleverly dubbed NDF.  If you work with these files,
 you're in luck!  Check the L<PDL::IO::NDF documentation|PDL::IO::NDF>
 for more details.

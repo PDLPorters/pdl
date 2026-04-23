@@ -65,15 +65,15 @@ more simply, to include a plot into an application.
 For this reason, L<PDL::Graphics::Prima>'s API is more complex than
 L<PDL::Graphics::Gnuplot>'s. It is advised to start with
 L<PDL::Graphics::Prima::Simple>, which focuses on the plotting
-functions and does not mess with Widgets. A tutorial is available here:
-http://search.cpan.org/~chm/PDL-2.006/Demos/Prima.pm
-As well as a L<video tutorial|http://www.youtube.com/watch?v=WILd2XTz3F4>.
+functions and does not mess with Widgets. A tutorial is available
+L<here|https://metacpan.org/release/CHM/PDL-2.006/view/Demos/Prima.pm>,
+as well as a L<video tutorial|http://www.youtube.com/watch?v=WILd2XTz3F4>.
 
 =head3 L<PDL::Graphics::TriD>
 
 Best for: Plotting heavy 3D images, fast.
 
-The native PDL 3D graphics library using OpenGL as a backend for 3D
+The native PDL 3D graphics library uses OpenGL as a backend for 3D
 plots and data visualization. With OpenGL, it is easy to manipulate
 the resulting 3D objects with the mouse in real time.
 
