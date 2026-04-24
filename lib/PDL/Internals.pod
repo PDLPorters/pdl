@@ -46,7 +46,6 @@ code below demonstrates how to do it:
 
    # check if this an ndarray
    die "not an ndarray" unless UNIVERSAL::isa($pdl, 'PDL');
-
    # is it a scalar ref or a hash ref?
    if (UNIVERSAL::isa($pdl, "HASH")) {
      die "not a valid PDL"
