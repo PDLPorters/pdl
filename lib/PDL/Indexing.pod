@@ -1221,11 +1221,8 @@ and L<unbroadcast|PDL::Slices/unbroadcast>.
 We start with an example that illustrates typical
 usage of the former:
 
-=for comment TODO: elaborate on why it's the worst or remove the comment
-
- [ # ** this is the worst possible example to start with ]
- #  but can be used to show that $mat += $line is different from
- #                               $mat->broadcast(0) += $line
+ # code to show that $mat += $line is different from
+ #                   $mat->broadcast(0) += $line
  # explicit broadcasting to add a vector to each column of a matrix
  pdl> $mat  = zeroes(4,3)
  pdl> $line = pdl (3.1416,2,-2)
@@ -1500,23 +1497,28 @@ check L<PDL::PP>.
 A selection of signatures of PDL primitives to show how many
 dimensions PP compiled functions gobble up (and therefore you can
 figure out what will be broadcasted over). Most of those functions are
-the basic ones defined in C<primitive.pd>
+the basic ones defined in C<Primitive.pd>
 
- # functions in primitive.pd
+ # functions in Primitive.pd
  #
- sumover    ((n),[o]())
- prodover   ((n),[o]())
- axisvalues     ([o](n))                inplace
+ axisvalues     ([o](n))
  inner      ((n),(n),[o]())
  outer      ((n),(m),[o](n,m))
  innerwt    ((n),(n),(n),[o]())
  inner2         ((m),(m,n),(n),[o]())
- inner2t    ((j,n),(n,m),(m,k),[o]())
- index      (1D,0D,[o])
+ inner2d      ((n,m),(n,m),[o]())
+ inner2t    ((j,n),(n,m),(m,k),[o](j,k))
+ wtstat     ((n),(n),(),[o],())
+
+ # functions in Ufunc.pd
+ #
+ sumover    ((n),[o]())
+ prodover   ((n),[o]())
  minimum    (1D,[o])
  maximum    (1D,[o])
- wstat      ((n),(n),(),[o],())
- assgn      ((),())
+
+ index      (1D,0D,[o])    in Slices.pd
+ assgn      ((),())        in Ops.pd
 
  # basic operations
  binary operations ((),(),[o]())

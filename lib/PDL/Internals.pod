@@ -50,12 +50,10 @@ code below demonstrates how to do it:
    # is it a scalar ref or a hash ref?
    if (UNIVERSAL::isa($pdl, "HASH")) {
      die "not a valid PDL"
-         unless exists $pdl->{PDL}
-         && UNIVERSAL::isa($pdl->{PDL},'PDL');
+       unless exists $pdl->{PDL} && UNIVERSAL::isa($pdl->{PDL},'PDL');
      print "This is a hash reference,",
-         " the PDL field contains the scalar ref\n";
-   }
-   else {
+       " the PDL field contains the scalar ref\n";
+   } else {
      print "This is a scalar ref that points to address $$pdl in memory\n";
    }
 
