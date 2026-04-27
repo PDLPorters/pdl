@@ -58,7 +58,7 @@ PDL|https://arxiv.org/abs/1702.07753>.
 
 Why do we need PP? Several reasons: firstly, we want to be able to
 generate subroutine code for each of the PDL datatypes (PDL_Byte,
-PDL_Short, etc).  AUTOMATICALLY.  Secondly, when referring to slices
+PDL_Short, etc.) AUTOMATICALLY.  Secondly, when referring to slices
 of PDL arrays in Perl (e.g. C<< $x->slice('0:10:2,:') >> or other things such
 as transposes) it is nice to be able to do this transparently and to
 be able to do this 'in-place' - i.e, not to have to make a memory copy
@@ -174,12 +174,12 @@ of arrays 'in-place'. It will broadcast automatically - e.g. if
 a 2D array is given it will be called repeatedly for each
 1D row (again check L<PDL::Indexing> for the details of broadcasting).
 And then b() will be a 1D array of sums of each row.
-We could call it with $x->transpose to sum the columns instead.
+We could call it with C<< $x->transpose >> to sum the columns instead.
 And Dataflow tracing etc. will be available.
 
 You can see PP saves the programmer from writing a lot of
 needlessly repetitive C-code -- in our opinion this is
-one of the best features of PDL making writing
+one of the best features of PDL, making writing
 new C subroutines for PDL an amazingly concise exercise. A second reason is
 the ability to make PP expand your concise code definitions into different
 C code based on the needs of the computer architecture in question. Imagine
@@ -277,16 +277,17 @@ we can do
 
    for({Name => 'sumit', Init => '0', Op => '+='},
        {Name => 'multit', Init => '1', Op => '*='}) {
-	   pp_def($_->{Name},
-		   Pars => 'a(n);  [o]b();',
-		   Code => '
+       pp_def($_->{Name},
+           Pars => 'a(n);  [o]b();',
+           Code => '
 			double tmp;
-			tmp = '.$_->{Init}.';
-			loop(n) %{
-			  tmp '.$_->{Op}.' $a();
-			%}
-			$b() = tmp;
-	   ');
+            double tmp;
+            tmp = '.$_->{Init}.';
+            loop(n) %{
+              tmp '.$_->{Op}.' $a();
+            %}
+            $b() = tmp;
+       ');
    }
 
 which defines both the functions easily. Now, if you later need to
@@ -654,6 +655,8 @@ C<null> is a special token for 'empty ndarray' (you might ask why we
 haven't used the value C<undef> to flag this instead of the PDL
 specific C<null>; we are currently thinking about it ;).
 
+=for comment TODO: repeat this section in an appropriate section
+
 [This should be explained in some other section of the manual
 as well!!]
 The reason for having this syntax as an alternative is that if you have
@@ -723,8 +726,8 @@ C<d> will not magically be grown if C<d> is larger in another pdl with
 specified dimension C<d>, and instead an exception will be thrown. E.g.:
 
   pp_def('callf',
-	Pars => 'a(n); [phys] b(n); [o] c()',
-	# ...
+    Pars => 'a(n); [phys] b(n); [o] c()',
+    # ...
   );
 
 If C<a> had lead dimension of 2 and C<b> of 3, an exception will always
@@ -780,7 +783,7 @@ our previously defined functions with pdls of different type, e.g.
   add2($x,$y,($ret=null));
 
 where $x is of type C<PDL_Float> and $y of type C<PDL_Short>? With the signature
-as shown in the definition of C<add2> above the datatype of the operation
+as shown in the definition of C<add2> above, the datatype of the operation
 (as determined at runtime) is that of the pdl with the 'highest' type
 (sequence is byte < short < ushort < long < float < double). In the add2
 example the datatype of the operation is float ($x has that datatype). All
@@ -810,11 +813,11 @@ an example from C<PDL::Ufunc>:
    pp_def('maximum_ind',
 	  Pars => 'a(n); indx [o] b()',
 	  Code => '$GENERIC() cur;
-		   PDL_Indx curind;
-		   loop(n) %{
-		    if (!n || $a() > cur) {cur = $a(); curind = n;}
-	 	   %}
-	 	   $b() = curind;',
+           PDL_Indx curind;
+           loop(n) %{
+            if (!n || $a() > cur) {cur = $a(); curind = n;}
+           %}
+           $b() = curind;',
    );
 
 The function C<maximum_ind> finds the index of the largest element of
@@ -1263,7 +1266,7 @@ it automatically though the code has yet to attain that
 level of sophistication!
 
 Finally note when types are converted automatically one MUST
-use the C<[o]> qualifier for output variables or you hard-won
+use the C<[o]> qualifier for output variables or your hard-won
 changes will get optimised away by PP!
 
 If you interface a large library you can automate the interfacing even
@@ -1307,9 +1310,9 @@ function C<foofunc> (which will call the correct function depending
 on the type of the transformation):
 
   pp_def('foofunc',
-	Pars => ' a(n); [o] b();',
-	Code => ' $TFD(float,double)_func ($P(a),$P(b));'
-	GenericTypes => [qw(F D)],
+    Pars => ' a(n); [o] b();',
+    Code => ' $TFD(float,double)_func ($P(a),$P(b));'
+    GenericTypes => [qw(F D)],
   );
 
 There is a limitation that the comma-separated values cannot have
@@ -1328,7 +1331,7 @@ operation's GenericTypes get extended, this macro will still be correct.
 The C<$COMP> macro is used to access non-pdl values in the code section. Its
 name is derived from the implementation of transformations in PDL. The
 variables you can refer to using C<$COMP> are members
-of the ``compiled'' structure that represents the PDL transformation in question
+of the "compiled" structure that represents the PDL transformation in question
 but does not yet contain any information about dimensions
 (for further details check L<PDL::Internals>). However, you can treat
 C<$COMP> just as a black box without knowing anything about the
@@ -1366,9 +1369,9 @@ Another use for the C<OtherPars> section is to set a named dimension
 in the signature. Let's have an example how that is done:
 
   pp_def('setdim',
-	Pars => '[o] a(n)',
-	OtherPars => 'int ns => n',
-	Code => 'loop(n) %{ $a() = n; %}',
+    Pars => '[o] a(n)',
+    OtherPars => 'int ns => n',
+    Code => 'loop(n) %{ $a() = n; %}',
   );
 
 This says that the named dimension C<n> will be initialised from the
@@ -1487,16 +1490,16 @@ handy. Here is an improved definition of C<pnmout> which uses this
 function:
 
   pp_def('pnmout',
-	Pars => 'a(m)',
-	OtherPars => "PerlIO *fp",
-	GenericTypes => [qw(B U S L)],
-	Code => '
-		 int len;
-		 len = $SIZE(m) * sizeof($GENERIC());
-		 broadcastloop %{
-		    if (PerlIO_write($COMP(fp),$P(a),len) != len)
-				$CROAK("Error writing pnm file");
-		 %}
+    Pars => 'a(m)',
+    OtherPars => "PerlIO *fp",
+    GenericTypes => [qw(B U S L)],
+    Code => '
+         int len;
+         len = $SIZE(m) * sizeof($GENERIC());
+         broadcastloop %{
+            if (PerlIO_write($COMP(fp),$P(a),len) != len)
+                $CROAK("Error writing pnm file");
+         %}
   ');
 
 This works as follows. Normally the C code you write inside the
@@ -1515,22 +1518,22 @@ especially CPU intensive code) only once per thread, i.e.
     #define ASCII 1
   ');
   pp_def('do_raworascii',
-	 Pars => 'a(); b(); [o]c()',
-	 OtherPars => 'int mode',
+     Pars => 'a(); b(); [o]c()',
+     OtherPars => 'int mode',
        Code => ' switch ($COMP(mode)) {
-		    case RAW:
-			broadcastloop %{
+            case RAW:
+            broadcastloop %{
                             /* do raw stuff */
                         %}
-		        break;
-		    case ASCII:
-			broadcastloop %{
-                            /* do ASCII stuff */
+                break;
+            case ASCII:
+            broadcastloop %{
+                            /* do raw stuff */
                         %}
-		        break;
-		    default:
-			$CROAK("unknown mode");
-		   }'
+                break;
+            default:
+            $CROAK("unknown mode");
+           }'
    );
 
 As of 2.086, you can put those C<#define>s in a C<CHeader> instead of
@@ -1548,11 +1551,12 @@ argument to C<type>, e.g.
      Code => '...
 
 	     types(BSUL) %{
-		 /* do integer type operation */
-             %}
-	     types(FD) %{
-		 /* do floating point operation */
-	     %}
+         types(BSUL) %{
+         /* do integer type operation */
+         %}
+         types(FD) %{
+         /* do floating point operation */
+         %}
              ...'
 
 You are encouraged to use this idiom (from L<PDL::Math>) in order to
@@ -1987,7 +1991,7 @@ A typical call would be
 
   static void do_the real_work(PDL_Byte * in, PDL_Byte * out, int n)
   {
-	/* do some calculations with the data */
+    /* do some calculations with the data */
   }
   ');
 
@@ -1996,10 +2000,10 @@ included and that you can use the internal functions defined here in the
 C<pp_def>s, e.g.:
 
   pp_def('barfoo',
-	 Pars => ' a(n); [o] b(n)',
-	 GenericTypes => ['B'],
-	 Code => ' PDL_Indx ns = $SIZE(n);
-		   do_the_real_work($P(a),$P(b),ns);
+     Pars => ' a(n); [o] b(n)',
+     GenericTypes => ['B'],
+     Code => ' PDL_Indx ns = $SIZE(n);
+           do_the_real_work($P(a),$P(b),ns);
                  ',
   );
 
@@ -2034,17 +2038,17 @@ generated B<pm>-file. This is easily achieved with the C<pp_addpm> command:
    =cut
 
    =head2 use_myfunc
-	this function applies the myfunc operation to all the
-	elements of the input pdl regardless of dimensions
-	and returns the sum of the result
+    this function applies the myfunc operation to all the
+    elements of the input pdl regardless of dimensions
+    and returns the sum of the result
    =cut
 
    sub use_myfunc {
-	my $pdl = shift;
+    my $pdl = shift;
 
-	myfunc($pdl->clump(-1),($res=null));
+    myfunc($pdl->clump(-1),($res=null));
 
-	return $res->sum;
+    return $res->sum;
    }
 
    EOD
@@ -2123,7 +2127,7 @@ side) to the generated XS file, for example
 
 Especially C<pp_add_exported> and C<pp_addxs> should be used with care. PP uses
 PDL::Exporter, hence letting PP export your function means that they get added
-to the standard list of function exported by default (the list defined by the
+to the standard list of functions exported by default (the list defined by the
 export tag ``:Func''). If you use C<pp_addxs> you shouldn't try to do anything
 that involves broadcasting or indexing directly. PP is much better at generating
 the appropriate code from your definitions.
@@ -2135,13 +2139,13 @@ Finally, you may want to add some code to the BOOT section of the XS file
 with the C<pp_add_boot> command:
 
   pp_add_boot(<<EOB);
-	descrip = mylib_initialize(KEEP_OPEN);
+    descrip = mylib_initialize(KEEP_OPEN);
 
-	if (descrip == NULL)
-	   croak("Can't initialize library");
+    if (descrip == NULL)
+       croak("Can't initialize library");
 
-	GlobalStruc->descrip = descrip;
-	GlobalStruc->maxfiles = 200;
+    GlobalStruc->descrip = descrip;
+    GlobalStruc->maxfiles = 200;
   EOB
 
 =head3 pp_export_nothing
