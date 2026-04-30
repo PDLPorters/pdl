@@ -17,11 +17,9 @@ Perl Data Language v2.0.
 
 Use C<help help> within I<perldl> or use the C<pdldoc>
 program from the command line for access to the PerlDL documentation.
-HTML versions of the pages should also be present, in the
-F<HtmlDocs/PDL> directory of the PDL distribution. To find this 
-directory, try the following
-
- pdl> foreach ( map{"$_/PDL/HtmlDocs"}@INC ) { p "$_\n" if -d $_ }  
+For fuzzy searching within I<perldl>, use the C<apropos> command
+to find all instances of the search term in the documentation.
+See L<PDL::FAQ> Q:7.1 for an example.
 
 =head2 Indexing idioms
 
@@ -53,7 +51,7 @@ inform the pdl-porters mailing list.
 If you are running recursively something that selects certain
 indices of a large ndarray, like
 
-	while(1) {
+	while (1) {
 		$inds = where($x>0);
 		$x = $x->index($inds);
 		$y = $y->index($inds);
@@ -66,13 +64,13 @@ to
 		$y = $y->index($inds)->sever;
 
 The new method C<sever> is a causes the write-back relation to be
-forgotten. It is like copy except it changes the original ndarray
-and returns it).
+forgotten. It is like C<copy> except it changes the original ndarray
+and returns it.
 
 Of course, the probably best way to do the above is
 
 	$inds = xvals ($x->long);
-	while(1) {
+	while (1) {
 		$inds0 = where($x>0);
 		$inds1 = $inds->index($inds)->sever;
 		$x = $a0->index($inds1);
@@ -81,8 +79,6 @@ Of course, the probably best way to do the above is
 	}
 
 which doesn't save all the temporary instances of $x in memory.
-See C<mandel.pl> in the Demos subdirectory of the PerlDL distribution
-for an example.
 
 =head2 PP speed
 

@@ -61,7 +61,7 @@ which can hold numbers or strings, lists or arrays of scalars, e.g. C<@x>,
 and associative arrays/hashes of scalars, e.g. C<%x>.
 
 Perl v5 introduces to Perl data structures and objects. A simple
-scalar variable C<$x> now be a user-defined data type or full blown
+scalar variable C<$x> can now be a user-defined data type or full blown
 object (it actually holds a reference (a smart "pointer") to this
 but that is not relevant for ordinary use of perlDL)
 
@@ -101,8 +101,7 @@ PerlDL is loaded into your Perl script using this command:
 
  use PDL;  # in Perl scripts: use the standard perlDL modules
 
-There are also a lot of extension modules, e.g. 
-L<PDL::Graphics::TriD>. 
+There are also a lot of extension modules, eg L<PDL::Graphics::TriD>.
 Most of these (but not all as sometimes it is not appropriate) follow
 a standard convention. If you say:
 
@@ -138,7 +137,7 @@ Here are some ways of creating a PDL variable:
  $c = pdl q[1 - 2];            # 2-element ndarray containing 1 and -2
  $y = pdl 42                   # 0-dimensional scalar
  $c = pdl $x;                  # Make a new copy
- 
+
  $d = byte [1..10];            # See "Type conversion"
  $e = zeroes(3,2,4);           # 3x2x4 zero-filled array
  
@@ -156,13 +155,13 @@ to PDL variables on-the-fly.
 
 =head2 Arithmetic (and boolean expressions)
 
- $x = $y + 2; $x++; $x = $y / $c; # Etc.
+ $x = $y + 2; $x++; $x = $y / $c;     # Etc
 
- $c=sqrt($x); $d = log10($y+100); # Etc
+ $c = sqrt($x); $d = log10($y + 100); # Etc
 
- $e = $x>42; # Vector conditional
+ $e = $x > 42; # Vector conditional
 
- $e = 42*($x>42) + $x*($x<=42); # Cap top
+ $e = 42*($x > 42) + $x*($x <= 42); # Cap top
 
  $y = $x->log10 unless any ($x <= 0); # avoid floating point error
 
@@ -186,12 +185,12 @@ ndarrays. Therefore, the following will raise an error
 
  print "is ok" if $x > 3;
 
-since C<$x E<gt> 3> is an ndarray with 4 elements. Rather use 
+since C<$x E<gt> 3> is an ndarray with 4 elements. Rather use
 L<all|PDL::Ufunc/all> or L<any|PDL::Ufunc/any>
 to test if all or any of the elements fulfill the condition:
 
- print "some are > 3" if any $x>3;
- print "can't take logarithm" unless all $x>0;
+ print "some are > 3" if any $x > 3;
+ print "can't take logarithm" unless all $x > 0;
 
 There are also many predefined functions, which are described on other
 man pages. Check L<PDL::Index>.
@@ -219,7 +218,7 @@ e.g.:
              [ 2  2]
             ]
 
-Note: L<transpose()|PDL::Basic/transpose> 
+Note: L<transpose()|PDL::Basic/transpose>
 does what it says and is a convenient way
 to turn row vectors into column vectors.
 
@@ -234,7 +233,7 @@ to turn row vectors into column vectors.
 If put in file dotproduct.pdl would be autoloaded if you
 are using L<PDL::AutoLoader> (see below).
 
-Of course, this function is already available as the 
+Of course, this function is already available as the
 L<inner|PDL::Primitive/inner>
 function, see L<PDL::Primitive>.
 
@@ -246,7 +245,7 @@ Default for pdl() is double. Conversions are:
  $c = long($d);   # "long" is generally a 4 byte int
  $d = byte($x);
 
-Also double(), short(), ushort(), indx().  
+Also double(), short(), ushort(), indx().
 
   NOTE: The indx() routine is a special integer type that
   is the correct size for a PDL index value (dimension size,
@@ -297,7 +296,7 @@ cutout that is defined by the limits $x1, $x2, $y1, $y2, at the location
 $z1.  The parenthesis around C<$z1> cause the trivial index to be omitted --
 otherwise C<$g> would be three-dimensional with a third dimension of order 1.
 
-You can put PDL slices on either side of the element-wise assignment 
+You can put PDL slices on either side of the element-wise assignment
 operator C<.=>, like so:
 
   # Set part of $bigimage to values from $smallimage
@@ -305,14 +304,14 @@ operator C<.=>, like so:
 
 Some other miscellany:
 
- $c  = nelem($x); # Number of pixels
+ $c   = nelem($x); # Number of pixels
 
  $val = at($object, $x,$y,$z...)    # Pixel value at position, as a Perl scalar
  $val = $object->at($x,$y,$z...)    # equivalent (method syntax OK)
 
- $y = xvals($x); # Fill array with X-coord values (also yvals(), zvals(),
-                 # axisvals($x,$axis) and rvals() for radial distance
-                 # from centre).
+ $y   = xvals($x); # Fill array with X-coord values (also yvals(), zvals(),
+                   # axisvals($x,$axis) and rvals() for radial distance
+                   # from centre).
 
 =head2 Input/Output
 
@@ -413,9 +412,9 @@ e.g.:
  Loaded PDL v2.4.9_003 (supports bad values)
  pdl> $x = rfits 'm51.fits'
  Reading IMAGE data...
- BITPIX =  32  size = 147456 pixels 
+ BITPIX =  32  size = 147456 pixels
  Reading  589824  bytes
- BSCALE =  &&  BZERO = 
+ BSCALE =  &&  BZERO =
 
  pdl> use PDL::Graphics::Simple;
  pdl> imag $x
@@ -544,9 +543,9 @@ Most functions, e.g. C<log()>, return a result which is a transformation
 of their argument. This makes for good programming practice. However many
 operations can be done "in-place" and this may be required when large
 arrays are in use and memory is at a premium. For these circumstances
-the operator L<inplace()|PDL::Core/inplace> 
+the operator L<inplace()|PDL::Core/inplace>
 is provided which prevents the extra copy and
-allows the argument to be modified. e.g.:
+allows the argument to be modified. eg:
 
  $x = log($array);          # $array unaffected
  log( inplace($bigarray) ); # $bigarray changed in situ

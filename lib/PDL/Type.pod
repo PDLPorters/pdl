@@ -12,8 +12,8 @@ PDL::Type - Objects encapsulating datatypes for PDL transformations
 
 =head1 DESCRIPTION
 
-This module declares one class - of this class The L<type|PDL::Core/type>
-method of an ndarray returns a C<PDL::Type> object.
+This class encapsulates type information for PDL ndarrays.
+The L<type|PDL::Core/type> method of an ndarray returns a C<PDL::Type> object.
 For further examples check again the L<type|PDL::Core/type> method.
 
 Comparison and stringification are overloaded so that
