@@ -2527,16 +2527,8 @@ sub t_vertical {
 	my($k) = (($o->{r0} - 1) /
 		  ($o->{r0} - $cos_c));
 
-	# If it's a telescope perspective, figure the apparent size
-	# of the globe and scale accordingly.
-	if($o->{t}) {
-	  my($theta) = asin(1/$o->{r0});
-	}
-
 	$out->slice("0:1") /= ($o->{r0} - 1.0) * ($o->{f} ? 1.0 : $o->{tconv})
   	  if($o->{t});
-
-
 
 	$out->slice("(0)") .= $cph * sin($th);
 	$out->slice("(1)") .= sin($ph);
@@ -2557,7 +2549,6 @@ sub t_vertical {
 	      $out->slice("(1)")->range($idx) .= $o->{bad};
 	    }
 	}
-
 
 	$out;
     };
