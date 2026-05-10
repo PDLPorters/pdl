@@ -2980,7 +2980,6 @@ sub t_perspective {
 
 	## Assemble the 3-space coordinates of the points
 	my $int = $out->slice("0")->append($out);
-	$int->sever;
 	$int->slice("(0)") .= -1.0;
 	$int->slice("0:2") *= $x->dummy(0,3);
 
