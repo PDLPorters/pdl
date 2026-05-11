@@ -300,4 +300,12 @@ is_pdl $pb->slice('x',[5,9]), $pb->slice('x',[0,4]), "periodic and mirror bounda
 }
 }
 
+{
+my $tx = t_perspective();
+is_pdl $tx->apply(my $in = sequence(2,3)), my $exp = pdl('
+  0 0.99979696; 1.9929099 2.9927074; 3.9568835 4.9627286
+');
+is_pdl $tx->invert($exp), $in;
+}
+
 done_testing;
