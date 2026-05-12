@@ -891,8 +891,8 @@ sub t_unit_sphere {
 
 
   $me->{func} = sub {
-    my($d,$o) = @_;
-    my(@dims) = $d->dims;
+    my ($d,$o) = @_;
+    my @dims = $d->dims;
     $dims[0] ++;
     my $out = zeroes(@dims);
 
@@ -900,37 +900,36 @@ sub t_unit_sphere {
 		     $d->slice("0:1") * $o->{conv} : $d->slice("0:1")
 		     );
 
-    my $th = $thetaphi->slice("(0)");
-    my $ph = $thetaphi->slice("(1)");
+    my ($th, $ph) = $thetaphi->using(0,1);
 
+    my ($out0, $out1, $out2) = $out->using(0..2);
     # use x as a holding tank for the cos-phi multiplier
-    $out->slice("(0)") .= $o->{r} * cos($ph) ;
-    $out->slice("(1)") .= $out->slice("(0)") * sin($th);
-    $out->slice("(0)") *= cos($th);
+    $out0 .= $o->{r} * cos($ph) ;
+    $out1 .= $out->slice("(0)") * sin($th);
+    $out0 *= cos($th);
 
-    $out->slice("(2)") .= $o->{r} * sin($ph);
+    $out2 .= $o->{r} * sin($ph);
 
-    if($d->dim(0) > 2) {
+    if ($d->dim(0) > 2) {
 	$out->slice("3:-1") .= $d->slice("2:-1");
     }
 
     $out;
-
   };
 
   $me->{inv} = sub {
     my($d,$o) = @_;
 
-    my($d0,$d1,$d2) = ($d->slice("(0)"),$d->slice("(1)"),$d->slice("(2)"));
-    my($r) = $d->slice("0:2")->magnover;
-    my(@dims) = $d->dims;
+    my ($d0,$d1,$d2) = $d->using(0..2);
+    my $r = $d->slice("0:2")->magnover;
+    my @dims = $d->dims;
     $dims[0]--;
-    my($out) = zeroes(@dims);
+    my $out = zeroes(@dims);
 
     $out->slice("(0)") .= atan2($d1,$d0);
     $out->slice("(1)") .= asin($d2/$r);
 
-    if($d->dim(0) > 3) {
+    if ($d->dim(0) > 3) {
 	$out->slice("2:-1") .= $d->slice("3:-1");
     }
 
@@ -1609,7 +1608,7 @@ sub _c_new {
 	if($p->{std}->nelem == 1);
 
     $me->{params}->{cylindrical} = 1
-	if(approx($p->{std}->slice("0"),-$p->{std}->slice("1")));
+	if approx($p->{std}->slice("0"),-$p->{std}->slice("1"));
 
     $me;
 }
@@ -1674,11 +1673,12 @@ sub t_conic {
 	return t_carree($me->{options});
     }
 
-    $p->{n} = ((cos($p->{std}->slice("(0)")) - cos($p->{std}->slice("(1)")))
+    my ($p0, $p1) = $p->{std}->using(0,1);
+    $p->{n} = ((cos($p0) - cos($p1))
 	       /
-	       ($p->{std}->slice("(1)") - $p->{std}->slice("(0)")));
+	       ($p1 - $p0));
 
-    $p->{G} = cos($p->{std}->slice("(0)"))/$p->{n} + $p->{std}->slice("(0)");
+    $p->{G} = cos($p0)/$p->{n} + $p0;
 
     $me->{otype} = ['Conic X','Conic Y'];
     $me->{ounit} = ['Proj. radians','Proj. radians'];
@@ -1705,14 +1705,15 @@ sub t_conic {
 	my($rho) = sqrt($x*$x + $y*$y);
 	$rho *= -1 if($o->{n}<0);
 
-	my($theta) = ($o->{n} < 0) ? atan2(-$x,-$y) : atan2($x,$y);
+	my $theta = ($o->{n} < 0) ? atan2(-$x,-$y) : atan2($x,$y);
 
-	$out->slice("(1)") .= $o->{G} - $rho;
-	$out->slice("(1)")->where(($out->slice("(1)") < -PI/2) | ($out->slice("(1)") > PI/2))
+	my ($out0, $out1) = $out->using(0,1);
+	$out1 .= $o->{G} - $rho;
+	$out1->where(($out1 < -PI/2) | ($out1 > PI/2))
 	    .= $o->{bad};
 
-	$out->slice("(0)") .= $theta / $o->{n};
-	$out->slice("(0)")->where(($out->slice("(0)") < -PI) | ($out->slice("(0)") > PI/2))
+	$out0 .= $theta / $o->{n};
+	$out0->where(($out0 < -PI) | ($out0 > PI/2))
 	    .= $o->{bad};
 
 	$out->slice("0:1") /= $o->{conv};
@@ -1791,9 +1792,10 @@ sub t_albers  {
 	return t_sin_lat($me->{options});
     }
 
+    my ($p1) = $p->{std}->using(0,1);
     $p->{n} = sin($p->{std})->sumover / 2;
-    $p->{C} = (cos($p->{std}->slice("(1)"))*cos($p->{std}->slice("(1)")) +
-		     2 * $p->{n} * sin($p->{std}->slice("(1)")) );
+    $p->{C} = (cos($p1)*cos($p1) +
+		     2 * $p->{n} * sin($p1) );
     $p->{rho0} = sqrt($p->{C}) / $p->{n};
 
     $me->{otype} = ['Conic X','Conic Y'];
@@ -1903,22 +1905,23 @@ sub t_lambert {
     $p->{c} = abs($p->{c}) * topdl([-1,1]) if($p->{c}->nelem == 1);
     $p->{c} = [$p->{c}->list];
 
+    my ($p0, $p1) = $p->{std}->using(0,1);
     # Prefrobnicate
-    if(approx($p->{std}->slice("(0)"),$p->{std}->slice("(1)"))) {
-	$p->{n} = sin($p->{std}->slice("(0)"));
+    if (approx($p0,$p1)) {
+	$p->{n} = sin($p0);
     } else {
-	$p->{n} = (log(cos($p->{std}->slice("(0)"))/cos($p->{std}->slice("(1)")))
+	$p->{n} = log(cos($p0)/cos($p1))
 		   /
-		   log( tan( PI/4 + $p->{std}->slice("(1)")/2 )
+		   log( tan( PI/4 + $p1/2 )
 			/
-			tan( PI/4 + $p->{std}->slice("(0)")/2 )
+			tan( PI/4 + $p0/2 )
 			)
-		   );
+		   ;
     }
 
-    $p->{F} = ( cos($p->{std}->slice("(0)"))
+    $p->{F} = ( cos($p0)
 		*
-		( tan( PI/4 + $p->{std}->slice("(0)")/2 ) ** $p->{n} ) / $p->{n}
+		( tan( PI/4 + $p0/2 ) ** $p->{n} ) / $p->{n}
 		);
 
     $p->{rho0} = $p->{F};
@@ -2017,17 +2020,17 @@ sub t_stereographic {
 	my($d,$o) = @_;
 	my($out) = $d->new_or_inplace;
 
-	my($th,$ph) = ($out->slice("(0)") * $o->{conv},
-		       $out->slice("(1)") * $o->{conv});
+	my ($out0, $out1) = $out->using(0,1);
+	my ($th,$ph) = map $_ * $o->{conv}, $out0, $out1;
 
-	my($cph) = cos($ph); # gets re-used
+	my $cph = cos($ph); # gets re-used
 	my($k) = 2 * $o->{k0} / (1 + cos($th) * $cph);
-	$out->slice("(0)") .= $k * $cph * sin($th);
-	$out->slice("(1)") .= $k * sin($ph);
+	$out0 .= $k * $cph * sin($th);
+	$out1 .= $k * sin($ph);
 
-	my($cl0) = 2*$o->{k0} / (1 + cos($o->{c}));
-	$out->slice("(0)")->where($k>$cl0) .= $o->{bad};
-	$out->slice("(1)")->where($k>$cl0) .= $o->{bad};
+	my $cl0 = 2*$o->{k0} / (1 + cos($o->{c}));
+	$out0->where($k>$cl0) .= $o->{bad};
+	$out1->where($k>$cl0) .= $o->{bad};
 	$out;
     };
 
@@ -2035,8 +2038,7 @@ sub t_stereographic {
 	my($d,$o) = @_;
 	my($out) = $d->new_or_inplace;
 
-	my($x) = $d->slice("(0)");
-	my($y) = $d->slice("(1)");
+	my ($x, $y) = $d->using(0,1);
 	my($rho) = sqrt($x*$x + $y*$y);
 	my($c) = 2 * atan2($rho,2*$o->{k0});
 
@@ -2102,44 +2104,42 @@ sub t_gnomonic {
 	my($d,$o) = @_;
 	my($out) = $d->new_or_inplace;
 
-	my($th,$ph) = ($out->slice("(0)") * $o->{conv},
-		       $out->slice("(1)") * $o->{conv});
+	my ($th, $ph) = map $_ * $o->{conv},
+          my ($out0, $out1) = $out->using(0,1);
 
-	my($cph) = cos($ph); # gets re-used
+	my $cph = cos($ph); # gets re-used
 
-	my($k) = $o->{k0} / (cos($th) * $cph);
-	my($cl0) = $o->{k0} / (cos($o->{c}));
+	my $k = $o->{k0} / (cos($th) * $cph);
+	my $cl0 = $o->{k0} / (cos($o->{c}));
 
-	$out->slice("(0)") .= $k * $cph * sin($th);
-	$out->slice("(1)") .= $k * sin($ph);
+	$out0 .= $k * $cph * sin($th);
+	$out1 .= $k * sin($ph);
 
 	my $idx = whichND(($k > $cl0)  | ($k < 0) | (!isfinite($k)));
-	if($idx->nelem) {
-	  $out->slice("(0)")->range($idx) .= $o->{bad};
-	  $out->slice("(1)")->range($idx) .= $o->{bad};
+	if ($idx->nelem) {
+	  $_->range($idx) .= $o->{bad} for $out0, $out1;
 	}
 
 	$out;
     };
 
     $me->{inv} = sub {
-	my($d,$o) = @_;
-	my($out) = $d->new_or_inplace;
+	my ($d,$o) = @_;
+	my $out = $d->new_or_inplace;
 
-	my($x) = $d->slice("(0)");
-	my($y) = $d->slice("(1)");
+	my ($x, $y) = $d->using(0,1);
 
-	my($rho) = sqrt($x*$x + $y*$y);
-	my($c) = atan($rho/$o->{k0});
+	my $rho = sqrt($x*$x + $y*$y);
+	my $c = atan($rho/$o->{k0});
 
-	$out->slice("(0)") .= atan2($x * sin($c), $rho * cos($c));
-	$out->slice("(1)") .= asin($y * sin($c) / $rho);
+	my ($out0, $out1) = $out->using(0,1);
+	$out0 .= atan2($x * sin($c), $rho * cos($c));
+	$out1 .= asin($y * sin($c) / $rho);
 
 	my $idx = whichND($rho==0);
 
-	if($idx->nelem) {
-	  $out->slice("(0)")->range($idx) .= 0;
-	  $out->slice("(1)")->range($idx) .= 0;
+	if ($idx->nelem) {
+	  $_->range($idx) .= 0 for $out0, $out1;
 	}
 	$out->slice("0:1") /= $o->{conv};
 	$out;
@@ -2210,15 +2210,14 @@ sub t_az_eqd {
     my $k = $c / sin($c);
     $k->where($c==0) .= 1;
 
-    my($x,$y) = ($out->slice("(0)"), $out->slice("(1)"));
+    my ($x, $y) = $out->using(0,1);
 
     $x .= $k * cos($ph) * sin($th);
     $y .= $k * sin($ph);
 
     my $idx = whichND($c > $o->{c});
-    if($idx->nelem) {
-      $x->range($idx) .= $o->{bad};
-      $y->range($idx) .= $o->{bad};
+    if ($idx->nelem) {
+      $_->range($idx) .= $o->{bad} for $x, $y;
     }
 
     $out;
@@ -2226,19 +2225,18 @@ sub t_az_eqd {
 
   $me->{inv} = sub {
     my($d,$o) = @_;
-    my($out) = $d->new_or_inplace;
-    my($x) = $d->slice("(0)");
-    my($y) = $d->slice("(1)");
+    my $out = $d->new_or_inplace;
+    my ($x, $y) = $d->using(0,1);
 
     my $rho = $d->slice("0:1")->magnover;
+    my ($out0, $out1) = $out->using(0,1);
     # Order is important -- ((0)) overwrites $x if is_inplace!
-    $out->slice("(0)") .= atan2( $x * sin($rho), $rho * cos $rho );
-    $out->slice("(1)") .= asin( $y * sin($rho) / $rho );
+    $out0 .= atan2( $x * sin($rho), $rho * cos $rho );
+    $out1 .= asin( $y * sin($rho) / $rho );
 
     my $idx = whichND($rho == 0);
-    if($idx->nelem) {
-      $out->slice("(0)")->range($idx) .= 0;
-      $out->slice("(1)")->range($idx) .= 0;
+    if ($idx->nelem) {
+      $_->range($idx) .= 0 for $out0, $out1;
     }
 
     $out->slice("0:1") /= $o->{conv};
@@ -2287,39 +2285,38 @@ sub t_az_eqa {
   $me->{ounit} = ['Proj. radians','Proj. radians'];
 
   $me->{func} = sub {
-    my($d,$o) = @_;
-    my($out) = $d->new_or_inplace;
+    my ($d,$o) = @_;
+    my $out = $d->new_or_inplace;
 
     my($ph) = $d->slice("(1)") * $o->{conv};
     my($th) = $d->slice("(0)") * $o->{conv};
 
-    my($c) = acos(cos($ph) * cos($th));
-    my($rho) = 2 * sin($c/2);
-    my($k) = 1.0/cos($c/2);
+    my $c = acos(cos($ph) * cos($th));
+    my $rho = 2 * sin($c/2);
+    my $k = 1.0/cos($c/2);
 
-    my($x,$y) = ($out->slice("(0)"),$out->slice("(1)"));
+    my ($x, $y) = $out->using(0,1);
     $x .= $k * cos($ph) * sin($th);
     $y .= $k * sin($ph);
 
     my $idx = whichND($c > $o->{c});
-    if($idx->nelem) {
-      $x->range($idx) .= $o->{bad};
-      $y->range($idx) .= $o->{bad};
+    if ($idx->nelem) {
+      $_->range($idx) .= $o->{bad} for $x, $y;
     }
 
     $out;
   };
 
   $me->{inv} = sub {
-    my($d,$o) = @_;
-    my($out) = $d->new_or_inplace;
+    my ($d,$o) = @_;
+    my $out = $d->new_or_inplace;
 
-    my($x,$y) = ($d->slice("(0)"),$d->slice("(1)"));
-    my($ph,$th) = ($out->slice("(0)"),$out->slice("(1)"));
-    my($rho) = sqrt($x*$x + $y*$y);
-    my($c) = 2 * asin($rho/2);
+    my ($x, $y) = $d->using(0,1);
+    my ($ph, $th) = $out->using(0,1);
+    my $rho = sqrt($x*$x + $y*$y);
+    my $c = 2 * asin($rho/2);
 
-    $ph .= asin($d->slice("(1)") * sin($c) / $rho);
+    $ph .= asin($y * sin($c) / $rho);
     $th .= atan2($x * sin($c),$rho * cos($c));
 
     $ph /= $o->{conv};
@@ -2367,12 +2364,11 @@ sub t_hammer {
   $me->{idim} = 2;
 
   $me->{func} = sub {
-    my($d,$o) = @_;
-    my($out) = $d->new_or_inplace;
+    my ($d,$o) = @_;
+    my $out = $d->new_or_inplace;
     $out->slice("0:1") *= $o->{conv};
-    my($th) = $out->slice("(0)");
-    my($ph) = $out->slice("(1)");
-    my($t) = sqrt( 2 / (1 + cos($ph) * cos($th/2)));
+    my ($th, $ph) = $out->using(0,1);
+    my $t = sqrt( 2 / (1 + cos($ph) * cos($th/2)));
     $th .= 2 * $t * cos($ph) * sin($th/2);
     $ph .= $t * sin($ph);
     $out;
@@ -2380,22 +2376,19 @@ sub t_hammer {
   ;
 
   $me->{inv} = sub {
-    my($d,$o) = @_;
-    my($out) = $d->new_or_inplace;
-    my($x) = $out->slice("(0)");
-    my($y) = $out->slice("(1)");
+    my ($d,$o) = @_;
+    my $out = $d->new_or_inplace;
+    my ($x, $y) = $out->using(0,1);
 
-    my($rej) = which(($x*$x/8 + $y*$y/2)->flat > 1);
+    my $rej = which(($x*$x/8 + $y*$y/2)->flat > 1);
 
-    my($zz);
-    my($z) = sqrt( $zz = (1 - $x*$x/16 - $y*$y/4) );
+    my $z = sqrt( my $zz = (1 - $x*$x/16 - $y*$y/4) );
     $x .= 2 * atan( ($z * $x) / (4 * $zz - 2) );
     $y .= asin($y * $z);
 
     $out->slice("0:1") /= $o->{conv};
 
-    $x->flat->slice($rej) .= $o->{bad};
-    $y->flat->slice($rej) .= $o->{bad};
+    $_->flat->slice($rej) .= $o->{bad} for $x, $y;
 
     $out;
   };
@@ -2515,38 +2508,35 @@ sub t_vertical {
       if(defined $p->{t});
 
     $me->{func} = sub {
-	my($d,$o) = @_;
-	my($out) = $d->new_or_inplace;
-	my($th) = $d->slice("(0)")*$o->{conv};
-	my($ph) = $d->slice("(1)")*$o->{conv};
+	my ($d,$o) = @_;
+	my $out = $d->new_or_inplace;
+	my ($th, $ph) = map $_*$o->{conv}, $d->using(0,1);
 
-	my($cph) = cos($ph);
+	my $cph = cos($ph);
+	my $cos_c = $cph * cos($th);
 
-	my($cos_c) = $cph * cos($th);
-
-	my($k) = (($o->{r0} - 1) /
-		  ($o->{r0} - $cos_c));
+	my $k = (($o->{r0} - 1) /
+		 ($o->{r0} - $cos_c));
 
 	$out->slice("0:1") /= ($o->{r0} - 1.0) * ($o->{f} ? 1.0 : $o->{tconv})
   	  if($o->{t});
 
-	$out->slice("(0)") .= $cph * sin($th);
-	$out->slice("(1)") .= sin($ph);
+	my ($out0, $out1) = $out->using(0,1);
+	$out0 .= $cph * sin($th);
+	$out1 .= sin($ph);
 
 	# Handle singularity at the origin
 	$k->where(($out->slice("(0)") == 0) & ($out->slice("(1)") == 0)) .= 0;
 	$out->slice("0:1") *= $k->dummy(0,2);
 
-	if($o->{m}) {
+	if ($o->{m}) {
 	    my $idx;
 	    $idx = whichND($cos_c < 1.0/$o->{r0})
-		if($o->{m} == 1);
+		if $o->{m} == 1;
 	    $idx = whichND($cos_c > 1.0/$o->{r0})
-		if($o->{m} == 2);
-
-	    if(defined $idx && ref $idx eq 'PDL' && $idx->nelem){
-	      $out->slice("(0)")->range($idx) .= $o->{bad};
-	      $out->slice("(1)")->range($idx) .= $o->{bad};
+		if $o->{m} == 2;
+	    if (defined $idx && ref $idx eq 'PDL' && $idx->nelem){
+	      $_->range($idx) .= $o->{bad} for $out0, $out1;
 	    }
 	}
 
@@ -2554,29 +2544,27 @@ sub t_vertical {
     };
 
     $me->{inv} = sub {
-	my($d,$o) = @_;
-	my($out) = $d->new_or_inplace;
+	my ($d,$o) = @_;
+	my $out = $d->new_or_inplace;
 
 	# Reverse the hemisphere if the mask is set to 'far'
-	my($P) = ($o->{m} == 2) ? -$o->{r0} : $o->{r0};
+	my $P = ($o->{m} == 2) ? -$o->{r0} : $o->{r0};
 
 	$out->slice("0:1") *= ($P - 1.0) * ($o->{f} ? 1.0 : $o->{tconv})
      	    if($o->{t});
 
 	my $rho = $d->slice("0:1")->magnover;
-	my($sin_c) = ( (  $P - sqrt( 1 - ($rho*$rho * ($P+1)/($P-1)) ) ) /
-		       ( ($P-1)/$rho + $rho/($P-1) )
-		       );
+	my $sin_c = (  $P - sqrt( 1 - ($rho*$rho * ($P+1)/($P-1)) ) ) /
+		    ( ($P-1)/$rho + $rho/($P-1) );
 
-	my($cos_c) = sqrt(1 - $sin_c*$sin_c);
+	my $cos_c = sqrt(1 - $sin_c*$sin_c);
 
 	# Switch c's quadrant where necessary, by inverting cos(c).
-	if($P<0) {
+	if ($P<0) {
 	  my $idx = whichND($rho > ($P-1/$P));
 	  $cos_c->range($idx) *= -1
-	    if($idx->nelem > 0);
+	    if $idx->nelem > 0;
 	}
-
 
 	$out->slice("(0)") .= atan( $d->slice("(0)") * $sin_c / ($rho * $cos_c) );
 	$out->slice("(1)") .= asin( $d->slice("(1)") * $sin_c / $rho );
@@ -2764,266 +2752,263 @@ is just an expensive modified-gnomonic projection).
 =cut
 
 sub t_perspective {
-    my($me) = _new(@_,'Focal-Plane Perspective');
-    my $p = $me->{params};
+  my $me = _new(@_,'Focal-Plane Perspective');
+  my $p = $me->{params};
 
-    my $m= _opt($me->{options},
-		['m','mask','Mask','h','hemi','hemisphere','Hemisphere'],
-		1);
-    $p->{m} = $m;
-    $p->{m} = 0 if($m=~m/^b/i);
-    $p->{m} = 1 if($m=~m/^n/i);
-    $p->{m} = 2 if($m=~m/^f/i);
+  my $m= _opt($me->{options},
+              ['m','mask','Mask','h','hemi','hemisphere','Hemisphere'],
+              1);
+  $p->{m} = $m;
+  $p->{m} = 0 if($m=~m/^b/i);
+  $p->{m} = 1 if($m=~m/^n/i);
+  $p->{m} = 2 if($m=~m/^f/i);
 
-    $p->{r0} = _opt($me->{options},
-		    ['r0','R0','radius','Radius',
-		     'd','dist','distance','Distance'],
-		    2.0
-		    );
+  $p->{r0} = _opt($me->{options},
+                  ['r0','R0','radius','Radius',
+                   'd','dist','distance','Distance'],
+                  2.0
+                  );
 
-    $p->{iu} = _opt($me->{options},
-		   ['i','iu','image_unit','Image_Unit'],
-		   'degrees');
+  $p->{iu} = _opt($me->{options},
+                 ['i','iu','image_unit','Image_Unit'],
+                 'degrees');
 
-    $p->{tconv} = _uconv($p->{iu});
+  $p->{tconv} = _uconv($p->{iu});
 
-    $p->{mag} = _opt($me->{options},
-		     ['mag','magnification','Magnification'],
-		     1.0);
+  $p->{mag} = _opt($me->{options},
+                   ['mag','magnification','Magnification'],
+                   1.0);
 
-    # Regular pointing pseudovector -- make sure there are exactly 3 elements
-    $p->{p} = (topdl(_opt($me->{options},
-			['p','ptg','pointing','Pointing'],
-			[0,0,0])
-		   )
-	       * $p->{tconv}
-	       )->append(zeroes(3))->slice("0:2");
+  # Regular pointing pseudovector -- make sure there are exactly 3 elements
+  $p->{p} = (topdl(_opt($me->{options},
+                      ['p','ptg','pointing','Pointing'],
+                      [0,0,0])
+                 )
+             * $p->{tconv}
+             )->append(zeroes(3))->slice("0:2");
 
-    $p->{pmat} = _rotmat( (- $p->{p})->list );
+  $p->{pmat} = _rotmat( (- $p->{p})->list );
 
-    # Funky camera pointing pseudovector overrides normal pointing option
-    $p->{c} = _opt($me->{options},
-		   ['c','cam','camera','Camera'],
-		   undef
-		   );
+  # Funky camera pointing pseudovector overrides normal pointing option
+  $p->{c} = _opt($me->{options},
+                 ['c','cam','camera','Camera'],
+                 undef
+                 );
 
-    if(defined($p->{c})) {
-      $p->{c} = (topdl($p->{c}) * $p->{tconv})->append(zeroes(3))->slice("0:2");
+  if(defined($p->{c})) {
+    $p->{c} = (topdl($p->{c}) * $p->{tconv})->append(zeroes(3))->slice("0:2");
 
-      $p->{pmat} = ( _rotmat( 0,-PI/2,0 ) x
-		     _rotmat( (-$p->{c})->list )
-		     );
+    $p->{pmat} = ( _rotmat( 0,-PI/2,0 ) x
+                   _rotmat( (-$p->{c})->list )
+                   );
+  }
+
+  # Reflect X axis if we're inside the sphere.
+  if($p->{r0}<1) {
+    $p->{pmat} = topdl([[-1,0,0],[0,1,0],[0,0,1]]) x $p->{pmat};
+  }
+
+  $p->{f} = ( _opt($me->{options},
+                   ['f','fov','field_of_view','Field_of_View'],
+                   topdl(PI*2/3) / $p->{tconv} / $p->{mag} )
+              * $p->{tconv}
+              );
+
+  $me->{otype} = ['Tan X','Tan Y'];
+  $me->{ounit} = [$p->{iu},$p->{iu}];
+
+  # "Prefilter" -- subsidiary transform to convert the
+  # spherical coordinates to 3-D coords in the viewer's
+  # reference frame (Y,Z are more-or-less tangent-plane X and Y,
+  # and -X is the direction toward the planet, before rotation
+  # to account for pointing).
+
+  $me->{params}->{prefilt} =
+    t_compose(
+              # Offset for the camera pointing.
+              t_linear(m=>$p->{pmat},
+                       d=>3),
+
+              # Rotate the sphere so the correct origin is at the
+              # maximum-X point, then move the whole thing in the
+              # -X direction  by r0.
+              t_linear(m=>(_rotmat($p->{o}->at(0),
+                                   $p->{o}->at(1),
+                                   $p->{roll}->at(0))
+                           ),
+                       d=>3,
+                       post=> topdl( [- $me->{params}->{r0},0,0] )
+                       ),
+
+              # Put initial sci. coords into Cartesian space
+              t_unit_sphere(u=>'radian')
+              );
+
+  # Store the origin of the sphere -- useful for the inverse function
+  $me->{params}->{sph_origin} = (
+                                 topdl([-$me->{params}->{r0},0,0]) x
+                                 $p->{pmat}
+                                 )->slice(":,(0)");
+
+  #
+  # Finally, the meat -- the forward function!
+  #
+  $me->{func} = sub {
+    my ($d,$o) = @_;
+
+    my $out = $d->new_or_inplace;
+    $out->slice("0:1") *= $o->{conv};
+
+    # If we're outside the sphere, do hemisphere filtering
+    my $idx;
+    if(abs($o->{r0}) < 1 ) {
+      $idx = null;
+    } else {
+      # Great-circle distance to origin
+      my $cos_c = (sin($o->{o}->slice("(1)")) * sin($out->slice("(1)"))
+                   +
+                   cos($o->{o}->slice("(1)")) * cos($out->slice("(1)")) *
+                   cos($out->slice("(0)") - $o->{o}->slice("(0)"))
+                   );
+
+      my $thresh = (1.0/$o->{r0});
+
+      if ($o->{m}==1) {
+        $idx = whichND($cos_c < $thresh);
+      } elsif ($o->{m}==2) {
+        $idx = whichND($cos_c > $thresh);
+      } else {
+        $idx = null;
+      }
     }
 
-    # Reflect X axis if we're inside the sphere.
-    if($p->{r0}<1) {
-      $p->{pmat} = topdl([[-1,0,0],[0,1,0],[0,0,1]]) x $p->{pmat};
+    ### Transform everything -- just chuck out the bad points at the end.
+
+    ## convert to 3-D viewer coordinates (there's a dimension change!)
+    my $dc = $out->apply($o->{prefilt});
+
+    ## Apply the tangent-plane transform, and scale by the magnification.
+    my $dcyz = $dc->slice("1:2");
+
+    my $r = $dcyz->magnover;
+    my $rscale;
+    if( $o->{mag} == 1.0 ) {
+        $rscale = - 1.0 / $dc->slice("(0)");
+    } else {
+        print "(using magnification...)\n" if $PDL::verbose;
+        $rscale = - tan( $o->{mag} * atan( $r / $dc->slice("(0)") ) ) / $r;
+    }
+    $r *= $rscale;
+    $out->slice("0:1") .= $dcyz * $rscale->dummy(0,1);
+
+    # Chuck points that are outside the FOV: glue those points
+    # onto the removal list.   The conditional works around a bug
+    # in 2.3.4cvs and earlier: null ndarrays make append() crash.
+    my $w;
+    if(ref $o->{f} eq 'ARRAY') {
+      $w = whichND( ( abs($dcyz->slice("(0)")) > $o->{f}->[0] ) |
+                    ( abs($dcyz->slice("(1)")) > $o->{f}->[1] ) |
+                    ($r < 0)
+                    );
+    } else {
+      $w = whichND( ($r > $o->{f}) | ($r < 0) );
     }
 
-    $p->{f} = ( _opt($me->{options},
-		     ['f','fov','field_of_view','Field_of_View'],
-		     topdl(PI*2/3) / $p->{tconv} / $p->{mag} )
-		* $p->{tconv}
-		);
+    $idx = ($idx->nelem) ?  $idx->glue(1,$w)  : $w
+      if($w->nelem);
 
-    $me->{otype} = ['Tan X','Tan Y'];
-    $me->{ounit} = [$p->{iu},$p->{iu}];
+    if($idx->nelem) {
+      $out->slice("(0)")->range($idx) .= $o->{bad};
+      $out->slice("(1)")->range($idx) .= $o->{bad};
+    }
 
-    # "Prefilter" -- subsidiary transform to convert the
-    # spherical coordinates to 3-D coords in the viewer's
-    # reference frame (Y,Z are more-or-less tangent-plane X and Y,
-    # and -X is the direction toward the planet, before rotation
-    # to account for pointing).
+    ## Scale by the output conversion factor
+    $out->slice("0:1") /= $o->{tconv};
 
-    $me->{params}->{prefilt} =
-      t_compose(
-                # Offset for the camera pointing.
-		t_linear(m=>$p->{pmat},
-			 d=>3),
+    $out;
+  };
 
-                # Rotate the sphere so the correct origin is at the
-		# maximum-X point, then move the whole thing in the
-		# -X direction  by r0.
-		t_linear(m=>(_rotmat($p->{o}->at(0),
-				     $p->{o}->at(1),
-				     $p->{roll}->at(0))
-			     ),
-			 d=>3,
-			 post=> topdl( [- $me->{params}->{r0},0,0] )
-			 ),
 
-                # Put initial sci. coords into Cartesian space
-		t_unit_sphere(u=>'radian')
-		);
-
-    # Store the origin of the sphere -- useful for the inverse function
-    $me->{params}->{sph_origin} = (
-				   topdl([-$me->{params}->{r0},0,0]) x
-				   $p->{pmat}
-				   )->slice(":,(0)");
-
-    #
-    # Finally, the meat -- the forward function!
-    #
-    $me->{func} = sub {
+  #
+  # Inverse function
+  #
+  $me->{inv} = sub {
       my($d,$o) = @_;
 
-      my($out) = $d->new_or_inplace;
-      $out->slice("0:1") *= $o->{conv};
+      my $out = $d->new_or_inplace;
+      $out->slice("0:1") *= $o->{tconv};
+
+      my $oyz = $out->slice("0:1") ;
+
+      ## Inverse-magnify if required
+      if($o->{mag} != 1.0) {
+        my $r = $oyz->magnover;
+        my $scale = tan( atan( $r ) / $o->{mag} ) / $r;
+        $oyz *= $scale->dummy(0,1);
+      }
+
+      ## Solve for the X coordinate of the surface.
+      ## This is a quadratic in the tangent-plane coordinates;
+      ## so here we just figure out the coefficients and plug into
+      ## the quadratic formula.  $y here is actually -B/2.
+      my $a1 = ($oyz * $oyz)->sumover + 1;
+      my $y = ( $o->{sph_origin}->slice("(0)")
+                - ($o->{sph_origin}->slice("1:2") * $oyz)->sumover
+                );
+      my $c = topdl($o->{r0}*$o->{r0} - 1);
+
+      my $x;
+      if ($o->{m} == 2) {
+          # Exceptional case: mask asks for the far hemisphere
+          $x = - ( $y - sqrt($y*$y - $a1 * $c) ) / $a1;
+      } else {
+          # normal case: mask asks for the near hemisphere
+          $x = - ( $y + sqrt($y*$y - $a1 * $c) ) / $a1;
+      }
+
+      my ($out0, $out1) = $out->using(0,1);
+      ## Assemble the 3-space coordinates of the points
+      my $int = $out->slice("0")->append($out);
+      $int->slice("(0)") .= -1.0;
+      $int->slice("0:2") *= $x->dummy(0,3);
+
+      ## convert back to (lon,lat) coordinates...
+      $out .= $int->invert($o->{prefilt});
 
       # If we're outside the sphere, do hemisphere filtering
       my $idx;
-      if(abs($o->{r0}) < 1 ) {
-	$idx = null;
+      if (abs($o->{r0}) < 1) {
+          $idx = null;
       } else {
-	# Great-circle distance to origin
-	my($cos_c) = ( sin($o->{o}->slice("(1)")) * sin($out->slice("(1)"))
-		     +
-		     cos($o->{o}->slice("(1)")) * cos($out->slice("(1)")) *
-		     cos($out->slice("(0)") - $o->{o}->slice("(0)"))
-		     );
-
-	my($thresh) = (1.0/$o->{r0});
-
-	if($o->{m}==1) {
-	  $idx = whichND($cos_c < $thresh);
-	} elsif($o->{m}==2) {
-	  $idx = whichND($cos_c > $thresh);
-	} else {
-	  $idx = null;
-	}
+          # Great-circle distance to origin
+          my $cos_c = ( sin($o->{o}->slice("(1)")) * sin($out->slice("(1)"))
+                        +
+                        cos($o->{o}->slice("(1)")) * cos($out->slice("(1)")) *
+                        cos($out->slice("(0)") - $o->{o}->slice("(0)"))
+                      );
+          my $thresh = 1.0/$o->{r0};
+          if ($o->{m}==1) {
+              $idx = whichND($cos_c < $thresh);
+          } elsif ($o->{m}==2) {
+              $idx = whichND($cos_c > $thresh);
+          } else {
+              $idx = null;
+          }
       }
 
-      ### Transform everything -- just chuck out the bad points at the end.
+      ## Convert to the units the user requested
+      $out->slice("0:1") /= $o->{conv};
 
-      ## convert to 3-D viewer coordinates (there's a dimension change!)
-      my $dc = $out->apply($o->{prefilt});
-
-      ## Apply the tangent-plane transform, and scale by the magnification.
-      my $dcyz = $dc->slice("1:2");
-
-      my $r = $dcyz->magnover;
-      my $rscale;
-      if( $o->{mag} == 1.0 ) {
-	  $rscale = - 1.0 / $dc->slice("(0)");
-      } else {
-	  print "(using magnification...)\n" if $PDL::verbose;
-	  $rscale = - tan( $o->{mag} * atan( $r / $dc->slice("(0)") ) ) / $r;
-      }
-      $r *= $rscale;
-      $out->slice("0:1") .= $dcyz * $rscale->dummy(0,1);
-
-      # Chuck points that are outside the FOV: glue those points
-      # onto the removal list.   The conditional works around a bug
-      # in 2.3.4cvs and earlier: null ndarrays make append() crash.
-      my $w;
-      if(ref $o->{f} eq 'ARRAY') {
-	$w = whichND( ( abs($dcyz->slice("(0)")) > $o->{f}->[0] ) |
-		      ( abs($dcyz->slice("(1)")) > $o->{f}->[1] ) |
-		      ($r < 0)
-		      );
-      } else {
-	$w = whichND( ($r > $o->{f}) | ($r < 0) );
-      }
-
-      $idx = ($idx->nelem) ?  $idx->glue(1,$w)  : $w
-	if($w->nelem);
-
+      ## Mark bad values
       if($idx->nelem) {
-	$out->slice("(0)")->range($idx) .= $o->{bad};
-	$out->slice("(1)")->range($idx) .= $o->{bad};
+          $_->range($idx) .= $o->{bad} for $out0, $out1;
       }
-
-      ## Scale by the output conversion factor
-      $out->slice("0:1") /= $o->{tconv};
 
       $out;
-    };
 
+  };
 
-    #
-    # Inverse function
-    #
-    $me->{inv} = sub {
-	my($d,$o) = @_;
-
-	my($out) = $d->new_or_inplace;
-	$out->slice("0:1") *= $o->{tconv};
-
-	my $oyz = $out->slice("0:1") ;
-
-	## Inverse-magnify if required
-	if($o->{mag} != 1.0) {
-	  my $r = $oyz->magnover;
-	  my $scale = tan( atan( $r ) / $o->{mag} ) / $r;
-	  $out->slice("0:1") *= $scale->dummy(0,1);
-	}
-
-	## Solve for the X coordinate of the surface.
-	## This is a quadratic in the tangent-plane coordinates;
-	## so here we just figure out the coefficients and plug into
-	## the quadratic formula.  $y here is actually -B/2.
-	my $a1 = ($oyz * $oyz)->sumover + 1;
-	my $y = ( $o->{sph_origin}->slice("(0)")
-		  - ($o->{sph_origin}->slice("1:2") * $oyz)->sumover
-		  );
-	my $c = topdl($o->{r0}*$o->{r0} - 1);
-
-	my $x;
-	if($o->{m} == 2) {
-	    # Exceptional case: mask asks for the far hemisphere
-	    $x = - ( $y - sqrt($y*$y - $a1 * $c) ) / $a1;
-	} else {
-	    # normal case: mask asks for the near hemisphere
-	    $x =   - ( $y + sqrt($y*$y - $a1 * $c) ) / $a1;
-	}
-
-	## Assemble the 3-space coordinates of the points
-	my $int = $out->slice("0")->append($out);
-	$int->slice("(0)") .= -1.0;
-	$int->slice("0:2") *= $x->dummy(0,3);
-
-	## convert back to (lon,lat) coordinates...
-	$out .= $int->invert($o->{prefilt});
-
-	# If we're outside the sphere, do hemisphere filtering
-	my $idx;
-	if(abs($o->{r0}) < 1 ) {
-	    $idx = null;
-	} else {
-	    # Great-circle distance to origin
-	    my($cos_c) = ( sin($o->{o}->slice("(1)")) * sin($out->slice("(1)"))
-			   +
-			   cos($o->{o}->slice("(1)")) * cos($out->slice("(1)")) *
-			   cos($out->slice("(0)") - $o->{o}->slice("(0)"))
-			   );
-
-	    my($thresh) = (1.0/$o->{r0});
-
-	    if($o->{m}==1) {
-		$idx = whichND($cos_c < $thresh);
-	    } elsif($o->{m}==2) {
-		$idx = whichND($cos_c > $thresh);
-	    }
-	    else {
-		$idx = null;
-	    }
-	}
-
-	## Convert to the units the user requested
-	$out->slice("0:1") /= $o->{conv};
-
-	## Mark bad values
-	if($idx->nelem) {
-	    $out->slice("(0)")->range($idx) .= $o->{bad};
-	    $out->slice("(1)")->range($idx) .= $o->{bad};
-	}
-
-	$out;
-
-    };
-
-    $me;
-  }
+  $me;
+}
 
 1;
