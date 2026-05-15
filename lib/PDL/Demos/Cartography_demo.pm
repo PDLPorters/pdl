@@ -134,10 +134,13 @@ draw( t_perspective( r0=> 1.1, o=>[-117,31], cam=>[-22,-45,0] ),
 |],
 
 [act => q|
-### Speaking of stereographic and gnomonic projections, here are others.
+### Speaking of stereographic and other projections, here are some.
 
 draw( t_sinusoidal(),
       "Sinusoidal",  [400,300]);
+
+draw( t_sin_lat(),
+      "Sinusoidal except preserving longitude",  [400,300]);
 
 draw( t_stereographic(),
       "Stereographic",  [400,300]);
@@ -145,8 +148,22 @@ draw( t_stereographic(),
 draw( t_stereographic(o=>[0,90]),
       "Stereographic about North Pole",  [400,300]);
 
+|],
+
+[act => q|
+### More projections.
+
 draw( t_az_eqa(),
       "Azimuthal equal-area",  [400,300]);
+
+draw( t_az_eqd(),
+      "Azimuthal equal-distance",  [400,300]);
+
+draw( t_conic(),
+      "Simple conic",  [400,300]);
+
+draw( t_vertical(),
+      "Vertical perspective",  [400,300]);
 
 |],
 
