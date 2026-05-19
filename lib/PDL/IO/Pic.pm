@@ -765,14 +765,20 @@ sub PDL::imageformat {
     return chkform($file);
 }
 
+sub _piccan {
+  my ($format, $rw, $refer_rw) = @_;
+  my $cnv = $converter{$format};
+  ($cnv->{$refer_rw} && $cnv->{$refer_rw} eq 'NONE') || # directly supported
+    $cnv->{$rw} || ($cnv->{referral} && $cnv->{referral}{$refer_rw});
+}
 sub piccan {
   my $class = shift;
   my $rw = (shift =~ /r/i) ? 'Rok' : 'Wok';
   my $refer_rw = $rw eq 'Rok' ? 'get' : 'put';
-  return sort grep $converter{$_}{$rw} || ($converter{$_}{referral} && $converter{$_}{referral}{$refer_rw}), keys %converter if !@_;
+  return sort grep _piccan($_, $rw, $refer_rw), keys %converter if !@_;
   my $format = shift;
   barf 'unknown format' unless defined($converter{$format});
-  return $converter{$format}{$rw} || ($converter{$format}{referral} && $converter{$format}{referral}{$refer_rw});
+  _piccan($format, $rw, $refer_rw);
 }
 
 sub getext {
