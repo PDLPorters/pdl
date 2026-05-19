@@ -293,7 +293,7 @@ char *cpoly(double opr[], double opi[], int degree,
 	xxx = COSR*xx-SINR*yy;
 	yy  = SINR*xx+COSR*yy;
 	xx  = xxx;
-	sc  = bnd*xx + I*bnd*yy;
+	sc  = bnd*(xx + I*yy);
 
 	/* Second stage calculation, fixed shift */
 	if (fxshft(10*cnt2,nn,shc,qpc,hc,pc,qhc,&tc,&sc,&pvc,&zc)) {
@@ -451,7 +451,7 @@ static int vrshft(int l3, int nn, complex double qpc[], complex double pc[], com
 	     to dominate */
 	  b = TRUE;
 	  double tp = (relstp < eta) ? eta : relstp;
-	  *sc *= 1.0L + sqrt(tp)*(1 + I);
+	  *sc *= 1.0L + sqrtl(tp)*(1 + I);
 	  *pvc = polyev(nn,*sc,pc,qpc);
 	  for (j=0;j<5;j++) {
 	    boolvar = calct(nn,*sc,*pvc,qhc,hc,tc);
