@@ -14,6 +14,8 @@ on:
     tags-ignore:
       - '*'
   create:
+permissions:
+  contents: read
 jobs:
   notify:
     runs-on: ubuntu-latest

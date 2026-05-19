@@ -6,6 +6,8 @@ on:
     tags-ignore:
       - '*'
   pull_request:
+permissions:
+  contents: read
 jobs:
   build-docker:
     runs-on: ubuntu-latest
