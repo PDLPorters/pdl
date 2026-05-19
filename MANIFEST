@@ -235,7 +235,7 @@ t/pp_pod.t
 t/ppt-01_ref_counting.t
 t/ppt-02_non_threaded.t
 t/ppt-03_name_munging.t
-t/ppt-10_physical_piddles.t
+t/ppt-10_physical.t
 t/ppt-11_memory_mapped.t
 t/ppt-20_simd.t
 t/ppt-30_sharing_from_threads.t
