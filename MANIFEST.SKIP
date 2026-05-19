@@ -57,6 +57,7 @@ Makefile\.old
 ^lib/PDL/Core\.c$
 ^lib/PDL/Core/pdl\.h$
 ^script/pdl$
+^SECURITY\.md$
 
 \b[\._]Inline
 ^\.\#.*
