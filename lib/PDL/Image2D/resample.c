@@ -301,7 +301,7 @@ generate_interpolation_kernel(char *kernel_type, int samples, long double *tab)
 		for (i=0 ; i<samples ; i++) {
 			x = (long double)KERNEL_WIDTH * (long double)i/(long double)(samples-1) ;
 			if (fabsl(x)<2) {
-				tab[i] = sinc(x) * sinc(x/2) ;
+				tab[i] = (long double)sinc(x) * (long double)sinc(x/2) ;
 			} else {
 				tab[i] = 0.00 ;
 			}
