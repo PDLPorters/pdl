@@ -164,9 +164,7 @@ This parameter is a synonym for the roll angle, above.
 =item bad, Bad, missing, Missing [default nan]
 
 This is the value that missing points get.  Mainly useful for the
-inverse transforms.  (This should work fine if set to BAD, if you have
-bad-value support compiled in).  The default nan is asin(1.2), calculated
-at load time.
+inverse transforms. (This should work fine if set to BAD).
 
 =back
 
@@ -350,12 +348,12 @@ sub graticule {
     # First do parallels.
     my $xp = xvals(360/$step + 1 + !!$two_cols, $np + 1) * $step       - 180 * (!$lonpos);
     my $yp = yvals(360/$step + 1 + !!$two_cols, $np + 1) * 180/$np     -  90;
-    $xp->slice("-1,:") .= $yp->slice("-1,:") .= asin(pdl(1.1)) if($two_cols);
+    $xp->slice("-1,:") .= $yp->slice("-1,:") .= nan() if($two_cols);
 
     # Next do meridians.
     my $xm = yvals( 180/$step + 1 + !!$two_cols,  $nm + !!$dup  ) * 360/$nm   - 180 * (!$lonpos);
     my $ym = xvals( 180/$step + 1 + !!$two_cols,  $nm + !!$dup  ) * $step     - 90;
-    $xm->slice("-1,:") .= $ym->slice("-1,:") .= asin(pdl(1.1)) if($two_cols);
+    $xm->slice("-1,:") .= $ym->slice("-1,:") .= nan() if($two_cols);
 
 
     if($two_cols) {
@@ -790,7 +788,7 @@ sub new {
     $me->{params}->{roll} = $roll * $conv;
 
     $me->{params}->{bad} = _opt($o,['b','bad','Bad','missing','Missing'],
-			      asin(pdl(1.1)));
+			      nan());
 
     # Get the standard parallel (in general there's only one; the conics
     # have two but that's handled by _c_new)
