@@ -225,7 +225,7 @@ The included digital world map is derived from the 1987 CIA World Map,
 translated to ASCII in 1988 by Joe Dellinger (geojoe@freeusp.org) and
 simplified in 1995 by Kirk Johnson (tuna@indra.com) for the program
 XEarth.  The map comes with NO WARRANTY.  An ASCII version of the map,
-and a sample PDL function to read it, may be found in the Demos
+and a sample PDL function to read it, may be found in the F<examples>
 subdirectory of the PDL source distribution.
 
 =head1 FUNCTIONS
