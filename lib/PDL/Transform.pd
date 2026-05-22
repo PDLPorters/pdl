@@ -270,15 +270,9 @@ use PDL::Constants qw(PI DEG2RAD);
 
 #### little helper kludge parses a list of synonyms
 sub _opt {
-  my($hash) = shift;
-  my($synonyms) = shift;
-  my($alt) = shift;  # default is undef -- ok.
-  local($_);
-  foreach $_(@$synonyms){
-    return (UNIVERSAL::isa($alt,'PDL')) ? PDL->pdl($hash->{$_}) : $hash->{$_}
-    if defined($hash->{$_}) ;
-  }
-  return $alt;
+  my ($hash, $synonyms, $alt) = @_;  # default $alt is undef -- ok.
+  return $alt if !(my ($s) = grep defined $hash->{$_}, @$synonyms);
+  UNIVERSAL::isa($alt,'PDL') ? PDL->pdl($hash->{$s}) : $hash->{$s};
 }
 
 ######################################################################
