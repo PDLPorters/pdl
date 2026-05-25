@@ -2564,7 +2564,7 @@ with: if you supply a matrix, it defines the transformation; if you
 input offset vectors in the C<pre> and C<post> options, those define
 the number of dimensions.  But if you only supply scalars, there is no way
 to tell and the default number of dimensions is 2.  This provides a way
-to do, e.g., 3-D scaling: just set C<{s=><scale-factor>, dims=>3}> and
+to do, e.g., 3-D scaling: just set C<< {s=><scale-factor>, dims=>3} >> and
 you are on your way.
 
 =item idim
