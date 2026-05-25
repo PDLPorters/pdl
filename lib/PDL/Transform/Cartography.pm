@@ -1554,35 +1554,26 @@ sub t_sinusoidal {
   $me->{ounit} = [' ','radians'];
 
   $me->{func} = sub {
-    my($d,$o) = @_;
-    my($out) = $d->new_or_inplace;
+    my ($d,$o) = @_;
+    my $out = $d->new_or_inplace;
     $out->slice("0:1") *= $o->{conv};
-
     $out->slice("(0)") *= cos($out->slice("(1)"));
     $out;
   };
 
   $me->{inv} = sub {
-    my($d,$o) = @_;
-    my($out) = $d->new_or_inplace;
-    my($x) = $out->slice("(0)");
-    my($y) = $out->slice("(1)");
-
-    $x /= cos($out->slice("(1)"));
-
-    my($rej) = ( (abs($x)>PI) | (abs($y)>(PI/2)) )->flat;
-    $x->flat->slice($rej) .= $o->{bad};
-    $y->flat->slice($rej) .= $o->{bad};
-
+    my ($d,$o) = @_;
+    my $out = $d->new_or_inplace;
+    my ($x, $y) = $out->using(0,1);
+    $x /= cos($y);
+    my $rej = ( (abs($x)>PI) | (abs($y)>(PI/2)) )->flat;
+    $_->flat->slice($rej) .= $o->{bad} for $x, $y;
     $out->slice("0:1") /= $o->{conv};
     $out;
   };
 
   $me->_finish;
 }
-
-
-
 
 
 ######################################################################
