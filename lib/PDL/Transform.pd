@@ -3097,7 +3097,7 @@ The number of output dimensions
 
 =item itype
 
-The type of the input dimensions, in an array ref (optional and advisiory)
+The type of the input dimensions, in an array ref (optional and advisory)
 
 =item otype
 
