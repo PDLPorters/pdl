@@ -2379,7 +2379,9 @@ sub t_hammer {
 
     $out->slice("0:1") /= $o->{conv};
 
-    $_->flat->slice($rej) .= $o->{bad} for $x, $y;
+    if (!$rej->isempty) {
+      $_->flat->slice($rej) .= $o->{bad} for $x, $y;
+    }
 
     $out;
   };
