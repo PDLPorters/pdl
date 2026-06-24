@@ -104,16 +104,6 @@ EOF
 }
 
 {
-my $lonlatrad = allaxislinvals(double, pdl(-PI,-PI/2), pdl(PI,PI/2), 3,3)->append(1);
-is_pdl t_spherical()->inverse()->apply($lonlatrad), my $exp = pdl('
-  [0 0 -1; 0 0 -1; 0 0 -1]
-  [-1 0 0; 1 0 0; -1 0 0]
-  [0 0 1; 0 0 1; 0 0 1]
-');
-is_pdl t_spherical()->apply($exp)->sin, $lonlatrad->sin; # sin as -PI equiv to 0, PI
-}
-
-{
 	##############################
 	# Simple testing of the map autoscaling
 	my $pa = sequence(5,5);
@@ -300,12 +290,29 @@ is_pdl $pb->slice('x',[5,9]), $pb->slice('x',[0,4]), "periodic and mirror bounda
 }
 }
 
+sub test_carto {
+  my ($tx, $in, $exp, $post) = @_;
+  local $Test::Builder::Level = $Test::Builder::Level + 1;
+  $post ||= sub { $_[0] };
+  is_pdl $post->($tx->apply($in)), $post->($exp), {atol=>1e-4, test_name=>"forward $tx"};
+  is_pdl $tx->invert($exp), $in, {atol=>1e-4, test_name=>"inverse $tx"};
+}
 {
-my $tx = t_perspective();
-is_pdl $tx->apply(my $in = sequence(2,3)), my $exp = pdl('
+my $lonlatrad = allaxislinvals(double, pdl(-PI,-PI/2), pdl(PI,PI/2), 3,3)->append(1);
+test_carto(t_spherical(), pdl('
+  [0 0 -1; 0 0 -1; 0 0 -1]
+  [-1 0 0; 1 0 0; -1 0 0]
+  [0 0 1; 0 0 1; 0 0 1]
+'), $lonlatrad, sub {sin($_[0])});
+test_carto(t_perspective(), sequence(2,3), pdl('
   0 0.99979696; 1.9929099 2.9927074; 3.9568835 4.9627286
-');
-is_pdl $tx->invert($exp), $in;
+'));
+my $lonlat = allaxislinvals(double, pdl(-PI,-PI/2), pdl(PI,PI/2), 3,3);
+test_carto(t_az_eqd(), $lonlat, pdl('
+  [-0.054817 -0.027429; 0 -0.027415; 0.054817 -0.027429]
+  [-0.054831 0; 0 0; 0.054831 0]
+  [-0.054817 0.027429; 0 0.027415; 0.054817 0.027429]
+'));
 }
 
 done_testing;
