@@ -298,6 +298,7 @@ sub test_carto {
   is_pdl $tx->invert($exp), $in, {atol=>1e-3, test_name=>"inverse $tx"};
 }
 {
+local $PDL::doubleformat = "%10.4g";
 my $lonlatrad = allaxislinvals(double, pdl(-PI,-PI/2), pdl(PI,PI/2), 3,3)->append(1);
 test_carto(t_spherical(), pdl('
   [0 0 -1; 0 0 -1; 0 0 -1]
@@ -312,6 +313,12 @@ test_carto(t_aitoff(), $lonlat, pdl('
   [-0.054817 -0.027429; 0 -0.027415; 0.054817 -0.027429]
   [-0.054831 0; 0 0; 0.054831 0]
   [-0.054817 0.027429; 0 0.027415; 0.054817 0.027429]
+'));
+test_carto(t_albers(),
+  allaxislinvals(double, pdl(-PI,-PI/2), pdl(PI/6,PI/4), 3,3), pdl('
+  [-0.0645 -0.02237; -0.02688 -0.02325; 0.01075 -0.02341]
+  [-0.06392 -0.004831; -0.02664 -0.005704; 0.01066  -0.005858]
+  [-0.06333 0.01288; -0.02639 0.01201; 0.01056 0.01186]
 '));
 test_carto(t_az_eqd(), $lonlat, pdl('
   [-0.054817 -0.027429; 0 -0.027415; 0.054817 -0.027429]
