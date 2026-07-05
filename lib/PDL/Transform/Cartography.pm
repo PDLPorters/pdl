@@ -1567,7 +1567,7 @@ sub t_sinusoidal {
     my ($x, $y) = $out->using(0,1);
     $x /= cos($y);
     my $rej = ( (abs($x)>PI) | (abs($y)>(PI/2)) )->flat;
-    $_->flat->slice($rej) .= $o->{bad} for $x, $y;
+    $_->flat->where($rej) .= $o->{bad} for $x, $y;
     $out->slice("0:1") /= $o->{conv};
     $out;
   };
