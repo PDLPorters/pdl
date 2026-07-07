@@ -2392,12 +2392,7 @@ sub t_hammer {
 
 ######################################################################
 
-=head2 t_zenithal
-
-Vertical projections are also called "zenithal", and C<t_zenithal> is an
-alias for C<t_vertical>.
-
-=head2 t_vertical
+=head2 t_vertical, t_zenithal
 
 =for usage
 
@@ -2407,7 +2402,8 @@ alias for C<t_vertical>.
 
 (Cartography) Vertical perspective projection (az.; persp.)
 
-Vertical perspective projection is a generalization of L<gnomonic|/t_gnomonic>
+Vertical (also called "zenithal") perspective projection is a
+generalization of L<gnomonic|/t_gnomonic>
 and L<stereographic|/t_stereographic> projection, and a special case of
 L<perspective|/t_perspective> projection.  It is a projection from the
 sphere onto a tangent plane from a point at the camera location.
