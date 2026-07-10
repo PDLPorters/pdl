@@ -2279,15 +2279,14 @@ sub t_az_eqa {
     my ($d,$o) = @_;
     my $out = $d->new_or_inplace;
 
-    my($ph) = $d->slice("(1)") * $o->{conv};
-    my($th) = $d->slice("(0)") * $o->{conv};
+    my ($th, $ph) = map $_ * $o->{conv},
+      my ($x, $y) = $out->using(0,1);
 
-    my $c = acos(cos($ph) * cos($th));
-    my $rho = 2 * sin($c/2);
+    my $cos_ph = cos($ph);
+    my $c = acos($cos_ph * cos($th));
     my $k = 1.0/cos($c/2);
 
-    my ($x, $y) = $out->using(0,1);
-    $x .= $k * cos($ph) * sin($th);
+    $x .= $k * $cos_ph * sin($th);
     $y .= $k * sin($ph);
 
     my $idx = whichND($c > $o->{c});
@@ -2303,12 +2302,14 @@ sub t_az_eqa {
     my $out = $d->new_or_inplace;
 
     my ($x, $y) = $d->using(0,1);
-    my ($ph, $th) = $out->using(0,1);
+    my ($th, $ph) = $out->using(0,1);
     my $rho = sqrt($x*$x + $y*$y);
     my $c = 2 * asin($rho/2);
+    my $sin_c = sin($c);
 
-    $ph .= asin($y * sin($c) / $rho);
-    $th .= atan2($x * sin($c),$rho * cos($c));
+    my $rho_no0 = $rho; $rho_no0->where($rho == 0) .= 1;
+    $ph .= asin($y * $sin_c / $rho_no0);
+    $th .= atan2($x * $sin_c,$rho * cos($c));
 
     $ph /= $o->{conv};
     $th /= $o->{conv};
