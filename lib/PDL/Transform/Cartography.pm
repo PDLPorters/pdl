@@ -2307,7 +2307,7 @@ sub t_az_eqa {
     my $c = 2 * asin($rho/2);
     my $sin_c = sin($c);
 
-    my $rho_no0 = $rho; $rho_no0->where($rho == 0) .= 1;
+    my $rho_no0 = $rho + ($rho == 0);
     $ph .= asin($y * $sin_c / $rho_no0);
     $th .= atan2($x * $sin_c,$rho * cos($c));
 
