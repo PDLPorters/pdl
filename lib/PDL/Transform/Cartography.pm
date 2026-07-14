@@ -1704,7 +1704,7 @@ sub t_conic {
 	    .= $o->{bad};
 
 	$out0 .= $theta / $o->{n};
-	$out0->where(($out0 < -PI) | ($out0 > PI/2))
+	$out0->where(($out0 < -PI) | ($out0 > PI))
 	    .= $o->{bad};
 
 	$out->slice("0:1") /= $o->{conv};
