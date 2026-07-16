@@ -2221,13 +2221,12 @@ sub t_az_eqd {
 
     my $rho = $d->slice("0:1")->magnover;
     my ($out0, $out1) = $out->using(0,1);
-    # Order is important -- ((0)) overwrites $x if is_inplace!
     $out0 .= atan2( $x * sin($rho), $rho * cos $rho );
     $out1 .= asin( $y * sin($rho) / $rho );
 
-    my $idx = whichND($rho == 0);
+    my $idx = whichND(($rho == 0) | ($rho > PI));
     if ($idx->nelem) {
-      $_->range($idx) .= 0 for $out0, $out1;
+      $_->range($idx) .= $o->{bad} for $out0, $out1;
     }
 
     $out->slice("0:1") /= $o->{conv};

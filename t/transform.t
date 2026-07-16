@@ -295,7 +295,7 @@ sub test_carto {
   local $Test::Builder::Level = $Test::Builder::Level + 1;
   $post ||= sub { $_[0] };
   is_pdl $post->($tx->apply($in)), $post->($exp), {atol=>7e-3, test_name=>"forward $tx"};
-  is_pdl $tx->invert($exp), $in, {atol=>7e-3, test_name=>"inverse $tx"};
+  is_pdl $post->($tx->invert($exp)), $post->($in), {atol=>7e-3, test_name=>"inverse $tx"};
 }
 {
 local $PDL::doubleformat = "%10.4g";
@@ -329,7 +329,7 @@ test_carto(t_az_eqd(), $lonlat, pdl('
   [-0.054817 -0.027429; 0 -0.027415; 0.054817 -0.027429]
   [-0.054831 0; 0 0; 0.054831 0]
   [-0.054817 0.027429; 0 0.027415; 0.054817 0.027429]
-'));
+'), sub {$_[0]->setnantobad->setbadtoval(0)});
 test_carto(t_conic(), $conic_slice, pdl('
   [-0.06575 -0.02632; -0.0274 -0.02723; 0.01096 -0.02739]
   [-0.06507 -0.005771; -0.02712 -0.006666; 0.01085 -0.006824]
