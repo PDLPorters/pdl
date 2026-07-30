@@ -1598,15 +1598,16 @@ EOF
       }
    ),
    PDL::PP::Rule::Returns::Zero->new("NoPthread"), # assume we can pthread, unless indicated otherwise
+   PDL::PP::Rule::Returns->new("Synonyms", []),
    PDL::PP::Rule->new("PdlDoc", [qw(
       Name Pars OtherPars GenericTypes Doc UsageDoc BadDoc?
       HaveBroadcasting NoPthread IsAffineFlag DefaultFlowFlag ParamDoc
-      InplaceNormalised?
+      InplaceNormalised? Synonyms
       )],
       sub {
         my ($name,$pars,$otherpars,$gentypes,$doc,$usagedoc,$baddoc,
           $havebroadcasting, $noPthreadFlag, $affflag, $flowflag, $paramdoc,
-          $inplace,
+          $inplace, $synonyms,
         ) = @_;
         return '' if !defined $doc # Allow explicit non-doc using Doc=>undef
             or $doc =~ /^\s*internal\s*$/i;
@@ -1649,7 +1650,7 @@ EOD
         my $miscdocs = join '', grep $_, $paramdoc, @misc, $baddoc;
         my $baddoc_function_pod = <<"EOD" ;
 
-XXX=head2 $name
+XXX=head2 @{[join ', ', $name, @$synonyms]}
 
 $sigdoc$usagedoc
 $doc
@@ -2085,12 +2086,14 @@ pdl_transvtable $vname = {
 EOF
       }),
 
-   PDL::PP::Rule->new('PMFunc', 'Name',
+   PDL::PP::Rule->new('PMFunc', [qw(Name Synonyms)],
      'Sets PMFunc to default symbol table manipulations',
      sub {
-         my ($name) = @_;
-         $::PDL_IFBEGINWRAP[0].'*'.$name.' = \&'.$::PDLOBJ.
-                   '::'.$name.";\n".$::PDL_IFBEGINWRAP[1]
+         my ($name, $synonyms) = @_;
+         join '', $::PDL_IFBEGINWRAP[0],
+           (map +($_ eq $name ? '' : "*$::PDLOBJ\::$_ = ").
+             "*$_ = \\&$::PDLOBJ\::$name;\n", $name, @$synonyms),
+           $::PDL_IFBEGINWRAP[1]
      }
    ),
 

@@ -32,6 +32,16 @@ subtest a => sub {
   like $obj->{PdlDoc}, qr/Broadcasts over its inputs/, 'broadcast doc none';
   like $obj->{PdlDoc}, qr/will set the bad-value flag of all output ndarrays if the flag is set for any/, 'badflag doc default';
   ok all_seen($obj, 'foo'), 'all seen';
+  is $obj->{PMFunc}, "*foo = \\&Foo::Bar::foo;\n";
+};
+
+subtest a_syn => sub {
+  my $obj = pp_def(foo =>
+    Pars => 'a(n)',
+    Synonyms => [qw(bar)],
+  );
+  like $obj->{PdlDoc}, qr/^=head2 foo, bar/m, 'synonym added';
+  is $obj->{PMFunc}, "*foo = \\&Foo::Bar::foo;\n*Foo::Bar::bar = *bar = \\&Foo::Bar::foo;\n";
 };
 
 subtest a_hb => sub {

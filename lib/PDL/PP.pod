@@ -2637,6 +2637,11 @@ L<PDL::Slices/xchg>. Added in 2.096.
 As of 2.104, automatically set if there is backwards dataflow, see
 L</DefaultFlow>.
 
+=head3 Synonyms
+
+If present, must be an array-ref of additional names for the operation.
+Added in 2.105.
+
 =head1 Appendix B: PP macros and functions
 
 =head2 Macros

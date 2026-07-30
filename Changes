@@ -2,6 +2,7 @@
 - add Constants::{DEG2RAD,RAD2DEG}
 - add Bad::isnan
 - IO::Pic::piccan('PNM') now correctly says "yes"
+- add PP key Synonyms
 
 2.104 2026-04-09
 - allaxis*vals can now take 1-D ndarrays as start and endpoints
