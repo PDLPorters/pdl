@@ -410,15 +410,6 @@ is the natural (and correct) choice for binned data, of course.
 EOF
 ); # intover
 
-sub synonym {
-    my ($name, $synonym) = @_;
-    pp_add_exported('', $synonym);
-    pp_addpm(
-"=head2 $synonym\n\n=for ref\n\nSynonym for L</$name>.\n\n=cut\n
-*PDL::$synonym = *$synonym = \\&PDL::$name;"
-    );
-}
-
 sub make_average {
   my ($prefix, $outpar_type, $extra) = @_;
   pp_def("${prefix}average",
@@ -437,9 +428,9 @@ if ( !cnt ) {
 } else
   $b() = tmp / cnt;
 EOF
+	Synonyms => ["${prefix}avgover"],
 	Doc => projectdocs( 'average', "${prefix}average", $extra||'' ),
 	);
-  synonym(map "$prefix$_", qw(average avgover));
 }
 
 make_average('', 'int+');
@@ -471,6 +462,7 @@ loop(n) %{
 %}
 if ( flag ) { $c() = cur; }
 else        { $SETBAD(c()); $PDLSTATESETBAD(c); }',
+	    Synonyms => [$synonym],
 	    Doc => projectdocs($name,$name,''),
 	    BadDoc =>
 'Output is set bad if no elements of the input are non-bad,
@@ -481,7 +473,6 @@ see L<isfinite|PDL::Math/isfinite> and L<badmask|PDL::Bad/badmask>
 for ways of masking NaNs.
 ',
 	    );
-    synonym($name, $synonym);
 
     pp_def("${name}_ind",
 	    HandleBad => 1,
@@ -496,6 +487,7 @@ loop(n) %{
 %}
 if ( curind != -1 ) { $c() = curind; }
 else                { $SETBAD(c()); $PDLSTATESETBAD(c); }',
+	    Synonyms => ["${synonym}_ind"],
 	    Doc => "Like $name but returns the first matching index rather than the value",
 	    BadDoc =>
 'Output is set bad if no elements of the input are non-bad,
@@ -506,7 +498,6 @@ see L<isfinite|PDL::Math/isfinite> and L<badmask|PDL::Bad/badmask>
 for ways of masking NaNs.
 ',
 	    );
-    synonym("${name}_ind", "${synonym}_ind");
 
     pp_def("${name}_n_ind",
 	    HandleBad => 1,
@@ -542,6 +533,7 @@ loop(m) %{
   if (curind != ns) { $c() = curind; }
   else              { $SETBAD(c()); $PDLSTATESETBAD(c); }
 %}',
+	    Synonyms => ["${synonym}_n_ind"],
 	    Doc => <<EOF,
 =for ref
 
@@ -566,7 +558,6 @@ see L<isfinite|PDL::Math/isfinite> and L<badmask|PDL::Bad/badmask>
 for ways of masking NaNs.
 ',
 	    );
-    synonym("${name}_n_ind", "${synonym}_n_ind");
 } # foreach: $which
 
 pp_def('minmaximum',
@@ -597,6 +588,7 @@ if ( !flag ) { /* Handle null ndarray */
   $cmax() = curmax; $cmax_ind() = curmax_ind;
 }
 EOF
+	Synonyms => ["minmaxover"],
 	Doc => '
 =for ref
 
@@ -619,7 +611,6 @@ be set bad, along with their bad flag.
 Otherwise they will have their bad flags cleared,
 since they will not contain any bad values.',
 	); # pp_def minmaximum
-synonym(qw(minmaximum minmaxover));
 
 # Generate small ops functions to do entire array
 # How to handle a return value of BAD - ie what

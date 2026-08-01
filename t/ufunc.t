@@ -93,6 +93,8 @@ is_pdl pdl(53,35)->qsortveci,indx([0]),'trivial qsortveci';
  is "".$y->max, '2', 'max trailing nan';
  is join(" ", $x->minmax), '0 2', 'minmax leading nan';
  is join(" ", $y->minmax), '0 2', 'minmax trailing nan';
+ is $y->minimum.'', '0', 'minimum trailing nan';
+ is $y->minover.'', '0', 'minover synonym';
 }
 my $empty = empty();
 is_pdl $empty->maximum, sbyte('BAD'), "max of empty nonbad float gives BAD";
