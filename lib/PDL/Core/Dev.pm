@@ -105,6 +105,18 @@ need to provide overrides for C<postamble> as before, and also C<init_PM>:
   sub postamble { ::pdlpp_postamble(@pd_srcs) }
   }
 
+Please note that if you have a pure-Perl top-level driving module,
+like L<PDL::Graphics::TriD> or L<PDL::LinearAlgebra>, and you want
+that top-level module's C<FUNCTIONS> added to the C<pdldoc>
+documentation, you will want to replace the C<postamble> definition
+with something a lot like:
+
+  sub postamble {
+    my $oneliner = PDL::Core::Dev::_oneliner(qq{exit if \$ENV{DESTDIR}; use PDL::Doc; eval { PDL::Doc::add_module(shift); }});
+    ::pdlpp_postamble(@pd_srcs) .
+      qq|\ninstall :: pure_install\n\t$oneliner \$(NAME)\n|;
+  }
+
 =head1 FUNCTIONS
 
 =cut
