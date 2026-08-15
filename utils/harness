@@ -20,7 +20,7 @@ my $html_footer = <<'EOF';
 </html>
 EOF
 my $index_header = <<'EOF';
-<!-- Generated with pdl/Demos/harness -->
+<!-- Generated with pdl/utils/harness -->
 <h1 class='title'>Demos and Examples</h1>
 <p>On the following pages you'll find some examples of how to use PDL
 for basic computations and plotting purposes. Several of the examples
