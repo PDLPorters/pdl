@@ -44,7 +44,7 @@ ndarrays easy, see L<PDL::Objects>). You can easily find out
 at the Perl level which type of ndarray you are dealing with. The example
 code below demonstrates how to do it:
 
-   # check if this an ndarray
+   # check if this is an ndarray
    die "not an ndarray" unless UNIVERSAL::isa($pdl, 'PDL');
    # is it a scalar ref or a hash ref?
    if (UNIVERSAL::isa($pdl, "HASH")) {
