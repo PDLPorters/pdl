@@ -58,7 +58,7 @@ package # hide from PAUSE/MetaCPAN
   PDL::PodParser;
 use strict;
 use warnings;
-use PDL::Core '';
+use Carp qw(confess);
 use Pod::Simple::PullParser;
 use parent qw(Pod::Text);
 
@@ -100,7 +100,7 @@ sub cmd_head2 {
   my @funcs = split ',', $text;
   # Remove parentheses (so myfunc and myfunc() both work)
   my @names = map {$1 if m/\s*([^\s\(]+)\s*/} @funcs;
-  barf "error parsing function list '$text'"
+  confess "error parsing function list '$text'"
     unless @funcs == @names;
   # check for signatures
   my $sym = $this->{SYMHASH};
@@ -453,7 +453,7 @@ alternatives.
 package PDL::Doc;
 use strict;
 use warnings;
-use PDL::Core '';
+use Carp qw(confess);
 use File::Basename;
 use File::Spec::Functions qw(file_name_is_absolute abs2rel rel2abs catdir catfile);
 use Cwd (); # to help Debian packaging
@@ -515,7 +515,7 @@ Make sure that the database is slurped in
 sub ensuredb {
   my ($this) = @_;
   while (my $fi = pop @{$this->{File}}) {
-    open my $fh, $fi or barf "can't open database $fi, scan docs first";
+    open my $fh, $fi or confess "can't open database $fi, scan docs first";
     my $got_hash = decodedb($fh, $fi);
     merge_hash($this->{SYMS} ||= {}, $got_hash);
     push @{$this->{Scanned}}, $fi;
@@ -532,9 +532,9 @@ with this object. As of 2.105, you B<must> supply the output file.
 
 sub savedb {
   my ($this, $outfile) = @_;
-  barf "savedb: no \$outfile" if !defined $outfile;
+  confess "savedb: no \$outfile" if !defined $outfile;
   my $hash = $this->ensuredb;
-  open my $fh, '>', $outfile or barf "can't write to symdb $outfile: $!";
+  open my $fh, '>', $outfile or confess "can't write to symdb $outfile: $!";
   encodedb($hash, $fh, dirname($outfile));
 }
 
@@ -672,7 +672,7 @@ sub checkregex {
   $sep = '(?<!\\\\)\\'.$sep; # Avoid '\' before the separator
 
   my ($pattern,$mod) = split($sep,$regex,2);
-  barf "unknown regex modifiers '$mod'" if $mod && $mod !~ /[imsx]+/;
+  confess "unknown regex modifiers '$mod'" if $mod && $mod !~ /[imsx]+/;
   $pattern = "(?$mod)$pattern" if $mod;
   return $pattern;
 }
@@ -686,7 +686,7 @@ for online documentation
 
 sub scan {
   my ($this,$file,$verbose) = @_;
-  barf "can't find file '$file'" unless -f $file;
+  confess "can't find file '$file'" unless -f $file;
   $file = Cwd::abs_path($file); # help Debian packaging
   $verbose = 0 unless defined $verbose;
   my $text = do { open my $infile, '<', $file or die "$file: $!"; local $/; <$infile> };
@@ -743,8 +743,8 @@ source file using the PDL::PodParser filter.
 sub funcdocs {
   my ($this,$func,$module,$fout) = @_;
   my $hash = $this->ensuredb;
-  barf "unknown function '$func'" unless defined($hash->{$func});
-  barf "funcdocs now requires 3 arguments" if defined fileno $module;
+  confess "unknown function '$func'" unless defined($hash->{$func});
+  confess "funcdocs now requires 3 arguments" if defined fileno $module;
   my $file = $hash->{$func}{$module}{File};
   my $dbf = $hash->{$func}{$module}{Dbfile};
   $file = Cwd::abs_path($file) if file_name_is_absolute($file);
@@ -867,12 +867,12 @@ sub scantext {
 
 sub funcdocs_fromfile {
   my ($func,$file) = @_;
-  barf "can't find file '$file'" unless -f $file;
+  confess "can't find file '$file'" unless -f $file;
   local $SIG{PIPE}= sub {}; # Prevent crashing if user exits the pager
-  open my $in, '<', $file or barf "can't open file $file";
+  open my $in, '<', $file or confess "can't open file $file";
   my $out = $_[2];
   open $out, "| pod2text | $PDL::Doc::pager" if !defined $out;
-  barf "can't open output handle" unless $out;
+  confess "can't open output handle" unless $out;
   getfuncdocs($func,$in,$out);
   print $out "Docs from $file\n\n";
 }
