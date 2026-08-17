@@ -544,7 +544,7 @@ Return the PDL symhash (e.g. for custom search operations). To see what
 it has stored in it in JSON format:
 
   perl -MPDL::Doc -MJSON::PP -e \
-    'print encode_json +PDL::Doc->new(PDL::Doc::_find_inc([qw(PDL pdldoc.db)]))->gethash' |
+    'print encode_json +PDL::Doc->new(PDL::Doc::_find_inc([qw(PDL pdldoc.db)], 0, 1))->gethash' |
     json_pp -json_opt pretty,canonical
 
 The symhash is a multiply nested hash ref with the following structure:
@@ -915,18 +915,19 @@ C<postamble> manually in the F<Makefile.PL>:
 =cut
 
 sub _find_inc {
-  my ($what, $want_dir) = @_;
+  my ($what, $want_dir, $only_one) = @_;
   my @ret;
   for my $dir (@INC) {
     my $ent = $want_dir ? catdir($dir, @$what) : catfile($dir, @$what);
     push @ret, $ent if $want_dir ? -d $ent : -f $ent;
+    return @ret if $only_one and @ret;
   }
   @ret;
 }
 
 sub add_module {
   my ($module) = @_;
-  my ($file) = _find_inc([qw(PDL pdldoc.db)], 0);
+  my ($file) = _find_inc([qw(PDL pdldoc.db)], 0, 1);
   die "Unable to find docs database - therefore not updating it.\n" if !defined $file;
   die "No write permission for $file - not updating docs database.\n"
     if !-w $file;
@@ -934,13 +935,17 @@ sub add_module {
   my $pdldoc = PDL::Doc->new($file);
   my @pkg = my @mfile = split /::/, $module;
   my $mlast = pop @mfile;
-  my @found = map _find_inc([@mfile, $mlast.$_]), qw(.pm .pod);
+  my @found;
+  for (qw(.pm .pod)) {
+    my @this = _find_inc([@mfile, $mlast.$_], 0, 1);
+    push(@found, @this), last if @this;
+  }
   die "Unable to find a .pm or .pod file in \@INC for module $module\n" if !@found;
   $pdldoc->ensuredb;
   my $n = 0;
   $n += $pdldoc->scan($_) for @found;
   print "Added @found, $n functions.\n";
-  $n += $pdldoc->scantree($_) for _find_inc(\@pkg, 1);
+  $n += $pdldoc->scantree($_) for _find_inc(\@pkg, 1, 1);
   eval { $pdldoc->savedb($file); };
   warn $@ if $@;
   print "PDL docs database updated - total $n functions.\n";
@@ -953,7 +958,7 @@ own code.
 
  use PDL::Doc;
  # Find the pdl documentation
- my ($file) = _find_inc([qw(PDL pdldoc.db)], 0);
+ my ($file) = _find_inc([qw(PDL pdldoc.db)], 0, 1);
  die "Unable to find docs database!\n" unless defined $file;
  print "Found docs database $file\n";
  my $pdldoc = PDL::Doc->new($file);
