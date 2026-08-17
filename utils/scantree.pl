@@ -28,7 +28,6 @@ unless (defined $outdb) {
 
 unlink $outdb if -e $outdb;
 my $onldc = PDL::Doc->new;
-$onldc->outfile($outdb);
 
 foreach my $dir (@dirs) {
     $onldc->scantree($dir =~ /script|Inline$/ ? $dir : $dir."/PDL",$opt_v);
@@ -36,7 +35,7 @@ foreach my $dir (@dirs) {
 }
 
 print STDERR "saving...\n";
-$onldc->savedb();
+$onldc->savedb($outdb);
 my @mods = $onldc->search('module:',['Ref'],1);
 my @mans = $onldc->search('manual:',['Ref'],1);
 my @scripts = $onldc->search('script:',['Ref'],1);
@@ -119,5 +118,5 @@ close $podfh;
 
 #add the newly-created PDL::Index to the doc database
 $onldc->scan($outindex,$opt_v) if (-s $outindex);
-$onldc->savedb();
+$onldc->savedb($outdb);
 1;

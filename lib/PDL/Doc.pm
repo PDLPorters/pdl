@@ -473,9 +473,8 @@ our $pager = $ENV{PERLDOC_PAGER} // $ENV{PAGER} // $Config{pager};
 sub new {
   my ($type,@files) = @_;
   my $this = bless {},$type;
-  $this->{File} = [@files];
+  $this->{File} = \@files;
   $this->{Scanned} = [];
-  $this->{Outfile} = $files[0];
   $this;
 }
 
@@ -507,18 +506,6 @@ sub addfiles {
   push @{$this->{File}}, @files;
 }
 
-=head2 outfile
-
-set the name of the output file for this online db
-
-=cut
-
-sub outfile {
-  my ($this,$file) = @_;
-  $this->{Outfile} = $file if defined $file;
-  return $this->{Outfile};
-}
-
 =head2 ensuredb
 
 Make sure that the database is slurped in
@@ -539,15 +526,16 @@ sub ensuredb {
 =head2 savedb
 
 save the database (i.e., the hash of PDL symbols) to the file associated
-with this object.
+with this object. As of 2.105, you B<must> supply the output file.
 
 =cut
 
 sub savedb {
-  my ($this) = @_;
+  my ($this, $outfile) = @_;
+  barf "savedb: no \$outfile" if !defined $outfile;
   my $hash = $this->ensuredb;
-  open my $fh, '>', $this->{Outfile} or barf "can't write to symdb $this->{Outfile}: $!";
-  encodedb($hash, $fh, dirname($this->{Outfile}));
+  open my $fh, '>', $outfile or barf "can't write to symdb $outfile: $!";
+  encodedb($hash, $fh, dirname($outfile));
 }
 
 =head2 gethash
@@ -953,7 +941,7 @@ sub add_module {
   $n += $pdldoc->scan($_) for @found;
   print "Added @found, $n functions.\n";
   $n += $pdldoc->scantree($_) for _find_inc(\@pkg, 1);
-  eval { $pdldoc->savedb; };
+  eval { $pdldoc->savedb($file); };
   warn $@ if $@;
   print "PDL docs database updated - total $n functions.\n";
 }
