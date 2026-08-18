@@ -251,6 +251,7 @@ sub _postamble {
     $pmdep .= join ' ', '', catfile($ppdir, 'PP.pm'), glob(catfile($ppdir, 'PP/*'));
     $cdep .= join ' ', $ppo, ':', map catfile($ppdir, qw(Core), $_),
       qw(pdl.h pdlcore.h pdlbroadcast.h pdlmagic.h);
+    $pdldoc = doc_distro();
   } else {
     $pdldoc = pdldoc_add($mod);
   }
@@ -288,9 +289,13 @@ sub pdldoc_add {
   qq|\ninstall :: pure_install\n\t$oneliner$end\n|;
 }
 
+my $EMITTED_PDLDOC = 0;
 sub doc_distro {
+  # if Makefile.PL above, is in subdir, which doesn't have right DISTNAME
+  return '' if -f catfile(updir, 'Makefile.PL') or $EMITTED_PDLDOC++;
   # deliberate space in oneliner arg to force "" on Windows
   sprintf <<'EOF', _oneliner(q{PDL::Doc::gen_db( @ARGV )}, qw(-Ilib -MPDL::Doc));
+
 PDL_DOC_DB = $(INST_LIB)$(DIRFILESEP)PDL$(DIRFILESEP)Pdldoc$(DIRFILESEP)$(DISTNAME).db
 
 pure_all :: $(PDL_DOC_DB)
@@ -298,7 +303,6 @@ pure_all :: $(PDL_DOC_DB)
 $(PDL_DOC_DB) :: pm_to_blib subdirs
 	$(NOECHO) $(ECHO) "Building documentation database for $(NAME)"
 	%s "$@" "$(INST_LIBDIR)" script
-
 EOF
 }
 

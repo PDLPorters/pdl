@@ -168,7 +168,6 @@ my @pd_srcs;
 sub postamble {
   my ($self) = @_;
   my $text = '';
-  $text .= ::doc_distro();
   $text .= <<EOT if $^O !~ /MSWin/;
 $pdlroot$::Config{exe_ext} : $pdlroot.c
 \t\$(CC) \$(CCFLAGS) \$(CPPFLAGS) \$(OPTIMIZE) \$(LDFLAGS) \$(CCCDLFLAGS) $pdlroot.c -o \$\@
