@@ -289,14 +289,15 @@ sub pdldoc_add {
 }
 
 sub doc_distro {
-  <<'EOF';
+  # deliberate space in oneliner arg to force "" on Windows
+  sprintf <<'EOF', _oneliner(q{PDL::Doc::gen_db( @ARGV )}, qw(-Ilib -MPDL::Doc));
 PDL_DOC_DB = $(INST_LIB)$(DIRFILESEP)PDL$(DIRFILESEP)Pdldoc$(DIRFILESEP)$(DISTNAME).db
 
 pure_all :: $(PDL_DOC_DB)
 
 $(PDL_DOC_DB) :: pm_to_blib subdirs
-	$(NOECHO) $(ECHO) "Building PDL documentation database for $(NAME)"
-	$(NOECHO) $(PERLRUNINST) utils$(DIRFILESEP)scantree.pl "$(INST_LIBDIR),script" "$@"
+	$(NOECHO) $(ECHO) "Building documentation database for $(NAME)"
+	%s "$@" "$(INST_LIBDIR)" script
 
 EOF
 }

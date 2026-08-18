@@ -271,4 +271,3 @@ utils/address-pseudonymise
 utils/doc-pp
 utils/harness
 utils/perldlpp.pl
-utils/scantree.pl
