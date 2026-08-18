@@ -289,15 +289,14 @@ sub pdldoc_add {
 }
 
 sub doc_distro {
-  my $extra_dirs = join ',', (@_ ? '' : ()), @_;
-  sprintf <<'EOF', $extra_dirs;
+  <<'EOF';
 PDL_DOC_DB = $(INST_LIB)$(DIRFILESEP)PDL$(DIRFILESEP)Pdldoc$(DIRFILESEP)$(DISTNAME).db
 
 pure_all :: $(PDL_DOC_DB)
 
 $(PDL_DOC_DB) :: pm_to_blib subdirs
 	$(NOECHO) $(ECHO) "Building PDL documentation database for $(NAME)"
-	$(NOECHO) $(PERLRUNINST) utils$(DIRFILESEP)scantree.pl "$(INST_LIBDIR)%s" "$@"
+	$(NOECHO) $(PERLRUNINST) utils$(DIRFILESEP)scantree.pl "$(INST_LIBDIR),script" "$@"
 
 EOF
 }

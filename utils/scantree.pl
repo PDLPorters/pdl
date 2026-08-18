@@ -17,10 +17,7 @@ print "DB  = $outdb\n";
 
 my $onldc = PDL::Doc->new;
 
-foreach my $dir (@dirs) {
-    $onldc->scantree($dir =~ /script|Inline$/ ? $dir : catdir($dir, "PDL"),$opt_v);
-}
-$onldc->scan('lib/PDL.pm');
+$onldc->scantree($_,$opt_v) for @dirs;
 
 print STDERR "saving...\n";
 make_path dirname $outdb;
