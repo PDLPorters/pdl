@@ -834,7 +834,7 @@ returning a hash of the functions found therein.
 sub scantext {
   my ($text, $filename, $verbose) = @_;
   my $parser = PDL::PodParser->new;
-  $parser->{verbose} = $verbose if $verbose > 0;
+  $parser->{verbose} = $verbose if ($verbose//0) > 0;
   open my $outfile, '>', \(my $outfile_text);
   $parser->output_fh($outfile);
   eval { $parser->parse_string_document($text) };
