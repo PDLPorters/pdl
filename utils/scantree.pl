@@ -1,17 +1,12 @@
 use strict;
 use warnings;
 use PDL::Doc;
-use Getopt::Std;
 use File::Spec::Functions;
 
-require PDL; # always needed to pick up PDL::VERSION
+our $opt_v = -1; # verbose
 
-our $opt_v = 0;
-
-getopts('v');
 my $dirarg = shift @ARGV;
 my $outdb  = shift @ARGV;
-
 unless (defined $dirarg) {
 	($dirarg = $INC{'PDL.pm'}) =~ s/[\/\\]*PDL\.pm$//i;
 	if ($dirarg =~ /^blib/) { $dirarg .= ",blib/script,blib/lib/Inline" }
