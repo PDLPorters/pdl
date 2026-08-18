@@ -22,9 +22,6 @@ foreach my $dir (@dirs) {
 }
 $onldc->scan('lib/PDL.pm');
 
-# manually add the PDL::Index to the doc database
-$onldc->scan('lib/PDL/Index.pod', $opt_v);
-
 print STDERR "saving...\n";
 make_path dirname $outdb;
 umask 0022;

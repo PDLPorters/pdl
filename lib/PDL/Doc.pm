@@ -721,7 +721,7 @@ sub scantree {
     return if
       $File::Find::dir !~ /script$/ and
       $File::Find::name !~ /\.(?:pm|pod)$/;
-    return if $File::Find::name =~ /(?:Index\.pod|PP\.pm)$/ or
+    return if $File::Find::name =~ /(?:PP\.pm)$/ or
       $File::Find::dir =~ m#/PP#;
     printf "%-20s", $_.'...' if $verbose;
     $ntot += my $n = $this->scan($File::Find::name,$verbose);
