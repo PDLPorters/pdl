@@ -926,6 +926,40 @@ sub find_dbs {
   @found;
 }
 
+=head2 gen_db
+
+=for usage
+
+ use PDL::Doc;
+ PDL::Doc::gen_db($db_file, $blib_dir, $script_dir);
+
+=for ref
+
+Generate a C<pdldoc> database into the given location, for just the
+given directories.
+
+Added in 2.106 for the new C<pdldoc> scheme of one database file
+per distribution in a centralised directory. Replaces C<add_module>.
+Used by L<PDL::Core::Dev/pdlpp_postamble>.
+
+=cut
+
+sub gen_db {
+  my ($db_file, @dirs) = @_;
+  die "gen_db: No directories given\n" if !@dirs;
+  die "gen_db: No docs database file given\n" if !defined $db_file;
+  unlink $db_file if -e $db_file and !-w $db_file;
+  my $pdldoc = PDL::Doc->new;
+  my $n = 0;
+  $n += $pdldoc->scantree($_) for @dirs;
+  require File::Basename;
+  require File::Path;
+  umask 0022;
+  File::Path::make_path(File::Basename::dirname($db_file));
+  $pdldoc->savedb($db_file);
+  print "PDL docs database $db_file created - total $n functions.\n";
+}
+
 =head2 add_module
 
 =for usage
