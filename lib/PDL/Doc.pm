@@ -544,7 +544,7 @@ Return the PDL symhash (e.g. for custom search operations). To see what
 it has stored in it in JSON format:
 
   perl -MPDL::Doc -MJSON::PP -e \
-    'print encode_json +PDL::Doc->new(PDL::Doc::_find_inc([qw(PDL pdldoc.db)], 0, 1))->gethash' |
+    'print encode_json +PDL::Doc->new(PDL::Doc::find_dbs())->gethash' |
     json_pp -json_opt pretty,canonical
 
 The symhash is a multiply nested hash ref with the following structure:
@@ -885,6 +885,34 @@ sub getfuncdocs {
   $parser->parse_from_file($in,$out);
 }
 
+=head2 find_dbs
+
+=for ref
+
+Find the available doc databases for use by PDL::Doc objects.
+
+=for usage
+
+  use PDL::Doc;
+  my $onlinedoc = PDL::Doc->new(PDL::Doc::find_dbs());
+
+=cut
+
+sub _find_inc {
+  my ($what, $want_dir, $only_one) = @_;
+  my @ret;
+  for my $dir (@INC) {
+    my $ent = $want_dir ? catdir($dir, @$what) : catfile($dir, @$what);
+    push @ret, $ent if $want_dir ? -d $ent : -f $ent;
+    return @ret if $only_one and @ret;
+  }
+  @ret;
+}
+
+sub find_dbs {
+  _find_inc([qw(PDL pdldoc.db)], 0, 1);
+}
+
 =head2 add_module
 
 =for usage
@@ -911,20 +939,9 @@ C<postamble> manually in the F<Makefile.PL>:
 
 =cut
 
-sub _find_inc {
-  my ($what, $want_dir, $only_one) = @_;
-  my @ret;
-  for my $dir (@INC) {
-    my $ent = $want_dir ? catdir($dir, @$what) : catfile($dir, @$what);
-    push @ret, $ent if $want_dir ? -d $ent : -f $ent;
-    return @ret if $only_one and @ret;
-  }
-  @ret;
-}
-
 sub add_module {
   my ($module) = @_;
-  my ($file) = _find_inc([qw(PDL pdldoc.db)], 0, 1);
+  my ($file) = find_dbs();
   die "Unable to find docs database - therefore not updating it.\n" if !defined $file;
   die "No write permission for $file - not updating docs database.\n"
     if !-w $file;
@@ -953,16 +970,16 @@ sub add_module {
 Here's an example of how you might use the PDL Doc database in your
 own code.
 
- use PDL::Doc;
- # Find the pdl documentation
- my ($file) = _find_inc([qw(PDL pdldoc.db)], 0, 1);
- die "Unable to find docs database!\n" unless defined $file;
- print "Found docs database $file\n";
- my $pdldoc = PDL::Doc->new($file);
- # Print the reference line for zeroes:
- print map{$_->{Ref}} values %{$pdldoc->gethash->{zeroes}};
- # Or, if you remember that zeroes is in PDL::Core:
- print $pdldoc->gethash->{zeroes}{'PDL::Core'}{Ref};
+  use PDL::Doc;
+  # Find the pdl documentation
+  my ($file) = PDL::Doc::find_dbs();
+  die "Unable to find docs database!\n" unless defined $file;
+  print "Found docs database $file\n";
+  my $pdldoc = PDL::Doc->new($file);
+  # Print the reference line for zeroes:
+  print map{$_->{Ref}} values %{$pdldoc->gethash->{zeroes}};
+  # Or, if you remember that zeroes is in PDL::Core:
+  print $pdldoc->gethash->{zeroes}{'PDL::Core'}{Ref};
 
  # Get info for all the functions whose examples use zeroes
  my @entries = $pdldoc->search('zeroes','Example',1,1);
