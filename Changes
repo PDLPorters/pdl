@@ -1,3 +1,5 @@
+- mkgen can now extract .pod.PL, PDL::Index is now created from such
+
 2.105 2026-08-17
 - add Math::casinh
 - add Constants::{DEG2RAD,RAD2DEG}

@@ -710,7 +710,7 @@ sub scantree {
   my ($this,$dir,$verbose) = @_;
   $verbose = 0 unless defined $verbose;
   require File::Find;
-  print "Scanning $dir ... \n\n";
+  print "Scanning $dir ... \n\n" if $verbose;
   my $ntot = 0;
   my $sub = sub {
     return if -d $File::Find::name;
@@ -719,16 +719,16 @@ sub scantree {
       $File::Find::name !~ /\.(?:pm|pod)$/;
     return if $File::Find::name =~ /(?:Index\.pod|PP\.pm)$/ or
       $File::Find::dir =~ m#/PP#;
-    printf "%-20s", $_.'...';
+    printf "%-20s", $_.'...' if $verbose;
     $ntot += my $n = $this->scan($File::Find::name,$verbose);
-    print "\t$n functions\n";
+    print "\t$n functions\n" if $verbose;
   };
   File::Find::find({
     no_chdir => 1,
     wanted => $sub,
     preprocess => sub { sort @_ }
   }, $dir);
-  print "\nfound $ntot functions\n";
+  print " found $ntot functions in $dir\n";
   $ntot;
 }
 

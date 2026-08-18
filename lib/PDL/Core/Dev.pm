@@ -436,7 +436,7 @@ sub pdlpp_mkgen {
   die "pdlpp_mkgen: non-existing '$file\'" unless -f $file;
   my @pairs = ();
   my $manifest = ExtUtils::Manifest::maniread($file);
-  for (grep !/^(t|xt)\// && /\.pd$/ && -f, sort keys %$manifest) {
+  for (grep !/^(t|xt)\// && /\.(?:pd|pod\.PL)$/ && -f, sort keys %$manifest) {
     my $content = do { local $/; open my $in, '<', $_; <$in> };
     warn("pdlpp_mkgen: unknown module name for '$_' (use proper '=head1 NAME' section)\n"), next
       if !(my ($name) = $content =~ /=head1\s+NAME\s+(\S+)\s+/sg);
@@ -449,22 +449,27 @@ sub pdlpp_mkgen {
     (my $prefix = $mod) =~ s|::|/|g;
     my $outfile = File::Spec::Functions::rel2abs("$dir/GENERATED/$prefix.pm");
     File::Path::mkpath(dirname($outfile));
-    my $old_cwd = Cwd::cwd();
-    my $maybe_lib_base = "lib/$prefix";
-    my $maybe_lib_path = "$maybe_lib_base.pd";
-    my $is_lib_path = substr($pd, -length $maybe_lib_path) eq $maybe_lib_path;
-    my $todir = $is_lib_path ? substr($pd, 0, -length($maybe_lib_path)-1) : dirname($pd);
-    chdir $todir if $todir;
-    my $basename = $is_lib_path ? $maybe_lib_base : (split '/', $prefix)[-1];
-    my $pp_call_arg = _pp_call_arg($mod, $mod, $basename, '', 0); # 0 so guarantee not create pp-*.c
-    #there is no way to use PDL::PP from perl code, thus calling via system()
-    my $rv = system $^X, @in, $pp_call_arg, $is_lib_path ? "$basename.pd" : basename($pd);
-    my $basefile = "$basename.pm";
-    die "pdlpp_mkgen: cannot convert '$pd'\n" unless $rv == 0 && -f $basefile;
-    File::Copy::copy($basefile, $outfile) or die "$outfile: $!";
-    unlink $basefile; # Transform::Proj4.pm is wrong without GIS::Proj built
-    unlink "$basename.xs"; # since may have been recreated wrong
-    chdir $old_cwd or die "chdir $old_cwd: $!";
+    if ($pd =~ /\.pod\.PL$/) {
+      my $rv = system $^X, @in, $pd, $outfile;
+      die "pdlpp_mkgen: cannot extract '$pd'\n" unless $rv == 0 && -f $outfile;
+    } else {
+      my $old_cwd = Cwd::cwd();
+      my $maybe_lib_base = "lib/$prefix";
+      my $maybe_lib_path = "$maybe_lib_base.pd";
+      my $is_lib_path = substr($pd, -length $maybe_lib_path) eq $maybe_lib_path;
+      my $todir = $is_lib_path ? substr($pd, 0, -length($maybe_lib_path)-1) : dirname($pd);
+      chdir $todir if $todir;
+      my $basename = $is_lib_path ? $maybe_lib_base : (split '/', $prefix)[-1];
+      my $pp_call_arg = _pp_call_arg($mod, $mod, $basename, '', 0); # 0 so guarantee not create pp-*.c
+      #there is no way to use PDL::PP from perl code, thus calling via system()
+      my $rv = system $^X, @in, $pp_call_arg, $is_lib_path ? "$basename.pd" : basename($pd);
+      my $basefile = "$basename.pm";
+      die "pdlpp_mkgen: cannot convert '$pd'\n" unless $rv == 0 && -f $basefile;
+      File::Copy::copy($basefile, $outfile) or die "$outfile: $!";
+      unlink $basefile; # Transform::Proj4.pm is wrong without GIS::Proj built
+      unlink "$basename.xs"; # since may have been recreated wrong
+      chdir $old_cwd or die "chdir $old_cwd: $!";
+    }
     $added{"GENERATED/$prefix.pm"} = "mod=$mod pd=$pd (added by pdlpp_mkgen)";
   }
   if (scalar(keys %added) > 0) {

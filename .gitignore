@@ -93,6 +93,7 @@ lib/PDL/ImageND.xs
 lib/PDL/ImageRGB.c
 lib/PDL/ImageRGB.pm
 lib/PDL/ImageRGB.xs
+lib/PDL/Index.pod
 lib/PDL/Math.c
 lib/PDL/Math.pm
 lib/PDL/Math.xs

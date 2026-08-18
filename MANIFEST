@@ -83,7 +83,7 @@ lib/PDL/ImageND.pd
 lib/PDL/ImageRGB.pd
 lib/PDL/ImageRGB/pdlppm.h
 lib/PDL/ImageRGB/ppm_quant.c
-lib/PDL/Index.pod
+lib/PDL/Index.pod.PL
 lib/PDL/Indexing.pod
 lib/PDL/Install/Files.pm
 lib/PDL/InstallGuide.pod

@@ -104,6 +104,7 @@ my %makefile_hash = (
   NAME => 'PDL',
   VERSION_FROM => 'lib/PDL.pm',
   EXE_FILES => \@exe_files,
+  PL_FILES => { 'lib/PDL/Index.pod.PL' => 'lib/PDL/Index.pod' },
   META_MERGE => {
      "meta-spec" => { version => 2 },
      resources => {
