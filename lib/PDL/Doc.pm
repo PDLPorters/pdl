@@ -688,7 +688,7 @@ sub scan {
   my ($this,$file,$verbose) = @_;
   confess "can't find file '$file'" unless -f $file;
   $file = Cwd::abs_path($file); # help Debian packaging
-  $verbose = 0 unless defined $verbose;
+  $verbose //= 0;
   my $text = do { open my $infile, '<', $file or die "$file: $!"; local $/; <$infile> };
   # Handle RPM etc. case where we are building away from the final location
   my $file2 = $file;
@@ -708,7 +708,11 @@ documentation) files (using the File::Find module).
 
 sub scantree {
   my ($this,$dir,$verbose) = @_;
-  $verbose = 0 unless defined $verbose;
+  if (!-d $dir) {
+    print "$dir not found\n" if $verbose;
+    return 0;
+  }
+  $verbose //= 0;
   require File::Find;
   print "Scanning $dir ... \n\n" if $verbose;
   my $ntot = 0;
