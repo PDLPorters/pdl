@@ -952,6 +952,10 @@ sub gen_db {
   my $pdldoc = PDL::Doc->new;
   my $n = 0;
   $n += $pdldoc->scantree($_) for @dirs;
+  if (!$n) {
+    print "PDL docs database $db_file would be empty - stopping.\n";
+    return;
+  }
   require File::Basename;
   require File::Path;
   umask 0022;
