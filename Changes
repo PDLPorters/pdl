@@ -1,5 +1,5 @@
 - mkgen can now extract .pod.PL, PDL::Index is now created from such
-- pdldoc now has one database file per distro, not global file (#559)
+- pdldoc changed from global file to one file per distro, done by either pdlpp_postamble or pdldoc_add (#559)
 
 2.105 2026-08-17
 - add Math::casinh

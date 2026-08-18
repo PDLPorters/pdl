@@ -962,27 +962,18 @@ sub gen_db {
 
 =head2 add_module
 
-=for usage
-
- use PDL::Doc;
- PDL::Doc::add_module("PDL::Stats"); # add PDL::Stats, PDL::Stats::GLM, ...
-
 =for ref
 
-The C<add_module> function allows you to add POD from a particular Perl
-module (and as of PDL 2.083, in fact all modules starting with that as
-a prefix) that you've installed somewhere in C<@INC>. It searches for the
-active PDL document database and the module's .pod and .pm files, and
-scans and indexes the module(s) into the database.
+Replaced with PDL::Core::Dev pdldoc_add in 2.106.
 
-C<add_module> is meant to be added to your module's Makefile as part of the
-installation script. This is done automatically by
-L<PDL::Core::Dev/pdlpp_postamble>, but if the top level of your
-distribution is Perl modules (like L<PDL::LinearAlgebra>), then add a
-C<postamble> manually in the F<Makefile.PL>:
+As of 2.106, C<pdldoc> documentation is stored in one centrally-installed file per distribution. If your distribution is pure-Perl, you need this in your F<Makefile.PL>:
 
   use PDL::Core::Dev;
   sub MY::postamble { ::pdldoc_add() }
+
+If your distribution already has a C<postamble> that calls
+L<PDL::Core::Dev/pdlpp_postamble>, this will be magically done for
+you.
 
 =cut
 

@@ -105,13 +105,16 @@ need to provide overrides for C<postamble> as before, and also C<init_PM>:
   sub postamble { ::pdlpp_postamble(@pd_srcs) }
   }
 
-Please note that if you have a pure-Perl top-level driving module,
-like L<PDL::Graphics::TriD> or L<PDL::LinearAlgebra>, and you want
-that top-level module's C<FUNCTIONS> added to the C<pdldoc>
-documentation, you will want to replace the C<postamble> definition
-with something a lot like:
+B<As of 2.106> please note that if you have a pure-Perl top-level
+driving module, like L<PDL::Graphics::TriD> or L<PDL::LinearAlgebra>,
+that top-level module's C<FUNCTIONS> will be added to the C<pdldoc>
+documentation, by the above incantation, without further addition
+by you. If it has a C<pdldoc_add> call, that will be silently and
+correctly handled.
 
-  sub postamble { ::pdlpp_postamble(@pd_srcs) . ::pdldoc_add() }
+If you have a B<pure Perl> distribution, you will need:
+
+  sub postamble { ::pdldoc_add() }
 
 =head1 FUNCTIONS
 
@@ -242,7 +245,7 @@ sub _postamble {
   $callpack //= '';
   $w = dirname($w);
   my $perlrun = "\$(PERLRUN) \"-I$w\"";
-  my ($pmdep, $pdldoc, $cdep) = ($src, '', '');
+  my ($pmdep, $pdldoc, $cdep) = ($src, doc_distro(), '');
   my ($ppc, $ppo) = ($multi_c && $flist_cache{File::Spec::Functions::rel2abs($src)})
     ? map "\$($_)", pdlpp_mod_vars($mod)
     : pdlpp_mod_values($internal, $src, $base, $multi_c);
@@ -251,9 +254,6 @@ sub _postamble {
     $pmdep .= join ' ', '', catfile($ppdir, 'PP.pm'), glob(catfile($ppdir, 'PP/*'));
     $cdep .= join ' ', $ppo, ':', map catfile($ppdir, qw(Core), $_),
       qw(pdl.h pdlcore.h pdlbroadcast.h pdlmagic.h);
-    $pdldoc = doc_distro();
-  } else {
-    $pdldoc = pdldoc_add($mod);
   }
   my $pp_call_arg = _pp_call_arg($mod, $mod, $base, $callpack, $multi_c||'',$deep||'');
 qq|
@@ -281,13 +281,7 @@ sub pdlpp_postamble {
   join '', map _postamble($w, 0, @$_), @_;
 }
 
-sub pdldoc_add {
-  my ($mod) = @_;
-  my $end = defined $mod ? '' : " \$(NAME)";
-  $mod //= 'shift';
-  my $oneliner = _oneliner(qq{exit if \$ENV{DESTDIR}; use PDL::Doc; eval { PDL::Doc::add_module($mod); }});
-  qq|\ninstall :: pure_install\n\t$oneliner$end\n|;
-}
+*pdldoc_add = \&doc_distro;
 
 my $EMITTED_PDLDOC = 0;
 sub doc_distro {
