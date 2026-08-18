@@ -293,8 +293,9 @@ my $EMITTED_PDLDOC = 0;
 sub doc_distro {
   # if Makefile.PL above, is in subdir, which doesn't have right DISTNAME
   return '' if -f catfile(updir, 'Makefile.PL') or $EMITTED_PDLDOC++;
+  my $libdir = dirname(whereami_any());
   # deliberate space in oneliner arg to force "" on Windows
-  sprintf <<'EOF', _oneliner(q{PDL::Doc::gen_db( @ARGV )}, qw(-Ilib -MPDL::Doc));
+  sprintf <<'EOF', _oneliner(q{PDL::Doc::gen_db( @ARGV )}, qq{"-I$libdir"}, qw(-MPDL::Doc));
 
 PDL_DOC_DB = $(INST_LIB)$(DIRFILESEP)PDL$(DIRFILESEP)Pdldoc$(DIRFILESEP)$(DISTNAME).db
 
