@@ -1700,11 +1700,11 @@ sub t_conic {
 
 	my ($out0, $out1) = $out->using(0,1);
 	$out1 .= $o->{G} - $rho;
-	$out1->where(($out1 < -PI/2) | ($out1 > PI/2))
+	$out1->where(($out1 < -PI()/2) | ($out1 > PI/2))
 	    .= $o->{bad};
 
 	$out0 .= $theta / $o->{n};
-	$out0->where(($out0 < -PI) | ($out0 > PI))
+	$out0->where(($out0 < -PI()) | ($out0 > PI))
 	    .= $o->{bad};
 
 	$out->slice("0:1") /= $o->{conv};
@@ -1818,7 +1818,7 @@ sub t_albers  {
 	$out->slice("(1)") .= asin( ( $o->{C} - ( $rho * $rho ) ) / (2 * $o->{n}) );
 
 	$out->slice("(0)") .= $theta / $o->{n};
-	$out->slice("(0)")->where(($out->slice("(0)")>PI) | ($out->slice("(0)")<-PI)) .= $o->{bad};
+	$out->slice("(0)")->where(($out->slice("(0)")>PI) | ($out->slice("(0)")<-PI())) .= $o->{bad};
 
 	$out->slice("0:1") /= $o->{conv};
 
@@ -1950,11 +1950,11 @@ sub t_lambert {
 
 
 	$out->slice("(0)") .= $theta / $o->{n};
-	$out->slice("(0)")->where(($out->slice("(0)") > PI) | ($out->slice("(0)") < -PI)) .= $o->{bad};
+	$out->slice("(0)")->where(($out->slice("(0)") > PI) | ($out->slice("(0)") < -PI())) .= $o->{bad};
 
 
 	$out->slice("(1)") .= 2 * atan(($o->{F}/$rho)**(1.0/$o->{n})) - PI/2;
-	$out->slice("(1)")->where(($out->slice("(1)") > PI/2) | ($out->slice("(1)") < -PI/2)) .= $o->{bad};
+	$out->slice("(1)")->where(($out->slice("(1)") > PI/2) | ($out->slice("(1)") < -PI()/2)) .= $o->{bad};
 
 	$out->slice("0:1") /= $o->{conv};
 
@@ -2787,7 +2787,7 @@ sub t_perspective {
   if(defined($p->{c})) {
     $p->{c} = (topdl($p->{c}) * $p->{tconv})->append(zeroes(3))->slice("0:2");
 
-    $p->{pmat} = ( _rotmat( 0,-PI/2,0 ) x
+    $p->{pmat} = ( _rotmat( 0,-PI()/2,0 ) x
                    _rotmat( (-$p->{c})->list )
                    );
   }

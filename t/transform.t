@@ -299,7 +299,7 @@ sub test_carto {
 }
 {
 local $PDL::doubleformat = "%10.4g";
-my $lonlatrad = allaxislinvals(double, pdl(-PI,-PI/2), pdl(PI,PI/2), 3,3)->append(1);
+my $lonlatrad = allaxislinvals(double, pdl(-PI(),-PI()/2), pdl(PI,PI/2), 3,3)->append(1);
 test_carto(t_spherical(), pdl('
   [0 0 -1; 0 0 -1; 0 0 -1]
   [-1 0 0; 1 0 0; -1 0 0]
@@ -308,13 +308,13 @@ test_carto(t_spherical(), pdl('
 test_carto(t_perspective(), sequence(2,3), pdl('
   0 0.99979696; 1.9929099 2.9927074; 3.9568835 4.9627286
 '));
-my $lonlat = allaxislinvals(double, pdl(-PI,-PI/2), pdl(PI,PI/2), 3,3);
+my $lonlat = allaxislinvals(double, pdl(-PI(),-PI()/2), pdl(PI,PI/2), 3,3);
 test_carto(t_aitoff(), $lonlat, pdl('
   [-0.054817 -0.027429; 0 -0.027415; 0.054817 -0.027429]
   [-0.054831 0; 0 0; 0.054831 0]
   [-0.054817 0.027429; 0 0.027415; 0.054817 0.027429]
 '));
-my $conic_slice = allaxislinvals(double, pdl(-PI,-PI/2), pdl(PI/6,PI/4), 3,3);
+my $conic_slice = allaxislinvals(double, pdl(-PI(),-PI()/2), pdl(PI/6,PI/4), 3,3);
 test_carto(t_albers(), $conic_slice, pdl('
   [-0.0645 -0.02237; -0.02688 -0.02325; 0.01075 -0.02341]
   [-0.06392 -0.004831; -0.02664 -0.005704; 0.01066  -0.005858]
@@ -360,7 +360,7 @@ test_carto(t_sin_lat(), $lonlat, pdl('
   [-0.05489 0; 0 0; 0.05489 0]
   [-0.05489 0.02746; 0 0.02742; 0.05489 0.02746]
 '));
-my $small_slice = allaxislinvals(double, pdl(-PI/2,PI/2), pdl(PI/6,PI/4), 3,3);
+my $small_slice = allaxislinvals(double, pdl(-PI()/2,PI/2), pdl(PI/6,PI/4), 3,3);
 test_carto(t_sinusoidal(), $small_slice, pdl('
   [-0.02741 0.02742; -0.009135 0.02742; 0.009135 0.02742]
   [-0.02741 0.02056; -0.009137 0.02056; 0.009137 0.02056]
