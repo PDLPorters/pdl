@@ -137,7 +137,7 @@ our @EXPORT = qw( isbigendian
   PDL_INCLUDE PDL_TYPEMAP
   PDL_AUTO_INCLUDE PDL_BOOT
   PDL_INST_INCLUDE PDL_INST_TYPEMAP
-  pdlpp_eumm_update_deep pdldoc_add
+  pdlpp_eumm_update_deep pdldoc_add doc_distro
   pdlpp_postamble_int pdlpp_stdargs_int
   pdlpp_postamble pdlpp_stdargs write_dummy_make
   unsupported trylink get_maths_libs
@@ -286,6 +286,20 @@ sub pdldoc_add {
   $mod //= 'shift';
   my $oneliner = _oneliner(qq{exit if \$ENV{DESTDIR}; use PDL::Doc; eval { PDL::Doc::add_module($mod); }});
   qq|\ninstall :: pure_install\n\t$oneliner$end\n|;
+}
+
+sub doc_distro {
+  my $extra_dirs = join ',', (@_ ? '' : ()), @_;
+  sprintf <<'EOF', $extra_dirs;
+PDL_DOC_DB = $(INST_LIB)$(DIRFILESEP)PDL$(DIRFILESEP)Pdldoc$(DIRFILESEP)$(DISTNAME).db
+
+pure_all :: $(PDL_DOC_DB)
+
+$(PDL_DOC_DB) :: pm_to_blib subdirs
+	$(NOECHO) $(ECHO) "Building PDL documentation database for $(NAME)"
+	$(NOECHO) $(PERLRUNINST) utils$(DIRFILESEP)scantree.pl "$(INST_LIBDIR)%s" "$@"
+
+EOF
 }
 
 our %EXTRAS;

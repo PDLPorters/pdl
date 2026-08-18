@@ -168,15 +168,7 @@ my @pd_srcs;
 sub postamble {
   my ($self) = @_;
   my $text = '';
-  $text .= <<'EOF';
-PDL_DOC_DB = $(INST_LIB)$(DIRFILESEP)PDL$(DIRFILESEP)Pdldoc$(DIRFILESEP)$(DISTNAME).db
-
-pure_all :: $(PDL_DOC_DB)
-
-$(PDL_DOC_DB) :: pm_to_blib subdirs
-	$(NOECHO) $(ECHO) "Building PDL documentation database for $(NAME)"
-	$(NOECHO) $(PERLRUNINST) utils$(DIRFILESEP)scantree.pl "$(INST_LIBDIR),$(INST_LIB)$(DIRFILESEP)Inline,script" "$@"
-EOF
+  $text .= ::doc_distro(qw($(INST_LIB)$(DIRFILESEP)Inline script));
   $text .= <<EOT if $^O !~ /MSWin/;
 $pdlroot$::Config{exe_ext} : $pdlroot.c
 \t\$(CC) \$(CCFLAGS) \$(CPPFLAGS) \$(OPTIMIZE) \$(LDFLAGS) \$(CCCDLFLAGS) $pdlroot.c -o \$\@
