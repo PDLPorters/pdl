@@ -910,7 +910,16 @@ sub _find_inc {
 }
 
 sub find_dbs {
-  _find_inc([qw(PDL pdldoc.db)], 0, 1);
+  my @found = _find_inc([qw(PDL pdldoc.db)], 0, 1); # CORE21 get rid
+  my %db_seen;
+  for my $dir (_find_inc([qw(PDL Pdldoc)], 1)) {
+    my @c = do { opendir my $dirfh, $dir or die "$dir: $!"; grep !/^\./, readdir $dirfh };
+    for my $f (grep /\.db$/ && -f catfile($dir, $_), @c) {
+      next if $db_seen{$f}++; # ignore any later ones in @INC
+      push @found, catfile($dir, $f);
+    }
+  }
+  @found;
 }
 
 =head2 add_module

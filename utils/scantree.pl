@@ -2,22 +2,18 @@ use strict;
 use warnings;
 use PDL::Doc;
 use File::Spec::Functions;
+use File::Basename qw(dirname);
+use File::Path qw(make_path);
 
-our $opt_v = -1; # verbose
+our $opt_v = 0; # verbose
 
 my $dirarg = shift @ARGV;
-my $outdb  = shift @ARGV;
-unless (defined $dirarg) {
-	($dirarg = $INC{'PDL.pm'}) =~ s/[\/\\]*PDL\.pm$//i;
-	if ($dirarg =~ /^blib/) { $dirarg .= ",blib/script,blib/lib/Inline" }
-	umask 0022;
-	print "DIR = $dirarg\n";
-}
+die "$0: No dirarg given\n" if !defined $dirarg;
+print "DIR = $dirarg\n";
 my @dirs = split /,/,$dirarg;
-unless (defined $outdb) {
-	$outdb = "$dirs[0]/PDL/pdldoc.db";
-	print "DB  = $outdb\n";
-}
+my $outdb  = shift @ARGV;
+die "$0: No outdb given\n" if !defined $outdb;
+print "DB  = $outdb\n";
 
 my $onldc = PDL::Doc->new;
 
@@ -30,5 +26,6 @@ $onldc->scan('lib/PDL.pm');
 $onldc->scan('lib/PDL/Index.pod', $opt_v);
 
 print STDERR "saving...\n";
-unlink $outdb if -e $outdb;
+make_path dirname $outdb;
+umask 0022;
 $onldc->savedb($outdb);

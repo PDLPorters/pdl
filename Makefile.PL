@@ -169,23 +169,13 @@ sub postamble {
   my ($self) = @_;
   my $text = '';
   $text .= <<'EOF';
-doctest :: pm_to_blib
-	$(NOECHO) $(ECHO) "doctest: Building PDL documentation database in blib ..."
-	$(NOECHO) $(PERLRUNINST) utils$(DFSEP)scantree.pl
+PDL_DOC_DB = $(INST_LIB)$(DIRFILESEP)PDL$(DIRFILESEP)Pdldoc$(DIRFILESEP)$(DISTNAME).db
 
-doc_site_install :: doc_pdldoc_install
+pure_all :: $(PDL_DOC_DB)
 
-doc_pdldoc_install :: pure_install # needs installed .../PDL dir to exist
-	$(NOECHO) $(ECHO) "doc_site_install: Building PDL documentation database ..."
-	$(NOECHO) $(PERLRUNINST) utils$(DFSEP)scantree.pl "$(DESTDIR)$(INSTALLSITEARCH)"
-
-doc_vendor_install ::
-	$(NOECHO) $(ECHO) "doc_vendor_install: Building PDL documentation database ..."
-	$(NOECHO) $(PERLRUNINST) utils$(DFSEP)scantree.pl "$(DESTDIR)$(INSTALLVENDORARCH)"
-
-doc_perl_install ::
-	$(NOECHO) $(ECHO) "doc_perl_install: Building PDL documentation database ..."
-	$(NOECHO) $(PERLRUNINST) utils$(DFSEP)scantree.pl "$(DESTDIR)$(INSTALLARCHLIB)"
+$(PDL_DOC_DB) :: pm_to_blib subdirs
+	$(NOECHO) $(ECHO) "Building PDL documentation database for $(NAME)"
+	$(NOECHO) $(PERLRUNINST) utils$(DIRFILESEP)scantree.pl "$(INST_LIBDIR),$(INST_LIB)$(DIRFILESEP)Inline,script" "$@"
 EOF
   $text .= <<EOT if $^O !~ /MSWin/;
 $pdlroot$::Config{exe_ext} : $pdlroot.c

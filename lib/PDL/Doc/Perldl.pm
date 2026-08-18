@@ -53,10 +53,12 @@ use Cwd; # to help Debian packaging
 # Find std file
 
 sub FindStdFile {
-  my ($f) = PDL::Doc::find_dbs();
-  warn("Unable to find PDL/pdldoc.db in ".join(":",@INC)."\n"), return if !defined $f;
-  print "Found docs database $f\n" if $PDL::verbose;
-  return $f;
+  my @found = PDL::Doc::find_dbs();
+  warn("Unable to find *.db in ".join(":",@INC)."\n"), return if !@found;
+  if ($PDL::verbose) {
+    print join '', map "$_\n", "Found docs databases:", map " $_", @found;
+  }
+  @found;
 }
 
 # used to find out how wide the screen should be
