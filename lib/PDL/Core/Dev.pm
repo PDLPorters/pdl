@@ -242,7 +242,7 @@ sub _postamble {
   $callpack //= '';
   $w = dirname($w);
   my $perlrun = "\$(PERLRUN) \"-I$w\"";
-  my ($pmdep, $install, $cdep) = ($src, '', '');
+  my ($pmdep, $pdldoc, $cdep) = ($src, '', '');
   my ($ppc, $ppo) = ($multi_c && $flist_cache{File::Spec::Functions::rel2abs($src)})
     ? map "\$($_)", pdlpp_mod_vars($mod)
     : pdlpp_mod_values($internal, $src, $base, $multi_c);
@@ -252,7 +252,7 @@ sub _postamble {
     $cdep .= join ' ', $ppo, ':', map catfile($ppdir, qw(Core), $_),
       qw(pdl.h pdlcore.h pdlbroadcast.h pdlmagic.h);
   } else {
-    $install = pdldoc_add($mod);
+    $pdldoc = pdldoc_add($mod);
   }
   my $pp_call_arg = _pp_call_arg($mod, $mod, $base, $callpack, $multi_c||'',$deep||'');
 qq|
@@ -265,7 +265,7 @@ $ppc : $base.pm
 	\$(NOECHO) \$(NOOP)
 
 $cdep
-$install|
+$pdldoc|
 }
 
 sub pdlpp_postamble_int {
