@@ -302,7 +302,7 @@ pure_all :: $(PDL_DOC_DB)
 
 $(PDL_DOC_DB) :: pm_to_blib subdirs
 	$(NOECHO) $(ECHO) "Building documentation database for $(NAME)"
-	%s "$@" "$(INST_LIBDIR)" script
+	%s "$@" "$(INST_LIB)" script
 EOF
 }
 
