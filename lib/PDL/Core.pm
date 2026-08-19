@@ -2833,7 +2833,7 @@ sub PDL::isempty {
     return ($pdl->nelem == 0);
 }
 
-=head2 zeroes
+=head2 zeroes, zeros
 
 =for ref
 
@@ -2874,17 +2874,7 @@ for details on using ndarrays in the dimensions list.
 =cut
 
 sub zeroes { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? PDL::zeroes($_[0]) : PDL->zeroes(@_) }
-
 # Create convenience aliases for zeroes
-
-=head2 zeros
-
-=for ref
-
-construct a zero filled ndarray (see zeroes for usage)
-
-=cut
-
 *zeros = \&zeroes;
 *PDL::zeros = \&PDL::zeroes;
 
