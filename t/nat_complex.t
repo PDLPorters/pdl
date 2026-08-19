@@ -57,7 +57,7 @@ $got = i2C(1);
 is $got, i(), 'can give Perl numbers to i2C';
 ok !$got->type->real, 'complex type';
 
-ok !i(2, 3)->type->real, 'i(2, 3) returns complex type';
+ok !i()->type->real, 'i() returns complex type';
 
 for (float, double, ldouble, cfloat, cdouble, cldouble) {
   my $got = pdl $_, '[0 BAD]';

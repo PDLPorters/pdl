@@ -786,7 +786,7 @@ is_pdl $to, float(7);
 is_pdl $from, pdl(7);
 }
 
-for (['ones', 1], ['zeroes', 0], ['nan', '.*NaN'], ['inf', '.*Inf'], ['i', 'i', 'cdouble']) {
+for (['ones', 1], ['zeroes', 0]) {
   my ($name, $val, $type) = @$_;
   no strict 'refs';
   my $g = eval { $name->() };
@@ -820,6 +820,22 @@ for (['ones', 1], ['zeroes', 0], ['nan', '.*NaN'], ['inf', '.*Inf'], ['i', 'i', 
   $w = $y->copy; $name->(inplace $w); is_pdl $w, $exp, $name;
   $w = $y->copy; $w->inplace->$name; is_pdl $w, $exp, $name;
 }
+
+for (['nan', '.*NaN'], ['inf', '.*Inf'], ['i', 'i']) {
+  my ($name, $val) = @$_;
+  no strict 'refs';
+  my $g = eval { $name->() };
+  is $@, '', "$name works with no args";
+  is_deeply [$g->dims], [], "$name no args -> no dims";
+  ok !$g->isnull, "$name no args -> not null";
+  ok !$g->isempty, "$name no args -> not empty";
+  like $g.'', qr/^$val/i, "$name() gives back right value";
+  my $g1 = eval { $name->(2) };
+  like $@, qr/^Usage: PDL::Core::$name()/, "$name error with 1 arg";
+}
+is_pdl i + 3, pdl('3+i'), 'i + 3 gives scalar, not [i i i]';
+is_pdl +PDL->i, i, 'PDL->i works';
+{ my $i = i; my $i2 = i; $i++; is $i, 1+i; is $i2, i; }
 
 is short(1)->zeroes->type, 'short', '$existing->zeroes right type';
 

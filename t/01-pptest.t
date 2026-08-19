@@ -436,7 +436,8 @@ for (byte,short,ushort,long,float,double) {
 {
 my @msg;
 local $SIG{__WARN__} = sub { push @msg, @_ };
-eval { nan(2,2)->gelsd(nan(2,2), -3) };
+my $nan22 = ones(2,2)*nan;
+eval { $nan22->gelsd($nan22->copy, -3) };
 like $@, qr/croaking/, 'right error message';
 is_deeply \@msg, [], 'no warnings' or diag explain \@msg;
 }

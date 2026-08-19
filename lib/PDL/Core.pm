@@ -991,9 +991,9 @@ use Carp 'carp';        # for carping (warnings in caller's context)
 # 4) use of inf when the data type does not support inf (i.e. the integers)
 
 my @types = PDL::Types::types;
-my $STR_nan = PDL::_nan();
-my $STR_i = PDL::_ci();
-my $STR_inf = PDL::_inf();
+my $STR_nan = PDL::Core::nan();
+my $STR_i = PDL::Core::i();
+my $STR_inf = PDL::Core::inf();
 my $STR_pi = 4 * atan2(1, 1);
 my $STR_e = exp(1);
 sub PDL::Core::new_pdl_from_string {
@@ -2915,97 +2915,30 @@ sub PDL::ones {
 
 =for ref
 
-construct a C<NaN> filled ndarray.
-If called with no arguments, returns a zero-dimension ndarray (a scalar).
+Construct a zero-dimension ndarray (a scalar) with value C<NaN>.
 
-=for usage
-
- $w = nan([type], $nx, $ny, $nz,...);
- etc. (see 'zeroes')
-
-=for example
-
- see zeroes() and add NaN
-
-See also L</new_from_specification>
-for details on using ndarrays in the dimensions list.
-
-=cut
-
-sub nan { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? PDL::nan($_[0]) : PDL->nan(@_) }
-sub PDL::nan {
-    my $pdl = &_construct;
-    $pdl .= PDL::_nan();
-    return $pdl;
-}
+Before 2.107 had interface like L</ones>.
 
 =head2 inf
 
 =for ref
 
-construct an C<Inf> filled ndarray.
-If called with no arguments, returns a zero-dimension ndarray (a scalar).
+Construct a zero-dimension ndarray (a scalar) with value C<Inf>.
 
-=for usage
-
- $w = inf([type], $nx, $ny, $nz,...);
- etc. (see 'zeroes')
-
-=for example
-
- see zeroes() and add Inf
-
-See also L</new_from_specification>
-for details on using ndarrays in the dimensions list.
-
-=cut
-
-sub inf { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? PDL::inf($_[0]) : PDL->inf(@_) }
-sub PDL::inf {
-    my $pdl = &_construct;
-    $pdl .= PDL::_inf();
-    return $pdl;
-}
+Before 2.107 had interface like L</ones>.
 
 =head2 i
 
 =for ref
 
-construct an ndarray filled with a native complex value equal to the
-imaginary number "i", the square root of -1.
-If called with no arguments, returns a zero-dimension ndarray (a scalar).
+Construct a zero-dimension ndarray (a scalar) with a native complex-double
+value equal to the imaginary number "i", the square root of -1.
 
-=for usage
-
- $w = i([type], $nx, $ny, $nz,...);
- etc. (see 'zeroes')
-
-=for example
-
- see zeroes() and add "i"
-
-See also L</new_from_specification>
-for details on using ndarrays in the dimensions list.
+Before 2.107 had interface like L</ones>.
 
 =cut
 
-sub i { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? PDL::i($_[0]) : PDL->i(@_) }
-sub PDL::i {
-    my $class = shift;
-    my @args = @_;
-    if (@args) {
-      if (ref($args[0]) eq 'PDL::Type' and $args[0]->real) {
-        $args[0] = cdouble();
-      } else {
-        unshift @args, cdouble();
-      }
-    } else {
-      $class = convert $class, cdouble() if ref $class and $class->type->real;
-    }
-    my $pdl = scalar(@args)? $class->new_from_specification(@args) : $class->new_or_inplace;
-    $pdl .= PDL::_ci();
-    return $pdl;
-}
+sub PDL::i { barf "Error: PDL::i is a constant" if @_ > 1; PDL::Core::i() }
 
 =head2 reshape
 

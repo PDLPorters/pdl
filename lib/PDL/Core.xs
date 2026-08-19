@@ -574,21 +574,6 @@ get_autopthread_dim()
 	OUTPUT:
 	RETVAL
 
-void
-_ci(...)
- PPCODE:
-  PDL_XS_SCALAR(PDL_CD, C, 0 + I)
-
-void
-_nan(...)
- PPCODE:
-  PDL_XS_SCALAR(PDL_D, D, NAN)
-
-void
-_inf(...)
- PPCODE:
-  PDL_XS_SCALAR(PDL_D, D, INFINITY)
-
 MODULE = PDL::Core     PACKAGE = PDL::Trans
 
 void
@@ -729,6 +714,25 @@ dump(x)
     pdl_dump_transvtable(x, 0);
 
 MODULE = PDL::Core     PACKAGE = PDL::Core
+
+void
+i()
+ # this makes these be constants, so `i + 3` works
+ PROTOTYPE:
+ PPCODE:
+  PDL_XS_SCALAR(PDL_CD, C, 0 + I)
+
+void
+nan()
+ PROTOTYPE:
+ PPCODE:
+  PDL_XS_SCALAR(PDL_D, D, NAN)
+
+void
+inf()
+ PROTOTYPE:
+ PPCODE:
+  PDL_XS_SCALAR(PDL_D, D, INFINITY)
 
 IV
 seed()
