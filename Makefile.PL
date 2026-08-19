@@ -153,7 +153,7 @@ my %makefile_hash = (
   dist => { COMPRESS => 'gzip', SUFFIX => 'gz', PREOP => $preop },
   clean => { FILES => join ' ',
     qw(MANIFEST.bak _Inline/ .inlinepdlpp/ .inlinewith/ .pptest/), @cleanup,
-    catfile(qw(lib PDL Core pdl.h)),
+    (map catfile(qw(lib PDL), @$_), [qw(Core pdl.h)], [qw(Index.pod)]),
   },
   AUTHOR => 'PerlDL Developers <pdl-general@lists.sourceforge.net>',
   ABSTRACT => 'Perl Data Language',
