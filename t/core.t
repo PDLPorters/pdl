@@ -791,13 +791,13 @@ for (['ones', 1], ['zeroes', 0], ['nan', '.*NaN'], ['inf', '.*Inf'], ['i', 'i', 
   no strict 'refs';
   my $g = eval { $name->() };
   is $@, '', "$name works with no args";
-  is_deeply [$g->dims], [], 'no args -> no dims';
-  ok !$g->isnull, 'no args -> not null';
-  ok !$g->isempty, 'no args -> not empty';
+  is_deeply [$g->dims], [], "$name no args -> no dims";
+  ok !$g->isnull, "$name no args -> not null";
+  ok !$g->isempty, "$name no args -> not empty";
   like $g.'', qr/^$val/i, "$name() gives back right value";
   my $g1 = eval { $name->(2) };
   is $@, '', "$name works with 1 args";
-  is_deeply [$g1->dims], [2], 'right dims';
+  is_deeply [$g1->dims], [2], "$name right dims";
 
   # from PDL::Core docs of zeroes
   my (@dims, $w) = (1..3);
