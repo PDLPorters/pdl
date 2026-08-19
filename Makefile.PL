@@ -77,7 +77,7 @@ my @BUILD_CORE = qw(Bad Core Math MatrixOps Ops Primitive Slices Ufunc);
 my @BUILD_BASIC = qw(Compression FFT IO/Misc IO/Pnm ImageND ImageRGB);
 
 # create GENERATED subdir with *.pm files during 'make dist' (to make metacpan.org happy)
-my $preop = '$(PERLRUNINST) -MPDL::Core::Dev -e pdlpp_mkgen $(DISTVNAME)';
+my $preop = '$(PERLRUN) -Ilib -MPDL::Core::Dev -e pdlpp_mkgen $(DISTVNAME)';
 
 my %makefile_hash = (
   PREREQ_PM => { @prereq },
