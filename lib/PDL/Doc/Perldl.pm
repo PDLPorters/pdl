@@ -208,6 +208,17 @@ Internal interface to the PDL documentation searcher
 
 =cut
 
+sub multimatch_header {
+  my ($matches, $topic, $out) = @_;
+  print $out "\n\n=head1 MULTIPLE MATCHES FOR HELP TOPIC '$topic':\n\n=head1\n\n=over 3\n\n";
+  my $i=0;
+  for my $m (@$matches) {
+    printf $out "\n=item [%d]\t%-30s %s%s\n\n",
+      ++$i, $m->[0], $m->[2]{Module} && "in " || ' (module)',
+      $m->[2]{CustomFile} || $m->[2]{Module} || '';
+  }
+  print $out "\n=back\n\n=head1\n\n To see item number \$n, use 'help ${topic}\[\$n\]'. \n\n=cut\n\n";
+}
 sub finddoc {
   die 'Usage: doc $topic' unless $#_>-1;
   my $topic = shift;
@@ -236,16 +247,7 @@ sub finddoc {
   }
   my $num_pdl_pod_matches = scalar @match;
   my $pdl_pod_matchnum = 0;
-  if (@match > 1   and   !$subfield) {
-    print $out "\n\n=head1 MULTIPLE MATCHES FOR HELP TOPIC '$topic':\n\n=head1\n\n=over 3\n\n";
-    my $i=0;
-    for my $m (@match) {
-      printf $out "\n=item [%d]\t%-30s %s%s\n\n",
-        ++$i, $m->[0], $m->[2]{Module} && "in " || ' (module)',
-        $m->[2]{CustomFile} || $m->[2]{Module} || '';
-    }
-    print $out "\n=back\n\n=head1\n\n To see item number \$n, use 'help ${topic}\[\$n\]'. \n\n=cut\n\n";
-  }
+  multimatch_header(\@match, $topic, $out) if @match > 1 and !$subfield;
   while (@match) {
     $pdl_pod_matchnum++;
     if (@match > 0 and $num_pdl_pod_matches > 1) {
