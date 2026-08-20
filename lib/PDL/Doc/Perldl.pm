@@ -209,94 +209,76 @@ Internal interface to the PDL documentation searcher
 =cut
 
 sub finddoc {
-    local $SIG{PIPE}= 'IGNORE'; # Prevent crashing if user exits the pager
-
-    die 'Usage: doc $topic' unless $#_>-1;
-    my $topic = shift;
-
-    # See if it matches a PDL function name
-
-    my $subfield = $1
-      if( $topic =~ s/\[(\d*)\]$// ); #does it end with a number in square brackets?
-
-    (my $t2 = $topic) =~ s/([^a-zA-Z0-9_])/\\$1/g;  #$t2 is a copy of $topic with escaped non-word characters
-
-    my @match = search_docs("m/^(PDL::)?".$t2."\$/",['Name'],0) ; #matches: ^PDL::topic$ or ^topic$
-
-    unless(@match) {
-      print "No PDL docs for '$topic'. Using 'whatis'. (Try 'apropos $topic'?)\n\n";
-      whatis($topic);
-      return;
+  die 'Usage: doc $topic' unless $#_>-1;
+  my $topic = shift;
+  # See if it matches a PDL function name
+  my $subfield = $1
+    if $topic =~ s/\[(\d*)\]$//; # ends with a number in square brackets?
+  (my $t2 = $topic) =~ s/([^a-zA-Z0-9_])/\\$1/g;  #$t2 is a copy of $topic with escaped non-word characters
+  my @match = search_docs("m/^(PDL::)?".$t2."\$/",['Name'],0); #matches: ^PDL::topic$ or ^topic$
+  unless (@match) {
+    print "No PDL docs for '$topic'. Using 'whatis'. (Try 'apropos $topic'?)\n\n";
+    whatis($topic);
+    return;
+  }
+  local $SIG{PIPE}= 'IGNORE'; # Prevent crashing if user exits the pager
+  # print out the matches
+  open my $out, "| pod2text | $PDL::Doc::pager";
+  binmode $out, ':encoding(UTF-8)';
+  if($subfield) {
+    if($subfield <= @match) {
+      @match = ($match[$subfield-1]);
+      $subfield = 0;
+    } else {
+      print $out "\n\n=head1 PDL HELP: Ignoring out-of-range selector $subfield\n\n=head1\n\n=head1 --------------------------------\n\n";
+      $subfield = undef;
     }
-
-    # print out the matches
-    open my $out, "| pod2text | $PDL::Doc::pager";
-    binmode $out, ':encoding(UTF-8)';
-
-    if($subfield) {
-      if($subfield <= @match) {
-	@match = ($match[$subfield-1]);
-	$subfield = 0;
+  }
+  my $num_pdl_pod_matches = scalar @match;
+  my $pdl_pod_matchnum = 0;
+  while (@match) {
+    $pdl_pod_matchnum++;
+    if (  @match > 1   and   !$subfield  and $pdl_pod_matchnum==1 ) {
+      print $out "\n\n=head1 MULTIPLE MATCHES FOR HELP TOPIC '$topic':\n\n=head1\n\n=over 3\n\n";
+      my $i=0;
+      for my $m ( @match ) {
+        printf $out "\n=item [%d]\t%-30s %s%s\n\n",
+          ++$i, $m->[0], $m->[2]{Module} && "in " || ' (module)',
+          $m->[2]{CustomFile} || $m->[2]{Module} || '';
+      }
+      print $out "\n=back\n\n=head1\n\n To see item number \$n, use 'help ${topic}\[\$n\]'. \n\n=cut\n\n";
+    }
+    if (@match > 0 and $num_pdl_pod_matches > 1) {
+      print $out "\n=head1 Displaying item $pdl_pod_matchnum:\n\n=head1 --------------------------------------\n\n=cut\n\n";
+    }
+    my $m = shift @match;
+    my $Ref = $m->[2]{Ref};
+    if ($Ref && $Ref =~ /^(Module|Manual|Script): /) {
+      # We've got a file name and we have to open it.  With the relocatable db, we have to reconstitute the absolute pathname.
+      my $relfile = $m->[2]{File};
+      my $absfile = undef;
+      my @scnd = @{$PDL::onlinedoc->{Scanned}};
+      for my $dbf (@scnd) {
+         $dbf = catdir(dirname $dbf, $relfile);
+         $absfile = $dbf if -e $dbf;
+      }
+      die "Documentation error: couldn't find absolute path to $relfile\n"
+        if !$absfile;
+      open my $in, "<", $absfile;
+      print $out join "", <$in>;
+    } else {
+      if (defined $m->[2]{CustomFile}) {
+        require Pod::Text;
+        my $parser = Pod::Text->new;
+        print $out "=head1 Autoload file \"".$m->[2]{CustomFile}."\"\n\n";
+        $parser->parse_from_file($m->[2]{CustomFile},$out);
+        print $out "\n\n=head2 Docs from\n\n".$m->[2]{CustomFile}."\n\n";
       } else {
-	print $out "\n\n=head1 PDL HELP: Ignoring out-of-range selector $subfield\n\n=head1\n\n=head1 --------------------------------\n\n";
-	$subfield = undef;
+        print $out "=encoding utf8\n\n=head1 Module ",$m->[2]{Module}, "\n\n";
+        $PDL::onlinedoc->funcdocs(@$m[0,1],$out);
       }
     }
-
-    my $num_pdl_pod_matches = scalar @match;
-    my $pdl_pod_matchnum = 0;
-
-    while (@match) {
-       $pdl_pod_matchnum++;
-
-       if (  @match > 1   and   !$subfield  and $pdl_pod_matchnum==1 ) {
-          print $out "\n\n=head1 MULTIPLE MATCHES FOR HELP TOPIC '$topic':\n\n=head1\n\n=over 3\n\n";
-          my $i=0;
-          for my $m ( @match ) {
-             printf $out "\n=item [%d]\t%-30s %s%s\n\n", ++$i, $m->[0], $m->[2]{Module} && "in " || ' (module)', $m->[2]{CustomFile} || $m->[2]{Module} || '';
-          }
-          print $out "\n=back\n\n=head1\n\n To see item number \$n, use 'help ${topic}\[\$n\]'. \n\n=cut\n\n";
-       }
-
-       if (@match > 0 and $num_pdl_pod_matches > 1) {
-          print $out "\n=head1 Displaying item $pdl_pod_matchnum:\n\n=head1 --------------------------------------\n\n=cut\n\n";
-       }
-
-       my $m = shift @match;
-
-       my $Ref = $m->[2]{Ref};
-       if ( $Ref && $Ref =~ /^(Module|Manual|Script): / ) {
-	   # We've got a file name and we have to open it.  With the relocatable db, we have to reconstitute the absolute pathname.
-	   my $relfile = $m->[2]{File};
-	   my $absfile = undef;
-	   my @scnd = @{$PDL::onlinedoc->{Scanned}};
-	   for my $dbf (@scnd) {
-	       $dbf = catdir(dirname $dbf, $relfile);
-	       $absfile = $dbf if -e $dbf;
-	   }
-	   unless ($absfile) {
-	       die "Documentation error: couldn't find absolute path to $relfile\n";
-	   }
-	   open my $in, "<", $absfile;
-	   print $out join("",<$in>);
-       } else {
-          if(defined $m->[2]{CustomFile}) {
-
-             require Pod::Text;
-             my $parser = Pod::Text->new;
-             print $out "=head1 Autoload file \"".$m->[2]{CustomFile}."\"\n\n";
-             $parser->parse_from_file($m->[2]{CustomFile},$out);
-             print $out "\n\n=head2 Docs from\n\n".$m->[2]{CustomFile}."\n\n";
-
-          } else {
-
-             print $out "=encoding utf8\n\n=head1 Module ",$m->[2]{Module}, "\n\n";
-             $PDL::onlinedoc->funcdocs(@$m[0,1],$out);
-
-          }
-
-       }
-    }
+  }
 }
 
 
