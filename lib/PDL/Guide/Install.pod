@@ -2,7 +2,7 @@ package PDL::InstallGuide;
 
 =head1 NAME
 
-PDL::InstallGuide - installation notes for PDL
+PDL::Guide::Install - installation notes for PDL
 
 =head1 DESCRIPTION
 
@@ -13,12 +13,13 @@ Another source of information is L<https://pdl.perl.org/?page=install>.
 =head1 INSTALLATION
 
 To install PDL on your machine, first check that you
-have a recent enough version of Perl: 5.14.0 and above
-is required.
+have a recent enough version of Perl: 5.16.0 and above
+is required (or see L<MetaCPAN|https://metacpan.org/dist/PDL> for
+the most recent Perl version requirement).
 
 Then, use L<cpanm|App::cpanminus> to install PDL:
 
-  cpanm PDL::Basic
+  cpanm PDL
 
 This will give you PDL. There are additional modules you can install
 for further features, but for speed of installatiion, and ease of

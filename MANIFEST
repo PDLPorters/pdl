@@ -70,6 +70,7 @@ lib/PDL/FFT/fftn.c
 lib/PDL/FFT/fftn.h
 lib/PDL/Func.pm
 lib/PDL/Graphics.pod
+lib/PDL/Guide/Install.pod
 lib/PDL/Guide/Migration/MATLAB.pod
 lib/PDL/Guide/Migration/NumPy.pod
 lib/PDL/Guide/Migration/Scilab.pod
@@ -86,7 +87,6 @@ lib/PDL/ImageRGB/ppm_quant.c
 lib/PDL/Index.pod.PL
 lib/PDL/Indexing.pod
 lib/PDL/Install/Files.pm
-lib/PDL/InstallGuide.pod
 lib/PDL/Internals.pod
 lib/PDL/IO.pod
 lib/PDL/IO/Dumper.pm
