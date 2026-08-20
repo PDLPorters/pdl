@@ -5,13 +5,9 @@ use PDL::Doc;
 use File::Spec::Functions;
 
 my $outindex = $ARGV[0];
-my @dirs = qw(lib script lib/Inline);
+my @dirs = qw(lib script);
 my $onldc = PDL::Doc->new;
-foreach my $dir (@dirs) {
-    $onldc->scantree($dir =~ /script|Inline$/ ? $dir : catdir($dir, "PDL"));
-    my $PDL_pm = catfile($dir, "PDL.pm");
-    $onldc->scan($PDL_pm) if -s $PDL_pm;
-}
+$onldc->scantree($_) for @dirs;
 write_index($onldc, $outindex);
 $onldc->scantree($dirs[0]); # catch ourself now
 write_index($onldc, $outindex);
