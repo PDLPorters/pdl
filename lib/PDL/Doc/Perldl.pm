@@ -258,7 +258,7 @@ sub finddoc {
       my @scnd = @{$PDL::onlinedoc->{Scanned}};
       for my $dbf (@scnd) {
         $dbf = catfile(dirname($dbf), $relfile);
-        $absfile = $dbf, last if -e $dbf;
+        $absfile = $dbf, last if -f $dbf;
       }
       die "Documentation error: couldn't find absolute path to $relfile\n"
         if !$absfile;
