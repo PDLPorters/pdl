@@ -471,11 +471,7 @@ our $pager = $ENV{PERLDOC_PAGER} // $ENV{PAGER} // $Config{pager};
 =cut
 
 sub new {
-  my ($type,@files) = @_;
-  my $this = bless {},$type;
-  $this->{File} = \@files;
-  $this->{Scanned} = [];
-  $this;
+  shift->new_from_hash->addfiles(@_);
 }
 
 =head2 new_from_hash
@@ -488,22 +484,21 @@ The hash must conform to the 3-level hash format.
 
 sub new_from_hash {
   my ($type, $hash) = @_;
-  my $this = bless {},$type;
-  $this->{File} = [];
-  $this->{Scanned} = [];
-  $this->{SYMS} = $hash;
+  my $this = bless { File => [], Scanned => [] },$type;
+  $this->{SYMS} = $hash if defined $hash;
   $this;
 }
 
 =head2 addfiles
 
-add another file to the online database associated with this object.
+Add file(s) to this object's online database. Returns object.
 
 =cut
 
 sub addfiles {
   my ($this,@files) = @_;
   push @{$this->{File}}, @files;
+  $this;
 }
 
 =head2 ensuredb
