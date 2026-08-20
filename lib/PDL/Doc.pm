@@ -747,10 +747,10 @@ source file using the PDL::PodParser filter.
 sub funcdocs {
   my ($this,$func,$module,$fout) = @_;
   my $hash = $this->ensuredb;
-  confess "unknown function '$func'" unless defined($hash->{$func});
+  confess "unknown function '$func'" unless defined(my $hf = $hash->{$func});
   confess "funcdocs now requires 3 arguments" if defined fileno $module;
-  my $file = $hash->{$func}{$module}{File};
-  my $dbf = $hash->{$func}{$module}{Dbfile};
+  my $file = $hf->{$module}{File};
+  my $dbf = $hf->{$module}{Dbfile};
   $file = Cwd::abs_path($file) if file_name_is_absolute($file);
   $dbf = Cwd::abs_path($dbf); # help Debian packaging
   $file = rel2abs($file, dirname($dbf))
