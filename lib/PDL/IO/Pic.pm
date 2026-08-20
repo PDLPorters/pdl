@@ -445,7 +445,7 @@ sub PDL::wpic {
     $iraw = 1 if (defined($$hints{IFORM}) && $$hints{IFORM} =~ /RAW/);
     $iraw = 0 if (defined($$hints{IFORM}) && $$hints{IFORM} =~ /ASCII/);
 
-    local $SIG{PIPE}= sub {}; # Prevent crashing if converter dies
+    local $SIG{PIPE}= 'IGNORE'; # Prevent crashing if converter dies
 
     wpnm($pdl, $cmd, $iform , $iraw);
 }

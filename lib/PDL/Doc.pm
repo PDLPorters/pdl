@@ -867,7 +867,7 @@ sub scantext {
 sub funcdocs_fromfile {
   my ($func,$file) = @_;
   confess "can't find file '$file'" unless -f $file;
-  local $SIG{PIPE}= sub {}; # Prevent crashing if user exits the pager
+  local $SIG{PIPE}= 'IGNORE'; # Prevent crashing if user exits the pager
   open my $in, '<', $file or confess "can't open file $file";
   my $out = $_[2];
   open $out, "| pod2text | $PDL::Doc::pager" if !defined $out;

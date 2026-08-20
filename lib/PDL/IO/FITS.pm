@@ -1691,11 +1691,11 @@ sub PDL::wfits {
   local $SIG{PIPE};
 
   if ($file =~ /\.gz$/) {            # Handle suffix-style compression
-    $SIG{PIPE}= sub {}; # Prevent crashing if gzip dies
+    $SIG{PIPE}= 'IGNORE'; # Prevent crashing if gzip dies
     $file = "|gzip -9 > $file";
   }
   elsif ($file =~ /\.Z$/) {
-    $SIG{PIPE}= sub {}; # Prevent crashing if compress dies
+    $SIG{PIPE}= 'IGNORE'; # Prevent crashing if compress dies
     $file = "|compress > $file";
   }
   else{

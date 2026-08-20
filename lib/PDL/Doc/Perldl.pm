@@ -209,7 +209,7 @@ Internal interface to the PDL documentation searcher
 =cut
 
 sub finddoc {
-    local $SIG{PIPE}= sub {}; # Prevent crashing if user exits the pager
+    local $SIG{PIPE}= 'IGNORE'; # Prevent crashing if user exits the pager
 
     die 'Usage: doc $topic' unless $#_>-1;
     my $topic = shift;
