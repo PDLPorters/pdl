@@ -7,6 +7,7 @@ eval { require Devel::CheckLib; Devel::CheckLib->import; };
 use ExtUtils::MakeMaker;
 use ExtUtils::MakeMaker::Config;
 use File::Spec::Functions qw(catdir catfile);
+require ExtUtils::Manifest;
 
 my @cpan_deps = my @prereq = (
   'Data::Dumper'        => 2.121,     # for PDL::IO::Dumper
@@ -33,6 +34,7 @@ for my $opt_dep (sort keys %min_version) {
   next if eval { $opt_dep->VERSION($min_version{$opt_dep}); 1 };
   push @prereq, $opt_dep => $min_version{$opt_dep};
 }
+my @pd_pm_files = sort map s/\.pd$/.pm/r, grep /\.pd$/, keys %{ ExtUtils::Manifest::maniread() };
 
 my $pdlroot = catfile qw(script pdl);
 my @exe_files = map catfile('script', $_), qw(perldl pdldoc pptemplate);
@@ -85,7 +87,7 @@ my %makefile_hash = (
   CONFIGURE_REQUIRES => {
     'Devel::CheckLib' => '1.01',
     'File::Which'     => 0,
-    'ExtUtils::MakeMaker' => '7.12', # working .g.c
+    'ExtUtils::MakeMaker' => '7.36', # PL_FILES multi-dep
     'File::Path'          => 0,
   },
   TEST_REQUIRES => {
@@ -104,7 +106,7 @@ my %makefile_hash = (
   NAME => 'PDL',
   VERSION_FROM => 'lib/PDL.pm',
   EXE_FILES => \@exe_files,
-  PL_FILES => { 'lib/PDL/Index.pod.PL' => 'lib/PDL/Index.pod' },
+  PL_FILES => { 'lib/PDL/Index.pod.PL' => { 'lib/PDL/Index.pod' => \@pd_pm_files } },
   META_MERGE => {
      "meta-spec" => { version => 2 },
      resources => {
@@ -208,7 +210,9 @@ sub init_PM {
     $pm->{ ::catfile(split '/', _nopl($f)) } = _nopl(delete $pm->{$f}); # dealing in postamble but still install
   }
   for my $f (grep /\.PL$/, keys %$pm) {
-    $pm->{ $plf->{$f} = _nopl($f) } = _nopl(delete $pm->{$f});
+    my $f_nopl = _nopl($f);
+    $plf->{$f} ||= $f_nopl;
+    $pm->{$f_nopl} = _nopl(delete $pm->{$f});
   }
   @pd_srcs = ::pdlpp_eumm_update_deep($self);
 }
