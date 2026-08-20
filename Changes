@@ -1,4 +1,5 @@
 - make i, inf, and nan be constants, not functions, so "i + 3" gives a complex scalar not a vector
+- fix pdldoc script
 
 2.106 2026-08-19
 - mkgen can now extract .pod.PL, PDL::Index is now created from such

@@ -252,7 +252,7 @@ sub finddoc {
           print $out "\n\n=head1 MULTIPLE MATCHES FOR HELP TOPIC '$topic':\n\n=head1\n\n=over 3\n\n";
           my $i=0;
           for my $m ( @match ) {
-             printf $out "\n=item [%d]\t%-30s %s%s\n\n", ++$i, $m->[0], $m->[2]{Module} && "in ", $m->[2]{CustomFile} || $m->[2]{Module};
+             printf $out "\n=item [%d]\t%-30s %s%s\n\n", ++$i, $m->[0], $m->[2]{Module} && "in " || ' (module)', $m->[2]{CustomFile} || $m->[2]{Module} || '';
           }
           print $out "\n=back\n\n=head1\n\n To see item number \$n, use 'help ${topic}\[\$n\]'. \n\n=cut\n\n";
        }
@@ -606,8 +606,9 @@ and the remaining commands listed, along with the names of their modules.
 sub help {
   if (@_) {
       require PDL::Dbg;
+      require Scalar::Util;
       my $topic = shift;
-      if (PDL::Core::blessed($topic) && $topic->can('px')) {
+      if (Scalar::Util::blessed($topic) && $topic->can('px')) {
 	  local $PDL::debug = 1;
 	  $topic->px('This variable is');
       } else {

@@ -1,6 +1,7 @@
 #!perl
 
 use strict;
+use warnings;
 $|++;
 
 use PDL::AutoLoader;
@@ -29,8 +30,8 @@ If no flag is specified, -h is assumed.
 
 EOH
 
-my $oflag = $#ARGV > -1 ? substr($ARGV[0],0,1) eq "-" : 0;
-die $usage unless ($#ARGV == 0 and not $oflag) or ($#ARGV == 1 and $oflag);
+my $oflag = @ARGV ? substr($ARGV[0],0,1) eq "-" : 0;
+die $usage unless (@ARGV == 1 and not $oflag) or (@ARGV == 2 and $oflag);
 
 my $option = "h";
 if ( $oflag ) {
@@ -39,7 +40,7 @@ if ( $oflag ) {
     shift @ARGV;
 }
 
-&{$options{$option}}( $ARGV[0] );
+$options{$option}->( $ARGV[0] );
 
 exit;
 
