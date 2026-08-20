@@ -246,7 +246,7 @@ sub finddoc {
   multimatch_header(\@match, $topic, $out) if @match > 1 and !$subfield;
   while (@match) {
     $pdl_pod_matchnum++;
-    if (@match > 0 and $num_pdl_pod_matches > 1) {
+    if ($num_pdl_pod_matches > 1) {
       print $out "\n=head1 Displaying item $pdl_pod_matchnum:\n\n=head1 --------------------------------------\n\n=cut\n\n";
     }
     my $m = shift @match;
@@ -257,13 +257,13 @@ sub finddoc {
       my $absfile = undef;
       my @scnd = @{$PDL::onlinedoc->{Scanned}};
       for my $dbf (@scnd) {
-         $dbf = catdir(dirname $dbf, $relfile);
-         $absfile = $dbf if -e $dbf;
+        $dbf = catfile(dirname($dbf), $relfile);
+        $absfile = $dbf, last if -e $dbf;
       }
       die "Documentation error: couldn't find absolute path to $relfile\n"
         if !$absfile;
-      open my $in, "<", $absfile;
-      print $out join "", <$in>;
+      open my $in, "<", $absfile or die "$absfile: $!";
+      print $out $_ while <$in>;
     } else {
       if (defined $m->[2]{CustomFile}) {
         require Pod::Text;
@@ -321,7 +321,7 @@ sub find_autodoc {
     @main::PDLLIB_EXPANDED = PDL::AutoLoader::expand_path(@main::PDLLIB)
 	unless(@main::PDLLIB_EXPANDED);
 
-    for my $dir(@main::PDLLIB_EXPANDED) {
+    for my $dir (@main::PDLLIB_EXPANDED) {
 	if ($exact) {
 	    my $file = $dir . "/" . "$topic";
 	    push(@out,
