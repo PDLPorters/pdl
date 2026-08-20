@@ -106,7 +106,10 @@ my %makefile_hash = (
   NAME => 'PDL',
   VERSION_FROM => 'lib/PDL.pm',
   EXE_FILES => \@exe_files,
-  PL_FILES => { 'lib/PDL/Index.pod.PL' => { 'lib/PDL/Index.pod' => \@pd_pm_files } },
+  PL_FILES => {
+    'lib/PDL/Index.pod.PL' => { 'lib/PDL/Index.pod' => \@pd_pm_files },
+    'lib/PDL/Core/pdl.h.PL' => { 'lib/PDL/Core/pdl.h' => ['lib/PDL/Types.pm'] },
+  },
   META_MERGE => {
      "meta-spec" => { version => 2 },
      resources => {
@@ -174,11 +177,6 @@ sub postamble {
 $pdlroot$::Config{exe_ext} : $pdlroot.c
 \t\$(CC) \$(CCFLAGS) \$(CPPFLAGS) \$(OPTIMIZE) \$(LDFLAGS) \$(CCCDLFLAGS) $pdlroot.c -o \$\@
 EOT
-  my $typespm = ::catfile(qw(lib PDL Types.pm));
-  for (qw(pdl.h)) {
-    my $base = ::catfile(qw(lib PDL Core), $_);
-    $text .= "$base :: $base.PL $typespm\n\t\$(PERLRUN) $base.PL $base\n";
-  }
   $text .= "\n" . ::coretarget($self);
   my $coretest = join ' ', map ::catfile('t', $_.'.t'), qw(
     01-pptest autoload bad basic bool clump constructor core croak lvalue
@@ -206,9 +204,6 @@ sub init_PM {
   my ($self) = @_;
   $self->SUPER::init_PM;
   my ($pm, $plf) = @$self{qw(PM PL_FILES)};
-  for my $f (grep /pdl\.h\.PL$/, keys %$pm) {
-    $pm->{ ::catfile(split '/', _nopl($f)) } = _nopl(delete $pm->{$f}); # dealing in postamble but still install
-  }
   for my $f (grep /\.PL$/, keys %$pm) {
     my $f_nopl = _nopl($f);
     $plf->{$f} ||= $f_nopl;
