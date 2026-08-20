@@ -225,9 +225,9 @@ sub finddoc {
   # print out the matches
   open my $out, "| pod2text | $PDL::Doc::pager";
   binmode $out, ':encoding(UTF-8)';
-  if($subfield) {
-    if($subfield <= @match) {
-      @match = ($match[$subfield-1]);
+  if ($subfield) {
+    if ($subfield <= @match) {
+      @match = $match[$subfield-1];
       $subfield = 0;
     } else {
       print $out "\n\n=head1 PDL HELP: Ignoring out-of-range selector $subfield\n\n=head1\n\n=head1 --------------------------------\n\n";
@@ -236,18 +236,18 @@ sub finddoc {
   }
   my $num_pdl_pod_matches = scalar @match;
   my $pdl_pod_matchnum = 0;
+  if (@match > 1   and   !$subfield) {
+    print $out "\n\n=head1 MULTIPLE MATCHES FOR HELP TOPIC '$topic':\n\n=head1\n\n=over 3\n\n";
+    my $i=0;
+    for my $m (@match) {
+      printf $out "\n=item [%d]\t%-30s %s%s\n\n",
+        ++$i, $m->[0], $m->[2]{Module} && "in " || ' (module)',
+        $m->[2]{CustomFile} || $m->[2]{Module} || '';
+    }
+    print $out "\n=back\n\n=head1\n\n To see item number \$n, use 'help ${topic}\[\$n\]'. \n\n=cut\n\n";
+  }
   while (@match) {
     $pdl_pod_matchnum++;
-    if (  @match > 1   and   !$subfield  and $pdl_pod_matchnum==1 ) {
-      print $out "\n\n=head1 MULTIPLE MATCHES FOR HELP TOPIC '$topic':\n\n=head1\n\n=over 3\n\n";
-      my $i=0;
-      for my $m ( @match ) {
-        printf $out "\n=item [%d]\t%-30s %s%s\n\n",
-          ++$i, $m->[0], $m->[2]{Module} && "in " || ' (module)',
-          $m->[2]{CustomFile} || $m->[2]{Module} || '';
-      }
-      print $out "\n=back\n\n=head1\n\n To see item number \$n, use 'help ${topic}\[\$n\]'. \n\n=cut\n\n";
-    }
     if (@match > 0 and $num_pdl_pod_matches > 1) {
       print $out "\n=head1 Displaying item $pdl_pod_matchnum:\n\n=head1 --------------------------------------\n\n=cut\n\n";
     }
@@ -303,7 +303,7 @@ sub find_autodoc {
     my $matcher;
     # Fix up regexps and exact matches for the special case of
     # searching the autoload dirs...
-    if($exact) {
+    if ($exact) {
 	$topic =~ s/\(\)$//;  # "func()" -> "func"
 	$topic .= ".pdl" unless $topic =~ m/\.pdl$/;
     } else {
@@ -324,12 +324,12 @@ sub find_autodoc {
 	unless(@main::PDLLIB_EXPANDED);
 
     for my $dir(@main::PDLLIB_EXPANDED) {
-	if($exact) {
+	if ($exact) {
 	    my $file = $dir . "/" . "$topic";
 	    push(@out,
 	          [$file, undef, {CustomFile => "$file", Module => "file '$file'"}]
 		 )
-		if(-e $file);
+		if -e $file;
 	} else {
 	    opendir(FOO,$dir) || next;
 	    my @dir = readdir(FOO);
@@ -474,7 +474,7 @@ or a data structure, or examining WTF an unknown object is.
 sub whatis {
   my $topic;
 
-  if(@_ > 1) {
+  if (@_ > 1) {
     whatis_r('',0,[@_]);
   } else {
     whatis_r('',0,shift);
@@ -505,22 +505,20 @@ sub whatis_r {
     return;
   }
 
-  if(ref $x eq 'ARRAY') {
+  if (ref $x eq 'ARRAY') {
     print "${prefix}Array (".scalar(@$x)." elements):\n";
-
     my($el);
     for $el(0..$#$x) {
       my $pre = sprintf("%s  %2d: "," "x$indent,$el);
       whatis_r($pre,$indent + $PDL::Doc::Perldl::array_indent, $x->[$el]);
-      last if($el == $PDL::Doc::Perldl::max_arraylen);
+      last if $el == $PDL::Doc::Perldl::max_arraylen;
     }
     printf "%s   ... \n"," " x $indent
-      if($#$x > $PDL::Doc::Perldl::max_arraylen);
-
+      if $#$x > $PDL::Doc::Perldl::max_arraylen;
     return;
   }
 
-  if(ref $x eq 'HASH') {
+  if (ref $x eq 'HASH') {
     print "${prefix}Hash (".scalar(keys %$x)." elements)\n";
     my $key;
     for $key(sort keys %$x) {
@@ -533,17 +531,17 @@ sub whatis_r {
     return;
   }
 
-  if(ref $x eq 'CODE') {
+  if (ref $x eq 'CODE') {
     print "${prefix}Perl CODE ref\n";
     return;
   }
 
-  if(ref $x eq 'SCALAR' || ref $x eq 'REF') {
+  if (ref $x eq 'SCALAR' || ref $x eq 'REF') {
     whatis_r($prefix." Ref -> ",$indent+8,$$x);
     return;
   }
 
-  if(UNIVERSAL::can($x,'px')) {
+  if (UNIVERSAL::can($x,'px')) {
     my $y;
     local $PDL::debug = 1;
 
