@@ -484,7 +484,7 @@ The hash must conform to the 3-level hash format.
 
 sub new_from_hash {
   my ($type, $hash) = @_;
-  my $this = bless { File => [], Scanned => [] },$type;
+  my $this = bless { Files => [], Scanned => [] },$type;
   $this->{SYMS} = $hash if defined $hash;
   $this;
 }
@@ -497,7 +497,7 @@ Add file(s) to this object's online database. Returns object.
 
 sub addfiles {
   my ($this,@files) = @_;
-  push @{$this->{File}}, @files;
+  push @{$this->{Files}}, @files;
   $this;
 }
 
@@ -509,7 +509,7 @@ Make sure that the database is slurped in
 
 sub ensuredb {
   my ($this) = @_;
-  while (my $fi = pop @{$this->{File}}) {
+  while (my $fi = pop @{$this->{Files}}) {
     open my $fh, $fi or confess "can't open database $fi, scan docs first";
     my $got_hash = decodedb($fh, $fi);
     merge_hash($this->{SYMS} ||= {}, $got_hash);
