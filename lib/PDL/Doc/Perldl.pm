@@ -226,7 +226,8 @@ sub finddoc {
   my $subfield = $1
     if $topic =~ s/\[(\d*)\]$//; # ends with a number in square brackets?
   (my $t2 = $topic) =~ s/([^a-zA-Z0-9_])/\\$1/g;  #$t2 is a copy of $topic with escaped non-word characters
-  my @match = search_docs("m/^(PDL::)?".$t2."\$/",['Name'],0); #matches: ^PDL::topic$ or ^topic$
+  my @match = sort {$a->[0] cmp $b->[0] || $a->[1] cmp $b->[1] } # stable order so subfield meaningful
+    search_docs("m/^(PDL::)?".$t2."\$/",['Name'],0); #matches: ^PDL::topic$ or ^topic$
   unless (@match) {
     print "No PDL docs for '$topic'. Using 'whatis'. (Try 'apropos $topic'?)\n\n";
     whatis($topic);
