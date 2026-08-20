@@ -223,7 +223,7 @@ sub finddoc {
   die 'Usage: doc $topic' unless $#_>-1;
   my $topic = shift;
   # See if it matches a PDL function name
-  my $subfield = $1
+  my $subfield; $subfield = $1
     if $topic =~ s/\[(\d*)\]$//; # ends with a number in square brackets?
   (my $t2 = $topic) =~ s/([^a-zA-Z0-9_])/\\$1/g;  #$t2 is a copy of $topic with escaped non-word characters
   my @match = sort {$a->[0] cmp $b->[0] || $a->[1] cmp $b->[1] } # stable order so subfield meaningful
