@@ -67,7 +67,7 @@ if (!$pthread_library) {
 my $pthread_define  = $pthread_library ? ' -DPDL_PTHREAD ' : '';
 my $libs_string = "$pthread_library ".get_maths_libs();
 
-my $hdeps = join ' ', map catfile(qw(lib PDL Core), $_), qw(pdl.h pdlperl.h pdlcore.h pdlbroadcast.h pdlmagic.h);
+my $hdeps = join ' ', map catfile(qw(lib PDL Core), "$_.h"), qw(pdl pdlperl pdlcore pdlbroadcast pdlmagic);
 my @cfiles = qw(pdlcore pdlapi pdlbroadcast pdlconv pdlmagic pdlaffine pdlutil);
 my $cobj = join ' ', map catfile(qw(lib PDL Core), qq{$_\$(OBJ_EXT)}), @cfiles;
 push @cleanup, $cobj;
