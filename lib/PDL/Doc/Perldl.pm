@@ -266,10 +266,9 @@ sub finddoc {
       print $out $_ while <$in>;
     } else {
       if (defined $m->[2]{CustomFile}) {
-        require Pod::Text;
-        my $parser = Pod::Text->new;
         print $out "=head1 Autoload file \"".$m->[2]{CustomFile}."\"\n\n";
-        $parser->parse_from_file($m->[2]{CustomFile},$out);
+        open my $in, "<", $m->[2]{CustomFile} or die "$m->[2]{CustomFile}: $!";
+        print $out $_ while <$in>;
         print $out "\n\n=head2 Docs from\n\n".$m->[2]{CustomFile}."\n\n";
       } else {
         print $out "=encoding utf8\n\n=head1 Module ",$m->[2]{Module}, "\n\n";
