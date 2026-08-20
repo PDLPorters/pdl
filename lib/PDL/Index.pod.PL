@@ -13,6 +13,8 @@ foreach my $dir (@dirs) {
     $onldc->scan($PDL_pm) if -s $PDL_pm;
 }
 write_index($onldc, $outindex);
+$onldc->scantree($dirs[0]); # catch ourself now
+write_index($onldc, $outindex);
 
 sub write_index {
   my ($onldc, $outindex) = @_;
