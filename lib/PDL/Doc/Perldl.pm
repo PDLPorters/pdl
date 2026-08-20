@@ -48,7 +48,8 @@ our @EXPORT = qw( apropos aproposover usage help sig badinfo whatis );
 
 use PDL::Doc;
 use Pod::Text;
-use Cwd; # to help Debian packaging
+use File::Spec::Functions;
+use File::Basename;
 
 # Find std file
 
@@ -270,10 +271,8 @@ sub finddoc {
 	   my $absfile = undef;
 	   my @scnd = @{$PDL::onlinedoc->{Scanned}};
 	   for my $dbf (@scnd) {
-	       $dbf = Cwd::abs_path($dbf); # help Debian packaging
-	       $dbf =~ s:\/[^\/]*$::; # Trim file name off the end of the database file to get just the directory
-	       $dbf .= "/$relfile";
-	       $absfile = $dbf if( -e $dbf );
+	       $dbf = catdir(dirname $dbf, $relfile);
+	       $absfile = $dbf if -e $dbf;
 	   }
 	   unless ($absfile) {
 	       die "Documentation error: couldn't find absolute path to $relfile\n";
