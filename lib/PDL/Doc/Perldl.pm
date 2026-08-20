@@ -254,17 +254,21 @@ sub finddoc {
     my $Ref = $m->[2]{Ref};
     if ($Ref && $Ref =~ /^(Module|Manual|Script): /) {
       # We've got a file name and we have to open it.  With the relocatable db, we have to reconstitute the absolute pathname.
-      my $relfile = $m->[2]{File};
-      my $absfile = undef;
-      my @scnd = @{$PDL::onlinedoc->{Scanned}};
-      for my $dbf (@scnd) {
+      my ($relfile, $absfile) = $m->[2]{File};
+      if (!$relfile) {
+        print $out "\n\n=head1 Documentation error: no File for (@$m[0,1])\n\n";
+        next;
+      }
+      for my $dbf (@{$PDL::onlinedoc->{Scanned}}) {
         $dbf = catfile(dirname($dbf), $relfile);
         $absfile = $dbf, last if -f $dbf;
       }
-      die "Documentation error: couldn't find absolute path to $relfile\n"
-        if !$absfile;
-      open my $in, "<", $absfile or die "$absfile: $!";
-      print $out $_ while <$in>;
+      if ($absfile) {
+        open my $in, "<", $absfile or die "$absfile: $!";
+        print $out $_ while <$in>;
+      } else {
+        print $out "\n\n=head1 Documentation error: couldn't find absolute path to $relfile\n\n";
+      }
     } else {
       if (defined $m->[2]{CustomFile}) {
         print $out "=head1 Autoload file \"".$m->[2]{CustomFile}."\"\n\n";
