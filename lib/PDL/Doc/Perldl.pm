@@ -236,16 +236,12 @@ sub finddoc {
   # print out the matches
   open my $out, "| pod2text | $PDL::Doc::pager";
   binmode $out, ':encoding(UTF-8)';
-  if ($subfield) {
-    if ($subfield <= @match) {
-      @match = $match[$subfield-1];
-      $subfield = 0;
-    } else {
-      print $out "\n\n=head1 PDL HELP: Ignoring out-of-range selector $subfield\n\n=head1\n\n=head1 --------------------------------\n\n";
-      $subfield = undef;
-    }
+  if ($subfield and $subfield > @match) {
+    print $out "\n\n=head1 PDL HELP: Ignoring out-of-range selector $subfield\n\n=head1\n\n=head1 --------------------------------\n\n";
+    $subfield = undef;
   }
-  my $num_pdl_pod_matches = scalar @match;
+  @match = $match[$subfield-1], $subfield = 0 if $subfield;
+  my $num_pdl_pod_matches = @match;
   my $pdl_pod_matchnum = 0;
   multimatch_header(\@match, $topic, $out) if @match > 1 and !$subfield;
   while (@match) {
