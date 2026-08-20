@@ -963,43 +963,12 @@ sub gen_db {
 
 =for ref
 
-Replaced with PDL::Core::Dev pdldoc_add in 2.106.
-
-As of 2.106, C<pdldoc> documentation is stored in one centrally-installed file per distribution. If your distribution is pure-Perl, you need this in your F<Makefile.PL>:
-
-  use PDL::Core::Dev;
-  sub MY::postamble { ::pdldoc_add() }
-
-If your distribution already has a C<postamble> that calls
-L<PDL::Core::Dev/pdlpp_postamble>, this will be magically done for
-you.
+Replaced with PDL::Core::Dev pdldoc_add in 2.106, and removed in 2.107.
 
 =cut
 
 sub add_module {
-  my ($module) = @_;
-  my ($file) = find_dbs();
-  die "Unable to find docs database - therefore not updating it.\n" if !defined $file;
-  die "No write permission for $file - not updating docs database.\n"
-    if !-w $file;
-  print "Found docs database $file\n";
-  my $pdldoc = PDL::Doc->new($file);
-  my @pkg = my @mfile = split /::/, $module;
-  my $mlast = pop @mfile;
-  my @found;
-  for (qw(.pm .pod)) {
-    my @this = _find_inc([@mfile, $mlast.$_], 0, 1);
-    push(@found, @this), last if @this;
-  }
-  die "Unable to find a .pm or .pod file in \@INC for module $module\n" if !@found;
-  $pdldoc->ensuredb;
-  my $n = 0;
-  $n += $pdldoc->scan($_) for @found;
-  print "Added @found, $n functions.\n";
-  $n += $pdldoc->scantree($_) for _find_inc(\@pkg, 1, 1);
-  eval { $pdldoc->savedb($file); };
-  warn $@ if $@;
-  print "PDL docs database updated - total $n functions.\n";
+  die "add_module has been removed - please use pdldoc_add instead.\n";
 }
 
 =head1 PDL::DOC EXAMPLE
