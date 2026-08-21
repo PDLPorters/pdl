@@ -740,9 +740,9 @@ Locate the source file for a function.
 sub find_src {
   my ($this,$func,$module) = @_;
   my $hash = $this->ensuredb;
-  confess "unknown function '$func'" unless defined(my $hf = $hash->{$func});
-  confess "function '$func' has no module '$module' entry" unless defined(my $mref = $hf->{$module});
-  my $file = $mref->{File};
+  die "unknown function '$func'\n" unless defined(my $hf = $hash->{$func});
+  die "function '$func' has no module '$module' entry\n" unless defined(my $mref = $hf->{$module});
+  die "function '$func' has no File entry\n" unless defined(my $file = $mref->{File});
   my $dbf = $mref->{Dbfile};
   $file = Cwd::abs_path($file) if file_name_is_absolute($file);
   $dbf = Cwd::abs_path($dbf); # help Debian packaging

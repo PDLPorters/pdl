@@ -255,7 +255,8 @@ sub finddoc {
     if ($Ref && $Ref =~ /^(Module|Manual|Script): /) {
       my $absfile = eval { $PDL::onlinedoc->find_src(@$m[0,1]) };
       if ($@) {
-        print $out "\n\n=head1 Documentation error\n\n$@\n\n";
+        print $out "\n\n=head1 Documentation error: $@\n\n";
+        $@ = ''; # reset so REPL not also report
         next;
       }
       open my $in, "<", $absfile or die "$absfile: $!";
