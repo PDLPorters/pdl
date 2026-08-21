@@ -456,6 +456,7 @@ use warnings;
 use Carp qw(confess);
 use File::Basename;
 use File::Spec::Functions qw(abs2rel rel2abs catdir catfile);
+use File::Which qw(which);
 use Config;
 use Encode;
 
@@ -740,10 +741,9 @@ sub find_src {
   my $hash = $this->ensuredb;
   die "unknown function '$func'\n" unless defined(my $hf = $hash->{$func});
   die "function '$func' has no module '$module' entry\n" unless defined(my $mref = $hf->{$module});
-  die "function '$func' has no File entry\n" unless defined(my $file = $mref->{File});
-  my $dbf = $mref->{Dbfile};
-  $file = rel2abs($file, dirname($dbf));
-  $file;
+  return rel2abs($mref->{File}, dirname($mref->{Dbfile}))
+    if defined $mref->{File};
+  scalar which $func;
 }
 
 =head2 funcdocs
@@ -815,8 +815,8 @@ sub encodedb {
     my $mods_hash = $hash->{$name};
     for my $module (sort keys %$mods_hash) {
       my $val = $mods_hash->{$module};
-      my $fi = $val->{File};
-      $val->{File} = abs2rel($fi, $outdir); #store paths relative to pdldoc.db
+      $val->{File} = abs2rel($val->{File}, $outdir) #store paths relative to pdldoc.db
+        if defined $val->{File};
       delete $val->{Dbfile}; # no need to store Dbfile
       my $txt = Encode::encode('UTF-8', join chr(0),$name,$module,map +($_=>$val->{$_}), sort keys %$val);
       print $fh pack("v",length($txt)).$txt;
@@ -863,7 +863,10 @@ sub scantext {
     $filename =~ /script/ ? 'Script:' :
     $filename =~ /\.pod$/ ? 'Manual:' :
       'Module:';
-  $hash{$name}{$name} = {Ref=>"$type $does",File=>$filename} if $name and $name !~ /^\s*$/;
+  if ($name and $name =~ /\S/) {
+    my $ref = $hash{$name}{$name} = {Ref=>"$type $does"};
+    $ref->{File} = $filename if $type ne 'Script:';
+  }
   \%hash;
 }
 
