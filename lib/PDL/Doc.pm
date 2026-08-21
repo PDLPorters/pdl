@@ -731,6 +731,25 @@ sub scantree {
   $ntot;
 }
 
+=head2 find_src
+
+Locate the source file for a function.
+
+=cut
+
+sub find_src {
+  my ($this,$func,$module) = @_;
+  my $hash = $this->ensuredb;
+  confess "unknown function '$func'" unless defined(my $hf = $hash->{$func});
+  confess "function '$func' has no module '$module' entry" unless defined(my $mref = $hf->{$module});
+  my $file = $mref->{File};
+  my $dbf = $mref->{Dbfile};
+  $file = Cwd::abs_path($file) if file_name_is_absolute($file);
+  $dbf = Cwd::abs_path($dbf); # help Debian packaging
+  $file = rel2abs($file, dirname($dbf))
+    if !file_name_is_absolute($file) && $dbf;
+  $file;
+}
 
 =head2 funcdocs
 
@@ -741,16 +760,7 @@ source file using the PDL::PodParser filter.
 
 sub funcdocs {
   my ($this,$func,$module,$fout) = @_;
-  my $hash = $this->ensuredb;
-  confess "unknown function '$func'" unless defined(my $hf = $hash->{$func});
-  confess "funcdocs now requires 3 arguments" if defined fileno $module;
-  my $file = $hf->{$module}{File};
-  my $dbf = $hf->{$module}{Dbfile};
-  $file = Cwd::abs_path($file) if file_name_is_absolute($file);
-  $dbf = Cwd::abs_path($dbf); # help Debian packaging
-  $file = rel2abs($file, dirname($dbf))
-    if !file_name_is_absolute($file) && $dbf;
-  funcdocs_fromfile($func,$file,$fout);
+  funcdocs_fromfile($func, $this->find_src($func,$module), $fout);
 }
 
 =head1 FUNCTIONS
