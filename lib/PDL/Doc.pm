@@ -455,8 +455,7 @@ use strict;
 use warnings;
 use Carp qw(confess);
 use File::Basename;
-use File::Spec::Functions qw(file_name_is_absolute abs2rel rel2abs catdir catfile);
-use Cwd (); # to help Debian packaging
+use File::Spec::Functions qw(abs2rel rel2abs catdir catfile);
 use Config;
 use Encode;
 
@@ -682,7 +681,6 @@ for online documentation
 sub scan {
   my ($this,$file,$verbose) = @_;
   confess "can't find file '$file'" unless -f $file;
-  $file = Cwd::abs_path($file); # help Debian packaging
   $verbose //= 0;
   my $text = do { open my $infile, '<', $file or die "$file: $!"; local $/; <$infile> };
   # Handle RPM etc. case where we are building away from the final location
@@ -744,10 +742,7 @@ sub find_src {
   die "function '$func' has no module '$module' entry\n" unless defined(my $mref = $hf->{$module});
   die "function '$func' has no File entry\n" unless defined(my $file = $mref->{File});
   my $dbf = $mref->{Dbfile};
-  $file = Cwd::abs_path($file) if file_name_is_absolute($file);
-  $dbf = Cwd::abs_path($dbf); # help Debian packaging
-  $file = rel2abs($file, dirname($dbf))
-    if !file_name_is_absolute($file) && $dbf;
+  $file = rel2abs($file, dirname($dbf));
   $file;
 }
 
@@ -821,9 +816,7 @@ sub encodedb {
     for my $module (sort keys %$mods_hash) {
       my $val = $mods_hash->{$module};
       my $fi = $val->{File};
-      $val->{File} = abs2rel($fi, $outdir)
-        #store paths to *.pm files relative to pdldoc.db
-        if file_name_is_absolute($fi) && -f $fi;
+      $val->{File} = abs2rel($fi, $outdir); #store paths relative to pdldoc.db
       delete $val->{Dbfile}; # no need to store Dbfile
       my $txt = Encode::encode('UTF-8', join chr(0),$name,$module,map +($_=>$val->{$_}), sort keys %$val);
       print $fh pack("v",length($txt)).$txt;

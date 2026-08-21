@@ -3,6 +3,7 @@ use warnings;
 use Test::More;
 use PDL::Doc;
 use PDL::Doc::Perldl;
+use File::Spec::Functions qw(catfile updir);
 
 my $mod_text = <<'EOF';
 =head1 NAME
@@ -104,16 +105,18 @@ is $func_text, $cvf_text;
 open my $fh, '>', \(my $encoded_text);
 PDL::Doc::encodedb($got, $fh, 'DIRNAME');
 my @splitup = split "\x00", $encoded_text;
+my $upfile = catfile(updir, 'Example.pod');
+my %updated_hash = (%cvf_hash, File => $upfile);
 is_deeply \@splitup, [
-  'A',
+  'D',
   'PDL::Example',
     'PDL::Example',
-    File => 'Example.pod',
+    File => $upfile,
     Ref => "Manual: does stuff".
-   "\xAE\x01convert_flowing",
+   "\xB1\x01convert_flowing",
     'PDL::Example',
-    (map +($_=>$cvf_hash{$_}), sort keys %cvf_hash),
-] or diag explain \@splitup;
+    (map +($_=>$updated_hash{$_}), sort keys %updated_hash),
+] or diag explain [map s/[^\x20-\x7F]/"\\x".sprintf "%02X", ord $&/ger, @splitup];
 
 open $fh, '<', \$encoded_text;
 my $decode_hash = PDL::Doc::decodedb($fh, 'FILENAME');
@@ -121,14 +124,14 @@ is_deeply $decode_hash, {
   'PDL::Example' => {
     'PDL::Example' => {
       'Dbfile' => 'FILENAME',
-      'File' => 'Example.pod',
+      'File' => $upfile,
       'Ref' => 'Manual: does stuff'
     }
   },
   'convert_flowing' => {
     'PDL::Example' => {
       'Dbfile' => 'FILENAME',
-      %cvf_hash,
+      %updated_hash,
     }
   }
 } or diag explain $decode_hash;
