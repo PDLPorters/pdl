@@ -156,6 +156,9 @@ void pdl_dump_anyval(PDL_Anyval v);
   X(unpackpdls, SV*, ( pdl **, PDL_Indx npdls )) \
   X(packstrings, char **, ( SV* sv, PDL_Indx *nstrings )) \
   X(prealloc_trans_children, pdl_error, (pdl *it, PDL_Indx howmany)) \
+  /* big CORE21 section here for NGC */ \
+  X(pdl_barfNGC, void, (pTHX_ const char* pat,...)) \
+  X(pdl_warnNGC, void, (pTHX_ const char* pat,...)) \
 
 /*************** Function prototypes *********************/
 #define X(sym, rettype, args) \

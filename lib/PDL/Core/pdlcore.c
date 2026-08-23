@@ -251,9 +251,10 @@ void* pdl_smalloc ( STRLEN nbytes ) {
    For greppability: this is where pdl_pdl_barf and pdl_pdl_warn are defined
 */
 
-#define GEN_PDL_BARF_OR_WARN_I_STDARG(type, iswarn)     \
-  void pdl_pdl_##type(const char* pat, ...)           \
+#define GEN_PDL_BARF_OR_WARN_I_STDARG(maybe_param, maybe_decl, type, iswarn) \
+  void pdl_pdl_##type(maybe_param const char* pat, ...)           \
   { \
+    maybe_decl; /* CORE21 */ \
     va_list args;                                   \
     va_start(args, pat);                            \
     /* If we're in a worker thread, we queue the \
@@ -289,8 +290,10 @@ void* pdl_smalloc ( STRLEN nbytes ) {
     LEAVE; \
   }
 
-GEN_PDL_BARF_OR_WARN_I_STDARG(barf, 0)
-GEN_PDL_BARF_OR_WARN_I_STDARG(warn, 1)
+GEN_PDL_BARF_OR_WARN_I_STDARG(, dTHX, barf, 0)
+GEN_PDL_BARF_OR_WARN_I_STDARG(, dTHX, warn, 1)
+GEN_PDL_BARF_OR_WARN_I_STDARG(pTHX_ , , barfNGC, 0)
+GEN_PDL_BARF_OR_WARN_I_STDARG(pTHX_ , , warnNGC, 1)
 
 /**********************************************************************
  *
