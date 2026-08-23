@@ -410,6 +410,13 @@ my ($pf,$pv)  = rlevec($p);
 is_pdl $pf, my $pf_expect = indx([3,2,1,0,0,0]), "rlevec():counts";
 is_pdl $pv, my $pv_expect = pdl([[1,2],[3,4],[5,6],[0,0],[0,0],[0,0]]), "rlevec():elts";
 
+subtest 'rlevec with badflag gives warnings' => sub {
+  my @w;
+  local $SIG{__WARN__} = sub { push @w, @_ };
+  my @res = rlevec(pdl('BAD'));
+  like "@w", qr/WARNING:.*not handle/, 'gives warnings';
+};
+
 my $pd = rldvec($pf,$pv);
 is_pdl $pd, $p, "rldvec()";
 rldvec($pf,$pv,my $pdn = null);
