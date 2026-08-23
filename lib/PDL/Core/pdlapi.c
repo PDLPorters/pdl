@@ -735,6 +735,17 @@ static inline pdl_error pdl_trans_flow_null_checks(pdl_trans *trans, char *disab
   return PDL_err;
 }
 
+char pdl_any_inputs_bad(pdl_transvtable *vtable, pdl **pdls) {
+  PDL_Indx i, npdls=vtable->npdls;
+  for (i=0; i<npdls; i++) {
+    pdl *pdl = pdls[i];
+    if ((vtable->par_flags[i] & (PDL_PARAM_ISOUT|PDL_PARAM_ISTEMP)) ||
+        !(pdl->state & PDL_BADVAL)) continue;
+    return 1;
+  }
+  return 0;
+}
+
 /* Called with a filled pdl_trans struct.
  * Sets the parent and trans fields of the ndarrays correctly,
  * creating families and the like if necessary.
@@ -755,13 +766,7 @@ pdl_error pdl_make_trans_mutual(pdl_trans *trans)
   PDL_Indx i, npdls=vtable->npdls, nparents=vtable->nparents;
   PDL_TR_CHKMAGIC(trans);
   char disable_back = 0, inputs_bad = 0;
-  for (i=0; i<npdls; i++) {
-    pdl *pdl = pdls[i];
-    if ((vtable->par_flags[i] & (PDL_PARAM_ISOUT|PDL_PARAM_ISTEMP)) ||
-        !(pdl->state & PDL_BADVAL)) continue;
-    inputs_bad = trans->bvalflag = 1;
-    break;
-  }
+  inputs_bad = trans->bvalflag = pdl_any_inputs_bad(vtable, pdls);
   if (trans->bvalflag && (vtable->flags & PDL_TRANS_BADIGNORE)) {
     pdl_pdl_warn("WARNING: %s does not handle bad values", vtable->name);
     trans->bvalflag = 0; /* but still return true */
