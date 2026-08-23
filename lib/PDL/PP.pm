@@ -2024,18 +2024,32 @@ EOF
         join '', "$xs_c_header {\n$opening\n", @bits, "$closing\n}\n";
       }),
 
+   PDL::PP::Rule->new(["XSBadIgnoreWarn"],
+      [qw(BadFlag SignatureObj VTableName Name)],
+      "XS snippet to warn if bad inputs but xform ignores",
+      sub {
+        my ($badflag, $sig, $vname, $name) = @_;
+        return '' if $badflag;
+        my ($pnames, $pobjs) = map $sig->$_, qw(names_sorted objs);
+        my @vec_names = map $pobjs->{$_}->{FlagTemp} ? "NULL" : $_, @$pnames;
+        indent 2, join '', map "$_\n",
+          'pdl *pdls[] = {'.join(',', @vec_names).'};',
+          qq{if (PDL->any_inputs_bad(&$vname, pdls))},
+          qq{  warn("WARNING: $name does not handle bad values");}
+      }),
+
    # internal usage, not XS - NewXSCHdrs only set if GlobalNew
    PDL::PP::Rule->new(["NewXSCode","BootSetNewXS","NewXSInPrelude"],
       ["NewXSHdr", "NewXSCHdrs", "RunFuncCall"],
       "Non-varargs XS code when GlobalNew given",
       sub {(undef,(make_xs_code(' CODE:','',@_))[1..2])}),
    # if PMCode supplied, no var-args stuff
-   PDL::PP::Rule->new(["NewXSCode","BootSetNewXS","NewXSInPrelude"],
-      [qw(PMCode NewXSHdr NewXSCHdrs? FixArgsXSOtherOutDeclSV HdrCode RunFuncCall FtrCode XSOtherOutSet)],
+   PDL::PP::Rule->new([qw(NewXSCode BootSetNewXS NewXSInPrelude)],
+      [qw(PMCode NewXSHdr NewXSCHdrs? FixArgsXSOtherOutDeclSV HdrCode XSBadIgnoreWarn RunFuncCall FtrCode XSOtherOutSet)],
       "Non-varargs XS code when PMCode given",
       sub {make_xs_code(' CODE:','',@_[1..$#_])}),
    PDL::PP::Rule->new(["NewXSCode","BootSetNewXS","NewXSInPrelude"],
-      [qw(VarArgsXSHdr NewXSCHdrs? HdrCode InplaceCode RunFuncCall FtrCode XSOtherOutSet VarArgsXSReturn)],
+      [qw(VarArgsXSHdr NewXSCHdrs? HdrCode XSBadIgnoreWarn InplaceCode RunFuncCall FtrCode XSOtherOutSet VarArgsXSReturn)],
       "Rule to print out XS code when variable argument list XS processing is enabled",
       sub {make_xs_code('','',@_)}),
 
