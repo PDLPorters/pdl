@@ -225,11 +225,9 @@ SV* pdl_unpackpdls( pdl **pdls, PDL_Indx npdls ) {
    return sv_2mortal(newRV_noinc((SV *)array));
 }
 
+/* CORE21 remove */
 PDL_Indx pdl_safe_indterm( PDL_Indx dsz, PDL_Indx at, char *file, int lineno)
 {
-  if (!(at >= 0 && at < dsz))
-    pdl_pdl_barf("access [%d] out of range [0..%d] (inclusive) at %s line %d",
-          at, dsz-1, file?file:"?", lineno);
   return at;
 }
 
