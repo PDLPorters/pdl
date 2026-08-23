@@ -17,10 +17,6 @@
 
 #include <stdint.h>
 
-#if defined(CONTEXT) && defined(__osf__)
-#undef CONTEXT
-#endif
-
 #ifdef PDL_IN_CORE
 #define PDL_CORE_(func) pdl_##func
 #define PDL_TYPENAME(t) (!PDL.type_names ? "ERROR: type_names not set" : (t < 0 || t >= PDL_NTYPES) ? "INVALID" : PDL.type_names[t])

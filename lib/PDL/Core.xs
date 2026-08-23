@@ -7,10 +7,6 @@
 #include "perl.h"     /* std perl include */
 #include "XSUB.h"     /* XSUB include */
 
-#if defined(CONTEXT)
-#undef CONTEXT
-#endif
-
 #include "pdl.h"      /* Data structure declarations */
 #define PDL_IN_CORE /* access funcs directly not through PDL-> */
 #include "pdlcore.h"  /* Core declarations */
