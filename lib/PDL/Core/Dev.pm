@@ -246,7 +246,7 @@ sub _postamble {
   $w = dirname($w);
   my $perlrun = "\$(PERLRUN) \"-I$w\"";
   my ($pmdep, $pdldoc, $cdep) = ($src, doc_distro(), '');
-  my ($ppc, $ppo) = ($multi_c && $flist_cache{File::Spec::Functions::rel2abs($src)})
+  my ($ppc, $pph, $ppo) = ($multi_c && $flist_cache{File::Spec::Functions::rel2abs($src)})
     ? map "\$($_)", pdlpp_mod_vars($mod)
     : pdlpp_mod_values($internal, $src, $base, $multi_c);
   if ($internal) {
@@ -330,7 +330,7 @@ sub pdlpp_eumm_update_deep {
     my @macro_vars = pdlpp_mod_vars(my $mod = join '::', split /\//, $nolib);
     @$macro{@macro_vars} = pdlpp_mod_values(1, $f, $base, 1, 1);
     $eumm->{OBJECT} .= " $base\$(OBJ_EXT)";
-    $xsb->{$base}{OBJECT} = "\$($macro_vars[1])";
+    $xsb->{$base}{OBJECT} = "\$($macro_vars[2])";
     $xsb->{$base}{OBJECT} .= $EXTRAS{$f}{OBJECT} if $EXTRAS{$f}{OBJECT};
     $eumm->{DEFINE} .= $EXTRAS{$f}{DEFINE} if $EXTRAS{$f}{DEFINE}; # global
     $eumm->{INC} .= " $EXTRAS{$f}{INC}" if $EXTRAS{$f}{INC}; # global
@@ -373,7 +373,7 @@ sub pdlpp_mod_vars {
   my @parts = split /::/, $_[0];
   shift @parts if $parts[0] eq 'PDL';
   my $mangled = join '_', @parts;
-  map "PDL_MULTIC_${mangled}_$_", qw(C O);
+  map "PDL_MULTIC_${mangled}_$_", qw(C H O);
 }
 sub pdlpp_mod_values {
   my ($internal, $src, $base, $multi_c, $deep) = @_;
@@ -381,21 +381,23 @@ sub pdlpp_mod_values {
   my $cfileprefix = $deep ? "$base-" : '';
   my @cbase = map $cfileprefix."pp-$_", pdlpp_list_functions($src, $internal, $base);
   (join(' ', "$base.xs", map "$_.c", @cbase),
+    join(' ', map "$_.h", @cbase),
     join(' ', map "$_\$(OBJ_EXT)", $base, @cbase));
 }
 sub _stdargs {
   my ($w, $internal, $src, $base, $mod, $callpack, $multi_c) = @_;
   my ($clean, %hash) = '';
   if ($multi_c) {
-    my ($mangled_c, $mangled_o) = pdlpp_mod_vars($mod);
-    my ($mangled_c_val, $mangled_o_val) = pdlpp_mod_values($internal, $src, $base, $multi_c);
+    my ($mangled_c, $mangled_h, $mangled_o) = pdlpp_mod_vars($mod);
+    my ($mangled_c_val, $mangled_h_val, $mangled_o_val) = pdlpp_mod_values($internal, $src, $base, $multi_c);
     %hash = (%hash,
       macro        => {
-        $mangled_c => $mangled_c_val, $mangled_o => $mangled_o_val,
+        $mangled_c => $mangled_c_val, $mangled_h => $mangled_h_val,
+        $mangled_o => $mangled_o_val,
       },
       OBJECT       => "\$($mangled_o)",
     );
-    $clean .= " \$($mangled_c)";
+    $clean .= " \$($mangled_c) \$($mangled_h)";
   } else {
     %hash = (%hash, OBJECT => "$base\$(OBJ_EXT)");
     $clean .= " $base.xs";

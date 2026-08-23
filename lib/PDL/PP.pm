@@ -512,9 +512,11 @@ sub import {
   ($packname, $base, $callpack) = ($modname, $packname, $base)
           if ($packname =~ m|/|);
   $::PDLMOD=$modname; $::PDLPACK=$packname; $::PDLBASE=$base;
+  (my $base_base = $base) =~ s#.*[^a-zA-Z0-9_]+##;
   $::CALLPACK = $callpack || $::PDLMOD;
   $::PDLMULTI_C = $multi_c; # one pp-*.c per function
   $::PDLMULTI_C_PREFIX = $deep ? "$base-" : "";
+  $::PDLMULTI_C_PREFIX_BASE = $deep ? "$base_base-" : "";
   $::PDLOBJ = "PDL"; # define pp-funcs in this package
   $::PDLXS="";
   $::PDLOVERLOAD="";
@@ -737,12 +739,12 @@ sub _write_file {
 }
 
 sub printxsc {
-  (undef, my $file) = (shift, shift);
+  (undef, my $file, my $add_header_c) = (shift, shift, shift);
   my $text = join '',@_;
   if (defined $file) {
     (my $mod_underscores = $::PDLMOD) =~ s#::#_#g;
-    $text = join '', sprintf($PDL::PP::header_c, $0, $mod_underscores), $::PDLXSC_header//'', $text;
-    _write_file($file, $text);
+    my $header_c = !$add_header_c ? undef : join '', sprintf($PDL::PP::header_c, $0, $mod_underscores), $::PDLXSC_header//'';
+    _write_file($file, $add_header_c ? $header_c.$text : $text);
   } else {
     $::PDLXSC .= $text;
   }
@@ -857,10 +859,14 @@ sub pp_def {
 		VTableDef RunFunc
 	)});
 	if ($::PDLMULTI_C) {
-	  PDL::PP->printxsc(undef, $obj{RunFuncDecl});
-	  PDL::PP->printxsc($::PDLMULTI_C_PREFIX."pp-$obj{Name}.c", $ctext);
+	  my $hdr_base = "pp-$obj{Name}.h";
+	  my $hdr_name = $::PDLMULTI_C_PREFIX_BASE.$hdr_base;
+	  my $hdr_full_name = $::PDLMULTI_C_PREFIX.$hdr_base;
+	  PDL::PP->printxsc($hdr_full_name, 0, $obj{RunFuncDecl});
+	  PDL::PP->printxsc(undef, 1, qq{#include "$hdr_name"\n});
+	  PDL::PP->printxsc($::PDLMULTI_C_PREFIX."pp-$obj{Name}.c", 1, $ctext);
 	} else {
-	  PDL::PP->printxsc(undef, $ctext);
+	  PDL::PP->printxsc(undef, 1, $ctext);
 	}
 	PDL::PP->printxs($obj{NewXSCode});
 	pp_add_boot($obj{BootSetNewXS}) if $obj{BootSetNewXS};
@@ -1851,9 +1857,9 @@ END
         (indent(2,"PDL->barf_if_error($func_name($shortpars));\n"),
           "pdl_error $func_name($longpars)");
       }),
-   PDL::PP::Rule->new([qw(RunFuncDecl)],[qw(RunFuncHdr)], sub {
-        my ($func_hdr) = @_;
-        "$func_hdr;\n";
+   PDL::PP::Rule->new([qw(RunFuncDecl)],[qw(RunFuncHdr VTableName)], sub {
+        my ($func_hdr, $vname) = @_;
+        "extern pdl_transvtable $vname;\n$func_hdr;\n";
       }),
 
    PDL::PP::Rule->new("IgnoreTypesOf", ["FTypes","SignatureObj"], sub {

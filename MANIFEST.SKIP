@@ -76,4 +76,4 @@ Makefile\.old
 cover_db/
 ^nytprof(/|\.out)
 \.gc(ov|no|da)$
-pp-\w*\.c$
+pp-\w*\.[ch]$
