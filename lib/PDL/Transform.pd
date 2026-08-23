@@ -406,6 +406,7 @@ pp_def('map',
         Pars=>'k0()',  # Dummy to set type (should match the type of "in").
         OtherPars=>'pdl *in; pdl *out; pdl *map; SV *boundary; SV *method;
                     long big; double blur; double sv_min; char flux; SV *bv',
+        HandleBad => 1,
         CHeader => pp_line_numbers(__LINE__, <<'+==EOD_map_auxiliary=='),
 /*
  * Singular-value decomposition code is borrowed from

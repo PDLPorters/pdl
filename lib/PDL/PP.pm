@@ -1080,6 +1080,7 @@ $PDL::PP::deftbl =
         1, 1);
       }),
 
+   PDL::PP::Rule::Returns::One->new('HandleBad', 'AffinePriv', 'AffinePriv => HandleBad'),
    # used as a flag for many of the routines
    # ie should we bother with bad values for this routine?
    # 1     - yes,

@@ -2559,6 +2559,7 @@ transformation back to the parent when C<BackCode> is supplied.
 Flag to indicate this is an affine transformation whose C<Priv> (contents
 of the C<pdl_trans>) contains data that will need allocating and freeing.
 As of 2.104, implies C<P2Child> and C<Lvalue>.
+As of 2.107, implies C<HandleBad>.
 
 =head3 GlobalNew
 

@@ -3,6 +3,7 @@
 - PDL::Doc::add_module removed - use pdldoc_add() instead
 - pdldoc now sorts matches so subfield is reliable
 - add PDL.any_inputs_bad
+- AffinePriv now implies HandleBad=>1
 
 2.106 2026-08-19
 - mkgen can now extract .pod.PL, PDL::Index is now created from such

@@ -62,6 +62,7 @@ sub defswap {
   pp_def(
     "bswap$bytes",
     Pars => '[io] x()',
+    HandleBad => 1,
     RedoDimsCode => <<EOF,
 if (sizeof(\$GENERIC(x)) < $bytes)
   \$CROAK("Tried to bswap size $bytes but data type only %zd bytes", sizeof(\$GENERIC(x)));

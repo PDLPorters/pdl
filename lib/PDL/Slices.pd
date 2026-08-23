@@ -1373,6 +1373,7 @@ EOF
 pp_def('_clump_int',
         OtherPars => 'PDL_Indx n',
         P2Child => 1,
+        HandleBad => 1,
         RedoDims => pp_line_numbers(__LINE__, <<'EOF'),
 	         /* truncate overly long clumps to just clump existing dimensions */
 		 if($COMP(n) > $PDL(PARENT)->ndims)
@@ -1805,6 +1806,7 @@ pp_def('rotate',
         GenericTypes => [ppdefs_all],
         Doc => 'Shift vector elements along with wrap.',
         Pars=>'x(n); indx shift(); [oca]y(n)',
+        HandleBad => 1,
         RedoDimsCode=>'if ($SIZE(n) == 0) $CROAK("can not shift zero size ndarray");',
         Code=>$rotate_code.'
             $y(n=>j++) = $x();
