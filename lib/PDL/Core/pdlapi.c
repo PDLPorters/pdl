@@ -317,22 +317,20 @@ pdl_error pdl__free(pdl *it) {
 
 /* NULL out the pdl from the trans's inputs, and the trans from the
    pdl's trans_children */
-void pdl__remove_pdl_as_trans_input(pdl *it,pdl_trans *trans, PDL_Indx param_ind)
+pdl_error pdl__remove_pdl_as_trans_input(pdl *it,pdl_trans *trans, PDL_Indx param_ind)
 {
+  pdl_error PDL_err = {0, NULL, 0};
   pdl_transvtable *vtable = trans->vtable;
   PDLDEBUG_f(printf("pdl__remove_pdl_as_trans_input(%s=%p, pdl=%p, param_ind=%td): \n",
     vtable->name, trans, it, param_ind));
   PDL_Indx trans_children_index = trans->ind_sizes[vtable->ninds + param_ind];
-  if (it->trans_children[trans_children_index] != trans) {
-    /* this might be due to a croak when performing the trans; so
-       warn only for now, otherwise we leave trans undestructed ! */
-    pdl_pdl_warn("Child not found for pdl %p, trans %p=%s\n",it, trans, vtable->name);
-    return;
-  }
+  if (it->trans_children[trans_children_index] != trans)
+    return pdl_make_error(PDL_EFATAL, "Child not found for pdl %p, trans %p=%s\n",it, trans, vtable->name);
   it->trans_children[trans_children_index] = NULL;
   it->ntrans_children--;
   if (trans_children_index < it->first_trans_child_available)
     it->first_trans_child_available = trans_children_index;
+  return PDL_err;
 }
 
 /* NULL out the trans's nth pdl in/output, and this trans as pdl's
@@ -384,7 +382,7 @@ pdl_error pdl_destroytransform(pdl_trans *trans, int ensure, int recurse_count)
     pdl *parent = trans->pdls[j];
     if (!parent) continue;
     PDL_CHKMAGIC(parent);
-    pdl__remove_pdl_as_trans_input(parent,trans,j);
+    PDL_ACCUMERROR(PDL_err, pdl__remove_pdl_as_trans_input(parent,trans,j));
     if (!(parent->state & PDL_DESTROYING) && !parent->sv) {
       parent->state |= PDL_DESTROYING; /* so no mark twice */
       destbuffer[ndest++] = parent;
