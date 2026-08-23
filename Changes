@@ -4,6 +4,7 @@
 - pdldoc now sorts matches so subfield is reliable
 - add PDL.any_inputs_bad
 - AffinePriv now implies HandleBad=>1
+- now expand warning to if badflag set and HandleBad not = 1
 
 2.106 2026-08-19
 - mkgen can now extract .pod.PL, PDL::Index is now created from such

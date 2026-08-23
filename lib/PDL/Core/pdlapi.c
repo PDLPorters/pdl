@@ -767,7 +767,7 @@ pdl_error pdl_make_trans_mutual(pdl_trans *trans)
   PDL_TR_CHKMAGIC(trans);
   char disable_back = 0, inputs_bad = 0;
   inputs_bad = trans->bvalflag = pdl_any_inputs_bad(vtable, pdls);
-  if (trans->bvalflag && (vtable->flags & PDL_TRANS_BADIGNORE)) {
+  if (trans->bvalflag && !(vtable->flags & PDL_TRANS_BADPROCESS)) {
     pdl_pdl_warn("WARNING: %s does not handle bad values", vtable->name);
     trans->bvalflag = 0; /* but still return true */
   }

@@ -17,6 +17,14 @@ subtest '$output = append (null,null) ' => sub {
     ok $output->isempty, 'returns empty';
 };
 
+# PDL::NDBin needs
+subtest 'append with badflag no warnings' => sub {
+  my @w;
+  local $SIG{__WARN__} = sub { push @w, @_ };
+  my $out = append( pdl('BAD'), pdl('BAD') );
+  is "@w", '', 'no warnings';
+};
+
 subtest 'append(null, null, $output)' => sub {
     my $output = zeroes(1);
     append( null, null, $output );

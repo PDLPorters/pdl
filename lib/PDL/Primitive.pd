@@ -1351,6 +1351,7 @@ EOD
 pp_def('append',
 	Pars => 'a(n); b(m); [o] c(mn=CALC($SIZE(n)+$SIZE(m)))',
         GenericTypes => [ppdefs_all],
+        HandleBad => 1,
         PMCode => pp_line_numbers(__LINE__-1, '
 sub PDL::append {
   my ($i1, $i2, $o) = map PDL->topdl($_), @_;
