@@ -857,7 +857,7 @@ sub pp_def {
 		VTableDef RunFunc
 	)});
 	if ($::PDLMULTI_C) {
-	  PDL::PP->printxsc(undef, "$obj{RunFuncHdr};\n");
+	  PDL::PP->printxsc(undef, $obj{RunFuncDecl});
 	  PDL::PP->printxsc($::PDLMULTI_C_PREFIX."pp-$obj{Name}.c", $ctext);
 	} else {
 	  PDL::PP->printxsc(undef, $ctext);
@@ -1843,12 +1843,16 @@ END
         return ["pdl_error $name($longpars) {$opening","$closing}",
                 "  PDL->$gname = $name;"];
       }),
-   PDL::PP::Rule->new(["RunFuncCall","RunFuncHdr"],["RunFuncName","SignatureObj"], sub {
+   PDL::PP::Rule->new([qw(RunFuncCall RunFuncHdr)],[qw(RunFuncName SignatureObj)], sub {
         my ($func_name,$sig) = @_;
         my $shortpars = join ',', map $sig->other_is_output($_)?"&$_":$_, @{ $sig->allnames(0) };
         my $longpars = join ",", $sig->alldecls(0, 1);
         (indent(2,"PDL->barf_if_error($func_name($shortpars));\n"),
           "pdl_error $func_name($longpars)");
+      }),
+   PDL::PP::Rule->new([qw(RunFuncDecl)],[qw(RunFuncHdr)], sub {
+        my ($func_hdr) = @_;
+        "$func_hdr;\n";
       }),
 
    PDL::PP::Rule->new("IgnoreTypesOf", ["FTypes","SignatureObj"], sub {
