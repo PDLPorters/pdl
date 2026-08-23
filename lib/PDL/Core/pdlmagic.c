@@ -223,8 +223,7 @@ static void *pthread_perform(void *vp) {
 	struct ptarg *p = (ptarg *)vp;
 	PDLDEBUG_f(printf("STARTING THREAD %d (%lu)\n",p->no, (long unsigned)pthread_self()));
 	pthread_setspecific(p->mag->key,(void *)&(p->no));
-	int oldtype; /* don't care but must supply */
-	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, &oldtype);
+	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
 	p->error_return = (p->func)(p->t);
 	PDLDEBUG_f(printf("ENDING THREAD %d (%lu)\n",p->no, (long unsigned)pthread_self()));
 	return NULL;
