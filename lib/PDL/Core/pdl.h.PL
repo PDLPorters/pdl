@@ -372,6 +372,7 @@ typedef enum {
   PDL_EUSERERROR, /* user error, no need to destroy */
   PDL_EFATAL
 } pdl_error_type;
+/* CORE21 reorder so pointer first */
 typedef struct {
   pdl_error_type error;
   const char *message; /* if error but this NULL, parsing/alloc error */
