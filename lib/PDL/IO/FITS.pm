@@ -334,6 +334,7 @@ sub PDL::rfits {
    my $ext_type = 'IMAGE';     # Gets the type of XTENSION if one is detected.
    my $foo={};       # To go in pdl
    my @history=();
+   my @comment=();
    my @cards = ();
 
    $pdl = $class->new;
@@ -437,7 +438,11 @@ sub PDL::rfits {
 
           if ($name =~ m/^HISTORY/) {
 	         push @history, $rest;
-          } else {
+             }
+          elsif ($name =~ m/^COMMENT/) {
+	         push @comment, $rest;
+             }
+          else {
 	         $$foo{$name} = "";
 
 	         $$foo{$name}=$1 if $rest =~ m|^= +([^\/\' ][^\/ ]*) *( +/(.*))?$| ;
@@ -450,6 +455,7 @@ sub PDL::rfits {
 
      # Clean up HISTORY card
      $$foo{HISTORY} = \@history if $#history >= 0;
+     $$foo{COMMENT} = \@comment if $#comment >= 0;
 
      # Step to end of header block in file
      my $skip = 2879 - ($nbytes-1)%2880;
@@ -1725,6 +1731,10 @@ sub PDL::wfits {
 	  # Not a PDL and not a hash ref
 	  barf("wfits: unknown data type - quitting");
       }
+
+      # scalar ndarrays are 0D
+      my $ndims = $pdl->getndims || 1;
+
       ### Regular image writing.
       $BITPIX = "" unless defined $BITPIX;
       if ($BITPIX eq "") {
@@ -1816,9 +1826,9 @@ sub PDL::wfits {
 	  ? qw(XTENSION IMAGE)
 	  : (qw(SIMPLE T LOGICAL), 'Created with PDL (http://pdl.perl.org)'));
       _k_add($ohash, 'BITPIX', $BITPIX);
-      _k_add($ohash, 'NAXIS', $pdl->getndims);
+      _k_add($ohash, 'NAXIS', $ndims);
       my $correction = 0;
-      for (1..$pdl->getndims) {
+      for (1..$ndims) {
 	  $correction ||= exists $ohdr{"NAXIS$_"} &&
 			  $ohdr{"NAXIS$_"} != $pdl->dim($_-1);
 	  _k_add($ohash, "NAXIS$_", $pdl->getdim($_-1));
@@ -1838,7 +1848,7 @@ sub PDL::wfits {
 	      my $kw = $kw_base;
 	      $kw .= ++$kn; # NAXIS1 -> NAXIS<n>
 	      last if !exists $ohdr{$kw};
-	      next if $kn <= $pdl->getndims;
+	      next if $kn <= $ndims;
 	      #remove e.g. NAXIS3 from afhdr if NAXIS==2
 	      delete $ohdr{$kw};
 	      delete $h->{$kw} if $use_afh;
@@ -1861,7 +1871,7 @@ sub PDL::wfits {
 	  _k_add($ohash, 'ZCMPTYPE', $cmptype);
 	  _k_add($ohash, $wfits_zpreserve{$_}, delete $ohdr{$_})
 	      for sort grep exists $ohdr{$_}, keys %wfits_zpreserve;
-	  _k_add($ohash, "ZNAXIS$_", $ohdr{"NAXIS$_"}) for 1..$pdl->getndims;
+	  _k_add($ohash, "ZNAXIS$_", $ohdr{"NAXIS$_"}) for 1..$ndims;
 	  $tc->[0]->( $pdl, \%ohdr, $opt );
 	  my %tbl;
 	  $tbl{$_} = delete $ohdr{$_} for map $_."COMPRESSED_DATA", '', 'len_';
@@ -2222,6 +2232,7 @@ sub _prep_table {
 	$internaltype[$i] = 'P';
 
 	my $dims = $var->shape;
+        $dims = pdl(indx,1) if $dims->isempty;
 	(my $t = $dims->slice("(0)")) .= pdl($dims->type, 1);
 	$rpt = $dims->prod;
 
@@ -2480,7 +2491,8 @@ sub _wfits_table {
 
 sub _wfits_nullhdu {
   my $fh = shift;
-  if($Astro::FITS::Header) {
+
+  if($PDL::Astro_FITS_Header) {
     my $h = Astro::FITS::Header->new();
 
     reset_hdr_ctr();
