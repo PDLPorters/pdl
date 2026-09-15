@@ -2781,6 +2781,37 @@ as if you had said
 This is unfortunate and confusing but no good solution seems
 obvious that would not break existing scripts.
 
+=head2 new_around_datasv
+
+=for ref
+
+Create ndarray whose data is provided by an existing Perl scalar.
+
+The offset is in bytes, not a number of (possibly larger) elements.
+The created ndarray still needing dims and datatype.
+
+=for example
+
+  $scalar_ref = function();
+  $pdl = PDL->new_around_datasv(0+$scalar_ref); # or...
+  $pdl = PDL->new_around_datasv(0+$scalar_ref, $offset_in_bytes);
+  $pdl->set_datatype($type->enum);
+  $pdl->setdims(\@dims);
+
+=head2 new_around_pointer
+
+=for ref
+
+Create ndarray whose data is provided by an existing C pointer.
+
+The created ndarray still needing dims and datatype.
+
+=for example
+
+  $pdl = PDL->new_around_pointer($c_ptr, $nbytes);
+  $pdl->set_datatype($type->enum);
+  $pdl->setdims(\@dims);
+
 =head2 isnull
 
 =for ref

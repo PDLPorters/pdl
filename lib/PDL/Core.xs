@@ -1081,8 +1081,6 @@ CODE:
   it->sv = SvRV(sv);
   pdl_SetSV_PDL(sv,it);
 
-# undocumented for present. returns PDL still needing dims and datatype
-# offset is in bytes, not elements
 SV *
 new_around_datasv(class, datasv_pointer, offset=0)
   SV *class
@@ -1111,7 +1109,6 @@ CODE:
 OUTPUT:
   RETVAL
 
-# undocumented for present. returns PDL still needing dims and datatype
 SV *
 new_around_pointer(class, ptr, nbytes)
   SV *class
