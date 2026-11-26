@@ -22,7 +22,7 @@ jobs:
         env:
           HARNESS_OPTIONS: j4
         run: |
-          docker run --rm -v "$(pwd):/pdl" -w /pdl ${{ matrix.container }} \
+          docker run --rm --security-opt seccomp=unconfined -v "$(pwd):/pdl" -w /pdl ${{ matrix.container }} \
             sh -c 'uname -a; perl -V; \
               export HARNESS_OPTIONS=j4 MAKEFLAGS=--jobs=4;
               cpanm -v -n ExtUtils::MakeMaker Devel::CheckLib File::Which && \
