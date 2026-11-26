@@ -2439,9 +2439,9 @@ accept. The meaning of each type is:
  F - float
  D - double
  E - long double
- G - complex float
- C - complex double
- H - complex long double
+ G - float complex
+ C - double complex
+ H - long double complex
 
 This is very useful (and important!) when interfacing an external library.
 Default: the output of L<PDL::Types/ppdefs_all>, i.e. all real types.

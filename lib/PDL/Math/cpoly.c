@@ -21,17 +21,17 @@
 #include "cpoly.h"
 
 /* Internal routines */
-static complex double noshft(int l1, int nn, complex double tc, complex double hc[], complex double pc[]);
-static int fxshft(int l2, int nn, complex double shc[], complex double qpc[], complex double hc[], complex double pc[], complex double qhc[], complex double *tc, complex double *sc, complex double *pvc, complex double *zc);
-static int vrshft(int l3, int nn, complex double qpc[], complex double pc[], complex double qhc[], complex double hc[], complex double *tc, complex double *sc, complex double *pvc, complex double *zc);
-static int calct(int nn, complex double sc, complex double pvc, complex double qhc[], complex double hc[], complex double *tc);
-static void nexth(int boolvar, int nn, complex double tc, complex double qhc[], complex double qpc[], complex double hc[]);
-static complex double polyev(int nn, complex double sc, complex double pc[], complex double qc[]);
-static double errev(int nn, double ms, double mp, complex double qc[]);
-static double cauchy(int nn, complex double pc[]);
-static double scale(int nn, complex double pc[]);
-static complex double cdivid(complex double a, complex double b);
-static double cmod(complex double a);
+static double complex noshft(int l1, int nn, double complex tc, double complex hc[], double complex pc[]);
+static int fxshft(int l2, int nn, double complex shc[], double complex qpc[], double complex hc[], double complex pc[], double complex qhc[], double complex *tc, double complex *sc, double complex *pvc, double complex *zc);
+static int vrshft(int l3, int nn, double complex qpc[], double complex pc[], double complex qhc[], double complex hc[], double complex *tc, double complex *sc, double complex *pvc, double complex *zc);
+static int calct(int nn, double complex sc, double complex pvc, double complex qhc[], double complex hc[], double complex *tc);
+static void nexth(int boolvar, int nn, double complex tc, double complex qhc[], double complex qpc[], double complex hc[]);
+static double complex polyev(int nn, double complex sc, double complex pc[], double complex qc[]);
+static double errev(int nn, double ms, double mp, double complex qc[]);
+static double cauchy(int nn, double complex pc[]);
+static double scale(int nn, double complex pc[]);
+static double complex cdivid(double complex a, double complex b);
+static double cmod(double complex a);
 static void mcon(void);
 static void init(int nncr);
 
@@ -217,18 +217,18 @@ char *cpoly(double opr[], double opi[], int degree,
     return "algorithm fails if the leading coefficient is zero.";
 
   double xx=0.0,yy=0.0,xxx=0.0,bnd=0.0;
-  complex double zc=0.0,tc=0.0,sc=0.0,pvc=0.0;
+  double complex zc=0.0,tc=0.0,sc=0.0,pvc=0.0;
   char *failreason = NULL;
   int cnt1,cnt2,i,idnn2;
 
   /* initialization of constants */
   int nn = degree+1;
   init(nn);
-  complex double *pc  = malloc(nn*sizeof(complex double));
-  complex double *hc  = malloc(nn*sizeof(complex double));
-  complex double *qpc = malloc(nn*sizeof(complex double));
-  complex double *qhc = malloc(nn*sizeof(complex double));
-  complex double *shc = malloc(nn*sizeof(complex double));
+  double complex *pc  = malloc(nn*sizeof(double complex));
+  double complex *hc  = malloc(nn*sizeof(double complex));
+  double complex *qpc = malloc(nn*sizeof(double complex));
+  double complex *qhc = malloc(nn*sizeof(double complex));
+  double complex *shc = malloc(nn*sizeof(double complex));
 
   if (!(pc && hc && qpc && qhc && shc)) {
     failreason = "Couldn't allocate space for cpoly";
@@ -265,7 +265,7 @@ char *cpoly(double opr[], double opi[], int degree,
     /* Start the algorithm for one zero */
     if (nn < 3) {
       /* Calculate the final zero and return */
-      complex double zeroc = cdivid(-pc[1], pc[0]);
+      double complex zeroc = cdivid(-pc[1], pc[0]);
       zeror[degree-1] = creal(zeroc); zeroi[degree-1] = cimag(zeroc);
       goto returnlab;
     }
@@ -326,7 +326,7 @@ returnlab:
   return failreason;
 }
 
-static complex double noshft(int l1, int nn, complex double tc, complex double hc[], complex double pc[])
+static double complex noshft(int l1, int nn, double complex tc, double complex hc[], double complex pc[])
 {
   /*  Computes the derivative polynomial as the initial h
       polynomial and computes l1 no-shift h polynomials. */
@@ -355,7 +355,7 @@ static complex double noshft(int l1, int nn, complex double tc, complex double h
   return tc;
 }
 
-static int fxshft(int l2, int nn, complex double shc[], complex double qpc[], complex double hc[], complex double pc[], complex double qhc[], complex double *tc, complex double *sc, complex double *pvc, complex double *zc)
+static int fxshft(int l2, int nn, double complex shc[], double complex qpc[], double complex hc[], double complex pc[], double complex qhc[], double complex *tc, double complex *sc, double complex *pvc, double complex *zc)
      /* Computes l2 fixed-shift h polynomials and tests for convergence
 
 	Initiates a variable-shift iteration and returns with the
@@ -381,7 +381,7 @@ static int fxshft(int l2, int nn, complex double shc[], complex double qpc[], co
 
   /* Main loop for one second stage step */
   for (j=0;j<l2;j++) {
-    complex double otc = *tc;
+    double complex otc = *tc;
 
     /* Compute next h polynomial and new t */
     nexth(boolvar,nn, *tc, qhc, qpc, hc);
@@ -399,7 +399,7 @@ static int fxshft(int l2, int nn, complex double shc[], complex double qpc[], co
     for (i=0;i<n;i++) {
       shc[i] = hc[i];
     }
-    complex double svsc = *sc;
+    double complex svsc = *sc;
     if (vrshft(10,nn,qpc,pc,qhc,hc,tc,sc,pvc,zc))
       return TRUE;
 
@@ -418,7 +418,7 @@ static int fxshft(int l2, int nn, complex double shc[], complex double qpc[], co
   return vrshft(10,nn,qpc,pc,qhc,hc,tc,sc,pvc,zc);
 }
 
-static int vrshft(int l3, int nn, complex double qpc[], complex double pc[], complex double qhc[], complex double hc[], complex double *tc, complex double *sc, complex double *pvc, complex double *zc)
+static int vrshft(int l3, int nn, double complex qpc[], double complex pc[], double complex qhc[], double complex hc[], double complex *tc, double complex *sc, double complex *pvc, double complex *zc)
      /*  Carries out the third stage iteration
 
 	 l3      - Limit of steps in stage 3
@@ -481,18 +481,18 @@ static int vrshft(int l3, int nn, complex double qpc[], complex double pc[], com
   return FALSE;
 }
 
-static int calct(int nn, complex double sc, complex double pvc, complex double qhc[], complex double hc[], complex double *tc)
+static int calct(int nn, double complex sc, double complex pvc, double complex qhc[], double complex hc[], double complex *tc)
      /* Computes  t = -p(s)/h(s)
 	Returns TRUE if h(s) is essentially zero
      */
 {
-  complex double hvc = polyev(nn-1,sc,hc,qhc); /* Evaluate h(s) */
+  double complex hvc = polyev(nn-1,sc,hc,qhc); /* Evaluate h(s) */
   int boolvar = (cmod(hvc) <= are*10.0*cmod(hc[nn-2]));
   *tc = boolvar ? 0.0 : cdivid(-pvc, hvc);
   return boolvar;
 }
 
-static void nexth(int boolvar, int nn, complex double tc, complex double qhc[], complex double qpc[], complex double hc[])
+static void nexth(int boolvar, int nn, double complex tc, double complex qhc[], double complex qpc[], double complex hc[])
   /* Calculates the next shifted h polynomial
      boolvar   -  TRUE if h(s) is essentially zero
   */
@@ -513,21 +513,21 @@ static void nexth(int boolvar, int nn, complex double tc, complex double qhc[], 
   }
 }
 
-static complex double polyev(int nn, complex double sc, complex double pc[],
-	    complex double qc[])
+static double complex polyev(int nn, double complex sc, double complex pc[],
+	    double complex qc[])
      /* Evaluates a polynomial  p  at  s  by the Horner recurrence,
 	placing the partial sums in q, returns the computed value
      */
 {
   int i;
-  complex double vc = pc[0];
+  double complex vc = pc[0];
   qc[0] = vc;
   for (i=1;i<nn;i++)
     qc[i] = vc = vc*sc + pc[i];
   return vc;
 }
 
-static double errev(int nn, double ms, double mp, complex double qc[])
+static double errev(int nn, double ms, double mp, double complex qc[])
      /* Bounds the error in evaluating the polynomial by the Horner recurrence
 	
 	qr,qi    - The partial sums
@@ -544,7 +544,7 @@ static double errev(int nn, double ms, double mp, complex double qc[])
   return e*(are+mre)-mp*mre;
 }
 
-static double cauchy(int nn, complex double pc[])
+static double cauchy(int nn, double complex pc[])
      /* Cauchy computes a lower bound on the moduli of the zeros of a
 	polynomial - the real component of pc is the modulus of the coefficients
      */
@@ -589,7 +589,7 @@ static double cauchy(int nn, complex double pc[])
   return x;
 }
 
-static double scale(int nn, complex double pc[])
+static double scale(int nn, double complex pc[])
      /* Returns a scale factor to multiply the coefficients of the
 	polynomial.  The scaling is done to avoid overflow and to avoid
 	undetected underflow interfering with the convergence
@@ -629,7 +629,7 @@ static double scale(int nn, complex double pc[])
   return pow(base,l);
 }
 
-static complex double cdivid(complex double a, complex double b)
+static double complex cdivid(double complex a, double complex b)
      /* Complex division c = a/b, avoiding overflow */
 {
   double ar=creal(a),ai=cimag(a),br=creal(b),bi=cimag(b);
@@ -648,7 +648,7 @@ static complex double cdivid(complex double a, complex double b)
   }
 }
 
-static double cmod(complex double a)
+static double cmod(double complex a)
      /* Modulus of a complex number avoiding overflow */
 {
   double ar = fabs(creal(a)), ai = fabs(cimag(a)), f;

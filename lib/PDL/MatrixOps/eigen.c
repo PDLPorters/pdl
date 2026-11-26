@@ -102,7 +102,7 @@ void NormalizingMatrix(int n, double **A,
     if (norm == 0.0) continue;
     if (block==1) {
       for(j=0; j<n; j++) {
-	complex double c2 = V[j][col] + I * V[j][col+1], c3 = c2 / norm;
+	double complex c2 = V[j][col] + I * V[j][col+1], c3 = c2 / norm;
 	V[j][col]=creal(c3);
 	V[j][col+1]=cimag(c3);
       } /* for j */
@@ -454,7 +454,7 @@ void hqr2(int n, int low, int upp, int maxits, double macheps,
   int     i, j, k, l, m, na, its, en;
   double  p = 0, q = 0, r = 0, s = 0, t, w, x, y, z = 0, ra, sa, vr, vi, norm;
   int     notlast;
-  complex double c1, c2, c3;
+  double complex c1, c2, c3;
 
   *fail=0;
   for(i=0; i<low; i++) {
@@ -818,7 +818,7 @@ void hqr2(int n, int low, int upp, int maxits, double macheps,
 } /* hqr2 */
 
 char *Eigen(int n, double *AJAC, int maxit, double eps,
-	   complex double *values, complex double *vectors) {
+	   double complex *values, double complex *vectors) {
 
   double  *wr, *wi, *bald, **T, **A;
   int     i, j, ballow, balhi, block;
