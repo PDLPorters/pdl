@@ -338,4 +338,81 @@ is_pdl $m51_3, $m51_2, 'read back written-out compressed RGB FITS file';
     is($hist, $hstr, 'multi-line HISTORY correct with pre-existing header');
 }
 
+subtest 'wfits/rfits round-trip across types, cubes, and options' => sub {
+    my $dir = File::Temp::tempdir(CLEANUP => 1);
+    for my $spec (
+      [ 'byte',   byte(0, 1, 42, 255),                 8   ],
+      [ 'short',  short(-32000, -1, 0, 32000),         16  ],
+      [ 'long',   long(-100000, 0, 100000),            32  ],
+      [ 'float',  float(-1.5, 0.0, 3.25),              -32 ],
+      [ 'double', double(-1e10, 0.0, 3.1415926535897), -64 ],
+    ) {
+      my ($name, $p, $bitpix) = @$spec;
+      my $f = cfile($dir, "rt_${name}.fits");
+      wfits($p, $f, $bitpix);
+      my $r = rfits($f);
+      is_pdl $r, $p, { atol => 0, test_name => "rfits $name round-trip (BITPIX=$bitpix)" };
+      is $r->hdr->{BITPIX}, $bitpix, "rfits $name header BITPIX=$bitpix";
+    }
+
+    my $cube = sequence(float, 3, 4, 2);
+    my $cfile = cfile($dir, 'cube.fits');
+    wfits($cube, $cfile);
+    is_pdl rfits($cfile), $cube, { atol => 0, test_name => '3D FITS cube round-trip' };
+
+    my $p = sequence(double, 4, 3);
+    $p->sethdr({ SIMPLE => 'T', OBJECT => 'TestTarget', EXPTIME => 42.5 });
+    my $hfile = cfile($dir, 'hdr.fits');
+    wfits($p, $hfile);
+    my $hdr = rfits($hfile, { data => 0 });
+    is ref($hdr), 'HASH', 'rfits data=>0 returns header hashref';
+    is $hdr->{NAXIS}, 2, 'header NAXIS=2';
+    like $hdr->{OBJECT}, qr/TestTarget/, 'custom OBJECT header preserved';
+
+    my $r = rfits($hfile, { hdrcpy => 1 });
+    ok $r->hdrcpy, 'rfits hdrcpy=>1 sets hdrcpy flag';
+    is_pdl $r, $p, { atol => 0, test_name => 'rfits hdrcpy=>1 preserves data' };
+
+    dies_ok { rfits(cfile($dir, 'does_not_exist.fits')) } 'rfits dies on nonexistent file';
+};
+
+subtest 'wfits/rfits binary/ASCII tables and RICE_1 compression' => sub {
+    plan skip_all => 'Astro::FITS::Header not available'
+      unless $PDL::Astro_FITS_Header;
+    my $dir = File::Temp::tempdir(CLEANUP => 1);
+
+    my %btbl = (
+      hdr     => { tbl => 'binary', EXTNAME => 'TESTBIN' },
+      col_b   => byte(1, 2, 3),
+      col_s   => short(-10, 0, 10),
+      col_l   => long(100, 200, 300),
+      col_f   => float(1.5, 2.5, 3.5),
+      col_d   => double(10.25, 20.5, 30.75),
+      col_str => [ 'alpha', 'beta', 'gamma' ],
+    );
+    my $bfile = cfile($dir, 'bintable.fits');
+    wfits(\%btbl, $bfile);
+    my $rb = rfits($bfile);
+    is ref($rb), 'HASH', 'rfits binary table returns hashref';
+    is_pdl $rb->{COL_L}, long(100, 200, 300), { atol => 0, test_name => 'binary table long col' };
+    is_pdl $rb->{COL_D}, double(10.25, 20.5, 30.75), 'binary table double col';
+
+    my %atbl = (
+      hdr   => { tbl => 'ascii', EXTNAME => 'TESTASC' },
+      x     => double(1.0, 2.0, 3.0),
+      y     => long(10, 20, 30),
+      label => [ 'one', 'two', 'three' ],
+    );
+    my $afile = cfile($dir, 'asctable.fits');
+    wfits(\%atbl, $afile);
+    my $ra = rfits($afile);
+    is ref($ra), 'HASH', 'rfits ASCII table returns hashref';
+    is_pdl $ra->{X}, double(1.0, 2.0, 3.0), 'ASCII table double col';
+
+    my $img = sequence(long, 16, 16);
+    my $zfile = cfile($dir, 'compressed.fits');
+    wfits($img, $zfile, { compress => 'RICE_1' });
+    is_pdl rfits($zfile), $img, { atol => 0, test_name => 'RICE_1 compressed FITS round-trip' };
+};
+
 done_testing();
