@@ -103,15 +103,15 @@ static inline pdl *PDL_XS_pdlinit(pTHX_ char *objname, HV *bless_stash, SV *to_p
     SV *sv2 = insv; \
     if (PDL_SV_IS_UNDEF(sv2)) { \
         if (!use_undefval) { \
-            outany.type = forced_type >=0 ? forced_type : -1; \
+            outany.type = (pdl_datatypes)(forced_type >=0 ? forced_type : PDL_INVALID); \
             outany.value.H = 0; \
             break; \
         } \
         sv2 = get_sv("PDL::undefval",1); \
         if ((warn_undef) && SvIV(get_sv("PDL::debug",1))) \
-            fprintf(stderr,"Warning: SvPDLV converted undef to $PDL::undefval (%"NVgf").\n",SvNV(sv2)); \
+            fprintf(stderr,"Warning: SvPDLV converted undef to $PDL::undefval (%" NVgf ").\n",SvNV(sv2)); \
         if (PDL_SV_IS_UNDEF(sv2)) { \
-            outany.type = forced_type >=0 ? forced_type : PDL_B; \
+            outany.type = (pdl_datatypes)(forced_type >=0 ? forced_type : PDL_B); \
             outany.value.H = 0; \
             break; \
         } \
@@ -162,7 +162,7 @@ static inline pdl *PDL_XS_pdlinit(pTHX_ char *objname, HV *bless_stash, SV *to_p
     } \
     FREETMPS; LEAVE; \
     outany.type = PDL_CD; \
-    outany.value.C = (PDL_CDouble)(vals[0] + I * vals[1]); \
+    outany.value.C = pdl_cmplx(vals[0], vals[1]); \
   } while (0)
 
 #define ANYVAL_UNSIGNED_X(outsv, inany, sym, ctype, ppsym, ...) \
@@ -172,7 +172,7 @@ static inline pdl *PDL_XS_pdlinit(pTHX_ char *objname, HV *bless_stash, SV *to_p
 #define ANYVAL_FLOATREAL_X(outsv, inany, sym, ctype, ppsym, ...) \
   sv_setnv(outsv, (NV)(inany.value.ppsym));
 #define ANYVAL_COMPLEX_X(outsv, inany, sym, ctype, ppsym, shortctype, defbval, realctype, convertfunc, floatsuffix, ...) \
-  PDL_MAKE_PERL_COMPLEX(outsv, creal ## floatsuffix(inany.value.ppsym), cimag ## floatsuffix(inany.value.ppsym));
+  PDL_MAKE_PERL_COMPLEX(outsv, pdl_creal ## floatsuffix(inany.value.ppsym), pdl_cimag ## floatsuffix(inany.value.ppsym));
 #define ANYVAL_TO_SV(outsv,inany) do { switch (inany.type) { \
   PDL_TYPELIST_UNSIGNED(PDL_GENERICSWITCH_CASE, ANYVAL_UNSIGNED_X, (outsv,inany,),) \
   PDL_TYPELIST_SIGNED(PDL_GENERICSWITCH_CASE, ANYVAL_SIGNED_X, (outsv,inany,),) \
