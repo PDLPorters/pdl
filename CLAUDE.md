@@ -1,5 +1,9 @@
 # CLAUDE.md — Perl Data Language (PDL)
 
+> See also `AGENTS.md` (cross-agent quick reference) and
+> `lib/PDL/DeveloperGuide.pod` (`PDL::DeveloperGuide`, the canonical source of
+> truth for PDL development practices).
+
 ## Project Scope
 Scientific numeric computation engine utilizing the Perl Data Language (PDL) framework.
 

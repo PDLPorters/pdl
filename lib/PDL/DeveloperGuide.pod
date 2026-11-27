@@ -80,8 +80,92 @@ C<$PDL::verbose> has a true value.
 
 =item C<$PDL::debug>
 
-Several modules produce diagnostic output if C<$PDL::verbose> has a
+Several modules produce diagnostic output if C<$PDL::debug> has a
 true value.
+
+=item C<PDL::Core::set_debugging(1)> and C<PDLDEBUG_f(...)>
+
+At the C level, core PDL code uses the C<PDLDEBUG_f(...)> macro (defined in
+C<pdl.h>) gated on C<pdl_debugging>. Enable it from Perl via
+C<PDL::Core::set_debugging(1)> to trace dataflow, transformations, and
+broadcasting internals.
+
+=item C<PDL::Core::pdump($pdl)> and F<utils/address-pseudonymise>
+
+Use C<PDL::Core::pdump($pdl)> (or C<pdl_dump(p)> from C<gdb>) to inspect an
+ndarray's state flags, dimensions, C<trans_parent>, and C<trans_children>
+graph. Pipe dumps through F<utils/address-pseudonymise> (including C<-x>
+mode) to normalize pointer addresses when diffing old vs. new behavior.
+
+=item Inspecting generated C<PDL::PP> code
+
+Wrap a single C<pp_def> with C<$::PP_VERBOSE = 1; ... $::PP_VERBOSE = 0;>
+to inspect how L<PDL::PP> expands that operation, and examine the generated
+C<pp-E<lt>funcE<gt>.c> files in the build tree to see the exact C code compiled.
+
+=back
+
+=head2 Building and Testing from Source Without Installing
+
+After running C<perl Makefile.PL && make -j$(nproc)>, run Perl against the
+uninstalled C<blib/> tree using C<-Mblib> (or both C<-Iblib/arch -Iblib/lib>;
+passing only C<-Iblib/lib> will fail with a C<DynaLoader> object-version
+mismatch):
+
+    perl -Mblib -MPDL -E 'say $PDL::VERSION'
+
+To iterate rapidly on individual test files, rebuild and run L<prove> with
+C<-b>, then run the full test suite with C<make test> once your change is
+ready:
+
+    make && prove -bv t/core.t
+    make -j$(nproc) test
+
+=head2 Designing C<PDL::PP> Operations and Satellite Distributions
+
+When designing new C<PDL::PP> operations or external C<PDLPorters> satellite
+distributions:
+
+=over
+
+=item Design for complex, bad values, and broadcasting from the start
+
+Consider complex types (C<cfloat>/C<cdouble>/C<cldouble>), bad-value handling
+(C<HandleBad =E<gt> 1> and the C<PDL_IF_BAD(bad_code, good_code)> macro), and
+broadcasting/pthreading up front rather than retrofitting them later. See
+L<PDL::PP> and L<PDL::BadValues>.
+
+=item Satellite distribution conventions
+
+External distributions under C<PDLPorters> should:
+
+=over
+
+=item *
+
+Hard-fail (C<die>) in C<Makefile.PL> when required native C/C++ libraries or
+headers are missing rather than silently calling C<exit 0>.
+
+=item *
+
+Preserve quotes returned by C<PDL::Core::Dev::PDL_INCLUDE()>.
+
+=item *
+
+Use C<LICENSE =E<gt> 'perl_5'> ("the same terms as Perl itself") with a
+top-level C<LICENSE> file and up-to-date C<MANIFEST> / C<MANIFEST.SKIP>.
+
+=item *
+
+Document supported PDL data types in a C<=head1 TYPES> POD section and use
+L<Test::PDL> (C<is_pdl>) in tests.
+
+=item *
+
+Use the reusable C<PDLPorters/devops> GitHub Actions (C<ci-dist> and
+C<<< install-dep-<lib> >>> composite actions) for cross-platform CI.
+
+=back
 
 =back
 
