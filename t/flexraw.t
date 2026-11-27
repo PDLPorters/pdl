@@ -146,4 +146,33 @@ unlink $name, $name . '.hdr';
 # test read_flexhdr
 # test gzip stuff
 
+subtest 'multi-ndarray writeflex/readflex and mapflex' => sub {
+  my $a = byte(1, 2, 3, 4);
+  my $b = short(-5, 0, 5);
+  my $c = float(1.25, 2.5, 3.75);
+  my $d = double(10.5, 20.5);
+
+  my $mfile = catfile($tmpdir, 'multi.dat');
+  my $hdr = writeflex($mfile, $a, $b, $c, $d);
+  ok defined $hdr, 'writeflex returned header';
+  writeflexhdr($mfile, $hdr);
+  ok -f "$mfile.hdr", 'writeflexhdr created .hdr file';
+
+  my ($ra, $rb, $rc, $rd) = readflex($mfile);
+  is_pdl $ra, $a, { atol => 0, test_name => 'readflex byte' };
+  is_pdl $rb, $b, { atol => 0, test_name => 'readflex short' };
+  is_pdl $rc, $c, { atol => 0, test_name => 'readflex float' };
+  is_pdl $rd, $d, { atol => 0, test_name => 'readflex double' };
+
+  my ($ra2, undef, undef, $rd2) = readflex($mfile, $hdr);
+  is_pdl $ra2, $a, { atol => 0, test_name => 'readflex with explicit hdr byte' };
+  is_pdl $rd2, $d, { atol => 0, test_name => 'readflex with explicit hdr double' };
+
+  my $x = sequence(double, 4, 3);
+  my $mapfile = catfile($tmpdir, 'mapped.dat');
+  my $mhdr = writeflex($mapfile, $x);
+  writeflexhdr($mapfile, $mhdr);
+  is_pdl mapflex($mapfile), $x, { atol => 0, test_name => 'mapflex round-trip' };
+};
+
 done_testing;
