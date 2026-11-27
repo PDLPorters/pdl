@@ -82,4 +82,14 @@ foreach my $name (qw /x barf pdl piddle null/) {
 eval { my $x = mk1::pdl(0, 1) };
 is $@, '', 'the imported pdl function ACTUALLY WORKS';
 
+subtest 'PDL::Lite OO methods and non-exported functions' => sub {
+  ok !mk1->can('sumover'), 'PDL::Lite does not export sumover';
+  ok !mk1->can('sequence'), 'PDL::Lite does not export sequence';
+  my $x = mk1::pdl(1, 2, 3, 4);
+  isa_ok $x, 'PDL';
+  is $x->sum, 10, 'Ufunc method sum works via PDL::Lite';
+  is_deeply [ $x->slice('1:2')->list ], [ 2, 3 ], 'Slices method works via PDL::Lite';
+  ok $PDL::Lite::VERSION, 'PDL::Lite::VERSION is set';
+};
+
 done_testing;

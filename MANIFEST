@@ -272,3 +272,6 @@ utils/address-pseudonymise
 utils/doc-pp
 utils/harness
 utils/perldlpp.pl
+t/dbg.t
+t/exporter.t
+t/options.t
