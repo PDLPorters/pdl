@@ -46,14 +46,10 @@ int pdl_cpp_header_smoke_test(void) {
 EOF
 close $fh;
 
-require Text::ParseWords;
-my $pdl_inc = Text::ParseWords::shellwords(PDL::Core::Dev::PDL_INCLUDE());
-$pdl_inc =~ s/^-I//;
-
 my $obj = $cb->compile(
   source       => $src,
   'C++'        => 1,
-  include_dirs => [ $pdl_inc ],
+  include_dirs => [ PDL_INCLUDE_DIR() ],
 );
 ok -f $obj, 'pdl.h + pdlcore.h + pdlperl.h compile cleanly as C++';
 
