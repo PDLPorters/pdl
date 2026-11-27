@@ -190,6 +190,7 @@ t/compression.t
 t/constants.t
 t/constructor.t
 t/core.t
+t/cpp-headers.t
 t/croak.t
 t/demos.t
 t/diskcache.t
