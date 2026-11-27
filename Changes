@@ -7,7 +7,7 @@
 - now expand warning to if badflag set and HandleBad not = 1
 - document new_around_{datasv,pointer}
 - switch to `float complex` not `complex float` (#563)
-- make pdl.h, pdlcore.h, and pdlperl.h compile cleanly under C++ (#563)
+- make pdl.h, pdlcore.h, and pdlperl.h compile cleanly under C++ (#563) - thanks @cjac
 
 2.106 2026-08-19
 - mkgen can now extract .pod.PL, PDL::Index is now created from such
