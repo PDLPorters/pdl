@@ -259,4 +259,23 @@ $decode_hash = PDL::Doc::decodedb($fh, 'FILENAME');
 for my $val (values %$decode_hash) { delete $_->{Dbfile} for values %$val }
 is_deeply $decode_hash, $canary_got or diag explain $decode_hash;
 
+subtest 'PDL::Doc::Perldl helpers' => sub {
+  is PDL::Doc::Perldl::shortmod('PDL::Core'), 'P::Core', 'shortmod shortens PDL:: prefix';
+  is PDL::Doc::Perldl::shortmod('Other::Mod'), 'Other::Mod', 'shortmod leaves non-PDL prefix';
+
+  my $ind = PDL::Doc::Perldl::allindent("line1\nline2", 4);
+  like $ind, qr/^    line1\n    line2/m, 'allindent indents every line';
+
+  my $hdr_out = '';
+  open my $hfh, '>', \$hdr_out or die "open scalar: $!";
+  PDL::Doc::Perldl::multimatch_header(
+    [ [ 'sum', 'file.pm', { Module => 'PDL::Ufunc' } ], [ 'sumover', 'file.pm', { Module => 'PDL::Ufunc' } ] ],
+    'sum',
+    $hfh,
+  );
+  close $hfh;
+  like $hdr_out, qr/MULTIPLE MATCHES FOR HELP TOPIC 'sum'/, 'multimatch_header formats header';
+  like $hdr_out, qr/PDL::Ufunc/, 'multimatch_header lists module';
+};
+
 done_testing;

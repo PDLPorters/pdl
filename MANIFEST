@@ -277,3 +277,4 @@ utils/perldlpp.pl
 t/dbg.t
 t/exporter.t
 t/options.t
+t/core-dev.t
