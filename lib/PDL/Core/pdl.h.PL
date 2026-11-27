@@ -208,12 +208,12 @@ extern PDL_Indx pdl_autopthread_dim;
     PDL_TYPELIST_ALL_, newtype, ANYVAL_TO_ANYVAL_NEWTYPE_X_INNER, to_val.type = PDL_INVALID, \
     from_val, to_val, newtype,)
 
-#define ANYVAL_TO_CTYPE_X(outval, inany, datatype, ctype, ppsym, ...) \
-  outval = (ctype)(inany.value.ppsym);
+#define ANYVAL_TO_CTYPE_X(outval, outctype, inany, datatype, ctype, ppsym, ...) \
+  outval = (outctype)(inany.value.ppsym);
 #define ANYVAL_TO_CTYPE(outval,ctype,inany) \
   PDL_GENERICSWITCH(PDL_TYPELIST_ALL_, inany.type, ANYVAL_TO_CTYPE_X, \
     outval = 0, \
-    outval, inany, \
+    outval, ctype, inany, \
   )
 
 #define ANYVAL_TO_CTYPE_OFFSET_X(x, ioff, inany, datatype, ctype, ppsym, ...) \
