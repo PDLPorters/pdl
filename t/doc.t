@@ -278,4 +278,57 @@ subtest 'PDL::Doc::Perldl helpers' => sub {
   like $hdr_out, qr/PDL::Ufunc/, 'multimatch_header lists module';
 };
 
+subtest 'PDL::Doc scantree, savedb, search, and funcdocs' => sub {
+  require File::Temp;
+  my $dir = File::Temp::tempdir(CLEANUP => 1);
+  my $mod_dir = catfile($dir, 'PDL');
+  mkdir $mod_dir or die "mkdir $mod_dir: $!";
+  my $pm = catfile($mod_dir, 'SampleDoc.pm');
+  open my $pmfh, '>', $pm or die "open $pm: $!";
+  print {$pmfh} <<'EOF';
+package PDL::SampleDoc;
+
+=head1 NAME
+
+PDL::SampleDoc - sample module for PDL::Doc testing
+
+=head1 FUNCTIONS
+
+=head2 frobnicate
+
+=for sig
+
+  Signature: (a(n); [o]b(n))
+
+=for ref
+
+Frobnicate an ndarray in a test-friendly way.
+
+=cut
+
+sub frobnicate { $_[0] }
+1;
+EOF
+  close $pmfh;
+
+  my $dbfile = catfile($dir, 'pdldoc.db');
+  my $doc = PDL::Doc->new();
+  $doc->scantree($dir, 0);
+  $doc->savedb($dbfile);
+  ok -f $dbfile, 'savedb created database file';
+
+  my $doc2 = PDL::Doc->new($dbfile);
+  my @m = $doc2->search('frobnicate', [ 'Name' ], 1);
+  is $m[0]->[0], 'frobnicate', 'search finds frobnicate by Name';
+  my @rm = $doc2->search('test-friendly', [ 'Ref' ], 1);
+  ok scalar(@rm) >= 1, 'search finds frobnicate by Ref';
+
+  my $out = '';
+  open my $ofh, '>', \$out or die "open scalar: $!";
+  $doc2->funcdocs('frobnicate', 'PDL::SampleDoc', $ofh);
+  close $ofh;
+  like $out, qr/frobnicate/, 'funcdocs outputs documentation';
+  like $out, qr/Signature/, 'funcdocs includes Signature';
+};
+
 done_testing;

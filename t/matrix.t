@@ -36,4 +36,27 @@ my $gotmethmul = $gotmeth x $v;
 isa_ok $gotmeth, 'PDL::Matrix', '$mpdl->inv right class';
 is_pdl $gotmethmul, $expected, '$mpdl->inv mult correct';
 
+subtest 'PDL::Matrix constructors, arithmetic, and transpose' => sub {
+  my $m2 = mpdl([ [ 1, 2, 3 ], [ 4, 5, 6 ] ]);
+  isa_ok $m2, 'PDL::Matrix';
+  is_deeply [ $m2->dims ], [ 2, 3 ], 'dims returns (rows, cols)';
+
+  my $z = mzeroes(2, 3);
+  is_pdl $z, mpdl([ [ 0, 0, 0 ], [ 0, 0, 0 ] ]), { atol => 0, test_name => 'mzeroes' };
+
+  my $o = mones(3, 2);
+  is_pdl $o, mpdl([ [ 1, 1 ], [ 1, 1 ], [ 1, 1 ] ]), { atol => 0, test_name => 'mones' };
+
+  my $s = msequence(2, 3);
+  is_pdl $s, mpdl([ [ 0, 2, 4 ], [ 1, 3, 5 ] ]), { atol => 0, test_name => 'msequence' };
+
+  my $a = mpdl([ [ 1, 2 ], [ 3, 4 ] ]);
+  my $b = mpdl([ [ 5, 6 ], [ 7, 8 ] ]);
+  my $c = $a x $b;
+  isa_ok $c, 'PDL::Matrix';
+  is_pdl $c, mpdl([ [ 19, 22 ], [ 43, 50 ] ]), { atol => 0, test_name => 'matrix product' };
+  is_pdl $a->transpose, mpdl([ [ 1, 3 ], [ 2, 4 ] ]), { atol => 0, test_name => 'transpose' };
+  is_pdl $a + $b, mpdl([ [ 6, 8 ], [ 10, 12 ] ]), { atol => 0, test_name => 'matrix addition' };
+};
+
 done_testing;
