@@ -209,6 +209,50 @@ readline *$fileh; # dump first line
 like readline($fileh), qr/^arg/, "wcols format_string obeyed";
 close $fileh; unlink($file) or warn "Could not unlink $file: $!";
 
+subtest 'rcols options, swcols, bswap round-trips, and rgrep' => sub {
+    local $PDL::IO::Misc::deftype = double;
+    my $cx = pdl(1, 2, 3, 4, 5);
+    my $cy = pdl(10.5, 20.5, 30.5, 40.5, 50.5);
+    my $cfile = "$tempd/cols.txt";
+    wcols($cx, $cy, $cfile, { HEADER => '# x y', COLSEP => ',' });
+
+    my ($rx, $ry) = rcols($cfile, { COLSEP => ',', EXCLUDE => '/^#/' });
+    is_pdl $rx, $cx, 'rcols COLSEP/EXCLUDE col 0';
+    is_pdl $ry, $cy, 'rcols COLSEP/EXCLUDE col 1';
+
+    my ($lx, $ly) = rcols($cfile, { COLSEP => ',', EXCLUDE => '/^#/', LINES => '1:3' });
+    is_pdl $lx, pdl(1, 2, 3), 'rcols LINES=>"1:3" values';
+
+    my ($fx, $fy) = rcols($cfile, { COLSEP => ',', EXCLUDE => '/^#/', DEFTYPE => float });
+    is $fx->type, float, 'rcols DEFTYPE=>float';
+
+    my $a = pdl(1, 2, 3);
+    my $b = pdl(4.5, 5.5, 6.5);
+    my $lines = swcols('%d %.1f', $a, $b);
+    is ref($lines), 'ARRAY', 'swcols returns arrayref in scalar context';
+    like $lines->[0], qr/1 4\.5/, 'swcols formats row 0';
+    my @list = swcols('%s:%d', [ qw(a b c) ], $a);
+    is $list[1], 'b:2', 'swcols formats arrayref + pdl';
+    my @nofmt = swcols($a, $b);
+    ok scalar(@nofmt) > 0, 'swcols works without explicit format';
+
+    for my $pair ([ short(0x0102, 0x0304), \&bswap2 ], [ long(0x01020304, 0x05060708), \&bswap4 ], [ double(1.5, -2.25), \&bswap8 ]) {
+      my ($orig, $fn) = @$pair;
+      my $copy = $orig->copy;
+      $fn->($copy);
+      $fn->($copy);
+      is_pdl $copy, $orig, { atol => 0, test_name => 'double bswap is identity' };
+    }
+
+    my $gfile = "$tempd/grep.txt";
+    open my $gfh, '>', $gfile or die "open $gfile: $!";
+    print {$gfh} "noise\nval=10 count=2\nval=20 count=4\nother\n";
+    close $gfh;
+    my ($v, $c) = rgrep { /val=(\d+)\s+count=(\d+)/ } $gfile;
+    is_pdl $v, pdl(10, 20), { atol => 0, test_name => 'rgrep capture 1' };
+    is_pdl $c, pdl(2, 4), { atol => 0, test_name => 'rgrep capture 2' };
+};
+
 done_testing;
 
 __DATA__
