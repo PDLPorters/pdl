@@ -18,8 +18,37 @@ print OUT <<'EOF';
 #ifndef __PDL_H
 #define __PDL_H
 
-#include <complex.h>
-#include <math.h>
+#ifdef __cplusplus
+#  ifdef isnan
+/* Strawberry Perl win32.h defines isnan as _isnan, breaking C++ <cmath>/<math.h> */
+#    undef isnan
+#  endif
+#  ifdef isfinite
+#    undef isfinite
+#  endif
+#  include <cmath>
+#  define pdl_isnan(x)    std::isnan(x)
+#  define pdl_isfinite(x) std::isfinite(x)
+#  define pdl_crealf(z) (__real__ (z))
+#  define pdl_cimagf(z) (__imag__ (z))
+#  define pdl_creal(z)  (__real__ (z))
+#  define pdl_cimag(z)  (__imag__ (z))
+#  define pdl_creall(z) (__real__ (z))
+#  define pdl_cimagl(z) (__imag__ (z))
+#  define PDL_COMPLEX_EXT __extension__
+#else
+#  include <complex.h>
+#  include <math.h>
+#  define pdl_isnan(x)    isnan(x)
+#  define pdl_isfinite(x) isfinite(x)
+#  define pdl_crealf(z) crealf(z)
+#  define pdl_cimagf(z) cimagf(z)
+#  define pdl_creal(z)  creal(z)
+#  define pdl_cimag(z)  cimag(z)
+#  define pdl_creall(z) creall(z)
+#  define pdl_cimagl(z) cimagl(z)
+#  define PDL_COMPLEX_EXT
+#endif
 #include <stddef.h>
 #include <stdint.h>
 
@@ -28,7 +57,13 @@ print OUT <<'EOF';
 #define PDL_DEBUGGING 1
 
 #ifdef PDL_DEBUGGING
+#ifdef __cplusplus
+extern "C" {
+#endif
 extern int pdl_debugging;
+#ifdef __cplusplus
+}
+#endif
 #define PDLDEBUG_f(a) do {if (pdl_debugging) { a; fflush(stdout); }} while (0)
 #else
 #define PDLDEBUG_f(a)
@@ -121,9 +156,32 @@ PDL_TYPELIST_ALL(X)
 #undef X
 
 #define X(sym, ctype, ppsym, shortctype, defbval, realctype, ...) \
-  typedef realctype ctype;
+  PDL_COMPLEX_EXT typedef realctype ctype;
 PDL_TYPELIST_ALL(X)
 #undef X
+
+#ifdef __cplusplus
+static inline PDL_CDouble pdl_cmplx(double r, double i) {
+  PDL_CDouble z;
+  __real__ z = r;
+  __imag__ z = i;
+  return z;
+}
+template <typename To> struct pdl_is_complex { enum { val = 0 }; };
+template <> struct pdl_is_complex<PDL_CFloat>   { enum { val = 1 }; };
+template <> struct pdl_is_complex<PDL_CDouble>  { enum { val = 1 }; };
+template <> struct pdl_is_complex<PDL_CLDouble> { enum { val = 1 }; };
+template <typename To, typename From, int ToC = pdl_is_complex<To>::val, int FromC = pdl_is_complex<From>::val>
+struct pdl_conv { static inline To cast(From v) { return static_cast<To>(v); } };
+template <typename To, typename From>
+struct pdl_conv<To, From, 0, 1> { static inline To cast(From v) { return static_cast<To>(__real__ v); } };
+template <typename To, typename From>
+static inline To pdl_cast(From v) { return pdl_conv<To, From>::cast(v); }
+#define PDL_CAST(to_type, val) (pdl_cast<to_type>(val))
+#else
+#define pdl_cmplx(r, i) ((PDL_CDouble)((r) + I * (i)))
+#define PDL_CAST(to_type, val) ((to_type)(val))
+#endif
 
 typedef union {
 #define X(sym, ctype, ppsym, shortctype, defbval, realctype, ...) \
@@ -153,6 +211,9 @@ typedef struct {
 /* Auto-PThreading (i.e. multi-threading) settings for PDL functions */
 /*  Target number of pthreads: Actual will be this number or less.
     A 0 here means no pthreading */
+#ifdef __cplusplus
+extern "C" {
+#endif
 extern int pdl_autopthread_targ;
 
 /*  Actual number of pthreads: This is the number of pthreads created for the last
@@ -164,6 +225,9 @@ extern int pdl_autopthread_actual;
     is used to define that threshold (in M-elements, or 2^20 elements ) */
 extern int pdl_autopthread_size;
 extern PDL_Indx pdl_autopthread_dim;
+#ifdef __cplusplus
+}
+#endif
 
 #define PDL_EMPTY()
 #define PDL_DEFER(id) id PDL_EMPTY()
@@ -191,29 +255,29 @@ extern PDL_Indx pdl_autopthread_dim;
   }
 
 #define ANYVAL_FROM_CTYPE_X(outany, inval, datatype, ctype, ppsym, ...) \
-  (outany).type = datatype; (outany).value.ppsym = (inval);
+  (outany).type = datatype; (outany).value.ppsym = PDL_CAST(ctype, inval);
 #define ANYVAL_FROM_CTYPE(outany,avtype,inval) \
   PDL_GENERICSWITCH(PDL_TYPELIST_ALL, avtype, ANYVAL_FROM_CTYPE_X, \
-    outany.type = -1; outany.value.H = 0, \
+    outany.type = PDL_INVALID; outany.value.H = 0, \
     outany, inval, \
   )
 
 #define ANYVAL_TO_ANYVAL_NEWTYPE_X_OUTER(from_val, to_val, newtype, datatype_from, ctype_from, ppsym_from, ...) \
   ctype_from cvalue_from = from_val.value.ppsym_from;
 #define ANYVAL_TO_ANYVAL_NEWTYPE_X_INNER(from_val, to_val, newtype, datatype_to, ctype_to, ppsym_to, ...) \
-  to_val.value.ppsym_to = cvalue_from; to_val.type = newtype;
+  to_val.value.ppsym_to = PDL_CAST(ctype_to, cvalue_from); to_val.type = newtype;
 #define ANYVAL_TO_ANYVAL_NEWTYPE(from_val, to_val, newtype) \
   PDL_GENERICSWITCH2( \
     PDL_TYPELIST_ALL, from_val.type, ANYVAL_TO_ANYVAL_NEWTYPE_X_OUTER, to_val.type = PDL_INVALID, \
     PDL_TYPELIST_ALL_, newtype, ANYVAL_TO_ANYVAL_NEWTYPE_X_INNER, to_val.type = PDL_INVALID, \
     from_val, to_val, newtype,)
 
-#define ANYVAL_TO_CTYPE_X(outval, inany, datatype, ctype, ppsym, ...) \
-  outval = (ctype)(inany.value.ppsym);
+#define ANYVAL_TO_CTYPE_X(outval, outctype, inany, datatype, ctype, ppsym, ...) \
+  outval = PDL_CAST(outctype, inany.value.ppsym);
 #define ANYVAL_TO_CTYPE(outval,ctype,inany) \
   PDL_GENERICSWITCH(PDL_TYPELIST_ALL_, inany.type, ANYVAL_TO_CTYPE_X, \
     outval = 0, \
-    outval, inany, \
+    outval, ctype, inany, \
   )
 
 #define ANYVAL_TO_CTYPE_OFFSET_X(x, ioff, inany, datatype, ctype, ppsym, ...) \
@@ -227,7 +291,7 @@ extern PDL_Indx pdl_autopthread_dim;
   (outany).type = datatype; (outany).value.ppsym = ((ctype *)(indata))[ioff];
 #define ANYVAL_FROM_CTYPE_OFFSET(outany,avtype,indata,ioff) \
   PDL_GENERICSWITCH(PDL_TYPELIST_ALL, avtype, ANYVAL_FROM_CTYPE_OFFSET_X, \
-    (outany).type = -1; outany.value.H = 0;, \
+    (outany).type = PDL_INVALID; outany.value.H = 0;, \
     indata, ioff, outany,)
 
 #define ANYVAL_ISNAN(x) _anyval_isnan(x)
@@ -646,9 +710,9 @@ typedef struct pdl_slice_args {
   do { \
     PDL_Indx *__tdims = PDL->get_broadcastdims(&(brc)); \
     if (!__tdims) return PDL->make_error_simple(PDL_EFATAL, "Error in get_broadcastdims"); \
-    register PDL_Indx __tdims0 = __tdims[0]; \
-    register PDL_Indx __tdims1 = __tdims[1]; \
-    register PDL_Indx *__offsp = PDL->get_threadoffsp(&(brc)); \
+    PDL_Indx __tdims0 = __tdims[0]; \
+    PDL_Indx __tdims1 = __tdims[1]; \
+    PDL_Indx *__offsp = PDL->get_threadoffsp(&(brc)); \
     if (!__offsp ) return PDL->make_error_simple(PDL_EFATAL, "Error in get_threadoffsp"); \
     /* incs are each pdl's stride, declared at func start */ \
     /* offs are each pthread's starting offset into each pdl */ \

@@ -137,7 +137,7 @@ eval { require Devel::CheckLib };
 our @ISA    = qw( Exporter );
 
 our @EXPORT = qw( isbigendian
-  PDL_INCLUDE PDL_TYPEMAP
+  PDL_INCLUDE PDL_INCLUDE_DIR PDL_TYPEMAP
   PDL_AUTO_INCLUDE PDL_BOOT
   PDL_INST_INCLUDE PDL_INST_TYPEMAP
   pdlpp_eumm_update_deep pdldoc_add doc_distro
@@ -149,7 +149,8 @@ our @EXPORT = qw( isbigendian
 );
 
 # Installation locations
-sub PDL_INCLUDE { '"-I'.catdir(whereami_any(), 'Core').'"' }
+sub PDL_INCLUDE_DIR { catdir(whereami_any(), 'Core') }
+sub PDL_INCLUDE { '"-I'.PDL_INCLUDE_DIR().'"' }
 sub PDL_TYPEMAP { catfile(whereami_any(), qw(Core typemap)) }
 
 # The INST are here still just in case we want to change something later.

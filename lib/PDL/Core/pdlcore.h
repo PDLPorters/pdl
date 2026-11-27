@@ -47,6 +47,10 @@
 #undef warn
 #define warn PDL_CORE_(pdl_warn)
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 PDL_Indx av_ndcheck(AV* av, AV* dims, int level, int *datalevel);
 pdl* pdl_from_array(AV* av, AV* dims, pdl_datatypes type, pdl* p);
 pdl_error pdl_writebackdata_vaffine(pdl *it);
@@ -172,6 +176,10 @@ PDL_Indx pdl_setav_ ## ppsym(ctype * pdata, AV* av, \
   PDL_Indx* pdims, PDL_Indx ndims, PDL_Indx level, ctype undefval, pdl *p);
 PDL_TYPELIST_ALL(X)
 #undef X
+
+#ifdef __cplusplus
+}
+#endif
 
 /* Structure to hold pointers core PDL routines so as to be used by many modules */
 
