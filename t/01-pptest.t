@@ -36,8 +36,7 @@ void ppcp(PDL_Byte *dst, PDL_Byte *src, int len)
 }
 EOF
 
-    'tests.pd' => <<'EOF',
-#line 41 "t/01-pptest.t"
+    'tests.pd' => "#line ".(__LINE__+1)." \"t/01-pptest.t\"\n" . <<'EOF',
 # make sure the deprecation mechanism throws warnings
 pp_deprecate_module( infavor => "PDL::Test::Fancy" );
 our $VERSION = '0.01'; # so the Makefile.PL's VERSION_FROM picks it up
