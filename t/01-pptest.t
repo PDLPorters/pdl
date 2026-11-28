@@ -181,7 +181,7 @@ pp_def('output_op3',
     ANYVAL_FROM_CTYPE($COMP(v0), dt, $in(n=>0));
     ANYVAL_FROM_CTYPE($COMP(v1), dt, $in(n=>1));
   ',
-  PMCode => 'sub PDL::output_op3 { goto &PDL::_output_op3_int }',
+  PMCode => pp_line_numbers(__LINE__-1,'sub PDL::output_op3 { goto &PDL::_output_op3_int }'),
 );
 
 pp_def('incomp_dim',
@@ -364,7 +364,7 @@ pp_def('ftrPM',
        Code => ';',
        HdrCode => "  sv_setiv(perl_get_sv(\"main::HEADERVAL\",TRUE), 1);\n",
        FtrCode => "  sv_setiv(perl_get_sv(\"main::FOOTERVAL\",TRUE), 1);\n",
-       PMCode => <<'EOPM',
+       PMCode => pp_line_numbers(__LINE__,<<'EOPM'),
 sub PDL::ftrPM {
   my ($a, $b) = @_;
   $b //= PDL->null;

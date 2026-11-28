@@ -79,7 +79,7 @@ it runs faster and handles a variety of boundary conditions.
 
 EOD
         Pars => 'a(m); b(n); indx adims(p); indx bdims(q); [o]c(m);',
-        PMCode => '
+        PMCode => pp_line_numbers(__LINE__,<<'EOF'),
 sub PDL::convolve {
     my($x,$y,$c) = @_;
     barf("Usage: convolve(a(*), b(*), [o]c(*)") if $#_<1 || $#_>2;
@@ -89,7 +89,6 @@ sub PDL::convolve {
        $c->isnull ? $c : $c->flat,
     );
     $c->setdims([$x->dims]);
-
     if($x->is_inplace) {
       $x .= $c;
       $x->set_inplace(0);
@@ -97,7 +96,7 @@ sub PDL::convolve {
     }
     return $c;
 }
-',
+EOF
         RedoDimsCode => '
    if ($SIZE(p) != $SIZE(q))
      $CROAK("Arguments do not have the same dimensionality");
@@ -583,7 +582,7 @@ its own broadcastloops.
 
 
 EOD
-       PMCode => <<'EOD',
+       PMCode => pp_line_numbers(__LINE__,<<'EOD'),
 
 use PDL::Options;
 

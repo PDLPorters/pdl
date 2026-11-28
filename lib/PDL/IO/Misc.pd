@@ -1205,7 +1205,7 @@ pp_def('rasc',
        Pars => '[o] nums(n); int [o] ierr(n)',
        OtherPars => 'PerlIO *fp; IV num => n',
        PMFunc => '',
-       PMCode => <<'EOF',
+       PMCode => pp_line_numbers(__LINE__,<<'EOF'),
 sub rasc {PDL->rasc(@_)}
 sub PDL::rasc {
   my ($pdl, $file, $num) = @_;

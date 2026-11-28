@@ -100,7 +100,7 @@ pp_def('fft',
 Complex 1-D FFT of the "real" and "imag" arrays [inplace]. A single
 cfloat/cdouble input ndarray can also be used.
 EOF
-	PMCode=><<'EOF',
+	PMCode => pp_line_numbers(__LINE__,<<'EOF'),
 sub PDL::fft {
 	# Convert the first argument to decimal and check for trouble.
 	my ($re, $im) = @_;
@@ -143,7 +143,7 @@ pp_def('ifft',
 Complex inverse 1-D FFT of the "real" and "imag" arrays [inplace]. A single
 cfloat/cdouble input ndarray can also be used.
 EOF
-	PMCode=><<'EOF',
+	PMCode => pp_line_numbers(__LINE__,<<'EOF'),
 sub PDL::ifft {
 	# Convert the first argument to decimal and check for trouble.
 	my ($re, $im) = @_;

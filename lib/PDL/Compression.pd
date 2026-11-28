@@ -130,7 +130,7 @@ give rise to ludicrously large bins in a plain Golomb code; such large jumps
 Working on astronomical or solar image data, typical compression ratios of 
 2-3 are achieved.
 EOD
-	PMCode => <<'EOD',
+	PMCode => pp_line_numbers(__LINE__,<<'EOD'),
 sub PDL::rice_compress {
     my $in = shift;
     my $blocksize = shift || 32;

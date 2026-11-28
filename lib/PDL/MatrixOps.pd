@@ -486,7 +486,7 @@ pp_def("eigens_sym",
 extern void eigens( double *A, double *EV, double *E, int N );
 eigens($P(a), $P(ev), $P(e), $SIZE(n));
 EOF
-  PMCode => <<'EOF',
+  PMCode => pp_line_numbers(__LINE__,<<'EOF'),
 sub PDL::eigens_sym {
   my ($x) = @_;
   my @d = $x->dims;
@@ -573,7 +573,7 @@ pp_def("eigens",
 char *ret = Eigen($SIZE(n), $P(a), 20*$SIZE(n), 1e-13, $P(e), $P(ev));
 if (ret) $CROAK("%s", ret);
 EOF
-  PMCode => <<'EOF',
+  PMCode => pp_line_numbers(__LINE__,<<'EOF'),
 sub PDL::eigens {
   my ($x) = @_;
   my @d = $x->dims;

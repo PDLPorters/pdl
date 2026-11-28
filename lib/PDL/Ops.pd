@@ -366,7 +366,7 @@ ufunc('log10','log10',0,'the base 10 logarithm', GenericTypes => $A,
       Exception => '$a() <= 0',
       NoTgmath => 1, # glibc for at least GCC 8.3.0 won't tgmath log10 though 7.1.0 did
       NoExport => 0,
-      PMCode => <<'EOF',
+      PMCode => pp_line_numbers(__LINE__,<<'EOF'),
 sub PDL::log10 {
     my ($x, $y) = @_;
     return log($x) / log(10) if !UNIVERSAL::isa($x,"PDL");
@@ -506,7 +506,7 @@ pp_def('r2C',
   GenericTypes=>$AF,
   Pars => 'r(); complex [o]c()',
   Doc => 'convert real to native complex, with an imaginary part of zero',
-  PMCode => << 'EOF',
+  PMCode => pp_line_numbers(__LINE__,<<'EOF'),
 sub PDL::r2C ($) {
   return $_[0] if UNIVERSAL::isa($_[0], 'PDL') and !$_[0]->type->real;
   my $r = $_[1] // PDL->nullcreate($_[0]);
@@ -521,7 +521,7 @@ pp_def('i2C',
   GenericTypes=>$AF,
   Pars => 'i(); complex [o]c()',
   Doc => 'convert imaginary to native complex, with a real part of zero',
-  PMCode => << 'EOF',
+  PMCode => pp_line_numbers(__LINE__,<<'EOF'),
 sub PDL::i2C ($) {
   return $_[0] if UNIVERSAL::isa($_[0], 'PDL') and !$_[0]->type->real;
   my $r = $_[1] // PDL->nullcreate($_[0]);

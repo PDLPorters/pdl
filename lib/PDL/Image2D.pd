@@ -229,10 +229,10 @@ EOD
        HandleBad => 1,
         Pars => 'a(m,n); kern(p,q); [o]b(m,n); indx [t]mapi(isize=CALC($SIZE(p) + $SIZE(m))); indx [t]mapj(jsize=CALC($SIZE(q) + $SIZE(n)))',
         OtherPars => 'int opt;',
-        PMCode => '
+        PMCode => pp_line_numbers(__LINE__,<<'EOF'),
 sub PDL::conv2d {
-   my $opt; $opt = pop @_ if ref($_[$#_]) eq \'HASH\';
-   die \'Usage: conv2d( a(m,n), kern(p,q), [o]b(m,n), {Options} )\'
+   my $opt; $opt = pop @_ if ref($_[$#_]) eq 'HASH';
+   die 'Usage: conv2d( a(m,n), kern(p,q), [o]b(m,n), {Options} )'
       if $#_<1 || $#_>2;
    my($x,$kern) = @_;
    my $c = $#_ == 2 ? $_[2] : $x->nullcreate;
@@ -241,7 +241,7 @@ sub PDL::conv2d {
 	);
    return $c;
 }
-',
+EOF
         GenericTypes => $A,
         Code =>
            init_vars() .
@@ -390,7 +390,7 @@ Note: this routine does the median over all points in a rectangular
 EOD
         Pars => 'a(m,n); [o]b(m,n); indx [t]mapi(isize=CALC($SIZE(p) + $SIZE(m))); indx [t]mapj(jsize=CALC($SIZE(q) + $SIZE(n)))',
         OtherPars => 'IV p_size=>p; IV q_size=>q; int opt;',
-        PMCode => <<'EOF',
+        PMCode => pp_line_numbers(__LINE__, <<'EOF'),
 sub PDL::med2df {
    my $opt; $opt = pop @_ if ref($_[$#_]) eq 'HASH';
    die 'Usage: med2df( a(m,n), [o]b(m,n), p, q, {Options} )'
@@ -1865,7 +1865,7 @@ EOD
     Pars => 'img(m,n); ldouble px(np,np); ldouble py(np,np); [o] warp(m,n); ldouble [t] poly(np); ldouble [t] kernel(ns)',
     OtherPars => 'char *kernel_type; double noval; IV nsamples => ns',
     GenericTypes => [ qw(F D E) ],
-        PMCode => <<'EOF',
+        PMCode => pp_line_numbers(__LINE__, <<'EOF'),
 # support routine
 {
     my %warp2d = map { ($_,1) } qw( tanh sinc sinc2 lanczos hamming hann );
@@ -2038,13 +2038,13 @@ of L</warp2d>.
   line warp2d_kernel( "hamming" );
 EOF
     HandleBad => 0,
-    PMCode => '
+    PMCode => pp_line_numbers(__LINE__, <<'EOF'),
 sub PDL::warp2d_kernel ($) {
     my $kernel = _check_kernel( shift, "warp2d_kernel" );
     &PDL::_warp2d_kernel_int( my $x=PDL->null, my $k=PDL->null, $kernel, _get_kernel_size() );
     return ( $x, $k );
 }
-',
+EOF
      Pars => '[o] x(n); [o] k(n); ldouble [t] kernel(n)',
      OtherPars => 'char *name; PDL_Indx nsize => n',
      GenericTypes => [ qw(F D E) ],
