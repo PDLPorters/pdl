@@ -36,7 +36,7 @@ void ppcp(PDL_Byte *dst, PDL_Byte *src, int len)
 }
 EOF
 
-    'tests.pd' => <<'EOF',
+    'tests.pd' => "#line ".(__LINE__+1)." \"t/01-pptest.t\"\n" . <<'EOF',
 # make sure the deprecation mechanism throws warnings
 pp_deprecate_module( infavor => "PDL::Test::Fancy" );
 our $VERSION = '0.01'; # so the Makefile.PL's VERSION_FROM picks it up
@@ -222,7 +222,7 @@ pp_def('incomp_in',
   Pars => '[o] out()',
   OtherPars => 'pdl *ins[]',
   GenericTypes => ['F'],
-  RedoDimsCode => <<'EOC',
+  RedoDimsCode => pp_line_numbers(__LINE__, <<'EOC'),
 pdl **ins = $COMP(ins);
 PDL_Indx i;
 for (i = 0; i < $COMP(ins_count); i++) {
@@ -233,7 +233,7 @@ for (i = 0; i < $COMP(ins_count); i++) {
   if (!$PRIV(bvalflag) && (in->state & PDL_BADVAL)) $PRIV(bvalflag) = 1;
 }
 EOC
-  Code => <<'EOC',
+  Code => pp_line_numbers(__LINE__, <<'EOC'),
 pdl **ins = $COMP(ins);
 PDL_Indx i;
 for (i = 0; i < $COMP(ins_count); i++)
@@ -261,7 +261,7 @@ pp_def('incomp_out',
   HandleBad => 1,
   CallCopy => 0,
   GenericTypes => [PDL::Types::ppdefs_all()],
-  Code => <<'EOC',
+  Code => pp_line_numbers(__LINE__, <<'EOC'),
 pdl **outs = malloc(($COMP(outs_count) = $COMP(howmany)) * sizeof(pdl*));
 $COMP(outs) = outs;
 PDL_Indx i, ndims = $PDL(in)->ndims, dims[ndims];
