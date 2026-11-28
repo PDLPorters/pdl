@@ -786,7 +786,7 @@ EOF
 		unless $::PDLBEGIN =~ /^\s*$/;
         $::PDLMODVERSION //= '';
         $::FUNCSPOD = $::DOCUMENTED ? "\n\n=head1 FUNCTIONS\n\n=cut\n\n" : '';
-        _write_file("$::PDLBASE.pm", join "\n\n", <<EOF, $::PDLBEGIN, $::PDLPM{Top}, $::FUNCSPOD, @::PDLPM{qw(Middle Bot)}, '# Exit with OK status', "1;\n");
+        _write_file("$::PDLBASE.pm", join "\n\n", PDL::PP::pp_line_numbers(__LINE__,<<EOF), $::PDLBEGIN, $::PDLPM{Top}, $::FUNCSPOD, @::PDLPM{qw(Middle Bot)}, '# Exit with OK status', "1;\n");
 #
 # GENERATED WITH PDL::PP from $0! Don't modify!
 #
