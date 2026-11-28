@@ -71,7 +71,6 @@ Makefile\.old
 ^xt/
 
 ^\.github/
-^\.cirrus\.yml
 
 cover_db/
 ^nytprof(/|\.out)
